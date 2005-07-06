@@ -1,0 +1,37 @@
+CREATE TABLE multichoice (
+  nid INTEGER UNSIGNED NOT NULL,
+  multiple_answers TINYINT UNSIGNED NOT NULL,
+  answers TEXT NOT NULL,
+  feedback TEXT NOT NULL,
+  PRIMARY KEY(nid)
+);
+
+CREATE TABLE quiz (
+  nid INTEGER UNSIGNED NOT NULL,
+  number_of_questions INTEGER UNSIGNED NOT NULL,
+  shuffle TINYINT UNSIGNED NOT NULL,
+  backwards_navigation TINYINT UNSIGNED NOT NULL,
+  feedback_time TINYINT UNSIGNED NOT NULL,
+  open INTEGER UNSIGNED NOT NULL,
+  close INTEGER UNSIGNED NOT NULL,
+  takes TINYINT UNSIGNED NOT NULL,
+  PRIMARY KEY(nid)
+);
+
+CREATE TABLE quiz_question (
+  quiz_nid INTEGER UNSIGNED NOT NULL,
+  question_nid INTEGER UNSIGNED NOT NULL,
+  status TINYINT UNSIGNED NOT NULL,
+  PRIMARY KEY (quiz_nid, question_nid)
+);
+
+CREATE TABLE quiz_results (
+  uid INTEGER UNSIGNED NOT NULL,
+  quiz_nid INTEGER UNSIGNED NOT NULL,
+  time_start INTEGER UNSIGNED NOT NULL,
+  time_end INTEGER UNSIGNED NOT NULL,
+  results TEXT,
+  released TINYINT UNSIGNED NOT NULL,
+  KEY (uid),
+  KEY (quiz_nid)
+);

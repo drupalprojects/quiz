@@ -1,0 +1,119 @@
+<?php
+
+function quiz_perm() {
+  return array('create quiz');
+}
+
+function quiz_node_name($node) {
+  return t('quiz');
+}
+
+function quiz_menu($may_cache) {
+  $items = array();
+
+  if (!$may_cache) {
+    $items[] = array('path' => 'node/add/quiz', 'title' => t('quiz'),
+      'access' => user_access('create quiz'));
+  }
+
+  return $items;
+}
+
+function quiz_form(&$node) {
+  $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
+//  $output .= form_checkbox(t('shuffle'), 'shuffle', 1, $node->shuffle);
+  $output .= form_hidden('shuffle', 1);
+  $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
+  $form_group = '';
+  $form_group .= form_radio(t('At the end of the quiz'), 'feedback_time', 0, $node->feedback_time == 0);
+  $form_group .= form_radio(t('After each question'), 'feedback_time', 1, $node->feedback_time == 1);
+  $form_group .= form_radio(t('Do not show'), 'feedback_time', 2, $node->feedback_time == 2);
+  $output .= form_group(t('When do you want to give feedback?'), $form_group);
+  /* open, close */
+  $options = array('Unlimited');
+  for ($i = 1; $i<10; $i++) {
+    $options[$i] = $i;
+  }
+  $output .= form_select(t('Number of takes'), 'takes', $node->takes, $options);
+
+  /* taxonomy choice needs to be written */
+  foreach (module_invoke_all('list_questions') as $question) {
+    $rows[] = array(
+      form_radio('', 'status]['. $question->nid, 0, $node->status[$question->nid] == 0),
+      form_radio('', 'status]['. $question->nid, 1, $node->status[$question->nid] == 1),
+      form_radio('', 'status]['. $question->nid, 2, $node->status[$question->nid] == 2),
+      $question->question);
+  }
+  $header = array('Random', 'Always', 'Never', '');
+  $output .= theme('table', $header, $rows);
+  return $output;
+}
+
+function quiz_validate(&$node) {
+  if (db_num_rows(db_query('SELECT quiz_nid FROM quiz_results WHERE quiz_nid=%d', $node->nid))) {
+    /* drupal_set_message('Can not edit', 'error');
+    drupal_goto('node/'. $node->nid);*/
+  }
+}
+
+function quiz_insert($node) {
+  db_query("INSERT INTO quiz (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, %d, %d, %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes);
+  foreach($node->status as $key => $value) {
+    db_query("INSERT INTO quiz_question (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+  }
+}
+
+function quiz_update($node) {
+  db_query("UPDATE quiz SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
+  db_query('DELETE FROM quiz_question WHERE quiz_nid=%d', $node->nid);
+  foreach($node->status as $key => $value) {
+    db_query("INSERT INTO quiz_question (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+  }
+}
+
+function quiz_load($node) {
+  $additions = db_fetch_object(db_query('SELECT * FROM quiz WHERE nid = %d', $node->nid));
+  $results = db_query('SELECT * FROM quiz_question WHERE quiz_nid = %d', $node->nid);
+  while ($question = db_fetch_object($results)) {
+    $additions->status[$question->question_nid] = $question->status;
+  }
+  return $additions;
+}
+
+function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
+  if (!$teaser) {
+    if (!isset($_SESSION['quiz_questions'])) {
+      $nids = array();
+      $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND status = %d ', $node->nid, 1);
+      while ($question_node = db_fetch_object($result)) {
+        $nids[] = $question_node->question_nid;
+      }
+      $node->number_of_questions -= count($nids);
+      $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
+      while ($question_node = db_fetch_object($result)) {
+        $nids[] = $question_node->question_nid;
+      }
+      shuffle($nids);
+      $_SESSION['quiz_questions'] = $nids;
+      $_SESSION['points'] = 0;
+    }
+    $submit_message = t('Submit');
+    if ($_POST['quiz_op'] == $submit_message) {
+      $former_question_node = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
+      $_SESSION['points'] += module_invoke($former_question_node->type, 'evaluate_question', $former_question_node);
+    }
+    if (!empty($_SESSION['quiz_questions'])) {
+      $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
+      $question = module_invoke($question_node->type, 'render_question', $question_node);
+      $question .= form_submit($submit_message, 'quiz_op');
+      $node->body = form($question);
+    }
+    else {
+      unset($_SESSION['quiz_questions']);
+      $node->body = $_SESSION['points'] .' points';
+    }
+  }
+}
+
+// edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
+?>
