@@ -151,6 +151,19 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
 }
 
 /**
+ * Implementation of hook_help().
+ */
+function multichoice_help($section) {
+  switch ($section) {
+    case 'admin/modules#description':
+      return t("Multiple choice question type for quiz module.");
+
+    default:
+      break;
+  }
+}
+
+/**
  * Render question to screen
  *
  * @param $node
