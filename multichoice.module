@@ -156,8 +156,9 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
 function multichoice_help($section) {
   switch ($section) {
     case 'admin/modules#description':
-      return t("Multiple choice question type for quiz module.");
-
+      return t('Multiple choice question type for quiz module.');
+    case 'node/add#multichoice':
+      return t('A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)');
     default:
       break;
   }

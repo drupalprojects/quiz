@@ -156,8 +156,9 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
 function quiz_help($section) {
   switch ($section) {
     case 'admin/modules#description':
-      return t("Allows you to create interactive quizzes for your visitors.");
-
+      return t('Allows you to create interactive quizzes for your visitors.');
+    case 'node/add#quiz':
+      return t('Quizzes are a collection of questions designed to create interactive tests');
     default:
       break;
   }
