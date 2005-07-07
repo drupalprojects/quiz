@@ -163,5 +163,18 @@ function quiz_help($section) {
   }
 }
 
+/**
+ * Retrieve list of question types
+ *
+ * Determined by which modules implement the list_questions() hook
+ *
+ * @return
+ *   Array of question types
+ */
+function quiz_question_types()
+{
+  return module_implements('list_questions');
+}
+
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
 ?>
