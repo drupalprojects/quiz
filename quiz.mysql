@@ -1,3 +1,12 @@
+/* $Id$ */
+
+/**
+ * @file
+ * MySQL SQL file for quiz module
+ *
+ * Creates all MySQL tables required for quiz module
+ */
+
 CREATE TABLE multichoice (
   nid INTEGER UNSIGNED NOT NULL,
   multiple_answers TINYINT UNSIGNED NOT NULL,
