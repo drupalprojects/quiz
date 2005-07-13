@@ -5,7 +5,7 @@
  * @file
  * Multiple choice question type for quiz module
  *
- * Allows the creation multiple choice questions (ex: a, b, c, d or true/false)
+ * Allows the creation of multiple choice questions (ex: a, b, c, d or true/false)
  */
 
 /**
