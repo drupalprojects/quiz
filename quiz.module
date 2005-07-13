@@ -40,6 +40,9 @@ function quiz_menu($may_cache) {
  * Implementation of hook_form().
  */
 function quiz_form(&$node) {
+  if (function_exists('taxonomy_node_form')) {
+    $output .= implode('', taxonomy_node_form('quiz', $node));
+  }
   $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
 //  $output .= form_checkbox(t('shuffle'), 'shuffle', 1, $node->shuffle);
   $output .= form_hidden('shuffle', 1);
