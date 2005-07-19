@@ -120,7 +120,6 @@ function multichoice_update($node) {
 function multichoice_load($node) {
   $additions = db_fetch_object(db_query('SELECT * FROM multichoice WHERE nid = %d', $node->nid));
   $additions->answers = unserialize($additions->answers);
-  print_r($additions);
   return $additions;
 }
 
