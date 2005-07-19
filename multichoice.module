@@ -159,8 +159,6 @@ function multichoice_help($section) {
       return t('Multiple choice question type for quiz module.');
     case 'node/add#multichoice':
       return t('A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)');
-    default:
-      break;
   }
 }
 
@@ -176,9 +174,18 @@ function multichoice_help($section) {
 function multichoice_render_question($node) {
   $rows = array();
   $submit_message = t('Submit');
-  foreach ($node->answers as $key => $answer) {
-    $rows[] = array(form_checkbox('', 'tries]['. $key, 1), $answer[1]);
+  
+  // Radio buttons for single selection questions, checkboxes for multiselect
+  if ($node->multiple == 0) {
+    foreach ($node->answers as $key => $answer) {
+      $rows[] = array(form_radio('', 'tries]['. $key, 1), $answer[1]);
+    }
+  } else {
+    foreach ($node->answers as $key => $answer) {
+      $rows[] = array(form_checkbox('', 'tries]['. $key, 1), $answer[1]);
+    }
   }
+  
   $header = header('', '');
   $form = theme('table', $header, $rows);
   return $node->body . $form;
