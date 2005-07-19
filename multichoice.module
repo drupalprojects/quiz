@@ -46,7 +46,7 @@ function multichoice_form(&$node) {
 
   $output .= form_textarea(t('Question'), 'body', $node->body, 60, 5, '', NULL, TRUE);
   $output .= filter_form('format', $node->format);
-  $output .= form_checkbox(t('Multiple answers'), 'multiple', 1, $node->multiple);
+  $output .= form_checkbox(t('Multiple answers'), 'multiple_answers', 1, $node->multiple_answers);
   $rows = array();
   $answers = $node->answers;
   for ($i = 0; $i < $node->rows; $i++) {
@@ -82,8 +82,8 @@ function multichoice_validate(&$node) {
   $corrects = 0;
   foreach ($node->answers as $key => $answer) {
     if ($answer[0]) {
-      if ($corrects && !$node->multiple) {
-        form_set_error('multiple', t('Single choice yet multiple correct answers are present'));
+      if ($corrects && !$node->multiple_answers) {
+        form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
       }
       $corrects++;
     }
@@ -104,14 +104,14 @@ function multichoice_validate(&$node) {
  * Implementation of hook_insert().
  */
 function multichoice_insert($node) {
-  db_query("INSERT INTO multichoice (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple, serialize($node->answers));
+  db_query("INSERT INTO multichoice (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
 }
 
 /**
  * Implementation of hook_update().
  */
 function multichoice_update($node) {
-  db_query("UPDATE multichoice SET multiple_answers = %d, answers = '%s' WHERE nid = %d", $node->multiple, serialize($node->answers), $node->nid);
+  db_query("UPDATE multichoice SET multiple_answers = %d, answers = '%s' WHERE nid = %d", $node->multiple_answers, serialize($node->answers), $node->nid);
 }
 
 /**
@@ -120,6 +120,7 @@ function multichoice_update($node) {
 function multichoice_load($node) {
   $additions = db_fetch_object(db_query('SELECT * FROM multichoice WHERE nid = %d', $node->nid));
   $additions->answers = unserialize($additions->answers);
+  print_r($additions);
   return $additions;
 }
 
@@ -176,7 +177,7 @@ function multichoice_render_question($node) {
   $submit_message = t('Submit');
   
   // Radio buttons for single selection questions, checkboxes for multiselect
-  if ($node->multiple == 0) {
+  if ($node->multiple_answers == 0) {
     foreach ($node->answers as $key => $answer) {
       $rows[] = array(form_radio('', 'tries]['. $key, 1), $answer[1]);
     }
