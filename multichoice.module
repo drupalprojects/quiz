@@ -44,7 +44,7 @@ function multichoice_form(&$node) {
     $output .= implode('', taxonomy_node_form('multichoice', $node));
   }
 
-  $output .= form_textarea(t('multichoice'), 'body', $node->body, 60, 5, '', NULL, TRUE);
+  $output .= form_textarea(t('Question'), 'body', $node->body, 60, 5, '', NULL, TRUE);
   $output .= filter_form('format', $node->format);
   $output .= form_checkbox(t('Multiple answers'), 'multiple', 1, $node->multiple);
   $rows = array();
