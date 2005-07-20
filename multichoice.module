@@ -69,6 +69,11 @@ function multichoice_form(&$node) {
  * Implementation of hook_validate().
  */
 function multichoice_validate(&$node) {
+
+  // Hard-code questions to have no teaser and to not be promoted to front page
+  $node->teaser = 0;
+  $node->promote = 0;
+
   if (!$node->rows) {
      $node->rows = $node->answers ? count($node->answers) : 5;
   }
