@@ -173,7 +173,6 @@ function multichoice_help($section) {
  */
 function multichoice_render_question($node) {
   $rows = array();
-  $submit_message = t('Submit');
   
   // Radio buttons for single selection questions, checkboxes for multiselect
   if ($node->multiple_answers == 0) {
