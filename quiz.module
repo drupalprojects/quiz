@@ -44,8 +44,7 @@ function quiz_form(&$node) {
     $output .= implode('', taxonomy_node_form('quiz', $node));
   }
   $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
-//  $output .= form_checkbox(t('shuffle'), 'shuffle', 1, $node->shuffle);
-  $output .= form_hidden('shuffle', 1);
+  $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle);
   $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
   $form_group = '';
   $form_group .= form_radio(t('At the end of the quiz'), 'feedback_time', 0, $node->feedback_time == 0);
@@ -131,7 +130,9 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
       while ($question_node = db_fetch_object($result)) {
         $nids[] = $question_node->question_nid;
       }
-      shuffle($nids);
+      if ($node->shuffle == 1) {
+        shuffle($nids);
+      }
       $_SESSION['quiz_questions'] = $nids;
       $_SESSION['points'] = 0;
     }
