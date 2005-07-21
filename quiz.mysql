@@ -45,3 +45,9 @@ CREATE TABLE quiz_results (
   KEY (uid),
   KEY (quiz_nid)
 );
+
+CREATE TABLE quiz_question_revision_queue (
+  nid INTEGER UNSIGNED NOT NULL,
+  revision_id INTEGER UNSIGNED NOT NULL,
+  PRIMARY KEY(nid, revision_id)
+);
