@@ -75,7 +75,7 @@ function quiz_form(&$node) {
  * Implementation of hook_validate().
  */
 function quiz_validate(&$node) {
-  if (db_num_rows(db_query('SELECT quiz_nid FROM quiz_results WHERE quiz_nid=%d', $node->nid))) {
+  if (db_num_rows(db_query('SELECT quiz_nid FROM {quiz_results} WHERE quiz_nid=%d', $node->nid))) {
     /* drupal_set_message('Can not edit', 'error');
     drupal_goto('node/'. $node->nid);*/
   }
@@ -85,9 +85,9 @@ function quiz_validate(&$node) {
  * Implementation of hook_insert().
  */
 function quiz_insert($node) {
-  db_query("INSERT INTO quiz (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, %d, %d, %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes);
+  db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, %d, %d, %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes);
   foreach($node->status as $key => $value) {
-    db_query("INSERT INTO quiz_question (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
   }
 }
 
@@ -95,10 +95,10 @@ function quiz_insert($node) {
  * Implementation of hook_update().
  */
 function quiz_update($node) {
-  db_query("UPDATE quiz SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
-  db_query('DELETE FROM quiz_question WHERE quiz_nid=%d', $node->nid);
+  db_query("UPDATE {quiz} SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
+  db_query('DELETE FROM {quiz_question} WHERE quiz_nid=%d', $node->nid);
   foreach($node->status as $key => $value) {
-    db_query("INSERT INTO quiz_question (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
   }
 }
 
@@ -106,8 +106,8 @@ function quiz_update($node) {
  * Implementation of hook_load().
  */
 function quiz_load($node) {
-  $additions = db_fetch_object(db_query('SELECT * FROM quiz WHERE nid = %d', $node->nid));
-  $results = db_query('SELECT * FROM quiz_question WHERE quiz_nid = %d', $node->nid);
+  $additions = db_fetch_object(db_query('SELECT * FROM {quiz} WHERE nid = %d', $node->nid));
+  $results = db_query('SELECT * FROM {quiz_question} WHERE quiz_nid = %d', $node->nid);
   while ($question = db_fetch_object($results)) {
     $additions->status[$question->question_nid] = $question->status;
   }
