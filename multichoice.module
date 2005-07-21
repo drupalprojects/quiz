@@ -109,21 +109,22 @@ function multichoice_validate(&$node) {
  * Implementation of hook_insert().
  */
 function multichoice_insert($node) {
-  db_query("INSERT INTO multichoice (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
+  db_query("INSERT INTO {multichoice} (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
+  db_query("INSERT INTO {multichoice} (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
 }
 
 /**
  * Implementation of hook_update().
  */
 function multichoice_update($node) {
-  db_query("UPDATE multichoice SET multiple_answers = %d, answers = '%s' WHERE nid = %d", $node->multiple_answers, serialize($node->answers), $node->nid);
+  db_query("UPDATE {multichoice} SET multiple_answers = %d, answers = '%s' WHERE nid = %d", $node->multiple_answers, serialize($node->answers), $node->nid);
 }
 
 /**
  * Implementation of hook_load().
  */
 function multichoice_load($node) {
-  $additions = db_fetch_object(db_query('SELECT * FROM multichoice WHERE nid = %d', $node->nid));
+  $additions = db_fetch_object(db_query('SELECT * FROM {multichoice} WHERE nid = %d', $node->nid));
   $additions->answers = unserialize($additions->answers);
   return $additions;
 }
@@ -219,7 +220,7 @@ function multichoice_evaluate_question($node) {
  *   Array of questions
  */
 function multichoice_list_questions() {
-  $result = db_query("SELECT nid, body, format FROM node WHERE type='%s'", 'multichoice');
+  $result = db_query("SELECT nid, body, format FROM {node} WHERE type='%s'", 'multichoice');
   $questions = array();
   while ($node = db_fetch_object($result)) {
     $question =& new stdClass();
