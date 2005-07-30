@@ -31,7 +31,7 @@ CREATE TABLE quiz (
 CREATE TABLE quiz_question (
   quiz_nid INTEGER UNSIGNED NOT NULL,
   question_nid INTEGER UNSIGNED NOT NULL,
-  status TINYINT UNSIGNED NOT NULL,
+  question_status TINYINT UNSIGNED NOT NULL,
   PRIMARY KEY (quiz_nid, question_nid)
 );
 

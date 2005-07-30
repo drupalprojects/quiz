@@ -70,9 +70,9 @@ function quiz_form(&$node) {
   /* taxonomy choice needs to be written */
   foreach (module_invoke_all('list_questions') as $question) {
     $rows[] = array(
-      form_radio('', 'status]['. $question->nid, 0, $node->status[$question->nid] == 0),
-      form_radio('', 'status]['. $question->nid, 1, $node->status[$question->nid] == 1),
-      form_radio('', 'status]['. $question->nid, 2, $node->status[$question->nid] == 2),
+      form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
+      form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
+      form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
       $question->question);
   }
   $header = array('Random', 'Always', 'Never', '');
@@ -95,8 +95,8 @@ function quiz_validate(&$node) {
  */
 function quiz_insert($node) {
   db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, %d, %d, %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes);
-  foreach($node->status as $key => $value) {
-    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+  foreach($node->question_status as $key => $value) {
+    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
   }
 }
 
@@ -106,8 +106,8 @@ function quiz_insert($node) {
 function quiz_update($node) {
   db_query("UPDATE {quiz} SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
   db_query('DELETE FROM {quiz_question} WHERE quiz_nid=%d', $node->nid);
-  foreach($node->status as $key => $value) {
-    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
+  foreach($node->question_status as $key => $value) {
+    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
   }
 }
 
@@ -118,7 +118,7 @@ function quiz_load($node) {
   $additions = db_fetch_object(db_query('SELECT * FROM {quiz} WHERE nid = %d', $node->nid));
   $results = db_query('SELECT * FROM {quiz_question} WHERE quiz_nid = %d', $node->nid);
   while ($question = db_fetch_object($results)) {
-    $additions->status[$question->question_nid] = $question->status;
+    $additions->question_status[$question->question_nid] = $question->question_status;
   }
   return $additions;
 }
@@ -130,12 +130,12 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser) {
     if (!isset($_SESSION['quiz_questions'])) {
       $nids = array();
-      $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND status = %d ', $node->nid, 1);
+      $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ', $node->nid, 1);
       while ($question_node = db_fetch_object($result)) {
         $nids[] = $question_node->question_nid;
       }
       $node->number_of_questions -= count($nids);
-      $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
+      $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
       while ($question_node = db_fetch_object($result)) {
         $nids[] = $question_node->question_nid;
       }
