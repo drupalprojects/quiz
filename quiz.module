@@ -16,6 +16,15 @@ function quiz_perm() {
 }
 
 /**
+ * Implementation of hook_access().
+ */
+function quiz_access($op, $node) {
+  if ($op == 'create') {
+    return user_access('create quiz');
+  }
+}
+
+/**
  * Implementation of hook_node_name().
  */
 function quiz_node_name($node) {
