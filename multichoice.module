@@ -119,7 +119,6 @@ function multichoice_validate(&$node) {
  */
 function multichoice_insert($node) {
   db_query("INSERT INTO {multichoice} (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
-  db_query("INSERT INTO {multichoice} (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
 }
 
 /**
