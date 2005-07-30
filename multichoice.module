@@ -16,6 +16,15 @@ function multichoice_perm() {
 }
 
 /**
+ * Implementation of hook_access().
+ */
+function multichoice_access($op, $node) {
+  if ($op == 'create') {
+    return user_access('administer multichoice');
+  }
+}
+
+/**
  * Implementation of hook_node_name().
  */
 function multichoice_node_name($node) {
