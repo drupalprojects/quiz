@@ -232,7 +232,7 @@ function multichoice_list_questions() {
   $questions = array();
   while ($node = db_fetch_object($result)) {
     $question =& new stdClass();
-    $question->question = check_output($node->body, $node->format);
+    $question->question = check_markup($node->body, $node->format);
     $question->nid = $node->nid;
     $questions[] = $question;
   }
