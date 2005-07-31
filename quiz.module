@@ -37,9 +37,22 @@ function quiz_node_name($node) {
 function quiz_menu($may_cache) {
   $items = array();
 
-  if (!$may_cache) {
+  if ($may_cache) {
     $items[] = array('path' => 'node/add/quiz', 'title' => t('quiz'),
       'access' => user_access('create quiz'));
+  }
+  else {
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $node = node_load(arg(1));
+        if ($node->nid) {
+          $items[] = array('path' => 'node/'. arg(1). '/questions', 'title' => t('add questions'),
+          'callback' => 'quiz_questions',
+          'access' => user_access('create quiz'),
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 5,
+          'callback arguments' => $node);        
+        }
+      }
   }
 
   return $items;
