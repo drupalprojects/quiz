@@ -25,7 +25,7 @@ function quiz_access($op, $node) {
     return user_access('create quiz');
   }
   
-  if ($op == 'edit' || $op == 'delete') {
+  if ($op == 'update' || $op == 'delete') {
     if (user_access('create quiz') && ($user->uid == $node->uid)) {
       return TRUE;
     }  
