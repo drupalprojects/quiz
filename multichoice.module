@@ -36,7 +36,7 @@ function multichoice_node_name($node) {
  */
 function multichoice_menu($may_cache) {
   $items = array();
-  if (!$may_cache) {
+  if ($may_cache) {
     $items[] = array('path' => 'node/add/multichoice', 'title' => t('multichoice'),
       'access' => user_access('administer multichoice'));
   }
