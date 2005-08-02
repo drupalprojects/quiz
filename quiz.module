@@ -226,5 +226,19 @@ function quiz_get_vocabularies() {
   return $vocabularies;
 }
 
+/**
+ * Prints a taxonomy selection form for each vocabulary
+ *
+ * @return
+ *   HTML output to print to screen
+ */
+function _quiz_taxonomy_select() {
+  $output = '';
+  foreach (_quiz_get_vocabularies() as $vid => $vocabulary) {
+    $output .= taxonomy_form($vid);
+  }
+  return $output;
+}
+
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
 ?>
