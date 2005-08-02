@@ -206,9 +206,24 @@ function quiz_help($section) {
  * @return
  *   Array of question types
  */
-function quiz_question_types()
-{
+function _quiz_get_question_types() {
   return module_implements('list_questions');
+}
+
+/**
+ * Retrieve list of vocabularies for all quiz questions
+ *
+ * @return
+ *   An array containing vocabulary list
+ */
+function quiz_get_vocabularies() {
+  $vocabularies = array();
+  foreach (_quiz_get_question_types() as $type) {
+    foreach (taxonomy_get_vocabularies($type) as $vid => $vocabulary) {
+      $vocabularies[$vid] = $vocabulary;
+    }
+  }
+  return $vocabularies;
 }
 
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
