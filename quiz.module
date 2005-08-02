@@ -211,12 +211,12 @@ function _quiz_get_question_types() {
 }
 
 /**
- * Retrieve list of vocabularies for all quiz questions
+ * Retrieve list of vocabularies for all quiz question types
  *
  * @return
  *   An array containing vocabulary list
  */
-function quiz_get_vocabularies() {
+function _quiz_get_vocabularies() {
   $vocabularies = array();
   foreach (_quiz_get_question_types() as $type) {
     foreach (taxonomy_get_vocabularies($type) as $vid => $vocabulary) {
