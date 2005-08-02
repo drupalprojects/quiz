@@ -240,5 +240,36 @@ function _quiz_taxonomy_select() {
   return $output;
 }
 
+/**
+ * Handles "add question" tab
+ *
+ * Displays form which allows questions to be filtered by taxonomy vocabulary,
+ * and assigned to the given quiz
+ */
+function quiz_questions() {
+  $output = t('Select one or more terms to filter the question list:');
+  if ($node = node_load(arg(1))) {
+    drupal_set_title(check_plain($node->title));
+    $output .= _quiz_taxonomy_select();
+    $output .= form_submit(t('Search'), 'taxonomy_op');
+    $output .= t('Choose from the following questions to assign to this quiz');
+    foreach (module_invoke_all('list_questions') as $question) {
+      $rows[] = array(
+        form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
+        form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
+        form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
+        $question->question);
+    }
+    $header = array(t('Random'), t('Always'), t('Never'), t('Question'));
+    $output .= theme('table', $header, $rows);
+    $output .= form_submit(t('Submit'), 'question_op');
+    $output = form($output);
+  }
+  else {
+    drupal_not_found();
+  }
+  return $output;
+}
+
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
 ?>
