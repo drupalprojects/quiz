@@ -247,22 +247,28 @@ function _quiz_taxonomy_select() {
  * and assigned to the given quiz
  */
 function quiz_questions() {
-  $output = t('Select one or more terms to filter the question list:');
+  $op = $_POST['op'];
+  $edit = $_POST['edit'];
+  
   if ($node = node_load(arg(1))) {
     drupal_set_title(check_plain($node->title));
+    $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
     $output .= _quiz_taxonomy_select();
-    $output .= form_submit(t('Search'), 'taxonomy_op');
-    $output .= t('Choose from the following questions to assign to this quiz');
-    foreach (module_invoke_all('list_questions') as $question) {
-      $rows[] = array(
-        form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
-        form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
-        form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
-        $question->question);
+    $output .= form_submit(t('Filter question list'), 'op');
+    if ($edit[taxonomy] != array(0)) {
+      $output .= '<p>' .t('Choose from the following questions to assign to this quiz'). '</p>';
+      foreach (quiz_filter_question_list($edit[taxonomy]) as $question) {
+        $rows[] = array(
+          form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
+          form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
+          form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
+          $question->question,
+          $question->type);
+      }
+      $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+      $output .= theme('table', $header, $rows);
     }
-    $header = array(t('Random'), t('Always'), t('Never'), t('Question'));
-    $output .= theme('table', $header, $rows);
-    $output .= form_submit(t('Submit'), 'question_op');
+    $output .= form_submit(t('Submit questions'), 'op');
     $output = form($output);
   }
   else {
