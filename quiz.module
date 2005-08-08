@@ -116,6 +116,14 @@ function quiz_update($node) {
 }
 
 /**
+ * Implementation of hook_delete().
+ */
+function quiz_delete($node) {
+  db_query("DELETE FROM {quiz} WHERE nid=%d", $node->nid);
+  db_query("DELETE FROM {quiz_question} WHERE quiz_nid=%d", $node->nid);
+}
+
+/**
  * Implementation of hook_load().
  */
 function quiz_load($node) {

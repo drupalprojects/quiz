@@ -129,6 +129,14 @@ function multichoice_update($node) {
 }
 
 /**
+ * Implementation of hook_delete().
+ */
+function multichoice_delete($node) {
+  db_query("DELETE FROM {multichoice} WHERE nid=%d", $node->nid);
+  db_query("DELETE FROM {quiz_question} WHERE question_nid=%d", $node->nid);
+}
+
+/**
  * Implementation of hook_load().
  */
 function multichoice_load($node) {
