@@ -271,5 +271,39 @@ function quiz_questions() {
   return $output;
 }
 
+/**
+ * Filters question list by given terms.
+ *
+ * @param $terms
+ *   An array of vocabulary term IDs
+ * @return 
+ *   Array of questions which match terms
+ */
+function quiz_filter_question_list($terms = NULL) {
+
+  // Retrieve question list from database, filtered on vocabulary terms
+  $sql = "
+    SELECT DISTINCT n.nid, n.type, n.body, n.format 
+    FROM {node} n, {term_node} t
+    WHERE n.type IN ('" .implode("','", _quiz_get_question_types()). "')";
+  if ($terms != NULL) {
+    $sql .= 'AND t.tid IN (' .implode(',', $terms). ')
+      AND t.nid = n.nid';
+  }
+  $result = db_query($sql);
+  
+  // Create questions array
+  $questions = array();
+  while ($node = db_fetch_object($result)) {
+    $question =& new stdClass();
+    $question->question = check_markup($node->body, $node->format);
+    $question->nid = $node->nid;
+    $question->type = $node->type;
+    $questions[] = $question;
+  }
+  
+  return $questions;
+}
+
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
 ?>
