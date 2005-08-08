@@ -88,16 +88,6 @@ function quiz_form(&$node) {
   }
   $output .= form_select(t('Number of takes'), 'takes', $node->takes, $options);
 
-  /* taxonomy choice needs to be written */
-  foreach (module_invoke_all('list_questions') as $question) {
-    $rows[] = array(
-      form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
-      form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
-      form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
-      $question->question);
-  }
-  $header = array('Random', 'Always', 'Never', '');
-  $output .= theme('table', $header, $rows);
   return $output;
 }
 
@@ -116,9 +106,6 @@ function quiz_validate(&$node) {
  */
 function quiz_insert($node) {
   db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, %d, %d, %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes);
-  foreach($node->question_status as $key => $value) {
-    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
-  }
 }
 
 /**
@@ -126,10 +113,6 @@ function quiz_insert($node) {
  */
 function quiz_update($node) {
   db_query("UPDATE {quiz} SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
-  db_query('DELETE FROM {quiz_question} WHERE quiz_nid=%d', $node->nid);
-  foreach($node->question_status as $key => $value) {
-    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $node->nid, $key, $value);
-  }
 }
 
 /**
@@ -149,7 +132,8 @@ function quiz_load($node) {
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser) {
-    if (!isset($_SESSION['quiz_questions'])) {
+    //if (!isset($_SESSION['quiz_questions'])) {
+    	
       $nids = array();
       $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ', $node->nid, 1);
       while ($question_node = db_fetch_object($result)) {
@@ -181,7 +165,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
       unset($_SESSION['quiz_questions']);
       $node->body = $_SESSION['points'] .' points';
     }
-  }
+  //}
 }
 
 /**
@@ -252,23 +236,36 @@ function quiz_questions() {
   
   if ($node = node_load(arg(1))) {
     drupal_set_title(check_plain($node->title));
-    $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
-    $output .= _quiz_taxonomy_select();
-    $output .= form_submit(t('Filter question list'), 'op');
-    if ($edit[taxonomy] != array(0)) {
-      $output .= '<p>' .t('Choose from the following questions to assign to this quiz'). '</p>';
-      foreach (quiz_filter_question_list($edit[taxonomy]) as $question) {
-        $rows[] = array(
-          form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
-          form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
-          form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
-          $question->question,
-          $question->type);
+    
+    if ($op == t('Submit questions')) {
+
+      // Update quiz with selected question options
+      quiz_update_questions($node, $edit[question_status]);
+      drupal_set_message(t('Questions updated successfully!'));
+      
+    } else {
+
+      // Display filtering options
+      $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
+      $output .= _quiz_taxonomy_select();
+      $output .= form_submit(t('Filter question list'));
+      
+      // Display filtered question list
+      if (isset($edit[taxonomy]) && $edit[taxonomy] != array(0)) {
+        $output .= '<p>' .t('Choose from the following questions to assign to this quiz'). '</p>';
+        foreach (quiz_filter_question_list($edit[taxonomy]) as $question) {
+          $rows[] = array(
+            form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
+            form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
+            form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
+            $question->question,
+            $question->type);
+        }
+        $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+        $output .= theme('table', $header, $rows);
+        $output .= form_submit(t('Submit questions'));
       }
-      $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
-      $output .= theme('table', $header, $rows);
     }
-    $output .= form_submit(t('Submit questions'), 'op');
     $output = form($output);
   }
   else {
@@ -309,6 +306,21 @@ function quiz_filter_question_list($terms = NULL) {
   }
   
   return $questions;
+}
+
+/**
+ * Updates questions assigned to the quiz
+ *
+ * @param $quiz
+ *   Quiz node
+ * @param $questions
+ *   Array of questions and their status
+ */
+function quiz_update_questions($quiz, $questions) {
+  db_query('DELETE FROM {quiz_question} WHERE quiz_nid=%d', $quiz->nid);
+  foreach($questions as $key => $value) {
+    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $quiz->nid, $key, $value);
+  }
 }
 
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
