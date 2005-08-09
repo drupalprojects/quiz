@@ -156,7 +156,12 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
         $points = multichoice_evaluate_question($node);
       }
       $question = multichoice_render_question($node);
-      $question .= form_submit($submit_message, 'quiz_op');
+      
+      // Don't show submit button on preview
+      if ($_POST['op'] != t('Preview')) {
+        $question .= form_submit($submit_message, 'quiz_op');
+      }
+      
       $node->body = form($question);
       if (isset($points)) {
         $node->body .= ($points ? 1 : 0) .' point';
@@ -185,13 +190,13 @@ function multichoice_help($section) {
 }
 
 /**
- * Render question to screen
+ * Print question to screen
  *
  * @param $node
- *   Question
+ *   Question node
  *
  * @return
- *   Output
+ *   HTML output
  */
 function multichoice_render_question($node) {
   $rows = array();

@@ -166,7 +166,12 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
     if (!empty($_SESSION['quiz_questions'])) {
       $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
       $question = module_invoke($question_node->type, 'render_question', $question_node);
-      $question .= form_submit($submit_message, 'quiz_op');
+      
+      // Don't show Submit button on preview
+      if ($_POST['op'] != t('Preview')) {
+        $question .= form_submit($submit_message, 'quiz_op');
+      }
+
       $node->body = form($question);
     }
     else {
