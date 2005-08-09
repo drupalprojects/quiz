@@ -186,6 +186,99 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
  */
 function quiz_help($section) {
   switch ($section) {
+    case 'admin/help#quiz':
+      return t('
+<h3>Description</h3>
+<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Finally, it provides a mechanism for ensuring question quality through a combination of community revision and moderation. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>
+<h3>Creating Your First Quiz</h3>
+<p>Creating an initial quiz requires three steps:</p>
+<ol>
+  <li>Create at least one taxonomy vocabulary and assign it to the quiz and question type modules</li>
+  <li>Create a series of questions</li>
+  <li>Create a quiz based on the series of questions</li>
+</ol>
+<p>Also note that for anyone but the site administrator, creating quizzes requires the <strong>create quiz</strong> privilege, and creating questions requires the <strong>administer <em>question type</em></strong> privilege. These settinga can be configured in <a href="%admin-access">administer >> access control</a>.</p>
+<h4>Setting up a vocabulary</h4>
+<ol>
+  <li>If not already enabled, go to the <a href="%admin-modules">administer >> modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
+  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href="%admin-taxonomy">administer >> categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>
+  <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:
+    <ul>
+      <li>Literature
+        <ul>
+          <li>Children\'s books</li>
+          <li>Poetry</li>
+          <li>Shakespeare</li>
+        </ul>
+      </li>
+      <li>Mathematics
+        <ul>
+          <li>Algebra</li>
+          <li>Trigonometry</li>
+          <li>Calculus</li>
+        </ul>
+      </li>
+      <li>Information Technology
+        <ul>
+          <li>Hardware</li>
+          <li>Programming</li>
+          <li>Databases</li>
+        </ul>
+      </li>
+  </li>
+</ol>
+<h4>Creating quiz questions</h4>
+<ol>
+  <li>Begin by clicking <a href="%create-content">create content</a>, and then select a question type node (for example, <a href="%multichoice">multichoice</a>)</li>
+  <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:
+    <dl>
+      <dt><strong>Title</strong></dt>
+      <dd>Question title. This will be displayed as the heading of the question.</dd>
+      <dt><strong>Taxonomy selection</strong></dt>
+      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed. Select from the terms displayed in order to assign questions to vocabulary terms so that they can be filtered in the quiz creation process.</dd>
+      <dt><strong>Question</strong></dt>
+      <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>
+      <dt><strong>Multiple Answers</strong></dt>
+      <dd>Whether or not the question has multiple correct answers, such as a "Select all that apply" question.</dd>
+      <dt><strong>Correct</strong></dt>
+      <dd>Indicates that given answer is a correct answer.</dd>
+      <dt><strong>Answer</strong></dt>
+      <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>
+      <dt><strong>Feedback</strong></dt>
+      <dd>Feedback, if supplied, will be provided to the student either immediately after answering the question, at the end of the quiz, or not at all (feedback options are configured in quizzes).</dd>
+    </dl>
+  </li>
+  <li>Repeat for each question you would like included on the quiz.</li>
+</ol>
+<h4>Creating the quiz</h4>
+<ol>
+  <li>Go to <a href="%create-quiz">create content >> quiz</a> to access the quiz creation form.</li>
+  <li>Fill out the form to set the quiz options:
+    <dl>
+      <dt><strong>Title</strong></dt>
+      <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>
+      <dt><strong>Taxonomy selection</strong></dt>
+      <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>
+      <dt><strong>Number of questions</strong></dt>
+      <dd>Total number of questions on quiz.</dd>
+      <dt><strong>Shuffle questions</strong></dt>
+      <dd>Whether or not to shuffle (randomize) the questions.</dd>
+      <dt><strong>Backwards Navigation</strong></dt>
+      <dd>Whether or not to allow students to return to a previous question.</dd>
+      <dt><strong>Answer</strong></dt>
+      <dd>An answer choice (for example, <strong>4</strong>)</dd>
+      <dt><strong>Feedback</strong></dt>
+      <dd>Set options on when and whether question feedback should appear.</dd>
+      <dt><strong>Number of takes</strong></dt>
+      <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>
+    </dl>
+  </li>
+  <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>
+  <li>Begin by selecting one or more terms from the taxonomy list and click <strong>Filter question list</strong>. This will bring up a selection of questions matching the selected vocabulary terms.</li>
+  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong>Submit questions</strong>.</li>
+  <li>Repeat process until satisfied with question selection.</li>
+</ol>
+    ', array('%admin-access' => url('admin/access'), '%admin-modules' => url('admin/modules'), '%admin-taxonomy' => url('admin/taxonomy'), '%create-content' => url('node/add'), '%multichoice' => url('node/add/multichoice'), '%create-quiz' => url('node/add/quiz')));
     case 'admin/modules#description':
       return t('Allows you to create interactive quizzes for your visitors.');
     case 'node/add#quiz':
