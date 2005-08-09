@@ -339,17 +339,75 @@ function _quiz_taxonomy_select() {
  *   Array of questions
  */
 function _quiz_get_questions($quiz) {
+
+  // Retrieve list of questions
   $result = db_query("
-    SELECT n.nid, n.type, n.body, n.format
+    SELECT n.nid, n.type, n.body, n.format, q.question_status
     FROM {node} n, {quiz_question} q
     WHERE n.nid = q.question_nid
     AND q.quiz_nid = %d", $quiz->nid);
+  
+  // Create questions array
   $questions = array();
-  while ($question = db_fetch_object($result)) {
+  while ($node = db_fetch_object($result)) {
+    $question =& new stdClass();
+    $question->question = check_markup($node->body, $node->format);
+    $question->nid = $node->nid;
+    $question->type = $node->type;
+    switch ($node->question_status) {
+      case 2:
+        $question->status = t('Never');
+      case 1:
+        $question->status = t('Always');
+      default:
+        $question->status = t('Random');
+    }
     $questions[] = $question;
   }
+
   return $questions;
 }
+
+
+/**
+ * Print a table containing array of questions and options
+ *
+ * @param $questions
+ *   Array of question nodes
+ * @param $options
+ *   Whether or not to show question options
+ * @return
+ *   HTML to output table
+ */
+function quiz_print_question_table($questions, $options = true) {
+  $output = '';
+  if ($options == true) {
+    foreach ($questions as $question) {
+      $rows[] = array(
+        form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
+        form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
+        form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
+        $question->question,
+        $question->type);
+    }
+    $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+  } else {
+    foreach ($questions as $question) {
+      $rows[] = array(
+        $question->status,
+        $question->question,
+        $question->type);
+    }
+    $header = array(t('Status'), t('Question'), t('Type'));
+  }
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  } else {
+    $output .= 'No questions found.';
+  }
+  return $output;
+}
+
 
 /**
  * Handles "add question" tab
@@ -370,29 +428,28 @@ function quiz_questions() {
       quiz_update_questions($node, $edit[question_status]);
       drupal_set_message(t('Questions updated successfully!'));
       
-    } else {
-
-      // Display filtering options
-      $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
-      $output .= _quiz_taxonomy_select();
-      $output .= form_submit(t('Filter question list'));
-      
-      // Display filtered question list
-      if (isset($edit[taxonomy]) && $edit[taxonomy] != array(0)) {
-        $output .= '<p>' .t('Choose from the following questions to assign to this quiz'). '</p>';
-        foreach (quiz_filter_question_list($edit[taxonomy]) as $question) {
-          $rows[] = array(
-            form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
-            form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
-            form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
-            $question->question,
-            $question->type);
-        }
-        $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
-        $output .= theme('table', $header, $rows);
-        $output .= form_submit(t('Submit questions'));
-      }
     }
+
+    // Display filtering options
+    $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
+    $output .= _quiz_taxonomy_select();
+    $output .= form_submit(t('Filter question list'));
+      
+    // Display filtered question list
+    if (isset($edit[taxonomy])) {
+      $output .= '<p>' .t('The following questions met the search criteria:'). '</p>';
+      $questions = quiz_filter_question_list($edit[taxonomy]);
+      $output .= quiz_print_question_table($questions);
+    }
+      
+    // Display assigned question list
+    $output .= '<p>' .t('Questions assigned to this quiz:'). '</p>';
+    $questions = _quiz_get_questions($node);
+    $output .= quiz_print_question_table($questions, false);
+
+    $output .= form_submit(t('Submit questions'));
+
+
     $output = form($output);
   }
   else {
