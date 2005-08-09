@@ -331,6 +331,27 @@ function _quiz_taxonomy_select() {
 }
 
 /**
+ * Retrieve list of questions assigned to quiz
+ *
+ * @param $quiz
+ *   Quiz node
+ * @return 
+ *   Array of questions
+ */
+function _quiz_get_questions($quiz) {
+  $result = db_query("
+    SELECT n.nid, n.type, n.body, n.format
+    FROM {node} n, {quiz_question} q
+    WHERE n.nid = q.question_nid
+    AND q.quiz_nid = %d", $quiz->nid);
+  $questions = array();
+  while ($question = db_fetch_object($result)) {
+    $questions[] = $question;
+  }
+  return $questions;
+}
+
+/**
  * Handles "add question" tab
  *
  * Displays form which allows questions to be filtered by taxonomy vocabulary,
@@ -342,7 +363,7 @@ function quiz_questions() {
   
   if ($node = node_load(arg(1))) {
     drupal_set_title(check_plain($node->title));
-    
+
     if ($op == t('Submit questions')) {
 
       // Update quiz with selected question options
