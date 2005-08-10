@@ -352,19 +352,7 @@ function _quiz_get_questions($quiz) {
   // Create questions array
   $questions = array();
   while ($node = db_fetch_object($result)) {
-    $question =& new stdClass();
-    $question->question = check_markup($node->body, $node->format);
-    $question->nid = $node->nid;
-    $question->type = $node->type;
-    switch ($node->question_status) {
-      case 2:
-        $question->status = t('Never');
-      case 1:
-        $question->status = t('Always');
-      default:
-        $question->status = t('Random');
-    }
-    $questions[] = $question;
+    $questions[] = quiz_node_map($node);
   }
 
   return $questions;
@@ -386,9 +374,9 @@ function quiz_print_question_table($questions, $options = true) {
   if ($options == true) {
     foreach ($questions as $question) {
       $rows[] = array(
-        form_radio('', 'question_status]['. $question->nid, 0, $node->question_status[$question->nid] == 0),
-        form_radio('', 'question_status]['. $question->nid, 1, $node->question_status[$question->nid] == 1),
-        form_radio('', 'question_status]['. $question->nid, 2, $node->question_status[$question->nid] == 2),
+        form_radio('', 'question_status]['. $question->nid, 0, $question->status == 0),
+        form_radio('', 'question_status]['. $question->nid, 1, $question->status == 1),
+        form_radio('', 'question_status]['. $question->nid, 2, $question->status == 2),
         $question->question,
         $question->type);
     }
@@ -396,7 +384,7 @@ function quiz_print_question_table($questions, $options = true) {
   } else {
     foreach ($questions as $question) {
       $rows[] = array(
-        $question->status,
+        quiz_get_question_status($question->status),
         $question->question,
         $question->type);
     }
@@ -442,6 +430,21 @@ function quiz_questions() {
     if (isset($edit[taxonomy])) {
       $output .= '<p>' .t('The following questions met the search criteria:'). '</p>';
       $questions = quiz_filter_question_list($edit[taxonomy]);
+      
+      // All this work to get the radio buttons to select their old values by default?!
+      $assigned_questions = array();
+      $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
+      while ($assigned_question = db_fetch_object($result)) {
+        $assigned_questions[$assigned_question->question_nid] = $assigned_question->question_status;
+      }
+      foreach ($questions as $question) {
+        if (array_key_exists($question->nid, $assigned_questions)) {
+          // Why does this line mock me? :(
+          $question->status = $assigned_questions[$question->nid];
+        }
+      }
+
+      // Output table of question options
       $output .= quiz_print_question_table($questions);
     }
       
@@ -475,7 +478,7 @@ function quiz_filter_question_list($terms = NULL) {
   $sql = "
     SELECT DISTINCT n.nid, n.type, n.body, n.format 
     FROM {node} n, {term_node} t
-    WHERE n.type IN ('" .implode("','", _quiz_get_question_types()). "')";
+    WHERE n.type IN ('" .implode("','", _quiz_get_question_types()). "') ";
   if ($terms != NULL) {
     $sql .= 'AND t.tid IN (' .implode(',', $terms). ')
       AND t.nid = n.nid';
@@ -485,14 +488,46 @@ function quiz_filter_question_list($terms = NULL) {
   // Create questions array
   $questions = array();
   while ($node = db_fetch_object($result)) {
-    $question =& new stdClass();
-    $question->question = check_markup($node->body, $node->format);
-    $question->nid = $node->nid;
-    $question->type = $node->type;
-    $questions[] = $question;
+    $questions[] = quiz_node_map($node);
   }
   
   return $questions;
+}
+
+/**
+ * Map node properties to a question object
+ *
+ * @param $node
+ *   Node
+ * @return
+ *   Question object
+ */
+function quiz_node_map($node) {
+  $question =& new stdClass();
+  $question->question = check_markup($node->body, $node->format);
+  $question->nid = $node->nid;
+  $question->type = $node->type;
+  $question->status = isset($node->question_status) ? $node->question_status : 0;
+  return $question;
+}
+
+/**
+ * Map status number to "human readable" version
+ *
+ * @param $status
+ *   Question status (0, 1, 2)
+ * @return 
+ *   String corresponding to status number
+ */
+function quiz_get_question_status($status) {
+  switch ($status) {
+    case 2:
+      return t('Never');
+    case 1:
+      return t('Always');
+    default:
+      return t('Random');
+  }
 }
 
 /**
