@@ -319,13 +319,15 @@ function _quiz_get_vocabularies() {
 /**
  * Prints a taxonomy selection form for each vocabulary
  *
+ * @param
+ *   Default selected values
  * @return
  *   HTML output to print to screen
  */
-function _quiz_taxonomy_select() {
+function _quiz_taxonomy_select($values = 0) {
   $output = '';
   foreach (_quiz_get_vocabularies() as $vid => $vocabulary) {
-    $output .= taxonomy_form($vid);
+    $output .= taxonomy_form($vid, $values);
   }
   return $output;
 }
@@ -418,6 +420,7 @@ function quiz_print_question_table($questions, $options = true) {
 function quiz_questions() {
   $op = $_POST['op'];
   $edit = $_POST['edit'];
+
   
   if ($node = node_load(arg(1))) {
     drupal_set_title(check_plain($node->title));
@@ -432,7 +435,7 @@ function quiz_questions() {
 
     // Display filtering options
     $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
-    $output .= _quiz_taxonomy_select();
+    $output .= _quiz_taxonomy_select($edit[taxonomy]);
     $output .= form_submit(t('Filter question list'));
       
     // Display filtered question list
