@@ -382,9 +382,10 @@ function quiz_print_question_table($questions, $options = true) {
     }
     $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
   } else {
+    $status_descriptions = array(t('Random'), t('Always'), t('Never'));
     foreach ($questions as $question) {
       $rows[] = array(
-        quiz_get_question_status($question->status),
+        $status_descriptions[$question->status],
         $question->question,
         $question->type);
     }
@@ -509,25 +510,6 @@ function quiz_node_map($node) {
   $question->type = $node->type;
   $question->status = isset($node->question_status) ? $node->question_status : 0;
   return $question;
-}
-
-/**
- * Map status number to "human readable" version
- *
- * @param $status
- *   Question status (0, 1, 2)
- * @return 
- *   String corresponding to status number
- */
-function quiz_get_question_status($status) {
-  switch ($status) {
-    case 2:
-      return t('Never');
-    case 1:
-      return t('Always');
-    default:
-      return t('Random');
-  }
 }
 
 /**
