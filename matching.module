@@ -34,5 +34,3 @@ function matching_help($section) {
 function matching_list_questions() {
   return array();
 }
-
-?>

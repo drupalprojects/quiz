@@ -251,5 +251,3 @@ function multichoice_list_questions() {
   }
   return $questions;
 }
-
-?>

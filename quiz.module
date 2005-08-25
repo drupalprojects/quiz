@@ -608,4 +608,3 @@ function quiz_update_questions($quiz, $questions) {
 }
 
 // edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
-?>
