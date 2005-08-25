@@ -60,7 +60,7 @@ function quiz_menu($may_cache) {
           'weight' => 5,
           'callback arguments' => $node);        
         }
-      }
+     }
   }
 
   return $items;
@@ -73,6 +73,7 @@ function quiz_form(&$node) {
   if (function_exists('taxonomy_node_form')) {
     $output .= implode('', taxonomy_node_form('quiz', $node));
   }
+  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
   $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
   $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle);
   $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
