@@ -148,46 +148,63 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (!$teaser) {
-    //if (!isset($_SESSION['quiz_questions'])) {
-    	
-      $nids = array();
-      $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ', $node->nid, 1);
-      while ($question_node = db_fetch_object($result)) {
-        $nids[] = $question_node->question_nid;
-      }
-      $node->number_of_questions -= count($nids);
-      $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
-      while ($question_node = db_fetch_object($result)) {
-        $nids[] = $question_node->question_nid;
-      }
-      if ($node->shuffle == 1) {
-        shuffle($nids);
-      }
-      $_SESSION['quiz_questions'] = $nids;
-      $_SESSION['points'] = 0;
-    }
-    $submit_message = t('Submit');
-    if ($_POST['quiz_op'] == $submit_message) {
-      $former_question_node = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
-      $_SESSION['points'] += module_invoke($former_question_node->type, 'evaluate_question', $former_question_node);
-    }
-    if (!empty($_SESSION['quiz_questions'])) {
-      $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
-      $question = module_invoke($question_node->type, 'render_question', $question_node);
-      
-      // Don't show Submit button on preview
-      if ($_POST['op'] != t('Preview')) {
-        $question .= form_submit($submit_message, 'quiz_op');
-      }
 
-      $node->body = form($question);
-    }
-    else {
-      unset($_SESSION['quiz_questions']);
-      $node->body = $_SESSION['points'] .' points';
-    }
+}
+
+/**
+ * Stub function until Rob's part is done.
+ *
+ * Basically, took all the stuff from quiz_view and moved it here.
+ */
+function quiz_take_quiz() {
+  if (arg(0) == 'node' && is_numeric(arg(1))) {
+    if ($node = node_load(arg(1))) {
+      if (!$teaser) {
+        //if (!isset($_SESSION['quiz_questions'])) {
+
+        $nids = array();
+        $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ', $node->nid, 1);
+        while ($question_node = db_fetch_object($result)) {
+          $nids[] = $question_node->question_nid;
+        }
+        $node->number_of_questions -= count($nids);
+        $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
+        while ($question_node = db_fetch_object($result)) {
+          $nids[] = $question_node->question_nid;
+        }
+        if ($node->shuffle == 1) {
+          shuffle($nids);
+        }
+        $_SESSION['quiz_questions'] = $nids;
+        $_SESSION['points'] = 0;
+      }
+      $submit_message = t('Submit');
+      if ($_POST['quiz_op'] == $submit_message) {
+        $former_question_node = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
+        $_SESSION['points'] += module_invoke($former_question_node->type, 'evaluate_question', $former_question_node);
+      }
+      if (!empty($_SESSION['quiz_questions'])) {
+        $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
+        $question = module_invoke($question_node->type, 'render_question', $question_node);
+
+        // Don't show Submit button on preview
+        if ($_POST['op'] != t('Preview')) {
+          $question .= form_submit($submit_message, 'quiz_op');
+        }
+
+        $node->body = form($question);
+      }
+      else {
+        unset($_SESSION['quiz_questions']);
+        $node->body = $_SESSION['points'] .' points';
+      }
   //}
+    }
+  }
+  else {
+    drupal_not_found();
+  }
+  return $node->body;
 }
 
 /**
@@ -414,6 +431,9 @@ function quiz_print_question_table($questions, $options = true) {
  *
  * Displays form which allows questions to be filtered by taxonomy vocabulary,
  * and assigned to the given quiz
+ *
+ * @return 
+ *  HTML output to create page
  */
 function quiz_questions() {
   $op = $_POST['op'];
