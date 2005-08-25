@@ -50,17 +50,25 @@ function quiz_menu($may_cache) {
       'access' => user_access('create quiz'));
   }
   else {
-      if (arg(0) == 'node' && is_numeric(arg(1))) {
-        $node = node_load(arg(1));
-        if ($node->type == 'quiz') {
-          $items[] = array('path' => 'node/'. arg(1). '/questions', 'title' => t('add questions'),
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if ($node->type == 'quiz') {
+        $items[] = array('path' => 'node/'. arg(1). '/questions', 'title' => t('add questions'),
           'callback' => 'quiz_questions',
           'access' => user_access('create quiz'),
           'type' => MENU_LOCAL_TASK,
           'weight' => 5,
-          'callback arguments' => $node);        
-        }
-     }
+          'callback arguments' => $node);
+          
+        //menu item for quiz_take_quiz()
+        $items[] = array('path' => 'node/'. arg(1). '/take_quiz/start', 'title' => t('take quiz'),
+          'callback' => 'quiz_take_quiz',
+          'access' => user_access('create quiz'),
+          'type' => MENU_LOCAL_TASK,
+          'weight' => 5,
+          'callback arguments' => $node);
+      }
+    }
   }
 
   return $items;
