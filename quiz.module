@@ -148,13 +148,18 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
-
+  if (user_access('create quiz')) {
+    // Output quiz options
+  }
 }
 
 /**
  * Stub function until Rob's part is done.
  *
  * Basically, took all the stuff from quiz_view and moved it here.
+ *
+ * @return
+ *  HTML output for page
  */
 function quiz_take_quiz() {
   if (arg(0) == 'node' && is_numeric(arg(1))) {
@@ -453,13 +458,13 @@ function quiz_questions() {
       }
 
       // Display filtering options
-      $output = '<p>' .t('Select one or more terms to filter the question list:'). '</p>';
+      $output = '<p>'. t('Select one or more terms to filter the question list:') .'</p>';
       $output .= _quiz_taxonomy_select($edit[taxonomy]);
       $output .= form_submit(t('Filter question list'));
 
       // Display filtered question list
       if (isset($edit[taxonomy])) {
-        $output .= '<p>' .t('The following questions met the search criteria:'). '</p>';
+        $output .= '<p>'. t('The following questions met the search criteria:') .'</p>';
         $questions = quiz_filter_question_list($edit[taxonomy]);
 
         // All this work to get the radio buttons to select their old values by default?!
@@ -480,7 +485,7 @@ function quiz_questions() {
       }
 
       // Display assigned question list
-      $output .= '<p>' .t('Questions assigned to this quiz:'). '</p>';
+      $output .= '<p>'. t('Questions assigned to this quiz:') .'</p>';
       $questions = _quiz_get_questions($node);
       $output .= quiz_print_question_table($questions, false);
 
@@ -510,9 +515,9 @@ function quiz_filter_question_list($terms = NULL) {
   $sql = "
     SELECT DISTINCT n.nid, n.type, n.body, n.format 
     FROM {node} n, {term_node} t
-    WHERE n.type IN ('" .implode("','", _quiz_get_question_types()). "') ";
+    WHERE n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
   if ($terms != NULL) {
-    $sql .= 'AND t.tid IN (' .implode(',', $terms). ')
+    $sql .= 'AND t.tid IN ('. implode(',', $terms) .')
       AND t.nid = n.nid';
   }
   $result = db_query($sql);
