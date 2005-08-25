@@ -78,11 +78,11 @@ function quiz_menu($may_cache) {
  * Implementation of hook_form().
  */
 function quiz_form(&$node) {
+  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
+  $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
   if (function_exists('taxonomy_node_form')) {
     $output .= implode('', taxonomy_node_form('quiz', $node));
   }
-  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
-  $output .= form_textfield(t('Number of questions'), 'number_of_questions', $node->number_of_questions, 4, 6);
   $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle);
   $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
   $form_group = '';
@@ -148,8 +148,51 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (user_access('create quiz')) {
-    // Output quiz options
+  if (!$teaser && user_access('create quiz')) {
+    
+    // Format quiz options
+    $node->body .= '<h3>'. t('Quiz Options') .'</h3>';
+    $header = array(
+      t('# of Questions'),
+      t('Shuffle?'),
+      t('Allow Backwards?'),
+      t('Feedback'),
+      t('Number of takes'));
+    $shuffle = $node->shuffle == 1 ? 'Yes' : 'No';
+    $backwards = $node->backwards_navigation == 1 ? 'Yes' : 'No';
+    $feedback_options = array(t('At the end of each quiz'), t('After each question'), t('Do not show'));
+    $feedback = $feedback_options[$node->feedback_time];
+    $takes = $node->takes == 0 ? 'Unlimited' : "$node->takes minutes";
+    $rows = array();
+    $rows[] = array(
+      $node->number_of_questions,
+      $shuffle,
+      $backwards,
+      $feedback,
+      $takes);
+    $node->body .= theme('table', $header, $rows);
+    
+    // Format taxonomy selection (if applicable)
+    if (function_exists(taxonomy_node_get_terms)) {
+      $node->body .= '<h3>'. t('Taxonomy selection') .'</h3>';
+      $terms = array();
+      foreach (taxonomy_node_get_terms($node->nid) as $term) {
+        $terms[] = $term->name;
+      }
+      if (!empty($terms)) {
+        $terms = implode(', ', $terms);
+        $node->body .= "<p>$terms</p>";
+      }
+      else {
+        $node->body .= '<p>'. t('No selected terms found') .'</p>';
+      }
+    }
+
+    // Format quiz questions
+    $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
+    $questions = _quiz_get_questions($node);
+    $node->body .= quiz_print_question_table($questions, false);
+    
   }
 }
 
@@ -372,18 +415,19 @@ function _quiz_taxonomy_select($values = 0) {
  *   Array of questions
  */
 function _quiz_get_questions($quiz) {
-
-  // Retrieve list of questions
-  $result = db_query("
+  $questions = array();
+  if (!empty($quiz->nid)) {
+    // Retrieve list of questions
+    $result = db_query("
     SELECT n.nid, n.type, n.body, n.format, q.question_status
     FROM {node} n, {quiz_question} q
     WHERE n.nid = q.question_nid
     AND q.quiz_nid = %d", $quiz->nid);
 
-  // Create questions array
-  $questions = array();
-  while ($node = db_fetch_object($result)) {
-    $questions[] = quiz_node_map($node);
+    // Create questions array
+    while ($node = db_fetch_object($result)) {
+      $questions[] = quiz_node_map($node);
+    }
   }
 
   return $questions;
