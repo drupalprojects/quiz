@@ -20,15 +20,15 @@ function quiz_perm() {
  */
 function quiz_access($op, $node) {
   global $user;
-  
+
   if ($op == 'create') {
     return user_access('create quiz');
   }
-  
+
   if ($op == 'update' || $op == 'delete') {
     if (user_access('create quiz') && ($user->uid == $node->uid)) {
       return TRUE;
-    }  
+    }
   }
 }
 
@@ -47,7 +47,7 @@ function quiz_menu($may_cache) {
 
   if ($may_cache) {
     $items[] = array('path' => 'node/add/quiz', 'title' => t('quiz'),
-      'access' => user_access('create quiz'));
+    'access' => user_access('create quiz'));
   }
   else {
     if (arg(0) == 'node' && is_numeric(arg(1))) {
@@ -59,7 +59,7 @@ function quiz_menu($may_cache) {
           'type' => MENU_LOCAL_TASK,
           'weight' => 5,
           'callback arguments' => $node);
-          
+
         //menu item for quiz_take_quiz()
         $items[] = array('path' => 'node/'. arg(1). '/take_quiz/start', 'title' => t('take quiz'),
           'callback' => 'quiz_take_quiz',
@@ -198,7 +198,7 @@ function quiz_take_quiz() {
         unset($_SESSION['quiz_questions']);
         $node->body = $_SESSION['points'] .' points';
       }
-  //}
+      //}
     }
   }
   else {
@@ -374,7 +374,7 @@ function _quiz_get_questions($quiz) {
     FROM {node} n, {quiz_question} q
     WHERE n.nid = q.question_nid
     AND q.quiz_nid = %d", $quiz->nid);
-  
+
   // Create questions array
   $questions = array();
   while ($node = db_fetch_object($result)) {
@@ -440,7 +440,7 @@ function quiz_questions() {
   $edit = $_POST['edit'];
 
   if (arg(0) == 'node' && is_numeric(arg(1))) {
-  
+
     if ($node = node_load(arg(1))) {
       drupal_set_title(check_plain($node->title));
 
@@ -516,13 +516,13 @@ function quiz_filter_question_list($terms = NULL) {
       AND t.nid = n.nid';
   }
   $result = db_query($sql);
-  
+
   // Create questions array
   $questions = array();
   while ($node = db_fetch_object($result)) {
     $questions[] = quiz_node_map($node);
   }
-  
+
   return $questions;
 }
 
