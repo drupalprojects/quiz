@@ -104,9 +104,13 @@ function quiz_form(&$node) {
  * Implementation of hook_validate().
  */
 function quiz_validate(&$node) {
-  if (db_num_rows(db_query('SELECT quiz_nid FROM {quiz_results} WHERE quiz_nid=%d', $node->nid))) {
-    /* drupal_set_message('Can not edit', 'error');
-    drupal_goto('node/'. $node->nid);*/
+  if ($node->title) {
+    if (empty($node->body)) {
+      form_set_error('body', t('Description is required.'));    
+    }
+    if ($node->number_of_questions < 1) {
+      form_set_error('number_of_questions', t('Number of questions is required and must be a number.'));
+    }
   }
 }
 
