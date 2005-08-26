@@ -612,10 +612,15 @@ function quiz_update_questions($quiz, $questions) {
 
   // Perform update if question is already assigned, or insert if it's a new question
   foreach ($questions as $key => $value) {
-    if (array_key_exists($key, $assigned_questions)) {
-      db_query('UPDATE {quiz_question} SET question_status = %d WHERE question_nid = %d', $value, $key);
-    } else {
-      db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+    if ($value == 2) {
+      db_query('DELETE FROM {quiz_question} WHERE quiz_nid = %d AND question_nid = %d', $quiz->nid, $key);
+    }
+    else {
+      if (array_key_exists($key, $assigned_questions)) {
+        db_query('UPDATE {quiz_question} SET question_status = %d WHERE question_nid = %d', $value, $key);
+      } else {
+        db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+      }
     }
   }
 
