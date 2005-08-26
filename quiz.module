@@ -500,7 +500,7 @@ function quiz_questions() {
         if ($result) {
           drupal_set_message(t('Questions updated successfully!'));
         } else {
-          drupal_set_message(t('No questions were selected, so no changes have been made.'));
+          drupal_set_message(t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
         }
 
       }
@@ -608,6 +608,8 @@ function quiz_node_map($node) {
  *   True if update was a success, false if three was a problem
  */
 function quiz_update_questions($quiz, $questions) {
+  
+  $return = true;
 
   if (!empty($questions)) {
     // Get currently assigned questions
@@ -620,21 +622,31 @@ function quiz_update_questions($quiz, $questions) {
     // Perform update if question is already assigned, or insert if it's a new question
     foreach ($questions as $key => $value) {
       if ($value == 2) {
-        db_query('DELETE FROM {quiz_question} WHERE quiz_nid = %d AND question_nid = %d', $quiz->nid, $key);
+        $result = db_query('DELETE FROM {quiz_question} WHERE quiz_nid = %d AND question_nid = %d', $quiz->nid, $key);
+        if (!$result) {
+          $return = false;
+        }
       }
       else {
         if (array_key_exists($key, $assigned_questions)) {
-          db_query('UPDATE {quiz_question} SET question_status = %d WHERE question_nid = %d', $value, $key);
+          $result = db_query('UPDATE {quiz_question} SET question_status = %d WHERE question_nid = %d', $value, $key);
+          if (!$result) {
+            $return = false;
+          }
         } else {
-          db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+          $result = db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+          if (!$result) {
+            $return = false;
+          }
         }
       }
     }
-    
-    return true;
+ 
   } else {
-    return false;
+    $return = false;
   }
+  
+  return $return;
 
 }
 
