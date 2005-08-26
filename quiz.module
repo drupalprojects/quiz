@@ -528,6 +528,13 @@ function quiz_questions() {
       $output .= '<p>'. t('Questions assigned to this quiz:') .'</p>';
       $questions = _quiz_get_questions($node);
       $output .= quiz_print_question_table($questions, false);
+      
+      // Display links to create other questions
+      $output .= '<p>Create additional questions: ';
+      foreach (_quiz_get_question_types() as $type) {
+       $output .= l($type, "admin/node/$type", array('title' => "Go to $type administration")) .' ';
+      }
+      $output .= '</p>';
 
       $output .= form_submit(t('Submit questions'));
       $output = form($output);
