@@ -532,7 +532,7 @@ function quiz_questions() {
       // Display links to create other questions
       $output .= '<p>Create additional questions: ';
       foreach (_quiz_get_question_types() as $type) {
-       $output .= l($type, "admin/node/$type", array('title' => "Go to $type administration")) .' ';
+       $output .= l($type, "node/add/$type", array('title' => "Go to $type administration")) .' ';
       }
       $output .= '</p>';
 
