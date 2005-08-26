@@ -510,17 +510,13 @@ function quiz_questions() {
       if (isset($edit[taxonomy])) {
         $output .= '<p>'. t('The following questions met the search criteria:') .'</p>';
         $questions = quiz_filter_question_list($edit[taxonomy]);
-
-        // All this work to get the radio buttons to select their old values by default?!
-        $assigned_questions = array();
+        
+        // Grab current question status, if any
         $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
         while ($assigned_question = db_fetch_object($result)) {
-          $assigned_questions[$assigned_question->question_nid] = $assigned_question->question_status;
-        }
-        foreach ($questions as $question) {
-          if (array_key_exists($question->nid, $assigned_questions)) {
-            // Why does this line mock me? :(
-            $question->status = $assigned_questions[$question->nid];
+          $question =& $questions[$assigned_question->question_nid];
+          if (array_key_exists($assigned_question->question_nid, $questions)) {
+            $question->status = $assigned_question->question_status;
           }
         }
 
@@ -534,8 +530,6 @@ function quiz_questions() {
       $output .= quiz_print_question_table($questions, false);
 
       $output .= form_submit(t('Submit questions'));
-
-
       $output = form($output);
     }
   }
@@ -569,7 +563,7 @@ function quiz_filter_question_list($terms = NULL) {
   // Create questions array
   $questions = array();
   while ($node = db_fetch_object($result)) {
-    $questions[] = quiz_node_map($node);
+    $questions[$node->nid] = quiz_node_map($node);
   }
 
   return $questions;
