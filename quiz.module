@@ -510,12 +510,12 @@ function quiz_questions() {
       if (isset($edit[taxonomy])) {
         $output .= '<p>'. t('The following questions met the search criteria:') .'</p>';
         $questions = quiz_filter_question_list($edit[taxonomy]);
-        
+
         // Grab current question status, if any
         $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
         while ($assigned_question = db_fetch_object($result)) {
-          $question =& $questions[$assigned_question->question_nid];
           if (array_key_exists($assigned_question->question_nid, $questions)) {
+            $question =& $questions[$assigned_question->question_nid];
             $question->status = $assigned_question->question_status;
           }
         }
@@ -582,7 +582,7 @@ function quiz_node_map($node) {
   $question->question = check_markup($node->body, $node->format);
   $question->nid = $node->nid;
   $question->type = $node->type;
-  $question->status = isset($node->question_status) ? $node->question_status : 0;
+  $question->status = isset($node->question_status) ? $node->question_status : 2;
   return $question;
 }
 
@@ -595,10 +595,23 @@ function quiz_node_map($node) {
  *   Array of questions and their status
  */
 function quiz_update_questions($quiz, $questions) {
-  db_query('DELETE FROM {quiz_question} WHERE quiz_nid=%d', $quiz->nid);
-  foreach($questions as $key => $value) {
-    db_query("INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)", $quiz->nid, $key, $value);
+
+  // Get currently assigned questions
+  $result = db_query('SELECT quiz_nid, question_nid, question_status FROM {quiz_question} WHERE quiz_nid=%d', $quiz->nid);
+  $assigned_questions = array();
+  while ($assigned_question = db_fetch_object($result)) {
+    $assigned_questions[$assigned_question->question_nid] = $assigned_question->question_status;
   }
+
+  // Perform update if question is already assigned, or insert if it's a new question
+  foreach ($questions as $key => $value) {
+    if (array_key_exists($key, $assigned_questions)) {
+      db_query('UPDATE {quiz_question} SET question_status = %d WHERE question_nid = %d', $value, $key);
+    } else {
+      db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+    }
+  }
+
 }
 
-// edit: taxonomy, view: taken, feedback, insert into quiz_results, view quiz_results
+// edit: view: taken, feedback, insert into quiz_results, view quiz_results
