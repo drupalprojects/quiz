@@ -25,10 +25,10 @@ function multichoice_access($op, $node) {
 }
 
 /**
- * Implementation of hook_node_name().
+ * Implementation of hook_node().
  */
-function multichoice_node_name($node) {
-  return t('multichoice');
+function multichoice_node() {
+  return array('multichoice' => array('name' => t('multichoice'), 'base' => 'multichoice'));
 }
 
 /**

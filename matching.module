@@ -10,10 +10,10 @@
  */
 
 /**
- * Implementation of hook_node_name().
+ * Implementation of hook_node().
  */
-function matching_node_name($node) {
-  return t('matching');
+function matching_node() {
+  return array('matching' => array('name' => t('matching'), 'base' => 'matching'));
 }
 
 /**

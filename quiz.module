@@ -33,10 +33,10 @@ function quiz_access($op, $node) {
 }
 
 /**
- * Implementation of hook_node_name().
+ * Implementation of hook_node().
  */
-function quiz_node_name($node) {
-  return t('quiz');
+function quiz_node() {
+  return array('quiz' => array('name' => t('quiz'), 'base' => 'quiz'));
 }
 
 /**
