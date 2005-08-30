@@ -12,7 +12,7 @@
 /**
  * Implementation of hook_node().
  */
-function matching_node() {
+function matching_node_info() {
   return array('matching' => array('name' => t('matching'), 'base' => 'matching'));
 }
 

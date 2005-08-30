@@ -27,7 +27,7 @@ function multichoice_access($op, $node) {
 /**
  * Implementation of hook_node().
  */
-function multichoice_node() {
+function multichoice_node_info() {
   return array('multichoice' => array('name' => t('multichoice'), 'base' => 'multichoice'));
 }
 
