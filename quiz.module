@@ -60,8 +60,8 @@ function quiz_menu($may_cache) {
           'weight' => 5,
           'callback arguments' => $node);
 
-        //menu item for quiz_take_quiz()
-        $items[] = array('path' => 'node/'. arg(1). '/take_quiz/start', 'title' => t('take quiz'),
+        // Menu item for quiz_take_quiz()
+        $items[] = array('path' => 'node/'. arg(1). '/quiz/start', 'title' => t('take quiz'),
           'callback' => 'quiz_take_quiz',
           'access' => user_access('create quiz'),
           'type' => MENU_LOCAL_TASK,
@@ -162,11 +162,11 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
       t('Allow Backwards?'),
       t('Feedback'),
       t('Number of takes'));
-    $shuffle = $node->shuffle == 1 ? 'Yes' : 'No';
-    $backwards = $node->backwards_navigation == 1 ? 'Yes' : 'No';
+    $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
+    $backwards = $node->backwards_navigation == 1 ? t('Yes') : t('No');
     $feedback_options = array(t('At the end of each quiz'), t('After each question'), t('Do not show'));
     $feedback = $feedback_options[$node->feedback_time];
-    $takes = $node->takes == 0 ? 'Unlimited' : "$node->takes minutes";
+    $takes = $node->takes == 0 ? t('Unlimited') : "$node->takes minutes";
     $rows = array();
     $rows[] = array(
       $node->number_of_questions,
