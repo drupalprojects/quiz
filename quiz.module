@@ -343,8 +343,6 @@ function quiz_help($section) {
       <dd>Whether or not to shuffle (randomize) the questions.</dd>
       <dt><strong>Backwards Navigation</strong></dt>
       <dd>Whether or not to allow students to return to a previous question.</dd>
-      <dt><strong>Answer</strong></dt>
-      <dd>An answer choice (for example, <strong>4</strong>)</dd>
       <dt><strong>Feedback</strong></dt>
       <dd>Set options on when and whether question feedback should appear.</dd>
       <dt><strong>Number of takes</strong></dt>
