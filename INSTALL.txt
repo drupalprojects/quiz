@@ -6,9 +6,13 @@ Installation
 1. Execute the commands in the quiz.mysql file, using a command such as:
      mysql -hhostname -uusername -p databasename < quiz.mysql 
 
-2. Copy the quiz directory to the Drupal modules/ directory.
+2. Create a folder in the Drupal modules/ directory called quiz.
 
-3. Log in to your site as an administrator, and go to the administer >> modules
+3. Copy all of the .module files from this folder into your modules/quiz folder.
+   **NOTE: matching.module at this point is there only for testing purposes and 
+   will not actually do anything. Please ignore it for now.**
+
+4. Log in to your site as an administrator, and go to the administer >> modules
    section. Enable both the quiz module and at least one question type module 
    (for example, multichoice).
 
@@ -41,3 +45,15 @@ How to create a quiz
    questions. Once the list is created, select the options on how you want each 
    question to appear in the quiz. Finally, click "Submit" to complete the quiz 
    creation.
+
+
+FAQ
+---
+Q. I'm getting tons of errors when I try and install this module! Why?
+A. Make sure you've installed this module against Drupal 4.7.x, not 4.6.x. A 
+   4.6.x compatible version will come later.
+
+Q. What is matching.module for?
+A. Right now, matching.module is only a placeholder for development, to test 
+   certain functionality that might break when more than one question type is 
+   found. For now, you can safely ignore this file.
