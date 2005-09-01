@@ -1,0 +1,30 @@
+$Id$
+
+2005-08-31
+----------
+Initial release after Summer of Code:
+
+- Admininistration side completed, including:
+  o Create/Edit permissions
+  o Multichoice question creation
+  o Quiz creation
+  o Interface for adding questions to quizzes
+  o Taxonomy selection
+  o Taxonomy filtering on question bank
+- Implemented several hooks:
+  o hook_access
+  o hook_delete
+  o hook_help
+  o hook_validate
+  o new node hooks for 4.7
+- Formatted queries to support table prefixes
+- Added Doxygen comments throughout
+- Created user documentation in admin/help
+- Fixed numerous bugs
+- Fixed numerous formatting issues
+- Fixed numerous UI issues
+
+
+2005-07-03
+----------
+Original code written by chx
