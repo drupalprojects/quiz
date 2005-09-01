@@ -3,20 +3,24 @@ $Id$
 Installation
 ------------
 
-1. Copy this directory to the Drupal modules/ directory.
+1. Execute the commands in the quiz.mysql file, using a command such as:
+     mysql -hhostname -uusername -p databasename < quiz.mysql 
 
-2. Log in to your site as an administrator, and go to the administer >> modules
+2. Copy the quiz directory to the Drupal modules/ directory.
+
+3. Log in to your site as an administrator, and go to the administer >> modules
    section. Enable both the quiz module and at least one question type module 
    (for example, multichoice).
 
-3. Execute the commands in the quiz.mysql file, using a command such as:
-     mysql -hhostname -uusername -p databasename < quiz.mysql 
 
-4. Create a vocabulary (or several) for classifying quiz questions, and 
+Configuration
+-------------
+
+1. Create a vocabulary (or several) for classifying quiz questions, and 
    associate one or more question types with that vocabulary. These steps are 
    performed in administer >> categories.
 
-5. Create a user role with "create quiz" and "administer <question_type>"
+2. Create a user role with "create quiz" and "administer <question_type>"
    permissions. This can be setup under administer >> access control >> roles.
    Assigning users to this role allows users other than the administrator to 
    create questions and quizzes.

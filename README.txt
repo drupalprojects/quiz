@@ -30,6 +30,8 @@ Features
     o Assign taxonomies to questions and quizzes and filter accordingly
     o Extensibility allows for additional question types to be added
     o Permissions (create/edit)
+    o Randomize questions during the quiz
+    o Assign only specific questions from the question bank
 
  - User features:
    o Can create/edit own quizzes if have 'create quizzes' permission
