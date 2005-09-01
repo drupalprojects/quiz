@@ -33,7 +33,7 @@ function quiz_access($op, $node) {
 }
 
 /**
- * Implementation of hook_node().
+ * Implementation of hook_node_info().
  */
 function quiz_node_info() {
   return array('quiz' => array('name' => t('quiz'), 'base' => 'quiz'));
