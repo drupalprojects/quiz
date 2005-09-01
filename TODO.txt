@@ -18,6 +18,7 @@ Important
   "50% democratic")
 - Add option to display quiz results in user profile (maybe?)
 - Add open/close dates
+- Add time limit
 - Complete matching question type and add additional question types
 - Allow for attachments (sound, images, etc.) to be integrated into questions
 
