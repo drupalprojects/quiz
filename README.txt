@@ -2,17 +2,51 @@ $Id$
 
 Overview
 --------
+The quiz.module is a framework which allows you to create interactive quizzes 
+for your visitors. It allows for the creation of questions of varying types, and
+to collect those questions into quizzes. 
 
-The Quiz module is based off of the specification created by Robert Douglass:
-http://www.webs4.com/quiz_module.
+This module is a work in progress, based off of the specification created by 
+Robert Douglass: http://www.webs4.com/quiz_module.
+
+
+Requirements
+------------
+Drupal 4.7.x
+PHP 4.3.0 or greater
 
 The module consists of two types of modules: the Quiz module itself 
 (quiz.module), and various question types (example: multichoice.module). The 
 main Quiz module and at least one question type module are required to be both
 installed and enabled for this module to function properly.
 
+
+Features
+--------
+ - Administrative features:
+    o Assign feedback to responses to help point out places for further study
+    o Supports multiple answers to quiz questions (on supporting question types)
+    o Limit the number of takes users are allowed
+    o Assign taxonomies to questions and quizzes and filter accordingly
+    o Extensibility allows for additional question types to be added
+    o Permissions (create/edit)
+
+ - User features:
+   o Can create/edit own quizzes if have 'create quizzes' permission
+   o Can take a quiz if have 'view quizzes' permissions, and receive score
+
+
+Installation
+------------
+Please refer to the INSTALL file for installation directions.
+
+
 Credits
 -------
+- Specification:      Robert Douglass
+- Original author:    Károly Négyesi
+- Current maintainer: Angela Byron
+
 I'd like to extend a heart-felt thank you to the folks at Google for their 
 Summer of Code program, without which my working on this module would not have 
 been possible. I'd also like to extend my thanks to Robert Douglass as my mentor 
