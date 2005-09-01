@@ -1,0 +1,27 @@
+$Id$
+
+Critical
+--------
+- Complete quiz taking interface; required to be completed after SoC per 
+  Google's teamwork rules.
+- Complete quiz results storage and display; required to be completed after 
+  SoC per Google's teamwork rules.
+- Complete feedback retrieval and display; required to be completed after SoC 
+  per Google's teamwork rules.
+
+
+Important
+---------
+- Tie in quizzes with revision/moderation system to allow community revision 
+  of quizzes and questions
+- Add weighting to questions, to allow for "rated" questions (e.g. you are 
+  "50% democratic")
+- Add option to display quiz results in user profile (maybe?)
+- Add open/close dates
+- Complete matching question type and add additional question types
+- Allow for attachments (sound, images, etc.) to be integrated into questions
+
+
+---
+Have additional suggestions? Please visit http://drupal.org/project/issues/quiz
+and leave your feedback!
