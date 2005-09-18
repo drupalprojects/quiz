@@ -421,9 +421,10 @@ function _quiz_get_questions($quiz) {
   if (!empty($quiz->nid)) {
     // Retrieve list of questions
     $result = db_query("
-    SELECT n.nid, n.type, n.body, n.format, q.question_status
-    FROM {node} n, {quiz_question} q
+    SELECT n.nid, n.type, nr.body, nr.format, q.question_status
+    FROM {node} n, {node_revisions} nr, {quiz_question} q
     WHERE n.nid = q.question_nid
+    AND n.nid = nr.nid
     AND q.quiz_nid = %d", $quiz->nid);
 
     // Create questions array
