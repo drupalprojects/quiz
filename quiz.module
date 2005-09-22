@@ -201,41 +201,71 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
 }
 
 /**
- * Stub function until Rob's part is done.
- *
- * Basically, took all the stuff from quiz_view and moved it here.
+ * Handles quiz taking
  *
  * @return
  *  HTML output for page
  */
 function quiz_take_quiz() {
+  global $user;
+
   if (arg(0) == 'node' && is_numeric(arg(1))) {
     if ($node = node_load(arg(1))) {
-      if (!$teaser) {
-        //if (!isset($_SESSION['quiz_questions'])) {
 
+      // Check if this is the first time running through quiz
+      if (!isset($_SESSION['quiz_questions'])) {
+             
         $nids = array();
-        $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ', $node->nid, 1);
+        $answers = array();
+
+        // Insert initial record into quiz_results
+        //db_query('INSERT INTO {quiz_results} (uid, quiz_nid, time_start) VALUES (%d, %d, %d)', $user->uid, $node->nid, time());
+
+        // Get required questions first
+        $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d', $node->nid, 1);
         while ($question_node = db_fetch_object($result)) {
           $nids[] = $question_node->question_nid;
         }
+
+        // Get remaining questions from those set to appear randomly
         $node->number_of_questions -= count($nids);
         $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
         while ($question_node = db_fetch_object($result)) {
           $nids[] = $question_node->question_nid;
         }
+
+        // Shuffle questions if required
         if ($node->shuffle == 1) {
           shuffle($nids);
         }
+
+        // Initialize session variables
         $_SESSION['quiz_questions'] = $nids;
+        $_SESSION['quiz_answers'] = array();
         $_SESSION['points'] = 0;
+
       }
+
+      // Check for answer submission
       $submit_message = t('Submit');
       if ($_POST['quiz_op'] == $submit_message) {
+
+        // Calculate point value of this question and remove it from the list of remaining questions
         $former_question_node = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
         $_SESSION['points'] += module_invoke($former_question_node->type, 'evaluate_question', $former_question_node);
+
+        // Store answer in answers array
+        //$_SESSION['quiz_answers'][] = array($former_question_node->nid, $answer);
+        
+        // Update end time and results in quiz_results table
+        //db_query("UPDATE {quiz_results} SET results = '%s' AND time_end = %d WHERE uid = %d AND quiz_nid = %d", serialize($_SESSION['quiz_answers'], time(), $node->nid, $user->uid);
+
       }
+
+      // Check if at the end of quiz
       if (!empty($_SESSION['quiz_questions'])) {
+
+        // Load the next question
         $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
         $question = module_invoke($question_node->type, 'render_question', $question_node);
 
@@ -244,19 +274,24 @@ function quiz_take_quiz() {
           $question .= form_submit($submit_message, 'quiz_op');
         }
 
+        // Display question form
         $node->body = form($question);
+
       }
       else {
+
+        // At the end of quiz, so display results
         unset($_SESSION['quiz_questions']);
+        unset($_SESSION['quiz_answers']);
         $node->body = $_SESSION['points'] .' points';
+
       }
-      //}
     }
+    else {
+      drupal_not_found();
+    }
+    return $node->body;
   }
-  else {
-    drupal_not_found();
-  }
-  return $node->body;
 }
 
 /**
@@ -517,27 +552,27 @@ function quiz_questions() {
       }
 
       // Display filtering options
-      $output = '<p>'. t('Select one or more terms to filter the question list:') .'</p>';
-      $output .= _quiz_taxonomy_select($edit[taxonomy]);
-      $output .= form_submit(t('Filter question list'));
+      if (_quiz_taxonomy_select() != '') {
+        $output = '<p>'. t('Select one or more terms to filter the question list:') .'</p>';
+        $output .= _quiz_taxonomy_select($edit[taxonomy]);
+        $output .= form_submit(t('Filter question list'));
+      }
 
       // Display filtered question list
-      if (isset($edit[taxonomy])) {
-        $output .= '<p>'. t('The following questions met the search criteria:') .'</p>';
-        $questions = quiz_filter_question_list($edit[taxonomy]);
+      $output .= '<p>'. t('The following questions were found:') .'</p>';
+      $questions = quiz_filter_question_list($edit[taxonomy]);
 
-        // Grab current question status, if any
-        $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
-        while ($assigned_question = db_fetch_object($result)) {
-          if (array_key_exists($assigned_question->question_nid, $questions)) {
-            $question =& $questions[$assigned_question->question_nid];
-            $question->status = $assigned_question->question_status;
-          }
+      // Grab current question status, if any
+      $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
+      while ($assigned_question = db_fetch_object($result)) {
+        if (array_key_exists($assigned_question->question_nid, $questions)) {
+          $question =& $questions[$assigned_question->question_nid];
+          $question->status = $assigned_question->question_status;
         }
-
-        // Output table of question options
-        $output .= quiz_print_question_table($questions);
       }
+
+      // Output table of question options
+      $output .= quiz_print_question_table($questions);
 
       // Display assigned question list
       $output .= '<p>'. t('Questions assigned to this quiz:') .'</p>';
@@ -572,10 +607,14 @@ function quiz_questions() {
 function quiz_filter_question_list($terms = NULL) {
 
   // Retrieve question list from database, filtered on vocabulary terms
-  $sql = "
-    SELECT DISTINCT n.nid, n.type, n.body, n.format 
-    FROM {node} n, {term_node} t
-    WHERE n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
+  $sql = '
+    SELECT DISTINCT n.nid, n.type, r.body, r.format 
+    FROM {node} n, {node_revisions} r ';
+  if ($terms != NULL) {
+    $sql .= ', {term_node} t ';
+  }
+  $sql .= "WHERE n.nid = r.nid
+    AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
   if ($terms != NULL) {
     $sql .= 'AND t.tid IN ('. implode(',', $terms) .')
       AND t.nid = n.nid';
