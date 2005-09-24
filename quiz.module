@@ -21,6 +21,10 @@ function quiz_perm() {
 function quiz_access($op, $node) {
   global $user;
 
+  if ($op == 'view') {
+    return user_access('access quizzes');
+  }
+
   if ($op == 'create') {
     return user_access('create quizzes');
   }
