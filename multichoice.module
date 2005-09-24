@@ -91,7 +91,7 @@ function multichoice_validate(&$node) {
   }
   if (!$node->nid && empty($_POST)) return;
   if (!$node->body) {
-    form_set_error('body', t('multichoice is empty'));
+    form_set_error('body', t('Question text is empty'));
   }
   $corrects = 0;
   foreach ($node->answers as $key => $answer) {
@@ -207,35 +207,56 @@ function multichoice_render_question($node) {
 /**
  * Evaluate whether question is correct
  *
- * @param $node
- *   Question
+ * @param $nid
+ *   Question Node ID
  *
  * @return
- *   TRUE if question is correct, FALSE if question is incorrect
+ *   Array of results, in the form of:
+ *   array(
+ *     'input' => array of answer(s) chosen by user
+ *     'feedback' => array of feedback for selected answer(s)
+ *     'score' => 0 or 1, depending on whether question was answered properly
+ *   );
  */
-function multichoice_evaluate_question($node) {
+function multichoice_evaluate_question($nid) {
+  $question = node_load($nid);
+  $results = array();
   $points = 0;
+
   if (isset($_POST['edit']['tries'])) {
     if (is_array($_POST['edit']['tries'])) {
+
       // Multi-answer question
       foreach ($_POST['edit']['tries'] as $key => $try) {
-        $points += ($try == $node->answers[$key][0]);
+        if ($try == 1) {
+
+          $results['input'][] = $key;
+          
+          $results['feedback'][] = $question->answers[$key][2];
+        }        
+        $points += ($try == $question->answers[$key][0]);
       }
-      $points = ($points == count($node->answers));
+      $results['score'] = ($points == count($question->answers));
     }
     else {
+
       // Single-answer question
       $count = 0;
-      foreach ($node->answers as $key => $value) {
+      $input = $_POST['edit']['tries'];
+ 
+      $results['input'][] = $input;
+      $results['feedback'][] = $question->answers[$input][2];
+      foreach ($question->answers as $key => $value) {
         if ($value[0] == 1) {
-          $points += ($_POST['edit']['tries'] == $key);
+          $points = $input == $key ? 1 : 0;
         }
         $count++;
       }
+      $results['score'] = $points;
     }
   }
-  
-  return $points;
+
+  return $results;
 }
 
 /**

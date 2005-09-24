@@ -11,7 +11,6 @@ CREATE TABLE multichoice (
   nid INTEGER UNSIGNED NOT NULL,
   multiple_answers TINYINT UNSIGNED NOT NULL,
   answers TEXT NOT NULL,
-  feedback TEXT NOT NULL,
   PRIMARY KEY(nid)
 );
 
@@ -36,11 +35,12 @@ CREATE TABLE quiz_question (
 );
 
 CREATE TABLE quiz_results (
+  rid INTEGER UNSIGNED NOT NULL,
   uid INTEGER UNSIGNED NOT NULL,
   quiz_nid INTEGER UNSIGNED NOT NULL,
   time_start INTEGER UNSIGNED NOT NULL,
   time_end INTEGER UNSIGNED NOT NULL,
   results TEXT,
   released TINYINT UNSIGNED NOT NULL,
-  PRIMARY KEY (uid, quiz_nid, time_start)
+  PRIMARY KEY (rid)
 );

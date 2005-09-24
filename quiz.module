@@ -212,55 +212,37 @@ function quiz_take_quiz() {
   global $user;
 
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quizzes')) {
-    if ($node = node_load(arg(1))) {
+    if ($quiz = node_load(arg(1))) {
 
-      // Check if this is the first time running through quiz
       if (!isset($_SESSION['quiz_questions'])) {
-             
-        $nids = array();
-        $answers = array();
 
-        // Insert initial record into quiz_results
-        //db_query('INSERT INTO {quiz_results} (uid, quiz_nid, time_start) VALUES (%d, %d, %d)', $user->uid, $node->nid, time());
+        // First time running through quiz
+        if ($rid = quiz_start_actions($user->uid, $quiz->nid)) {
 
-        // Get required questions first
-        $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d', $node->nid, 1);
-        while ($question_node = db_fetch_object($result)) {
-          $nids[] = $question_node->question_nid;
+          // Create question list
+          $questions = quiz_build_question_list($quiz->nid);
+
+          // Initialize session variables
+          $_SESSION['quiz_questions'] = $questions;
+          $_SESSION['rid'] = $rid;
+
+        } else {
+          drupal_set_message(t('There was a problem starting the quiz. Please try again later.', 'error'));
         }
-
-        // Get remaining questions from those set to appear randomly
-        $node->number_of_questions -= count($nids);
-        $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $node->nid, 0, 0, $node->number_of_questions);
-        while ($question_node = db_fetch_object($result)) {
-          $nids[] = $question_node->question_nid;
-        }
-
-        // Shuffle questions if required
-        if ($node->shuffle == 1) {
-          shuffle($nids);
-        }
-
-        // Initialize session variables
-        $_SESSION['quiz_questions'] = $nids;
-        $_SESSION['quiz_answers'] = array();
-        $_SESSION['points'] = 0;
-
       }
 
       // Check for answer submission
       $submit_message = t('Submit');
-      if ($_POST['quiz_op'] == $submit_message) {
+      if ($_POST['quiz_op'] == t('Submit')) {
 
-        // Calculate point value of this question and remove it from the list of remaining questions
-        $former_question_node = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
-        $_SESSION['points'] += module_invoke($former_question_node->type, 'evaluate_question', $former_question_node);
+        // Update results table with this question and remove it from the list of remaining questions
+        $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
+        $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
 
-        // Store answer in answers array
-        //$_SESSION['quiz_answers'][] = array($former_question_node->nid, $answer);
-        
-        // Update end time and results in quiz_results table
-        //db_query("UPDATE {quiz_results} SET results = '%s' AND time_end = %d WHERE uid = %d AND quiz_nid = %d", serialize($_SESSION['quiz_answers'], time(), $node->nid, $user->uid);
+        // Get current results, add new results, and save back to database
+        $former_result = unserialize(db_result(db_query('SELECT results FROM {quiz_results} WHERE rid = %d', $_SESSION['rid'])));
+        $former_result[$former_question->nid] = $result;
+        db_query("UPDATE {quiz_results} SET results = '%s'", serialize($former_result));
 
       }
 
@@ -282,18 +264,99 @@ function quiz_take_quiz() {
       }
       else {
 
-        // At the end of quiz, so display results
+        // At the end of quiz, so display results and remove session variables
+        $node->body = "Your score: " .quiz_calculate_score($_SESSION['rid']);
         unset($_SESSION['quiz_questions']);
-        unset($_SESSION['quiz_answers']);
-        $node->body = $_SESSION['points'] .' points';
+        unset($_SESSION['rid']);
 
       }
     }
     else {
       drupal_not_found();
     }
-    return $node->body;
+    return $node->body; // TODO: Can this be THEMED?
   }
+}
+
+/**
+ * Actions to take place at the start of a quiz
+ *
+ * @param $uid
+ *   User ID
+ * @param $nid
+ *   Quiz node ID
+ * @return integer
+ *   Returns quiz_result rid, or false if there is an error.
+ */
+function quiz_start_actions($uid, $nid) {
+  // Validate number of takes
+  if ($quiz->takes != 0) {
+    $result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_results} WHERE uid = %d && quiz_nid = %d', $uid, $nid));
+    $quiz = node_load($nid);
+    if ($result >= $quiz->takes) {
+      drupal_set_message(t('Sorry, you have already taken this quiz %d times.', $result->count), 'error');
+      return FALSE;
+    }
+  }
+
+  // Insert quiz_results record
+  $rid = db_next_id('{quiz_results}_rid');
+  $result = db_query('INSERT INTO {quiz_results} (rid, uid, quiz_nid, time_start) VALUES (%d, %d, %d, %d)', $rid, $uid, $nid, time());
+  if ($result) {
+    return $rid;
+  } else {
+    return FALSE;
+  }
+}
+
+/**
+ * Calculates the score student received on quiz
+ *
+ * @param $rid
+ *   Quiz result ID
+ * @return integer
+ *   Total score
+ */
+function quiz_calculate_score($rid) {
+  $score = 0;
+  $result = unserialize(db_result(db_query('SELECT results FROM {quiz_results} WHERE rid = %d', $rid)));
+  foreach ($result as $question) {
+    $score += $question['score'];
+  }
+  return $score;
+}
+
+/**
+ * Retrieves a question list for a given quiz
+ *
+ * @param $nid
+ *   Quiz node ID
+ * @return 
+ *   Array of question node IDs
+ */
+function quiz_build_question_list($nid) {
+  $questions = array();
+  $quiz = node_load($nid);
+
+  // Get required questions first
+  $result = db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d', $nid, 1);
+  while ($question_node = db_fetch_object($result)) {
+    $questions[] = $question_node->question_nid;
+  }
+
+  // Get random questions for the remainder
+  $quiz->number_of_questions -= count($questions);
+  $result = db_query_range('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()', $nid, 0, 0, $quiz->number_of_questions);
+  while ($question_node = db_fetch_object($result)) {
+    $questions[] = $question_node->question_nid;
+  }
+
+  // Shuffle questions if required
+  if ($quiz->shuffle == 1) {
+    shuffle($questions);
+  }
+
+  return $questions;
 }
 
 /**
@@ -432,7 +495,7 @@ function _quiz_get_vocabularies() {
 /**
  * Prints a taxonomy selection form for each vocabulary
  *
- * @param
+ * @param $values
  *   Default selected values
  * @return
  *   HTML output to print to screen
@@ -686,7 +749,7 @@ function quiz_update_questions($quiz, $questions) {
             $return = false;
           }
         } else {
-          $result = db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES(%d, %d, %d)', $quiz->nid, $key, $value);
+          $result = db_query('INSERT INTO {quiz_question} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)', $quiz->nid, $key, $value);
           if (!$result) {
             $return = false;
           }
