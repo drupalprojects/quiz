@@ -12,7 +12,7 @@
  * Implementation of hook_perm().
  */
 function quiz_perm() {
-  return array('create quiz');
+  return array('create quizzes', 'access quizzes');
 }
 
 /**
@@ -22,11 +22,11 @@ function quiz_access($op, $node) {
   global $user;
 
   if ($op == 'create') {
-    return user_access('create quiz');
+    return user_access('create quizzes');
   }
 
   if ($op == 'update' || $op == 'delete') {
-    if (user_access('create quiz') && ($user->uid == $node->uid)) {
+    if (user_access('create quizzes') && ($user->uid == $node->uid)) {
       return TRUE;
     }
   }
@@ -47,26 +47,24 @@ function quiz_menu($may_cache) {
 
   if ($may_cache) {
     $items[] = array('path' => 'node/add/quiz', 'title' => t('quiz'),
-    'access' => user_access('create quiz'));
+    'access' => user_access('create quizzes'));
   }
   else {
     if (arg(0) == 'node' && is_numeric(arg(1))) {
       $node = node_load(arg(1));
       if ($node->type == 'quiz') {
-        $items[] = array('path' => 'node/'. arg(1). '/questions', 'title' => t('add questions'),
+        
+        // Menu item for creating adding questions to quiz
+        $items[] = array('path' => 'node/'. arg(1) .'/questions', 'title' => t('add questions'),
           'callback' => 'quiz_questions',
-          'access' => user_access('create quiz'),
-          'type' => MENU_LOCAL_TASK,
-          'weight' => 5,
-          'callback arguments' => $node);
+          'access' => user_access('create quizzes'),
+          'type' => MENU_LOCAL_TASK);
 
-        // Menu item for quiz_take_quiz()
-        $items[] = array('path' => 'node/'. arg(1). '/quiz/start', 'title' => t('take quiz'),
+        // Menu item for quiz taking interface
+        $items[] = array('path' => 'node/'. arg(1) .'/quiz/start', 'title' => t('take quiz'),
           'callback' => 'quiz_take_quiz',
-          'access' => user_access('create quiz'),
-          'type' => MENU_LOCAL_TASK,
-          'weight' => 5,
-          'callback arguments' => $node);
+          'access' => user_access('access quizzes'),
+          'type' => MENU_LOCAL_TASK);
       }
     }
   }
@@ -152,7 +150,7 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (!$teaser && user_access('create quiz')) {
+  if (!$teaser && user_access('create quizzes')) {
     
     // Format quiz options
     $node->body .= '<h3>'. t('Quiz Options') .'</h3>';
@@ -209,7 +207,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
 function quiz_take_quiz() {
   global $user;
 
-  if (arg(0) == 'node' && is_numeric(arg(1))) {
+  if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quizzes')) {
     if ($node = node_load(arg(1))) {
 
       // Check if this is the first time running through quiz
