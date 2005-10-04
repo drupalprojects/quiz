@@ -58,4 +58,7 @@ foreign concepts like 'node' and 'taxonomy.' You guys all provided me with
 support, encouragement, and fun times and I sincerely hope to remain a part of 
 the Drupal community for a long time to come!
 
+Also huge thanks go to Ejovi Nuwere of http://www.securitylab.net/ for 
+sponsoring further module development after Summer of Code.
+
 -Angela Byron/'webchick'
