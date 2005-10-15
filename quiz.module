@@ -80,12 +80,14 @@ function quiz_menu($may_cache) {
  * Implementation of hook_form().
  */
 function quiz_form(&$node) {
-  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
-  $output .= form_textfield(t('Number of questions'), 'number_of_questions', ($node->number_of_questions ? $node->number_of_questions : 10), 4, 6, '', NULL, TRUE);
+  $output = '';
   if (function_exists('taxonomy_node_form')) {
     $output .= implode('', taxonomy_node_form('quiz', $node));
   }
-  $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle);
+  $output .= form_textfield(t('Title'), 'title', $node->title, 60, 128, NULL, NULL, TRUE);  
+  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
+  $output .= form_textfield(t('Number of questions'), 'number_of_questions', ($node->number_of_questions ? $node->number_of_questions : 10), 4, 6, '', NULL, TRUE);
+  $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle ? $node->shuffle : 1);
   $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
   $form_group = '';
   $form_group .= form_radio(t('At the end of the quiz'), 'feedback_time', 0, $node->feedback_time == 0);
@@ -94,7 +96,7 @@ function quiz_form(&$node) {
   $output .= form_group(t('When do you want to give feedback?'), $form_group);
   /* open, close */
   $options = array('Unlimited');
-  for ($i = 1; $i<10; $i++) {
+  for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
   }
   $output .= form_select(t('Number of takes'), 'takes', $node->takes, $options);
@@ -106,13 +108,14 @@ function quiz_form(&$node) {
  * Implementation of hook_validate().
  */
 function quiz_validate(&$node) {
-  if ($node->title) {
-    if (empty($node->body)) {
-      form_set_error('body', t('Description is required.'));    
-    }
-    if ($node->number_of_questions < 1) {
-      form_set_error('number_of_questions', t('Number of questions is required and must be a number.'));
-    }
+  if (!$node->nid && empty($_POST)) return;
+  
+  node_validate_title($node);
+  if (empty($node->body)) {
+    form_set_error('body', t('Description is required.'));    
+  }
+  if ($node->number_of_questions < 1) {
+    form_set_error('number_of_questions', t('Number of questions is required and must be a positive number.'));
   }
 }
 
@@ -127,15 +130,15 @@ function quiz_insert($node) {
  * Implementation of hook_update().
  */
 function quiz_update($node) {
-  db_query("UPDATE {quiz} SET number_of_questions=%d, shuffle=%d, backwards_navigation=%d, feedback_time=%d, open=%d, close=%d, takes=%d WHERE nid=%d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
+  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, open = %d, close = %d, takes = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, 0, 0, $node->takes, $node->nid);
 }
 
 /**
  * Implementation of hook_delete().
  */
 function quiz_delete($node) {
-  db_query("DELETE FROM {quiz} WHERE nid=%d", $node->nid);
-  db_query("DELETE FROM {quiz_question} WHERE quiz_nid=%d", $node->nid);
+  db_query("DELETE FROM {quiz} WHERE nid = %d", $node->nid);
+  db_query("DELETE FROM {quiz_question} WHERE quiz_nid = %d", $node->nid);
 }
 
 /**
@@ -728,7 +731,7 @@ function quiz_update_questions($quiz, $questions) {
 
   if (!empty($questions)) {
     // Get currently assigned questions
-    $result = db_query('SELECT quiz_nid, question_nid, question_status FROM {quiz_question} WHERE quiz_nid=%d', $quiz->nid);
+    $result = db_query('SELECT quiz_nid, question_nid, question_status FROM {quiz_question} WHERE quiz_nid = %d', $quiz->nid);
     $assigned_questions = array();
     while ($assigned_question = db_fetch_object($result)) {
       $assigned_questions[$assigned_question->question_nid] = $assigned_question->question_status;
