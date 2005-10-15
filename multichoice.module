@@ -12,15 +12,23 @@
  * Implementation of hook_perm().
  */
 function multichoice_perm() {
-  return array('administer multichoice');
+  return array('create multichoice', 'edit own multichoice');
 }
 
 /**
  * Implementation of hook_access().
  */
 function multichoice_access($op, $node) {
+  global $user;
+
   if ($op == 'create') {
-    return user_access('administer multichoice');
+    return user_access('create multichoice');
+  }
+
+  if ($op == 'update' || $op == 'delete') {
+    if (user_access('edit own multichoice') && ($user->uid == $node->uid)) {
+      return TRUE;
+    }
   }
 }
 
@@ -38,7 +46,7 @@ function multichoice_menu($may_cache) {
   $items = array();
   if ($may_cache) {
     $items[] = array('path' => 'node/add/multichoice', 'title' => t('multichoice'),
-      'access' => user_access('administer multichoice'));
+      'access' => user_access('create multichoice'));
   }
   return $items;
 }
@@ -156,7 +164,7 @@ function multichoice_load($node) {
  * Implementation of hook_view().
  */
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (user_access('administer multichoice')) {
+  if (user_access('create multichoice')) {
     if (!$teaser) {
       $question = multichoice_render_question($node);
       $node->body = form($question);
