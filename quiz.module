@@ -604,7 +604,6 @@ function quiz_questions() {
       if ($anum < $qnum) {
         $diff = $qnum - $anum;
         drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
-        //, array($anum, $qnum, $diff), 'status');
       }
 
       if ($op == t('Submit questions')) {
@@ -631,7 +630,7 @@ function quiz_questions() {
       $questions = quiz_filter_question_list($edit[taxonomy]);
 
       // Grab current question status, if any
-      $result = db_query('SELECT question_nid, question_status FROM quiz_question WHERE quiz_nid = %d', $node->nid);
+      $result = db_query('SELECT question_nid, question_status FROM {quiz_question} WHERE quiz_nid = %d', $node->nid);
       while ($assigned_question = db_fetch_object($result)) {
         if (array_key_exists($assigned_question->question_nid, $questions)) {
           $question =& $questions[$assigned_question->question_nid];
