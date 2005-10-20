@@ -597,17 +597,8 @@ function quiz_questions() {
   if (arg(0) == 'node' && is_numeric(arg(1))) {
     if ($node = node_load(arg(1))) {
       drupal_set_title(check_plain($node->title));
-     
-      // Determine how many more questions are required
-      $qnum = $node->number_of_questions;
-      $anum = db_num_rows(db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d', $node->nid));
-      if ($anum < $qnum) {
-        $diff = $qnum - $anum;
-        drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
-      }
 
       if ($op == t('Submit questions')) {
-
         // Update quiz with selected question options
         $result = quiz_update_questions($node, $edit[question_status]);
         if ($result) {
@@ -615,7 +606,14 @@ function quiz_questions() {
         } else {
           drupal_set_message(t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
         }
+      }
 
+      // Determine how many more questions are required
+      $qnum = $node->number_of_questions;
+      $anum = db_num_rows(db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d', $node->nid));
+      if ($anum < $qnum) {
+        $diff = $qnum - $anum;
+        drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
       }
 
       // Display filtering options
