@@ -33,7 +33,7 @@ function multichoice_access($op, $node) {
 }
 
 /**
- * Implementation of hook_node().
+ * Implementation of hook_node_info().
  */
 function multichoice_node_info() {
   return array('multichoice' => array('name' => t('multichoice'), 'base' => 'multichoice'));
@@ -55,30 +55,99 @@ function multichoice_menu($may_cache) {
  * Implementation of hook_form().
  */
 function multichoice_form(&$node) {
-  $output = '';
-  
-  if (function_exists('taxonomy_node_form')) {
-    $output .= implode('', taxonomy_node_form('multichoice', $node));
+
+  // Display multichoice form
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => $node->title,
+    '#required' => TRUE,
+  );
+
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Question'),
+    '#default_value' => $node->body,
+    '#required' => TRUE,
+  );
+  $form = array_merge($form, filter_form($node->format));
+
+  $form['multiple_answers'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Multiple answers'),
+    '#default_value' => $node->multiple_answers,
+  );
+
+  // Determine number of answer rows to display
+  if (!isset($node->rows)) {
+     $node->rows = max(2, $node->answers ? count($node->answers) : 5);
+  }
+  if ($_POST['edit']['more']) {
+    $node->rows += 5;
+  }
+  $answers = $node->answers;
+
+  // Display answer rows
+  $form['answers'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Choices'),
+    '#tree' => TRUE,
+    '#theme' => 'multichoice_form'
+  );
+  for ($i = 0; $i < $node->rows; $i++) {
+    $form['answers'][$i]['correct'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $answers[$i]['correct'],
+    );
+    $form['answers'][$i]['answer'] = array(
+      '#type' => 'textarea',
+      '#default_value' => $answers[$i]['answer'],
+      '#cols' => 20,
+    );
+    $form['answers'][$i]['feedback'] = array(
+      '#type' => 'textarea',
+      '#default_value' => $answers[$i]['feedback'],
+      '#cols' => 20,
+    );
   }
 
-  $output = form_textfield(t('Title'), 'title', $node->title, 60, 128, NULL, NULL, TRUE);
-  $output .= form_textarea(t('Question'), 'body', $node->body, 60, 5, '', NULL, TRUE);
-  $output .= filter_form('format', $node->format);
-  $output .= form_checkbox(t('Multiple answers'), 'multiple_answers', 1, $node->multiple_answers);
-  $rows = array();
-  $answers = $node->answers;
-  for ($i = 0; $i < $node->rows; $i++) {
-    $rows[] = array(
-      form_checkbox('', 'answers]['. $i .'][0', 1, $answers[$i][0]),
-      form_textarea('', 'answers]['. $i .'][1', $answers[$i][1], 20, 5),
-      form_textarea('', 'answers]['. $i .'][2', $answers[$i][2], 20, 5));
-  }
+  $form['more'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('I need more answers'),
+  );
+
+  return $form;
+}
+
+/**
+ * Theme function for multichoice form
+ *
+ * Lays out answer field elements into a table
+ *
+ * @return string
+ *   HTML output
+ */
+function theme_multichoice_form($form) {
+
+  // Format table header
   $header = array(
     array('data' => t('Correct')),
     array('data' => t('Answer'), 'style' => 'width:250px;'),
-    array('data' => t('Feedback'), 'style' => 'width:250px;'));
-  $output .= theme('table', $header, $rows);
-  $output .= form_checkbox(t('I need more answers'), 'more');
+    array('data' => t('Feedback'), 'style' => 'width:250px;')
+  );
+
+  // Format table rows
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $rows[] = array(
+      form_render($form[$key]['correct']),
+      form_render($form[$key]['answer']),
+      form_render($form[$key]['feedback']),
+    );
+  }
+
+  // Theme output and display to screen
+  $output = theme('table', $header, $rows);
 
   return $output;
 }
@@ -87,20 +156,13 @@ function multichoice_form(&$node) {
  * Implementation of hook_validate().
  */
 function multichoice_validate(&$node) {
- 
+
   // Hard-code questions to have no teaser and to not be promoted to front page
   $node->teaser = 0;
   $node->promote = 0;
 
-  // Determine number of answer rows to display
-  if (!$node->rows) {
-     $node->rows = $node->answers ? count($node->answers) : 5;
-  }
-  if ($node->more) {
-    $node->rows += 5;
-  }
-
   if (!$node->nid && empty($_POST)) return;
+
   // Validate title and body
   node_validate_title($node);
   if (!$node->body) {
@@ -108,24 +170,28 @@ function multichoice_validate(&$node) {
   }
 
   // Validate answers
+  $answers = array();
   $corrects = 0;
   foreach ($node->answers as $key => $answer) {
-    if ($answer[0]) {
+    if ($answer['correct']) {
       if ($corrects && !$node->multiple_answers) {
         form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
       }
       $corrects++;
     }
-    if (empty($answer[0]) && empty($answer[1]) && empty($answer[2])) {
-      unset($node->answers[$key]);
+    if ($answer['answer']) {
+      $answers[] = $answer['answer'];
     }
   }
 
   if (!$corrects) {
-    form_set_error('answers][0][0', t('No correct choice(s)'));
+    form_set_error("answers][0]['correct'", t('No correct choice(s)'));
   }
-  if (!count($node->answers)) {
-    form_set_error('answers][0][0', t('No answers.'));
+  if (!count($answers)) {
+    form_set_error("answers][0]['answer'", t('No answers.'));
+  }
+  if (count($answers) < 2) {
+    form_set_error("answers][0]['answer'", t('Must have at least two answers'));
   }
 }
 
@@ -167,7 +233,7 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (user_access('create multichoice')) {
     if (!$teaser) {
       $question = multichoice_render_question($node);
-      $node->body = form($question);
+      $node->body .= $question;
     }
   }
   else if ($teaser) {
@@ -201,22 +267,36 @@ function multichoice_help($section) {
  *   HTML output
  */
 function multichoice_render_question($node) {
-  $rows = array();
 
   // Radio buttons for single selection questions, checkboxes for multiselect
   if ($node->multiple_answers == 0) {
-    foreach ($node->answers as $key => $answer) {
-      $rows[] = array(form_radio('', 'tries', $key), $answer[1]);
-    }
+    $type = 'radios';
   } else {
-    foreach ($node->answers as $key => $answer) {
-      $rows[] = array(form_checkbox('', 'tries]['. $key, 1), $answer[1]);
+    $type = 'checkboxes';
+  }
+
+  // Get options
+  $options = array();
+  foreach ($node->answers as $key => $answer) {
+    if (empty($answer['correct']) && empty($answer['answer']) && empty($answer['feedback'])) {
+      unset($node->answers[$key]);
+    } else {
+      $options[$key] = $answer['answer'];
     }
   }
-  
-  $header = header('', '');
-  $form = theme('table', $header, $rows);
-  return $node->body . $form;
+
+  // Create form 
+  $form['tries'] = array(
+    '#type' => $type,
+    '#options' => $options,
+    '#default_value' => NULL,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+
+  return drupal_get_form('multichoice_render_question', $form);
 }
 
 /**
@@ -247,9 +327,9 @@ function multichoice_evaluate_question($nid) {
 
           $results['input'][] = $key;
           
-          $results['feedback'][] = $question->answers[$key][2];
+          $results['feedback'][] = $question->answers[$key]['feedback'];
         }        
-        $points += ($try == $question->answers[$key][0]);
+        $points += ($try == $question->answers[$key]['correct']);
       }
       $results['score'] = ($points == count($question->answers));
     }
@@ -260,7 +340,7 @@ function multichoice_evaluate_question($nid) {
       $input = $_POST['edit']['tries'];
  
       $results['input'][] = $input;
-      $results['feedback'][] = $question->answers[$input][2];
+      $results['feedback'][] = $question->answers[$input]['feedback'];
       foreach ($question->answers as $key => $value) {
         if ($value[0] == 1) {
           $points = $input == $key ? 1 : 0;

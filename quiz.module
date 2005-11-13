@@ -80,28 +80,88 @@ function quiz_menu($may_cache) {
  * Implementation of hook_form().
  */
 function quiz_form(&$node) {
-  $output = '';
-  if (function_exists('taxonomy_node_form')) {
-    $output .= implode('', taxonomy_node_form('quiz', $node));
-  }
-  $output .= form_textfield(t('Title'), 'title', $node->title, 60, 128, NULL, NULL, TRUE);  
-  $output .= form_textarea(t('Description'), 'body', $node->body, 60, 5, '', NULL, TRUE);
-  $output .= form_textfield(t('Number of questions'), 'number_of_questions', ($node->number_of_questions ? $node->number_of_questions : 10), 4, 6, '', NULL, TRUE);
-  $output .= form_checkbox(t('Shuffle questions'), 'shuffle', 1, $node->shuffle ? $node->shuffle : 1);
-  $output .= form_checkbox(t('Backwards navigation'), 'backwards_navigation', 1, $node->backwards_navigation);
-  $form_group = '';
-  $form_group .= form_radio(t('At the end of the quiz'), 'feedback_time', 0, $node->feedback_time == 0);
-  $form_group .= form_radio(t('After each question'), 'feedback_time', 1, $node->feedback_time == 1);
-  $form_group .= form_radio(t('Do not show'), 'feedback_time', 2, $node->feedback_time == 2);
-  $output .= form_group(t('When do you want to give feedback?'), $form_group);
-  /* open, close */
+
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => $node->title,
+    '#description' => t('The name of the quiz'),
+    '#required' => TRUE,
+  );
+
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => $node->body,
+    '#description' => t('A description of what the quiz entails'),
+    '#required' => TRUE,
+  );
+  
+  $form['number_of_questions'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of questions'),
+    '#default_value' => ($node->number_of_questions ? $node->number_of_questions : 10),
+    '#description' => t('The number of questions to include in this quiz from the question bank'),
+    '#required' => TRUE,
+  );
+
+  $form['shuffle'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Shuffle questions'),
+    '#default_value' => $node->shuffle ? $node->shuffle : 1,
+    '#description' => t('Whether to shuffle/randomize the questions on the quiz'),
+  );
+  
+  $form['backwards_navigation'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Backwards navigation'),
+    '#default_value' => $node->backwards_navigation,
+    '#description' => t('Whether to allow student to go back and revisit their answers'),
+  );
+
+  $form['feedback'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('When do you want to give feedback?'),
+  );
+  
+  $form['feedback']['feedback_time'] = array(
+    '#type' => 'radios',
+    '#default_value' => $node->feedback_time,
+    '#options' => array(
+      t('At the end of the quiz'),
+      t('After each question'),
+      t('Do not show')
+    ),
+    '#description' => t('Indicates at what point feedback for each question will be given to the student'),
+  );
+  
+  $form['open'] = array(
+    '#type' => 'date',
+    '#title' => t('Open date'),
+    '#default_value' => $node->open,
+    '#description' => t('The date students should be able to start taking this quiz'),
+  );
+
+  $form['close'] = array(
+    '#type' => 'date',
+    '#title' => t('Close date'),
+    '#default_value' => $node->close,
+    '#description' => t('The date the quiz will close and prevent students from taking the quiZ'),
+  );
+
   $options = array('Unlimited');
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
   }
-  $output .= form_select(t('Number of takes'), 'takes', $node->takes, $options);
+  $form['takes'] = array(
+    '#type' => 'select',
+    '#title' => t('Number of takes'),
+    '#default_value' => $node->takes,
+    '#options' => $options,
+    '#description' => t('The number of times a student is allowed to take the quiz'),
+  );
 
-  return $output;
+  return $form;
 }
 
 /**
@@ -200,7 +260,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
     // Format quiz questions
     $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
     $questions = _quiz_get_questions($node);
-    $node->body .= quiz_print_question_table($questions, false);
+    $node->body .= quiz_print_question_table($questions);
     
   }
 }
@@ -545,33 +605,20 @@ function _quiz_get_questions($quiz) {
  *
  * @param $questions
  *   Array of question nodes
- * @param $options
- *   Whether or not to show question options
  * @return
  *   HTML to output table
  */
-function quiz_print_question_table($questions, $options = true) {
+function quiz_print_question_table($questions) {
   $output = '';
-  if ($options == true) {
-    foreach ($questions as $question) {
-      $rows[] = array(
-        form_radio('', 'question_status]['. $question->nid, 0, $question->status == 0),
-        form_radio('', 'question_status]['. $question->nid, 1, $question->status == 1),
-        form_radio('', 'question_status]['. $question->nid, 2, $question->status == 2),
-        $question->question,
-        $question->type);
-    }
-    $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
-  } else {
-    $status_descriptions = array(t('Random'), t('Always'), t('Never'));
-    foreach ($questions as $question) {
-      $rows[] = array(
-        $status_descriptions[$question->status],
-        $question->question,
-        $question->type);
-    }
-    $header = array(t('Status'), t('Question'), t('Type'));
+  $status_descriptions = array(t('Random'), t('Always'), t('Never'));
+  foreach ($questions as $question) {
+    $rows[] = array(
+      $status_descriptions[$question->status],
+      $question->question,
+      $question->type);
   }
+  $header = array(t('Status'), t('Question'), t('Type'));
+
   if (isset($rows)) {
     $output .= theme('table', $header, $rows);
   } else {
@@ -618,16 +665,19 @@ function quiz_questions() {
 
       // Display filtering options
       if (_quiz_taxonomy_select() != '') {
-        $output = '<p>'. t('Select one or more terms to filter the question list:') .'</p>';
-        $output .= _quiz_taxonomy_select($edit[taxonomy]);
-        $output .= form_submit(t('Filter question list'));
+        $form['taxonomy_filter'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Select one or more terms to filter the question list'),
+        );
+        $form['taxonomy_filter']['taxonomy'] = _quiz_taxonomy_select($edit['taxonomy']);
+        $form['taxonomy_filter']['submit'] = array(
+          '#type' => 'submit',
+          '#value' => t('Filter question list'),
+        );
       }
 
-      // Display filtered question list
-      $output .= '<p>'. t('The following questions were found:') .'</p>';
-      $questions = quiz_filter_question_list($edit[taxonomy]);
-
       // Grab current question status, if any
+      $questions = quiz_filter_question_list($edit[taxonomy]);
       $result = db_query('SELECT question_nid, question_status FROM {quiz_question} WHERE quiz_nid = %d', $node->nid);
       while ($assigned_question = db_fetch_object($result)) {
         if (array_key_exists($assigned_question->question_nid, $questions)) {
@@ -636,29 +686,97 @@ function quiz_questions() {
         }
       }
 
-      // Output table of question options
-      $output .= quiz_print_question_table($questions);
-
-      // Display assigned question list
-      $output .= '<p>'. t('Questions assigned to this quiz:') .'</p>';
+      // Display filtered question list
+      $form['filtered_question_list'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('The following questions were found'),
+        '#theme' => 'filtered_questions',
+      );
+      foreach ($questions as $question) {
+        $form['filtered_question_list']['question_status'][$question->nid] = array(
+          '#type' => 'radios',
+          '#options' => array(0 => '', 1 => '', 2 => ''),
+        );
+        $form['filtered_question_list']['question'][$question->nid] = array(
+          '#type' => 'markup',
+          '#value' => $question->question,
+        );
+        $form['filtered_question_list']['type'][$question->nid] = array(
+          '#type' => 'markup',
+          '#value' => $question->type,
+        );
+      }
+      
+      // Get questions assigned to this quiz
       $questions = _quiz_get_questions($node);
-      $output .= quiz_print_question_table($questions, false);
+
+      // Display questions 
+      $form['assigned_questions'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Questions assigned to this quiz'),
+      );
+      $form['assigned_questions']['questions'] = array(
+        '#type' => 'markup',
+        '#value' => quiz_print_question_table($questions),
+      );
       
       // Display links to create other questions
-      $output .= '<p>Create additional questions: ';
+      $form['additional_questions'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Create additional questions'),
+        '#theme' => 'additional_questions',
+      );
       foreach (_quiz_get_question_types() as $type) {
-       $output .= l($type, "node/add/$type", array('title' => "Go to $type administration")) .' ';
+        $form['additional_questions'][$type] = array(
+          '#type' => 'markup',
+          '#value' => l($type, "node/add/$type", array('title' => t("Go to $type administration"))) .' ',
+        );
       }
-      $output .= '</p>';
-
-      $output .= form_submit(t('Submit questions'));
-      $output = form($output);
+      $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit questions'),
+      );
+      return drupal_get_form('quiz_questions', $form);
     }
   }
   else {
     drupal_not_found();
   }
+}
+
+/**
+ * Theme the filtered question list
+ */
+function theme_filtered_questions($form) {
+  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+  $rows = array();
+  foreach ($form['question_status'] as $nid => $values) {
+    if (is_numeric($nid)) {
+      $rows[] = array(
+        form_render($form['question_status'][$nid][0]),
+        form_render($form['question_status'][$nid][1]),
+        form_render($form['question_status'][$nid][2]),
+        form_render($form['question'][$nid]),
+        form_render($form['type'][$nid])
+      );
+    }
+  }
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  } else {
+    $output .= t('No questions found.');
+  }
   return $output;
+}
+
+/**
+ * Theme the assigned questions list
+ */
+function theme_assigned_questions($form) {
+print_r($form);
+  $header = array(t('Status'), t('Question'), t('Type'));
+  $rows = array();
+  
 }
 
 /**
