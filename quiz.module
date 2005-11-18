@@ -259,7 +259,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
 
     // Format quiz questions
     $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
-    $questions = _quiz_get_questions($node);
+    $questions = _quiz_get_questions();
     $node->body .= quiz_print_question_table($questions);
     
   }
@@ -314,8 +314,8 @@ function quiz_take_quiz() {
 
         // Load the next question
         $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
-        $question = module_invoke($question_node->type, 'render_question', $question_node);
 
+/** TODO: Move this to multichoice?
         // Don't show Submit button on preview
         if ($_POST['op'] != t('Preview')) {
           $question .= form_submit($submit_message, 'quiz_op');
@@ -323,6 +323,8 @@ function quiz_take_quiz() {
 
         // Display question form
         $node->body = form($question);
+        */
+        $node->body = module_invoke($question_node->type, 'render_question', $question_node);
 
       }
       else {
@@ -558,28 +560,27 @@ function _quiz_get_vocabularies() {
 /**
  * Prints a taxonomy selection form for each vocabulary
  *
- * @param $values
- *   Default selected values
+ * @param $value
+ *   Default selected value(s)
  * @return
  *   HTML output to print to screen
  */
-function _quiz_taxonomy_select($values = 0) {
-  $output = '';
+function _quiz_taxonomy_select($value = 0) {
+  $form = array();
   foreach (_quiz_get_vocabularies() as $vid => $vocabulary) {
-    $output .= taxonomy_form($vid, $values);
+    $form['taxonomy'][$vid] = taxonomy_form($vid, $value);
   }
-  return $output;
+  return $form;
 }
 
 /**
  * Retrieve list of questions assigned to quiz
  *
- * @param $quiz
- *   Quiz node
  * @return 
  *   Array of questions
  */
-function _quiz_get_questions($quiz) {
+function _quiz_get_questions() {
+  $quiz = node_load(arg(1));
   $questions = array();
   if (!empty($quiz->nid)) {
     // Retrieve list of questions
@@ -638,110 +639,95 @@ function quiz_print_question_table($questions) {
  *  HTML output to create page
  */
 function quiz_questions() {
-  $op = $_POST['op'];
-  $edit = $_POST['edit'];
+  $quiz = node_load(arg(1));
 
-  if (arg(0) == 'node' && is_numeric(arg(1))) {
-    if ($node = node_load(arg(1))) {
-      drupal_set_title(check_plain($node->title));
+  // Set page title
+  drupal_set_title(check_plain($quiz->title));
 
-      if ($op == t('Submit questions')) {
-        // Update quiz with selected question options
-        $result = quiz_update_questions($node, $edit[question_status]);
-        if ($result) {
-          drupal_set_message(t('Questions updated successfully!'));
-        } else {
-          drupal_set_message(t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
-        }
-      }
+  // Display filtering options
+  if (_quiz_taxonomy_select() != array()) {
+    $form['taxonomy_filter'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Select one or more terms to filter the question list'),
+    );
+    $form['taxonomy_filter']['taxonomy'] = _quiz_taxonomy_select($_POST['edit']['taxonomy']);
+    $form['taxonomy_filter']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Filter question list'),
+    );
+  }
+  
+  // Grab current question status, if any
+  $questions = quiz_filter_question_list($_POST['edit']['taxonomy']);
 
-      // Determine how many more questions are required
-      $qnum = $node->number_of_questions;
-      $anum = db_num_rows(db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d', $node->nid));
-      if ($anum < $qnum) {
-        $diff = $qnum - $anum;
-        drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
-      }
-
-      // Display filtering options
-      if (_quiz_taxonomy_select() != '') {
-        $form['taxonomy_filter'] = array(
-          '#type' => 'fieldset',
-          '#title' => t('Select one or more terms to filter the question list'),
-        );
-        $form['taxonomy_filter']['taxonomy'] = _quiz_taxonomy_select($edit['taxonomy']);
-        $form['taxonomy_filter']['submit'] = array(
-          '#type' => 'submit',
-          '#value' => t('Filter question list'),
-        );
-      }
-
-      // Grab current question status, if any
-      $questions = quiz_filter_question_list($edit[taxonomy]);
-      $result = db_query('SELECT question_nid, question_status FROM {quiz_question} WHERE quiz_nid = %d', $node->nid);
-      while ($assigned_question = db_fetch_object($result)) {
-        if (array_key_exists($assigned_question->question_nid, $questions)) {
-          $question =& $questions[$assigned_question->question_nid];
-          $question->status = $assigned_question->question_status;
-        }
-      }
-
-      // Display filtered question list
-      $form['filtered_question_list'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('The following questions were found'),
-        '#theme' => 'filtered_questions',
-      );
-      foreach ($questions as $question) {
-        $form['filtered_question_list']['question_status'][$question->nid] = array(
-          '#type' => 'radios',
-          '#options' => array(0 => '', 1 => '', 2 => ''),
-        );
-        $form['filtered_question_list']['question'][$question->nid] = array(
-          '#type' => 'markup',
-          '#value' => $question->question,
-        );
-        $form['filtered_question_list']['type'][$question->nid] = array(
-          '#type' => 'markup',
-          '#value' => $question->type,
-        );
-      }
-      
-      // Get questions assigned to this quiz
-      $questions = _quiz_get_questions($node);
-
-      // Display questions 
-      $form['assigned_questions'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Questions assigned to this quiz'),
-      );
-      $form['assigned_questions']['questions'] = array(
-        '#type' => 'markup',
-        '#value' => quiz_print_question_table($questions),
-      );
-      
-      // Display links to create other questions
-      $form['additional_questions'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Create additional questions'),
-        '#theme' => 'additional_questions',
-      );
-      foreach (_quiz_get_question_types() as $type) {
-        $form['additional_questions'][$type] = array(
-          '#type' => 'markup',
-          '#value' => l($type, "node/add/$type", array('title' => t("Go to $type administration"))) .' ',
-        );
-      }
-      $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Submit questions'),
-      );
-      return drupal_get_form('quiz_questions', $form);
+  $result = db_query('SELECT question_nid, question_status FROM {quiz_question} WHERE quiz_nid = %d', $quiz->nid);
+  while ($assigned_question = db_fetch_object($result)) {
+    if (array_key_exists($assigned_question->question_nid, $questions)) {
+      $the_question =& $questions[$assigned_question->question_nid];
+      $the_question->status = $assigned_question->question_status;
     }
   }
-  else {
-    drupal_not_found();
+    print_r($questions);
+
+  // here I have questions 1, 2, and 4
+
+  // Display filtered question list
+  $form['filtered_question_list'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('The following questions were found'),
+    '#theme' => 'filtered_questions',
+  );
+
+  $form['filtered_question_list']['question_status']['#tree'] = TRUE;
+      
+  foreach ($questions as $question) {
+  print_r($questions);
+  echo $question->nid . " ";
+    $form['filtered_question_list']['question_status'][$question->nid] = array(
+      '#type' => 'radios',
+      '#options' => array(0 => '', 1 => '', 2 => ''),
+      '#default_value' => $question->status,
+    );
+    $form['filtered_question_list']['question'][$question->nid] = array(
+      '#type' => 'markup',
+      '#value' => $question->question,
+    );
+    $form['filtered_question_list']['type'][$question->nid] = array(
+      '#type' => 'markup',
+      '#value' => $question->type,
+    );
   }
+
+  // Get questions assigned to this quiz
+  $questions = _quiz_get_questions();
+
+  // Display questions 
+  $form['assigned_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Questions assigned to this quiz'),
+  );
+  $form['assigned_questions']['questions'] = array(
+    '#type' => 'markup',
+    '#value' => quiz_print_question_table($questions),
+  );
+
+  // Display links to create other questions
+  $form['additional_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Create additional questions'),
+    '#theme' => 'additional_questions',
+  );
+  foreach (_quiz_get_question_types() as $type) {
+    $form['additional_questions'][$type] = array(
+      '#type' => 'markup',
+      '#value' => l($type, "node/add/$type", array('title' => t("Go to $type administration"))) .' ',
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit questions'),
+  );
+  return drupal_get_form('quiz_questions', $form);
 }
 
 /**
@@ -769,14 +755,25 @@ function theme_filtered_questions($form) {
   return $output;
 }
 
-/**
- * Theme the assigned questions list
- */
-function theme_assigned_questions($form) {
-print_r($form);
-  $header = array(t('Status'), t('Question'), t('Type'));
-  $rows = array();
-  
+function quiz_questions_execute($form_id, $values) {
+  $quiz = node_load(arg(1));
+
+  // Update quiz with selected question options
+  $result = quiz_update_questions($values['question_status']);
+  if ($result) {
+    drupal_set_message(t('Questions updated successfully!'));
+  }
+  else {
+    drupal_set_message(t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
+  }
+
+  // Determine how many more questions are required
+  $qnum = $quiz->number_of_questions;
+  $anum = db_num_rows(db_query('SELECT question_nid FROM {quiz_question} WHERE quiz_nid = %d', $quiz->nid));
+  if ($anum < $qnum) {
+    $diff = $qnum - $anum;
+    drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
+  }
 }
 
 /**
@@ -822,26 +819,24 @@ function quiz_filter_question_list($terms = NULL) {
  *   Question object
  */
 function quiz_node_map($node) {
-  $question =& new stdClass();
-  $question->question = check_markup($node->body, $node->format);
-  $question->nid = $node->nid;
-  $question->type = $node->type;
-  $question->status = isset($node->question_status) ? $node->question_status : 2;
-  return $question;
+  $new_question =& new stdClass();
+  $new_question->question = check_markup($node->body, $node->format);
+  $new_question->nid = $node->nid;
+  $new_question->type = $node->type;
+  $new_question->status = isset($node->question_status) ? $node->question_status : 2;
+  return $new_question;
 }
 
 /**
  * Updates questions assigned to the quiz
  *
- * @param $quiz
- *   Quiz node
  * @param $questions
  *   Array of questions and their status
  * @return 
  *   True if update was a success, false if three was a problem
  */
-function quiz_update_questions($quiz, $questions) {
-  
+function quiz_update_questions($questions) {
+  $quiz = node_load(arg(1));
   $return = true;
 
   if (!empty($questions)) {
