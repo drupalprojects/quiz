@@ -163,8 +163,7 @@ function multichoice_validate(&$node) {
 
   if (!$node->nid && empty($_POST)) return;
 
-  // Validate title and body
-  node_validate_title($node);
+  // Validate body
   if (!$node->body) {
     form_set_error('body', t('Question text is empty'));
   }
@@ -285,7 +284,7 @@ function multichoice_render_question($node) {
     }
   }
 
-  // Create form 
+  // Create form
   $form['tries'] = array(
     '#type' => $type,
     '#options' => $options,
@@ -326,9 +325,9 @@ function multichoice_evaluate_question($nid) {
         if ($try == 1) {
 
           $results['input'][] = $key;
-          
+
           $results['feedback'][] = $question->answers[$key]['feedback'];
-        }        
+        }
         $points += ($try == $question->answers[$key]['correct']);
       }
       $results['score'] = ($points == count($question->answers));
@@ -338,7 +337,7 @@ function multichoice_evaluate_question($nid) {
       // Single-answer question
       $count = 0;
       $input = $_POST['edit']['tries'];
- 
+
       $results['input'][] = $input;
       $results['feedback'][] = $question->answers[$input]['feedback'];
       foreach ($question->answers as $key => $value) {

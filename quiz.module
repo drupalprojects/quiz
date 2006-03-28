@@ -57,7 +57,7 @@ function quiz_menu($may_cache) {
     if (arg(0) == 'node' && is_numeric(arg(1))) {
       $node = node_load(arg(1));
       if ($node->type == 'quiz') {
-        
+
         // Menu item for creating adding questions to quiz
         $items[] = array('path' => 'node/'. arg(1) .'/questions', 'title' => t('add questions'),
           'callback' => 'quiz_questions',
@@ -96,7 +96,7 @@ function quiz_form(&$node) {
     '#description' => t('A description of what the quiz entails'),
     '#required' => TRUE,
   );
-  
+
   $form['number_of_questions'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of questions'),
@@ -111,7 +111,7 @@ function quiz_form(&$node) {
     '#default_value' => $node->shuffle ? $node->shuffle : 1,
     '#description' => t('Whether to shuffle/randomize the questions on the quiz'),
   );
-  
+
   $form['backwards_navigation'] = array(
     '#type' => 'checkbox',
     '#title' => t('Backwards navigation'),
@@ -123,7 +123,7 @@ function quiz_form(&$node) {
     '#type' => 'fieldset',
     '#title' => t('When do you want to give feedback?'),
   );
-  
+
   $form['feedback']['feedback_time'] = array(
     '#type' => 'radios',
     '#default_value' => $node->feedback_time,
@@ -134,7 +134,7 @@ function quiz_form(&$node) {
     ),
     '#description' => t('Indicates at what point feedback for each question will be given to the student'),
   );
-  
+
   $form['open'] = array(
     '#type' => 'date',
     '#title' => t('Open date'),
@@ -169,10 +169,9 @@ function quiz_form(&$node) {
  */
 function quiz_validate(&$node) {
   if (!$node->nid && empty($_POST)) return;
-  
-  node_validate_title($node);
+
   if (empty($node->body)) {
-    form_set_error('body', t('Description is required.'));    
+    form_set_error('body', t('Description is required.'));
   }
   if ($node->number_of_questions < 1) {
     form_set_error('number_of_questions', t('Number of questions is required and must be a positive number.'));
@@ -218,7 +217,7 @@ function quiz_load($node) {
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create quizzes')) {
-    
+
     // Format quiz options
     $node->body .= '<h3>'. t('Quiz Options') .'</h3>';
     $header = array(
@@ -240,7 +239,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
       $feedback,
       $takes);
     $node->body .= theme('table', $header, $rows);
-    
+
     // Format taxonomy selection (if applicable)
     if (function_exists(taxonomy_node_get_terms)) {
       $node->body .= '<h3>'. t('Taxonomy selection') .'</h3>';
@@ -261,7 +260,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
     $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
     $questions = _quiz_get_questions();
     $node->body .= quiz_print_question_table($questions);
-    
+
   }
 }
 
@@ -396,7 +395,7 @@ function quiz_calculate_score($rid) {
  *
  * @param $nid
  *   Quiz node ID
- * @return 
+ * @return
  *   Array of question node IDs
  */
 function quiz_build_question_list($nid) {
@@ -576,7 +575,7 @@ function _quiz_taxonomy_select($value = 0) {
 /**
  * Retrieve list of questions assigned to quiz
  *
- * @return 
+ * @return
  *   Array of questions
  */
 function _quiz_get_questions() {
@@ -635,7 +634,7 @@ function quiz_print_question_table($questions) {
  * Displays form which allows questions to be filtered by taxonomy vocabulary,
  * and assigned to the given quiz
  *
- * @return 
+ * @return
  *  HTML output to create page
  */
 function quiz_questions() {
@@ -656,7 +655,7 @@ function quiz_questions() {
       '#value' => t('Filter question list'),
     );
   }
-  
+
   // Grab current question status, if any
   $questions = quiz_filter_question_list($_POST['edit']['taxonomy']);
 
@@ -679,7 +678,7 @@ function quiz_questions() {
   );
 
   $form['filtered_question_list']['question_status']['#tree'] = TRUE;
-      
+
   foreach ($questions as $question) {
   print_r($questions);
   echo $question->nid . " ";
@@ -701,7 +700,7 @@ function quiz_questions() {
   // Get questions assigned to this quiz
   $questions = _quiz_get_questions();
 
-  // Display questions 
+  // Display questions
   $form['assigned_questions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Questions assigned to this quiz'),
@@ -781,14 +780,14 @@ function quiz_questions_execute($form_id, $values) {
  *
  * @param $terms
  *   An array of vocabulary term IDs
- * @return 
+ * @return
  *   Array of questions which match terms
  */
 function quiz_filter_question_list($terms = NULL) {
 
   // Retrieve question list from database, filtered on vocabulary terms
   $sql = '
-    SELECT DISTINCT n.nid, n.type, r.body, r.format 
+    SELECT DISTINCT n.nid, n.type, r.body, r.format
     FROM {node} n, {node_revisions} r ';
   if ($terms != NULL) {
     $sql .= ', {term_node} t ';
@@ -832,7 +831,7 @@ function quiz_node_map($node) {
  *
  * @param $questions
  *   Array of questions and their status
- * @return 
+ * @return
  *   True if update was a success, false if three was a problem
  */
 function quiz_update_questions($questions) {
@@ -869,11 +868,11 @@ function quiz_update_questions($questions) {
         }
       }
     }
- 
+
   } else {
     $return = false;
   }
-  
+
   return $return;
 
 }
