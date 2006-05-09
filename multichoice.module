@@ -70,7 +70,7 @@ function multichoice_form(&$node) {
     '#default_value' => $node->body,
     '#required' => TRUE,
   );
-  $form = array_merge($form, filter_form($node->format));
+  $form['body_filter']['format'] = filter_form($node->format);
 
   $form['multiple_answers'] = array(
     '#type' => 'checkbox',
