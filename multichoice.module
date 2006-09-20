@@ -45,8 +45,9 @@ function multichoice_node_info() {
 function multichoice_menu($may_cache) {
   $items = array();
   if ($may_cache) {
-    $items[] = array('path' => 'node/add/multichoice', 'title' => t('multichoice'),
-      'access' => user_access('create multichoice'));
+    $items[] = array('path' => 'node/add/multichoice',
+                     'title' => t('multichoice'),
+                     'access' => user_access('create multichoice'));
   }
   return $items;
 }
@@ -94,21 +95,33 @@ function multichoice_form(&$node) {
     '#tree' => TRUE,
     '#theme' => 'multichoice_form'
   );
+  
   for ($i = 0; $i < $node->rows; $i++) {
     $form['answers'][$i]['correct'] = array(
       '#type' => 'checkbox',
-      '#default_value' => $answers[$i]['correct'],
+      '#default_value' => $answers[$i]['points'],
     );
     $form['answers'][$i]['answer'] = array(
       '#type' => 'textarea',
       '#default_value' => $answers[$i]['answer'],
-      '#cols' => 20,
+      '#cols' => 30, '#rows' => 2,
     );
     $form['answers'][$i]['feedback'] = array(
       '#type' => 'textarea',
       '#default_value' => $answers[$i]['feedback'],
-      '#cols' => 20,
+      '#cols' => 30, '#rows' => 2,
     );
+    if ($answers[$i]['aid']) {
+      $form['answers'][$i]['delete'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => 0,
+      );
+
+      $form['answers'][$i]['aid'] = array(
+        '#type' => 'hidden',
+        '#value' => $answers[$i]['aid'],
+      );
+    }
   }
 
   $form['more'] = array(
@@ -133,7 +146,8 @@ function theme_multichoice_form($form) {
   $header = array(
     array('data' => t('Correct')),
     array('data' => t('Answer'), 'style' => 'width:250px;'),
-    array('data' => t('Feedback'), 'style' => 'width:250px;')
+    array('data' => t('Feedback'), 'style' => 'width:250px;'),
+    array('data' => t('Delete')),
   );
 
   // Format table rows
@@ -143,6 +157,7 @@ function theme_multichoice_form($form) {
       form_render($form[$key]['correct']),
       form_render($form[$key]['answer']),
       form_render($form[$key]['feedback']),
+      form_render($form[$key]['delete']),
     );
   }
 
@@ -171,7 +186,9 @@ function multichoice_validate(&$node) {
   // Validate answers
   $answers = array();
   $corrects = 0;
-  foreach ($node->answers as $key => $answer) {
+
+  while(list($key, $answer) = each($node->answers)) {
+
     if ($answer['correct']) {
       if ($corrects && !$node->multiple_answers) {
         form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
@@ -198,30 +215,63 @@ function multichoice_validate(&$node) {
  * Implementation of hook_insert().
  */
 function multichoice_insert($node) {
-  db_query("INSERT INTO {multichoice} (nid, multiple_answers, answers) VALUES (%d, %d, '%s')", $node->nid, $node->multiple_answers, serialize($node->answers));
+  db_query("INSERT INTO {quiz_question} (nid, properties) VALUES(%d, '%s')", $node->nid, serialize(array('multiple_answers' => $node->multiple_answers)));
+  
+  while(list($key, $value) = each($node->answers)) {
+    if (trim($value['answer']) != "")
+      db_query("INSERT INTO {quiz_question_answer} (question_nid, answer, feedback, points) VALUES(%d, '%s', '%s', %d)", $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+  }
 }
 
 /**
  * Implementation of hook_update().
  */
 function multichoice_update($node) {
-  db_query("UPDATE {multichoice} SET multiple_answers = %d, answers = '%s' WHERE nid = %d", $node->multiple_answers, serialize($node->answers), $node->nid);
+  db_query("UPDATE {quiz_question} SET properties = '%s' WHERE nid = %d", serialize(array('multiple_answers' => $node->multiple_answers)), $node->nid);
+  
+  while(list($key, $value) = each($node->answers)) {
+    if ($value['aid']) {
+      $value['answer'] = trim($value['answer']);
+      if ($value['delete'] == 1 || empty($value['answer'])) {
+        //Delete this entry
+        db_query("DELETE FROM {quiz_question_answer} WHERE aid = %d", $value['aid']);
+      } else {
+        //Update this entry
+        db_query("UPDATE {quiz_question_answer} SET answer = '%s', feedback = '%s', points = %s WHERE aid = %d", $value['answer'], $value['feedback'], $value['correct'], $value['aid']);
+      }
+    } else if (trim($value['answer']) != "") {
+      //If there is an answer, insert a new row
+        db_query("INSERT INTO {quiz_question_answer} (question_nid, answer, feedback, points) VALUES(%d, '%s', '%s', %d)", $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+    }
+  }
 }
 
 /**
  * Implementation of hook_delete().
  */
 function multichoice_delete($node) {
-  db_query("DELETE FROM {multichoice} WHERE nid = %d", $node->nid);
-  db_query("DELETE FROM {quiz_question} WHERE question_nid = %d", $node->nid);
+  db_query("DELETE FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
+  db_query("DELETE FROM {quiz_question} WHERE nid = %d", $node->nid);
 }
 
 /**
  * Implementation of hook_load().
  */
 function multichoice_load($node) {
-  $additions = db_fetch_object(db_query('SELECT * FROM {multichoice} WHERE nid = %d', $node->nid));
-  $additions->answers = unserialize($additions->answers);
+  $additions = db_fetch_object(db_query("SELECT * FROM {quiz_question} WHERE nid = %d", $node->nid));
+  
+  $answers = array();
+  $result = db_query("SELECT * FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
+  while($line = db_fetch_array($result)) {
+    $answers[] = $line;
+  }
+  
+  
+  $additions->answers = $answers;
+  
+  $additions->properties = unserialize($additions->properties);
+  $additions->multiple_answers = $additions->properties['multiple_answers'];
+  
   return $additions;
 }
 
@@ -266,24 +316,28 @@ function multichoice_help($section) {
  *   HTML output
  */
 function multichoice_render_question($node) {
-
   // Radio buttons for single selection questions, checkboxes for multiselect
   if ($node->multiple_answers == 0) {
     $type = 'radios';
-  } else {
+  }
+  else {
     $type = 'checkboxes';
   }
 
   // Get options
   $options = array();
-  foreach ($node->answers as $key => $answer) {
+
+  while(list($key, $answer) = each($node->answers)) {
     if (empty($answer['correct']) && empty($answer['answer']) && empty($answer['feedback'])) {
       unset($node->answers[$key]);
-    } else {
+    }
+    else {
       $options[$key] = $answer['answer'];
     }
   }
-
+  
+  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
+  
   // Create form
   $form['tries'] = array(
     '#type' => $type,
@@ -307,51 +361,57 @@ function multichoice_render_question($node) {
  * @return
  *   Array of results, in the form of:
  *   array(
- *     'input' => array of answer(s) chosen by user
- *     'feedback' => array of feedback for selected answer(s)
- *     'score' => 0 or 1, depending on whether question was answered properly
+ *     'answers' => array of correct answer(s)
+ *     'tried' => array of selected answer(s)
  *   );
  */
 function multichoice_evaluate_question($nid) {
   $question = node_load($nid);
   $results = array();
-  $points = 0;
 
   if (isset($_POST['edit']['tries'])) {
     if (is_array($_POST['edit']['tries'])) {
 
       // Multi-answer question
-      foreach ($_POST['edit']['tries'] as $key => $try) {
-        if ($try == 1) {
-
-          $results['input'][] = $key;
-
-          $results['feedback'][] = $question->answers[$key]['feedback'];
-        }
-        $points += ($try == $question->answers[$key]['correct']);
+      while(list($key, $try) = each($_POST['edit']['tries'])) {
+        $results['answers'] = $question->answers;
+        $results['tried'][] = $question->answers[$try]['aid'];
       }
-      $results['score'] = ($points == count($question->answers));
     }
     else {
 
       // Single-answer question
-      $count = 0;
-      $input = $_POST['edit']['tries'];
-
-      $results['input'][] = $input;
-      $results['feedback'][] = $question->answers[$input]['feedback'];
-      foreach ($question->answers as $key => $value) {
-        if ($value[0] == 1) {
-          $points = $input == $key ? 1 : 0;
-        }
-        $count++;
-      }
-      $results['score'] = $points;
+      $results['answers'] = $question->answers;
+      $results['tried'][] = $question->answers[$_POST['edit']['tries']]['aid'];
     }
   }
 
   return $results;
 }
+
+function multichoice_calculate_result($answers, $tried) {
+  while(list($key, $answer) = each($answers)) {
+    if ($answer['points'] == 1) {
+      if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
+        //Correct answer was selected, so lets take that out the tried list
+        unset($tried[$key]);
+      }
+      else {
+        //Correct answer was not in the "tried" list, so score 0
+        return 0;
+      }
+    }
+  }
+  //Finally - have we got any answers left?
+  //If so - they weren't knocked out as one of the correct ones so logically they must be incorrect!
+  if (count($tried) > 0) return 0;
+
+  
+  //Finally, we can consider this correct if its passed the above tests!
+  return 1;
+}
+
+
 
 /**
  * List all multiple choice questions
