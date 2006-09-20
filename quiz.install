@@ -1,0 +1,81 @@
+<?php
+
+function quiz_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      /*
+       *      INSTALL TABLES FOR MySQL and MySQLi
+       */
+       
+       
+      /* Create the quiz table */
+      db_query("CREATE TABLE quiz (
+                  nid INTEGER UNSIGNED NOT NULL,
+                  number_of_questions TINYINT UNSIGNED NOT NULL,
+                  shuffle TINYINT UNSIGNED NOT NULL,
+                  backwards_navigation TINYINT UNSIGNED NOT NULL,
+                  feedback_time TINYINT UNSIGNED NOT NULL,
+                  open DATETIME NOT NULL,
+                  close DATETIME NOT NULL,
+                  takes TINYINT UNSIGNED NOT NULL,
+                  time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+                  PRIMARY KEY(nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+   
+      /* Create the questions table */
+      db_query("CREATE TABLE quiz_questions (
+                  quiz_nid INTEGER UNSIGNED NOT NULL,
+                  question_nid INTEGER UNSIGNED NOT NULL,
+                  question_status TINYINT UNSIGNED NOT NULL,
+                  PRIMARY KEY (quiz_nid, question_nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      
+      /* Create the question table */
+      db_query("CREATE TABLE quiz_question (
+                  nid INTEGER UNSIGNED NOT NULL,
+                  properties VARCHAR(255) NOT NULL,
+                  PRIMARY KEY (nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      
+      /* Create the question answer table */
+      db_query("CREATE TABLE quiz_question_answer (
+                  aid INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+                  question_nid INTEGER UNSIGNED NOT NULL,
+                  answer TEXT NOT NULL,
+                  feedback TEXT NULL,
+                  points TINYINT NOT NULL,
+                  PRIMARY KEY (aid),
+                  INDEX (question_nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      
+      /* Create the results table */
+      db_query("CREATE TABLE quiz_result (
+                  rid INTEGER UNSIGNED NOT NULL,
+                  quiz_nid INTEGER UNSIGNED NOT NULL,
+                  uid INTEGER UNSIGNED NOT NULL,
+                  time_start DATETIME NOT NULL,
+                  time_end DATETIME NOT NULL,
+                  released DATETIME NOT NULL,
+                  score TINYINT NOT NULL,
+                  PRIMARY KEY (rid),
+                  INDEX (quiz_nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      
+      /* Create the question results table */
+      db_query("CREATE TABLE quiz_question_results (
+                  result_rid INTEGER UNSIGNED NOT NULL,
+                  question_nid INTEGER UNSIGNED NOT NULL,
+                  answer TEXT NOT NULL,
+                  PRIMARY KEY (result_rid, question_nid)
+                ) TYPE=MyISAM
+                /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      
+      break;
+  }
+}
