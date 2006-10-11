@@ -24,7 +24,7 @@ define("QUESTION_NEVER", 2);
  * Implementation of hook_perm().
  */
 function quiz_perm() {
-  return array('create quizzes', 'access quizzes');
+  return array('create quizzes', 'access quizzes', 'user results');
 }
 
 /**
@@ -83,15 +83,27 @@ function quiz_menu($may_cache) {
         // Menu item for quiz taking interface
         $items[] = array(
           'path' => 'node/'. arg(1) .'/quiz/start',
-          'title' => t('take quiz'),
+          'title' => t('take test'),
           'callback' => 'quiz_take_quiz',
           'access' => user_access('access quizzes'),
           'type' => MENU_LOCAL_TASK,);
       }
     }
     else {
-    
+      $items[] = array(
+        'path' => 'user/'.arg(1).'/myresults',
+        'title' => t('my results'),
+        'callback' => 'quiz_get_user_results',
+        'access' => user_access('user results'),
+        'type' => MENU_LOCAL_TASK);
 
+      $items[] = array(
+        'path' => 'user/quiz/' . arg(2) . "/userresults",
+        'title' => t('user results'),
+        'callback' => 'quiz_user_results',
+        'access' => user_access('user results'),
+        'type' => MENU_CALLBACK);
+        
       $items[] = array(
         'path' => 'admin/quiz/' . arg(2) . "/view",
         'title' => t('view quiz'),
@@ -147,11 +159,11 @@ function quiz_form(&$node) {
     '#description' => t('The number of questions to include in this quiz from the question bank'),
     '#required' => TRUE,
   );
-
+  
   $form['shuffle'] = array(
     '#type' => 'checkbox',
     '#title' => t('Shuffle questions'),
-    '#default_value' => $node->shuffle ? $node->shuffle : 1,
+    '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
     '#description' => t('Whether to shuffle/randomize the questions on the quiz'),
   );
 
@@ -206,7 +218,68 @@ function quiz_form(&$node) {
     '#description' => t('The number of times a student is allowed to take the quiz'),
   );
 
+ // Quiz summary options
+  $form['summaryoptions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Quiz Summary Options'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  if(variable_get('quiz_use_passfail', 1)){
+  	// New nodes get the default. Otherwise they get 0. (ignore pass / fail feedback)
+  	if(!$node->nid){
+      $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
+  	}
+    $form['summaryoptions']['pass_rate'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Pass rate for quiz %'),
+      '#default_value' => ($node->pass_rate ? $node->pass_rate : 0),
+      '#description' => t('Pass rate for the quiz as a percentage score'),
+      '#required' => FALSE,
+    );
+    $form['summaryoptions']['summary_pass'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Summary text if passed.'),
+      '#default_value' => $node->summary_pass,
+      '#cols' => 60,
+      '#description' => t('Summary for when the student gets enough correct answers to pass the quiz. Leave blank if you don\'t want to give different summary text if they passed or if you are not using the "percent to pass" option above. If you don\'t use the "Percentage needed to pass" field above, this text will not be used.'),
+    );
+  }
+  $form['summaryoptions']['summary_default'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Default summary text.'),
+    '#default_value' => $node->summary_default,
+    '#cols' => 60,
+    '#description' => t('Default summary. Leave blank if you don\'t want to give a summary.'),
+  );
+
   return $form;
+}
+
+/**
+ * @param $nid
+ *   Quiz ID
+ * Finds out the number of questions for the quiz.
+ * Good example of usage could be to calculate the % of score
+ * @return integer
+ *   Returns the number of quiz questions.
+ */
+function quiz_get_number_of_questions($nid) {
+  $result = db_fetch_object(db_query('SELECT number_of_questions FROM quiz WHERE nid = %d', $nid));  
+  $numberOfQuestions = $result->number_of_questions;
+  return $numberOfQuestions;
+}
+
+/**
+ * @param $nid
+ *   Quiz ID
+ * Finds out the pass rate for the quiz.
+ * @return integer
+ *   Returns the pass rate of quiz.
+ */
+function quiz_get_pass_rate($nid) {
+    $passrate = db_fetch_object(db_query('SELECT pass_rate FROM quiz WHERE nid = %d', $nid));
+    return $passrate->pass_rate;   
 }
 
 /**
@@ -225,6 +298,15 @@ function quiz_validate(&$node) {
     form_set_error('close', t('Close date before open date'));
     form_set_error('open', t('Open date after close date'));
   }
+  if (!is_numeric($node->pass_rate)) {
+    form_set_error('pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
+  } 
+  if ($node->pass_rate > 100) {
+    form_set_error('pass_rate', t('The pass rate value must not be more than 100%.'));
+  }
+  if ($node->pass_rate < 0) {
+    form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
+  }
 }
 
 /**
@@ -233,8 +315,7 @@ function quiz_validate(&$node) {
 function quiz_insert($node) {
   $open = $node->open['year'].'-'.$node->open['month'].'-'.$node->open['day'];
   $close = $node->close['year'].'-'.$node->close['month'].'-'.$node->close['day'];
-    
-  db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes) VALUES(%d, %d, %d, %d, %d, '%s', '%s', %d)", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes);
+  db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes, pass_rate, summary_pass, summary_default) VALUES(%d, %d, %d, %d, %d, '%s', '%s', %d, %d, '%s', '%s')", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default);
 }
 
 /**
@@ -243,8 +324,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   $open = $node->open['year'].'-'.$node->open['month'].'-'.$node->open['day'];
   $close = $node->close['year'].'-'.$node->close['month'].'-'.$node->close['day'];
-    
-  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, open = '%s', close = '%s', takes = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes, $node->nid);
+  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, open = '%s', close = '%s', takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s' WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->nid);
 }
 
 /**
@@ -271,6 +351,7 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
+
   if (!$teaser && user_access('create quizzes')) {
 
     // Format quiz options
@@ -301,7 +382,7 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
     
     // Format Quiz Dates
     $node->body .= '<h3>'. t('Quiz start/end') .'</h3>';
-    $node->body .= "<p>" . date("l, jS F Y", strtotime($node->open)) . " &mdash " . date("l, jS F Y", strtotime($node->close)) ."</p>";
+    $node->body .= "<p>" . date("l, jS F Y", strtotime($node->open)) . " &mdash; " . date("l, jS F Y", strtotime($node->close)) ."</p>";
     $node->body .= "<p><strong>Days quiz live for:</strong> " . floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) . "</p>";
     
     $remaining = floor((strtotime($node->close) - time()) / 60 / 60 / 24);
@@ -330,12 +411,89 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
       }
     }
 
+    // Format pass / fail and summary options
+    if($node->pass_rate || $node->summary_default || $node->summary_pass){
+      if($node->pass_rate){
+        $node->body .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
+        $node->body .= '<p><strong>Percentage needed to pass:</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
+        $node->body .= '<div><strong>'. t('Summary text if the student passed:') .'</strong>';
+        $node->body .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
+        $node->body .= '</div>'."\n";
+      }
+      $node->body .= '<div><strong>'. t('Default summary text:') .'</strong>';
+      $node->body .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
+      $node->body .= '</div>'."\n";
+    }
+
     // Format quiz questions
     $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
     $questions = _quiz_get_questions();
     $node->body .= quiz_print_question_table($questions);
 
   }
+}
+
+/**
+ * Displays all the quizs the user has taken part in
+ *
+ * @return
+ *  HTML output for page
+ */ 
+function quiz_get_user_results() {
+  global $user;
+  $output = '';
+  $rows = array();
+
+  $results = array();
+  $dbresult = db_query("SELECT
+                          n.nid nid,
+                          n.title title,
+                          u.name name,
+                          qr.rid rid,
+                          qr.time_start time_start,
+                          if (qr.time_end, qr.time_end, 'In Progress&hellip;') finished
+                        FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
+                        WHERE
+                          n.type = 'quiz'
+                            AND
+                          n.nid = q.nid
+                            AND
+                          qr.quiz_nid = q.nid
+                            AND
+                          u.uid = qr.uid
+                            AND
+                          u.uid = ".$user->uid."
+                        ORDER BY qr.rid ASC");
+  //Create results array
+  while($line = db_fetch_array($dbresult)) {
+    $results[$line['rid']] = $line;
+  }
+  
+  while(list($key, $result) = each($results)) {
+    $rows[] = array(
+      l("view", "user/quiz/".$result['rid']."/userresults"),
+      $result['title'],
+      $result['name'],
+      $result['rid'],
+      $result['time_start'],
+      $result['finished'],);
+  }
+  
+  $header = array(
+    t('Action'),
+    t('Quiz Title'),
+    t('Username'),
+    t('Result<br/>ID'),
+    t('Time Started'),
+    t('Finished?'));
+  
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    $output .= 'No questions found.';
+  }
+  return $output;    
 }
 
 /**
@@ -349,18 +507,16 @@ function quiz_take_quiz() {
 
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quizzes')) {
     if ($quiz = node_load(arg(1))) {
-
       if (!isset($_SESSION['quiz_questions'])) {
 
         // First time running through quiz
         if ($rid = quiz_start_actions($user->uid, $quiz->nid)) {
-
           // Create question list
           $questions = quiz_build_question_list($quiz->nid);
-
           // Initialize session variables
           $_SESSION['quiz_questions'] = $questions;
           $_SESSION['rid'] = $rid;
+          $_SESSION['question_number'] = 0;
 
         }
         else {
@@ -370,18 +526,29 @@ function quiz_take_quiz() {
 
       // Check for answer submission
       if ($_POST['op'] == t('Submit')) {
-        $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
-        $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
-        db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['rid'], $former_question->nid, serialize($result));
+      	if(!isset($_POST['edit']['tries'])) {
+      	  drupal_set_message('You must select an answer before you can progress to the next question!', 'error');
+      	}
+      	else {
+    		  $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
+    		  $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
+    		  db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['rid'], $former_question->nid, serialize($result));   		  
+    		}
       }
 
       // Check if at the end of quiz
       if (!empty($_SESSION['quiz_questions'])) {
-
+        //Calculation for quiz progress bar 		  
+  		  $numOfQuestion = quiz_get_number_of_questions(arg(1));
+  		  $questionNumber = $numOfQuestion - count($_SESSION['quiz_questions']);
+  		  $progress = ($questionNumber*100)/$numOfQuestion;
+          
         // Load the next question
         $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
 
-        $node->body = module_invoke($question_node->type, 'render_question', $question_node);
+        $node->body = '<br /><br />'.theme_progress_bar(round($progress), 'Quiz Progress Indicator').'<br /><br />';         
+        drupal_set_title($quiz->title);       
+        $node->body .= module_invoke($question_node->type, 'render_question', $question_node);
 
       }
       else {
@@ -391,10 +558,20 @@ function quiz_take_quiz() {
         //First - update the result to show we have finished.
         db_query("UPDATE {quiz_result} SET time_end = NOW() WHERE rid = %d", $_SESSION['rid']);
         
-        //display results and remove session variables
+        //Set the title!
+        drupal_set_title($quiz->title);
+        
+        //display overall result
         $node->body = "Your score: " .quiz_calculate_score($_SESSION['rid']);
+
+        //Get results of this quiz from the Database...
+        $questions = _quiz_get_answers($_SESSION['rid']);
+        $node->body .= _quiz_get_results_table($questions, arg(1), FALSE, TRUE);
+
+        //remove session variables
         unset($_SESSION['quiz_questions']);
         unset($_SESSION['rid']);
+        unset($_SESSION['question_number']);
 
       }
     }
@@ -717,7 +894,8 @@ function quiz_print_question_table($questions) {
 function quiz_questions() {
   if ($_POST) {
     if ($_POST['op'] == 'Filter question list') {
-      $_SESSION['quiz_filter'] = $_POST['edit'][1];
+      //BE CAREFUL OF THE $_POST['edit'] ARRAY AS THIS VALUE IS LIABLE TO CHANGE WHEN VOCABS ARE ADDED AND DELETED...IF YOU HAVE MORE THAN ONE VOCAB, MAY GOD HELP YOU!!
+      $_SESSION['quiz_filter'] = $_POST['edit'][4];
     }
     else if ($_POST['op'] =='Submit questions') {
       if (quiz_update_questions($_POST['edit']['question_status'])) {
@@ -728,14 +906,14 @@ function quiz_questions() {
       }
     }
   }
-  
+    
   if (isset($_SESSION['quiz_filter'])) {
     $terms = $_SESSION['quiz_filter'];
   }
   else {
     $terms = array();
   }
-  
+
   $quiz = node_load(arg(1));
 
   // Set page title
@@ -892,9 +1070,9 @@ function quiz_filter_question_list($terms = NULL) {
   }
   $sql .= "WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
   if (count($terms) > 0) {
-    $sql .= 'AND t.tid IN ('. implode(',', $terms) .') AND t.nid = n.nid';
+    $sql .= 'AND t.tid IN ('.$terms.') AND t.nid = n.nid';
   }
-  
+
   $result = db_query($sql);
   
   // Create questions array
@@ -977,6 +1155,42 @@ function quiz_update_questions($questions) {
 }
 
 
+/**
+ * Implementation of hook_settings()
+ */
+function quiz_settings(){
+  $form = array();
+  // option to globally turn off pass / fail form elements
+  $form['quiz_use_passfail'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display pass / fail options in the quiz form'),
+    '#default_value' => variable_get('quiz_use_passfail', 1),
+    '#description' => t('Check this to display the pass / fail options in the quiz form. You can still choose to ignore pass / fail options on a quiz by quiz basis if this is checked, but if you want to prohibit other quiz module creators from using these options, unchecked this option.'), 
+  );
+  $form['quiz_default_pass_rate'] = array (
+    '#type' => 'textfield',
+    '#title' => t('Default percentage needed to pass a quiz'),
+    '#default_value' => variable_get('quiz_default_pass_rate', 75),
+    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass / fail summary information by default.'), 
+  );
+  return $form;
+}
+
+/**
+ * Validation form settings form
+ */
+function quiz_settings_form_validate($form_id, $form_values){
+  if (!is_numeric($form_values['quiz_default_pass_rate'])) {
+    form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
+  }  
+  if ($form_values['quiz_default_pass_rate'] > 100) {
+    form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
+  }
+  if ($form_values['quiz_default_pass_rate'] < 0) {
+    form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
+  }
+}
+
 /*
  * Quiz Admin
  */
@@ -1057,36 +1271,145 @@ function _quiz_get_results() {
   return $results;
 }
 
-
+/*
+ * Quiz Results User
+ */
+function quiz_user_results() {
+  $questions = _quiz_get_answers(arg(2));
+  $result = db_fetch_object(db_query('SELECT quiz.nid FROM quiz, quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
+  return _quiz_get_results_table($questions, $result->nid, FALSE);
+}
 
 /*
  * Quiz Results Admin
  */
 function quiz_admin_results() {
   $questions = _quiz_get_answers(arg(2));
-  
+  $result = db_fetch_object(db_query('SELECT quiz.nid FROM quiz, quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
+  return _quiz_get_results_table($questions, $result->nid);
+}
+
+
+/**
+ * Get the results for a particular quiz question
+ * 
+ * TODO: This all needs to be properly themed.
+ * The scores, summary and feedback should be passed to the theme as arrays and objects
+ * 
+ * @param $questions
+ *   Array of quiz objects as returned by _quiz_get_answers
+ * @param $arg
+ *   The quiz nid
+ * @param showPoints
+ *   Binary flag for wheather to show points
+ * @param $showFeedback
+ *   binary flag for whether to show question feedback
+ */
+function _quiz_get_results_table($questions, $arg, $showPoints = TRUE, $showFeedback = FALSE) {
+
+  // initialize our vars
   $output = '';
   $rows = array();
-
-  while(list($key, $question) = each($questions)) {
-    $question['qanswer'] = unserialize($question['qanswer']);
-    $score = module_invoke($question['type'], 'calculate_result', $question['qanswer']['answers'], $question['qanswer']['tried']);
+  $totalScore = 0;
     
-    #dprint_r($question);
-    $rows[] = array(
-      $question['question'],
-      $score,
-      );
+  // load the quiz node object
+  $node = node_load($arg);
+
+  // go through each of the questions
+  while(list($key, $question) = each($questions)) {
+
+    // reset the cols array
+    $cols = array();
+    
+    // score the saved answer and update the total score
+    $question['qanswer'] = unserialize($question['qanswer']);
+    $result = module_invoke($question['type'], 'calculate_results', $question['qanswer']['answers'], $question['qanswer']['tried'], $showPoints, $showFeedback);
+    $totalScore += $result['score'];
+    
+    //Question Answers Table (add blank space for IE)
+    $innerHeader = array('&nbsp;');
+    if($showPoints){
+      $innerHeader[] = t('Answer');
+    }
+    $innerHeader[] = t('User Answer');
+    if($showFeedback){
+      $innerHeader[] = t('Feedback');
+    }
+
+    // feedback list
+    $cols[] = '<b><i>'.$question['question'].'</i></b>'.theme('table', $innerHeader, $result['resultstable']);
+
+    // if we are showing scores, get the themed score result
+    if($result['score'] == 1) {
+      $cols[] = theme_quiz_score_correct();
+    }
+    else {
+      $cols[] = theme_quiz_score_incorrect();      
+    }
+
+    // pack all of this into this row
+    $rows[] = $cols;
   }
-  
-  $header = array(t('Question'), t('Right or Wrong?'),);
-  
+
+  // work out the score as a percentage
+  $numOfQuestions = quiz_get_number_of_questions($arg);
+  $percentageScore = round(($totalScore*100)/$numOfQuestions);
+
+  //work out if the student passed or failed
+  $header2 = array(array('data'=> t('Results and Options'), 'colspan' => '2'));
+  if ($node->pass_rate > 0 && $percentageScore >= $node->pass_rate) {
+    if (arg(3) == 'view') {
+      $rows2[] = array(array('data' => '<b>The student passed this quiz.</b>', 'colspan' => '2'));      
+    }
+    else {
+      $rows2[] = array(array('data' => check_markup($node->summary_pass, $node->format), 'colspan' => '2'));      
+    }
+  } 
+  else if ($percentageScore < $node->pass_rate) {
+    if (arg(3) == 'view') {
+      if ($node->pass_rate > 0){
+        $rows2[] = array(array('data' => '<b>The student failed this quiz.</b>', 'colspan' => '2'));
+      }
+    }
+    else {
+      $rows2[] = array(array('data' => check_markup($node->summary_default, $node->format), 'colspan' => '2'));
+    }
+  }
+  $rows2[] = array(array('data' => '<b>Total Score</b> &mdash; '.$totalScore.'/'.$numOfQuestions, 'colspan'=> '2'));
+  $rows2[] = array(array('data' => '<b>Total Percentage</b> &mdash; '.$percentageScore.'%', 'colspan' => '2'));
+
+  $header = array(t('Question(s)'), t('Score'));
   if (isset($rows)) {
+    $output .= '<br /><br />';   
+    $output .= 'Test title: <b>'.$node->title.'</b>';  
+    $output .= '<br /><br />';   
+    $output .= theme('table', $header2, $rows2); 
+    $output .= '<br /><br />'; 
     $output .= theme('table', $header, $rows);
   }
   else {
     $output .= 'No answers found in this result!.';
   }
+  return $output;
+}
+
+/**
+ * Pass the correct mark to the theme so that theme authors can use an image
+ * 
+ * TODO: A default image might be better here.
+ */
+function theme_quiz_score_correct(){
+  $output = '<div class="quiz_correct">'. t('correct') .'</div>';
+  return $output;
+}
+
+/**
+ * Pass the incorrect mark to the theme so that theme authors can use an image
+ *
+ * TODO: A default image might be better here.
+ */
+function theme_quiz_score_incorrect(){
+  $output = '<div class="quiz_incorrect">'. t('incorrect') .'</div>';
   return $output;
 }
 

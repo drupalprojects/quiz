@@ -281,8 +281,7 @@ function multichoice_load($node) {
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (user_access('create multichoice')) {
     if (!$teaser) {
-      $question = multichoice_render_question($node);
-      $node->body .= $question;
+      $node->body = multichoice_render_question($node);
     }
   }
   else if ($teaser) {
@@ -342,7 +341,7 @@ function multichoice_render_question($node) {
   $form['tries'] = array(
     '#type' => $type,
     '#options' => $options,
-    '#default_value' => NULL,
+    '#default_value' => -1,
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -385,10 +384,14 @@ function multichoice_evaluate_question($nid) {
       $results['tried'][] = $question->answers[$_POST['edit']['tries']]['aid'];
     }
   }
-
+  //Unset $_POST, otherwise it tries to use the previous answers on the next page...
+  unset($_POST['edit']['tries']);
+  
+  //Return the result
   return $results;
 }
 
+//Old claculate result function
 function multichoice_calculate_result($answers, $tried) {
   while(list($key, $answer) = each($answers)) {
     if ($answer['points'] == 1) {
@@ -411,7 +414,43 @@ function multichoice_calculate_result($answers, $tried) {
   return 1;
 }
 
+//New singing and dancing one
+function multichoice_calculate_results($answers, $tried, $showPoints = FALSE, $showFeedback = FALSE) {
+  //Create results table
+  $rows = array();
+  $correctAnswers = array();
+  
+  while(list($key, $answer) = each($answers)) {
+    $cols = array();
+    
+    $cols[] = $answer['answer'];
+    if($showPoints) $cols[] = (($answer['points'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
+    $isSelected = (array_search($answer['aid'], $tried) !== FALSE);
+    $cols[] = ($isSelected ? theme_multichoice_selected() : theme_multichoice_unselected());
+    if($showFeedback) $cols[] = ($isSelected?$answer['feedback']:'');
+  
+    $rows[] = $cols;
+  
+  	
+  	if($answer['points'] > 0) {
+  	  $correctAnswers[] = $answer['aid'];
+  	}
+  }
 
+  
+  if($correctAnswers === $tried) { $score = 1; } else { $score = 0; }
+  
+  return array('score' => $score, 'resultstable' => $rows);
+}
+
+
+function theme_multichoice_selected(){
+  return '&nbsp; &#9745';
+}
+
+function theme_multichoice_unselected(){
+  return '&nbsp; &#9744';
+}
 
 /**
  * List all multiple choice questions
