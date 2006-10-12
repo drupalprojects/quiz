@@ -66,6 +66,13 @@ function quiz_menu($may_cache) {
       'path' => 'node/add/quiz',
       'title' => t('quiz'),
       'access' => user_access('create quizzes'));
+
+     $items[] = array(
+        'path' => 'admin/quiz',
+        'title' => t('quizzes'),
+        'callback' => 'quiz_admin',
+        'access' => user_access('administer quizzes'),
+        'type' => MENU_NORMAL_ITEM);
   }
   else {
     if (arg(0) == 'node' && is_numeric(arg(1))) {
@@ -118,12 +125,6 @@ function quiz_menu($may_cache) {
         'access' => user_access('administer quizzes'),
         'type' => MENU_CALLBACK);
 
-      $items[] = array(
-        'path' => 'admin/quiz',
-        'title' => t('quizzes'),
-        'callback' => 'quiz_admin',
-        'access' => user_access('administer quizzes'),
-        'type' => MENU_NORMAL_ITEM);
     }
   }
 
