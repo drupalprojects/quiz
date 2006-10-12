@@ -291,9 +291,41 @@ function quiz_validate(&$node) {
   if (empty($node->body)) {
     form_set_error('body', t('Description is required.'));
   }
+  
+  // validate the number of questions against the actual questions assigned to this quiz
   if ($node->number_of_questions < 1) {
     form_set_error('number_of_questions', t('Number of questions is required and must be a positive number.'));
   }
+  else if($node->nid){
+    // get the number of each kind of question
+    $anum_random = quiz_get_num_questions($node->nid, QUESTION_RANDOM);
+    $anum_always = quiz_get_num_questions($node->nid, QUESTION_ALWAYS);
+    $anum_total = $anum_always + $anum_random;
+    // If we have random number, add one to the low range.
+    if($anum_random > 0){
+      $anum_always++;
+    }
+    // If we have more than one random number, lower the high range by one.
+    if($anum_random > 1){
+      $anum_total--;
+    }
+    // format the valid range
+    if($anum_always != $anum_total){
+      $range = theme('placeholder', t('between %low and %high', array('%low' => $anum_always, '%high' => $anum_total)));
+    } 
+    else {
+      $range = theme('placeholder', $anum_total);
+    }
+    // If there are not enough questions to support this number.
+    if ($anum_total < $node->number_of_questions) {
+      form_set_error('number_of_questions', t('You don\'t currently have enough questions assigned to this quiz to support that many questions. Either change the number of questions to %range or %action to this quiz.', array('%range' => $range, '%action' => l(t('add more questions'), 'node/'.$node->nid.'/questions'))));
+    }
+    // If there are too many questions for this number.
+    else if($anum_always > $node->number_of_questions){
+      form_set_error('number_of_questions', t('There are too many questions assigned to this quiz to support that low of a number. Either change the number of questions to %range or %link from this quiz.', array('%range' => $range, '%action' => l(t('remove some questions'), 'node/'.$node->nid.'/questions'))));
+    }
+  }
+
   if (mktime(0,0,0, $node->open['month'], $node->open['day'], $node->open['year']) > mktime(0,0,0, $node->close['month'], $node->close['day'], $node->close['year'])) {
     form_set_error('close', t('Close date before open date'));
     form_set_error('open', t('Open date after close date'));
@@ -897,14 +929,6 @@ function quiz_questions() {
       //BE CAREFUL OF THE $_POST['edit'] ARRAY AS THIS VALUE IS LIABLE TO CHANGE WHEN VOCABS ARE ADDED AND DELETED...IF YOU HAVE MORE THAN ONE VOCAB, MAY GOD HELP YOU!!
       $_SESSION['quiz_filter'] = $_POST['edit'][4];
     }
-    else if ($_POST['op'] =='Submit questions') {
-      if (quiz_update_questions($_POST['edit']['question_status'])) {
-        drupal_set_message("Question sucessfully updated");
-      }
-      else {
-        drupal_set_message("There was a problem updating the questions...", 'error');
-      }
-    }
   }
     
   if (isset($_SESSION['quiz_filter'])) {
@@ -918,6 +942,14 @@ function quiz_questions() {
 
   // Set page title
   drupal_set_title(check_plain($quiz->title));
+  
+  // show the number of questions that this quiz currently has
+  $form['numberofquestions'] = array(
+    '#prefix' => '<div class="quiz_questions_number">',
+    '#value' => t('This quiz consists of %x %question.', array('%x' => check_plain($quiz->number_of_questions), '%question' => format_plural($quiz->number_of_questions, t('question'), t('questions')))),
+    '#suffix' => '</div><br />'."\n"
+  );
+
 
   // Display filtering options
   if (_quiz_taxonomy_select() != array()) {
@@ -1030,26 +1062,71 @@ function theme_filtered_questions($form) {
   return $output;
 }
 
-function quiz_questions_execute($form_id, $values) {
+
+/**
+ * Submit function for quiz_questions
+ * 
+ * Updates from the "add questions" tab
+ * 
+ * @param $form_id
+ *   A string containing the form id
+ * @param $values
+ *   Array containing the form values
+ */
+function quiz_questions_submit($form_id, $values) {
+  
+  // load the node
   $quiz = node_load(arg(1));
 
   // Update quiz with selected question options
-  $result = quiz_update_questions($values['question_status']);
-  if ($result) {
-    drupal_set_message(t('Questions updated successfully!'));
-  }
-  else {
-    drupal_set_message(t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
+  if (!quiz_update_questions($values['question_status'])) {
+    form_set_error('', t('Either no questions were selected, or there was a problem updating your quiz. Please try again.'));
+    return;
   }
 
   // Determine how many more questions are required
   $qnum = $quiz->number_of_questions;
-  $anum = db_num_rows(db_query('SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d', $quiz->nid));
-  if ($anum < $qnum) {
-    $diff = $qnum - $anum;
-    drupal_set_message(t('Note that this quiz is set to show %qnum questions, while there are currently only %anum questions assigned. Please assign at least %diff more questions.', array('%qnum' => $qnum, '%anum' => $anum, '%diff' => $diff)), 'status');
+  $anum_random = quiz_get_num_questions($quiz->nid, QUESTION_RANDOM);
+  $anum_always = quiz_get_num_questions($quiz->nid, QUESTION_ALWAYS);
+  $anum_total = $anum_always + $anum_random;
+
+  // If we have some random questions, increase this number by one.
+  if($anum_random > 0){
+    $anum_always++;
+  }
+
+  // If there are not enough questions, lower the number of questions and let the user know.
+  if ($anum_total < $qnum) {
+    drupal_set_message(t('The number of questions for this quiz have been lowered to %anum to match the number of questions you assigned.', array('%anum' => theme('placeholder', $anum_total))), 'status');
+    db_query("UPDATE {quiz} SET number_of_questions = %d WHERE nid = %d", $anum_total, $quiz->nid);
+  }
+
+  // If there are too many questions set to "always", increase the number of questions and let the user know.
+  else if($anum_always > $qnum){
+    drupal_set_message(t('The number of questions for this quiz have been increased to %anum to match the number of questions you assigned.', array('%anum' => theme('placeholder', $anum_always))), 'status');
+    db_query("UPDATE {quiz} SET number_of_questions = %d WHERE nid = %d", $anum_always, $quiz->nid);
+  }
+
+  // Otherwise just give general feedback.
+  else {
+    drupal_set_message(t('Questions updated successfully.'));
   }
 }
+
+/**
+ * Gets the number questions of a given type for a quiz
+ * 
+ * @param $nid
+ *   node id of the quiz
+ * @param $type
+ *   status constant
+ * @return
+ *   Number of questions that meet the criteria
+ */
+function quiz_get_num_questions($nid, $type){
+  return db_num_rows(db_query('SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d', $nid, $type));
+}
+
 
 /**
  * Filters question list by given terms.
