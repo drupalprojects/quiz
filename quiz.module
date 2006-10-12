@@ -323,7 +323,7 @@ function quiz_validate(&$node) {
     }
     // If there are too many questions for this number.
     else if($anum_always > $node->number_of_questions){
-      form_set_error('number_of_questions', t('There are too many questions assigned to this quiz to support that low of a number. Either change the number of questions to %range or %link from this quiz.', array('%range' => $range, '%action' => l(t('remove some questions'), 'node/'.$node->nid.'/questions'))));
+      form_set_error('number_of_questions', t('There are too many questions assigned to this quiz to support that low of a number. Either change the number of questions to %range or %action from this quiz.', array('%range' => $range, '%action' => l(t('remove some questions'), 'node/'.$node->nid.'/questions'))));
     }
   }
 
