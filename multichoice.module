@@ -392,7 +392,7 @@ function multichoice_calculate_results($answers, $tried, $showPoints = FALSE, $s
     if($showPoints) $cols[] = (($answer['points'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
     $isSelected = (array_search($answer['aid'], $tried) !== FALSE);
     $cols[] = ($isSelected ? theme_multichoice_selected() : theme_multichoice_unselected());
-    if($showFeedback) $cols[] = ($isSelected?$answer['feedback']:'');
+    if($showFeedback) $cols[] = ($isSelected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
   
     $rows[] = $cols;
   
@@ -471,7 +471,7 @@ function theme_multichoice_form($form) {
  * TODO: Default images would be nice
  */
 function theme_multichoice_selected(){
-  return '&nbsp; &#9745';
+  return theme_image(drupal_get_path('module', 'quiz').'/images/selected.gif', t('selected'));
 }
 
 
@@ -480,7 +480,7 @@ function theme_multichoice_selected(){
  * TODO: Default images would be nice
  */
 function theme_multichoice_unselected(){
-  return '&nbsp; &#9744';
+  return theme_image(drupal_get_path('module', 'quiz').'/images/unselected.gif', t('unselected'));
 }
 
 

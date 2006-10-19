@@ -11,6 +11,10 @@
 /*
 ** Definitions that apply on the summary pages
 */
+.quiz_question_bullet {
+  font-weight: bold;
+  font-size: 120%;
+}
 #quiz_score_possible, #quiz_score_percent {
   font-weight: bold;
 }
@@ -24,6 +28,13 @@ td.quiz_summary_qcell {
   vertical-align: top;
   padding: 1em 1em 0em 0em;
 }
+td.quiz_summary_qcell table tr {
+  background: transparent;
+}
 td.quiz_summary_qcell table td {
   vertical-align: top;
+  padding: .5em;
+}
+.quiz_answer_feedback {
+  font-style: italic;
 }

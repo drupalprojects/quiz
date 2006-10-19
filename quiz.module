@@ -1515,8 +1515,7 @@ function theme_quiz_question_table($questions) {
  * TODO: A default image might be better here.
  */
 function theme_quiz_score_correct(){
-  $output = '<div class="quiz_correct">'. t('correct') .'</div>';
-  return $output;
+  return theme_image(drupal_get_path('module', 'quiz').'/images/correct.gif', t('correct'));
 }
 
 
@@ -1526,8 +1525,7 @@ function theme_quiz_score_correct(){
  * TODO: A default image might be better here.
  */
 function theme_quiz_score_incorrect(){
-  $output = '<div class="quiz_incorrect">'. t('incorrect') .'</div>';
-  return $output;
+  return theme_image(drupal_get_path('module', 'quiz').'/images/incorrect.gif', t('incorrect'));
 }
 
 
@@ -1698,7 +1696,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary){
  */
 function theme_quiz_feedback($questions, $showPoints = TRUE, $showFeedback = FALSE){
   $rows = array();
-  $header = array(t('Question(s)'), '');
+  $header = array(t('Question Result(s)'), '');
   // go through each of the questions
   while(list($key, $question) = each($questions)) {
 
@@ -1710,18 +1708,18 @@ function theme_quiz_feedback($questions, $showPoints = TRUE, $showFeedback = FAL
     $result = module_invoke($question['type'], 'calculate_results', $question['qanswer']['answers'], $question['qanswer']['tried'], $showPoints, $showFeedback);
     
     // Build the question answers header (add blank space for IE)
-    $innerHeader = array('&nbsp;');
+    $innerHeader = array(t('Answers'));
     if($showPoints){
-      $innerHeader[] = t('Answer');
+      $innerHeader[] = t('Correct Answer');
     }
     $innerHeader[] = t('User Answer');
     if($showFeedback){
-      $innerHeader[] = t('Feedback');
+      $innerHeader[] = '&nbsp;';
     }
 
     // Add the cell with the question and the answers
-    $q_output = '<div class="quiz_summary_question">'. $question['question']. '</div>';
-    $q_output .= theme('table', $innerHeader, $result['resultstable']);
+    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. $question['question']. '</div>';
+    $q_output .= theme('table', $innerHeader, $result['resultstable']).'<br />';
     $cols[] = array('data' => $q_output, 'class'=> 'quiz_summary_qcell');
 
     // Get the score result for each question.
