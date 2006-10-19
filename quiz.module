@@ -536,7 +536,7 @@ function quiz_take_quiz() {
 
         }
         else {
-          drupal_set_message(t('There was a problem starting the quiz. Please try again later.', 'error'));
+          return '';
         }
       }
 
@@ -648,13 +648,38 @@ function _quiz_get_summary_text($quiz, $score){
  *   Returns quiz_result rid, or false if there is an error.
  */
 function quiz_start_actions($uid, $nid) {
+
+  // get the quiz node
+  $quiz = node_load($nid);
+  $results = _quiz_get_results($quiz->nid);
+  
+  // Check to see if the user alredy passed this quiz
+  $passed = FALSE;
+  while($next = next($results)){
+    $score = quiz_calculate_score($next['rid']);
+    if($score['percentage_score'] >= $quiz->pass_rate){
+      $passed = TRUE;
+      break;
+    }
+  }
+  if($passed == TRUE){
+    drupal_set_message(t('You have already passed this quiz.'), 'status');
+    // Allow quiz creators to test their quizzes
+    if(!user_access('create quiz')){
+      return FALSE;
+    }
+  }
+  
   // Validate number of takes
   if ($quiz->takes != 0) {
-    $result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
-    $quiz = node_load($nid);
-    if ($result >= $quiz->takes) {
-      drupal_set_message(t('Sorry, you have already taken this quiz %d times.', $result->count), 'error');
-      return FALSE;
+    //$result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
+    $times = count($results);
+    if ($times >= $quiz->takes) {
+      drupal_set_message(t('You have already taken this quiz %d times.', array('%d' => $times)), 'status');
+      // Allow quiz creators to test their quizzes
+      if(!user_access('create quiz')){
+        return FALSE;
+      }
     }
   }
 
@@ -665,6 +690,7 @@ function quiz_start_actions($uid, $nid) {
     return $rid;
   }
   else {
+    drupal_set_message(t('There was a problem starting the quiz. Please try again later.', 'error'));
     return FALSE;
   }
 }
@@ -1264,25 +1290,30 @@ function quiz_admin() {
 /*
  * Get a full results list
  */
-function _quiz_get_results() {
+function _quiz_get_results($nid = '') {
   $results = array();
-  $dbresult = db_query("SELECT
-                          n.nid nid,
-                          n.title title,
-                          u.name name,
-                          qr.rid rid,
-                          qr.time_start time_start,
-                          if (qr.time_end, qr.time_end, 'In Progress&hellip;') finished
-                        FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
-                        WHERE
-                          n.type = 'quiz'
-                            AND
-                          n.nid = q.nid
-                            AND
-                          qr.quiz_nid = q.nid
-                            AND
-                          u.uid = qr.uid
-                        ORDER BY qr.rid ASC");
+  $args = array();
+  $sql = "SELECT n.nid nid,
+                 n.title title,
+                 u.name name,
+                 qr.rid rid,
+                 qr.time_start time_start,
+                 if (qr.time_end, qr.time_end, 'In Progress&hellip;') finished
+          FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
+          WHERE
+            n.type = 'quiz'
+              AND
+            n.nid = q.nid
+              AND
+            qr.quiz_nid = q.nid
+              AND
+            u.uid = qr.uid";
+  if($nid){
+    $sql .= " AND qr.quiz_nid = %d";
+    $args[] = $nid;
+  }
+  $sql .= " ORDER BY qr.rid ASC";
+  $dbresult = db_query($sql, $args);
   //Create results array
   while($line = db_fetch_array($dbresult)) {
     $results[$line['rid']] = $line;
