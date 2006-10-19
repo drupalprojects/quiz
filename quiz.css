@@ -1,0 +1,29 @@
+/* $Id$ */
+
+/*
+** Definitions that apply while taking the quiz
+*/
+#quiz_progress {
+  font-style: italic;
+  font-size: 80%;
+}
+
+/*
+** Definitions that apply on the summary pages
+*/
+#quiz_score_possible, #quiz_score_percent {
+  font-weight: bold;
+}
+.quiz_summary_question {
+  margin-bottom: 0.5em;
+}
+tr.quiz_summary_qrow {
+  background: transparent;
+}
+td.quiz_summary_qcell {
+  vertical-align: top;
+  padding: 1em 1em 0em 0em;
+}
+td.quiz_summary_qcell table td {
+  vertical-align: top;
+}

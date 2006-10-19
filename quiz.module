@@ -75,6 +75,7 @@ function quiz_menu($may_cache) {
         'type' => MENU_NORMAL_ITEM);
   }
   else {
+    theme_add_style(drupal_get_path('module', 'quiz') .'/quiz.css');
     if (arg(0) == 'node' && is_numeric(arg(1))) {
       $node = node_load(arg(1));
       if ($node->type == 'quiz') {
@@ -384,87 +385,96 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
-
   if (!$teaser && user_access('create quizzes')) {
-
-    // Format quiz options
-    $node->body .= '<h3>'. t('Quiz Options') .'</h3>';
-    $header = array(
-      t('# of Questions'),
-      t('Shuffle?'),
-      t('Allow Backwards?'),
-      t('Feedback'),
-      t('Number of takes'));
-    $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
-    $backwards = $node->backwards_navigation == 1 ? t('Yes') : t('No');
-    $feedback_options = array(
-      t('At the end of each quiz'),
-      t('After each question'),
-      t('Do not show'));
-    $feedback = $feedback_options[$node->feedback_time];
-    $takes = $node->takes == 0 ? t('Unlimited') : "$node->takes minutes";
-    $rows = array();
-    $rows[] = array(
-      $node->number_of_questions,
-      $shuffle,
-      $backwards,
-      $feedback,
-      $takes);
-    $node->body .= theme('table', $header, $rows);
-    
-    
-    // Format Quiz Dates
-    $node->body .= '<h3>'. t('Quiz start/end') .'</h3>';
-    $node->body .= "<p>" . date("l, jS F Y", strtotime($node->open)) . " &mdash; " . date("l, jS F Y", strtotime($node->close)) ."</p>";
-    $node->body .= "<p><strong>Days quiz live for:</strong> " . floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) . "</p>";
-    
-    $remaining = floor((strtotime($node->close) - time()) / 60 / 60 / 24);
-    $remaining = ($remaining < 0)?"Expired":$remaining;
-    $node->body .= "<p><strong>Days remaining:</strong> " . $remaining . "</p>";
-    
-    $elapsed = floor((time() - strtotime($node->open)) / 60 / 60 / 24);
-    $elapsed = ($elapsed < 0)?(-$elapsed)." days to go":$elapsed;
-    $node->body .= "<p><strong>Days since start:</strong> " . $elapsed . "</p>";
-    
-
-    // Format taxonomy selection (if applicable)
-    if (function_exists(taxonomy_node_get_terms)) {
-      $node->body .= '<h3>'. t('Taxonomy selection') .'</h3>';
-      $terms = array();
-      
-      foreach(taxonomy_node_get_terms($node->nid) as $term) {
-        $terms[] = $term->name;
-      }
-      if (!empty($terms)) {
-        $terms = implode(', ', $terms);
-        $node->body .= "<p>$terms</p>";
-      }
-      else {
-        $node->body .= '<p>'. t('No selected terms found') .'</p>';
-      }
-    }
-
-    // Format pass / fail and summary options
-    if($node->pass_rate || $node->summary_default || $node->summary_pass){
-      if($node->pass_rate){
-        $node->body .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
-        $node->body .= '<p><strong>Percentage needed to pass:</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
-        $node->body .= '<div><strong>'. t('Summary text if the student passed:') .'</strong>';
-        $node->body .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
-        $node->body .= '</div>'."\n";
-      }
-      $node->body .= '<div><strong>'. t('Default summary text:') .'</strong>';
-      $node->body .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
-      $node->body .= '</div>'."\n";
-    }
-
-    // Format quiz questions
-    $node->body .= '<h3>'. t('Quiz Questions') .'</h3>';
-    $questions = _quiz_get_questions();
-    $node->body .= quiz_print_question_table($questions);
-
+    $node->body = theme_quiz_view(&$node, $teaser, $page);
   }
 }
+
+/**
+ * Theme the node view for quizzes
+ */
+function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE){
+  $output = '';
+  
+  // Ouput quiz options
+  $output .= '<h3>'. t('Quiz Options') .'</h3>';
+  $header = array(
+    t('# of Questions'),
+    t('Shuffle?'),
+    t('Allow Backwards?'),
+    t('Feedback'),
+    t('Number of takes')
+  );
+  $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
+  $backwards = $node->backwards_navigation == 1 ? t('Yes') : t('No');
+  $feedback_options = array(
+    t('At the end of each quiz'),
+    t('After each question'),
+    t('Do not show')
+  );
+  $feedback = $feedback_options[$node->feedback_time];
+  $takes = $node->takes == 0 ? t('Unlimited') : "$node->takes minutes";
+  $rows = array();
+  $rows[] = array(
+    $node->number_of_questions,
+    $shuffle,
+    $backwards,
+    $feedback,
+    $takes
+  );
+  $output .= theme('table', $header, $rows);
+    
+  // Format Quiz Dates
+  $output .= '<h3>'. t('Quiz start/end') .'</h3>';
+  $output .= "<p>" . date("l, jS F Y", strtotime($node->open)) . " &mdash; " . date("l, jS F Y", strtotime($node->close)) ."</p>";
+  $output .= "<p><strong>Days quiz live for:</strong> " . floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) . "</p>";
+
+  $remaining = floor((strtotime($node->close) - time()) / 60 / 60 / 24);
+  $remaining = ($remaining < 0)?"Expired":$remaining;
+  $output .= "<p><strong>Days remaining:</strong> " . $remaining . "</p>";
+
+  $elapsed = floor((time() - strtotime($node->open)) / 60 / 60 / 24);
+  $elapsed = ($elapsed < 0)?(-$elapsed)." days to go":$elapsed;
+  $output .= "<p><strong>Days since start:</strong> " . $elapsed . "</p>";
+
+  // Format taxonomy selection (if applicable)
+  if (function_exists(taxonomy_node_get_terms)) {
+    $output .= '<h3>'. t('Taxonomy selection') .'</h3>';
+    $terms = array();
+    foreach(taxonomy_node_get_terms($node->nid) as $term) {
+      $terms[] = $term->name;
+    }
+    if (!empty($terms)) {
+      $terms = implode(', ', $terms);
+      $output .= "<p>$terms</p>";
+    }
+    else {
+      $output .= '<p>'. t('No selected terms found') .'</p>';
+    }
+  }
+
+  // Format pass / fail and summary options
+  if($node->pass_rate || $node->summary_default || $node->summary_pass){
+    if($node->pass_rate){
+      $output .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
+      $output .= '<p><strong>Percentage needed to pass:</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
+      $output .= '<div><strong>'. t('Summary text if the student passed:') .'</strong>';
+      $output .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
+      $output .= '</div>'."\n";
+    }
+    $output .= '<div><strong>'. t('Default summary text:') .'</strong>';
+    $output .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
+    $output .= '</div>'."\n";
+  }
+
+  // Format quiz questions
+  $output .= '<h3>'. t('Quiz Questions') .'</h3>';
+  $questions = _quiz_get_questions();
+  $output .= theme_quiz_question_table($questions);
+  
+  return $output;
+}
+
 
 /**
  * Displays all the quizs the user has taken part in
@@ -474,9 +484,6 @@ function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
  */ 
 function quiz_get_user_results() {
   global $user;
-  $output = '';
-  $rows = array();
-
   $results = array();
   $dbresult = db_query("SELECT
                           n.nid nid,
@@ -501,32 +508,8 @@ function quiz_get_user_results() {
   while($line = db_fetch_array($dbresult)) {
     $results[$line['rid']] = $line;
   }
-  
-  while(list($key, $result) = each($results)) {
-    $rows[] = array(
-      l("view", "user/quiz/".$result['rid']."/userresults"),
-      $result['title'],
-      $result['name'],
-      $result['rid'],
-      $result['time_start'],
-      $result['finished'],);
-  }
-  
-  $header = array(
-    t('Action'),
-    t('Quiz Title'),
-    t('Username'),
-    t('Result<br/>ID'),
-    t('Time Started'),
-    t('Finished?'));
-  
-  if (isset($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= 'No questions found.';
-  }
-  return $output;    
+  return theme_quiz_get_user_results($results);
+   
 }
 
 /**
@@ -569,42 +552,34 @@ function quiz_take_quiz() {
     		}
       }
 
-      // Check if at the end of quiz
+      // If this quiz is in progress, load the next questions
+      // and return it via the theme
       if (!empty($_SESSION['quiz_questions'])) {
-        //Calculation for quiz progress bar 		  
-  		  $numOfQuestion = quiz_get_number_of_questions(arg(1));
-  		  $questionNumber = $numOfQuestion - count($_SESSION['quiz_questions']);
-  		  $progress = ($questionNumber*100)/$numOfQuestion;
-          
-        // Load the next question
         $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
-
-        $node->body = '<br /><br />'.theme_progress_bar(round($progress), 'Quiz Progress Indicator').'<br /><br />';         
-        drupal_set_title($quiz->title);       
-        $node->body .= module_invoke($question_node->type, 'render_question', $question_node);
-
+        return theme('quiz_take_question', $quiz, $question_node);
       }
+
+      // At the end of quiz
       else {
 
-        // At the end of quiz...
-        
         //First - update the result to show we have finished.
         db_query("UPDATE {quiz_result} SET time_end = NOW() WHERE rid = %d", $_SESSION['rid']);
-        
-        //Set the title!
-        drupal_set_title($quiz->title);
-        
-        //display overall result
-        $node->body = "Your score: " .quiz_calculate_score($_SESSION['rid']);
 
-        //Get results of this quiz from the Database...
+        //Get the results and summary text for this quiz
         $questions = _quiz_get_answers($_SESSION['rid']);
-        $node->body .= _quiz_get_results_table($questions, arg(1), FALSE, TRUE);
+        $score = quiz_calculate_score($_SESSION['rid']);
+        $summary = _quiz_get_summary_text($quiz, $score);
+
+        // get the themed summary page
+        $output = theme_quiz_take_summary($quiz, $questions, $score, $summary);
 
         //remove session variables
         unset($_SESSION['quiz_questions']);
         unset($_SESSION['rid']);
         unset($_SESSION['question_number']);
+
+        // return
+        return $output;
 
       }
     }
@@ -613,6 +588,53 @@ function quiz_take_quiz() {
     }
     return $node->body; // TODO: Can this be THEMED?
   }
+}
+
+
+/***
+ * Get the summary message for a completed quiz
+ * 
+ * Summary is determined by whether we are using the
+ * pass / fail options, how the student did, and 
+ * whether this is being called from admin/quiz/[quizid]/view.
+ * 
+ * TODO: Need better feedback for when a student is viewing
+ * their quiz results from the results list (and possibily
+ * when revisiting a quiz they can't take again)
+ * 
+ * @param $quiz
+ *   The quiz node object
+ * @param $score
+ *   The score information as returned by quiz_calculate_score()
+ * @return
+ *   Filtered summary text or null if we are not displaying any summary
+ */
+function _quiz_get_summary_text($quiz, $score){
+  $summary = '';
+  // if we are using pass / fail and they passed
+  if (trim($quiz->summary_pass) != '' && $quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
+    // If we are coming from the admin view page
+    if (arg(3) == 'view') {
+      $summary = t('The student passed this quiz.');      
+    }
+    else {
+      $summary = check_markup($quiz->summary_pass, $quiz->format);      
+    }
+  } 
+  // If the student did not pass or we are not using pass / fail
+  else {
+  	// If we are coming from the admin view page 
+  	// only show a summary if we are using pass / fail.
+    if (arg(3) == 'view') {
+      if ($node->pass_rate > 0){
+        $summary = t('The student failed this quiz.');
+      }
+    }
+    else {
+      $summary = check_markup($quiz->summary_default, $quiz->format);
+    }
+  }
+  return $summary;
 }
 
 /**
@@ -652,27 +674,43 @@ function quiz_start_actions($uid, $nid) {
  *
  * @param $rid
  *   Quiz result ID
- * @return integer
- *   Total score
+ * @return array
+ *   Contains three elements: question_count, num_correct and percentage_score
  */
 function quiz_calculate_score($rid) {
-  $score = 0;
+  // initialize our variables
+  $question_count = 0;
+  $num_correct = 0;
+  $percentage_score = 0;
+
+  // Get the all answers from the database
   $result = db_query("SELECT
                        qqr.answer answer,
                        qqr.question_nid qnid,
                        n.type type
                      FROM {quiz_question_results} qqr, {node} n
                      WHERE qqr.result_rid = %d AND n.nid = qqr.question_nid", $rid);
-  
-  
   while($r = db_fetch_array($result)) {
+  	$question_count++;
     $r['answer'] = unserialize($r['answer']);
     $s = module_invoke($r['type'], 'calculate_result', $r['answer']['answers'], $r['answer']['tried']);
-    
-    $score += $s;
-    $r['score'] = $s;
+    $num_correct += $s;
+    $r['score'] = $s; // I think this is legacy
+  }
+  
+  // calculate the percentage score
+  if($question_count > 0){
+    $percentage_score = round(($num_correct*100)/$question_count);
   }
 
+  // build the score array
+  $score = array(
+    'question_count' => $question_count,
+    'num_correct' => $num_correct, 
+    'percentage_score' => $percentage_score,
+  );
+
+  // return the array 
   return $score;
 }
 
@@ -887,35 +925,6 @@ function _quiz_get_questions() {
 
 
 /**
- * Print a table containing array of questions and options
- *
- * @param $questions
- *   Array of question nodes
- * @return
- *   HTML to output table
- */
-function quiz_print_question_table($questions) {
-  $output = '';
-  $status_descriptions = array(t('Random'), t('Always'), t('Never'));
-  while(list($key, $question) = each($questions)) {
-    $rows[] = array(
-      $status_descriptions[$question->status],
-      $question->question,
-      $question->type);
-  }
-  $header = array(t('Status'), t('Question'), t('Type'));
-
-  if (isset($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= 'No questions found.';
-  }
-  return $output;
-}
-
-
-/**
  * Handles "add question" tab
  *
  * Displays form which allows questions to be filtered by taxonomy vocabulary,
@@ -983,7 +992,7 @@ function quiz_questions() {
   $form['filtered_question_list'] = array(
     '#type' => 'fieldset',
     '#title' => t('The following questions were found'),
-    '#theme' => 'filtered_questions',
+    '#theme' => 'quiz_filtered_questions',
   );
 
   $form['filtered_question_list']['question_status']['#tree'] = TRUE;
@@ -1014,7 +1023,7 @@ function quiz_questions() {
   );
   $form['assigned_questions']['questions'] = array(
     '#type' => 'markup',
-    '#value' => quiz_print_question_table($questions),
+    '#value' => theme_quiz_question_table($questions),
   );
 
   // Display links to create other questions
@@ -1034,33 +1043,6 @@ function quiz_questions() {
     '#value' => t('Submit questions'),
   );
   return drupal_get_form('quiz_questions', $form);
-}
-
-/**
- * Theme the filtered question list
- */
-function theme_filtered_questions($form) {
-  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
-  $rows = array();
-
-  while(list($nid, $values) = each($form['question_status'])) {
-    if (is_numeric($nid)) {
-      $rows[] = array(
-        form_render($form['question_status'][$nid][0]),
-        form_render($form['question_status'][$nid][1]),
-        form_render($form['question_status'][$nid][2]),
-        form_render($form['question'][$nid]),
-        form_render($form['type'][$nid])
-      );
-    }
-  }
-  if (isset($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No questions found.');
-  }
-  return $output;
 }
 
 
@@ -1269,56 +1251,15 @@ function quiz_settings_form_validate($form_id, $form_values){
   }
 }
 
-/*
+/**
  * Quiz Admin
+ * 
  */
 function quiz_admin() {
   $results = _quiz_get_results();
-  
-  $form['quizresults'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Quiz Results'));
-  $form['quizresults']['table'] = array(
-    '#type' => 'markup',
-    '#value' => quiz_admin_get_results_table($results));
-  
-  return system_settings_form('quiz_admin_settings', $form);
+  return theme_quiz_admin($results);
 }
 
-
-/*
- * Results Table
- */
-function quiz_admin_get_results_table($results) {
-  $output = '';
-  $rows = array();
-
-  while(list($key, $result) = each($results)) {
-    $rows[] = array(
-      l("view", "admin/quiz/".$result['rid']."/view") . " | " . l("delete", "admin/quiz/".$result['rid']."/delete"),
-      $result['title'],
-      $result['name'],
-      $result['rid'],
-      $result['time_start'],
-      $result['finished'],);
-  }
-  
-  $header = array(
-    t('Action'),
-    t('Quiz Title'),
-    t('Username'),
-    t('Result<br/>ID'),
-    t('Time Started'),
-    t('Finished?'));
-  
-  if (isset($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= 'No questions found.';
-  }
-  return $output;
-}
 
 /*
  * Get a full results list
@@ -1353,143 +1294,36 @@ function _quiz_get_results() {
  * Quiz Results User
  */
 function quiz_user_results() {
-  $questions = _quiz_get_answers(arg(2));
   $result = db_fetch_object(db_query('SELECT quiz.nid FROM quiz, quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
-  return _quiz_get_results_table($questions, $result->nid, FALSE);
+  if($result->nid){
+  	$quiz = node_load($result->nid);
+    $questions = _quiz_get_answers(arg(2));
+    $score = quiz_calculate_score(arg(2));
+    $summary = _quiz_get_summary_text($quiz, $score);
+    return theme_quiz_user_summary($quiz, $questions, $score, $summary);
+  }
+  else {
+    drupal_not_found();
+  }
 }
 
 /*
  * Quiz Results Admin
  */
 function quiz_admin_results() {
-  $questions = _quiz_get_answers(arg(2));
   $result = db_fetch_object(db_query('SELECT quiz.nid FROM quiz, quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
-  return _quiz_get_results_table($questions, $result->nid);
-}
-
-
-/**
- * Get the results for a particular quiz question
- * 
- * TODO: This all needs to be properly themed.
- * The scores, summary and feedback should be passed to the theme as arrays and objects
- * 
- * @param $questions
- *   Array of quiz objects as returned by _quiz_get_answers
- * @param $arg
- *   The quiz nid
- * @param showPoints
- *   Binary flag for wheather to show points
- * @param $showFeedback
- *   binary flag for whether to show question feedback
- */
-function _quiz_get_results_table($questions, $arg, $showPoints = TRUE, $showFeedback = FALSE) {
-
-  // initialize our vars
-  $output = '';
-  $rows = array();
-  $totalScore = 0;
-    
-  // load the quiz node object
-  $node = node_load($arg);
-
-  // go through each of the questions
-  while(list($key, $question) = each($questions)) {
-
-    // reset the cols array
-    $cols = array();
-    
-    // score the saved answer and update the total score
-    $question['qanswer'] = unserialize($question['qanswer']);
-    $result = module_invoke($question['type'], 'calculate_results', $question['qanswer']['answers'], $question['qanswer']['tried'], $showPoints, $showFeedback);
-    $totalScore += $result['score'];
-    
-    //Question Answers Table (add blank space for IE)
-    $innerHeader = array('&nbsp;');
-    if($showPoints){
-      $innerHeader[] = t('Answer');
-    }
-    $innerHeader[] = t('User Answer');
-    if($showFeedback){
-      $innerHeader[] = t('Feedback');
-    }
-
-    // feedback list
-    $cols[] = '<b><i>'.$question['question'].'</i></b>'.theme('table', $innerHeader, $result['resultstable']);
-
-    // if we are showing scores, get the themed score result
-    if($result['score'] == 1) {
-      $cols[] = theme_quiz_score_correct();
-    }
-    else {
-      $cols[] = theme_quiz_score_incorrect();      
-    }
-
-    // pack all of this into this row
-    $rows[] = $cols;
-  }
-
-  // work out the score as a percentage
-  $numOfQuestions = quiz_get_number_of_questions($arg);
-  $percentageScore = round(($totalScore*100)/$numOfQuestions);
-
-  //work out if the student passed or failed
-  $header2 = array(array('data'=> t('Results and Options'), 'colspan' => '2'));
-  if ($node->pass_rate > 0 && $percentageScore >= $node->pass_rate) {
-    if (arg(3) == 'view') {
-      $rows2[] = array(array('data' => '<b>The student passed this quiz.</b>', 'colspan' => '2'));      
-    }
-    else {
-      $rows2[] = array(array('data' => check_markup($node->summary_pass, $node->format), 'colspan' => '2'));      
-    }
-  } 
-  else if ($percentageScore < $node->pass_rate) {
-    if (arg(3) == 'view') {
-      if ($node->pass_rate > 0){
-        $rows2[] = array(array('data' => '<b>The student failed this quiz.</b>', 'colspan' => '2'));
-      }
-    }
-    else {
-      $rows2[] = array(array('data' => check_markup($node->summary_default, $node->format), 'colspan' => '2'));
-    }
-  }
-  $rows2[] = array(array('data' => '<b>Total Score</b> &mdash; '.$totalScore.'/'.$numOfQuestions, 'colspan'=> '2'));
-  $rows2[] = array(array('data' => '<b>Total Percentage</b> &mdash; '.$percentageScore.'%', 'colspan' => '2'));
-
-  $header = array(t('Question(s)'), t('Score'));
-  if (isset($rows)) {
-    $output .= '<br /><br />';   
-    $output .= 'Test title: <b>'.$node->title.'</b>';  
-    $output .= '<br /><br />';   
-    $output .= theme('table', $header2, $rows2); 
-    $output .= '<br /><br />'; 
-    $output .= theme('table', $header, $rows);
+  if($result->nid){
+  	$quiz = node_load($result->nid);
+    $questions = _quiz_get_answers(arg(2));
+    $score = quiz_calculate_score(arg(2));
+    $summary = _quiz_get_summary_text($quiz, $score);
+    return theme_quiz_admin_summary($quiz, $questions, $score, $summary);
   }
   else {
-    $output .= 'No answers found in this result!.';
+    drupal_not_found();
   }
-  return $output;
 }
 
-/**
- * Pass the correct mark to the theme so that theme authors can use an image
- * 
- * TODO: A default image might be better here.
- */
-function theme_quiz_score_correct(){
-  $output = '<div class="quiz_correct">'. t('correct') .'</div>';
-  return $output;
-}
-
-/**
- * Pass the incorrect mark to the theme so that theme authors can use an image
- *
- * TODO: A default image might be better here.
- */
-function theme_quiz_score_incorrect(){
-  $output = '<div class="quiz_incorrect">'. t('incorrect') .'</div>';
-  return $output;
-}
 
 /*
  * Delete Result
@@ -1537,5 +1371,379 @@ function _quiz_get_answers($rid) {
   return $results;
 }
 
+/////////////////////////////////////////////////
+/// Theme functions
+/////////////////////////////////////////////////
 
-// edit: view: taken, feedback, insert into quiz_results, view quiz_results
+/**
+ * Theme the results table
+ * 
+ * @param $results
+ *   As returned by _quiz_get_results()
+ */
+function theme_quiz_admin($results) {
+  $output = '';
+  $rows = array();
+
+  while(list($key, $result) = each($results)) {
+    $rows[] = array(
+      l("view", "admin/quiz/".$result['rid']."/view") . " | " . l("delete", "admin/quiz/".$result['rid']."/delete"),
+      $result['title'],
+      $result['name'],
+      $result['rid'],
+      $result['time_start'],
+      $result['finished'],);
+  }
+  
+  $header = array(
+    t('Action'),
+    t('Quiz Title'),
+    t('Username'),
+    t('Result<br/>ID'),
+    t('Time Started'),
+    t('Finished?'));
+  
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    // TODO: Should this actually say "No quizzes found"?
+    $output .= t('No questions found.');
+  }
+  return $output;
+}
+
+/**
+ * Theme the user results page
+ * 
+ * @param $results
+ *   An array of quiz information
+ * @return
+ *   Themed html
+ */
+function theme_quiz_get_user_results($results){
+    $output = '';
+  $rows = array();
+  while(list($key, $result) = each($results)) {
+    $rows[] = array(
+      l("view", "user/quiz/".$result['rid']."/userresults"),
+      $result['title'],
+      $result['name'],
+      $result['rid'],
+      $result['time_start'],
+      $result['finished'],);
+  }
+  
+  $header = array(
+    t('Action'),
+    t('Quiz Title'),
+    t('Username'),
+    t('Result<br/>ID'),
+    t('Time Started'),
+    t('Finished?'));
+  
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    // TODO: Should this actually say "No quizzes found"?
+    $output .= t('No questions found.');
+  }
+  return $output; 
+}
+
+/**
+ * Theme the filtered question list
+ */
+function theme_quiz_filtered_questions($form) {
+  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+  $rows = array();
+
+  while(list($nid, $values) = each($form['question_status'])) {
+    if (is_numeric($nid)) {
+      $rows[] = array(
+        form_render($form['question_status'][$nid][0]),
+        form_render($form['question_status'][$nid][1]),
+        form_render($form['question_status'][$nid][2]),
+        form_render($form['question'][$nid]),
+        form_render($form['type'][$nid])
+      );
+    }
+  }
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    $output .= t('No questions found.');
+  }
+  return $output;
+}
+
+
+/**
+ * Theme a table containing array of questions and options
+ *
+ * @param $questions
+ *   Array of question nodes
+ * @return
+ *   HTML to output table
+ */
+function theme_quiz_question_table($questions) {
+  $output = '';
+  $status_descriptions = array(t('Random'), t('Always'), t('Never'));
+  while(list($key, $question) = each($questions)) {
+    $rows[] = array(
+      $status_descriptions[$question->status],
+      $question->question,
+      $question->type);
+  }
+  $header = array(t('Status'), t('Question'), t('Type'));
+
+  if (isset($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    $output .= 'No questions found.';
+  }
+  return $output;
+}
+
+
+/**
+ * Pass the correct mark to the theme so that theme authors can use an image
+ * 
+ * TODO: A default image might be better here.
+ */
+function theme_quiz_score_correct(){
+  $output = '<div class="quiz_correct">'. t('correct') .'</div>';
+  return $output;
+}
+
+
+/**
+ * Pass the incorrect mark to the theme so that theme authors can use an image
+ *
+ * TODO: A default image might be better here.
+ */
+function theme_quiz_score_incorrect(){
+  $output = '<div class="quiz_incorrect">'. t('incorrect') .'</div>';
+  return $output;
+}
+
+
+/**
+ * Theme a progress indicator for use during a quiz
+ * 
+ * @param $question_number
+ *   The position of the current question in the sessions' array
+ * @param $num_of_question
+ *   The number of questions for this quiz as returned by quiz_get_number_of_questions()
+ * @return
+ *   Themed html
+ */
+function theme_quiz_progress($question_number, $num_of_question){
+  
+  // Determine the percentage finished (not used but left for other implementations)
+  //$progress = ($question_number*100)/$num_of_question;
+  
+  // Get the current question # by adding one
+  $current_question = $question_number + 1;
+  
+  // return html
+  $output = '';
+  $output .= '<div id="quiz_progress">';
+  $output .= t('Question %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
+  $output .= '</div><br />'."\n";
+  return $output;
+
+}
+
+
+/**
+ * Theme a question page
+ * 
+ * @param $quiz
+ *   The quiz node object
+ * @param $question_node
+ *   The question node
+ * @return
+ *   Themed html
+ */
+function theme_quiz_take_question($quiz, $question_node){
+
+  //Calculation for quiz progress bar 		  
+  $number_of_questions = quiz_get_number_of_questions($quiz->nid);
+  $question_number = $number_of_questions - count($_SESSION['quiz_questions']);
+
+  // Set the title here in case themers want to do something different
+  drupal_set_title(check_plain($quiz->title)); 
+
+  // Return the elements of the page
+  $output = '';
+  $output .= theme_quiz_progress($question_number, $number_of_questions);         
+  $output .= module_invoke($question_node->type, 'render_question', $question_node);
+  return $output;
+}
+
+
+/**
+ * Theme the summary page after the quiz has been completed
+ * 
+ * @param $quiz
+ *   The quiz node object
+ * @param $questions
+ *   The questions array as defined by _quiz_get_answers
+ * @param $score
+ *   Array of score information as returned by quiz_calculate_score()
+ * @param $summary
+ *   Filtered text of the summary
+ * @return
+ *   Themed html
+ */
+function theme_quiz_take_summary($quiz, $questions, $score, $summary){
+
+  // Set the title here so themers can adjust
+  drupal_set_title(check_plain($quiz->title));
+
+  // Display overall result
+  $output = '';
+  $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  
+  // Get the feedback for all questions
+  $output .= theme_quiz_feedback($questions, FALSE, TRUE);
+
+  return $output;
+
+}
+
+
+/**
+ * Theme the summary page for admins
+ * 
+ * @param $quiz
+ *   The quiz node object
+ * @param $questions
+ *   The questions array as defined by _quiz_get_answers
+ * @param $score
+ *   Array of score information as returned by quiz_calculate_score()
+ * @param $summary
+ *   Filtered text of the summary
+ * @return
+ *   Themed html
+ */
+function theme_quiz_admin_summary($quiz, $questions, $score, $summary){
+
+  // Set the title here so themers can adjust
+  drupal_set_title(check_plain($quiz->title));
+
+  // Display overall result
+  $output = '';
+  $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Total score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  
+  // Get the feedback for all questions
+  $output .= theme_quiz_feedback($questions, TRUE, TRUE);
+
+  return $output;
+}
+
+
+/**
+ * Theme the summary page for user results
+ * 
+ * @param $quiz
+ *   The quiz node object
+ * @param $questions
+ *   The questions array as defined by _quiz_get_answers
+ * @param $score
+ *   Array of score information as returned by quiz_calculate_score()
+ * @param $summary
+ *   Filtered text of the summary
+ * @return
+ *   Themed html
+ */
+function theme_quiz_user_summary($quiz, $questions, $score, $summary){
+
+  // Set the title here so themers can adjust
+  drupal_set_title(check_plain($quiz->title));
+
+  // Display overall result
+  $output = '';
+  $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score was: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  
+  // Get the feedback for all questions
+  $output .= theme_quiz_feedback($questions, FALSE, TRUE);
+
+  return $output;
+
+}
+
+
+/**
+ * Theme the question feedback
+ * 
+ * @param $questions
+ *   Array of quiz objects as returned by _quiz_get_answers
+ * @param showPoints
+ *   Binary flag for wheather to show the actual answers
+ * @param $showFeedback
+ *   binary flag for whether to show question feedback
+ * @return
+ *   Themed html
+ */
+function theme_quiz_feedback($questions, $showPoints = TRUE, $showFeedback = FALSE){
+  $rows = array();
+  $header = array(t('Question(s)'), '');
+  // go through each of the questions
+  while(list($key, $question) = each($questions)) {
+
+    // reset the cols array
+    $cols = array();
+    
+    // Get the answer table for this question
+    $question['qanswer'] = unserialize($question['qanswer']);
+    $result = module_invoke($question['type'], 'calculate_results', $question['qanswer']['answers'], $question['qanswer']['tried'], $showPoints, $showFeedback);
+    
+    // Build the question answers header (add blank space for IE)
+    $innerHeader = array('&nbsp;');
+    if($showPoints){
+      $innerHeader[] = t('Answer');
+    }
+    $innerHeader[] = t('User Answer');
+    if($showFeedback){
+      $innerHeader[] = t('Feedback');
+    }
+
+    // Add the cell with the question and the answers
+    $q_output = '<div class="quiz_summary_question">'. $question['question']. '</div>';
+    $q_output .= theme('table', $innerHeader, $result['resultstable']);
+    $cols[] = array('data' => $q_output, 'class'=> 'quiz_summary_qcell');
+
+    // Get the score result for each question.
+    if($result['score'] == 1) {
+      $cols[] = array('data' => theme_quiz_score_correct(), 'class' => 'quiz_summary_qcell');
+    }
+    else {
+      $cols[] = array('data' => theme_quiz_score_incorrect(), 'class' => 'quiz_summary_qcell');      
+    }
+
+    // pack all of this into this row
+    $rows[] = array('data' => $cols, 'class' =>'quiz_summary_qrow');
+  }
+  return theme('table', $header, $rows);
+}
+
+
+/**
+ * Allow the option to theme the questions form
+ */
+function theme_quiz_questions($form){
+  $output = '';
+  $output .= form_render($form);
+  return $output;
+}

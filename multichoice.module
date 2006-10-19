@@ -133,41 +133,6 @@ function multichoice_form(&$node) {
 }
 
 /**
- * Theme function for multichoice form
- *
- * Lays out answer field elements into a table
- *
- * @return string
- *   HTML output
- */
-function theme_multichoice_form($form) {
-
-  // Format table header
-  $header = array(
-    array('data' => t('Correct')),
-    array('data' => t('Answer'), 'style' => 'width:250px;'),
-    array('data' => t('Feedback'), 'style' => 'width:250px;'),
-    array('data' => t('Delete')),
-  );
-
-  // Format table rows
-  $rows = array();
-  foreach (element_children($form) as $key) {
-    $rows[] = array(
-      form_render($form[$key]['correct']),
-      form_render($form[$key]['answer']),
-      form_render($form[$key]['feedback']),
-      form_render($form[$key]['delete']),
-    );
-  }
-
-  // Theme output and display to screen
-  $output = theme('table', $header, $rows);
-
-  return $output;
-}
-
-/**
  * Implementation of hook_validate().
  */
 function multichoice_validate(&$node) {
@@ -443,15 +408,6 @@ function multichoice_calculate_results($answers, $tried, $showPoints = FALSE, $s
   return array('score' => $score, 'resultstable' => $rows);
 }
 
-
-function theme_multichoice_selected(){
-  return '&nbsp; &#9745';
-}
-
-function theme_multichoice_unselected(){
-  return '&nbsp; &#9744';
-}
-
 /**
  * List all multiple choice questions
  *
@@ -468,4 +424,71 @@ function multichoice_list_questions() {
     $questions[] = $question;
   }
   return $questions;
+}
+
+/////////////////////////////////////////////////
+/// Theme functions
+/////////////////////////////////////////////////
+
+/**
+ * Theme function for multichoice form
+ *
+ * Lays out answer field elements into a table
+ *
+ * @return string
+ *   HTML output
+ */
+function theme_multichoice_form($form) {
+
+  // Format table header
+  $header = array(
+    array('data' => t('Correct')),
+    array('data' => t('Answer'), 'style' => 'width:250px;'),
+    array('data' => t('Feedback'), 'style' => 'width:250px;'),
+    array('data' => t('Delete')),
+  );
+
+  // Format table rows
+  $rows = array();
+  foreach (element_children($form) as $key) {
+    $rows[] = array(
+      form_render($form[$key]['correct']),
+      form_render($form[$key]['answer']),
+      form_render($form[$key]['feedback']),
+      form_render($form[$key]['delete']),
+    );
+  }
+
+  // Theme output and display to screen
+  $output = theme('table', $header, $rows);
+
+  return $output;
+}
+
+
+/**
+ * Theme a selection indicator for an answer
+ * TODO: Default images would be nice
+ */
+function theme_multichoice_selected(){
+  return '&nbsp; &#9745';
+}
+
+
+/**
+ * Theme an indicator that an answer is not selected / correct
+ * TODO: Default images would be nice
+ */
+function theme_multichoice_unselected(){
+  return '&nbsp; &#9744';
+}
+
+
+/**
+ * Theme function for the multichoice form
+ */
+function theme_multichoice_render_question($form){
+  $output = '';
+  $output .= form_render($form);
+  return $output;
 }
