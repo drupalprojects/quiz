@@ -63,6 +63,7 @@ function multichoice_form(&$node) {
     '#title' => t('Title'),
     '#default_value' => $node->title,
     '#required' => TRUE,
+    '#description' => t('Add a title that will help distinguish this quesiton from other questions. This will not be seen during the quiz.'),
   );
 
   $form['body'] = array(
