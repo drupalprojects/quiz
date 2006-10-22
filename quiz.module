@@ -751,25 +751,29 @@ function quiz_start_actions($uid, $nid) {
   }
 
   // get the results
-  $results = _quiz_get_results($quiz->nid);
+  global $user;
+  $results = _quiz_get_results($quiz->nid, $user->uid);
     
   // Check to see if the user alredy passed this quiz
-  $passed = FALSE;
-  while($next = next($results)){
-    $score = quiz_calculate_score($next['rid']);
-    if($score['percentage_score'] >= $quiz->pass_rate){
-      $passed = TRUE;
-      break;
+  // but only perform this check if it is a registered user
+  if($user->uid){
+    $passed = FALSE;
+    while($next = next($results)){
+      $score = quiz_calculate_score($next['rid']);
+      if($score['percentage_score'] >= $quiz->pass_rate){
+        $passed = TRUE;
+        break;
+      }
+    }
+    if($passed == TRUE){
+      drupal_set_message(t('You have already passed this quiz.'), 'status');
+      // Allow quiz creators to test their quizzes
+      if(!user_access('create quiz')){
+        return FALSE;
+      }
     }
   }
-  if($passed == TRUE){
-    drupal_set_message(t('You have already passed this quiz.'), 'status');
-    // Allow quiz creators to test their quizzes
-    if(!user_access('create quiz')){
-      return FALSE;
-    }
-  }
-  
+
   // Validate number of takes
   if ($quiz->takes != 0) {
     //$result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
@@ -1411,7 +1415,7 @@ function quiz_admin() {
 /*
  * Get a full results list
  */
-function _quiz_get_results($nid = '') {
+function _quiz_get_results($nid = '', $uid = 0) {
   $results = array();
   $args = array();
   $sql = "SELECT n.nid nid,
@@ -1432,6 +1436,10 @@ function _quiz_get_results($nid = '') {
   if($nid){
     $sql .= " AND qr.quiz_nid = %d";
     $args[] = $nid;
+  }
+  if($uid != 0){
+    $sql .= " AND qr.uid = %d";
+    $args[] = $uid;
   }
   $sql .= " ORDER BY qr.rid ASC";
   $dbresult = db_query($sql, $args);
