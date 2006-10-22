@@ -320,7 +320,7 @@ function _quiz_form_prepare_date($time = '', $offset = 0){
  *   Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($nid) {
-  $result = db_fetch_object(db_query('SELECT number_of_questions FROM quiz WHERE nid = %d', $nid));  
+  $result = db_fetch_object(db_query('SELECT number_of_questions FROM {quiz} WHERE nid = %d', $nid));  
   $numberOfQuestions = $result->number_of_questions;
   return $numberOfQuestions;
 }
@@ -333,7 +333,7 @@ function quiz_get_number_of_questions($nid) {
  *   Returns the pass rate of quiz.
  */
 function quiz_get_pass_rate($nid) {
-    $passrate = db_fetch_object(db_query('SELECT pass_rate FROM quiz WHERE nid = %d', $nid));
+    $passrate = db_fetch_object(db_query('SELECT pass_rate FROM {quiz} WHERE nid = %d', $nid));
     return $passrate->pass_rate;   
 }
 
@@ -1454,7 +1454,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
  * Quiz Results User
  */
 function quiz_user_results() {
-  $result = db_fetch_object(db_query('SELECT quiz.nid FROM quiz, quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
+  $result = db_fetch_object(db_query('SELECT q.nid FROM {quiz} q, {quiz_result} qr WHERE qr.quiz_nid = q.nid AND qr.rid = %d', arg(2)));
   if($result->nid){
   	$quiz = node_load($result->nid);
     $questions = _quiz_get_answers(arg(2));
@@ -1516,7 +1516,7 @@ function _quiz_get_answers($rid) {
                           qqr.answer qanswer,
                           nr.body question,
                           n.type type
-                        FROM quiz_question_results qqr, quiz_question qq, node n, node_revisions nr
+                        FROM {quiz_question_results} qqr, {quiz_question} qq, {node} n, {node_revisions} nr
                         WHERE
                           qqr.result_rid = %d
                             AND
