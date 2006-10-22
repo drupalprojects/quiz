@@ -1422,8 +1422,8 @@ function _quiz_get_results($nid = '', $uid = 0) {
                  n.title title,
                  u.name name,
                  qr.rid rid,
-                 qr.time_start time_start,
-                 if (qr.time_end, qr.time_end, 'In Progress&hellip;') finished
+                 qr.time_start,
+                 qr.time_end
           FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
           WHERE
             n.type = 'quiz'
