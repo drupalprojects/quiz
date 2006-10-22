@@ -1,6 +1,8 @@
 <?php
 // $Id$
 
+include(drupal_get_path('module', 'quiz').'/quiz_datetime.inc');
+
 /**
  * @file
  * Quiz Module
@@ -191,21 +193,31 @@ function quiz_form(&$node) {
     ),
     '#description' => t('Indicates at what point feedback for each question will be given to the student'),
   );
-  
-  list($d['year'], $d['month'], $d['day']) = explode('-', substr($node->open, 0, 10));
-  $form['open'] = array(
-    '#type' => 'date',
-    '#title' => t('Open date'),
-    '#default_value' => $d,
-    '#description' => t('The date students should be able to start taking this quiz'),
-  );
 
-  list($d['year'], $d['month'], $d['day']) = explode('-', substr($node->close, 0, 10));
-  $form['close'] = array(
+  // Set up the availability options
+  $form['quiz_availability'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Availability options'),
+    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+  );
+  $form['quiz_availability']['quiz_always'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Always Available'),
+    '#default_value' => $node->quiz_always,
+    '#description' => t('Click this option to ignore the open and close dates.'),
+  );
+  $form['quiz_availability']['quiz_open'] = array(
     '#type' => 'date',
-    '#title' => t('Close date'),
-    '#default_value' => $d,
-    '#description' => t('The date the quiz will close and prevent students from taking the quiZ'),
+    '#title' => t('Open Date'),
+    '#default_value' => _quiz_form_prepare_date($node->quiz_open),
+    '#description' => t('The date this quiz will become available.'),
+  );
+  $form['quiz_availability']['quiz_close'] = array(
+    '#type' => 'date',
+    '#title' => t('Close Date'),
+    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
+    '#description' => t('The date this quiz will cease to be available.'),
   );
 
   $options = array('Unlimited');
@@ -256,6 +268,40 @@ function quiz_form(&$node) {
   );
 
   return $form;
+}
+
+/**
+ * Takes a time element and prepares to send it to form_date()
+ * 
+ * @param $time
+ *   The time to be turned into an array. This can be:
+ *   - a timestamp when from the database
+ *   - an array (day, month, year) when previewing
+ *   - null for new nodes
+ * @returnn
+ *   an array for form_date (day, month, year)
+ */
+function _quiz_form_prepare_date($time = '', $offset = 0){
+  // if this is empty, get the current time
+  if($time == ''){
+    $time = time();
+    $time = strtotime("+$offset days", $time);
+  }
+  // If we are previewing, $time will be an array so just pass it through
+  $time_array = array();
+  if(is_array($time)){
+  	$time_array = $time;
+  } 
+  // otherwise build the array from the timestamp
+  elseif(is_numeric($time)){
+    $time_array = array(
+      'day' => _quiz_date('j', $time),
+      'month' => _quiz_date('n', $time),
+      'year' => _quiz_date('Y', $time),
+    );
+  }
+  // return the array
+  return $time_array;
 }
 
 /**
@@ -328,9 +374,8 @@ function quiz_validate(&$node) {
     }
   }
 
-  if (mktime(0,0,0, $node->open['month'], $node->open['day'], $node->open['year']) > mktime(0,0,0, $node->close['month'], $node->close['day'], $node->close['year'])) {
-    form_set_error('close', t('Close date before open date'));
-    form_set_error('open', t('Open date after close date'));
+  if (mktime(0,0,0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0,0,0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
+    form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
   }
   if (!is_numeric($node->pass_rate)) {
     form_set_error('pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
@@ -347,18 +392,20 @@ function quiz_validate(&$node) {
  * Implementation of hook_insert().
  */
 function quiz_insert($node) {
-  $open = $node->open['year'].'-'.$node->open['month'].'-'.$node->open['day'];
-  $close = $node->close['year'].'-'.$node->close['month'].'-'.$node->close['day'];
-  db_query("INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, open, close, takes, pass_rate, summary_pass, summary_default) VALUES(%d, %d, %d, %d, %d, '%s', '%s', %d, %d, '%s', '%s')", $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default);
+  quiz_translate_form_date($node, 'quiz_open');
+  quiz_translate_form_date($node, 'quiz_close');
+  $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
+  $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d)";
+  db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always);
 }
 
 /**
  * Implementation of hook_update().
  */
 function quiz_update($node) {
-  $open = $node->open['year'].'-'.$node->open['month'].'-'.$node->open['day'];
-  $close = $node->close['year'].'-'.$node->close['month'].'-'.$node->close['day'];
-  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, open = '%s', close = '%s', takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s' WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $open, $close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->nid);
+  quiz_translate_form_date($node, 'quiz_open');
+  quiz_translate_form_date($node, 'quiz_close');
+  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->nid);
 }
 
 /**
@@ -387,7 +434,32 @@ function quiz_load($node) {
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create quizzes')) {
     $node->body = theme_quiz_view(&$node, $teaser, $page);
+  } 
+  elseif(!$teaser && !user_access('create quizzes')) {
+    $node->body .= theme_quiz_availability($node);
   }
+}
+
+/**
+ * Themes a message about the quiz's availability for quiz takers
+ * 
+ * 
+ */
+function theme_quiz_availability($node){
+  $output = '<div class="quiz_availability"><p>';
+  if(!$node->quiz_always){
+    if($node->quiz_open > time()){
+      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));      
+    }
+    elseif($node->quiz_close < time()){
+      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));      
+    } 
+    else {
+      $output .= t('This quiz is no longer available.');
+    }
+  }
+  $output .= '</p></div>'."\n";
+  return $output;
 }
 
 /**
@@ -423,19 +495,24 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE){
     $takes
   );
   $output .= theme('table', $header, $rows);
-    
+
   // Format Quiz Dates
   $output .= '<h3>'. t('Quiz start/end') .'</h3>';
-  $output .= "<p>" . date("l, jS F Y", strtotime($node->open)) . " &mdash; " . date("l, jS F Y", strtotime($node->close)) ."</p>";
-  $output .= "<p><strong>Days quiz live for:</strong> " . floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) . "</p>";
+  if(!$node->quiz_always){
+    $output .= "<p>" . format_date($node->quiz_open) . " &mdash; " . format_date($node->quiz_close) ."</p>";
+    $output .= "<p><strong>Days quiz live for:</strong> " . floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) . "</p>";
 
-  $remaining = floor((strtotime($node->close) - time()) / 60 / 60 / 24);
-  $remaining = ($remaining < 0)?"Expired":$remaining;
-  $output .= "<p><strong>Days remaining:</strong> " . $remaining . "</p>";
+    $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
+    $remaining = ($remaining < 0)?"Expired":$remaining;
+    $output .= "<p><strong>Days remaining:</strong> " . $remaining . "</p>";
 
-  $elapsed = floor((time() - strtotime($node->open)) / 60 / 60 / 24);
-  $elapsed = ($elapsed < 0)?(-$elapsed)." days to go":$elapsed;
-  $output .= "<p><strong>Days since start:</strong> " . $elapsed . "</p>";
+    $elapsed = floor((time() - $node->quiz_open) / 60 / 60 / 24);
+    $elapsed = ($elapsed < 0)?(-$elapsed)." days to go":$elapsed;
+    $output .= "<p><strong>Days since start:</strong> " . $elapsed . "</p>";
+  } 
+  else {
+    $output .= '<p>'. t('This Quiz is always available.') .'</p>'."\n";
+  }
 
   // Format taxonomy selection (if applicable)
   if (function_exists(taxonomy_node_get_terms)) {
@@ -490,8 +567,8 @@ function quiz_get_user_results() {
                           n.title title,
                           u.name name,
                           qr.rid rid,
-                          qr.time_start time_start,
-                          if (qr.time_end, qr.time_end, 'In Progress&hellip;') finished
+                          qr.time_start,
+                          qr.time_end
                         FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
                         WHERE
                           n.type = 'quiz'
@@ -563,7 +640,8 @@ function quiz_take_quiz() {
       else {
 
         //First - update the result to show we have finished.
-        db_query("UPDATE {quiz_result} SET time_end = NOW() WHERE rid = %d", $_SESSION['rid']);
+        $now = time();
+        db_query("UPDATE {quiz_result} SET time_end = %d WHERE rid = %d", $now, $_SESSION['rid']);
 
         //Get the results and summary text for this quiz
         $questions = _quiz_get_answers($_SESSION['rid']);
@@ -651,8 +729,21 @@ function quiz_start_actions($uid, $nid) {
 
   // get the quiz node
   $quiz = node_load($nid);
+
+  // make sure this is available
+  if(!$quiz->quiz_always == 1){
+  	// compare current gm time to open and close dates (which should still be in gm time)
+    if(gmmktime() >= $quiz->quiz_close || gmmktime() < $quiz->quiz_open){
+      drupal_set_message(t('This quiz is not currently available.'), 'status');
+      if(!user_access('create quiz')){
+        return FALSE;
+      }
+    }
+  }
+
+  // get the results
   $results = _quiz_get_results($quiz->nid);
-  
+    
   // Check to see if the user alredy passed this quiz
   $passed = FALSE;
   while($next = next($results)){
@@ -685,7 +776,8 @@ function quiz_start_actions($uid, $nid) {
 
   // Insert quiz_results record
   $rid = db_next_id('quiz_results_rid');
-  $result = db_query("INSERT INTO {quiz_result} (rid, quiz_nid, uid, time_start) VALUES (%d, %d, %d, NOW())", $rid, $nid, $uid);
+  $now = time();
+  $result = db_query("INSERT INTO {quiz_result} (rid, quiz_nid, uid, time_start) VALUES (%d, %d, %d, %d)", $rid, $nid, $uid, $now);
   if ($result) {
     return $rid;
   }
@@ -1247,6 +1339,12 @@ function quiz_update_questions($questions) {
 function quiz_settings(){
   $form = array();
   // option to globally turn off pass / fail form elements
+  $form['quiz_default_close'] = array (
+    '#type' => 'textfield',
+    '#title' => t('Default number of days before a quiz is closed'),
+    '#default_value' => variable_get('quiz_default_close', 30),
+    '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'), 
+  );  
   $form['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display pass / fail options in the quiz form'),
@@ -1266,6 +1364,9 @@ function quiz_settings(){
  * Validation form settings form
  */
 function quiz_settings_form_validate($form_id, $form_values){
+  if (!is_numeric($form_values['quiz_default_close']) || $form_values['quiz_default_close'] <= 0) {
+    form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
+  } 
   if (!is_numeric($form_values['quiz_default_pass_rate'])) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
   }  
@@ -1402,6 +1503,7 @@ function _quiz_get_answers($rid) {
   return $results;
 }
 
+
 /////////////////////////////////////////////////
 /// Theme functions
 /////////////////////////////////////////////////
@@ -1422,8 +1524,9 @@ function theme_quiz_admin($results) {
       $result['title'],
       $result['name'],
       $result['rid'],
-      $result['time_start'],
-      $result['finished'],);
+      format_date($result['time_start'], 'small'),
+      ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+    );
   }
   
   $header = array(
@@ -1461,8 +1564,9 @@ function theme_quiz_get_user_results($results){
       $result['title'],
       $result['name'],
       $result['rid'],
-      $result['time_start'],
-      $result['finished'],);
+      format_date($result['time_start'], 'small'),
+      ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+    );
   }
   
   $header = array(
