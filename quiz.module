@@ -441,10 +441,10 @@ function quiz_load($node) {
  */
 function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create quizzes')) {
-    $node->body = theme_quiz_view(&$node, $teaser, $page);
+    $node->body = theme('quiz_view', &$node, $teaser, $page);
   } 
   elseif(!$teaser && !user_access('create quizzes')) {
-    $node->body .= theme_quiz_availability($node);
+    $node->body .= theme('quiz_availability', $node);
   }
 }
 
@@ -556,7 +556,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE){
   // Format quiz questions
   $output .= '<h3>'. t('%quiz Questions', array('%quiz' => $quiz_name)) .'</h3>';
   $questions = _quiz_get_questions();
-  $output .= theme_quiz_question_table($questions);
+  $output .= theme('quiz_question_table', $questions);
   
   return $output;
 }
@@ -594,7 +594,7 @@ function quiz_get_user_results() {
   while($line = db_fetch_array($dbresult)) {
     $results[$line['rid']] = $line;
   }
-  return theme_quiz_get_user_results($results);
+  return theme('quiz_get_user_results', $results);
    
 }
 
@@ -658,7 +658,7 @@ function quiz_take_quiz() {
         $summary = _quiz_get_summary_text($quiz, $score);
 
         // get the themed summary page
-        $output = theme_quiz_take_summary($quiz, $questions, $score, $summary);
+        $output = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
 
         //remove session variables
         unset($_SESSION['quiz_questions']);
@@ -673,7 +673,7 @@ function quiz_take_quiz() {
     else {
       drupal_not_found();
     }
-    return $node->body; // TODO: Can this be THEMED?
+    return $node->body;
   }
 }
 
@@ -1157,7 +1157,7 @@ function quiz_questions() {
   );
   $form['assigned_questions']['questions'] = array(
     '#type' => 'markup',
-    '#value' => theme_quiz_question_table($questions),
+    '#value' => theme('quiz_question_table', $questions),
   );
 
   // Display links to create other questions
@@ -1408,7 +1408,7 @@ function quiz_settings_form_validate($form_id, $form_values){
  */
 function quiz_admin() {
   $results = _quiz_get_results();
-  return theme_quiz_admin($results);
+  return theme('quiz_admin', $results);
 }
 
 
@@ -1460,7 +1460,7 @@ function quiz_user_results() {
     $questions = _quiz_get_answers(arg(2));
     $score = quiz_calculate_score(arg(2));
     $summary = _quiz_get_summary_text($quiz, $score);
-    return theme_quiz_user_summary($quiz, $questions, $score, $summary);
+    return theme('quiz_user_summary', $quiz, $questions, $score, $summary);
   }
   else {
     drupal_not_found();
@@ -1477,7 +1477,7 @@ function quiz_admin_results() {
     $questions = _quiz_get_answers(arg(2));
     $score = quiz_calculate_score(arg(2));
     $summary = _quiz_get_summary_text($quiz, $score);
-    return theme_quiz_admin_summary($quiz, $questions, $score, $summary);
+    return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
   else {
     drupal_not_found();
@@ -1679,7 +1679,7 @@ function theme_quiz_question_table($questions) {
  * TODO: A default image might be better here.
  */
 function theme_quiz_score_correct(){
-  return theme_image(drupal_get_path('module', 'quiz').'/images/correct.gif', t('correct'));
+  return theme('image', drupal_get_path('module', 'quiz').'/images/correct.gif', t('correct'));
 }
 
 
@@ -1689,7 +1689,7 @@ function theme_quiz_score_correct(){
  * TODO: A default image might be better here.
  */
 function theme_quiz_score_incorrect(){
-  return theme_image(drupal_get_path('module', 'quiz').'/images/incorrect.gif', t('incorrect'));
+  return theme('image', drupal_get_path('module', 'quiz').'/images/incorrect.gif', t('incorrect'));
 }
 
 
@@ -1742,7 +1742,7 @@ function theme_quiz_take_question($quiz, $question_node){
 
   // Return the elements of the page
   $output = '';
-  $output .= theme_quiz_progress($question_number, $number_of_questions);         
+  $output .= theme('quiz_progress', $question_number, $number_of_questions);         
   $output .= module_invoke($question_node->type, 'render_question', $question_node);
   return $output;
 }
@@ -1774,7 +1774,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary){
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
-  $output .= theme_quiz_feedback($questions, FALSE, TRUE);
+  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
 
   return $output;
 
@@ -1807,7 +1807,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary){
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
-  $output .= theme_quiz_feedback($questions, TRUE, TRUE);
+  $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
 
   return $output;
 }
@@ -1839,7 +1839,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary){
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
-  $output .= theme_quiz_feedback($questions, FALSE, TRUE);
+  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
 
   return $output;
 
@@ -1888,10 +1888,10 @@ function theme_quiz_feedback($questions, $showPoints = TRUE, $showFeedback = FAL
 
     // Get the score result for each question.
     if($result['score'] == 1) {
-      $cols[] = array('data' => theme_quiz_score_correct(), 'class' => 'quiz_summary_qcell');
+      $cols[] = array('data' => theme('quiz_score_correct'), 'class' => 'quiz_summary_qcell');
     }
     else {
-      $cols[] = array('data' => theme_quiz_score_incorrect(), 'class' => 'quiz_summary_qcell');      
+      $cols[] = array('data' => theme('quiz_score_incorrect'), 'class' => 'quiz_summary_qcell');      
     }
 
     // pack all of this into this row
