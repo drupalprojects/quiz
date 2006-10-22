@@ -26,7 +26,7 @@ define("QUESTION_NEVER", 2);
  * Implementation of hook_perm().
  */
 function quiz_perm() {
-  return array('create quizzes', 'access quizzes', 'user results');
+  return array('create quizzes', 'access quizzes', 'user results', 'administer quizzes');
 }
 
 /**
@@ -47,6 +47,10 @@ function quiz_access($op, $node) {
     if (user_access('create quizzes') && ($user->uid == $node->uid)) {
       return TRUE;
     }
+  }
+  
+  if (user_access('administer quizzes')) {
+    return TRUE;
   }
 }
 
