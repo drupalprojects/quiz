@@ -609,16 +609,16 @@ function quiz_take_quiz() {
 
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quizzes')) {
     if ($quiz = node_load(arg(1))) {
-      if (!isset($_SESSION['quiz_questions'])) {
+      if (!isset($_SESSION['quiz_'.$quiz->nid]['quiz_questions'])) {
 
         // First time running through quiz
         if ($rid = quiz_start_actions($user->uid, $quiz->nid)) {
           // Create question list
           $questions = quiz_build_question_list($quiz->nid);
           // Initialize session variables
-          $_SESSION['quiz_questions'] = $questions;
-          $_SESSION['rid'] = $rid;
-          $_SESSION['question_number'] = 0;
+          $_SESSION['quiz_'.$quiz->nid]['quiz_questions'] = $questions;
+          $_SESSION['quiz_'.$quiz->nid]['rid'] = $rid;
+          $_SESSION['quiz_'.$quiz->nid]['question_number'] = 0;
 
         }
         else {
@@ -632,38 +632,36 @@ function quiz_take_quiz() {
       	  drupal_set_message('You must select an answer before you can progress to the next question!', 'error');
       	}
       	else {
-    		  $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_questions'])));
+    		  $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_'.$quiz->nid]['quiz_questions'])));
     		  $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
-    		  db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['rid'], $former_question->nid, serialize($result));   		  
+    		  db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['quiz_'.$quiz->nid]['rid'], $former_question->nid, serialize($result));   		  
     		}
       }
 
       // If this quiz is in progress, load the next questions
       // and return it via the theme
-      if (!empty($_SESSION['quiz_questions'])) {
-        $question_node = node_load(array('nid' => $_SESSION['quiz_questions'][0]));
+      if (!empty($_SESSION['quiz_'.$quiz->nid]['quiz_questions'])) {
+
+        $question_node = node_load(array('nid' => $_SESSION['quiz_'.$quiz->nid]['quiz_questions'][0]));
         return theme('quiz_take_question', $quiz, $question_node);
       }
 
       // At the end of quiz
       else {
-
         //First - update the result to show we have finished.
         $now = time();
-        db_query("UPDATE {quiz_result} SET time_end = %d WHERE rid = %d", $now, $_SESSION['rid']);
+        db_query("UPDATE {quiz_result} SET time_end = %d WHERE rid = %d", $now, $_SESSION['quiz_'.$quiz->nid]['rid']);
 
         //Get the results and summary text for this quiz
-        $questions = _quiz_get_answers($_SESSION['rid']);
-        $score = quiz_calculate_score($_SESSION['rid']);
+        $questions = _quiz_get_answers($_SESSION['quiz_'.$quiz->nid]['rid']);
+        $score = quiz_calculate_score($_SESSION['quiz_'.$quiz->nid]['rid']);
         $summary = _quiz_get_summary_text($quiz, $score);
 
         // get the themed summary page
         $output = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
 
         //remove session variables
-        unset($_SESSION['quiz_questions']);
-        unset($_SESSION['rid']);
-        unset($_SESSION['question_number']);
+        unset($_SESSION['quiz_'.$quiz->nid]);
 
         // return
         return $output;
@@ -1735,7 +1733,7 @@ function theme_quiz_take_question($quiz, $question_node){
 
   //Calculation for quiz progress bar 		  
   $number_of_questions = quiz_get_number_of_questions($quiz->nid);
-  $question_number = $number_of_questions - count($_SESSION['quiz_questions']);
+  $question_number = $number_of_questions - count($_SESSION['quiz_'.$quiz->nid]['quiz_questions']);
 
   // Set the title here in case themers want to do something different
   drupal_set_title(check_plain($quiz->title)); 
