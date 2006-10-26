@@ -606,6 +606,7 @@ function quiz_get_user_results() {
  */
 function quiz_take_quiz() {
   global $user;
+  $quiz_name = check_plain(variable_get('quiz_name', 'quiz'));
 
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quizzes')) {
     if ($quiz = node_load(arg(1))) {
@@ -615,6 +616,10 @@ function quiz_take_quiz() {
         if ($rid = quiz_start_actions($user->uid, $quiz->nid)) {
           // Create question list
           $questions = quiz_build_question_list($quiz->nid);
+          if(count($questions) == 0){
+            drupal_set_message(t('No questions were found. Please assign questions before trying to take this %quiz.', array('%quiz' => $quiz_name)), 'error');
+            return '';
+          }
           // Initialize session variables
           $_SESSION['quiz_'.$quiz->nid]['quiz_questions'] = $questions;
           $_SESSION['quiz_'.$quiz->nid]['rid'] = $rid;
