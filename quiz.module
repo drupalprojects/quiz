@@ -399,7 +399,7 @@ function quiz_validate(&$node) {
 /**
  * Implementation of hook_insert().
  */
-function quiz_insert($node) {
+function quiz_insert(&$node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
@@ -419,7 +419,7 @@ function quiz_update($node) {
 /**
  * Implementation of hook_delete().
  */
-function quiz_delete($node) {
+function quiz_delete(&$node) {
   db_query("DELETE FROM {quiz} WHERE nid = %d", $node->nid);
   db_query("DELETE FROM {quiz_questions} WHERE quiz_nid = %d", $node->nid);
 }

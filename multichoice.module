@@ -180,7 +180,7 @@ function multichoice_validate(&$node) {
 /**
  * Implementation of hook_insert().
  */
-function multichoice_insert($node) {
+function multichoice_insert(&$node) {
   db_query("INSERT INTO {quiz_question} (nid, properties) VALUES(%d, '%s')", $node->nid, serialize(array('multiple_answers' => $node->multiple_answers)));
   
   while(list($key, $value) = each($node->answers)) {
@@ -215,7 +215,7 @@ function multichoice_update($node) {
 /**
  * Implementation of hook_delete().
  */
-function multichoice_delete($node) {
+function multichoice_delete(&$node) {
   db_query("DELETE FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
   db_query("DELETE FROM {quiz_question} WHERE nid = %d", $node->nid);
 }
