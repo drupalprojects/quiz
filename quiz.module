@@ -494,10 +494,10 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE){
     t('Do not show')
   );
   $feedback = $feedback_options[$node->feedback_time];
-  $takes = $node->takes == 0 ? t('Unlimited') : "$node->takes minutes";
+  $takes = $node->takes == 0 ? t('Unlimited') : check_plain($node->takes);
   $rows = array();
   $rows[] = array(
-    $node->number_of_questions,
+    check_plain($node->number_of_questions),
     $shuffle,
     $backwards,
     $feedback,
@@ -528,7 +528,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE){
     $output .= '<h3>'. t('Taxonomy selection') .'</h3>';
     $terms = array();
     foreach(taxonomy_node_get_terms($node->nid) as $term) {
-      $terms[] = $term->name;
+      $terms[] = check_plain($term->name);
     }
     if (!empty($terms)) {
       $terms = implode(', ', $terms);
@@ -673,11 +673,9 @@ function quiz_take_quiz() {
 
       }
     }
-    else {
-      drupal_not_found();
-    }
-    return $node->body;
   }
+  // If we got down here then the quiz does not exist.
+  drupal_not_found();
 }
 
 
@@ -1553,8 +1551,8 @@ function theme_quiz_admin($results) {
   while(list($key, $result) = each($results)) {
     $rows[] = array(
       l("view", "admin/quiz/".$result['rid']."/view") . " | " . l("delete", "admin/quiz/".$result['rid']."/delete"),
-      $result['title'],
-      $result['name'],
+      check_plain($result['title']),
+      check_plain($result['name']),
       $result['rid'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
@@ -1593,8 +1591,8 @@ function theme_quiz_get_user_results($results){
   while(list($key, $result) = each($results)) {
     $rows[] = array(
       l("view", "user/quiz/".$result['rid']."/userresults"),
-      $result['title'],
-      $result['name'],
+      check_plain($result['title']),
+      check_plain($result['name']),
       $result['rid'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
@@ -1661,7 +1659,7 @@ function theme_quiz_question_table($questions) {
   while(list($key, $question) = each($questions)) {
     $rows[] = array(
       $status_descriptions[$question->status],
-      $question->question,
+      check_markup($question->question),
       $question->type);
   }
   $header = array(t('Status'), t('Question'), t('Type'));
@@ -1885,7 +1883,7 @@ function theme_quiz_feedback($questions, $showPoints = TRUE, $showFeedback = FAL
     }
 
     // Add the cell with the question and the answers
-    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. $question['question']. '</div>';
+    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($question['question']) .'</div>';
     $q_output .= theme('table', $innerHeader, $result['resultstable']).'<br />';
     $cols[] = array('data' => $q_output, 'class'=> 'quiz_summary_qcell');
 

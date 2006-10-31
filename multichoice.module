@@ -297,11 +297,12 @@ function multichoice_render_question($node) {
       unset($node->answers[$key]);
     }
     else {
-      $options[$key] = $answer['answer'];
+      $options[$key] = '<div class="multichoice_answer_text">'. check_markup($answer['answer'], $node->filter) .'</div>';
     }
   }
   
-  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
+  $form['start'] = array('#type' => 'markup', '#value' => '<div class="multichoice_form">');
+  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format));
   
   // Create form
   $form['tries'] = array(
