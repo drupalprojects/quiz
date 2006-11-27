@@ -1,85 +1,166 @@
 <?php
 
+/**
+ * Implementation of hook_install()
+ */
 function quiz_install() {
   switch ($GLOBALS['db_type']) {
+
     case 'mysql':
     case 'mysqli':
-      /*
-       *      INSTALL TABLES FOR MySQL and MySQLi
-       */
-       
-       
-      /* Create the quiz table */
-      db_query("CREATE TABLE quiz (
-                  nid INTEGER UNSIGNED NOT NULL,
-                  number_of_questions TINYINT UNSIGNED NOT NULL,
-                  pass_rate TINYINT UNSIGNED NOT NULL,
-                  summary_pass LONGTEXT,
-                  summary_default LONGTEXT,
-                  shuffle TINYINT UNSIGNED NOT NULL,
-                  backwards_navigation TINYINT UNSIGNED NOT NULL,
-                  feedback_time TINYINT UNSIGNED NOT NULL,
-                  quiz_open int(10) unsigned default '0',
-                  quiz_close int(10) unsigned default '0',
-                  takes TINYINT UNSIGNED NOT NULL,
-                  time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
-                  quiz_always tinyint(1) NOT NULL default '0',
-                  PRIMARY KEY(nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-   
-      /* Create the questions table */
-      db_query("CREATE TABLE quiz_questions (
-                  quiz_nid INTEGER UNSIGNED NOT NULL,
-                  question_nid INTEGER UNSIGNED NOT NULL,
-                  question_status TINYINT UNSIGNED NOT NULL,
-                  PRIMARY KEY (quiz_nid, question_nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      
-      /* Create the question table */
-      db_query("CREATE TABLE quiz_question (
-                  nid INTEGER UNSIGNED NOT NULL,
-                  properties VARCHAR(255) NOT NULL,
-                  PRIMARY KEY (nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      
-      /* Create the question answer table */
-      db_query("CREATE TABLE quiz_question_answer (
-                  aid INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-                  question_nid INTEGER UNSIGNED NOT NULL,
-                  answer TEXT NOT NULL,
-                  feedback TEXT NULL,
-                  points TINYINT NOT NULL,
-                  PRIMARY KEY (aid),
-                  INDEX (question_nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      
-      /* Create the results table */
-      db_query("CREATE TABLE quiz_result (
-                  rid INTEGER UNSIGNED NOT NULL,
-                  quiz_nid INTEGER UNSIGNED NOT NULL,
-                  uid INTEGER UNSIGNED NOT NULL,
-                  time_start int(10) unsigned default '0',
-                  time_end int(10) unsigned default '0',
-                  released int(10) unsigned default '0',
-                  score TINYINT NOT NULL,
-                  PRIMARY KEY (rid),
-                  INDEX (quiz_nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      
-      /* Create the question results table */
-      db_query("CREATE TABLE quiz_question_results (
-                  result_rid INTEGER UNSIGNED NOT NULL,
-                  question_nid INTEGER UNSIGNED NOT NULL,
-                  answer TEXT NOT NULL,
-                  PRIMARY KEY (result_rid, question_nid)
-                ) TYPE=MyISAM
-                /*!40100 DEFAULT CHARACTER SET utf8 */;");
-      
+ 
+      // Create the quiz table
+      db_query("CREATE TABLE {quiz} (
+        nid INTEGER UNSIGNED NOT NULL,
+        number_of_questions TINYINT UNSIGNED NOT NULL,
+        pass_rate TINYINT UNSIGNED NOT NULL,
+        summary_pass LONGTEXT,
+        summary_default LONGTEXT,
+        shuffle TINYINT UNSIGNED NOT NULL,
+        backwards_navigation TINYINT UNSIGNED NOT NULL,
+        feedback_time TINYINT UNSIGNED NOT NULL,
+        quiz_open INTEGER UNSIGNED DEFAULT 0,
+        quiz_close INTEGER UNSIGNED DEFAULT 0,
+        takes TINYINT UNSIGNED NOT NULL,
+        time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+        quiz_always TINYINT NOT NULL default 0,
+        PRIMARY KEY(nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+ 
+      // Create the questions table
+      db_query("CREATE TABLE {quiz_questions} (
+        quiz_nid INTEGER UNSIGNED NOT NULL,
+        question_nid INTEGER UNSIGNED NOT NULL,
+        question_status TINYINT UNSIGNED NOT NULL,
+        PRIMARY KEY (quiz_nid, question_nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+ 
+      // Create the question table
+      db_query("CREATE TABLE {quiz_question} (
+        nid INTEGER UNSIGNED NOT NULL,
+        properties VARCHAR(255) NOT NULL,
+        PRIMARY KEY (nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+ 
+      // Create the question answer table
+      db_query("CREATE TABLE {quiz_question_answer} (
+        aid INTEGER UNSIGNED NOT NULL,
+        question_nid INTEGER UNSIGNED NOT NULL,
+        answer TEXT NOT NULL,
+        feedback TEXT NULL,
+        points TINYINT NOT NULL,
+        PRIMARY KEY (aid),
+        KEY question_nid (question_nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+ 
+      // Create the results table
+      db_query("CREATE TABLE {quiz_result} (
+        rid INTEGER UNSIGNED NOT NULL,
+        quiz_nid INTEGER UNSIGNED NOT NULL,
+        uid INTEGER UNSIGNED NOT NULL,
+        time_start INTEGER UNSIGNED DEFAULT 0,
+        time_end INTEGER UNSIGNED DEFAULT 0,
+        released INTEGER UNSIGNED DEFAULT 0,
+        score TINYINT NOT NULL,
+        PRIMARY KEY (rid),
+        KEY quiz_nid (quiz_nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+     
+      // Create the question results table
+      db_query("CREATE TABLE {quiz_question_results} (
+        result_rid INTEGER UNSIGNED NOT NULL,
+        question_nid INTEGER UNSIGNED NOT NULL,
+        answer TEXT NOT NULL,
+        PRIMARY KEY (result_rid, question_nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+ 
+      break;
+ 
+     case 'pgsql':
+ 
+      // Create the quiz table
+      db_query("CREATE TABLE {quiz} (
+        nid INT_UNSIGNED NOT NULL,
+        number_of_questions SMALLINT_UNSIGNED NOT NULL,
+        pass_rate SMALLINT_UNSIGNED NOT NULL,
+        summary_pass TEXT,
+        summary_default LONGTEXT,
+        shuffle SMALLINT_UNSIGNED NOT NULL,
+        backwards_navigation TINYINT UNSIGNED NOT NULL,
+        feedback_time TINYINT UNSIGNED NOT NULL,
+        quiz_open INT_UNSIGNED DEFAULT 0,
+        quiz_close INT_UNSIGNED DEFAULT 0,
+        takes SMALLINT_UNSIGNED NOT NULL,
+        time_limit INT_UNSIGNED DEFAULT 0 NOT NULL,
+        quiz_always SMALLINT NOT NULL default 0,
+        PRIMARY KEY(nid)
+      );");
+ 
+      // Create the questions table
+      db_query("CREATE TABLE {quiz_questions} (
+        quiz_nid INT_UNSIGNED NOT NULL,
+        question_nid INT_UNSIGNED NOT NULL,
+        question_status SMALLINT_UNSIGNED NOT NULL,
+        PRIMARY KEY (quiz_nid, question_nid)
+      );");
+ 
+      // Create the question table
+      db_query("CREATE TABLE {quiz_question} (
+        nid INT_UNSIGNED NOT NULL,
+        properties VARCHAR(255) NOT NULL,
+        PRIMARY KEY (nid)
+      );");
+ 
+      // Create the question answer table
+      db_query("CREATE TABLE {quiz_question_answer} (
+        aid INT_UNSIGNED NOT NULL,
+        question_nid INT_UNSIGNED NOT NULL,
+        answer TEXT NOT NULL,
+        feedback TEXT NULL,
+        points SMALLINT NOT NULL,
+        PRIMARY KEY (aid)
+      );");
+      db_query("CREATE INDEX {quiz_question_answer}_question_nid_idx 
+        ON {quiz_question_answer} (question_nid)");
+ 
+      // Create the results table
+      db_query("CREATE TABLE {quiz_result} (
+        rid INT_UNSIGNED NOT NULL,
+        quiz_nid INT_UNSIGNED NOT NULL,
+        uid INT_UNSIGNED NOT NULL,
+        time_start INT_UNSIGNED DEFAULT 0,
+        time_end INT_UNSIGNED DEFAULT 0,
+        released INT_UNSIGNED DEFAULT 0,
+        score SMALLINT NOT NULL,
+        PRIMARY KEY (rid)
+      );");
+      db_query("CREATE INDEX {quiz_result}_quiz_nid_idx 
+        ON {quiz_result} (quiz_nid)");
+     
+      // Create the question results table
+      db_query("CREATE TABLE {quiz_question_results} (
+        result_rid INT_UNSIGNED NOT NULL,
+        question_nid INT_UNSIGNED NOT NULL,
+        answer TEXT NOT NULL,
+        PRIMARY KEY (result_rid, question_nid)
+      );");
+ 
       break;
   }
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function quiz_uninstall() {
+  db_query('DROP TABLE {quiz_question_results}');
+  db_query('DROP TABLE {quiz_result}');
+  db_query('DROP TABLE {quiz_question_answer}');
+  db_query('DROP TABLE {quiz_question}');
+  db_query('DROP TABLE {quiz_questions}');
+  db_query('DROP TABLE {quiz}');
+  variable_del('quiz_name');
+  variable_del('quiz_default_close');
+  variable_del('quiz_use_passfail');
+  variable_del('quiz_default_pass_rate');
 }

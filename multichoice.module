@@ -185,7 +185,8 @@ function multichoice_insert(&$node) {
   
   while(list($key, $value) = each($node->answers)) {
     if (trim($value['answer']) != "")
-      db_query("INSERT INTO {quiz_question_answer} (question_nid, answer, feedback, points) VALUES(%d, '%s', '%s', %d)", $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points) VALUES(%d, %d, '%s', '%s', %d)", 
+        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct']);
   }
 }
 
@@ -207,7 +208,8 @@ function multichoice_update($node) {
       }
     } else if (trim($value['answer']) != "") {
       //If there is an answer, insert a new row
-        db_query("INSERT INTO {quiz_question_answer} (question_nid, answer, feedback, points) VALUES(%d, '%s', '%s', %d)", $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points) VALUES(%d, %d, '%s', '%s', %d)", 
+        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct']);
     }
   }
 }

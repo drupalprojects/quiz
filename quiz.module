@@ -789,7 +789,7 @@ function quiz_start_actions($uid, $nid) {
   }
 
   // Insert quiz_results record
-  $rid = db_next_id('quiz_results_rid');
+  $rid = db_next_id('{quiz_results}_rid');
   $now = time();
   $result = db_query("INSERT INTO {quiz_result} (rid, quiz_nid, uid, time_start) VALUES (%d, %d, %d, %d)", $rid, $nid, $uid, $now);
   if ($result) {
