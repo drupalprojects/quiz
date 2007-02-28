@@ -1,6 +1,0 @@
-; $Id $
-name = Matching
-description = "Matching question type for quiz module."
-dependencies = quiz
-package = Quiz
-version = "$Name$"
