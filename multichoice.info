@@ -1,0 +1,6 @@
+; $Id $
+name = Multichoice
+description = "Multiple choice question type for quiz module."
+dependencies = quiz
+package = Quiz
+version = "$Name$"

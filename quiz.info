@@ -1,0 +1,5 @@
+; $Id $
+name = Quiz
+description = "Framework which allows you to create interactive quizzes for your visitors."
+package = Quiz
+version = "$Name$"
