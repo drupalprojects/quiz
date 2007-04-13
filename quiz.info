@@ -1,0 +1,4 @@
+; $Id$
+name = Quiz
+package = Quiz
+description = Create interactive quizzes

@@ -61,7 +61,7 @@ function quiz_install() {
         time_start INTEGER UNSIGNED DEFAULT 0,
         time_end INTEGER UNSIGNED DEFAULT 0,
         released INTEGER UNSIGNED DEFAULT 0,
-        score TINYINT NOT NULL,
+        score TINYINT NOT NULL DEFAULT 0,
         PRIMARY KEY (rid),
         KEY quiz_nid (quiz_nid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");

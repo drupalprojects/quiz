@@ -1,4 +1,4 @@
-$Id$
+; $Id$
 
 Overview
 --------
@@ -12,7 +12,7 @@ Robert Douglass: http://www.webs4.com/quiz_module.
 
 Requirements
 ------------
-Drupal 4.7.x
+Drupal 5.x
 PHP 4.3.0 or greater
 
 The module consists of two types of modules: the Quiz module itself 
@@ -47,6 +47,7 @@ Credits
 -------
 - Specification:      Robert Douglass
 - Original author:    Károly Négyesi
+- Update to Drupal 5: Wim Mostrey and riverfr0zen
 - Current maintainer: Angela Byron
 
 I'd like to extend a heart-felt thank you to the folks at Google for their 

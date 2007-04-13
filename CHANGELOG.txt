@@ -1,5 +1,9 @@
 $Id$
 
+2007-02-02
+----------
+Updated module to Drupal 5
+
 2005-08-31
 ----------
 Initial release after Summer of Code:

@@ -1,0 +1,5 @@
+; $Id$
+name = Multichoice
+package = Quiz
+description = Multiple choice question type
+dependencies = quiz

@@ -1,5 +1,7 @@
 <?php
-// $Id$
+/* $Id$ */
+
+define('MULTICHOICE_NAME', 'Multi-Choice Question');
 
 /**
  * @file
@@ -36,7 +38,13 @@ function multichoice_access($op, $node) {
  * Implementation of hook_node_info().
  */
 function multichoice_node_info() {
-  return array('multichoice' => array('name' => t('multichoice'), 'base' => 'multichoice'));
+  return array(
+  'multichoice' => array(
+    'name' => t(MULTICHOICE_NAME),
+    'module' => 'multichoice',
+    'description' => t("A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)"),
+    )
+  );
 }
 
 /**
@@ -46,7 +54,7 @@ function multichoice_menu($may_cache) {
   $items = array();
   if ($may_cache) {
     $items[] = array('path' => 'node/add/multichoice',
-                     'title' => t('multichoice'),
+                     'title' => t(MULTICHOICE_NAME),
                      'access' => user_access('create multichoice'));
   }
   return $items;
@@ -84,7 +92,7 @@ function multichoice_form(&$node) {
   if (!isset($node->rows)) {
      $node->rows = max(2, $node->answers ? count($node->answers) : 5);
   }
-  if ($_POST['edit']['more']) {
+  if ($_POST['more']) {
     $node->rows += 5;
   }
   $answers = $node->answers;
@@ -227,19 +235,15 @@ function multichoice_delete(&$node) {
  */
 function multichoice_load($node) {
   $additions = db_fetch_object(db_query("SELECT * FROM {quiz_question} WHERE nid = %d", $node->nid));
-  
   $answers = array();
   $result = db_query("SELECT * FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
   while($line = db_fetch_array($result)) {
     $answers[] = $line;
   }
-  
-  
+
   $additions->answers = $answers;
-  
   $additions->properties = unserialize($additions->properties);
   $additions->multiple_answers = $additions->properties['multiple_answers'];
-  
   return $additions;
 }
 
@@ -249,27 +253,20 @@ function multichoice_load($node) {
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (user_access('create multichoice')) {
     if (!$teaser) {
-      $node->body = multichoice_render_question($node);
+      $mynode = node_prepare($node,$teaser);
+      $mynode->content['body'] = array('#value'=> multichoice_render_question($node));
+      return $mynode;
+      //$node->body = multichoice_render_question($node);
     }
   }
   else if ($teaser) {
-    $node->teaser = t('This is a quiz question, not to be viewed independently.');
-    $node->body = $node->teaser; // we do not need Read more...
+    $mynode = node_prepare($node,$teaser);
+    return $mynode;
+    //$node->teaser = t('This is a quiz question, not to be viewed independently.');
+    //$node->body = $node->teaser; // we do not need Read more...
   }
   else {
     drupal_access_denied();
-  }
-}
-
-/**
- * Implementation of hook_help().
- */
-function multichoice_help($section) {
-  switch ($section) {
-    case 'admin/modules#description':
-      return t('Multiple choice question type for quiz module.');
-    case 'node/add#multichoice':
-      return t('A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)');
   }
 }
 
@@ -282,7 +279,7 @@ function multichoice_help($section) {
  * @return
  *   HTML output
  */
-function multichoice_render_question($node) {
+function multichoice_render_question_form($node) {
   // Radio buttons for single selection questions, checkboxes for multiselect
   if ($node->multiple_answers == 0) {
     $type = 'radios';
@@ -299,7 +296,7 @@ function multichoice_render_question($node) {
       unset($node->answers[$key]);
     }
     else {
-      $options[$key] = '<div class="multichoice_answer_text">'. check_markup($answer['answer'], $node->filter, FALSE) .'</div>';
+      $options[$key] = '<div class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</div>';
     }
   }
   
@@ -316,8 +313,11 @@ function multichoice_render_question($node) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
+  return $form;
+}
 
-  return drupal_get_form('multichoice_render_question', $form);
+function multichoice_render_question($node) {
+  return drupal_get_form('multichoice_render_question_form', $node);
 }
 
 /**
@@ -337,11 +337,11 @@ function multichoice_evaluate_question($nid) {
   $question = node_load($nid);
   $results = array();
 
-  if (isset($_POST['edit']['tries'])) {
-    if (is_array($_POST['edit']['tries'])) {
+  if (isset($_POST['tries'])) {
+    if (is_array($_POST['tries'])) {
 
       // Multi-answer question
-      while(list($key, $try) = each($_POST['edit']['tries'])) {
+      while(list($key, $try) = each($_POST['tries'])) {
         $results['answers'] = $question->answers;
         $results['tried'][] = $question->answers[$try]['aid'];
       }
@@ -350,11 +350,11 @@ function multichoice_evaluate_question($nid) {
 
       // Single-answer question
       $results['answers'] = $question->answers;
-      $results['tried'][] = $question->answers[$_POST['edit']['tries']]['aid'];
+      $results['tried'][] = $question->answers[$_POST['tries']]['aid'];
     }
   }
   //Unset $_POST, otherwise it tries to use the previous answers on the next page...
-  unset($_POST['edit']['tries']);
+  unset($_POST['tries']);
   
   //Return the result
   return $results;
@@ -362,6 +362,7 @@ function multichoice_evaluate_question($nid) {
 
 //Old claculate result function
 function multichoice_calculate_result($answers, $tried) {
+  if (empty($answers)) return;
   while(list($key, $answer) = each($answers)) {
     if ($answer['points'] == 1) {
       if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
@@ -456,10 +457,10 @@ function theme_multichoice_form($form) {
   $rows = array();
   foreach (element_children($form) as $key) {
     $rows[] = array(
-      form_render($form[$key]['correct']),
-      form_render($form[$key]['answer']),
-      form_render($form[$key]['feedback']),
-      form_render($form[$key]['delete']),
+      drupal_render($form[$key]['correct']),
+      drupal_render($form[$key]['answer']),
+      drupal_render($form[$key]['feedback']),
+      drupal_render($form[$key]['delete']),
     );
   }
 
@@ -491,8 +492,8 @@ function theme_multichoice_unselected(){
 /**
  * Theme function for the multichoice form
  */
-function theme_multichoice_render_question($form){
+function theme_multichoice_render_question_form($form){
   $output = '';
-  $output .= form_render($form);
+  $output .= drupal_render($form)."</div>";
   return $output;
 }

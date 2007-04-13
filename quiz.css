@@ -7,6 +7,11 @@
   font-style: italic;
   font-size: 80%;
 }
+
+div.multichoice_answer_text p{
+  display:inline;
+}
+
 .multichoice_answer_text {
   margin: -1.9em 0 0 2em;
 }
