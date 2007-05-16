@@ -8,8 +8,8 @@
   font-size: 80%;
 }
 
-div.multichoice_answer_text p{
-  display:inline;
+div.multichoice_answer_text p {
+  display: inline;
 }
 
 .multichoice_answer_text {
@@ -23,26 +23,33 @@ div.multichoice_answer_text p{
   font-weight: bold;
   font-size: 120%;
 }
+
 #quiz_score_possible, #quiz_score_percent {
   font-weight: bold;
 }
+
 .quiz_summary_question {
   margin-bottom: 0.5em;
 }
+
 tr.quiz_summary_qrow {
   background: transparent;
 }
+
 td.quiz_summary_qcell {
   vertical-align: top;
   padding: 1em 1em 0em 0em;
 }
+
 td.quiz_summary_qcell table tr {
   background: transparent;
 }
+
 td.quiz_summary_qcell table td {
   vertical-align: top;
   padding: .5em;
 }
+
 .quiz_answer_feedback {
   font-style: italic;
 }

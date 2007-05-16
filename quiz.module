@@ -10,12 +10,6 @@ include(drupal_get_path('module', 'quiz') .'/quiz_datetime.inc');
  * This module allows the creation of interactive quizzes for site visitors
  */
 
-/**
- * Arg for quiz
- * TODO: Refactor so all calls to arg() are passed constants
- */
-define('QUIZ_NID_ARG', 1);
-
 /*
  * Define question statuses...
  */
@@ -114,13 +108,13 @@ function quiz_menu($may_cache) {
   }
   else {
     drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
-      if (arg(0) == 'node' && is_numeric(arg(QUIZ_NID_ARG))) {
-        $node = node_load(arg(QUIZ_NID_ARG));
+      if (arg(0) == 'node' && is_numeric(arg(1))) {
+        $node = node_load(arg(1));
         if ($node->type == 'quiz') {
   
           // Menu item for creating adding questions to quiz
           $items[] = array(
-            'path' => 'node/'. arg(QUIZ_NID_ARG) .'/questions',
+            'path' => 'node/'. arg(1) .'/questions',
             'title' => t('Manage questions'),
             'callback' => 'quiz_questions',
             'access' => user_access('create quiz'),
@@ -129,7 +123,7 @@ function quiz_menu($may_cache) {
 
           // Menu item for quiz taking interface
           $items[] = array(
-            'path' => 'node/'. arg(QUIZ_NID_ARG) .'/quiz/start',
+            'path' => 'node/'. arg(1) .'/quiz/start',
             'title' => t('Take @quiz', array('@quiz' => $quiz_name)),
             'callback' => 'quiz_take_quiz',
             'access' => user_access('access quiz'),
@@ -139,7 +133,7 @@ function quiz_menu($may_cache) {
     }
     else {
       $items[] = array(
-        'path' => 'user/'. arg(QUIZ_NID_ARG) .'/myresults',
+        'path' => 'user/'. arg(1) .'/myresults',
         'title' => t('my results'),
         'callback' => 'quiz_get_user_results',
         'access' => user_access('user results'),
@@ -475,14 +469,14 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 
-function quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
+function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create quiz')) {
-    $node = node_prepare(&$node, $teaser);
-    $node->content['body']['#value'] = theme('quiz_view', &$node, $teaser, $page);
+    $node = node_prepare($node, $teaser);
+    $node->content['body']['#value'] = theme('quiz_view', $node, $teaser, $page);
   }
   elseif (!$teaser && !user_access('create quiz')) {
-    $node = node_prepare(&$node, $teaser);
-    $node->content['body']['#value'] .= theme('quiz_view', &$node, $teaser, $page);
+    $node = node_prepare($node, $teaser);
+    $node->content['body']['#value'] .= theme('quiz_view', $node, $teaser, $page);
   }
   return $node;
 }
@@ -598,7 +592,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   }
 
   // Format quiz questions
-  if (is_numeric(arg(QUIZ_NID_ARG))) {
+  if (is_numeric(arg(1))) {
     $output .= '<h3>'. t('%quiz Questions', array('%quiz' => $quiz_name)) .'</h3>';
     $questions = _quiz_get_questions();
     $output .= theme('quiz_question_table', $questions);
@@ -652,8 +646,8 @@ function quiz_get_user_results() {
 function quiz_take_quiz() {
   global $user;
   $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
-  if (arg(0) == 'node' && is_numeric(arg(QUIZ_NID_ARG)) && user_access('access quiz')) {
-     if ($quiz = node_load(arg(QUIZ_NID_ARG))) {
+  if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quiz')) {
+     if ($quiz = node_load(arg(1))) {
        if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
   
         // First time running through quiz
@@ -1077,7 +1071,7 @@ function _quiz_taxonomy_select($value = 0) {
  *   Array of questions
  */
 function _quiz_get_questions() {
-  $quiz = node_load(arg(QUIZ_NID_ARG));
+  $quiz = node_load(arg(1));
   $questions = array();
   if (!empty($quiz->nid)) {
     // Retrieve list of questions
@@ -1125,7 +1119,7 @@ function quiz_questions_form() {
     $terms = array();
   }
 
-  $quiz = node_load(arg(QUIZ_NID_ARG));
+  $quiz = node_load(arg(1));
 
   // Set page title
   drupal_set_title(check_plain($quiz->title));
@@ -1240,7 +1234,7 @@ function quiz_questions() {
 function quiz_questions_form_submit($form_id, $values) {
   $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   // load the node
-  $quiz = node_load(arg(QUIZ_NID_ARG));
+  $quiz = node_load(arg(1));
   // Update quiz with selected question options
   if (!quiz_update_questions($values['question_status'])) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your %quiz. Please try again.', array('%quiz' => $quiz_name)));
@@ -1350,7 +1344,7 @@ function quiz_node_map($node) {
  *   True if update was a success, false if three was a problem
  */
 function quiz_update_questions($questions) {
-  $quiz = node_load(arg(QUIZ_NID_ARG));
+  $quiz = node_load(arg(1));
   $return = true;
 
   if (!empty($questions)) {
