@@ -20,7 +20,7 @@ define('QUESTION_NEVER', 2);
 /**
  * Quiz name
  */
-define('QUIZ_DEFAULT_NAME', 'Quiz');
+define('QUIZ_NAME', _quiz_get_quiz_name());
 
 /**
  * Quiz perms
@@ -65,10 +65,9 @@ function quiz_access($op, $node) {
  * Implementation of hook_node_info().
  */
 function quiz_node_info() {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   return array(
     'quiz' => array(
-      'name' => t('@quiz', array("@quiz" => $quiz_name)), 
+      'name' => t('@quiz', array("@quiz" => QUIZ_NAME)), 
       'module' => 'quiz',
       'description' => 'Create interactive quizzes for site visitors'));
 }
@@ -78,13 +77,12 @@ function quiz_node_info() {
  */
 function quiz_menu($may_cache) {
   $items = array();
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
 
   if ($may_cache) {
     $access = user_access(QUIZ_PERM_ADMIN_CONFIG);
     $items[] = array(
       'path' => 'admin/settings/quiz',
-      'title' => t('@quiz Configuration', array('@quiz' => $quiz_name)),
+      'title' => t('@quiz Configuration', array('@quiz' => QUIZ_NAME)),
       'description' => t('Describes what the settings generally do.'),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('quiz_admin_settings'),
@@ -94,13 +92,13 @@ function quiz_menu($may_cache) {
 
     $items[] = array(
       'path' => 'node/add/quiz',
-      'title' => t('@quiz', array('@quiz' => $quiz_name)),
+      'title' => t('@quiz', array('@quiz' => QUIZ_NAME)),
       'access' => user_access('create quiz'),
     );
 
      $items[] = array(
         'path' => 'admin/quiz',
-        'title' => t('@quiz Results', array('@quiz' => $quiz_name)),
+        'title' => t('@quiz Results', array('@quiz' => QUIZ_NAME)),
         'callback' => 'quiz_admin',
         'access' => user_access('administer quiz'),
         'type' => MENU_NORMAL_ITEM,
@@ -124,7 +122,7 @@ function quiz_menu($may_cache) {
           // Menu item for quiz taking interface
           $items[] = array(
             'path' => 'node/'. arg(1) .'/quiz/start',
-            'title' => t('Take @quiz', array('@quiz' => $quiz_name)),
+            'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
             'callback' => 'quiz_take_quiz',
             'access' => user_access('access quiz'),
             'type' => MENU_LOCAL_TASK,
@@ -150,7 +148,7 @@ function quiz_menu($may_cache) {
         
       $items[] = array(
         'path' => 'admin/quiz/'. arg(2) .'/view',
-        'title' => t('View @quiz', array('@quiz' => $quiz_name)),
+        'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
         'callback' => 'quiz_admin_results',
         'access' => user_access('administer quiz'),
         'type' => MENU_CALLBACK,
@@ -158,7 +156,7 @@ function quiz_menu($may_cache) {
                        
       $items[] = array(
         'path' => 'admin/quiz/'. arg(2) .'/delete',
-        'title' => t('Delete @quiz', array('@quiz' => $quiz_name)),
+        'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
         'callback' => 'quiz_admin_result_delete',
         'access' => user_access('administer quiz'),
         'type' => MENU_CALLBACK);
@@ -172,14 +170,12 @@ function quiz_menu($may_cache) {
 /**
  * Implementation of hook_form().
  */
-function quiz_form(&$node) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
-  
+function quiz_form(&$node) {  
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
     '#default_value' => $node->title,
-    '#description' => t('The name of the %quiz', array('%quiz' => $quiz_name)),
+    '#description' => t('The name of the @quiz', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
 
@@ -187,7 +183,7 @@ function quiz_form(&$node) {
     '#type' => 'textarea',
     '#title' => t('Description'),
     '#default_value' => $node->body,
-    '#description' => t('A description of what the %quiz entails', array('%quiz' => $quiz_name)),
+    '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
   $form['body_filter']['format'] = filter_form($node->format);
@@ -196,7 +192,7 @@ function quiz_form(&$node) {
     '#type' => 'textfield',
     '#title' => t('Number of questions'),
     '#default_value' => ($node->number_of_questions ? $node->number_of_questions : 10),
-    '#description' => t('The number of questions to include in this %quiz from the question bank', array('%quiz' => $quiz_name)),
+    '#description' => t('The number of questions to include in this @quiz from the question bank', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
   
@@ -204,7 +200,7 @@ function quiz_form(&$node) {
     '#type' => 'checkbox',
     '#title' => t('Shuffle questions'),
     '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
-    '#description' => t('Whether to shuffle/randomize the questions on the %quiz', array('%quiz' => $quiz_name)),
+    '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
   $form['backwards_navigation'] = array(
@@ -223,7 +219,7 @@ function quiz_form(&$node) {
     '#type' => 'radios',
     '#default_value' => $node->feedback_time,
     '#options' => array(
-      t('At the end of the %quiz', array('%quiz' => $quiz_name)),
+      t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
       t('After each question'),
       t('Do not show')
     ),
@@ -247,13 +243,13 @@ function quiz_form(&$node) {
     '#type' => 'date',
     '#title' => t('Open Date'),
     '#default_value' => _quiz_form_prepare_date($node->quiz_open),
-    '#description' => t('The date this %quiz will become available.', array('%quiz' => $quiz_name)),
+    '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
   );
   $form['quiz_availability']['quiz_close'] = array(
     '#type' => 'date',
     '#title' => t('Close Date'),
     '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
-    '#description' => t('The date this %quiz will cease to be available.', array('%quiz' => $quiz_name)),
+    '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
   );
 
   $options = array('Unlimited');
@@ -265,13 +261,13 @@ function quiz_form(&$node) {
     '#title' => t('Number of takes'),
     '#default_value' => $node->takes,
     '#options' => $options,
-    '#description' => t('The number of times a user is allowed to take the %quiz', array('%quiz' => $quiz_name)),
+    '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
  // Quiz summary options
   $form['summaryoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('%quiz Summary Options', array('%quiz' => $quiz_name)),
+    '#title' => t('@quiz Summary Options', array('@quiz' => QUIZ_NAME)),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -282,9 +278,9 @@ function quiz_form(&$node) {
     }
     $form['summaryoptions']['pass_rate'] = array(
       '#type' => 'textfield',
-      '#title' => t('Pass rate for %quiz (%)', array('%quiz' => $quiz_name)),
+      '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
       '#default_value' => ($node->pass_rate ? $node->pass_rate : 0),
-      '#description' => t('Pass rate for the %quiz as a percentage score', array('%quiz' => $quiz_name)),
+      '#description' => t('Pass rate for the @quiz as a percentage score', array('@quiz' => QUIZ_NAME)),
       '#required' => FALSE,
     );
     $form['summaryoptions']['summary_pass'] = array(
@@ -292,7 +288,7 @@ function quiz_form(&$node) {
       '#title' => t('Summary text if passed.'),
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
-      '#description' => t('Summary for when the user gets enough correct answers to pass the %quiz. Leave blank if you don\'t want to give different summary text if they passed or if you are not using the "percent to pass" option above. If you don\'t use the "Percentage needed to pass" field above, this text will not be used.', array('%quiz' => $quiz_name)),
+      '#description' => t('Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don\'t want to give different summary text if they passed or if you are not using the "percent to pass" option above. If you don\'t use the "Percentage needed to pass" field above, this text will not be used.', array('@quiz' => QUIZ_NAME)),
     );
   }
   $form['summaryoptions']['summary_default'] = array(
@@ -370,7 +366,6 @@ function quiz_get_pass_rate($nid) {
  * Implementation of hook_validate().
  */
 function quiz_validate(&$node) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   if (!$node->nid && empty($_POST)) return;
   
   if (empty($node->body)) {
@@ -396,18 +391,18 @@ function quiz_validate(&$node) {
     }
     // format the valid range
     if ($anum_always != $anum_total) {
-      $range = theme('placeholder', t('between %low and %high', array('%low' => $anum_always, '%high' => $anum_total)));
+      $range = t('between %low and %high', array('%low' => $anum_always, '%high' => $anum_total));
     } 
     else {
-      $range = theme('placeholder', $anum_total);
+      $range = $anum_total;
     }
     // If there are not enough questions to support this number.
     if ($anum_total < $node->number_of_questions) {
-      form_set_error('number_of_questions', t("You don't currently have enough questions assigned to this %quiz to support that many questions. Either change the number of questions to %range or %action to this %quiz.", array('%quiz' => $quiz_name, '%range' => $range, '%action' => l(t('add more questions'), 'node/'. $node->nid .'/questions'))));
+      form_set_error('number_of_questions', t("You don't currently have enough questions assigned to this @quiz to support that many questions. Either change the number of questions to %range or !action to this @quiz.", array('@quiz' => QUIZ_NAME, '%range' => $range, '!action' => l(t('add more questions'), 'node/'. $node->nid .'/questions'))));
     }
     // If there are too many questions for this number.
     else if ($anum_always > $node->number_of_questions) {
-      form_set_error('number_of_questions', t('There are too many questions assigned to this %quiz to support that low of a number. Either change the number of questions to %range or %action from this %quiz.', array('%quiz' => $quiz_name, '%range' => $range, '%action' => l(t('remove some questions'), 'node/'. $node->nid .'/questions'))));
+      form_set_error('number_of_questions', t('There are too many questions assigned to this @quiz to support that low of a number. Either change the number of questions to %range or !action from this @quiz.', array('@quiz' => QUIZ_NAME, '%range' => $range, '!action' => l(t('remove some questions'), 'node/'. $node->nid .'/questions'))));
     }
   }
 
@@ -508,9 +503,8 @@ function theme_quiz_availability($node) {
  */
 function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   $output = '';
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   // Ouput quiz options
-  $output .= '<h3>'. t('%quiz Options', array('%quiz' => $quiz_name)) .'</h3>';
+  $output .= '<h3>'. t('@quiz Options', array('@quiz' => QUIZ_NAME)) .'</h3>';
   $header = array(
     t('# of Questions'),
     t('Shuffle?'),
@@ -521,7 +515,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
   $backwards = $node->backwards_navigation == 1 ? t('Yes') : t('No');
   $feedback_options = array(
-    t('At the end of each %quiz', array('%quiz' => $quiz_name)),
+    t('At the end of each @quiz', array('@quiz' => QUIZ_NAME)),
     t('After each question'),
     t('Do not show')
   );
@@ -537,7 +531,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   );
   $output .= theme('table', $header, $rows);
   // Format Quiz Dates
-  $output .= '<h3>'. t('%quiz start/end', array('%quiz' => $quiz_name)) .'</h3>';
+  $output .= '<h3>'. t('@quiz start/end', array('@quiz' => QUIZ_NAME)) .'</h3>';
   if (!$node->quiz_always) {
     // if we are previewing, make sure the dates are timestamps and not form arrays
     if (is_array($node->quiz_open)) {
@@ -549,7 +543,7 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
 
     // format the availability info
     $output .= '<p>'. format_date($node->quiz_open) .' &mdash; '. format_date($node->quiz_close) .'</p>';
-    $output .= '<p><strong>'. t('Days %quiz live for', array('%quiz' => $quiz_name)) .'</strong> '. floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) .'</p>';
+    $output .= '<p><strong>'. t('Days @quiz live for:', array('@quiz' => QUIZ_NAME)) .'</strong> '. floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) .'</p>';
     $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
     $remaining = ($remaining < 0)?'Expired':$remaining;
     $output .= '<p><strong>Days remaining:</strong> '. $remaining .'</p>';
@@ -582,18 +576,18 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
     if ($node->pass_rate) {
       $output .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
       $output .= '<p><strong>'. t('Percentage needed to pass:') .'</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
-      $output .= '<div><strong>'. t('Summary text if the user passed:') .'</strong>';
+      $output .= '<div><strong>'. t('Summary text if the user passed:') .'</strong> ';
       $output .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
       $output .= '</div>'."\n";
     }
-    $output .= '<div><strong>'. t('Default summary text:') .'</strong>';
+    $output .= '<div><strong>'. t('Default summary text:') .'</strong> ';
     $output .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
     $output .= '</div>'."\n";
   }
 
   // Format quiz questions
   if (is_numeric(arg(1))) {
-    $output .= '<h3>'. t('%quiz Questions', array('%quiz' => $quiz_name)) .'</h3>';
+    $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
     $questions = _quiz_get_questions();
     $output .= theme('quiz_question_table', $questions);
   }
@@ -645,7 +639,6 @@ function quiz_get_user_results() {
  */
 function quiz_take_quiz() {
   global $user;
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quiz')) {
      if ($quiz = node_load(arg(1))) {
        if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
@@ -655,7 +648,7 @@ function quiz_take_quiz() {
           // Create question list
           $questions = quiz_build_question_list($quiz->nid);
           if (count($questions) == 0) {
-            drupal_set_message(t('No questions were found. Please assign questions before trying to take this %quiz.', array('%quiz' => $quiz_name)), 'error');
+            drupal_set_message(t('No questions were found. Please assign questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
             return '';
           }
           // Initialize session variables
@@ -774,7 +767,6 @@ function _quiz_get_summary_text($quiz, $score) {
  *   Returns quiz_result rid, or false if there is an error.
  */
 function quiz_start_actions($uid, $nid) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   // get the quiz node
   $quiz = node_load($nid);
 
@@ -782,7 +774,7 @@ function quiz_start_actions($uid, $nid) {
   if (!$quiz->quiz_always == 1) {
   	// compare current gm time to open and close dates (which should still be in gm time)
     if (gmmktime() >= $quiz->quiz_close || gmmktime() < $quiz->quiz_open) {
-      drupal_set_message(t('This %quiz is not currently available.', array('%quiz' => $quiz_name)), 'status');
+      drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
       if (!user_access('create quiz')) {
         return FALSE;
       }
@@ -804,7 +796,7 @@ function quiz_start_actions($uid, $nid) {
       }
     }
     if ($passed == TRUE) {
-      drupal_set_message(t('You have already passed this quiz.'), 'status');
+      drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
       // Allow quiz creators to test their quizzes
       if (!user_access('create quiz')) {
         return FALSE;
@@ -817,7 +809,7 @@ function quiz_start_actions($uid, $nid) {
     //$result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
     $times = count($results);
     if ($times >= $quiz->takes) {
-      drupal_set_message(t('You have already taken this quiz %d times.', array('%d' => $times)), 'status');
+      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
       // Allow quiz creators to test their quizzes
       if (!user_access('create quiz')) {
         return FALSE;
@@ -833,7 +825,7 @@ function quiz_start_actions($uid, $nid) {
     return $rid;
   }
   else {
-    drupal_set_message(t('There was a problem starting the quiz. Please try again later.', 'error'));
+    drupal_set_message(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), 'error'));
     return FALSE;
   }
 }
@@ -920,7 +912,6 @@ function quiz_build_question_list($nid) {
  * Implementation of hook_help().
  */
 function quiz_help($section) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   switch ($section) {
     case 'admin/help#quiz':
       return t('
@@ -933,11 +924,11 @@ function quiz_help($section) {
   <li>Create a series of questions</li>
   <li>Create a quiz based on the series of questions</li>
 </ol>
-<p>Also note that for anyone but the site administrator, creating quizzes requires the <strong>create quiz</strong> privilege, and creating questions requires the <strong>administer <em>question type</em></strong> privilege. These settings can be configured in <a href="%admin-access">administer >> access control</a>.</p>
+<p>Also note that for anyone but the site administrator, creating quizzes requires the <strong>create quiz</strong> privilege, and creating questions requires the <strong>administer <em>question type</em></strong> privilege. These settings can be configured in <a href="@admin-access">Administer >> User management >> Access control</a>.</p>
 <h4>Setting up a vocabulary</h4>
 <ol>
-  <li>If not already enabled, go to the <a href="%admin-modules">administer >> modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
-  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href="%admin-taxonomy">administer >> categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>
+  <li>If not already enabled, go to the <a href="@admin-modules">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
+  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href="@admin-taxonomy">Administer >> Content management >> Categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>
   <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:
     <ul>
       <li>Literature
@@ -965,7 +956,7 @@ function quiz_help($section) {
 </ol>
 <h4>Creating quiz questions</h4>
 <ol>
-  <li>Begin by clicking <a href="%create-content">create content</a>, and then select a question type node (for example, <a href="%multichoice">multichoice</a>)</li>
+  <li>Begin by clicking <a href="@create-content">Create content</a>, and then select a question type node (for example, <a href="@multichoice">multichoice</a>)</li>
   <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:
     <dl>
       <dt><strong>Title</strong></dt>
@@ -988,8 +979,8 @@ function quiz_help($section) {
 </ol>
 <h4>Creating the quiz</h4>
 <ol>
-  <li>Go to <a href="%create-quiz">create content >> quiz</a> to access the quiz creation form.</li>
-  <li>Fill out the form to set the %quiz options:
+  <li>Go to <a href="@create-quiz">Create content >> Quiz</a> to access the quiz creation form.</li>
+  <li>Fill out the form to set the @quiz options:
     <dl>
       <dt><strong>Title</strong></dt>
       <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>
@@ -1012,9 +1003,9 @@ function quiz_help($section) {
   <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong>Submit questions</strong>.</li>
   <li>Repeat process until satisfied with question selection.</li>
 </ol>
-    ', array('%quiz' => $quiz_name, '%admin-access' => url('admin/access'), '%admin-modules' => url('admin/modules'), '%admin-taxonomy' => url('admin/taxonomy'), '%create-content' => url('node/add'), '%multichoice' => url('node/add/multichoice'), '%create-quiz' => url('node/add/quiz')));
+    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/access'), '@admin-modules' => url('admin/build/modules'), '@admin-taxonomy' => url('admin/content/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
     case 'node/add#quiz':
-      return t('A collection of questions designed to create interactive tests', array('%quiz' => $quiz_name));
+      return t('A collection of questions designed to create interactive tests');
     default:
       break;
   }
@@ -1103,8 +1094,6 @@ function _quiz_get_questions() {
  *  HTML output to create page
  */
 function quiz_questions_form() {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
-  
   if ($_POST) {
     if ($_POST['op'] == 'Filter question list') {
       //BE CAREFUL OF THE $_POST['edit'] ARRAY AS THIS VALUE IS LIABLE TO CHANGE WHEN VOCABS ARE ADDED AND DELETED...IF YOU HAVE MORE THAN ONE VOCAB, MAY GOD HELP YOU!!
@@ -1127,7 +1116,7 @@ function quiz_questions_form() {
   // show the number of questions that this quiz currently has
   $form['numberofquestions'] = array(
     '#prefix' => '<div class="quiz_questions_number">',
-    '#value' => t('This %quiz consists of %x %question.', array('%quiz' => $quiz_name, '%x' => check_plain($quiz->number_of_questions), '%question' => format_plural($quiz->number_of_questions, t('question'), t('questions')))),
+    '#value' => t('This @quiz consists of %x @question.', array('@quiz' => QUIZ_NAME, '%x' => check_plain($quiz->number_of_questions), '@question' => format_plural($quiz->number_of_questions, t('question'), t('questions')))),
     '#suffix' => '</div><br />'."\n"
   );
 
@@ -1190,7 +1179,7 @@ function quiz_questions_form() {
   // Display questions
   $form['assigned_questions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Questions assigned to this %quiz', array('%quiz' => $quiz_name)),
+    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
   );
   $form['assigned_questions']['questions'] = array(
     '#type' => 'markup',
@@ -1232,12 +1221,11 @@ function quiz_questions() {
  *   Array containing the form values
  */
 function quiz_questions_form_submit($form_id, $values) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   // load the node
   $quiz = node_load(arg(1));
   // Update quiz with selected question options
   if (!quiz_update_questions($values['question_status'])) {
-    form_set_error('', t('Either no questions were selected, or there was a problem updating your %quiz. Please try again.', array('%quiz' => $quiz_name)));
+    form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
     return;
   }
 
@@ -1254,13 +1242,13 @@ function quiz_questions_form_submit($form_id, $values) {
 
   // If there are not enough questions, lower the number of questions and let the user know.
   if ($anum_total < $qnum) {
-    drupal_set_message(t('The number of questions for this quiz have been lowered to %anum to match the number of questions you assigned.', array('%anum' => theme('placeholder', $anum_total))), 'status');
+    drupal_set_message(t('The number of questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $anum_total)), 'status');
     db_query("UPDATE {quiz} SET number_of_questions = %d WHERE nid = %d", $anum_total, $quiz->nid);
   }
 
   // If there are too many questions set to "always", increase the number of questions and let the user know.
   else if ($anum_always > $qnum) {
-    drupal_set_message(t('The number of questions for this quiz have been increased to %anum to match the number of questions you assigned.', array('%anum' => theme('placeholder', $anum_always))), 'status');
+    drupal_set_message(t('The number of questions for this @quiz have been increased to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $anum_always)), 'status');
     db_query("UPDATE {quiz} SET number_of_questions = %d WHERE nid = %d", $anum_always, $quiz->nid);
   }
 
@@ -1393,31 +1381,30 @@ function quiz_update_questions($questions) {
  * Implementation of hook_settings()
  */
 function quiz_admin_settings() {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   $form = array();
   // option to globally turn off pass / fail form elements
   $form['quiz_default_close'] = array(
     '#type' => 'textfield',
-    '#title' => t('Default number of days before a %quiz is closed', array('%quiz' => $quiz_name)),
+    '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_close', 30),
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'), 
   );  
   $form['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display pass / fail options in the %quiz form', array('%quiz' => $quiz_name)),
+    '#title' => t('Display pass / fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_use_passfail', 1),
     '#description' => t('Check this to display the pass / fail options in the quiz form. You can still choose to ignore pass / fail options on a quiz by quiz basis if this is checked, but if you want to prohibit other quiz module creators from using these options, unchecked this option.'), 
   );
   $form['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
-    '#title' => t('Default percentage needed to pass a %quiz', array('%quiz' => $quiz_name)),
+    '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_pass_rate', 75),
     '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass / fail summary information by default.'), 
   );
   $form['quiz_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Assessment name'),
-    '#default_value' => $quiz_name,
+    '#default_value' => QUIZ_NAME,
     '#description' => t('How do you want to refer to quizzes across the site (for example: quiz, test, assessment).  This will affect display text but will not affect menu paths.'), 
     '#required' => TRUE,
   );
@@ -1533,10 +1520,9 @@ function quiz_admin_result_delete() {
 }
 
 function quiz_admin_result_delete_form() {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   $form['del_rid'] = array('#type' => 'hidden', '#value' => arg(2));
   return confirm_form($form,
-                      t('Are you sure you want to delete this %quiz result?', array('%quiz' => $quiz_name)),
+                      t('Are you sure you want to delete this @quiz result?', array('@quiz' => QUIZ_NAME)),
                       'admin/quiz',
                       t('This action cannot be undone.'),
                       t('Delete'),
@@ -1575,19 +1561,29 @@ function _quiz_get_answers($rid) {
   return $results;
 }
 
+/**
+ * Get the quiz name variable for use as a constant
+ * so we don't have to keep calling for it in every function
+ *
+ * @return 
+ *  quiz name variable
+ **/
+function _quiz_get_quiz_name() {
+  return variable_get('quiz_name', 'Quiz');
+}
+
 
 /////////////////////////////////////////////////
 /// Theme functions
 /////////////////////////////////////////////////
 
 /**
- * Theme the results table
+ * Theme the admin results table
  * 
  * @param $results
  *   As returned by _quiz_get_results()
  */
 function theme_quiz_admin($results) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   $output = '';
   $rows = array();
 
@@ -1604,18 +1600,17 @@ function theme_quiz_admin($results) {
   
   $header = array(
     t('Action'),
-    t("$quiz_name Title"),
+    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
-    t('Result<br/>ID'),
+    t('Result<br />ID'),
     t('Time Started'),
     t('Finished?'));
   
-  if (isset($rows)) {
+  if (!empty($rows)) {
     $output .= theme('table', $header, $rows);
   }
   else {
-    // TODO: Should this actually say "No quizzes found"?
-    $output .= t('No questions found.');
+    $output .= t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
   }
   return $output;
 }
@@ -1629,7 +1624,6 @@ function theme_quiz_admin($results) {
  *   Themed html
  */
 function theme_quiz_get_user_results($results) {
-  $quiz_name = check_plain(variable_get('quiz_name', QUIZ_DEFAULT_NAME));
   $output = '';
   $rows = array();
   while (list($key, $result) = each($results)) {
@@ -1645,18 +1639,17 @@ function theme_quiz_get_user_results($results) {
   
   $header = array(
     t('Action'),
-    t("$quiz_name Title"),
+    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
-    t('Result<br/>ID'),
+    t('Result<br />ID'),
     t('Time Started'),
     t('Finished?'));
   
-  if (isset($rows)) {
+  if (!empty($rows)) {
     $output .= theme('table', $header, $rows);
   }
   else {
-    // TODO: Should this actually say "No quizzes found"?
-    $output .= t('No questions found.');
+    $output .= t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
   }
   return $output; 
 }
@@ -1679,7 +1672,7 @@ function theme_quiz_filtered_questions($form) {
       );
     }
   }
-  if (isset($rows)) {
+  if (!empty($rows)) {
     $output .= theme('table', $header, $rows);
   }
   else {
@@ -1699,6 +1692,7 @@ function theme_quiz_filtered_questions($form) {
  */
 function theme_quiz_question_table($questions) {
   $output = '';
+  $rows = array();
   $status_descriptions = array(t('Random'), t('Always'), t('Never'));
   while (list($key, $question) = each($questions)) {
     $rows[] = array(
@@ -1709,7 +1703,7 @@ function theme_quiz_question_table($questions) {
   }
   $header = array(t('Status'), t('Question'), t('Type'), t('Edit'));
 
-  if (isset($rows)) {
+  if (!empty($rows)) {
     $output .= theme('table', $header, $rows);
   }
   else {
@@ -1816,7 +1810,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   // Display overall result
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
@@ -1849,7 +1843,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // Display overall result
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Total score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
@@ -1881,7 +1875,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   // Display overall result
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Your score was: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
@@ -1897,9 +1891,9 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
  * 
  * @param $questions
  *   Array of quiz objects as returned by _quiz_get_answers
- * @param showPoints
- *   Binary flag for wheather to show the actual answers
- * @param $showFeedback
+ * @param showpoints
+ *   Binary flag for whether to show the actual answers
+ * @param $showfeedback
  *   binary flag for whether to show question feedback
  * @return
  *   Themed html
