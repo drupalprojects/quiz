@@ -438,7 +438,7 @@ function multichoice_list_questions() {
   $result = db_query("SELECT nid, body, format FROM {node} WHERE type= '%s'", 'multichoice');
   $questions = array();
   while ($node = db_fetch_object($result)) {
-    $question =& new stdClass();
+    $question = new stdClass();
     $question->question = check_markup($node->body, $node->format);
     $question->nid = $node->nid;
     $questions[] = $question;
