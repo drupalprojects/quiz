@@ -365,7 +365,7 @@ function quiz_get_pass_rate($nid) {
 /**
  * Implementation of hook_validate().
  */
-function quiz_validate(&$node) {
+function quiz_validate($node) {
   if (!$node->nid && empty($_POST)) return;
   
   if (empty($node->body)) {
@@ -423,7 +423,7 @@ function quiz_validate(&$node) {
 /**
  * Implementation of hook_insert().
  */
-function quiz_insert(&$node) {
+function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
@@ -443,7 +443,7 @@ function quiz_update($node) {
 /**
  * Implementation of hook_delete().
  */
-function quiz_delete(&$node) {
+function quiz_delete($node) {
   db_query('DELETE FROM {quiz} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_questions} WHERE quiz_nid = %d', $node->nid);
 }
@@ -501,7 +501,7 @@ function theme_quiz_availability($node) {
 /**
  * Theme the node view for quizzes
  */
-function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
+function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $output = '';
   // Ouput quiz options
   $output .= '<h3>'. t('@quiz Options', array('@quiz' => QUIZ_NAME)) .'</h3>';
@@ -535,10 +535,10 @@ function theme_quiz_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$node->quiz_always) {
     // if we are previewing, make sure the dates are timestamps and not form arrays
     if (is_array($node->quiz_open)) {
-      quiz_translate_form_date(&$node, 'quiz_open');
+      quiz_translate_form_date($node, 'quiz_open');
     }
     if (is_array($node->quiz_close)) {
-      quiz_translate_form_date(&$node, 'quiz_close');
+      quiz_translate_form_date($node, 'quiz_close');
     }
 
     // format the availability info
@@ -1315,7 +1315,7 @@ function quiz_filter_question_list($terms = NULL) {
  *   Question object
  */
 function quiz_node_map($node) {
-  $new_question =& new stdClass();
+  $new_question = new stdClass();
   $new_question->question = check_markup($node->body, $node->format);
   $new_question->nid = $node->nid;
   $new_question->type = $node->type;
