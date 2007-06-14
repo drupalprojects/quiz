@@ -203,29 +203,6 @@ function quiz_form(&$node) {
     '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['backwards_navigation'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Backwards navigation'),
-    '#default_value' => $node->backwards_navigation,
-    '#description' => t('Whether to allow user to go back and revisit their answers'),
-  );
-
-  $form['feedback'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('When do you want to give feedback?'),
-  );
-
-  $form['feedback']['feedback_time'] = array(
-    '#type' => 'radios',
-    '#default_value' => $node->feedback_time,
-    '#options' => array(
-      t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
-      t('After each question'),
-      t('Do not show')
-    ),
-    '#description' => t('Indicates at what point feedback for each question will be given to the user'),
-  );
-
   // Set up the availability options
   $form['quiz_availability'] = array(
     '#type' => 'fieldset',
@@ -426,9 +403,9 @@ function quiz_validate($node) {
 function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
-  $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, backwards_navigation, feedback_time, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
-  $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d)";
-  db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always);
+  $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
+  $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d)";
+  db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always);
 }
 
 /**
@@ -437,7 +414,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
-  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, backwards_navigation = %d, feedback_time = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->backwards_navigation, $node->feedback_time, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->nid);
+  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->nid);
 }
 
 /**
@@ -510,25 +487,14 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $header = array(
     t('# of Questions'),
     t('Shuffle?'),
-    t('Allow Backwards?'),
-    t('Feedback'),
     t('Number of takes')
   );
   $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
-  $backwards = $node->backwards_navigation == 1 ? t('Yes') : t('No');
-  $feedback_options = array(
-    t('At the end of each @quiz', array('@quiz' => QUIZ_NAME)),
-    t('After each question'),
-    t('Do not show')
-  );
-  $feedback = $feedback_options[$node->feedback_time];
   $takes = $node->takes == 0 ? t('Unlimited') : check_plain($node->takes);
   $rows = array();
   $rows[] = array(
     check_plain($node->number_of_questions),
     $shuffle,
-    $backwards,
-    $feedback,
     $takes
   );
   $output .= theme('table', $header, $rows);
@@ -964,7 +930,7 @@ function quiz_help($section) {
       <dt><strong>Title</strong></dt>
       <dd>Question title. This will be displayed as the heading of the question.</dd>
       <dt><strong>Taxonomy selection</strong></dt>
-      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed. Select from the terms displayed in order to assign questions to vocabulary terms so that they can be filtered in the quiz creation process.</dd>
+      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed.</dd>
       <dt><strong>Question</strong></dt>
       <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>
       <dt><strong>Multiple Answers</strong></dt>
@@ -974,7 +940,7 @@ function quiz_help($section) {
       <dt><strong>Answer</strong></dt>
       <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>
       <dt><strong>Feedback</strong></dt>
-      <dd>Feedback, if supplied, will be provided to the user either immediately after answering the question, at the end of the quiz, or not at all (feedback options are configured in quizzes).</dd>
+      <dd>Feedback, if supplied, will be provided to the user at the end of the quiz.</dd>
     </dl>
   </li>
   <li>Repeat for each question you would like included on the quiz.</li>
@@ -992,16 +958,11 @@ function quiz_help($section) {
       <dd>Total number of questions on quiz.</dd>
       <dt><strong>Shuffle questions</strong></dt>
       <dd>Whether or not to shuffle (randomize) the questions.</dd>
-      <dt><strong>Backwards Navigation</strong></dt>
-      <dd>Whether or not to allow users to return to a previous question.</dd>
-      <dt><strong>Feedback</strong></dt>
-      <dd>Set options on when and whether question feedback should appear.</dd>
       <dt><strong>Number of takes</strong></dt>
       <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>
     </dl>
   </li>
   <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>
-  <li>Begin by selecting one or more terms from the taxonomy list and click <strong>Filter question list</strong>. This will bring up a selection of questions matching the selected vocabulary terms.</li>
   <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong>Submit questions</strong>.</li>
   <li>Repeat process until satisfied with question selection.</li>
 </ol>
@@ -1087,29 +1048,14 @@ function _quiz_get_questions() {
 
 
 /**
- * Handles "add question" tab
+ * Handles "Manage questions" tab
  *
- * Displays form which allows questions to be filtered by taxonomy vocabulary,
- * and assigned to the given quiz
+ * Displays form which allows questions to be assigned to the given quiz
  *
  * @return
  *  HTML output to create page
  */
 function quiz_questions_form() {
-  if ($_POST) {
-    if ($_POST['op'] == 'Filter question list') {
-      //BE CAREFUL OF THE $_POST['edit'] ARRAY AS THIS VALUE IS LIABLE TO CHANGE WHEN VOCABS ARE ADDED AND DELETED...IF YOU HAVE MORE THAN ONE VOCAB, MAY GOD HELP YOU!!
-      $_SESSION['quiz_filter'] = $_POST['edit'][4];
-    }
-  }
-    
-  if (isset($_SESSION['quiz_filter'])) {
-    $terms = $_SESSION['quiz_filter'];
-  }
-  else {
-    $terms = array();
-  }
-
   $quiz = node_load(arg(1));
 
   // Set page title
@@ -1121,25 +1067,16 @@ function quiz_questions_form() {
     '#value' => t('This @quiz consists of %x @question.', array('@quiz' => QUIZ_NAME, '%x' => check_plain($quiz->number_of_questions), '@question' => format_plural($quiz->number_of_questions, t('question'), t('questions')))),
     '#suffix' => '</div><br />'."\n"
   );
+  
+  // Retrieve question list from database
+  $sql = "SELECT DISTINCT n.nid, n.type, r.body, r.format FROM {node} n, {node_revisions} r WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
+  $result = db_query($sql);
 
-
-  // Display filtering options
-  if (_quiz_taxonomy_select() != array()) {
-    $form['taxonomy_filter'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Select one or more terms to filter the question list'),
-    );
-    $form['taxonomy_filter']['taxonomy']['#tree'] = TRUE;
-
-    $form['taxonomy_filter']['taxonomy'] = _quiz_taxonomy_select($terms);
-    $form['taxonomy_filter']['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Filter question list'),
-    );
+  // Create questions array
+  $questions = array();
+  while ($node = db_fetch_object($result)) {
+    $questions[$node->nid] = quiz_node_map($node);
   }
-
-  // Grab current question status, if any
-  $questions = quiz_filter_question_list($terms);
 
   $result = db_query('SELECT question_nid, question_status FROM {quiz_questions} WHERE quiz_nid = %d', $quiz->nid);
   while ($assigned_question = db_fetch_object($result)) {
@@ -1174,7 +1111,7 @@ function quiz_questions_form() {
       '#value' => $question->type,
     );
   }
-
+  
   // Get questions assigned to this quiz
   $questions = _quiz_get_questions();
 
@@ -1272,40 +1209,6 @@ function quiz_questions_form_submit($form_id, $values) {
  */
 function quiz_get_num_questions($nid, $type) {
   return db_num_rows(db_query("SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d", $nid, $type));
-}
-
-
-/**
- * Filters question list by given terms.
- *
- * @param $terms
- *   An array of vocabulary term IDs
- * @return
- *   Array of questions which match terms
- */
-function quiz_filter_question_list($terms = NULL) {
-
-  // Retrieve question list from database, filtered on vocabulary terms
-  $sql = "
-    SELECT DISTINCT n.nid, n.type, r.body, r.format
-    FROM {node} n, {node_revisions} r ";
-  if (count($terms) > 0) {
-    $sql .= ", {term_node} t ";
-  }
-  $sql .= "WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
-  if (count($terms) > 0) {
-    $sql .= "AND t.tid IN (". $terms .") AND t.nid = n.nid";
-  }
-
-  $result = db_query($sql);
-  
-  // Create questions array
-  $questions = array();
-  while ($node = db_fetch_object($result)) {
-    $questions[$node->nid] = quiz_node_map($node);
-  }
-
-  return $questions;
 }
 
 /**
