@@ -16,16 +16,12 @@ Installation
 Configuration
 -------------
 
-1. Create a vocabulary (or several) for classifying quiz questions, and 
-   associate one or more question types with that vocabulary. These steps are 
-   performed in Administer >> Content management >> Categories.
-
-2. Create a user role with "create quiz" and "administer <question_type>"
+1. Create a user role with "create quiz" and "administer <question_type>"
    permissions. The role can be created under Administer >> User management >> Roles and the rights can be assigned to the role under Administer >> User management >> Access control.
    Assigning users to this role allows users other than the administrator to 
    create questions and quizzes.
    
-3. Add the "access quiz" permission to roles under Administer >> User management >> Access control that should be allowed to take the quizzes.
+2. Add the "access quiz" permission to roles under Administer >> User management >> Access control that should be allowed to take the quizzes.
 
 
 How to create a quiz
@@ -38,11 +34,7 @@ How to create a quiz
    the opportunity to set numerous options such as the number of questions, 
    whether or not to shuffle question order, etc. When finished, click "Submit."
    
-3. Finally, add questions to the quiz by clicking the "Add questions" tab. First,
-   adjust the search criteria and click "Search" to bring up a list of matching
-   questions. Once the list is created, select the options on how you want each 
-   question to appear in the quiz. Finally, click "Submit" to complete the quiz 
-   creation.
+3. Finally, add questions to the quiz by clicking the "Manage questions" tab. 
 
 
 FAQ

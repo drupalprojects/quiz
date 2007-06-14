@@ -27,7 +27,6 @@ Features
     o Assign feedback to responses to help point out places for further study
     o Supports multiple answers to quiz questions (on supporting question types)
     o Limit the number of takes users are allowed
-    o Assign taxonomies to questions and quizzes and filter accordingly
     o Extensibility allows for additional question types to be added
     o Permissions (create/edit)
     o Randomize questions during the quiz
