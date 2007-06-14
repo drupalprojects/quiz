@@ -312,7 +312,7 @@ function multichoice_render_question_form($node) {
   $options = array();
 
   while (list($key, $answer) = each($node->answers)) {
-    if (empty($answer['correct']) && empty($answer['answer']) && empty($answer['feedback'])) {
+    if (empty($answer['correct']) && !isset($answer['answer']) && empty($answer['feedback'])) {
       unset($node->answers[$key]);
     }
     else {

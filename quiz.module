@@ -466,7 +466,7 @@ function theme_quiz_availability($node) {
     if ($node->quiz_open > time()) {
       $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));      
     }
-    elseif ($node->quiz_close < time()) {
+    elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
       $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));      
     } 
     else {
