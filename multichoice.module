@@ -164,30 +164,42 @@ function multichoice_validate(&$node) {
   }
 
   // Validate answers
-  $answers = array();
+  $answers = 0;
   $corrects = 0;
 
   while (list($key, $answer) = each($node->answers)) {
-
-    if ($answer['correct']) {
-      if ($corrects && !$node->multiple_answers) {
-        form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
+    if (trim($answer['answer']) != '') {
+      $answers++;    
+      if ($answer['correct'] > 0) {
+        if ($corrects && !$node->multiple_answers) {
+          form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
+        }
+        $corrects++;
       }
-      $corrects++;
     }
-    if ($answer['answer']) {
-      $answers[] = $answer['answer'];
+    else {
+      // warn feedback is present without an answer
+      if (trim($answer['feedback']) != '') {
+        form_set_error("answers][$key][feedback", t('Feedback is given without an answer.'));
+      }
+      // warn marking correct without answer
+      if ($answer['correct'] > 0) {
+        form_set_error("answers][$key][correct", t('Empty answer marked as correct choice.'));
+      }
     }
   }
 
   if (!$corrects) {
-    form_set_error("answers][0]['correct'", t('No correct choice(s)'));
+    form_set_error("answers][0]['correct'", t('No correct choice(s).'));
   }
-  if (!count($answers)) {
+  if ($node->multiple_answers && $corrects < 2) {
+    form_set_error('multiple_answers', t('Multiple answers selected, but only %count correct answer(s) present.', array('%count' => $corrects)));
+  }
+  if (!$answers) {
     form_set_error("answers][0]['answer'", t('No answers.'));
   }
-  if (count($answers) < 2) {
-    form_set_error("answers][0]['answer'", t('Must have at least two answers'));
+  if ($answers < 2) {
+    form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
   }
 }
 
