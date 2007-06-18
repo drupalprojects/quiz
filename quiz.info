@@ -2,4 +2,3 @@
 name = Quiz
 package = Quiz
 description = Create interactive quizzes
-version = "$Name$"
