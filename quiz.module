@@ -511,7 +511,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
     // format the availability info
     $output .= '<p>'. format_date($node->quiz_open) .' &mdash; '. format_date($node->quiz_close) .'</p>';
-    $output .= '<p><strong>'. t('Days @quiz live for:', array('@quiz' => QUIZ_NAME)) .'</strong> '. floor((strtotime($node->close) - strtotime($node->open)) / 60 / 60 / 24) .'</p>';
+    $output .= '<p><strong>' . t('Days @quiz live for: ', array('@quiz' => QUIZ_NAME))  . '</strong> ' . floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) . '</p>';
     $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
     $remaining = ($remaining < 0)?'Expired':$remaining;
     $output .= '<p><strong>Days remaining:</strong> '. $remaining .'</p>';
