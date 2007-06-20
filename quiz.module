@@ -1134,7 +1134,7 @@ function quiz_questions_form() {
   foreach (_quiz_get_question_types() as $type) {
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => l($type, 'node/add/$type', array('title' => t("Go to $type administration"))) .' ',
+      '#value' => l($type, 'node/add/' . $type', array('title' => t("Go to " . $type . " administration"))) .' ',
     );
   }
   $form['submit'] = array(
