@@ -345,13 +345,9 @@ function quiz_get_pass_rate($nid) {
 function quiz_validate($node) {
   if (!$node->nid && empty($_POST)) return;
   
-  if (empty($node->body)) {
-    form_set_error('body', t('Description is required.'));
-  }
-  
   // validate the number of questions against the actual questions assigned to this quiz
   if ($node->number_of_questions < 1) {
-    form_set_error('number_of_questions', t('Number of questions is required and must be a positive number.'));
+    form_set_error('number_of_questions', t('Number of questions must be a positive number.'));
   }
   else if ($node->nid) {
     // get the number of each kind of question
