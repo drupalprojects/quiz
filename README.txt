@@ -6,9 +6,6 @@ The quiz.module is a framework which allows you to create interactive quizzes
 for your visitors. It allows for the creation of questions of varying types, and
 to collect those questions into quizzes. 
 
-This module is a work in progress, based off of the specification created by 
-Robert Douglass: http://www.webs4.com/quiz_module.
-
 
 Requirements
 ------------
