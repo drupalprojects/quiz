@@ -229,7 +229,7 @@ function quiz_form(&$node) {
     '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $options = array('Unlimited');
+  $options = array(t('Unlimited'));
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
   }
@@ -629,7 +629,7 @@ function quiz_take_quiz() {
       // Check for answer submission
       if ($_POST['op'] == t('Submit')) {
         if (!isset($_POST['tries'])) {
-          drupal_set_message('You must select an answer before you can progress to the next question!', 'error');
+          drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
         }
         else {
           $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])));
@@ -1608,7 +1608,7 @@ function theme_quiz_question_table($questions) {
     $output .= theme('table', $header, $rows);
   }
   else {
-    $output .= 'No questions found.';
+    $output .= t('No questions found.');
   }
   return $output;
 }
