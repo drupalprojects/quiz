@@ -1256,28 +1256,24 @@ function quiz_update_questions($questions) {
 
     // Perform update if question is already assigned, or insert if it's a new question
     while (list($key, $value) = each($questions)) {
-      if ($value == QUESTION_NEVER) {
-        $result = db_query("DELETE FROM {quiz_questions} WHERE quiz_nid = %d AND question_nid = %d", $quiz->nid, $key);
-        if (!$result) {
-          $return = false;
-        }
-      }
-      else {
-        if (array_key_exists($key, $assigned_questions)) {
-          $result = db_query("UPDATE {quiz_questions} SET question_status = %d WHERE quiz_nid = %d AND question_nid = %d", $value, $quiz->nid, $key);
-          if (!$result) {
-            $return = false;
-          }
-        }
+      // only do something if the status actually changed      
+      if ($assigned_questions[$key] != $value) { 
+        if ($value == QUESTION_NEVER) {
+          $result = db_query("DELETE FROM {quiz_questions} WHERE quiz_nid = %d AND question_nid = %d", $quiz->nid, $key);
+        } 
         else {
-          $result = db_query("INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)", $quiz->nid, $key, $value);
-          if (!$result) {
-            $return = false;
+          if (isset($assigned_questions[$key])) {
+            $result = db_query("UPDATE {quiz_questions} SET question_status = %d WHERE quiz_nid = %d AND question_nid = %d", $value, $quiz->nid, $key);
+          } 
+          else {
+            $result = db_query("INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)", $quiz->nid, $key, $value);
           }
+        }
+        if (!$result) {
+          $return = FALSE;
         }
       }
     }
-
   }
   else {
     $return = false;
