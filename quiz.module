@@ -752,7 +752,7 @@ function quiz_start_actions($uid, $nid) {
   // but only perform this check if it is a registered user
   if ($user->uid) {
     $passed = FALSE;
-    while ($next = next($results)) {
+    foreach ($results as $next) {
       $score = quiz_calculate_score($next['rid']);
       if ($score['percentage_score'] >= $quiz->pass_rate) {
         $passed = TRUE;
