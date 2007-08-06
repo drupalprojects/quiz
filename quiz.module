@@ -248,15 +248,16 @@ function quiz_form(&$node) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
+  // If pass/fail option is checked present the form elements
   if (variable_get('quiz_use_passfail', 1)) {
-  	// New nodes get the default. Otherwise they get 0. (ignore pass / fail feedback)
+    // New nodes get the default.
     if (!$node->nid) {
       $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
     }
     $form['summaryoptions']['pass_rate'] = array(
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
-      '#default_value' => ($node->pass_rate ? $node->pass_rate : 0),
+      '#default_value' => $node->pass_rate,
       '#description' => t('Pass rate for the @quiz as a percentage score', array('@quiz' => QUIZ_NAME)),
       '#required' => FALSE,
     );
@@ -266,6 +267,14 @@ function quiz_form(&$node) {
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
       '#description' => t('Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don\'t want to give different summary text if they passed or if you are not using the "percent to pass" option above. If you don\'t use the "Percentage needed to pass" field above, this text will not be used.', array('@quiz' => QUIZ_NAME)),
+    );
+  }
+  // If the pass/fail option is unchecked, use the default and hide it
+  else {
+    $form['summaryoptions']['pass_rate'] = array(
+      '#type' => 'hidden',
+      '#value' => variable_get('quiz_default_pass_rate', 75),
+      '#required' => FALSE,
     );
   }
   $form['summaryoptions']['summary_default'] = array(
@@ -1293,15 +1302,15 @@ function quiz_admin_settings() {
   );  
   $form['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display pass / fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
+    '#title' => t('Display pass/fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_use_passfail', 1),
-    '#description' => t('Check this to display the pass / fail options in the quiz form. You can still choose to ignore pass / fail options on a quiz by quiz basis if this is checked, but if you want to prohibit other quiz module creators from using these options, unchecked this option.'), 
+    '#description' => t('Check this to display the pass/fail options in the quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.'), 
   );
   $form['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
     '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_pass_rate', 75),
-    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass / fail summary information by default.'), 
+    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default.'), 
   );
   $form['quiz_name'] = array(
     '#type' => 'textfield',
