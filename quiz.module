@@ -124,7 +124,7 @@ function quiz_menu($may_cache) {
             'path' => 'node/'. arg(1) .'/quiz/start',
             'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
             'callback' => 'quiz_take_quiz',
-            'access' => user_access('access quiz'),
+            'access' => _quiz_status_access($node),
             'type' => MENU_LOCAL_TASK,
           );
       }
@@ -453,21 +453,20 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
 /**
  * Themes a message about the quiz's availability for quiz takers
- * 
- * 
  */
 function theme_quiz_availability($node) {
+  $status = _quiz_availability($node);
   $output = '<div class="quiz_availability"><p>';
-  if (!$node->quiz_always) {
-    if ($node->quiz_open > time()) {
-      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));      
-    }
-    elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
-      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));      
-    } 
-    else {
+  switch ($status) {
+    case 'future':
+      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));
+      break;
+    case 'open':
+      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));
+      break;
+    case 'closed':
       $output .= t('This quiz is no longer available.');
-    }
+      break;
   }
   $output .= '</p></div>'."\n";
   return $output;
@@ -1475,6 +1474,50 @@ function _quiz_get_quiz_name() {
   return variable_get('quiz_name', 'Quiz');
 }
 
+/**
+ * Determine quiz availability status
+ * 
+ * @return
+ *  String representing status open, closed or future
+ */
+function _quiz_availability($node) {
+  if (!$node->quiz_always) {
+    // the quiz is open
+    if ($node->quiz_open > time()) {
+      $status = 'future';      
+    // the quiz is currently closed but will open in the future
+    } elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
+      $status = 'open';      
+    // the quiz was open and is now closed
+    } else {
+      $status = 'closed';
+    }
+  }
+  else {
+    $status = 'open';
+  }
+  return $status;
+}
+
+/**
+ * Determine who should have access to the Take Quiz tab
+ * depending on the quiz status
+ **/
+function _quiz_status_access($node) {
+  $access = FALSE;
+  $status = _quiz_availability($node);
+  switch ($status) {
+    case 'closed':
+    case 'future':
+      $access = user_access('administer quiz');
+      break;
+
+    case 'open':
+      $access = (user_access('access quiz') && $node->status);
+      break;
+  }
+  return $access;
+}
 
 /////////////////////////////////////////////////
 /// Theme functions
