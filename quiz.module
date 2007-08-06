@@ -1769,7 +1769,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
-  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
+  $output .= theme('quiz_feedback', $questions, ($quiz->pass_rate > 0), TRUE);
 
   return $output;
 
