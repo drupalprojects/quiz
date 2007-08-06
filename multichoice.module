@@ -382,28 +382,24 @@ function multichoice_evaluate_question($nid) {
   return $results;
 }
 
-//Old claculate result function
+/**
+ * check if the user selected all the correct answers for this question
+ * @param $answers array of answers
+ * @param $tried array of answer id's the user selected
+ * @return true if the user selected exactly all of the correct answers, otherwise false
+ */
 function multichoice_calculate_result($answers, $tried) {
-  if (empty($answers)) return;
-  while (list($key, $answer) = each($answers)) {
+  if (empty($answers) || empty($tried)) {
+    return FALSE;
+  }
+      
+  foreach ($answers as $answer) {    
     if ($answer['points'] == 1) {
-      if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
-        //Correct answer was selected, so lets take that out the tried list
-        unset($tried[$key]);
-      }
-      else {
-        //Correct answer was not in the "tried" list, so score 0
-        return 0;
-      }
+      $correctanswers[] = $answer['aid'];
     }
   }
-  //Finally - have we got any answers left?
-  //If so - they weren't knocked out as one of the correct ones so logically they must be incorrect!
-  if (count($tried) > 0) return 0;
-
   
-  //Finally, we can consider this correct if its passed the above tests!
-  return 1;
+  return ($correctanswers === $tried) ? TRUE : FALSE;
 }
 
 //New singing and dancing one
