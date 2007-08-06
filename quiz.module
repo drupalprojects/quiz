@@ -859,11 +859,13 @@ function quiz_build_question_list($nid) {
 
   // Get random questions for the remainder
   $quiz->number_of_questions -= count($questions);
-  $result = db_query_range("SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()", $nid, QUESTION_RANDOM, 0, $quiz->number_of_questions);
-  while ($question_node = db_fetch_object($result)) {
-    $questions[] = $question_node->question_nid;
+  if ($quiz->number_of_questions > 0) {
+    $result = db_query_range("SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()", $nid, QUESTION_RANDOM, 0, $quiz->number_of_questions);
+    while ($question_node = db_fetch_object($result)) {
+      $questions[] = $question_node->question_nid;
+    }
   }
-
+  
   // Shuffle questions if required
   if ($quiz->shuffle == 1) {
     shuffle($questions);
