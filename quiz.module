@@ -768,8 +768,8 @@ function quiz_start_actions($uid, $nid) {
     }
   }
 
-  // Validate number of takes
-  if ($quiz->takes != 0) {
+  // Validate number of takes if we have a registered user
+  if ($user->uid && $quiz->takes != 0) {
     //$result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
     $times = count($results);
     if ($times >= $quiz->takes) {
