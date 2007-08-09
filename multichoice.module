@@ -246,8 +246,13 @@ function multichoice_update($node) {
  * Implementation of hook_delete().
  */
 function multichoice_delete(&$node) {
+  // for all quizzes that have this quiz with status ALWAYS, reduce number of questions by 1
+  db_query("UPDATE {quiz} SET number_of_questions = number_of_questions-1 WHERE nid IN (SELECT quiz_nid FROM {quiz_questions} WHERE question_status = %d AND question_nid = %d)", QUESTION_ALWAYS, $node->nid);
+  // delete all answers for this question
   db_query("DELETE FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
+  // delete this question from all quizzes
   db_query("DELETE FROM {quiz_question} WHERE nid = %d", $node->nid);
+  db_query("DELETE FROM {quiz_questions} WHERE question_nid = %d", $node->nid);
 }
 
 /**
