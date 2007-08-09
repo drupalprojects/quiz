@@ -66,6 +66,14 @@ function multichoice_menu($may_cache) {
  * Implementation of hook_form().
  */
 function multichoice_form(&$node) {
+  // quiz id here to tie creating a question to a specific quiz
+  $quiz_id = arg(3); 
+  if (!empty($quiz_id)) {
+    $form['quiz_id'] = array(
+      '#type' => 'value',
+      '#value' => $quiz_id,
+    );
+  }    
 
   // Display multichoice form
   $form['title'] = array(
@@ -144,6 +152,11 @@ function multichoice_form(&$node) {
     '#title' => t('I need more answers'),
   );
 
+  // if coming from quiz view, go back there on submit
+  if (!empty($quiz_id)) {
+    $form['#redirect'] = 'node/'. $quiz_id .'/questions'; 
+  }
+
   return $form;
 }
 
@@ -208,6 +221,10 @@ function multichoice_validate(&$node) {
  */
 function multichoice_insert(&$node) {
   db_query("INSERT INTO {quiz_question} (nid, properties) VALUES(%d, '%s')", $node->nid, serialize(array('multiple_answers' => $node->multiple_answers)));
+  // we came from editing a quiz, so we should add this question to the quiz directly
+  if ($node->quiz_id > 0) { 
+    db_query('INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)', $node->quiz_id, $node->nid, QUESTION_ALWAYS);
+  }
   
   while (list($key, $value) = each($node->answers)) {
     if (trim($value['answer']) != "")

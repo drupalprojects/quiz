@@ -561,7 +561,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (is_numeric(arg(1))) {
     $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
     $questions = _quiz_get_questions();
-    $output .= theme('quiz_question_table', $questions);
+    $output .= theme('quiz_question_table', $questions, $node->nid);
   }
   return $output;
 }
@@ -1074,6 +1074,32 @@ function quiz_questions_form() {
     '#suffix' => '</div><br />'."\n"
   );
   
+  // Display links to create other questions
+  $form['additional_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Create additional questions'),
+    '#theme' => 'additional_questions',
+  );
+  foreach (_quiz_get_question_types() as $type) {
+    $form['additional_questions'][$type] = array(
+      '#type' => 'markup',
+      '#value' => l($type, 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to '. $type .' administration'))) .' ',
+    );
+  }
+  
+  // Get questions assigned to this quiz
+  $questions = _quiz_get_questions();
+
+  // Display questions
+  $form['assigned_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['assigned_questions']['questions'] = array(
+    '#type' => 'markup',
+    '#value' => theme('quiz_question_table', $questions, $quiz->nid),
+  );
+
   // Retrieve question list from database
   $sql = "SELECT DISTINCT n.nid, n.type, r.body, r.format FROM {node} n, {node_revisions} r WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
   $result = db_query($sql);
@@ -1098,6 +1124,8 @@ function quiz_questions_form() {
     '#type' => 'fieldset',
     '#title' => t('The following questions were found'),
     '#theme' => 'quiz_filtered_questions',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
   );
 
   $form['filtered_question_list']['question_status']['#tree'] = TRUE;
@@ -1118,31 +1146,6 @@ function quiz_questions_form() {
     );
   }
   
-  // Get questions assigned to this quiz
-  $questions = _quiz_get_questions();
-
-  // Display questions
-  $form['assigned_questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['assigned_questions']['questions'] = array(
-    '#type' => 'markup',
-    '#value' => theme('quiz_question_table', $questions),
-  );
-
-  // Display links to create other questions
-  $form['additional_questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Create additional questions'),
-    '#theme' => 'additional_questions',
-  );
-  foreach (_quiz_get_question_types() as $type) {
-    $form['additional_questions'][$type] = array(
-      '#type' => 'markup',
-      '#value' => l($type, 'node/add/'. $type, array('title' => t('Go to '. $type .' administration'))) .' ',
-    );
-  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit questions'),
@@ -1641,7 +1644,7 @@ function theme_quiz_filtered_questions($form) {
  * @return
  *   HTML to output table
  */
-function theme_quiz_question_table($questions) {
+function theme_quiz_question_table($questions, $quiz_id = NULL) {
   $output = '';
   $rows = array();
   $status_descriptions = array(t('Random'), t('Always'), t('Never'));
@@ -1650,7 +1653,7 @@ function theme_quiz_question_table($questions) {
       $status_descriptions[$question->status],
       check_markup($question->question),
       $question->type,
-      l('Edit', 'node/'. $question->nid .'/edit'));
+      l('Edit', 'node/'. $question->nid .'/edit/'. $quiz_id));
   }
   $header = array(t('Status'), t('Question'), t('Type'), t('Edit'));
 
