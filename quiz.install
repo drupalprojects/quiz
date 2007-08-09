@@ -159,6 +159,10 @@ function quiz_uninstall() {
   db_query('DROP TABLE {quiz_question}');
   db_query('DROP TABLE {quiz_questions}');
   db_query('DROP TABLE {quiz}');
+  
+  // delete from nodes and node_revisions
+  db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz", "multichoice")');
+
   variable_del('quiz_name');
   variable_del('quiz_default_close');
   variable_del('quiz_use_passfail');
