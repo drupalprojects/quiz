@@ -1083,7 +1083,7 @@ function quiz_questions_form() {
   foreach (_quiz_get_question_types() as $type) {
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => l($type, 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to '. $type .' administration'))) .' ',
+      '#value' => l(t($type), 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to '. $type .' administration'))) .' ',
     );
   }
   
@@ -1653,7 +1653,7 @@ function theme_quiz_question_table($questions, $quiz_id = NULL) {
       $status_descriptions[$question->status],
       check_markup($question->question),
       $question->type,
-      l('Edit', 'node/'. $question->nid .'/edit/'. $quiz_id));
+      l(t('Edit'), 'node/'. $question->nid .'/edit/'. $quiz_id));
   }
   $header = array(t('Status'), t('Question'), t('Type'), t('Edit'));
 
