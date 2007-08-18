@@ -242,7 +242,7 @@ function multichoice_update($node) {
   while (list($key, $value) = each($node->answers)) {
     if ($value['aid']) {
       $value['answer'] = trim($value['answer']);
-      if ($value['delete'] == 1 || empty($value['answer'])) {
+      if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
         //Delete this entry
         db_query("DELETE FROM {quiz_question_answer} WHERE aid = %d", $value['aid']);
       } 
