@@ -124,7 +124,7 @@ function quiz_menu($may_cache) {
             'path' => 'node/'. arg(1) .'/quiz/start',
             'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
             'callback' => 'quiz_take_quiz',
-            'access' => user_access('access quiz'),
+            'access' => _quiz_status_access($node),
             'type' => MENU_LOCAL_TASK,
           );
       }
@@ -229,7 +229,7 @@ function quiz_form(&$node) {
     '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $options = array('Unlimited');
+  $options = array(t('Unlimited'));
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
   }
@@ -248,15 +248,16 @@ function quiz_form(&$node) {
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
+  // If pass/fail option is checked present the form elements
   if (variable_get('quiz_use_passfail', 1)) {
-  	// New nodes get the default. Otherwise they get 0. (ignore pass / fail feedback)
+    // New nodes get the default.
     if (!$node->nid) {
       $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
     }
     $form['summaryoptions']['pass_rate'] = array(
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
-      '#default_value' => ($node->pass_rate ? $node->pass_rate : 0),
+      '#default_value' => $node->pass_rate,
       '#description' => t('Pass rate for the @quiz as a percentage score', array('@quiz' => QUIZ_NAME)),
       '#required' => FALSE,
     );
@@ -266,6 +267,14 @@ function quiz_form(&$node) {
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
       '#description' => t('Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don\'t want to give different summary text if they passed or if you are not using the "percent to pass" option above. If you don\'t use the "Percentage needed to pass" field above, this text will not be used.', array('@quiz' => QUIZ_NAME)),
+    );
+  }
+  // If the pass/fail option is unchecked, use the default and hide it
+  else {
+    $form['summaryoptions']['pass_rate'] = array(
+      '#type' => 'hidden',
+      '#value' => variable_get('quiz_default_pass_rate', 75),
+      '#required' => FALSE,
     );
   }
   $form['summaryoptions']['summary_default'] = array(
@@ -345,13 +354,9 @@ function quiz_get_pass_rate($nid) {
 function quiz_validate($node) {
   if (!$node->nid && empty($_POST)) return;
   
-  if (empty($node->body)) {
-    form_set_error('body', t('Description is required.'));
-  }
-  
   // validate the number of questions against the actual questions assigned to this quiz
   if ($node->number_of_questions < 1) {
-    form_set_error('number_of_questions', t('Number of questions is required and must be a positive number.'));
+    form_set_error('number_of_questions', t('Number of questions must be a positive number.'));
   }
   else if ($node->nid) {
     // get the number of each kind of question
@@ -457,21 +462,20 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
 /**
  * Themes a message about the quiz's availability for quiz takers
- * 
- * 
  */
 function theme_quiz_availability($node) {
+  $status = _quiz_availability($node);
   $output = '<div class="quiz_availability"><p>';
-  if (!$node->quiz_always) {
-    if ($node->quiz_open > time()) {
-      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));      
-    }
-    elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
-      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));      
-    } 
-    else {
+  switch ($status) {
+    case 'future':
+      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));
+      break;
+    case 'open':
+      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));
+      break;
+    case 'closed':
       $output .= t('This quiz is no longer available.');
-    }
+      break;
   }
   $output .= '</p></div>'."\n";
   return $output;
@@ -511,7 +515,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
     // format the availability info
     $output .= '<p>'. format_date($node->quiz_open) .' &mdash; '. format_date($node->quiz_close) .'</p>';
-    $output .= '<p><strong>'. t('Days @quiz live for:', array('@quiz' => QUIZ_NAME)) .'</strong> '. floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) .'</p>';
+    $output .= '<p><strong>' . t('Days @quiz live for: ', array('@quiz' => QUIZ_NAME))  . '</strong> ' . floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) . '</p>';
     $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
     $remaining = ($remaining < 0)?'Expired':$remaining;
     $output .= '<p><strong>Days remaining:</strong> '. $remaining .'</p>';
@@ -557,7 +561,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (is_numeric(arg(1))) {
     $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
     $questions = _quiz_get_questions();
-    $output .= theme('quiz_question_table', $questions);
+    $output .= theme('quiz_question_table', $questions, $node->nid);
   }
   return $output;
 }
@@ -633,7 +637,7 @@ function quiz_take_quiz() {
       // Check for answer submission
       if ($_POST['op'] == t('Submit')) {
         if (!isset($_POST['tries'])) {
-          drupal_set_message('You must select an answer before you can progress to the next question!', 'error');
+          drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
         }
         else {
           $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])));
@@ -756,7 +760,7 @@ function quiz_start_actions($uid, $nid) {
   // but only perform this check if it is a registered user
   if ($user->uid) {
     $passed = FALSE;
-    while ($next = next($results)) {
+    foreach ($results as $next) {
       $score = quiz_calculate_score($next['rid']);
       if ($score['percentage_score'] >= $quiz->pass_rate) {
         $passed = TRUE;
@@ -772,8 +776,8 @@ function quiz_start_actions($uid, $nid) {
     }
   }
 
-  // Validate number of takes
-  if ($quiz->takes != 0) {
+  // Validate number of takes if we have a registered user
+  if ($user->uid && $quiz->takes != 0) {
     //$result = db_result(db_query('SELECT COUNT(rid) AS count FROM {quiz_result} WHERE uid = %d AND quiz_nid = %d', $uid, $nid));
     $times = count($results);
     if ($times >= $quiz->takes) {
@@ -863,11 +867,13 @@ function quiz_build_question_list($nid) {
 
   // Get random questions for the remainder
   $quiz->number_of_questions -= count($questions);
-  $result = db_query_range("SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()", $nid, QUESTION_RANDOM, 0, $quiz->number_of_questions);
-  while ($question_node = db_fetch_object($result)) {
-    $questions[] = $question_node->question_nid;
+  if ($quiz->number_of_questions > 0) {
+    $result = db_query_range("SELECT question_nid FROM {quiz_questions} WHERE quiz_nid = %d AND question_status = %d ORDER BY RAND()", $nid, QUESTION_RANDOM, 0, $quiz->number_of_questions);
+    while ($question_node = db_fetch_object($result)) {
+      $questions[] = $question_node->question_nid;
+    }
   }
-
+  
   // Shuffle questions if required
   if ($quiz->shuffle == 1) {
     shuffle($questions);
@@ -1068,6 +1074,32 @@ function quiz_questions_form() {
     '#suffix' => '</div><br />'."\n"
   );
   
+  // Display links to create other questions
+  $form['additional_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Create additional questions'),
+    '#theme' => 'additional_questions',
+  );
+  foreach (_quiz_get_question_types() as $type) {
+    $form['additional_questions'][$type] = array(
+      '#type' => 'markup',
+      '#value' => l(t($type), 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to '. $type .' administration'))) .' ',
+    );
+  }
+  
+  // Get questions assigned to this quiz
+  $questions = _quiz_get_questions();
+
+  // Display questions
+  $form['assigned_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['assigned_questions']['questions'] = array(
+    '#type' => 'markup',
+    '#value' => theme('quiz_question_table', $questions, $quiz->nid),
+  );
+
   // Retrieve question list from database
   $sql = "SELECT DISTINCT n.nid, n.type, r.body, r.format FROM {node} n, {node_revisions} r WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
   $result = db_query($sql);
@@ -1092,6 +1124,8 @@ function quiz_questions_form() {
     '#type' => 'fieldset',
     '#title' => t('The following questions were found'),
     '#theme' => 'quiz_filtered_questions',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
   );
 
   $form['filtered_question_list']['question_status']['#tree'] = TRUE;
@@ -1112,31 +1146,6 @@ function quiz_questions_form() {
     );
   }
   
-  // Get questions assigned to this quiz
-  $questions = _quiz_get_questions();
-
-  // Display questions
-  $form['assigned_questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['assigned_questions']['questions'] = array(
-    '#type' => 'markup',
-    '#value' => theme('quiz_question_table', $questions),
-  );
-
-  // Display links to create other questions
-  $form['additional_questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Create additional questions'),
-    '#theme' => 'additional_questions',
-  );
-  foreach (_quiz_get_question_types() as $type) {
-    $form['additional_questions'][$type] = array(
-      '#type' => 'markup',
-      '#value' => l($type, 'node/add/'. $type, array('title' => t("Go to $type administration"))) .' ',
-    );
-  }
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit questions'),
@@ -1250,28 +1259,24 @@ function quiz_update_questions($questions) {
 
     // Perform update if question is already assigned, or insert if it's a new question
     while (list($key, $value) = each($questions)) {
-      if ($value == QUESTION_NEVER) {
-        $result = db_query("DELETE FROM {quiz_questions} WHERE quiz_nid = %d AND question_nid = %d", $quiz->nid, $key);
-        if (!$result) {
-          $return = false;
-        }
-      }
-      else {
-        if (array_key_exists($key, $assigned_questions)) {
-          $result = db_query("UPDATE {quiz_questions} SET question_status = %d WHERE quiz_nid = %d AND question_nid = %d", $value, $quiz->nid, $key);
-          if (!$result) {
-            $return = false;
-          }
-        }
+      // only do something if the status actually changed      
+      if ($assigned_questions[$key] != $value) { 
+        if ($value == QUESTION_NEVER) {
+          $result = db_query("DELETE FROM {quiz_questions} WHERE quiz_nid = %d AND question_nid = %d", $quiz->nid, $key);
+        } 
         else {
-          $result = db_query("INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)", $quiz->nid, $key, $value);
-          if (!$result) {
-            $return = false;
+          if (isset($assigned_questions[$key])) {
+            $result = db_query("UPDATE {quiz_questions} SET question_status = %d WHERE quiz_nid = %d AND question_nid = %d", $value, $quiz->nid, $key);
+          } 
+          else {
+            $result = db_query("INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)", $quiz->nid, $key, $value);
           }
+        }
+        if (!$result) {
+          $return = FALSE;
         }
       }
     }
-
   }
   else {
     $return = false;
@@ -1296,15 +1301,15 @@ function quiz_admin_settings() {
   );  
   $form['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display pass / fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
+    '#title' => t('Display pass/fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_use_passfail', 1),
-    '#description' => t('Check this to display the pass / fail options in the quiz form. You can still choose to ignore pass / fail options on a quiz by quiz basis if this is checked, but if you want to prohibit other quiz module creators from using these options, unchecked this option.'), 
+    '#description' => t('Check this to display the pass/fail options in the quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.'), 
   );
   $form['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
     '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_pass_rate', 75),
-    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass / fail summary information by default.'), 
+    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default.'), 
   );
   $form['quiz_name'] = array(
     '#type' => 'textfield',
@@ -1477,6 +1482,50 @@ function _quiz_get_quiz_name() {
   return variable_get('quiz_name', 'Quiz');
 }
 
+/**
+ * Determine quiz availability status
+ * 
+ * @return
+ *  String representing status open, closed or future
+ */
+function _quiz_availability($node) {
+  if (!$node->quiz_always) {
+    // the quiz is open
+    if ($node->quiz_open > time()) {
+      $status = 'future';      
+    // the quiz is currently closed but will open in the future
+    } elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
+      $status = 'open';      
+    // the quiz was open and is now closed
+    } else {
+      $status = 'closed';
+    }
+  }
+  else {
+    $status = 'open';
+  }
+  return $status;
+}
+
+/**
+ * Determine who should have access to the Take Quiz tab
+ * depending on the quiz status
+ **/
+function _quiz_status_access($node) {
+  $access = FALSE;
+  $status = _quiz_availability($node);
+  switch ($status) {
+    case 'closed':
+    case 'future':
+      $access = user_access('administer quiz');
+      break;
+
+    case 'open':
+      $access = (user_access('access quiz') && $node->status);
+      break;
+  }
+  return $access;
+}
 
 /////////////////////////////////////////////////
 /// Theme functions
@@ -1595,7 +1644,7 @@ function theme_quiz_filtered_questions($form) {
  * @return
  *   HTML to output table
  */
-function theme_quiz_question_table($questions) {
+function theme_quiz_question_table($questions, $quiz_id = NULL) {
   $output = '';
   $rows = array();
   $status_descriptions = array(t('Random'), t('Always'), t('Never'));
@@ -1604,7 +1653,7 @@ function theme_quiz_question_table($questions) {
       $status_descriptions[$question->status],
       check_markup($question->question),
       $question->type,
-      l('Edit', 'node/'. $question->nid .'/edit'));
+      l(t('Edit'), 'node/'. $question->nid .'/edit/'. $quiz_id));
   }
   $header = array(t('Status'), t('Question'), t('Type'), t('Edit'));
 
@@ -1612,7 +1661,7 @@ function theme_quiz_question_table($questions) {
     $output .= theme('table', $header, $rows);
   }
   else {
-    $output .= 'No questions found.';
+    $output .= t('No questions found.');
   }
   return $output;
 }
@@ -1719,7 +1768,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
-  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
+  $output .= theme('quiz_feedback', $questions, ($quiz->pass_rate > 0), TRUE);
 
   return $output;
 

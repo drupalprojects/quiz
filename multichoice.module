@@ -66,6 +66,14 @@ function multichoice_menu($may_cache) {
  * Implementation of hook_form().
  */
 function multichoice_form(&$node) {
+  // quiz id here to tie creating a question to a specific quiz
+  $quiz_id = arg(3); 
+  if (!empty($quiz_id)) {
+    $form['quiz_id'] = array(
+      '#type' => 'value',
+      '#value' => $quiz_id,
+    );
+  }    
 
   // Display multichoice form
   $form['title'] = array(
@@ -144,6 +152,11 @@ function multichoice_form(&$node) {
     '#title' => t('I need more answers'),
   );
 
+  // if coming from quiz view, go back there on submit
+  if (!empty($quiz_id)) {
+    $form['#redirect'] = 'node/'. $quiz_id .'/questions'; 
+  }
+
   return $form;
 }
 
@@ -208,6 +221,10 @@ function multichoice_validate(&$node) {
  */
 function multichoice_insert(&$node) {
   db_query("INSERT INTO {quiz_question} (nid, properties) VALUES(%d, '%s')", $node->nid, serialize(array('multiple_answers' => $node->multiple_answers)));
+  // we came from editing a quiz, so we should add this question to the quiz directly
+  if ($node->quiz_id > 0) { 
+    db_query('INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)', $node->quiz_id, $node->nid, QUESTION_ALWAYS);
+  }
   
   while (list($key, $value) = each($node->answers)) {
     if (trim($value['answer']) != "")
@@ -225,7 +242,7 @@ function multichoice_update($node) {
   while (list($key, $value) = each($node->answers)) {
     if ($value['aid']) {
       $value['answer'] = trim($value['answer']);
-      if ($value['delete'] == 1 || empty($value['answer'])) {
+      if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
         //Delete this entry
         db_query("DELETE FROM {quiz_question_answer} WHERE aid = %d", $value['aid']);
       } 
@@ -246,8 +263,13 @@ function multichoice_update($node) {
  * Implementation of hook_delete().
  */
 function multichoice_delete(&$node) {
+  // for all quizzes that have this quiz with status ALWAYS, reduce number of questions by 1
+  db_query("UPDATE {quiz} SET number_of_questions = number_of_questions-1 WHERE nid IN (SELECT quiz_nid FROM {quiz_questions} WHERE question_status = %d AND question_nid = %d)", QUESTION_ALWAYS, $node->nid);
+  // delete all answers for this question
   db_query("DELETE FROM {quiz_question_answer} WHERE question_nid = %d", $node->nid);
+  // delete this question from all quizzes
   db_query("DELETE FROM {quiz_question} WHERE nid = %d", $node->nid);
+  db_query("DELETE FROM {quiz_questions} WHERE question_nid = %d", $node->nid);
 }
 
 /**
@@ -382,28 +404,24 @@ function multichoice_evaluate_question($nid) {
   return $results;
 }
 
-//Old claculate result function
+/**
+ * check if the user selected all the correct answers for this question
+ * @param $answers array of answers
+ * @param $tried array of answer id's the user selected
+ * @return true if the user selected exactly all of the correct answers, otherwise false
+ */
 function multichoice_calculate_result($answers, $tried) {
-  if (empty($answers)) return;
-  while (list($key, $answer) = each($answers)) {
+  if (empty($answers) || empty($tried)) {
+    return FALSE;
+  }
+      
+  foreach ($answers as $answer) {    
     if ($answer['points'] == 1) {
-      if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
-        //Correct answer was selected, so lets take that out the tried list
-        unset($tried[$key]);
-      }
-      else {
-        //Correct answer was not in the "tried" list, so score 0
-        return 0;
-      }
+      $correctanswers[] = $answer['aid'];
     }
   }
-  //Finally - have we got any answers left?
-  //If so - they weren't knocked out as one of the correct ones so logically they must be incorrect!
-  if (count($tried) > 0) return 0;
-
   
-  //Finally, we can consider this correct if its passed the above tests!
-  return 1;
+  return ($correctanswers === $tried) ? TRUE : FALSE;
 }
 
 //New singing and dancing one
