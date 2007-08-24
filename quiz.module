@@ -1425,60 +1425,60 @@ function quiz_questions_form() {
     );
   }
   
-  // Get questions assigned to this quiz
-  $questions = _quiz_get_questions();
-
-  // Display questions
-  $form['assigned_questions'] = array(
+  // Display questions 'always' on this quiz.
+  $form['filtered_question_list_always'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Questions assigned to this @quiz', array('@quiz' => QUIZ_NAME)),
+    '#title' => t("Questions 'always' on this quiz"),
+    '#theme' => 'quiz_filtered_questions',
+    '#collapsible' => TRUE,
+    'question_status' => array('#tree' => TRUE),
   );
-  $form['assigned_questions']['questions'] = array(
-    '#type' => 'markup',
-    '#value' => theme('quiz_question_table', $questions, $quiz->nid),
+
+  // Display questions 'random' on this quiz.
+  $form['filtered_question_list_random'] = array(
+    '#type' => 'fieldset',
+    '#title' => t("Questions 'random' on this quiz"),
+    '#theme' => 'quiz_filtered_questions',
+    '#collapsible' => TRUE,
+    'question_status' => array('#tree' => TRUE),
   );
-
-  // Retrieve question list from database
-  $sql = "SELECT DISTINCT n.nid, n.type, r.body, r.format FROM {node} n, {node_revisions} r WHERE n.nid = r.nid AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ";
-  $result = db_query($sql);
-
-  // Create questions array
-  $questions = array();
-  while ($node = db_fetch_object($result)) {
-    $questions[$node->nid] = quiz_node_map($node);
-  }
-
-  $result = db_query('SELECT question_nid, question_status FROM {quiz_questions} WHERE quiz_nid = %d', $quiz->nid);
-  while ($assigned_question = db_fetch_object($result)) {
-    if (array_key_exists($assigned_question->question_nid, $questions)) {
-      $the_question =& $questions[$assigned_question->question_nid];
-      $the_question->status = $assigned_question->question_status;
-    }
-  }
-  
 
   // Display filtered question list
   $form['filtered_question_list'] = array(
     '#type' => 'fieldset',
-    '#title' => t('The following questions were found'),
+    '#title' => t('Unassigned questions'),
     '#theme' => 'quiz_filtered_questions',
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    'question_status' => array('#tree' => TRUE),
   );
 
-  $form['filtered_question_list']['question_status']['#tree'] = TRUE;
-
-  while (list($key, $question) = each($questions)) {
-    $form['filtered_question_list']['question_status'][$question->nid] = array(
+  // get all questions and their status in relation to this quiz
+  $questions = array_merge(_quiz_get_unused_questions($quiz->nid), _quiz_get_questions());
+  foreach ($questions as $question) {
+    switch ($question->status) {
+      case QUESTION_RANDOM:
+        $_form =& $form['filtered_question_list_random'];
+        break;
+      
+      case QUESTION_ALWAYS:
+        $_form =& $form['filtered_question_list_always'];
+        break;
+      
+      case QUESTION_NEVER:
+        $_form =& $form['filtered_question_list'];
+        break;
+    }
+    
+    $_form['question_status'][$question->nid] = array(
       '#type' => 'radios',
       '#options' => array(QUESTION_RANDOM => '', QUESTION_ALWAYS => '', QUESTION_NEVER => ''),
       '#default_value' => $question->status,
     );
-    $form['filtered_question_list']['question'][$question->nid] = array(
+    $_form['question'][$question->nid] = array(
       '#type' => 'markup',
       '#value' => $question->question,
     );
-    $form['filtered_question_list']['type'][$question->nid] = array(
+    $_form['type'][$question->nid] = array(
       '#type' => 'markup',
       '#value' => $question->type,
     );
@@ -1489,6 +1489,53 @@ function quiz_questions_form() {
     '#value' => t('Submit questions'),
   );
   return $form;
+}
+
+/**
+ * Retrieve list of published questions not assigned to quiz.
+ *
+ * @access public
+ * @param integer $quiz_nid
+ * @return array
+ *    Array of questions objects.
+ */
+function _quiz_get_unused_questions($quiz_nid = NULL, $nid_keys = FALSE) {
+  $quiz       = node_load( (int) arg(1) );
+  $types      = _quiz_get_question_types();
+  $where_sql  = '';
+  $questions = array();
+  
+  if (count($types)) {
+    $where_sql = "AND question.type IN ('" . implode("','", $types) . "')";
+  }
+
+  $result = db_query('
+    SELECT DISTINCT question.nid, question.vid, question.type, nr.body, nr.format
+    FROM {node} question
+    LEFT JOIN {node_revisions} nr ON (question.nid = nr.nid)
+    WHERE question.status = 1
+    AND (question.nid NOT IN
+      (SELECT DISTINCT qnr.question_nid
+      FROM {quiz_questions} qnr
+      WHERE qnr.quiz_nid = %d
+      AND qnr.question_status != ' . QUESTION_NEVER . '))
+    ' . $where_sql, $quiz_nid
+  );
+
+  // Create questions array.
+  if ($nid_keys === FALSE) {
+    while ($node = db_fetch_object($result)) {
+      $questions[] = quiz_node_map($node);
+    }
+  }
+  else {
+    while ($node = db_fetch_object($result)) {
+      $n = quiz_node_map($node);
+      $questions[$n->nid] = $n;
+    }
+  }
+  
+  return $questions;
 }
 
 function quiz_questions() {
@@ -1571,7 +1618,7 @@ function quiz_node_map($node) {
   $new_question->question = check_markup($node->body, $node->format);
   $new_question->nid = $node->nid;
   $new_question->type = $node->type;
-  $new_question->status = isset($node->question_status) ? $node->question_status : 2;
+  $new_question->status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
   return $new_question;
 }
 
@@ -1950,7 +1997,8 @@ function theme_quiz_get_user_results($results) {
  * Theme the filtered question list
  */
 function theme_quiz_filtered_questions($form) {
-  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'));
+  $quiz_id = is_numeric(arg(1)) ? arg(1) : NULL;
+  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'), t('Edit'));
   $rows = array();
 
   while (list($nid, $values) = each($form['question_status'])) {
@@ -1960,7 +2008,8 @@ function theme_quiz_filtered_questions($form) {
         drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_QUESTION]),
         drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_NEVER]),
         drupal_render($form['question'][$nid]),
-        drupal_render($form['type'][$nid])
+        drupal_render($form['type'][$nid]),
+        l(t('Edit'), 'node/'. $nid .'/edit/'. $quiz_id),
       );
     }
   }
