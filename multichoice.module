@@ -69,6 +69,7 @@ function multichoice_form(&$node) {
   // quiz id here to tie creating a question to a specific quiz
   $quiz_id = arg(3); 
   if (!empty($quiz_id)) {
+    $quiz = node_load((int)$quiz_id);
     $form['quiz_id'] = array(
       '#type' => 'value',
       '#value' => $quiz_id,
@@ -116,12 +117,39 @@ function multichoice_form(&$node) {
     '#theme' => 'multichoice_form',
   );
   
+  $form['scored_quiz'] = array(
+    '#type' => 'value',
+    '#value' => (!empty($quiz_id)) ? ($quiz->pass_rate > 0) : TRUE,
+  );
+  
   for ($i = 0; $i < $node->rows; $i++) {
-    $form['answers'][$i]['correct'] = array(
-      '#type' => 'checkbox',
-      '#default_value' => $answers[$i]['points'],
-    );
-    
+
+    // this is not a scored quiz, therefore no correct answers
+    // so user must assign answers to result options
+    if(isset($quiz_id) && $quiz->pass_rate == 0) { 
+      if (empty($result_options)) {               
+        $result_options = array (0 => 'None');
+        if (is_array($quiz->resultoptions)) {
+          foreach ($quiz->resultoptions as $r_option) {
+            $result_options[$r_option['option_id']] = $r_option['option_name'];
+          }
+        }
+      }
+      
+      $form['answers'][$i]['result_option'] = array(
+        '#type' => 'select',
+        '#options' => $result_options,
+        '#default_value' => $answers[$i]['result_option']
+      );
+      
+    } 
+    // this is a scored quiz, just need to know the correct answer(s)
+    else {                                      
+      $form['answers'][$i]['correct'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => $answers[$i]['points'],
+      );
+    }
     $form['answers'][$i]['answer'] = array(
       '#type' => 'textarea',
       '#default_value' => $answers[$i]['answer'],
@@ -180,39 +208,49 @@ function multichoice_validate(&$node) {
   $answers = 0;
   $corrects = 0;
 
-  while (list($key, $answer) = each($node->answers)) {
-    if (trim($answer['answer']) != '') {
-      $answers++;    
-      if ($answer['correct'] > 0) {
-        if ($corrects && !$node->multiple_answers) {
-          form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
+  if ($node->scored_quiz) {
+    foreach ($node->answers as $key => $answer) {
+      if (trim($answer['answer']) != '') {
+        $answers++;    
+        if ($answer['correct'] > 0) {
+          if ($corrects && !$node->multiple_answers) {
+            form_set_error('multiple_answers', t('Single choice yet multiple correct answers are present'));
+          }
+          $corrects++;
         }
-        $corrects++;
+      }
+      else {
+        // warn feedback is present without an answer
+        if (trim($answer['feedback']) != '') {
+          form_set_error("answers][$key][feedback", t('Feedback is given without an answer.'));
+        }
+        // warn marking correct without answer
+        if ($answer['correct'] > 0) {
+          form_set_error("answers][$key][correct", t('Empty answer marked as correct choice.'));
+        }
       }
     }
-    else {
-      // warn feedback is present without an answer
-      if (trim($answer['feedback']) != '') {
-        form_set_error("answers][$key][feedback", t('Feedback is given without an answer.'));
-      }
-      // warn marking correct without answer
-      if ($answer['correct'] > 0) {
-        form_set_error("answers][$key][correct", t('Empty answer marked as correct choice.'));
-      }
-    }
-  }
 
-  if (!$corrects) {
-    form_set_error("answers][0]['correct'", t('No correct choice(s).'));
+    if (!$corrects) {
+      form_set_error("answers][0]['correct'", t('No correct choice(s).'));
+    }
+    if ($node->multiple_answers && $corrects < 2) {
+      form_set_error('multiple_answers', t('Multiple answers selected, but only %count correct answer(s) present.', array('%count' => $corrects)));
+    }
+    if (!$answers) {
+      form_set_error("answers][0]['answer'", t('No answers.'));
+    }
+    if ($answers < 2) {
+      form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
+    }
   }
-  if ($node->multiple_answers && $corrects < 2) {
-    form_set_error('multiple_answers', t('Multiple answers selected, but only %count correct answer(s) present.', array('%count' => $corrects)));
-  }
-  if (!$answers) {
-    form_set_error("answers][0]['answer'", t('No answers.'));
-  }
-  if ($answers < 2) {
-    form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
+  else {
+	// unscored quiz
+    foreach ($node->answers as $key => $answer) {
+      if ($answer['answer'] && !$answer['result_option']) {
+        form_set_error('answers][$key][result_option', t('You must select an association for each answer'));
+      }    
+    } 
   }
 }
 
@@ -226,10 +264,11 @@ function multichoice_insert(&$node) {
     db_query('INSERT INTO {quiz_questions} (quiz_nid, question_nid, question_status) VALUES (%d, %d, %d)', $node->quiz_id, $node->nid, QUESTION_ALWAYS);
   }
   
-  while (list($key, $value) = each($node->answers)) {
-    if (trim($value['answer']) != "")
-      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points) VALUES(%d, %d, '%s', '%s', %d)", 
-        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+  foreach ($node->answers as $value) {
+    if (trim($value['answer']) != "") {
+      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points, result_option) VALUES(%d, %d, '%s', '%s', %d, %d)", 
+        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
+    }
   }
 }
 
@@ -248,13 +287,13 @@ function multichoice_update($node) {
       } 
       else {
         //Update this entry
-        db_query("UPDATE {quiz_question_answer} SET answer = '%s', feedback = '%s', points = %s WHERE aid = %d", $value['answer'], $value['feedback'], $value['correct'], $value['aid']);
+        db_query("UPDATE {quiz_question_answer} SET answer = '%s', feedback = '%s', points = %d, result_option = %d WHERE aid = %d", $value['answer'], $value['feedback'], $value['correct'], $value['result_option'], $value['aid']);
       }
     } 
     else if (trim($value['answer']) != "") {
       //If there is an answer, insert a new row
-      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points) VALUES(%d, %d, '%s', '%s', %d)", 
-        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct']);
+      db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points, result_option) VALUES(%d, %d, '%s', '%s', %d, %d)", 
+        db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
 }
@@ -491,8 +530,9 @@ function multichoice_list_questions() {
 function theme_multichoice_form($form) {
 
   // Format table header
+  $scored_quiz = (isset($form[0]['result_option'])) ? FALSE : TRUE;
   $header = array(
-    array('data' => t('Correct')),
+    array('data' => ($scored_quiz) ? t('Correct') : t('Result Option')),
     array('data' => t('Answer'), 'style' => 'width:250px;'),
     array('data' => t('Feedback'), 'style' => 'width:250px;'),
     array('data' => t('Delete')),
@@ -501,8 +541,9 @@ function theme_multichoice_form($form) {
   // Format table rows
   $rows = array();
   foreach (element_children($form) as $key) {
+    $score_col = ($scored_quiz) ? $form[$key]['correct'] : $form[$key]['result_option'];
     $rows[] = array(
-      drupal_render($form[$key]['correct']),
+      drupal_render($score_col),
       drupal_render($form[$key]['answer']),
       drupal_render($form[$key]['feedback']),
       drupal_render($form[$key]['delete']),

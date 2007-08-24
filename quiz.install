@@ -49,6 +49,7 @@ function quiz_install() {
         answer TEXT NOT NULL,
         feedback TEXT NULL,
         points TINYINT NOT NULL,
+        result_option INTEGER UNSIGNED NULL,
         PRIMARY KEY (aid),
         KEY question_nid (question_nid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
@@ -74,6 +75,17 @@ function quiz_install() {
         PRIMARY KEY (result_rid, question_nid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
  
+      // Create the result options table
+      db_query("CREATE TABLE {quiz_result_options} (
+          nid INTEGER UNSIGNED NOT NULL,
+          option_id INTEGER UNSIGNED NOT NULL,
+          option_name VARCHAR(255) character set utf8 NOT NULL,
+          option_summary LONGTEXT character set utf8 NOT NULL,
+          option_start TINYINT UNSIGNED NULL,
+          option_end TINYINT UNSIGNED NULL,
+          PRIMARY KEY (nid, option_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");  
+
       break;
  
      case 'pgsql':
@@ -159,6 +171,7 @@ function quiz_uninstall() {
   db_query('DROP TABLE {quiz_question}');
   db_query('DROP TABLE {quiz_questions}');
   db_query('DROP TABLE {quiz}');
+  db_query('DROP TABLE {quiz_result_options}');
   
   // delete from nodes and node_revisions
   db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz", "multichoice")');
@@ -167,4 +180,28 @@ function quiz_uninstall() {
   variable_del('quiz_default_close');
   variable_del('quiz_use_passfail');
   variable_del('quiz_default_pass_rate');
+}
+
+function quiz_update_1() {
+  $ret = array();
+  
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      // add a result option to the answer table
+      $ret[] = update_sql("ALTER TABLE {quiz_question_answer} ADD result_option INTEGER UNSIGNED NULL");
+
+      // Create the result options table
+      $ret[] = update_sql("CREATE TABLE {quiz_result_options} (
+        nid INTEGER UNSIGNED NOT NULL,
+        option_id INTEGER UNSIGNED NOT NULL,
+        option_name VARCHAR(255) character set utf8 NOT NULL,
+        option_summary LONGTEXT character set utf8 NOT NULL,
+        option_start TINYINT UNSIGNED NULL,
+        option_end TINYINT UNSIGNED NULL,
+        PRIMARY KEY (nid, option_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      break;
+  }
+  return $ret;
 }

@@ -284,6 +284,57 @@ function quiz_form(&$node) {
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
   );
+  
+  $form['resultoptions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('!quiz Results', array('!quiz' => QUIZ_NAME)),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  
+  $options = $node->resultoptions;
+  $num_options = max(3, (!empty($options)) ? count($options) : 5);
+  
+  for ($i=0; $i < $num_options; $i++) {
+    $option = (count($options) > 0) ? array_shift($options) : null; // grab each option in the array
+  
+    $form['resultoptions'][$i]['option_name'] = array(
+      '#type' => 'textfield',
+      '#title' => t('The name of the result'),
+      '#description' => t('Not displayed on personality !quiz.', array('!quiz' => QUIZ_NAME)),
+      '#default_value' => $option['option_name'],
+      '#maxlength' => 40,
+      '#size' => 40,
+    );
+    $form['resultoptions'][$i]['option_start'] = array (
+      '#type' => 'textfield',
+      '#title' => t('Percentage Start Range'),
+      '#description' => 'Show this result for scored quizzes in this range. Leave blank for personality quizzes.',
+      '#default_value' => $option['option_start'],
+      '#size' => 5,
+    );
+    $form['resultoptions'][$i]['option_end'] = array (
+      '#type' => 'textfield',
+      '#title' => t('Percentage End Range'),
+      '#description' => 'Show this result for scored quizzes in this range. Leave blank for personality quizzes.',
+      '#default_value' => $option['option_end'],
+      '#size' => 5,
+    );
+    $form['resultoptions'][$i]['option_summary'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Display text for the result'),
+      '#default_value' => $option['option_summary'],
+      '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
+    );
+    
+    if ($option['option_id']) {
+      $form['resultoptions'][$i]['option_id'] = array(
+        '#type' => 'hidden',
+        '#value' => $option['option_id'],
+      );
+    }
+  }
 
   return $form;
 }
@@ -400,6 +451,54 @@ function quiz_validate($node) {
   if ($node->pass_rate < 0) {
     form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
   }
+  
+  $taken_values = array();
+  $num_options =0;
+  foreach ($node->resultoptions as $option) {
+    if (!empty($option['option_name'])) {
+      $num_options++;
+      if (empty($option['option_summary'])) {
+        form_set_error('option_summary', t('Option has no summary text.'));
+      }
+      if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
+      
+        // check for a number 0-100
+        foreach(array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
+          if (!is_numeric($option[$bound])) {
+            form_set_error($bound, t('The range %start value must be a number between 0% and 100%.', array('%start' => $bound_text))); 
+          }    
+          if ($option[$bound] < 0) {
+            form_set_error($bound, t('The range %start value must not be less than 0%.', array('%start' => $bound_text))); 
+          }
+          if ($option[$bound] > 100) {
+            form_set_error($bound, t('The range %start value must not be more than 100%.', array('%start' => $bound_text))); 
+          }
+        }
+        
+        // check that range end >= start
+        if ($option['option_start'] > $option['option_end']) {
+          form_set_error('option_start', t('The start must be less than the end of the range.'));
+        }
+        
+        // check that range doesn't collide with any other range
+        $option_range = range($option['option_start'], $option['option_end']);
+        if ($intersect = array_intersect($taken_values, $option_range)) {
+          form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',',$intersect))));
+        } 
+        else {
+          $taken_values = array_merge($taken_values, $option_range);
+        }
+      }
+    }
+    else {
+      if (!empty($option['option_summary'])) {
+        form_set_error('option_summary', t('Option has a summary, but no name.'));
+      }
+    }
+  }
+  if ($node->pass_rate == 0 && !$num_options) {
+    form_set_error('pass_rate', t('Unscored quiz, but no result options defined.'));
+  }
 }
 
 /**
@@ -411,6 +510,40 @@ function quiz_insert($node) {
   $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
   $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d)";
   db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always);
+  _quiz_insert_resultoptions($node);
+}
+
+/**
+ * insert call specific to result options
+ * @param $node the quiz node
+ */
+function _quiz_insert_resultoptions($node) {
+  foreach ($node->resultoptions as $option) {
+    if($option['option_name']) {
+      $option['nid'] = $node->nid;
+      _quiz_insert_result_option($option);
+    }
+  } 
+}
+
+/**
+ * insert one result option
+ * @param $option the option array to insert
+ */
+function _quiz_insert_result_option($option) {
+  if (empty($option['option_id'])) {
+    $option['option_id'] = db_next_id('{quiz_result_options}' . '_option_id');
+    $sql = "INSERT INTO {quiz_result_options} (nid, option_id, option_name, option_summary, option_start, option_end)".
+           " VALUES(%d, %d, '%s', '%s', %d, %d)";
+    $values = array ($option['nid'],
+                     $option['option_id'],                       
+                     $option['option_name'],
+                     $option['option_summary'],
+                     $option['option_start'],
+                     $option['option_end'],
+                     );
+    db_query($sql, $values);
+  }
 }
 
 /**
@@ -420,6 +553,32 @@ function quiz_update($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->nid);
+  _quiz_update_resultoptions($node);
+}
+
+/**
+ * result option specific updates
+ * @param $node the quiz node
+ */
+function _quiz_update_resultoptions($node) {
+  foreach ($node->resultoptions as $option) {
+    if (!empty($option['option_name']) && empty($option['option_id'])) {  // oops, this is actually a new result option
+      $option['nid'] = $node->nid;
+      _quiz_insert_result_option($option);  // so insert it
+    } 
+    else {  // update an existing result option
+      $sql = "UPDATE {quiz_result_options} SET option_name='%s', option_summary='%s', option_start = %d, " .
+             " option_end = %d WHERE nid=%d AND option_id=%d";
+      $values = array ($option['option_name'],
+                       $option['option_summary'],
+                       $option['option_start'],
+                       $option['option_end'],
+                       $node->nid,
+                       $option['option_id'],);
+    
+      db_query($sql, $values);
+    }
+  }  
 }
 
 /**
@@ -428,6 +587,7 @@ function quiz_update($node) {
 function quiz_delete($node) {
   db_query('DELETE FROM {quiz} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_questions} WHERE quiz_nid = %d', $node->nid);
+  db_query('DELETE FROM {quiz_result_options} WHERE nid=%d', $node->nid);
 }
 
 /**
@@ -438,6 +598,10 @@ function quiz_load($node) {
   $results = db_query('SELECT * FROM {quiz_questions} WHERE quiz_nid = %d', $node->nid);
   while ($question = db_fetch_object($results)) {
     $additions->question_status[$question->question_nid] = $question->question_status;
+  }
+  $result_options = db_query('SELECT * FROM {quiz_result_options} WHERE nid = %d'. $node->nid);
+  while ($option = db_fetch_array($result_options)) {
+    $additions->resultoptions[$option['option_id']] = $option;
   }
   return $additions;
 }
@@ -556,6 +720,29 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
     $output .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
     $output .= '</div>'."\n";
   }
+    
+  // Format result options if available
+  if (count($node->resultoptions)) {
+    $scored_quiz = ($node->pass_rate > 0);
+    
+    $output .= '<h3>'. t('!quiz Results', array('!quiz' => QUIZ_NAME)) .'</h3>';
+    
+    $header = array(t('Name') => 'option_name', t('Summary') => 'option_summary');
+    if ($scored_quiz) {
+      $header = array_merge($header, array(t('Start') => 'option_start', t('End') => 'option_end'));
+    }
+    $values = array_values($header);
+    
+    foreach ($node->resultoptions as $option) {
+      $row = array();
+      foreach ($values as $field) {
+        $row[] = $option[$field];
+      }
+      $option_rows[] = $row;
+    }
+    $output .= theme('table', array_keys($header), $option_rows);
+    
+  }
 
   // Format quiz questions
   if (is_numeric(arg(1))) {
@@ -672,7 +859,7 @@ function quiz_take_quiz() {
 
         //Get the results and summary text for this quiz
         $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['rid']);
-        $score = quiz_calculate_score($_SESSION['quiz_'. $quiz->nid]['rid']);
+        $score = quiz_calculate_score($quiz, $_SESSION['quiz_'. $quiz->nid]['rid']);
         $summary = _quiz_get_summary_text($quiz, $score);
 
         // get the themed summary page
@@ -710,32 +897,53 @@ function quiz_take_quiz() {
  * @return
  *   Filtered summary text or null if we are not displaying any summary
  */
-function _quiz_get_summary_text($quiz, $score) {
-  $summary = '';
+function _quiz_get_summary_text($quiz, $score){
+
+  if ($score['result_option']) {
+    // unscored quiz, return the proper result option
+    return $quiz->resultoptions[$score['result_option']]['option_summary'];
+  }
+
+  $admin = (arg(3) == 'view');
+
+  if ($quiz->pass_rate > 0) {
+    $score_result = _quiz_pick_result_option($quiz->nid, $score['percentage_score']);
+  }
+
   // if we are using pass / fail and they passed
   if (trim($quiz->summary_pass) != '' && $quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
     // If we are coming from the admin view page
-    if (arg(3) == 'view') {
+    if ($admin) {
       $summary = t('The user passed this quiz.');      
     }
     else {
-      $summary = check_markup($quiz->summary_pass, $quiz->format);      
+      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format);
     }
   } 
   // If the user did not pass or we are not using pass / fail
   else {
-  	// If we are coming from the admin view page 
-  	// only show a summary if we are using pass / fail.
-    if (arg(3) == 'view') {
-      if ($node->pass_rate > 0) {
+    // If we are coming from the admin view page 
+    // only show a summary if we are using pass / fail.
+    if ($admin) {
+      if ($quiz->pass_rate > 0){
         $summary = t('The user failed this quiz.');
       }
     }
     else {
-      $summary = check_markup($quiz->summary_default, $quiz->format);
+      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format);
     }
   }
   return $summary;
+}
+
+/**
+ * get summary text for a particular score from a set of result options
+ * @param $qnid the quiz node id
+ * @param $score the user's final score
+ * @return summary text for the user's score
+ */
+function _quiz_pick_result_option($qnid, $score) {
+  return db_result(db_query('SELECT option_summary FROM {quiz_result_options} WHERE nid = %d AND %d BETWEEN option_start AND option_end',$qnid, $score));
 }
 
 /**
@@ -768,10 +976,10 @@ function quiz_start_actions($uid, $nid) {
   $results = _quiz_get_results($quiz->nid, $user->uid);
   // Check to see if the user alredy passed this quiz
   // but only perform this check if it is a registered user
-  if ($user->uid) {
+  if ($user->uid && ($quiz->pass_rate > 0)) {
     $passed = FALSE;
     foreach ($results as $next) {
-      $score = quiz_calculate_score($next['rid']);
+      $score = quiz_calculate_score($quiz, $next['rid']);
       if ($score['percentage_score'] >= $quiz->pass_rate) {
         $passed = TRUE;
         break;
@@ -814,18 +1022,19 @@ function quiz_start_actions($uid, $nid) {
 
 /**
  * Calculates the score user received on quiz
- *
+ * @param $quiz the quiz node
  * @param $rid
  *   Quiz result ID
  * @return array
  *   Contains three elements: question_count, num_correct and percentage_score
  */
-function quiz_calculate_score($rid) {
+function quiz_calculate_score($quiz, $rid) {
   // initialize our variables
   $question_count = 0;
   $num_correct = 0;
   $percentage_score = 0;
-
+  $answer_options = array();
+    
   // Get the all answers from the database
   $result = db_query("SELECT
                        qqr.answer answer,
@@ -836,25 +1045,41 @@ function quiz_calculate_score($rid) {
   while ($r = db_fetch_array($result)) {
     $question_count++;
     $r['answer'] = unserialize($r['answer']);
-    $s = module_invoke($r['type'], 'calculate_result', $r['answer']['answers'], $r['answer']['tried']);
-    $num_correct += $s;
-    $r['score'] = $s; // I think this is legacy
+    
+    if ($quiz->pass_rate > 0) {                                   
+      // scored quiz, see if they got it right
+      $s = module_invoke($r['type'], 'calculate_result', $r['answer']['answers'], $r['answer']['tried']);
+      $num_correct += $s;
+    } 
+    else {
+      // unscored quiz, just count the answers they chose
+      foreach ($r['answer']['answers'] as $answer) {              
+        // check each answer to see if it was tried
+        if (in_array($answer['aid'], $r['answer']['tried'])) {    
+          // could allow more than one response
+          $answer_options[$answer['result_option']]++;
+        }
+      }
+    }
   }
   
-  // calculate the percentage score
-  if ($question_count > 0) {
-    $percentage_score = round(($num_correct * 100) / $question_count);
+  if ($question_count > 0 ) {
+    if ($quiz->pass_rate > 0) {                                   
+    // calculate the percentage score
+    $percentage_score = round(($num_correct*100) / $question_count);
+    $score = array(
+      'num_correct' => $num_correct, 
+      'percentage_score' => $percentage_score,
+      );
+    } 
+    else {                                                        
+      // or choose the most common result option
+      $ids = array_keys($answer_options, max($answer_options));   
+      $score['result_option'] = min($ids);
+    }
   }
-
-  // build the score array
-  $score = array(
-    'question_count' => $question_count,
-    'num_correct' => $num_correct, 
-    'percentage_score' => $percentage_score,
-  );
-
-  // return the array 
-  return $score;
+  $score['question_count'] = $question_count;
+  return $score; 
 }
 
 /**
@@ -1405,7 +1630,7 @@ function quiz_user_results() {
   if ($result->nid) {
     $quiz = node_load($result->nid);
     $questions = _quiz_get_answers(arg(2));
-    $score = quiz_calculate_score(arg(2));
+    $score = quiz_calculate_score($quiz, arg(2));
     $summary = _quiz_get_summary_text($quiz, $score);
     return theme('quiz_user_summary', $quiz, $questions, $score, $summary);
   }
@@ -1422,7 +1647,7 @@ function quiz_admin_results() {
   if ($result->nid) {
     $quiz = node_load($result->nid);
     $questions = _quiz_get_answers(arg(2));
-    $score = quiz_calculate_score(arg(2));
+    $score = quiz_calculate_score($quiz, arg(2));
     $summary = _quiz_get_summary_text($quiz, $score);
     return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
@@ -1773,8 +1998,10 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
 
   // Display overall result
   $output = '';
-  $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Your score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
+  if ($score['percentage_score']) {
+    $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+    $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+  }
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   
   // Get the feedback for all questions
@@ -1890,12 +2117,14 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
     $q_output .= theme('table', $innerheader, $result['resultstable']) .'<br />';
     $cols[] = array('data' => $q_output, 'class' => 'quiz_summary_qcell');
 
-    // Get the score result for each question.
-    if ($result['score'] == 1) {
-      $cols[] = array('data' => theme('quiz_score_correct'), 'class' => 'quiz_summary_qcell');
-    }
-    else {
-      $cols[] = array('data' => theme('quiz_score_incorrect'), 'class' => 'quiz_summary_qcell');      
+    // Get the score result for each question only if it's a scored quiz
+    if ($showpoints) {
+      if ($result['score'] == 1) {
+        $cols[] = array('data' => theme('quiz_score_correct'), 'class' => 'quiz_summary_qcell');
+      }
+      else {
+        $cols[] = array('data' => theme('quiz_score_incorrect'), 'class' => 'quiz_summary_qcell');      
+      }
     }
 
     // pack all of this into this row
