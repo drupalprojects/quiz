@@ -23,6 +23,24 @@ define('QUESTION_NEVER', 2);
 define('QUIZ_NAME', _quiz_get_quiz_name());
 
 /**
+ * Define feedback statuses
+ */
+define('QUIZ_FEEDBACK_END',             0);
+define('QUIZ_FEEDBACK_QUESTION',        1);
+define('QUIZ_FEEDBACK_NEVER',           2);
+
+/**
+ * get an array of feedback options
+ * @return array of feedback options
+ */
+function _quiz_get_feedback_options(){
+  return array(QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)), 
+               QUIZ_FEEDBACK_QUESTION => t('After each question'), 
+               QUIZ_FEEDBACK_NEVER => t('Do not show'),
+               );
+}
+
+/**
  * Quiz perms
  * TODO: Simply adding the new quiz config perm for now - refactor other perms
  * to constants in the future.
@@ -201,6 +219,14 @@ function quiz_form(&$node) {
     '#title' => t('Shuffle questions'),
     '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
     '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+
+  $form['feedback_time'] = array(
+    '#title' => t('Feedback Time'),
+    '#type' => 'radios',
+    '#default_value' => (isset($node->feedback_time) ? $node->feedback_time : QUIZ_FEEDBACK_END),
+    '#options' => _quiz_get_feedback_options(),
+    '#description' => t('Indicates at what point feedback for each question will be given to the user'),
   );
 
   // Set up the availability options
@@ -507,9 +533,9 @@ function quiz_validate($node) {
 function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
-  $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always)";
-  $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d)";
-  db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always);
+  $sql = "INSERT INTO {quiz} (nid, number_of_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time)";
+  $sql .= " VALUES(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d)";
+  db_query($sql, $node->nid, $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time);
   _quiz_insert_resultoptions($node);
 }
 
@@ -552,7 +578,7 @@ function _quiz_insert_result_option($option) {
 function quiz_update($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
-  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->nid);
+  db_query("UPDATE {quiz} SET number_of_questions = %d, shuffle = %d, quiz_open = %d, quiz_close = %d, takes = %d, pass_rate = %d, summary_pass = '%s', summary_default ='%s', quiz_always = %d, feedback_time = %d WHERE nid = %d", $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->nid);
   _quiz_update_resultoptions($node);
 }
 
@@ -655,14 +681,18 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $header = array(
     t('# of Questions'),
     t('Shuffle?'),
+    t('Feedback'),
     t('Number of takes')
   );
   $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
+  $feedback_options = _quiz_get_feedback_options();
+  $feedback = $feedback_options[$node->feedback_time];
   $takes = $node->takes == 0 ? t('Unlimited') : check_plain($node->takes);
   $rows = array();
   $rows[] = array(
     check_plain($node->number_of_questions),
     $shuffle,
+    $feedback,
     $takes
   );
   $output .= theme('table', $header, $rows);
@@ -837,6 +867,10 @@ function quiz_take_quiz() {
           $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])));
           $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
           db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['quiz_'. $quiz->nid]['rid'], $former_question->nid, serialize($result));
+          //stash feedback in the session, since the post gets cleared  
+          if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) { 
+            $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $former_question, $result));
+          }
           // if anonymous user, refresh url with unique hash to prevent caching
           if (!$user->uid) {
             drupal_goto('node/' . $quiz->nid . '/quiz/start/' . md5(mt_rand() . time()));
@@ -844,11 +878,18 @@ function quiz_take_quiz() {
         }
       }
 
+      // if we had feedback from the last question
+      if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) { 
+        $output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+      }
+
       // If this quiz is in progress, load the next questions
       // and return it via the theme
       if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
         $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]));
-        return theme('quiz_take_question', $quiz, $question_node);
+        $output .= theme('quiz_take_question', $quiz, $question_node);
+        unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+        return $output;
       }
 
       // At the end of quiz
@@ -857,13 +898,18 @@ function quiz_take_quiz() {
         $now = time();
         db_query("UPDATE {quiz_result} SET time_end = %d WHERE rid = %d", $now, $_SESSION['quiz_'. $quiz->nid]['rid']);
 
-        //Get the results and summary text for this quiz
-        $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['rid']);
-        $score = quiz_calculate_score($quiz, $_SESSION['quiz_'. $quiz->nid]['rid']);
-        $summary = _quiz_get_summary_text($quiz, $score);
-
-        // get the themed summary page
-        $output = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
+        if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
+          $output = theme('quiz_no_feedback');
+        }
+        else {
+          //Get the results and summary text for this quiz
+          $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['rid']);
+          $score = quiz_calculate_score($quiz, $_SESSION['quiz_'. $quiz->nid]['rid']);
+          $summary = _quiz_get_summary_text($quiz, $score);
+  
+          // get the themed summary page
+          $output .= theme('quiz_take_summary', $quiz, $questions, $score, $summary);
+        }
 
         //remove session variables
         unset($_SESSION['quiz_'. $quiz->nid]);
@@ -878,6 +924,63 @@ function quiz_take_quiz() {
   drupal_not_found();
 }
 
+/**
+ * Get feedack for one question
+ * good for displaying feedback after every question instead of all at the end
+ * @param $quiz the quiz node
+ * @param $question_node the question node
+ * @param $result the calculated result for the question node
+ * @return themed feedback for output
+ */
+function quiz_get_feedback($quiz, $question_node, $results) {
+  $answers = quiz_get_answers($results['answers'], $results['tried']);
+  $corrects = quiz_get_corrects($question_node->answers);
+  $is_correct = module_invoke($question_node->type, 'calculate_result', $question_node->answers, $results['tried']);
+  $output = '';
+  foreach($answers as $answer) {
+    $output .= theme('quiz_question_feedback', $quiz, $question_node, $answer, $corrects, $is_correct); 
+  }
+  return $output;
+}
+
+/**
+ * get answers the user actually tried
+ * @param $answers
+ *  the question answers
+ * @param $tried
+ *  the user selected answers
+ * @return
+ *  array of user selected answer keys
+ */
+function quiz_get_answers($answers, $tried) {
+  $selected = array();
+  if (is_array($answers)) {
+    foreach($answers as $key=>$answer) {
+      if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
+        $selected[] = $answer;
+        //Correct answer was selected, so lets take that out the tried list
+        unset($tried[$key]);
+      }
+    }
+  }
+  return $selected;
+}
+
+/**
+ * get an array of correct answer(s) for a question
+ * @param $answers array of question answers
+ * @return array of correct answers
+ */
+function quiz_get_corrects($answers) {
+  if (is_array($answers)) {
+    foreach ($answers as $answer) {
+      if ($answer['points'] > 0) {
+        $corrects[] = $answer;
+      }
+    }
+  }
+  return $corrects;
+}
 
 /***
  * Get the summary message for a completed quiz
@@ -1853,9 +1956,9 @@ function theme_quiz_filtered_questions($form) {
   while (list($nid, $values) = each($form['question_status'])) {
     if (is_numeric($nid)) {
       $rows[] = array(
-        drupal_render($form['question_status'][$nid][0]),
-        drupal_render($form['question_status'][$nid][1]),
-        drupal_render($form['question_status'][$nid][2]),
+        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_END]),
+        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_QUESTION]),
+        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_NEVER]),
         drupal_render($form['question'][$nid]),
         drupal_render($form['type'][$nid])
       );
@@ -2133,6 +2236,28 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
   return theme('table', $header, $rows);
 }
 
+/**
+ * theme feedback for one question
+ * @param $quiz
+ *  quiz node (may not be needed)
+ * @param $question_node
+ *  the question node giving feedback for
+ * @param $answer
+ *  user's response to previous question
+ * @return
+ *  themed html
+ */
+function theme_quiz_question_feedback($quiz, $question_node, $answer) {
+  $output = '';
+  $output .= '<div class="quiz-summary-question">';
+  $output .= '<span class="quiz-summary-text">' . $question_node->body . '</span><br />';
+  $output .= '<span class="quiz-summary-header">Your Answer:</span> <span class="quiz-summary-text">' . $answer['answer'] . '</span><br />';
+  if($answer['feedback']) {
+    $output .= '<span class="quiz-summary-text">' . $answer['feedback'] . '</span>';
+  }
+  $output .= '</div><br class="clear" />';
+  return $output;
+}
 
 /**
  * Allow the option to theme the questions form
@@ -2141,4 +2266,12 @@ function theme_quiz_questions($form) {
   $output = '';
   $output .= drupal_render($form);
   return $output;
+}
+
+/**
+ * Theme the "no feedback" option
+ * @return themed html feedback
+ */
+function theme_quiz_no_feedback() {
+  return t('Thanks for taking the quiz!');
 }
