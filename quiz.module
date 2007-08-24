@@ -611,8 +611,15 @@ function quiz_get_user_results() {
  */
 function quiz_take_quiz() {
   global $user;
+
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quiz')) {
      if ($quiz = node_load(arg(1))) {
+
+        // if anonymous user and no unique hash, refresh with a unique string to prevent caching
+        if (!$user->uid && arg(4) == NULL) {
+          drupal_goto('node/' . $quiz->nid . '/quiz/start/' . md5(mt_rand() . time()));
+        }
+
        if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
   
         // First time running through quiz
@@ -643,13 +650,16 @@ function quiz_take_quiz() {
           $former_question = node_load(array('nid' => array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])));
           $result = module_invoke($former_question->type, 'evaluate_question', $former_question->nid);
           db_query("REPLACE {quiz_question_results} VALUES(%d, %d, '%s')", $_SESSION['quiz_'. $quiz->nid]['rid'], $former_question->nid, serialize($result));
+          // if anonymous user, refresh url with unique hash to prevent caching
+          if (!$user->uid) {
+            drupal_goto('node/' . $quiz->nid . '/quiz/start/' . md5(mt_rand() . time()));
+          }
         }
       }
 
       // If this quiz is in progress, load the next questions
       // and return it via the theme
       if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-
         $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]));
         return theme('quiz_take_question', $quiz, $question_node);
       }
