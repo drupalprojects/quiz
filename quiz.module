@@ -941,7 +941,6 @@ function quiz_take_quiz() {
 
       // if we had feedback from the last question
       if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) { 
-        //drupal_set_message('getting q feedback');
         $output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
       }
 
@@ -1751,8 +1750,6 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
   // corresponding arrays (inserts or updates).
   $inserts = array();
   $updates = array();
-  drupal_set_message(print_r($changes,1));
-  drupal_set_message(print_r($status_in_db, 1));
   foreach ($changes as $nid => $status) {
     if ($status_in_db[$nid] == QUESTION_NEVER) {
       $inserts[$nid] = $status;
@@ -1765,7 +1762,6 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
   // Insert question(s) into quiz; status will be either 'always' or 'random'.
   foreach ($inserts as $nid => $status) {
     $child_vid = $questions_in_db[$nid]->vid;
-    drupal_set_message(db_result(db_query("select vid from {node} where nid = %d", $quiz->nid)));
     $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) " .
            "SELECT src.nid, src.vid, %d, %d, %d FROM {node} AS src WHERE src.nid = %d";
     $result = db_query($sql, $nid, $child_vid, $status, $quiz->nid);
