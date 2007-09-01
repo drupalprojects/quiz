@@ -8,11 +8,16 @@ function quiz_install() {
 
     case 'mysql':
     case 'mysqli':
- 
-      // Create the quiz table
-      db_query("CREATE TABLE {quiz} (
+  
+    /**
+     * This connects all the quiz specific properties to the correct version of a quiz.
+     */
+      // Create the quiz node properties table
+      db_query("CREATE TABLE {quiz_node_properties} (
+        property_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        vid INTEGER UNSIGNED NOT NULL,
         nid INTEGER UNSIGNED NOT NULL,
-        number_of_questions TINYINT UNSIGNED NOT NULL,
+        number_of_questions TINYINT UNSIGNED DEFAULT 0 NOT NULL,
         pass_rate TINYINT UNSIGNED NOT NULL,
         summary_pass LONGTEXT,
         summary_default LONGTEXT,
@@ -24,139 +29,88 @@ function quiz_install() {
         takes TINYINT UNSIGNED NOT NULL,
         time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
         quiz_always TINYINT NOT NULL default 0,
-        PRIMARY KEY(nid)
+        PRIMARY KEY(property_id),
+        KEY vid (vid, nid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
- 
-      // Create the questions table
-      db_query("CREATE TABLE {quiz_questions} (
-        quiz_nid INTEGER UNSIGNED NOT NULL,
-        question_nid INTEGER UNSIGNED NOT NULL,
-        question_status TINYINT UNSIGNED NOT NULL,
-        PRIMARY KEY (quiz_nid, question_nid)
+
+    /**
+     * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
+     * making the quiz question the child.  
+     *
+     * The quiz_node_relationship table stores this relationship in a way that allows a quiz question to be 
+     * the child of multiple quizzes without losing version history.
+     *
+     * Future functionality will allow a quiz question to be a parent of another quiz question with the same
+     * data model.  This will make adaptive quiz functionality possible without redesign.
+     */
+      // Create the quiz node relationship table
+      db_query("CREATE TABLE {quiz_node_relationship} (
+        parent_nid INTEGER UNSIGNED NOT NULL,
+        parent_vid INTEGER UNSIGNED NOT NULL,
+        child_nid INTEGER UNSIGNED NOT NULL,
+        child_vid INTEGER UNSIGNED NOT NULL,
+        question_status TINYINT UNSIGNED DEFAULT 1 NOT NULL,
+        PRIMARY KEY(parent_nid, parent_vid, child_nid, child_vid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
- 
-      // Create the question table
-      db_query("CREATE TABLE {quiz_question} (
+    
+    /**
+     * This connects all the quiz question specific properties to the correct version of a quiz question.
+     */
+      // Create the quiz node question properties table
+      db_query("CREATE TABLE {quiz_node_question_properties} (
         nid INTEGER UNSIGNED NOT NULL,
-        properties VARCHAR(255) NOT NULL,
-        PRIMARY KEY (nid)
+        vid INTEGER UNSIGNED NOT NULL,
+        number_of_answers TINYINT UNSIGNED DEFAULT 1 NOT NULL
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
- 
-      // Create the question answer table
-      db_query("CREATE TABLE {quiz_question_answer} (
-        aid INTEGER UNSIGNED NOT NULL,
-        question_nid INTEGER UNSIGNED NOT NULL,
-        answer TEXT NOT NULL,
-        feedback TEXT NULL,
-        points TINYINT NOT NULL,
-        result_option INTEGER UNSIGNED NULL,
-        PRIMARY KEY (aid),
-        KEY question_nid (question_nid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
- 
-      // Create the results table
-      db_query("CREATE TABLE {quiz_result} (
-        rid INTEGER UNSIGNED NOT NULL,
-        quiz_nid INTEGER UNSIGNED NOT NULL,
+    
+    /**
+     * Quiz specific options concerning  availability and access to scores.
+     */
+      // Create the quiz node results table
+      db_query("CREATE TABLE {quiz_node_results} (
+        result_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
         uid INTEGER UNSIGNED NOT NULL,
         time_start INTEGER UNSIGNED DEFAULT 0,
         time_end INTEGER UNSIGNED DEFAULT 0,
         released INTEGER UNSIGNED DEFAULT 0,
         score TINYINT NOT NULL DEFAULT 0,
-        PRIMARY KEY (rid),
-        KEY quiz_nid (quiz_nid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
-     
-      // Create the question results table
-      db_query("CREATE TABLE {quiz_question_results} (
-        result_rid INTEGER UNSIGNED NOT NULL,
-        question_nid INTEGER UNSIGNED NOT NULL,
-        answer TEXT NOT NULL,
-        PRIMARY KEY (result_rid, question_nid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
- 
-      // Create the result options table
-      db_query("CREATE TABLE {quiz_result_options} (
-          nid INTEGER UNSIGNED NOT NULL,
-          option_id INTEGER UNSIGNED NOT NULL,
-          option_name VARCHAR(255) character set utf8 NOT NULL,
-          option_summary LONGTEXT character set utf8 NOT NULL,
-          option_start TINYINT UNSIGNED NULL,
-          option_end TINYINT UNSIGNED NULL,
-          PRIMARY KEY (nid, option_id)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");  
-
+        PRIMARY KEY(result_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");    
+    
+    /**
+     * Information about a particular question in a result
+     */
+      db_query("CREATE TABLE {quiz_node_results_answers} (
+        result_id INT UNSIGNED NOT NULL ,
+        question_nid INT UNSIGNED NOT NULL ,
+        question_vid INT UNSIGNED NOT NULL ,
+        is_correct TINYINT UNSIGNED NOT NULL DEFAULT '0',
+        points_awarded TINYINT NOT NULL DEFAULT '0',
+        answer_timestamp INT UNSIGNED NOT NULL
+        PRIMARY KEY(result_id, question_nid, question_vid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;")
+    
+    /**
+     * Allows custom feedback based on the results of a user completing a quiz.
+     */
+      // Create the quiz node result options table
+      db_query("CREATE TABLE {quiz_node_result_options} (
+        option_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        option_name VARCHAR(255) NOT NULL,
+        option_summary LONGTEXT,
+        option_start INTEGER UNSIGNED DEFAULT 0,
+        option_end INTEGER UNSIGNED DEFAULT 0,
+        PRIMARY KEY(option_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");        
+    
       break;
- 
-     case 'pgsql':
- 
-      // Create the quiz table
-      db_query("CREATE TABLE {quiz} (
-        nid INT_UNSIGNED NOT NULL,
-        number_of_questions SMALLINT_UNSIGNED NOT NULL,
-        pass_rate SMALLINT_UNSIGNED NOT NULL,
-        summary_pass TEXT,
-        summary_default LONGTEXT,
-        shuffle SMALLINT_UNSIGNED NOT NULL,
-        backwards_navigation TINYINT UNSIGNED NOT NULL,
-        feedback_time TINYINT UNSIGNED NOT NULL,
-        quiz_open INT_UNSIGNED DEFAULT 0,
-        quiz_close INT_UNSIGNED DEFAULT 0,
-        takes SMALLINT_UNSIGNED NOT NULL,
-        time_limit INT_UNSIGNED DEFAULT 0 NOT NULL,
-        quiz_always SMALLINT NOT NULL default 0,
-        PRIMARY KEY(nid)
-      );");
- 
-      // Create the questions table
-      db_query("CREATE TABLE {quiz_questions} (
-        quiz_nid INT_UNSIGNED NOT NULL,
-        question_nid INT_UNSIGNED NOT NULL,
-        question_status SMALLINT_UNSIGNED NOT NULL,
-        PRIMARY KEY (quiz_nid, question_nid)
-      );");
- 
-      // Create the question table
-      db_query("CREATE TABLE {quiz_question} (
-        nid INT_UNSIGNED NOT NULL,
-        properties VARCHAR(255) NOT NULL,
-        PRIMARY KEY (nid)
-      );");
- 
-      // Create the question answer table
-      db_query("CREATE TABLE {quiz_question_answer} (
-        aid INT_UNSIGNED NOT NULL,
-        question_nid INT_UNSIGNED NOT NULL,
-        answer TEXT NOT NULL,
-        feedback TEXT NULL,
-        points SMALLINT NOT NULL,
-        PRIMARY KEY (aid)
-      );");
-      db_query("CREATE INDEX {quiz_question_answer}_question_nid_idx 
-        ON {quiz_question_answer} (question_nid)");
- 
-      // Create the results table
-      db_query("CREATE TABLE {quiz_result} (
-        rid INT_UNSIGNED NOT NULL,
-        quiz_nid INT_UNSIGNED NOT NULL,
-        uid INT_UNSIGNED NOT NULL,
-        time_start INT_UNSIGNED DEFAULT 0,
-        time_end INT_UNSIGNED DEFAULT 0,
-        released INT_UNSIGNED DEFAULT 0,
-        score SMALLINT NOT NULL,
-        PRIMARY KEY (rid)
-      );");
-      db_query("CREATE INDEX {quiz_result}_quiz_nid_idx 
-        ON {quiz_result} (quiz_nid)");
-     
-      // Create the question results table
-      db_query("CREATE TABLE {quiz_question_results} (
-        result_rid INT_UNSIGNED NOT NULL,
-        question_nid INT_UNSIGNED NOT NULL,
-        answer TEXT NOT NULL,
-        PRIMARY KEY (result_rid, question_nid)
-      );");
- 
+
+    case 'pgsql':
+  
       break;
   }
 }
@@ -165,16 +119,15 @@ function quiz_install() {
  * Implementation of hook_uninstall()
  */
 function quiz_uninstall() {
-  db_query('DROP TABLE {quiz_question_results}');
-  db_query('DROP TABLE {quiz_result}');
-  db_query('DROP TABLE {quiz_question_answer}');
-  db_query('DROP TABLE {quiz_question}');
-  db_query('DROP TABLE {quiz_questions}');
-  db_query('DROP TABLE {quiz}');
-  db_query('DROP TABLE {quiz_result_options}');
+  db_query('DROP TABLE {quiz_node_relationship}');
+  db_query('DROP TABLE {quiz_node_properties}');
+  db_query('DROP TABLE {quiz_node_question_properties}');
+  db_query('DROP TABLE {quiz_node_results}');
+  db_query('DROP TABLE {quiz_node_result_options}');
+  db_query('DROP TABLE {quiz_node_results_answers}')
   
   // delete from nodes and node_revisions
-  db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz", "multichoice")');
+  db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz")');
 
   variable_del('quiz_name');
   variable_del('quiz_default_close');

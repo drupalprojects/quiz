@@ -1,0 +1,57 @@
+<?php 
+        
+/**     
+ * Implementation of hook_install()
+ */   
+function multichoice_install() {
+  switch ($GLOBALS['db_type']) {
+      
+    case 'mysql':
+    case 'mysqli':
+	
+	  /**
+	   * Stores correct answers for multichoice quiz.
+	   */
+      // Create the quiz node user answers multichoice table
+      db_query("CREATE TABLE {quiz_multichoice_user_answers} (
+        question_nid INTEGER UNSIGNED NOT NULL,
+        question_vid INTEGER UNSIGNED NOT NULL,
+        result_id INTEGER UNSIGNED NOT NULL,
+        answer_id INTEGER UNSIGNED NOT NULL,
+        PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");	  
+	  
+	  
+	  /**
+	   * Stores user answers for multichoice quiz.
+	   */
+      // Create the quiz node answers multichoice table
+      db_query("CREATE TABLE {quiz_multichoice_answers} (
+        answer_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        answer varchar(255) NOT NULL,
+        feedback LONGTEXT,
+        result_option INTEGER UNSIGNED DEFAULT 0,
+        is_correct TINYINT UNSIGNED DEFAULT 0,
+        PRIMARY KEY(answer_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");	  	  
+	  
+      break;
+
+    case 'pgsql':
+	
+      break;
+	  
+  }
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function multichoice_uninstall() {
+  db_query('DROP TABLE {quiz_multichoice_user_answers}');
+  db_query('DROP TABLE {quiz_multichoice_answers}');
+  // delete from nodes and node_revisions
+  db_query('DELETE FROM node, node_revisions, quiz_node_question_properties USING node LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
+}
