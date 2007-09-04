@@ -90,7 +90,7 @@ function quiz_install() {
         points_awarded TINYINT NOT NULL DEFAULT '0',
         answer_timestamp INT UNSIGNED NOT NULL
         PRIMARY KEY(result_id, question_nid, question_vid)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;")
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
     
     /**
      * Allows custom feedback based on the results of a user completing a quiz.
@@ -124,7 +124,7 @@ function quiz_uninstall() {
   db_query('DROP TABLE {quiz_node_question_properties}');
   db_query('DROP TABLE {quiz_node_results}');
   db_query('DROP TABLE {quiz_node_result_options}');
-  db_query('DROP TABLE {quiz_node_results_answers}')
+  db_query('DROP TABLE {quiz_node_results_answers}');
   
   // delete from nodes and node_revisions
   db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz")');
