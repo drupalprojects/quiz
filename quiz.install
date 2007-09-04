@@ -88,7 +88,7 @@ function quiz_install() {
         question_vid INT UNSIGNED NOT NULL ,
         is_correct TINYINT UNSIGNED NOT NULL DEFAULT '0',
         points_awarded TINYINT NOT NULL DEFAULT '0',
-        answer_timestamp INT UNSIGNED NOT NULL
+        answer_timestamp INT UNSIGNED NOT NULL,
         PRIMARY KEY(result_id, question_nid, question_vid)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
     
