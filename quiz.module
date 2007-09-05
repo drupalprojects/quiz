@@ -206,14 +206,6 @@ function quiz_form(&$node) {
   );
   $form['body_filter']['format'] = filter_form($node->format);
   
-  $form['number_of_questions'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of questions'),
-    '#default_value' => ($node->number_of_questions ? $node->number_of_questions : 10),
-    '#description' => t('The number of questions to include in this @quiz from the question bank', array('@quiz' => QUIZ_NAME)),
-    '#required' => TRUE,
-  );
-  
   $form['shuffle'] = array(
     '#type' => 'checkbox',
     '#title' => t('Shuffle questions'),
@@ -408,7 +400,13 @@ function _quiz_form_prepare_date($time = '', $offset = 0) {
  *   Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid, $nid) {
-  return db_result(db_query('SELECT number_of_questions FROM {quiz_node_properties} WHERE vid = %d AND nid =%d', $vid, $nid));  
+  return db_result(db_query("SELECT count(*) + number_of_random_questions " .
+                            "FROM {quiz_node_relationship} qnr " .
+                            "LEFT JOIN {quiz_node_properties} qnp ON (qnr.parent_nid = qnp.nid AND qnr.parent_vid = qnp.vid) " .
+                            "WHERE qnr.parent_vid = %d " .
+                            "AND qnr.parent_nid = %d " .
+                            "AND question_status = %d",
+                            $vid, $nid, QUESTION_ALWAYS));
 }
 
 /**
@@ -418,9 +416,8 @@ function quiz_get_number_of_questions($vid, $nid) {
  * @return integer
  *   Returns the pass rate of quiz.
  */
-function quiz_get_pass_rate($nid) {
-    $passrate = db_fetch_object(db_query('SELECT pass_rate FROM {quiz} WHERE nid = %d', $nid));
-    return $passrate->pass_rate;   
+function quiz_get_pass_rate($nid, $vid) {
+    return db_result(db_query('SELECT pass_rate FROM {quiz_node_properties} WHERE nid = %d AND vid = %d', $nid, $vid));
 }
 
 /**
@@ -429,40 +426,6 @@ function quiz_get_pass_rate($nid) {
 function quiz_validate($node) {
   if (!$node->nid && empty($_POST)) return;
   
-  // validate the number of questions against the actual questions assigned to this quiz
-  if ($node->number_of_questions < 1) {
-    form_set_error('number_of_questions', t('Number of questions must be a positive number.'));
-  }
-  else if ($node->nid) {
-    // get the number of each kind of question
-    $anum_random = quiz_get_num_questions($node->nid, $node->vid, QUESTION_RANDOM);
-    $anum_always = quiz_get_num_questions($node->nid, $node->vid, QUESTION_ALWAYS);
-    $anum_total = $anum_always + $anum_random;
-    // If we have random number, add one to the low range.
-    if ($anum_random > 0) {
-      $anum_always++;
-    }
-    // If we have more than one random number, lower the high range by one.
-    if ($anum_random > 1) {
-      $anum_total--;
-    }
-    // format the valid range
-    if ($anum_always != $anum_total) {
-      $range = t('between %low and %high', array('%low' => $anum_always, '%high' => $anum_total));
-    } 
-    else {
-      $range = $anum_total;
-    }
-    // If there are not enough questions to support this number.
-    if ($anum_total < $node->number_of_questions) {
-      form_set_error('number_of_questions', t("You don't currently have enough questions assigned to this @quiz to support that many questions. Either change the number of questions to %range or !action to this @quiz.", array('@quiz' => QUIZ_NAME, '%range' => $range, '!action' => l(t('add more questions'), 'node/'. $node->nid .'/questions'))));
-    }
-    // If there are too many questions for this number.
-    else if ($anum_always > $node->number_of_questions) {
-      form_set_error('number_of_questions', t('There are too many questions assigned to this @quiz to support that low of a number. Either change the number of questions to %range or !action from this @quiz.', array('@quiz' => QUIZ_NAME, '%range' => $range, '!action' => l(t('remove some questions'), 'node/'. $node->nid .'/questions'))));
-    }
-  }
-
   if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
     form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
   }
@@ -550,9 +513,9 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz_node_properties} " .
-         "(vid, nid, number_of_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time) " .
+         "(vid, nid, number_of_random_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time) " .
          "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->number_of_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time);
+  db_query($sql, $node->vid, $node->nid, 0, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time);
   _quiz_insert_resultoptions($node);
 }
 
@@ -738,7 +701,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   // Ouput quiz options
   $output .= '<h3>'. t('@quiz Options', array('@quiz' => QUIZ_NAME)) .'</h3>';
   $header = array(
-    t('# of Questions'),
+    t('# of Random Questions'),
     t('Shuffle?'),
     t('Feedback'),
     t('Number of takes')
@@ -749,7 +712,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $takes = $node->takes == 0 ? t('Unlimited') : check_plain($node->takes);
   $rows = array();
   $rows[] = array(
-    check_plain($node->number_of_questions),
+    check_plain($node->number_of_random_questions),
     $shuffle,
     $feedback,
     $takes
@@ -1240,9 +1203,8 @@ function quiz_build_question_list($quiz) {
   }
 
   // Get random questions for the remainder
-  $quiz->number_of_questions -= count($questions);
-  if ($quiz->number_of_questions > 0) {
-    $result = db_query_range("SELECT child_nid, child_vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_questions);
+  if ($quiz->number_of_random_questions > 0) {
+    $result = db_query_range("SELECT child_nid, child_vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
     while ($question_node = db_fetch_object($result)) {
       $questions[] = array('vid' => $question_node->child_vid, 'nid' => $question_node->child_nid);
     }
@@ -1479,13 +1441,6 @@ function quiz_questions_form() {
   // Set page title
   drupal_set_title(check_plain($quiz->title));
   
-  // show the number of questions that this quiz currently has
-  $form['numberofquestions'] = array(
-    '#prefix' => '<div class="quiz_questions_number">',
-    '#value' => t('This @quiz consists of %x @question.', array('@quiz' => QUIZ_NAME, '%x' => check_plain($quiz->number_of_questions), '@question' => format_plural($quiz->number_of_questions, t('question'), t('questions')))),
-    '#suffix' => '</div><br />'."\n"
-  );
-  
   // Display links to create other questions
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
@@ -1506,6 +1461,14 @@ function quiz_questions_form() {
     '#theme' => 'quiz_filtered_questions',
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
+  );
+
+  $form['filtered_random_question_list']['num_random_questions'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number questions to randomize'),
+    '#size' => 3,
+    '#default_value' => $quiz->number_of_random_questions,
+    '#description' => t('The number of randomly selected questions to assign to this quiz.'),
   );
 
   // Display questions 'random' on this quiz.
@@ -1557,6 +1520,8 @@ function quiz_questions_form() {
       '#value' => $question->type,
     );
   }
+  // show the number of 'always' questions in the 'always' table header
+  $form['filtered_question_list_always']['#title'] .= ' ('. count($form['filtered_question_list_always']['type']) .')';
   
   $form['new_revision'] = array(
     '#type' => 'checkbox',
@@ -1645,30 +1610,16 @@ function quiz_questions_form_submit($form_id, $values) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
     return;
   }
-
-  // Determine how many more questions are required
-  $qnum = $quiz->number_of_questions;
-  $anum_random = quiz_get_num_questions($quiz->nid, $quiz->vid, QUESTION_RANDOM);
-  $anum_always = quiz_get_num_questions($quiz->nid, $quiz->vid, QUESTION_ALWAYS);
-  $anum_total = $anum_always + $anum_random;
-
-  // If we have some random questions, increase this number by one.
-  if ($anum_random > 0) {
-    $anum_always++;
+  
+  if ($values['num_random_questions'] > count($values['filtered_question_list_random']['type'])) {
+    $values['num_random_questions'] = count($values['filtered_question_list_random']['type']);
+    drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => count($values['filtered_question_list_random']['type'])), 'status'));
   }
 
-  // If there are not enough questions, lower the number of questions and let the user know.
-  if ($anum_total < $qnum) {
-    drupal_set_message(t('The number of questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $anum_total)), 'status');
-    db_query("UPDATE {quiz_node_properties} SET number_of_questions = %d WHERE vid = %d AND nid = %d", $anum_total, $quiz->vid, $quiz->nid);
+  $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d WHERE vid = %d AND nid = %d", $values['num_random_questions'], $quiz->vid, $quiz->nid);
+  if (!$result) {
+    drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
-
-  // If there are too many questions set to "always", increase the number of questions and let the user know.
-  else if ($anum_always > $qnum) {
-    drupal_set_message(t('The number of questions for this @quiz have been increased to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $anum_always)), 'status');
-    db_query("UPDATE {quiz_node_properties} SET number_of_questions = %d WHERE vid = %d AND nid = %d", $anum_always, $quiz->vid, $quiz->nid);
-  }
-
   // Otherwise just give general feedback.
   else {
     drupal_set_message(t('Questions updated successfully.'));
@@ -1826,6 +1777,9 @@ function quiz_admin_settings() {
  * Validation form settings form
  */
 function quiz_settings_form_validate($form_id, $form_values) {
+  if (!is_numeric($form_values['num_random_questions']) || $form_values['num_random_questions'] <0 ) {
+    form_set_error('num_random_questions', t('The number of random questions must be at least 0.'));
+  }
   if (!is_numeric($form_values['quiz_default_close']) || $form_values['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
   } 

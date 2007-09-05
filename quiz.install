@@ -17,7 +17,7 @@ function quiz_install() {
         property_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
         vid INTEGER UNSIGNED NOT NULL,
         nid INTEGER UNSIGNED NOT NULL,
-        number_of_questions TINYINT UNSIGNED DEFAULT 0 NOT NULL,
+        number_of_random_questions TINYINT UNSIGNED DEFAULT 0 NOT NULL,
         pass_rate TINYINT UNSIGNED NOT NULL,
         summary_pass LONGTEXT,
         summary_default LONGTEXT,
