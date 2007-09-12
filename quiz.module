@@ -400,13 +400,13 @@ function _quiz_form_prepare_date($time = '', $offset = 0) {
  *   Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid, $nid) {
-  return db_result(db_query("SELECT count(*) + number_of_random_questions " .
+  return db_result(db_query("SELECT count(*) + " .
+                            "(SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) " .
                             "FROM {quiz_node_relationship} qnr " .
-                            "LEFT JOIN {quiz_node_properties} qnp ON (qnr.parent_nid = qnp.nid AND qnr.parent_vid = qnp.vid) " .
                             "WHERE qnr.parent_vid = %d " .
                             "AND qnr.parent_nid = %d " .
                             "AND question_status = %d",
-                            $vid, $nid, QUESTION_ALWAYS));
+                            $vid, $nid, $vid, $nid, QUESTION_ALWAYS));
 }
 
 /**
@@ -513,9 +513,9 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz_node_properties} " .
-         "(vid, nid, number_of_random_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time) " .
-         "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d)";
-  db_query($sql, $node->vid, $node->nid, 0, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time);
+         "(vid, nid, number_of_random_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid) " .
+         "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
+  db_query($sql, $node->vid, $node->nid, $node->number_of_random_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->tid);
   _quiz_insert_resultoptions($node);
 }
 
@@ -864,6 +864,10 @@ function quiz_take_quiz() {
         if ($rid = quiz_start_actions($quiz)) {
           // Create question list
           $questions = quiz_build_question_list($quiz);
+          if ($questions === FALSE) {
+            drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
+            return '';
+          }
           if (count($questions) == 0) {
             drupal_set_message(t('No questions were found. Please assign questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
             return '';
@@ -1197,16 +1201,17 @@ function quiz_build_question_list($quiz) {
   $questions = array();
 
   // Get required questions first
-  $result = db_query("SELECT child_nid, child_vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
-  while ($question_node = db_fetch_object($result)) {
-    $questions[] = array('vid' => $question_node->child_vid, 'nid' => $question_node->child_nid);
+  $result = db_query("SELECT child_nid nid, child_vid vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
+  while ($question_node = db_fetch_array($result)) {
+    $questions[] = $question_node;
   }
 
   // Get random questions for the remainder
   if ($quiz->number_of_random_questions > 0) {
-    $result = db_query_range("SELECT child_nid, child_vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
-    while ($question_node = db_fetch_object($result)) {
-      $questions[] = array('vid' => $question_node->child_vid, 'nid' => $question_node->child_nid);
+    $questions = array_merge($questions, _quiz_get_random_questions($quiz->number_of_random_questions, $quiz->tid));
+    if ($quiz->number_of_random_questions > count($questions)) {
+      // not able to find enough requested random questions
+      return FALSE;
     }
   }
   
@@ -1216,6 +1221,42 @@ function quiz_build_question_list($quiz) {
   }
 
   return $questions;
+}
+
+function _quiz_get_random_questions($num_random, $tid) {
+  $questions = array();
+  if ($num_random > 0) {
+    if ($tid > 0) {
+      // select random questions by taxonomy
+      $term = taxonomy_get_term($tid);
+      $tree = taxonomy_get_tree($term->vid, $term->tid);
+      
+      // flatten the taxonomy tree, and just keep term id's
+      $term_ids[] = $term->tid;
+      if (is_array($tree)) {
+        foreach ($tree as $term) {
+          $term_ids[] = $term->tid;
+        }
+      }
+      $term_ids = implode(',', $term_ids);
+      
+      // get all published questions with one of the allowed term ids
+      $result = db_query_range("SELECT n.nid, n.vid " .
+                               "FROM {node} n " .
+                               "INNER JOIN {term_node} tn USING (nid)".
+                               "WHERE n.status = 1 AND tn.tid IN ($term_ids) " .
+                               "AND n.type IN ('" . implode("','", _quiz_get_question_types()) . "') " .
+                               "ORDER BY RAND()", 0, $num_random);
+    }
+    else {
+      // select random question from assigned pool
+      $result = db_query_range("SELECT child_nid nid, child_vid vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
+    }
+    while ($question_node = db_fetch_array($result)) {
+      $questions[] = $question_node;
+    }
+  }
+  return $questions;  
 }
 
 /**
@@ -1353,11 +1394,12 @@ function _quiz_get_vocabularies() {
  *   HTML output to print to screen
  */
 function _quiz_taxonomy_select($value = 0) {
-  $form = array();
+  $options = array();
   foreach (_quiz_get_vocabularies() as $vid => $vocabulary) {
-    $form['taxonomy'][$vid] = taxonomy_form($vid, $value);
+    $temp = taxonomy_form($vid, $value);
+    $options = array_merge($options, $temp['#options']);
   }
-  return $form;
+  return $options;
 }
 
 /**
@@ -1469,6 +1511,15 @@ function quiz_questions_form() {
     '#size' => 3,
     '#default_value' => $quiz->number_of_random_questions,
     '#description' => t('The number of randomly selected questions to assign to this quiz.'),
+  );
+  
+   $form['filtered_random_question_list']['random_term_id'] = array(
+    '#type' => 'select',
+    '#title' => t('Terms'),
+    '#size' => 1,
+    '#options' => _quiz_taxonomy_select($quiz->tid),
+    '#default_value' => $quiz->tid,
+    '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
   );
 
   // Display questions 'random' on this quiz.
@@ -1610,13 +1661,31 @@ function quiz_questions_form_submit($form_id, $values) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
     return;
   }
-  
-  if ($values['num_random_questions'] > count($values['filtered_question_list_random']['type'])) {
-    $values['num_random_questions'] = count($values['filtered_question_list_random']['type']);
-    drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => count($values['filtered_question_list_random']['type'])), 'status'));
-  }
 
-  $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d WHERE vid = %d AND nid = %d", $values['num_random_questions'], $quiz->vid, $quiz->nid);
+  // check if selecting random question from pool, and not via term
+  if (empty($values['random_term_id'])) {
+    $assigned_random =0;
+    if (is_array($values['question_status'])) {
+      foreach ($values['question_status'] as $id => $status) {
+        if (QUESTION_ALWAYS == $status) {
+          $assigned_random++;
+        }
+      } 
+    }
+
+    if ($values['num_random_questions'] > $assigned_random) {
+      $values['num_random_questions'] = $assigned_random;
+      drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), 'status'));
+    }
+  }
+  else {
+    // warn user if not enough questions available with this term_id
+    if ($values['num_random_questions'] > count(_quiz_get_random_questions($values['num_random_questions'], $values['random_term_id']))) {
+      drupal_set_message(t('There are currently not enough questions assigned to this term. Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
+    }
+  }
+  
+  $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d", $values['num_random_questions'], $values['random_term_id'], $quiz->vid, $quiz->nid);
   if (!$result) {
     drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
