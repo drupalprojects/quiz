@@ -14,7 +14,8 @@ define('MULTICHOICE_NAME', 'Multi-Choice Question');
  * Implementation of hook_perm().
  */
 function multichoice_perm() {
-  return array('create multichoice', 'edit own multichoice');
+  return array('create multichoice', 'edit own multichoice', 'allow any number of answers',
+               'allow multiple correct answers', 'allow feedback', 'allow user titles');
 }
 
 /**
@@ -58,8 +59,31 @@ function multichoice_menu($may_cache) {
       'title' => t(MULTICHOICE_NAME),
       'access' => user_access('create multichoice'),
     );
+    $items[] = array(
+      'path' => 'admin/settings/multichoice',
+      'title' => t('Multichoice Configuration'),
+      'description' => t('Configure Multichoice questions fo users.'),
+      'callback' => 'drupal_get_form',
+      'callback arguments' => array('multichoice_admin_settings_form'),
+      'access' => user_access(QUIZ_PERM_ADMIN_CONFIG),
+      'type' => MENU_NORMAL_ITEM,
+    );
   }
   return $items;
+}
+
+/**
+ * Admin settings form
+ */
+function multichoice_admin_settings_form() {
+  $form['multichoice_default_answers'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Number of Answers'),
+    '#default_value' => variable_get('multichoice_default_answers', 5),
+    '#description' => t('The default number of answers to display when creating a question.'),
+    '#required' => TRUE,  
+  );
+  return system_settings_form($form);  
 }
 
 /**
@@ -81,13 +105,23 @@ function multichoice_form(&$node) {
   }    
 
   // Display multichoice form
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Title'),
-    '#default_value' => $node->title,
-    '#required' => TRUE,
-    '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
-  );
+  
+  // allow user to set title?
+  if (user_access('allow user titles')) {
+    $form['title'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title'),
+      '#default_value' => $node->title,
+      '#required' => FALSE,
+      '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
+    );
+  }
+  else {
+    $form['title'] = array(
+      '#type' => 'value',
+      '#value' => $node->title,
+    );
+  }
 
   $form['body'] = array(
     '#type' => 'textarea',
@@ -97,16 +131,21 @@ function multichoice_form(&$node) {
   );
   
   $form['body_filter']['format'] = filter_form($node->format);
-
-  $form['multiple_answers'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Multiple answers'),
-    '#default_value' => $node->multiple_answers,
-  );
+  
+  if (user_access('allow multiple correct answers')) {
+    $form['multiple_answers'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Multiple answers'),
+      '#default_value' => $node->multiple_answers,
+    );
+  }
+  else {
+    $form['multiple_answers'] = array('#type' => 'value', '#value' => FALSE);
+  }
 
   // Determine number of answer rows to display
   if (!isset($node->rows)) {
-     $node->rows = max(2, $node->answers ? count($node->answers) : 5);
+     $node->rows = max(2, $node->answers ? count($node->answers) : variable_get('multichoice_default_answers', 5));
   }
   if ($_POST['more']) {
     $node->rows += 5;
@@ -160,12 +199,19 @@ function multichoice_form(&$node) {
       '#cols' => 30, '#rows' => 2,
     );
     
-    $form['answers'][$i]['feedback'] = array(
-      '#type' => 'textarea',
-      '#default_value' => $answers[$i]['feedback'],
-      '#cols' => 30, '#rows' => 2,
-    );
-    
+    if (user_access('allow feedback')) {
+      $form['answers'][$i]['feedback'] = array(
+        '#type' => 'textarea',
+        '#default_value' => $answers[$i]['feedback'],
+        '#cols' => 30, '#rows' => 2,
+      );
+    }
+    else {
+      $form['answers'][$i]['feedback'] = array(
+        '#type' => 'value',
+        '#value' => '',
+      );
+    }    
     if ($answers[$i]['answer_id']) {
       $form['answers'][$i]['delete'] = array(
         '#type' => 'checkbox',
@@ -179,17 +225,29 @@ function multichoice_form(&$node) {
     }
   }
 
-  $form['more'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('I need more answers'),
-  );
-
+  if (user_access('allow any number of answers')) {
+    $form['more'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('I need more answers'),
+    );
+  }
+  
   // if coming from quiz view, go back there on submit
   if (!empty($quiz_id)) {
     $form['#redirect'] = 'node/'. $quiz_id .'/questions'; 
   }
 
   return $form;
+}
+
+/**
+ * Implementation of hook_submit()
+ */
+function multichoice_submit(&$node) {
+  if (!user_access('allow user titles') || empty($node->title)) {
+    // user not allowed to set a title or they left it blank, so we will make one for them
+    $node->title = theme('multichoice_generate_title', $node);
+  }
 }
 
 /**
@@ -207,7 +265,7 @@ function multichoice_validate(&$node) {
   if (!$node->body) {
     form_set_error('body', t('Question text is empty'));
   }
-
+  
   // Validate answers
   $answers = 0;
   $corrects = 0;
@@ -256,6 +314,17 @@ function multichoice_validate(&$node) {
       }    
     } 
   }
+  
+  // validate number of answers
+  if (!user_access('allow any number of answers')) {
+    // users must create questions with exactly a certain number of answers
+    $required = variable_get('multichoice_default_answers', 5);
+    if ($answers != $required) {
+      form_set_error("answers[0]['answer'", 
+                     t('You must have exactly @num answer choices. There are currently @answers answer choices.', 
+                     array('@num' => $required, '@answers' => $answers)));
+    }
+  }
 }
 
 /**
@@ -278,7 +347,6 @@ function multichoice_get_number_of_corrects($answers) {
  */
 function multichoice_insert(&$node) {
   $node->number_of_answers = multichoice_get_number_of_corrects($node->answers);
-  //drupal_set_message('<pre>' . print_r($node, 1) . '</pre>');
   $quiz_vid     = $node->quiz_vid;
   $question_vid = $node->vid;
   // instead of just storing whether a question has multiple answers, we will store the actual number of correct answers
@@ -295,9 +363,6 @@ function multichoice_insert(&$node) {
       db_query("INSERT INTO {quiz_multichoice_answers} " .
                "(answer_id, nid, vid, answer, feedback, points, result_option) VALUES (%d, %d, %d, '%s', '%s', %d, %d)", 
                db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
-// FIXME MAKE THIS WORK or move to quiz
-      //db_query("INSERT INTO {quiz_node_relationship} (parent_vid, child_vid) VALUES(%d, %d)", 
-        //$quiz_vid, $question_vid);
     }
   }
 }
@@ -307,8 +372,6 @@ function multichoice_insert(&$node) {
  */
 function multichoice_update($node) {
   $question_vid = $node->vid;
-  //db_query("UPDATE {quiz_question} SET properties = '%s' WHERE nid = %d", serialize(array('multiple_answers' => $node->multiple_answers)), $node->nid);
-  //db_query("UPDATE {quiz_node_answers_multichoice} SET expired = %d WHERE vid = %d AND expired IS NULL", time(), $question_vid);
   $node->number_of_answers = multichoice_get_number_of_corrects($node->answers);
   if ($node->revision) {
     db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) " .
@@ -334,8 +397,6 @@ function multichoice_update($node) {
     } 
     else if (trim($value['answer']) != "") {
       //If there is an answer, insert a new row
-      //db_query("INSERT INTO {quiz_question_answer} (aid, question_nid, answer, feedback, points) VALUES(%d, %d, '%s', '%s', %d)", 
-        //db_next_id('{quiz_question_answer}_aid'), $node->nid, $value['answer'], $value['feedback'], $value['correct']);
       db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, points, result_option) " .
                "VALUES(%d, %d, %d, '%s', '%s', %d, %d)", 
                db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
@@ -394,8 +455,8 @@ function multichoice_load($node) {
   }
 
   $additions->answers = $answers;
-  $additions->multiple_answers = $additions->properties['number_of_questions'] > 1 ? 1 : 0; // just check for multiple answers for now
-  //drupal_set_message('<pre>' . print_r($additions, 1) . '</pre>');
+  // just check for multiple answers for now
+  $additions->multiple_answers = $additions->properties['number_of_questions'] > 1 ? 1 : 0; 
   return $additions;
 }
 
@@ -630,23 +691,36 @@ function theme_multichoice_form($form) {
 
   // Format table header
   $scored_quiz = (isset($form[0]['result_option'])) ? FALSE : TRUE;
+  $deleteable = (isset($form[0]['aid'])) ? TRUE : FALSE;
+  
   $header = array(
     array('data' => ($scored_quiz) ? t('Correct') : t('Result Option')),
-    array('data' => t('Answer'), 'style' => 'width:250px;'),
-    array('data' => t('Feedback'), 'style' => 'width:250px;'),
-    array('data' => t('Delete')),
+    array('data' => t('Answer'), /*'style' => 'width:250px;'*/),
   );
+
+  if (user_access('allow feedback')) {
+    $header[] = array('data' => t('Feedback'), 'style' => 'width:250px;');
+  }
+  if ($deleteable) {
+    $header[] = array('data' => t('Delete'));
+  }
 
   // Format table rows
   $rows = array();
   foreach (element_children($form) as $key) {
     $score_col = ($scored_quiz) ? $form[$key]['correct'] : $form[$key]['result_option'];
-    $rows[] = array(
+    $row = array(
       drupal_render($score_col),
       drupal_render($form[$key]['answer']),
-      drupal_render($form[$key]['feedback']),
-      drupal_render($form[$key]['delete']),
     );
+
+    if (user_access('allow feedback')) {
+      $row[] = drupal_render($form[$key]['feedback']);
+    }
+    if ($deleteable) {
+      drupal_render($form[$key]['delete']);
+    }
+    $rows[] = $row;
   }
 
   // Theme output and display to screen
@@ -740,4 +814,42 @@ function theme_multichoice_feedback($quiz, $report) {
     $output .= "Correct Answer(s): ".implode(',',$corrects);
   }
   return $output;
+}
+
+/**
+ * Create a decent question title based on taxonomy and question body.
+ * This is themeable so others can create their own titles without too much trouble.
+ * 1. Pick the first taxonomy term from the first vocabulary
+ * 2. Append a numeric sequence
+ * 3. Append the first 50 chars of question body, or less, depending on where the word breaks are
+ * 
+ * @param $node the question node to generate a title for
+ * @return a title string
+ */
+function theme_multichoice_generate_title($node) {
+  $title = '';
+
+  // get the first taxonomy term if available
+  $taxonomy = $node->taxonomy;
+  while (is_array($taxonomy)) {
+    $taxonomy = current($taxonomy);
+  }
+  
+  if (!empty($taxonomy)) {
+    $taxonomy = taxonomy_get_term($taxonomy);
+    $title .= $taxonomy->name .' - ';
+  }
+
+  // append a numeric sequence
+  $qnum = variable_get('multichoice_qnum', 0);
+  $title .= $qnum++ .' - ';
+  variable_set('multichoice_qnum', $qnum);
+
+  // strip tags from question body and shorten to 50 or less chars
+  $shortstring = trim(substr(strip_tags($node->body), 0, 50));
+  if (FALSE !== ($breakpoint = strrpos($shortstring, ' '))) {
+    $shortstring = substr($shortstring, 0, $breakpoint);
+  }
+  
+  return $title.$shortstring;
 }
