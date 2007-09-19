@@ -188,10 +188,12 @@ function multichoice_form(&$node) {
     } 
     // this is a scored quiz, just need to know the correct answer(s)
     else {                                      
-      $form['answers'][$i]['correct'] = array(
-        '#type' => 'checkbox',
-        '#default_value' => $answers[$i]['points'],
-      );
+      if (user_access('allow multiple correct answers')) {
+        $form['answers'][$i]['correct'] = array(
+          '#type' => 'checkbox',
+          '#default_value' => $answers[$i]['points'],
+        );
+      }
     }
     $form['answers'][$i]['answer'] = array(
       '#type' => 'textarea',
@@ -232,6 +234,18 @@ function multichoice_form(&$node) {
     );
   }
   
+  if (!user_access('allow multiple correct answers')) {
+    $form['correct'] = array(
+      '#type' => 'select',
+      '#title' => t('Correct Answer'),
+      '#description' => t('Which of the answer choices is correct?'),
+      '#required' => TRUE,
+      '#size' => 1,
+      '#options' => range(1, $node->rows),
+      '#default_value' => _multichoice_find_correct($node->answers),
+    );
+  }
+  
   // if coming from quiz view, go back there on submit
   if (!empty($quiz_id)) {
     $form['#redirect'] = 'node/'. $quiz_id .'/questions'; 
@@ -241,12 +255,32 @@ function multichoice_form(&$node) {
 }
 
 /**
+ * find the correct answers in an array of answers
+ * @param $answers an indexed array of answer choices
+ * @return the index of the first correct answer
+ */
+function _multichoice_find_correct($answers) {
+  if (is_array($answers)) {
+    foreach ($answers as $id => $answer) {
+      if ($answer['points']) {
+        return $id;  
+      }
+    }
+  }
+  return 0; 
+}
+
+/**
  * Implementation of hook_submit()
  */
 function multichoice_submit(&$node) {
   if (!user_access('allow user titles') || empty($node->title)) {
     // user not allowed to set a title or they left it blank, so we will make one for them
     $node->title = theme('multichoice_generate_title', $node);
+  }
+  if (!user_access('allow multiple correct answers')) {
+    // convert the select box to the old checkbox 
+    $node->answers[$node->correct]['correct'] = TRUE;
   }
 }
 
@@ -268,7 +302,7 @@ function multichoice_validate(&$node) {
   
   // Validate answers
   $answers = 0;
-  $corrects = 0;
+  $corrects = user_access('allow multiple correct answers') ? 0 : 1;
 
   if ($node->scored_quiz) {
     foreach ($node->answers as $key => $answer) {
@@ -692,12 +726,11 @@ function theme_multichoice_form($form) {
   // Format table header
   $scored_quiz = (isset($form[0]['result_option'])) ? FALSE : TRUE;
   $deleteable = (isset($form[0]['aid'])) ? TRUE : FALSE;
-  
-  $header = array(
-    array('data' => ($scored_quiz) ? t('Correct') : t('Result Option')),
-    array('data' => t('Answer'), /*'style' => 'width:250px;'*/),
-  );
 
+  if (user_access('allow multiple correct answers')) {
+    $header = array('data' => ($scored_quiz) ? t('Correct') : t('Result Option'));
+  }
+  $header[] = array('data' => t('Answer'));
   if (user_access('allow feedback')) {
     $header[] = array('data' => t('Feedback'), 'style' => 'width:250px;');
   }
@@ -709,10 +742,11 @@ function theme_multichoice_form($form) {
   $rows = array();
   foreach (element_children($form) as $key) {
     $score_col = ($scored_quiz) ? $form[$key]['correct'] : $form[$key]['result_option'];
-    $row = array(
-      drupal_render($score_col),
-      drupal_render($form[$key]['answer']),
-    );
+    $row = array();
+    if ($score_col) {
+      $row[] = drupal_render($score_col);
+    }
+    $row[] = drupal_render($form[$key]['answer']);
 
     if (user_access('allow feedback')) {
       $row[] = drupal_render($form[$key]['feedback']);
