@@ -150,7 +150,7 @@ function quiz_menu($may_cache) {
     else {
       $items[] = array(
         'path' => 'user/'. arg(1) .'/myresults',
-        'title' => t('my results'),
+        'title' => t('My Results'),
         'callback' => 'quiz_get_user_results',
         'access' => user_access('user results'),
         'type' => MENU_LOCAL_TASK,
@@ -628,7 +628,7 @@ function _quiz_update_resultoptions($node) {
  */
 function quiz_delete($node) {
   db_query('DELETE FROM {quiz_node_properties} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);  // this should load all the vid's for the nid
-  db_query('DELETE FROM {quiz_questions} WHERE quiz_nid = %d', $node->nid);
+  db_query('DELETE FROM {quiz_question_properties} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_node_result_options} WHERE nid=%d', $node->nid);
 }
 
@@ -807,7 +807,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
 
 /**
- * Displays all the quizs the user has taken part in
+ * Displays all the quizzes the user has taken part in
  *
  * @return
  *  HTML output for page
@@ -819,24 +819,24 @@ function quiz_get_user_results() {
                           n.nid nid,
                           n.title title,
                           u.name name,
-                          qr.rid rid,
-                          qr.time_start,
-                          qr.time_end
-                        FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
+                          qnrs.result_id result_id,
+                          qnrs.time_start,
+                          qnrs.time_end
+                        FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u
                         WHERE
                           n.type = 'quiz'
                             AND
-                          n.nid = q.nid
+                          n.nid = qnp.nid
                             AND
-                          qr.quiz_nid = q.nid
+                          qnrs.nid = qnp.nid
                             AND
-                          u.uid = qr.uid
+                          u.uid = qnrs.uid
                             AND
                           u.uid = ". $user->uid ."
-                        ORDER BY qr.rid ASC");
+                        ORDER BY qnrs.result_id ASC");
   //Create results array
   while ($line = db_fetch_array($dbresult)) {
-    $results[$line['rid']] = $line;
+    $results[$line['result_id']] = $line;
   }
   return theme('quiz_get_user_results', $results);
    
@@ -874,7 +874,7 @@ function quiz_take_quiz() {
           }
           // Initialize session variables
           $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
-          $_SESSION['quiz_'. $quiz->nid]['rid'] = $rid;
+          $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
           $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
 
         }
@@ -891,12 +891,12 @@ function quiz_take_quiz() {
         else {
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
           $former_question = node_load(array('nid' => $former_question_array['nid']));
-          $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['rid']);
-          quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['rid'], $result);
+          $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+          quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
 
           //stash feedback in the session, since the post gets cleared  
           if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) { 
-            $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['rid']);
+            $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
             $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
           }
           // if anonymous user, refresh url with unique hash to prevent caching
@@ -921,14 +921,14 @@ function quiz_take_quiz() {
 
       // At the end of quiz
       else {
-        $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['rid']);
+        $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
         if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
           $output = theme('quiz_no_feedback');
         }
         else {
           //Get the results and summary text for this quiz
-          $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['rid']);
+          $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['result_id']);
           $summary = _quiz_get_summary_text($quiz, $score);
   
           // get the themed summary page
@@ -966,12 +966,12 @@ function quiz_end_actions($quiz, $rid) {
   db_query("UPDATE {quiz_node_results} " .
            "SET time_end = %d, score = %d " .
            "WHERE result_id = %d", 
-           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['rid']);
+           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
   return $score;
  }
 
 /**
- * Get feedack for one question
+ * Get feedback for one question
  * good for displaying feedback after every question instead of all at the end
  * @param $quiz the quiz node
  * @param $report the question node and its calculated results
@@ -1096,7 +1096,7 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
  * @param $nid
  *   Quiz node ID
  * @return integer
- *   Returns quiz_result rid, or false if there is an error.
+ *   Returns quiz_node_results result_id, or false if there is an error.
  */
 function quiz_start_actions($quiz) {
   // make sure this is available
@@ -1117,9 +1117,9 @@ function quiz_start_actions($quiz) {
   // but only perform this check if it is a registered user
   if ($user->uid) {
     $passed = db_result(db_query("SELECT result_id " .
-                                 "FROM {quiz_node_results} qnr " .
+                                 "FROM {quiz_node_results} qnrs " .
                                  "INNER JOIN {quiz_node_properties} USING (vid, nid) " .
-                                 "WHERE qnr.vid = %d AND qnr.nid = %d AND qnr.uid =%d " .
+                                 "WHERE qnrs.vid = %d AND qnrs.nid = %d AND qnrs.uid =%d " .
                                  "AND score >= pass_rate", $quiz->vid, $quiz->nid, $user->uid));
     if ($passed) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
@@ -1145,7 +1145,7 @@ function quiz_start_actions($quiz) {
     }
   }
 
-  // Insert quiz_results record
+  // Insert quiz_node_results record
   $rid = db_next_id('{quiz_node_results}_result_id');
   $result = db_query("INSERT INTO {quiz_node_results} " .
                      "(result_id, nid, vid, uid, time_start) " .
@@ -1883,31 +1883,31 @@ function _quiz_get_results($nid = '', $uid = 0) {
   $sql = "SELECT n.nid nid,
                  n.title title,
                  u.name name,
-                 qr.rid rid,
-                 qr.time_start,
-                 qr.time_end
-          FROM {node} n, {quiz} q, {quiz_result} qr, {users} u
+                 qnrs.result_id result_id,
+                 qnrs.time_start,
+                 qnrs.time_end
+          FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u
           WHERE
             n.type = 'quiz'
               AND
-            n.nid = q.nid
+            n.nid = qnp.nid
               AND
-            qr.quiz_nid = q.nid
+            qnrs.nid = qnp.nid
               AND
-            u.uid = qr.uid";
+            u.uid = qnrs.uid";
   if ($nid) {
-    $sql .= " AND qr.quiz_nid = %d";
+    $sql .= " AND qnrs.nid = %d";
     $args[] = $nid;
   }
   if ($uid != 0) {
-    $sql .= " AND qr.uid = %d";
+    $sql .= " AND qnrs.uid = %d";
     $args[] = $uid;
   }
-  $sql .= " ORDER BY qr.rid ASC";
+  $sql .= " ORDER BY qnrs.result_id ASC";
   $dbresult = db_query($sql, $args);
   //Create results array
   while ($line = db_fetch_array($dbresult)) {
-    $results[$line['rid']] = $line;
+    $results[$line['result_id']] = $line;
   }
   return $results;
 }
@@ -1916,7 +1916,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
  * Quiz Results User
  */
 function quiz_user_results() {
-  $result = db_fetch_object(db_query('SELECT q.nid FROM {quiz} q, {quiz_result} qr WHERE qr.quiz_nid = q.nid AND qr.rid = %d', arg(2)));
+  $result = db_fetch_object(db_query('SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', arg(2)));
   if ($result->nid) {
     $quiz = node_load($result->nid);
     $questions = _quiz_get_answers(arg(2));
@@ -1933,7 +1933,7 @@ function quiz_user_results() {
  * Quiz Results Admin
  */
 function quiz_admin_results() {
-  $result = db_fetch_object(db_query('SELECT quiz.nid FROM {quiz} quiz, {quiz_result} quiz_result WHERE quiz_result.quiz_nid = quiz.nid AND quiz_result.rid = %d', arg(2)));
+  $result = db_fetch_object(db_query('SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', arg(2)));
   if ($result->nid) {
     $quiz = node_load($result->nid);
     $questions = _quiz_get_answers(arg(2));
@@ -1965,8 +1965,8 @@ function quiz_admin_result_delete_form() {
 }
 function quiz_admin_result_delete_form_submit($form_id, $form_values) {
 
-  db_query("DELETE FROM {quiz_result} WHERE rid = %d", $form_values['del_rid']);
-  db_query("DELETE FROM {quiz_question_results} WHERE result_rid = %d", $form_values['del_rid']);
+  db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_values['del_rid']);
+  db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_values['del_rid']);
   drupal_set_message(t('Deleted result.'));
 
   return "admin/quiz";
@@ -2055,10 +2055,10 @@ function theme_quiz_admin($results) {
 
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l('view', 'admin/quiz/'. $result['rid'] .'/view') .' | '. l('delete', 'admin/quiz/'. $result['rid'] .'/delete'),
+      l('view', 'admin/quiz/'. $result['result_id'] .'/view') .' | '. l('delete', 'admin/quiz/'. $result['result_id'] .'/delete'),
       check_plain($result['title']),
       check_plain($result['name']),
-      $result['rid'],
+      $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
     );
@@ -2094,10 +2094,10 @@ function theme_quiz_get_user_results($results) {
   $rows = array();
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l('view', 'user/quiz/'. $result['rid'] .'/userresults'),
+      l('view', 'user/quiz/'. $result['result_id'] .'/userresults'),
       check_plain($result['title']),
       check_plain($result['name']),
-      $result['rid'],
+      $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
     );
