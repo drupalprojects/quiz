@@ -395,7 +395,7 @@ function multichoice_insert(&$node) {
   foreach ($node->answers as $value) {
     if (trim($value['answer']) != "") {
       db_query("INSERT INTO {quiz_multichoice_answers} " .
-               "(answer_id, nid, vid, answer, feedback, points, result_option) VALUES (%d, %d, %d, '%s', '%s', %d, %d)", 
+               "(answer_id, nid, vid, answer, feedback, is_correct, result_option) VALUES (%d, %d, %d, '%s', '%s', %d, %d)", 
                db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
@@ -425,13 +425,13 @@ function multichoice_update($node) {
       } 
       else {
         //Update this entry
-        db_query("UPDATE {quiz_multichoice_answers} SET answer = '%s', feedback = '%s', points = %d, result_option = %d WHERE answer_id = %d", 
+        db_query("UPDATE {quiz_multichoice_answers} SET answer = '%s', feedback = '%s', is_correct = %d, result_option = %d WHERE answer_id = %d", 
           $value['answer'], $value['feedback'], $value['correct'], $value['result_option'], $value['answer_id']);
       }
     } 
     else if (trim($value['answer']) != "") {
       //If there is an answer, insert a new row
-      db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, points, result_option) " .
+      db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, is_correct, result_option) " .
                "VALUES(%d, %d, %d, '%s', '%s', %d, %d)", 
                db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
@@ -618,7 +618,7 @@ function multichoice_store_answer($nid, $vid, $rid, $answer_id) {
  */
 function multichoice_calculate_result($nid, $vid, $tried) {
   $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} " .
-                      "WHERE nid = %d AND vid = %d AND points = 1", $nid, $vid);
+                      "WHERE nid = %d AND vid = %d AND is_correct = 1", $nid, $vid);
   
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];

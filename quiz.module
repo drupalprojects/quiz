@@ -1052,12 +1052,12 @@ function _quiz_get_summary_text($quiz, $score){
   }
 
   // if we are using pass / fail and they passed
-  if (trim($quiz->summary_pass) != '' && $quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
+  if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
     // If we are coming from the admin view page
     if ($admin) {
       $summary = t('The user passed this quiz.');      
     }
-    else {
+    else if(trim($quiz->summary_pass) != ''){
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format);
     }
   } 
@@ -1070,7 +1070,7 @@ function _quiz_get_summary_text($quiz, $score){
         $summary = t('The user failed this quiz.');
       }
     }
-    else {
+    else if(trim($quiz->summary_pass) != ''){
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format);
     }
   }
