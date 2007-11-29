@@ -50,9 +50,24 @@ function multichoice_install() {
  * Implementation of hook_uninstall()
  */
 function multichoice_uninstall() {
-  db_query('DROP TABLE {quiz_multichoice_user_answers}');
-  db_query('DROP TABLE {quiz_multichoice_answers}');
-  // delete from nodes and node_revisions
+  // Remove the two tables we created for this module.
+  if (db_table_exists('quiz_multichoice_answers')) {
+    db_query('DROP TABLE {quiz_multichoice_answers}');
+  }
+  if (db_table_exists('quiz_multichoice_user_answers')) {
+    db_query('DROP TABLE {quiz_multichoice_user_answers}');
+  }
+
+  // Erase any saved variable settings from the database.
+  db_query("DELETE FROM {variable} WHERE name LIKE '%s%%'", 'multichoice_');
+  
+  // Delete from nodes and node_revisions.
   db_query('DELETE FROM node, node_revisions, quiz_node_question_properties USING node LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
+
+  // Truncate the cache so users don't run into any unexpected errors.
+  cache_clear_all('variables', 'cache');
+  
+  // Inform the user that uninstall was sucessful.
+  drupal_set_message(t("The Multichoice module, it's settings, and all saved questions were successfully removed."));
 }
        
