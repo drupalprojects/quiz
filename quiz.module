@@ -642,7 +642,7 @@ function quiz_load($node) {
   $results   = db_query('
     SELECT nr.nid, qnr.question_status 
   FROM {quiz_node_relationship} qnr 
-  INNER JOIN node_revisions nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
+  INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
   WHERE qnr.parent_vid = %d AND qnr.parent_nid', $quiz_vid, $node->nid);
   while ($question = db_fetch_object($results)) {
     $additions->status[$question->child_nid] = $question->status; 
@@ -1179,11 +1179,11 @@ function quiz_calculate_score($quiz, $rid) {
   }
   else {
     $score = db_fetch_array(db_query("SELECT " .
-                                     "(SELECT count(*) FROM quiz_node_results_answers WHERE result_id = %d) as question_count," .
+                                     "(SELECT count(*) FROM {quiz_node_results_answers} WHERE result_id = %d) as question_count," .
                                      "(SELECT option_summary " .
-                                     "FROM quiz_multichoice_user_answers " .
-                                     "LEFT JOIN quiz_multichoice_answers USING (answer_id) " .
-                                     "LEFT JOIN quiz_node_result_options ON (result_option = option_id) " .
+                                     "FROM {quiz_multichoice_user_answers} " .
+                                     "LEFT JOIN {quiz_multichoice_answers} USING (answer_id) " .
+                                     "LEFT JOIN {quiz_node_result_options} ON (result_option = option_id) " .
                                      "WHERE result_id = %d " .
                                      "GROUP BY result_option ORDER BY COUNT(result_option) desc LIMIT 1) as result_option", $rid, $rid));
   }
@@ -2000,7 +2000,7 @@ function quiz_admin_result_delete_form_submit($form_id, $form_values) {
 function _quiz_get_answers($rid) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type FROM {quiz_node_results_answers} " .
-                  "LEFT JOIN node ON (question_nid = nid AND question_vid = vid) WHERE result_id = %d", $rid);
+                  "LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid) WHERE result_id = %d", $rid);
   while ($line = db_fetch_object($ids)) {
     $questions[$line->question_nid] = module_invoke($line->type, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
