@@ -1,5 +1,19 @@
 $Id$
 
+Changes since quiz version 1.1
+------------
+- added additional permission options.
+- added feedback ranges
+- added support for feedback options by category
+- added more feedback options per score
+- questions on quiz now in groupings based on how they are placed within a quiz
+- added support for revisions
+- schema overhaul
+- More scalable quiz answer architecture
+- Improved random question management
+- Various Interface enhancements
+- Various Bugfixes
+
 2007-06-13
 ----------
 Removed non-working features, to be fixed in future versions
