@@ -1,4 +1,5 @@
 <?php 
+// $Id$
         
 /**     
  * Implementation of hook_install()
@@ -19,8 +20,7 @@ function multichoice_install() {
         result_id INTEGER UNSIGNED NOT NULL,
         answer_id INTEGER UNSIGNED NOT NULL,
         PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");	  
-	  
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
 	  
 	  /**
 	   * Stores user answers for multichoice quiz.
@@ -35,7 +35,7 @@ function multichoice_install() {
         result_option INTEGER UNSIGNED DEFAULT 0,
         is_correct TINYINT UNSIGNED DEFAULT 0,
         PRIMARY KEY(answer_id)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");	  	  
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
 	  
       break;
 
@@ -55,3 +55,4 @@ function multichoice_uninstall() {
   // delete from nodes and node_revisions
   db_query('DELETE FROM node, node_revisions, quiz_node_question_properties USING node LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
 }
+       

@@ -1,4 +1,5 @@
 <?php
+//$Id$
 
 /**
  * Implementation of hook_install()
@@ -28,7 +29,7 @@ function quiz_install() {
         quiz_close INTEGER UNSIGNED DEFAULT 0,
         takes TINYINT UNSIGNED NOT NULL,
         time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
-        quiz_always TINYINT NOT NULL default 0,
+        quiz_always TINYINT NOT NULL DEFAULT 0,
         tid INTEGER UNSIGNED NOT NULL DEFAULT 0,
         PRIMARY KEY(property_id),
         KEY vid (vid, nid)

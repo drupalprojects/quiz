@@ -145,7 +145,7 @@ function multichoice_form(&$node) {
 
   // Determine number of answer rows to display
   if (!isset($node->rows)) {
-     $node->rows = max(2, $node->answers ? count($node->answers) : variable_get('multichoice_default_answers', 5));
+    $node->rows = max(2, $node->answers ? count($node->answers) : variable_get('multichoice_default_answers', 5));
   }
   if ($_POST['more']) {
     $node->rows += 5;
@@ -169,9 +169,9 @@ function multichoice_form(&$node) {
 
     // this is not a scored quiz, therefore no correct answers
     // so user must assign answers to result options
-    if(isset($quiz_id) && $quiz->pass_rate == 0) { 
+    if (isset($quiz_id) && $quiz->pass_rate == 0) { 
       if (empty($result_options)) {               
-        $result_options = array (0 => 'None');
+        $result_options = array(0 => 'None');
         if (is_array($quiz->resultoptions)) {
           foreach ($quiz->resultoptions as $r_option) {
             $result_options[$r_option['option_id']] = $r_option['option_name'];
@@ -387,7 +387,7 @@ function multichoice_insert(&$node) {
   db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
   // we came from editing a quiz, so we should add this question to the quiz directly
   if ($node->quiz_id > 0) { 
-    db_query('INSERT INTO {quiz_node_relationship} ' .
+    db_query('INSERT INTO {quiz_node_relationship} '.
               '(parent_nid, parent_vid, child_nid, child_vid, question_status) VALUES (%d, %d, %d, %d, %d)', 
               $node->quiz_id, $quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
   }
@@ -441,22 +441,22 @@ function multichoice_update($node) {
   if ($node->revision) {
   	// Gather all quiz node vids from quiz_node_relationship table that contain
   	// the question being updated and create a new revision of the quizzes.
-  	$sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND status != %d";
-  	$result = db_query($sql, $node->old_vid, QUESTION_NEVER);
-  	while ($quiz = db_fetch_object($result)) {
-  		// Create new revision of the quiz.
-  		// This will also create new quiz-question relation entries in the quiz_node_relationship table.
-  		$sql = "SELECT * FROM {node} WHERE vid = %d";
-  		$quiz_old = db_fetch_object(db_query($sql, $quiz->parent_vid));
-  		drupal_execute('node_form', array('revision' => '1'), $quiz_old);
+    $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND status != %d";
+    $result = db_query($sql, $node->old_vid, QUESTION_NEVER);
+    while ($quiz = db_fetch_object($result)) {
+      // Create new revision of the quiz.
+      // This will also create new quiz-question relation entries in the quiz_node_relationship table.
+      $sql = "SELECT * FROM {node} WHERE vid = %d";
+      $quiz_old = db_fetch_object(db_query($sql, $quiz->parent_vid));
+      drupal_execute('node_form', array('revision' => '1'), $quiz_old);
   		
-			// Update question vid in quiz_node_relationship table for each row that
-			// contains the question vid prior to the increment (new revision).
-  		$sql = "SELECT vid FROM {node} WHERE nid = %d";
-  		$quiz_new = db_fetch_object(db_query($sql, $quiz_old->nid));
-			$sql ="UPDATE {quiz_node_relationship} SET child_vid = %d WHERE parent_vid = %d AND child_vid = %d";
-			db_query($sql, $node->vid, $quiz_new->vid, $node->old_vid);
-  	}
+      // Update question vid in quiz_node_relationship table for each row that
+      // contains the question vid prior to the increment (new revision).
+      $sql = "SELECT vid FROM {node} WHERE nid = %d";
+      $quiz_new = db_fetch_object(db_query($sql, $quiz_old->nid));
+      $sql ="UPDATE {quiz_node_relationship} SET child_vid = %d WHERE parent_vid = %d AND child_vid = %d";
+      db_query($sql, $node->vid, $quiz_new->vid, $node->old_vid);
+    }
   }
 }
 
@@ -677,7 +677,7 @@ function multichoice_get_report($nid, $vid, $rid) {
                      "LEFT JOIN quiz_multichoice_answers ma USING (nid, vid)" .
                      "WHERE nid = %d AND vid = %d", $rid, $rid, $nid, $vid);
   if ($result) {
-    $question = new StdClass();
+    $question = new stdClass();
     while ($next_row = db_fetch_array($result)) {
       $row = $next_row;
       $question->answers[$row['answer_id']] = $row;
@@ -805,7 +805,7 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
     $innerheader[] = '&nbsp;';
   }
   
-  foreach($question->answers as $aid => $answer) {
+  foreach ($question->answers as $aid => $answer) {
     $cols = array();
     
     $cols[] = $answer['answer'];
@@ -824,7 +824,7 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
 }
 
 function theme_multichoice_feedback($quiz, $report) {
-  $output = '<span class="quiz-summary-text">' . $report->body . '</span><br />';
+  $output = '<span class="quiz-summary-text">'. $report->body .'</span><br />';
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
       $answers[] = $answer['answer'];
@@ -835,17 +835,17 @@ function theme_multichoice_feedback($quiz, $report) {
     }
   }
   
-  $output .= '<span class="quiz-summary-header">Your Answer(s):</span> <span class="quiz-summary-text">' . implode(', ', $answers) . '</span>';
-  if($answer['feedback']) {
-    $output .= '<br /><span class="quiz-summary-text">' . implode(',', $feedbacks) . '</span>';
+  $output .= '<span class="quiz-summary-header">Your Answer(s):</span> <span class="quiz-summary-text">'. implode(', ', $answers) .'</span>';
+  if ($answer['feedback']) {
+    $output .= '<br /><span class="quiz-summary-text">'. implode(',', $feedbacks) .'</span>';
   }
   $output .= '<br />';
   if ($report->correct) {
     $output .= "You're right!";
   }
   else {
-    $output .= "Sorry!<br>";
-    $output .= "Correct Answer(s): ".implode(',',$corrects);
+    $output .= "Sorry!<br />";
+    $output .= "Correct Answer(s): ". implode(',', $corrects);
   }
   return $output;
 }
@@ -885,5 +885,5 @@ function theme_multichoice_generate_title($node) {
     $shortstring = substr($shortstring, 0, $breakpoint);
   }
   
-  return $title.$shortstring;
+  return $title . $shortstring;
 }

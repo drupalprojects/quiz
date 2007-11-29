@@ -33,7 +33,7 @@ define('QUIZ_FEEDBACK_NEVER',           2);
  * get an array of feedback options
  * @return array of feedback options
  */
-function _quiz_get_feedback_options(){
+function _quiz_get_feedback_options() {
   return array(QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)), 
                QUIZ_FEEDBACK_QUESTION => t('After each question'), 
                QUIZ_FEEDBACK_NEVER => t('Do not show'),
@@ -101,7 +101,7 @@ function quiz_menu($may_cache) {
     $items[] = array(
       'path' => 'admin/settings/quiz',
       'title' => t('@quiz Configuration', array('@quiz' => QUIZ_NAME)),
-      'description' => t('Describes what the settings generally do.'),
+      'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
       'callback' => 'drupal_get_form',
       'callback arguments' => array('quiz_admin_settings'),
       'access' => user_access(QUIZ_PERM_ADMIN_CONFIG),
@@ -124,27 +124,27 @@ function quiz_menu($may_cache) {
   }
   else {
     drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
-      if (arg(0) == 'node' && is_numeric(arg(1))) {
-        $node = node_load(arg(1));
-        if ($node->type == 'quiz') {
+    if (arg(0) == 'node' && is_numeric(arg(1))) {
+      $node = node_load(arg(1));
+      if ($node->type == 'quiz') {
   
-          // Menu item for creating adding questions to quiz
-          $items[] = array(
-            'path' => 'node/'. arg(1) .'/questions',
-            'title' => t('Manage questions'),
-            'callback' => 'quiz_questions',
-            'access' => user_access('create quiz'),
-            'type' => MENU_LOCAL_TASK,
-          );
+        // Menu item for creating adding questions to quiz
+        $items[] = array(
+          'path' => 'node/'. arg(1) .'/questions',
+          'title' => t('Manage questions'),
+          'callback' => 'quiz_questions',
+          'access' => user_access('create quiz'),
+          'type' => MENU_LOCAL_TASK,
+        );
 
-          // Menu item for quiz taking interface
-          $items[] = array(
-            'path' => 'node/'. arg(1) .'/quiz/start',
-            'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
-            'callback' => 'quiz_take_quiz',
-            'access' => _quiz_status_access($node),
-            'type' => MENU_LOCAL_TASK,
-          );
+        // Menu item for quiz taking interface
+        $items[] = array(
+          'path' => 'node/'. arg(1) .'/quiz/start',
+          'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
+          'callback' => 'quiz_take_quiz',
+          'access' => _quiz_status_access($node),
+          'type' => MENU_LOCAL_TASK,
+        );
       }
     }
     else {
@@ -177,8 +177,8 @@ function quiz_menu($may_cache) {
         'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
         'callback' => 'quiz_admin_result_delete',
         'access' => user_access('administer quiz'),
-        'type' => MENU_CALLBACK);
-
+        'type' => MENU_CALLBACK
+      );
     }
   }
 
@@ -193,7 +193,7 @@ function quiz_form(&$node) {
     '#type' => 'textfield',
     '#title' => t('Title'),
     '#default_value' => $node->title,
-    '#description' => t('The name of the @quiz', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
 
@@ -325,17 +325,17 @@ function quiz_form(&$node) {
       '#maxlength' => 40,
       '#size' => 40,
     );
-    $form['resultoptions'][$i]['option_start'] = array (
+    $form['resultoptions'][$i]['option_start'] = array(
       '#type' => 'textfield',
       '#title' => t('Percentage Start Range'),
-      '#description' => 'Show this result for scored quizzes in this range. Leave blank for personality quizzes.',
+      '#description' => t('Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes.'),
       '#default_value' => $option['option_start'],
       '#size' => 5,
     );
-    $form['resultoptions'][$i]['option_end'] = array (
+    $form['resultoptions'][$i]['option_end'] = array(
       '#type' => 'textfield',
       '#title' => t('Percentage End Range'),
-      '#description' => 'Show this result for scored quizzes in this range. Leave blank for personality quizzes.',
+      '#description' => t('Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes.'),
       '#default_value' => $option['option_end'],
       '#size' => 5,
     );
@@ -450,7 +450,7 @@ function quiz_validate($node) {
       if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
       
         // check for a number 0-100
-        foreach(array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
+        foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
           if (!is_numeric($option[$bound])) {
             form_set_error($bound, t('The range %start value must be a number between 0% and 100%.', array('%start' => $bound_text))); 
           }    
@@ -470,7 +470,7 @@ function quiz_validate($node) {
         // check that range doesn't collide with any other range
         $option_range = range($option['option_start'], $option['option_end']);
         if ($intersect = array_intersect($taken_values, $option_range)) {
-          form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',',$intersect))));
+          form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
         } 
         else {
           $taken_values = array_merge($taken_values, $option_range);
@@ -525,7 +525,7 @@ function quiz_insert($node) {
  */
 function _quiz_insert_resultoptions($node) {
   foreach ($node->resultoptions as $option) {
-    if($option['option_name']) {
+    if ($option['option_name']) {
       $option['nid'] = $node->nid;
       $option['vid'] = $node->vid;
       _quiz_insert_result_option($option);
@@ -539,17 +539,17 @@ function _quiz_insert_resultoptions($node) {
  */
 function _quiz_insert_result_option($option) {
   if (empty($option['option_id'])) {
-    $option['option_id'] = db_next_id('{quiz_node_result_options}' . '_option_id');
+    $option['option_id'] = db_next_id('{quiz_node_result_options}'.'_option_id');
     $sql = "INSERT INTO {quiz_node_result_options} (nid, vid, option_id, option_name, option_summary, option_start, option_end)".
            " VALUES(%d, %d, %d, '%s', '%s', %d, %d)";
-    $values = array ($option['nid'],
-                     $option['vid'],
-                     $option['option_id'],                       
-                     $option['option_name'],
-                     $option['option_summary'],
-                     $option['option_start'],
-                     $option['option_end'],
-                     );
+    $values = array($option['nid'],
+                    $option['vid'],
+                    $option['option_id'],
+                    $option['option_name'],
+                    $option['option_summary'],
+                    $option['option_start'],
+                    $option['option_end'],
+                    );
     db_query($sql, $values);
   }
 }
@@ -610,13 +610,14 @@ function _quiz_update_resultoptions($node) {
       // update an existing result option
       $sql = "UPDATE {quiz_node_result_options} SET option_name='%s', option_summary='%s', option_start = %d, " .
              " option_end = %d WHERE nid=%d AND vid=%d AND option_id=%d";
-      $values = array ($option['option_name'],
-                       $option['option_summary'],
-                       $option['option_start'],
-                       $option['option_end'],
-                       $node->nid,
-                       $node->vid,
-                       $option['option_id'],);
+      $values = array($option['option_name'],
+                      $option['option_summary'],
+                      $option['option_start'],
+                      $option['option_end'],
+                      $node->nid,
+                      $node->vid,
+                      $option['option_id'],
+                      );
     
       db_query($sql, $values);
     }
@@ -855,7 +856,7 @@ function quiz_take_quiz() {
      if ($quiz = node_load(arg(1))) {
         // if anonymous user and no unique hash, refresh with a unique string to prevent caching
         if (!$user->uid && arg(4) == NULL) {
-          drupal_goto('node/' . $quiz->nid . '/quiz/start/' . md5(mt_rand() . time()));
+          drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
         }
 
        if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
@@ -901,7 +902,7 @@ function quiz_take_quiz() {
           }
           // if anonymous user, refresh url with unique hash to prevent caching
           if (!$user->uid) {
-            drupal_goto('node/' . $quiz->nid . '/quiz/start/' . md5(mt_rand() . time()));
+            drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
           }
         }
       }
@@ -993,7 +994,7 @@ function quiz_get_feedback($quiz, $report) {
 function quiz_get_answers($answers, $tried) {
   $selected = array();
   if (is_array($answers)) {
-    foreach($answers as $key=>$answer) {
+    foreach ($answers as $key => $answer) {
       if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
         $selected[] = $answer;
         //Correct answer was selected, so lets take that out the tried list
@@ -1038,7 +1039,7 @@ function quiz_get_corrects($answers) {
  * @return
  *   Filtered summary text or null if we are not displaying any summary
  */
-function _quiz_get_summary_text($quiz, $score){
+function _quiz_get_summary_text($quiz, $score) {
 
   if ($score['result_option']) {
     // unscored quiz, return the proper result option
@@ -1057,7 +1058,7 @@ function _quiz_get_summary_text($quiz, $score){
     if ($admin) {
       $summary = t('The user passed this quiz.');      
     }
-    else if(trim($quiz->summary_pass) != ''){
+    else if (trim($quiz->summary_pass) != '') {
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format);
     }
   } 
@@ -1066,11 +1067,11 @@ function _quiz_get_summary_text($quiz, $score){
     // If we are coming from the admin view page 
     // only show a summary if we are using pass / fail.
     if ($admin) {
-      if ($quiz->pass_rate > 0){
+      if ($quiz->pass_rate > 0) {
         $summary = t('The user failed this quiz.');
       }
     }
-    else if(trim($quiz->summary_pass) != ''){
+    else if (trim($quiz->summary_pass) != '') {
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format);
     }
   }
@@ -1085,7 +1086,7 @@ function _quiz_get_summary_text($quiz, $score){
  * @return summary text for the user's score
  */
 function _quiz_pick_result_option($qnid, $qvid, $score) {
-  return db_result(db_query('SELECT option_summary FROM {quiz_node_result_options} WHERE nid = %d AND vid = %d AND %d BETWEEN option_start AND option_end',$qnid, $qvid, $score));
+  return db_result(db_query('SELECT option_summary FROM {quiz_node_result_options} WHERE nid = %d AND vid = %d AND %d BETWEEN option_start AND option_end', $qnid, $qvid, $score));
 }
 
 /**
@@ -1244,8 +1245,8 @@ function _quiz_get_random_questions($num_random, $tid) {
       $result = db_query_range("SELECT n.nid, n.vid " .
                                "FROM {node} n " .
                                "INNER JOIN {term_node} tn USING (nid)".
-                               "WHERE n.status = 1 AND tn.tid IN ($term_ids) " .
-                               "AND n.type IN ('" . implode("','", _quiz_get_question_types()) . "') " .
+                               "WHERE n.status = 1 AND tn.tid IN ($term_ids) ".
+                               "AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ".
                                "ORDER BY RAND()", 0, $num_random);
     }
     else {
@@ -1275,7 +1276,32 @@ function quiz_help($section) {
   <li>Create a series of questions</li>
   <li>Create a quiz based on the series of questions</li>
 </ol>
-<p>Also note that for anyone but the site administrator, creating quizzes requires the <strong>create quiz</strong> privilege, and creating questions requires the <strong>administer <em>question type</em></strong> privilege. These settings can be configured in <a href="@admin-access">Administer >> User management >> Access control</a>.</p>
+    <h4>Setting Quiz Permissions</h4>
+    <p>The quiz module and included multichoice module both have a plethora of permission options.<br />Unless you take care setting your permissions, the quiz module might not do everything you want it to do.</p>
+    <h5><strong><a href="@admin-access#module-quiz">Quiz Permissions</a></strong></h5>
+    <dl><dt><strong>access quiz</strong></dt>
+    <dd>allows users to take quizzes</dd>
+    <dt><strong>administer quiz</strong></dt>
+    <dd>allows users to edit quizzes</dd>
+    <dt><strong>administer quiz configuration</strong></dt>
+    <dd>allows users to use global admin settings, as well as override userresults if they don\'t have that permission. Can also delete quizzes</dd>
+    <dt><strong>create quiz</strong></dt>
+    <dd>Can create a new quiz</dd>
+    <dt><strong>user results</strong></dt>
+    <dd>Can view other user\'s results.</dd></dl>
+    <h5><strong><a href="@admin-access#module-multichoice">Multichoice Permissions</a></strong></h5>
+    <dl><dt><strong>allow any number of answers</strong></dt>
+    <dd>can submit questions with more than one correct answer.</dd>
+    <dt><strong>allow feedback</strong></dt>
+    <dd>Can create feedback when creating a new multichoice question.</dd>
+    <dt><strong>allow multiple correct answers</strong></dt>
+    <dd></dd>
+    <dt><strong>allow user titles</strong></dt>
+    <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>
+    <dt><strong>create multichoice</strong></dt>
+    <dd>users can create multichoice questions</dd>
+    <dt><strong>edit own multichoice</strong></dt>
+    <dd>can edit their own multi-choice questions.</dd></dl>
 <h4>Setting up a vocabulary</h4>
 <ol>
   <li>If not already enabled, go to the <a href="@admin-modules">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
@@ -1337,8 +1363,6 @@ function quiz_help($section) {
       <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>
       <dt><strong>Taxonomy selection</strong></dt>
       <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>
-      <dt><strong>Number of questions</strong></dt>
-      <dd>Total number of questions on quiz.</dd>
       <dt><strong>Shuffle questions</strong></dt>
       <dd>Whether or not to shuffle (randomize) the questions.</dd>
       <dt><strong>Number of takes</strong></dt>
@@ -1606,7 +1630,7 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
   $questions = array();
   
   if (count($types)) {
-    $where_sql = "AND question.type IN ('" . implode("','", $types) . "')";
+    $where_sql = "AND question.type IN ('". implode("','", $types) ."')";
   }
 
   $result = db_query('
@@ -1618,8 +1642,8 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
       (SELECT DISTINCT qnr.child_vid
       FROM {quiz_node_relationship} qnr
       WHERE qnr.parent_vid = %d
-      AND qnr.question_status != ' . QUESTION_NEVER . '))
-    ' . $where_sql, $quiz_vid
+      AND qnr.question_status != '. QUESTION_NEVER .'))
+    '. $where_sql, $quiz_vid
   );
 
   // Create questions array.
@@ -1797,7 +1821,7 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
     $child_vid = $questions_in_db[$nid]->vid;
     $sql =
       "UPDATE {quiz_node_relationship} SET question_status = %d "
-      . "WHERE parent_vid = (SELECT src.vid FROM {node} AS src WHERE src.nid = %d) AND parent_nid = %d AND child_vid = %d";
+      ."WHERE parent_vid = (SELECT src.vid FROM {node} AS src WHERE src.nid = %d) AND parent_nid = %d AND child_vid = %d";
     $result = db_query($sql, $status, $quiz->nid, $quiz->nid, $child_vid);
     
     if (!$result) {
@@ -1825,7 +1849,7 @@ function quiz_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Display pass/fail options in the @quiz form', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_use_passfail', 1),
-    '#description' => t('Check this to display the pass/fail options in the quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.'), 
+    '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)), 
   );
   $form['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
@@ -1852,10 +1876,10 @@ function quiz_settings_form_validate($form_id, $form_values) {
   }
   if (!is_numeric($form_values['quiz_default_close']) || $form_values['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
-  } 
+  }
   if (!is_numeric($form_values['quiz_default_pass_rate'])) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
-  }  
+  }
   if ($form_values['quiz_default_pass_rate'] > 100) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
   }
@@ -2005,11 +2029,13 @@ function _quiz_availability($node) {
     // the quiz is open
     if ($node->quiz_open > time()) {
       $status = 'future';      
+    }
     // the quiz is currently closed but will open in the future
-    } elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
+    elseif (($node->quiz_open < time()) && ($node->quiz_close > time())) {
       $status = 'open';      
+    }
     // the quiz was open and is now closed
-    } else {
+    else {
       $status = 'closed';
     }
   }
@@ -2375,7 +2401,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
   foreach ($questions as $question) {
     $cols = array();
     // Ask each question to render a themed report of how the user did
-    $cols[] = array('data' => theme($question->type . '_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');
+    $cols[] = array('data' => theme($question->type .'_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');
 
     // Get the score result for each question only if it's a scored quiz
     if ($showpoints) {
@@ -2401,7 +2427,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
  */
 function theme_quiz_question_feedback($quiz, $report) {
   $output = '<div class="quiz-summary-question">';
-  $output .= theme($report->type . '_feedback', $quiz, $report);
+  $output .= theme($report->type .'_feedback', $quiz, $report);
   $output .= '</div><br class="clear" />';
   return $output;
 }
