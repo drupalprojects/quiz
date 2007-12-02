@@ -136,6 +136,7 @@ function multichoice_form(&$node) {
     $form['multiple_answers'] = array(
       '#type' => 'checkbox',
       '#title' => t('Multiple answers'),
+      '#description' => t('Should the quiz-taker be allowed to select multiple correct answers?'),
       '#default_value' => $node->multiple_answers,
     );
   }
@@ -191,7 +192,7 @@ function multichoice_form(&$node) {
       if (user_access('allow multiple correct answers')) {
         $form['answers'][$i]['correct'] = array(
           '#type' => 'checkbox',
-          '#default_value' => $answers[$i]['points'],
+          '#default_value' => $answers[$i]['is_correct'],
         );
       }
     }
@@ -273,20 +274,6 @@ function _multichoice_find_correct($answers) {
 }
 
 /**
- * Implementation of hook_submit().
- */
-function multichoice_submit(&$node) {
-  if (!user_access('allow user titles') || empty($node->title)) {
-    // User is not allowed to set a title or they left it blank, so make one for them.
-    $node->title = theme('multichoice_generate_title', $node);
-  }
-  if (!user_access('allow multiple correct answers')) {
-    // Convert the select box to the old checkbox.
-    $node->answers[$node->correct]['correct'] = TRUE;
-  }
-}
-
-/**
  * Implementation of hook_validate().
  */
 function multichoice_validate(&$node) {
@@ -359,6 +346,20 @@ function multichoice_validate(&$node) {
                     t('You must have exactly @num answer choices. There are currently @answers answer choices.',
                     array('@num' => $required, '@answers' => $answers)));
     }
+  }
+}
+
+/**
+ * Implementation of hook_submit().
+ */
+function multichoice_submit(&$node) {
+  if (!user_access('allow user titles') || empty($node->title)) {
+    // User is not allowed to set a title or they left it blank, so make one for them.
+    $node->title = theme('multichoice_generate_title', $node);
+  }
+  if (!user_access('allow multiple correct answers')) {
+    // Convert the select box to the old checkbox.
+    $node->answers[$node->correct]['correct'] = TRUE;
   }
 }
 
