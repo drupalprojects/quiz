@@ -2,7 +2,12 @@
 // $Id$
 
 /**
+ * @file
  * This include file implements views functionality on behalf of quiz.module
+ */
+
+/**
+ * Implementation of hook_views_tables().
  */
 function quiz_views_tables() {
   $tables['quiz_node_results'] = array(
@@ -423,8 +428,6 @@ function quiz_views_arguments() {
   return $arguments;
 }
 
-
-
 /*function views_handler_arg_noq() {
   switch($op) {
     case 'summary':
@@ -437,7 +440,6 @@ function quiz_views_arguments() {
 
 /**
  * An argument handler for quiz_taker_uid
- *
  */
 function views_handler_arg_quiz_taker_uid($op, &$query, $argtype, $arg = '') {
   switch ($op) {
@@ -490,7 +492,7 @@ function views_handler_arg_quiz_taker_uid($op, &$query, $argtype, $arg = '') {
 }
 
 /**
- * Implementation of hook_default_views()
+ * Implementation of hook_default_views().
  */
 function quiz_views_default_views() {
   // quiz_results default view, this defaults to enabled, and only viewable by the head admin.
