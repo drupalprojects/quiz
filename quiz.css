@@ -1,8 +1,8 @@
 /* $Id$ */
 
 /*
-** Definitions that apply while taking the quiz
-*/
+ * Definitions that apply while taking the quiz.
+ */
 #quiz_progress {
   font-style: italic;
   font-size: 80%;
@@ -17,8 +17,8 @@ div.multichoice_answer_text p {
 }
 
 /*
-** Definitions that apply on the summary pages
-*/
+ * Definitions that apply on the summary pages.
+ */
 .quiz_question_bullet {
   font-weight: bold;
   font-size: 120%;
