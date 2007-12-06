@@ -155,15 +155,16 @@ function quiz_menu($may_cache) {
           'access' => user_access('create quiz'),
           'type' => MENU_LOCAL_TASK,
         );
-
-        // Menu item for quiz taking interface.
-        $items[] = array(
-          'path' => 'node/'. arg(1) .'/quiz/start',
-          'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
-          'callback' => 'quiz_take_quiz',
-          'access' => _quiz_status_access($node),
-          'type' => MENU_LOCAL_TASK,
-        );
+      if (user_access('administer quiz')) {
+          $items[] = array(
+            'path' => 'node/'. arg(1) .'/quiz/admin',
+            'title' => t('Quiz Admin', array('@quiz' => QUIZ_NAME)),
+            'callback' => 'theme_quiz_view',
+            'callback arguments' => array(node_load(arg(1))),
+            'access' => user_access('administer quiz'),
+            'type' => MENU_LOCAL_TASK,
+          );
+        }
       }
     }
     else {
@@ -686,14 +687,8 @@ function quiz_load($node) {
 
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser) {
-    $node = node_prepare($node, $teaser);
-    if (user_access('create quiz') || user_access('administer quiz') || user_access(QUIZ_PERM_ADMIN_CONFIG)) {
-      $theme = 'quiz_view';
-    }
-    else {
-      $theme = 'quiz_availability';
-    }
-    $node->content['body']['#value'] .= theme($theme , $node, $teaser, $page);
+    //load the questions in the view page
+    $node->content['body']['#value'] = quiz_take_quiz();
   }
   return $node;
 }
@@ -876,11 +871,6 @@ function quiz_take_quiz() {
   global $user;
   if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quiz')) {
     if ($quiz = node_load(arg(1))) {
-      // If anonymous user and no unique hash, refresh with a unique string to prevent caching.
-      if (!$user->uid && arg(4) == NULL) {
-        drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
-      }
-
       if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
         // First time running through quiz.
         if ($rid = quiz_start_actions($quiz)) {
@@ -922,7 +912,9 @@ function quiz_take_quiz() {
           }
           // If anonymous user, refresh url with unique hash to prevent caching.
           if (!$user->uid) {
-            drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
+            $rand_num = rand(0, 30000);
+            $query = md5($rand_num . time());
+			drupal_goto('node/' . $quiz->nid, 'time=' . $query);
           }
         }
       }
