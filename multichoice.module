@@ -505,20 +505,15 @@ function multichoice_load($node) {
  * Implementation of hook_view().
  */
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (user_access('create multichoice')) {
-    if (!$teaser) {
-      $mynode = node_prepare($node, $teaser);
-      $mynode->content['body'] = array('#value' => multichoice_render_question($node));
-      return $mynode;
-      //$node->body = multichoice_render_question($node);
-    }
-  }
-  else if ($teaser) {
+  if (!$teaser && user_access('create multichoice')) {
     $mynode = node_prepare($node, $teaser);
+    $mynode->content['body'] = array('#value'=> multichoice_render_question($node));
     return $mynode;
-    //$node->teaser = t('This is a quiz question, not to be viewed independently.');
-    //$node->body = $node->teaser; // we do not need Read more...
-  }
+  } 
+  else if ($teaser) {
+    $mynode = node_prepare($node,$teaser);
+    return $mynode;
+  } 
   else {
     drupal_access_denied();
   }
