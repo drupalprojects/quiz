@@ -2015,7 +2015,7 @@ function quiz_admin_result_delete_form_submit($form_id, $form_values) {
 function _quiz_get_answers($rid) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type FROM {quiz_node_results_answers} " .
-                  "LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid) WHERE result_id = %d", $rid);
+                  "LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid) WHERE result_id = %d ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     $questions[$line->question_nid] = module_invoke($line->type, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
