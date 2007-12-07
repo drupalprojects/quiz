@@ -79,7 +79,7 @@ function quiz_install() {
         released INTEGER UNSIGNED DEFAULT 0,
         score TINYINT NOT NULL DEFAULT 0,
         PRIMARY KEY(result_id)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");    
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
     
     /**
      * Information about a particular question in a result
@@ -107,12 +107,11 @@ function quiz_install() {
         option_start INTEGER UNSIGNED DEFAULT 0,
         option_end INTEGER UNSIGNED DEFAULT 0,
         PRIMARY KEY(option_id)
-      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");        
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
     
       break;
 
     case 'pgsql':
-  
       break;
   }
 }
