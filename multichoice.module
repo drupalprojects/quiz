@@ -497,7 +497,7 @@ function multichoice_load($node) {
 
   $additions->answers = $answers;
   // Just check for multiple answers for now.
-  $additions->multiple_answers = $additions->properties['number_of_questions'] > 1 ? 1 : 0; 
+  $additions->multiple_answers = $additions->properties['number_of_answers'] > 1 ? 1 : 0; 
   return $additions;
 }
 
