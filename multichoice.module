@@ -507,11 +507,11 @@ function multichoice_load($node) {
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create multichoice')) {
     $mynode = node_prepare($node, $teaser);
-    $mynode->content['body'] = array('#value'=> multichoice_render_question($node));
+    $mynode->content['body'] = array('#value' => multichoice_render_question($node));
     return $mynode;
   } 
   else if ($teaser) {
-    $mynode = node_prepare($node,$teaser);
+    $mynode = node_prepare($node, $teaser);
     return $mynode;
   } 
   else {

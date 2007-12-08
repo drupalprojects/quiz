@@ -38,7 +38,7 @@ function quiz_views_tables() {
           ),
         ),
       ),
-	  'quiz_result_actions' => array(
+      'quiz_result_actions' => array(
         'field' => 'result_id',
         'name' => t('Quiz Result: Actions'),
         'sortable' => TRUE,
@@ -52,7 +52,7 @@ function quiz_views_tables() {
             'adminview' => 'As admin view link',
             'admindelete' => 'As admin delete link',
           ),
-  	    ),
+        ),
       ),
       'time_start' => array(
         'name' => t('Quiz Result: Start Time'),
@@ -160,10 +160,10 @@ function quiz_views_tables() {
         'left' => array(
            'table' => 'quiz_node_results',
            'field' => 'uid',
-         ),
-         'right' => array(
-           'field' => 'uid',
-         ),
+        ),
+        'right' => array(
+          'field' => 'uid',
+        ),
       ),
       'fields' => array(
         'name' => array(
@@ -413,17 +413,17 @@ function quiz_views_arguments() {
 	 'handler' => 'views_handler_arg_noq',
 	 'help' => t('The Number of Questions Argument allows you to filter to nodes by the number of questions in the quiz.'),
   ),*/
-	$arguments['quiz_taker_uid'] = array(
-		'name' => t('Quiz Result: UID for Quiz Taker'),
-		'handler' => 'views_handler_arg_quiz_taker_uid',
-		'help' => t('Filter quiz results by quiz taker.'),
-		'option' => array(
+  $arguments['quiz_taker_uid'] = array(
+    'name' => t('Quiz Result: UID for Quiz Taker'),
+    'handler' => 'views_handler_arg_quiz_taker_uid',
+    'help' => t('Filter quiz results by quiz taker.'),
+    'option' => array(
       '#type' => 'select',
-			'#options' => array(
-				1 => t('Has taken quiz'),
-				0 => t('Has not taken quiz')
-			),
-		),
+      '#options' => array(
+        1 => t('Has taken quiz'),
+        0 => t('Has not taken quiz')
+      ),
+    ),
   );
   return $arguments;
 }
@@ -569,74 +569,74 @@ function quiz_views_default_views() {
   $view->requires = array(quiz_node_results, node, quiz_user);
   $views[$view->name] = $view;
   // myresults view
-	$view = new stdClass();
-	$view->name = 'myresults';
-	$view->description = t('Overrides default myresults with a more flexible user result page.');
-	$view->access = array(
-	  0 => '2',
-	);
-	$view->page = TRUE;
-	$view->page_empty = t('This user has not taken any quizzes.');
-	$view->page_empty_format = '1';
-	$view->page_type = 'table';
-	$view->url = 'user/$arg/myresults';
-	$view->use_pager = TRUE;
-	$view->nodes_per_page = '10';
-	$view->sort = array(
-    array (
+  $view = new stdClass();
+  $view->name = 'myresults';
+  $view->description = t('Overrides default myresults with a more flexible user result page.');
+  $view->access = array(
+    0 => '2',
+  );
+  $view->page = TRUE;
+  $view->page_empty = t('This user has not taken any quizzes.');
+  $view->page_empty_format = '1';
+  $view->page_type = 'table';
+  $view->url = 'user/$arg/myresults';
+  $view->use_pager = TRUE;
+  $view->nodes_per_page = '10';
+  $view->sort = array(
+    array(
       'tablename' => 'quiz_node_results',
       'field' => 'time_start',
       'sortorder' => 'ASC',
       'options' => 'normal',
     ),
-	);
-	$view->argument = array(
-		array(
-			'type' => 'quiz_taker_uid',
-			'argdefault' => '7',
-			'title' => t('%1\'s  Results'),
-			'options' => '1',
-		),
-	);
-	$view->field = array(
-		array(
-			'tablename' => 'node',
-			'field' => 'title',
-			'label' => t('Quiz Name'),
-			'handler' => 'views_handler_field_nodelink',
-			'sortable' => '1',
-			'defaultsort' => 'ASC',
-			'options' => 'link',
-		),
-		array(
-			'tablename' => 'quiz_node_results',
-			'field' => 'score',
-			'label' => t('Score'),
-		),
-		array(
-			'tablename' => 'quiz_node_results',
-			'field' => 'time_end',
-			'label' => t('Finished?'),
-			'handler' => 'views_handler_field_date_small',
-		),
-		array(
-			'tablename' => 'quiz_node_results',
-			'field' => 'quiz_result_actions',
-			'options' => 'onlylink',
-		),
-	);
-	$view->filter = array(
-		array(
-			'tablename' => 'node',
-			'field' => 'type',
-			'operator' => 'OR',
-			'value' => array(
-				0 => 'quiz',
-			),
-		),
-	);
-	$view->requires = array(quiz_node_results, node, quiz_user);
-	$views['myresults'] = $view;
+  );
+  $view->argument = array(
+    array(
+      'type' => 'quiz_taker_uid',
+      'argdefault' => '7',
+      'title' => t('%1\'s  Results'),
+      'options' => '1',
+    ),
+  );
+  $view->field = array(
+    array(
+      'tablename' => 'node',
+      'field' => 'title',
+      'label' => t('Quiz Name'),
+      'handler' => 'views_handler_field_nodelink',
+      'sortable' => '1',
+      'defaultsort' => 'ASC',
+      'options' => 'link',
+    ),
+    array(
+      'tablename' => 'quiz_node_results',
+      'field' => 'score',
+      'label' => t('Score'),
+    ),
+    array(
+      'tablename' => 'quiz_node_results',
+      'field' => 'time_end',
+      'label' => t('Finished?'),
+      'handler' => 'views_handler_field_date_small',
+    ),
+    array(
+      'tablename' => 'quiz_node_results',
+      'field' => 'quiz_result_actions',
+      'options' => 'onlylink',
+    ),
+  );
+  $view->filter = array(
+    array(
+      'tablename' => 'node',
+      'field' => 'type',
+      'operator' => 'OR',
+      'value' => array(
+        0 => 'quiz',
+      ),
+    ),
+  );
+  $view->requires = array(quiz_node_results, node, quiz_user);
+  $views['myresults'] = $view;
   return $views;
 }
 
