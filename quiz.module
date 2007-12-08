@@ -1035,7 +1035,7 @@ function quiz_get_answers($answers, $tried) {
 function quiz_get_corrects($answers) {
   if (is_array($answers)) {
     foreach ($answers as $answer) {
-      if ($answer['points'] > 0) {
+      if ($answer['is_correct'] > 0) {
         $corrects[] = $answer;
       }
     }

@@ -265,7 +265,7 @@ function multichoice_form(&$node) {
 function _multichoice_find_correct($answers) {
   if (is_array($answers)) {
     foreach ($answers as $id => $answer) {
-      if ($answer['points']) {
+      if ($answer['is_correct']) {
         return $id;
       }
     }
@@ -646,14 +646,14 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
     $cols = array();
 
     $cols[] = $answer['answer'];
-    if ($showpoints) $cols[] = (($answer['points'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
+    if ($showpoints) $cols[] = (($answer['is_correct'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
     $selected = (array_search($answer['answer_id'], $tried) !== FALSE);
     $cols[] = ($selected ? theme_multichoice_selected() : theme_multichoice_unselected());
     if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
 
     $rows[] = $cols;
   	
-    if ($answer['points'] > 0) {
+    if ($answer['is_correct'] > 0) {
       $correctanswers[] = $answer['answer_id'];
     }
   }
@@ -821,7 +821,7 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
     $cols = array();
     $cols[] = $answer['answer'];
     if ($showpoints) {
-      $cols[] = $answer['points'] ? theme_multichoice_selected() : theme_multichoice_unselected();
+      $cols[] = $answer['is_correct'] ? theme_multichoice_selected() : theme_multichoice_unselected();
     }
     $cols[] = $answer['user_answer'] ? theme_multichoice_selected() : theme_multichoice_unselected();
     $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '';
@@ -841,7 +841,7 @@ function theme_multichoice_feedback($quiz, $report) {
       $answers[] = $answer['answer'];
       $feedbacks[] = $answer['feedback'];
     }
-    if ($answer['points']) {
+    if ($answer['is_correct']) {
       $corrects[] = $answer['answer'];
     }
   }
