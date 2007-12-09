@@ -1151,10 +1151,6 @@ function quiz_start_actions($quiz) {
                                  "AND score >= pass_rate", $quiz->vid, $quiz->nid, $user->uid));
     if ($passed) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
-      // Allow quiz creators to test their quizzes.
-      if (!user_access('create quiz')) {
-        return FALSE;
-      }
     }
   }
 
