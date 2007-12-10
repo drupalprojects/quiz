@@ -1163,10 +1163,6 @@ function quiz_start_actions($quiz) {
                                   $quiz->nid, $quiz->vid, $user->uid));
     if ($times >= $quiz->takes) {
       drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
-      // Allow quiz creators to test their quizzes.
-      if (!user_access('create quiz')) {
-        return FALSE;
-      }
     }
   }
 
