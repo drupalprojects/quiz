@@ -136,26 +136,272 @@ function quiz_uninstall() {
   variable_del('quiz_default_pass_rate');
 }
 
-function quiz_update_1() {
+/**
+ * Implementation of hook_update_N().
+ *
+ */
+function quiz_update_2() {
   $ret = array();
-  
+  //Use db_update to display which queries were run
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      // add a result option to the answer table
-      $ret[] = update_sql("ALTER TABLE {quiz_question_answer} ADD result_option INTEGER UNSIGNED NULL");
-
-      // Create the result options table
-      $ret[] = update_sql("CREATE TABLE {quiz_result_options} (
-        nid INTEGER UNSIGNED NOT NULL,
-        option_id INTEGER UNSIGNED NOT NULL,
-        option_name VARCHAR(255) character set utf8 NOT NULL,
-        option_summary LONGTEXT character set utf8 NOT NULL,
-        option_start TINYINT UNSIGNED NULL,
-        option_end TINYINT UNSIGNED NULL,
-        PRIMARY KEY (nid, option_id)
+  	
+      /**
+       * Stores correct answers for multichoice quiz.
+       */
+      // Creates the quiz node user answers multichoice table.
+      $ret[] = update_sql("CREATE TABLE {quiz_multichoice_user_answers} (
+        question_nid INTEGER UNSIGNED NOT NULL,
+        question_vid INTEGER UNSIGNED NOT NULL,
+        result_id INTEGER UNSIGNED NOT NULL,
+        answer_id INTEGER UNSIGNED NOT NULL,
+        PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * Stores user answers for multichoice quiz.
+       */
+      // Creates the quiz node answers multichoice table.
+      $ret[] = update_sql("CREATE TABLE {quiz_multichoice_answers} (
+        answer_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        answer varchar(255) NOT NULL,
+        feedback LONGTEXT,
+        result_option INTEGER UNSIGNED DEFAULT 0,
+        is_correct TINYINT UNSIGNED DEFAULT 0,
+        PRIMARY KEY(answer_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * This connects all the quiz specific properties to the correct version of a quiz.
+       */
+      // Creates the quiz node properties table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_properties} (
+        property_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        vid INTEGER UNSIGNED NOT NULL,
+        nid INTEGER UNSIGNED NOT NULL,
+        number_of_random_questions TINYINT UNSIGNED DEFAULT 0 NOT NULL,
+        pass_rate TINYINT UNSIGNED NOT NULL,
+        summary_pass LONGTEXT,
+        summary_default LONGTEXT,
+        shuffle TINYINT UNSIGNED NOT NULL,
+        backwards_navigation TINYINT UNSIGNED NOT NULL,
+        feedback_time TINYINT UNSIGNED NOT NULL,
+        quiz_open INTEGER UNSIGNED DEFAULT 0,
+        quiz_close INTEGER UNSIGNED DEFAULT 0,
+        takes TINYINT UNSIGNED NOT NULL,
+        time_limit INTEGER UNSIGNED DEFAULT 0 NOT NULL,
+        quiz_always TINYINT NOT NULL default 0,
+        tid INTEGER UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY(property_id),
+        KEY vid (vid, nid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
+       * making the quiz question the child.
+       *
+       * The quiz_node_relationship table stores this relationship in a way that allows a quiz question to be 
+       * the child of multiple quizzes without losing version history.
+       *
+       * Future functionality will allow a quiz question to be a parent of another quiz question with the same
+       * data model.  This will make adaptive quiz functionality possible without redesign.
+       */
+      // Creates the quiz node relationship table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_relationship} (
+        parent_nid INTEGER UNSIGNED NOT NULL,
+        parent_vid INTEGER UNSIGNED NOT NULL,
+        child_nid INTEGER UNSIGNED NOT NULL,
+        child_vid INTEGER UNSIGNED NOT NULL,
+        question_status TINYINT UNSIGNED DEFAULT 1 NOT NULL,
+        PRIMARY KEY(parent_nid, parent_vid, child_nid, child_vid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * This connects all the quiz question specific properties to the correct version of a quiz question.
+       */
+      // Creates the quiz node question properties table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_question_properties} (
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        number_of_answers TINYINT UNSIGNED DEFAULT 1 NOT NULL
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * Quiz specific options concerning  availability and access to scores.
+       */
+      // Creates the quiz node results table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_results} (
+        result_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        uid INTEGER UNSIGNED NOT NULL,
+        time_start INTEGER UNSIGNED DEFAULT 0,
+        time_end INTEGER UNSIGNED DEFAULT 0,
+        released INTEGER UNSIGNED DEFAULT 0,
+        score TINYINT NOT NULL DEFAULT 0,
+        PRIMARY KEY(result_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+
+      /**
+       * Information about a particular question in a result
+       */
+      $ret[] = update_sql("CREATE TABLE {quiz_node_results_answers} (
+        result_id INT UNSIGNED NOT NULL ,
+        question_nid INT UNSIGNED NOT NULL ,
+        question_vid INT UNSIGNED NOT NULL ,
+        is_correct TINYINT UNSIGNED NOT NULL DEFAULT '0',
+        points_awarded TINYINT NOT NULL DEFAULT '0',
+        answer_timestamp INT UNSIGNED NOT NULL,
+        PRIMARY KEY(result_id, question_nid, question_vid)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+    
+      /**
+       * Allows custom feedback based on the results of a user completing a quiz.
+       */
+      // Creates the quiz node result options table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_result_options} (
+        option_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+        nid INTEGER UNSIGNED NOT NULL,
+        vid INTEGER UNSIGNED NOT NULL,
+        option_name VARCHAR(255) NOT NULL,
+        option_summary LONGTEXT,
+        option_start INTEGER UNSIGNED DEFAULT 0,
+        option_end INTEGER UNSIGNED DEFAULT 0,
+        PRIMARY KEY(option_id)
+      ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+      quiz_data_update_2();
       break;
   }
   return $ret;
+}
+
+/**
+ * Updates data from quiz 1.1.
+ *
+ */
+function quiz_data_update_2() {
+  $results = db_query("SELECT * FROM {quiz}");
+  while ($row = db_fetch_object($results)) {
+    $nid = $row->nid;
+    $number_of_random_questions = $row->number_of_questions;
+    $pass_rate = $row->pass_rate;
+    $summary_pass = $row->summary_pass;
+    $summary_default = $row->summary_default;
+    $shuffle = $row->shuffle;
+    $backwards_navigation = $row->backwards_navigation;
+    $feedback_time = $row->feedback_time;
+    $quiz_open = $row->quiz_open;
+    $quiz_close = $row->quiz_close;
+    $takes = $row->takes;
+    $time_limit = $row->time_limit;
+    $quiz_alaways = $row->quiz_always;
+    $node = node_load($nid);
+    $vid = $node->vid;
+    $tid = $node->tid;
+    $sql = "INSERT INTO {quiz_node_properties} ".
+           "(vid, nid, number_of_random_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, ".
+           "summary_pass, summary_default, quiz_always, feedback_time, tid) ".
+           "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
+    db_query($sql, $vid, $nid, $number_of_random_questions, $shuffle, $quiz_open, $quiz_close, $takes, 
+            $pass_rate, $summary_pass, $summary_default, $quiz_always, $feedback_time, $tid);
+  }
+  $results = db_query("SELECT * FROM {quiz_question_answer}");
+  while ($row = db_fetch_object($results)) {
+    $question_nid = $row->question_nid;
+    $answer = $row->answer;
+    $feedback = $row->feedback;
+    $points = $row->points;
+    $result_option = $row->result_option;
+    $node = node_load($question_nid);
+    $vid = $node->vid;
+    $is_correct = $points;
+    db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, result_option, is_correct) ".
+             "VALUES(%d, %d, '%s', '%s', %d, %d)", $question_nid, $vid, $answer, $feedback, $result_option, $is_correct);
+  }
+  $results = db_query("SELECT * FROM {quiz_questions}");
+  while ($row = db_fetch_object($results)) {  
+    $parent_nid = $row->quiz_nid;
+    $child_nid = $row->question_nid;
+    $parent = node_load($parent_nid);
+    $parent_vid = $parent->vid;
+    $child = node_load($child_nid);
+    $child_vid = $child->vid;
+    $question_status = $row->question_status;
+    db_query("INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) ".
+             "VALUES (%d, %d, %d, %d, %d)", $parent_nid, $parent_vid, $child_nid, $child_vid, $question_status);
+  }
+  $results = db_query("SELECT nid, properties FROM {quiz_question}");
+  while ($row = db_fetch_object($results)) { 
+    $count = 0;
+    $nid = $row->nid;
+    $count = (db_result(db_query("SELECT COUNT(aid) FROM {quiz_question_answer} WHERE question_nid = %d AND points = 1 ", $nid))); 
+    db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) ".
+             "VALUES (%d, %d, %d)", $nid, $vid, $count);
+  }
+  $results = db_query("SELECT * FROM {quiz_result}");
+  while ($row = db_fetch_object($results)) {
+    $rid = $row->rid;
+    $quiz_nid = $row->quiz_nid;
+    $quiz = node_load($quiz_nid);
+    $quiz_vid = $quiz->vid;
+    $uid = $row->uid;
+    $time_start = $row->time_start;
+    $time_end = $row->time_end;
+    $released = $row->released;
+    $score = $row->score;
+    db_query("INSERT INTO {quiz_node_results} (nid, vid, uid, time_start, time_end, released, score) ".
+             "VALUES (%d, %d, %d, %d, %d, %d, %d)", $nid, $vid, $uid, $time_start, $time_end, $released, $score);
+    $results2 = db_query("SELECT * FROM {quiz_question_results} WHERE result_rid=%d", $rid);
+    while ($row2 = db_fetch_object($results2)) {
+      $result_rid = $row2->result_rid;
+      $question_nid = $row2->question_nid;
+      $answer = $row2->answer;
+      $temp_answers = unserialize($answer);
+      $tried = $temp_answers['tried'][0];
+      foreach ($temp_answers['answers'] as $line) {
+        $aid = $line['aid'];
+        if ($aid == $tried) {
+          $question_nid = $line['question_nid'];
+          $question = node_load($question_nid);
+          $question_vid = $question->vid;
+          $is_correct = $line['points'];
+          $points_awarded = $line['points'];
+          $answer_timestamp = time();
+          db_query("INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id) ".
+                   "VALUES (%d, %d, %d, %d)", $question_nid, $question_vid, $rid, $aid);
+          db_query("INSERT INTO {quiz_node_results_answers} ".
+                   "(result_id, question_nid, question_vid, is_correct, points_awarded, answer_timestamp) ".
+                   "VALUES (%d, %d, %d, %d, %d, %d)",
+                  $rid, $question_nid, $question_vid, $is_correct, $points_awarded, $answer_timestamp);
+        } /* endif */
+      } /* end foreach */
+    } /* end while */
+  } /* end while */
+  $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '({quiz_multichoice_answers}_answer_id');
+  $results = db_fetch_object($select_questionanswer);
+  if ($results->id > 0) {
+    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
+    $value = $results->id + $old_value->id;
+    db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_multichoice_answers}_answer_id');
+  }
+  else {
+    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
+    $value = $old_value->id;
+    db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_multichoice_answers}_answer_id', $value);
+  }
+  $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_node_results}_result_id');
+  $results = db_fetch_object($select_questionanswer);
+  if ($results->id > 0) {
+    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
+    $value = $results->id + $old_value->id;
+    db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_node_results}_result_id');
+  }
+  else {
+    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
+    $value = $old_value->id;
+    db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_node_results}_result_id', $value);
+  }
 }
