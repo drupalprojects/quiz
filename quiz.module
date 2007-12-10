@@ -875,6 +875,16 @@ function quiz_take_quiz() {
       if (!$user->uid && arg(4) == NULL) {
         drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
       }
+      if ($user->uid && $quiz->takes != 0) {
+	    $times = db_num_rows(db_query("SELECT result_id " .
+	                                  "FROM {quiz_node_results} " .
+	                                  "WHERE nid = %d AND vid = %d AND uid = %d",
+	                                  $quiz->nid, $quiz->vid, $user->uid));
+	    if ($times >= $quiz->takes) {
+	      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
+	      return;
+	    }
+      }
 
       if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
         // First time running through quiz.
@@ -1152,17 +1162,6 @@ function quiz_start_actions($quiz) {
                                  "AND score >= pass_rate", $quiz->vid, $quiz->nid, $user->uid));
     if ($passed) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
-    }
-  }
-
-  // Validate number of takes if we have a registered user.
-  if ($user->uid && $quiz->takes != 0) {
-    $times = db_num_rows(db_query("SELECT result_id " .
-                                  "FROM {quiz_node_results} " .
-                                  "WHERE nid = %d AND vid = %d AND uid = %d",
-                                  $quiz->nid, $quiz->vid, $user->uid));
-    if ($times >= $quiz->takes) {
-      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
     }
   }
 
