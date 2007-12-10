@@ -886,7 +886,8 @@ function quiz_take_quiz() {
             return '';
           }
           if (count($questions) == 0) {
-            drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+            drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
+                               array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
             return '';
           }
           // Initialize session variables.
