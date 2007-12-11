@@ -664,8 +664,9 @@ function _quiz_update_resultoptions($node) {
 function quiz_delete($node) {
   // This first line should load all the vid's for the nid.
   db_query('DELETE FROM {quiz_node_properties} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
-  db_query('DELETE FROM {quiz_question_properties} WHERE nid = %d', $node->nid);
-  db_query('DELETE FROM {quiz_node_result_options} WHERE nid=%d', $node->nid);
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
+  db_query('DELETE FROM {quiz_node_results} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
+  db_query('DELETE FROM {quiz_node_result_options} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
 }
 
 /**
