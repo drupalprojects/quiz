@@ -6,6 +6,7 @@ Changes since quiz version 1.1
 - Added additional permission options.
 - Added feedback ranges
 - Added support for feedback options by category
+- Added support for backwards navigation
 - Questions on quiz now in groupings based on how they are placed within a quiz
 - Added support for revisions
 - Schema overhaul

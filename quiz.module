@@ -231,6 +231,13 @@ function quiz_form(&$node) {
     '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
     '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
+  
+  $form['backwards_navigation'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Backwards navigation'),
+    '#default_value' => $node->backwards_navigation,
+    '#description' => t('Whether to allow user to go back and revisit their answers'),
+  );
 
   $form['feedback_time'] = array(
     '#title' => t('Feedback Time'),
@@ -533,9 +540,10 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz_node_properties} " .
-         "(vid, nid, number_of_random_questions, shuffle, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid) " .
+         "(vid, nid, number_of_random_questions, shuffle, backwards_navigation, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid) " .
          "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->number_of_random_questions, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->tid);
+  db_query($sql, $node->vid, $node->nid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation,
+          $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->tid);
   _quiz_insert_resultoptions($node);
 }
 
@@ -600,6 +608,7 @@ function quiz_update($node) {
       UPDATE {quiz_node_properties} SET
         vid = %d,
         shuffle = %d,
+        backwards_navigation = %d,
         quiz_open = %d,
         quiz_close = %d,
         takes = %d,
@@ -612,7 +621,7 @@ function quiz_update($node) {
         vid = %d AND
         nid = %d
     ";
-    db_query($sql, $node->vid, $node->shuffle, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->vid, $node->nid);
+    db_query($sql, $node->vid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->vid, $node->nid);
   }
   _quiz_update_resultoptions($node);
 }
@@ -910,12 +919,19 @@ function quiz_take_quiz() {
         }
       }
 
+      if ($_POST['op'] == t('Back')) {
+        unset($_POST['tries']);
+        array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+      }
+
       // Check for answer submission.
       if ($_POST['op'] == t('Submit')) {
         if (!isset($_POST['tries'])) {
           drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
         }
         else {
+          unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+          $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
           $former_question = node_load(array('nid' => $former_question_array['nid']));
           $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
@@ -977,10 +993,19 @@ function quiz_take_quiz() {
  * Store a quiz question result.
  */
 function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
-  db_query("INSERT INTO {quiz_node_results_answers} " .
-          "(question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp) " .
-          "VALUES (%d, %d, %d, %d, %d, %d)",
-          $nid, $vid, $rid, $is_correct, ($is_correct) ? 1 : 0, time());
+  $result = db_query("SELECT result_id FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid);
+  if (db_num_rows($result)) {
+    db_query("UPDATE {quiz_node_results_answers} ".
+            "SET is_correct = %d, points_awarded = %d, answer_timestamp = %d " . 
+            "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
+            $is_correct, ($is_correct) ? 1 : 0, time(), $nid, $vid, $rid);
+  }
+  else {
+    db_query("INSERT INTO {quiz_node_results_answers} " .
+            "(question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp) " .
+            "VALUES (%d, %d, %d, %d, %d, %d)",
+            $nid, $vid, $rid, $is_correct, ($is_correct) ? 1 : 0, time());
+  }
 }
 
 /**
@@ -2272,7 +2297,7 @@ function theme_quiz_take_question($quiz, $question_node) {
   //Calculation for quiz progress bar.
   $number_of_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
   $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-
+  $question_node->question_number = $question_number;
   // Set the title here in case themers want to do something different.
   drupal_set_title(check_plain($quiz->title));
 

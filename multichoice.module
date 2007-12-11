@@ -557,6 +557,14 @@ function multichoice_render_question_form($node) {
     '#options' => $options,
     '#default_value' => -1,
   );
+  
+  $quiz = node_load(arg(1)); 
+  if ($quiz->backwards_navigation == 1 && $node->question_number) {
+    $form['back'] = array(
+      '#type' => 'submit',
+      '#value' => t('Back'),
+    );
+  }
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -612,9 +620,18 @@ function multichoice_evaluate_question($question, $rid = null) {
  *  The answer id.
  */
 function multichoice_store_answer($nid, $vid, $rid, $answer_id) {
-  db_query("INSERT INTO {quiz_multichoice_user_answers} " .
-           "(question_nid, question_vid, result_id, answer_id) " .
-           "VALUES (%d, %d, %d, %d)", $nid, $vid, $rid, $answer_id);
+  $result = db_query("SELECT result_id FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid);
+  if (db_num_rows($result)) {
+    db_query("UPDATE {quiz_multichoice_user_answers} " . 
+            "SET answer_id = %d " . 
+            "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
+            $answer_id, $nid, $vid, $rid);
+  }
+  else {
+    db_query("INSERT INTO {quiz_multichoice_user_answers} " .
+             "(question_nid, question_vid, result_id, answer_id) " .
+             "VALUES (%d, %d, %d, %d)", $nid, $vid, $rid, $answer_id);
+  }
 }
 
 /**
