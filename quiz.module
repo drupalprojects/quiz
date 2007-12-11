@@ -701,7 +701,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
     $node->content['body']['#value'] = quiz_take_quiz();
   }
   else {
-  	 $node = node_prepare($node, $teaser);
+    $node = node_prepare($node, $teaser);
   }
   return $node;
 }
