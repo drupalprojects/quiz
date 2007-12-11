@@ -876,14 +876,14 @@ function quiz_take_quiz() {
         drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
       }
       if ($user->uid && $quiz->takes != 0) {
-	    $times = db_num_rows(db_query("SELECT result_id " .
-	                                  "FROM {quiz_node_results} " .
-	                                  "WHERE nid = %d AND vid = %d AND uid = %d",
-	                                  $quiz->nid, $quiz->vid, $user->uid));
-	    if ($times >= $quiz->takes) {
-	      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
-	      return;
-	    }
+        $times = db_num_rows(db_query("SELECT result_id " .
+                                      "FROM {quiz_node_results} " .
+                                      "WHERE nid = %d AND vid = %d AND uid = %d",
+                                      $quiz->nid, $quiz->vid, $user->uid));
+        if ($times >= $quiz->takes) {
+          drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
+          return;
+        }
       }
 
       if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
@@ -897,7 +897,7 @@ function quiz_take_quiz() {
           }
           if (count($questions) == 0) {
             drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
-                               array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+                              array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
             return '';
           }
           // Initialize session variables.

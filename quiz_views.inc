@@ -18,7 +18,7 @@ function quiz_views_tables() {
       'left' => array(
         'table' => 'node',
         'field' => 'nid',
-       ),
+      ),
       'right' => array(
         'field' => 'nid',
       ),
