@@ -544,7 +544,7 @@ function multichoice_render_question_form($node) {
       unset($node->answers[$key]);
     }
     else {
-      $options[$answer['answer_id']] = '<div class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</div>';
+      $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
     }
   }
 
