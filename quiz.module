@@ -541,7 +541,7 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz_node_properties} " .
          "(vid, nid, number_of_random_questions, shuffle, backwards_navigation, quiz_open, quiz_close, takes, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid) " .
-         "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
+         "VALUES(%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
   db_query($sql, $node->vid, $node->nid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation,
           $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->tid);
   _quiz_insert_resultoptions($node);
