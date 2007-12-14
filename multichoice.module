@@ -698,12 +698,12 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
  */
 function multichoice_get_report($nid, $vid, $rid) {
   $result = db_query("SELECT *, " .
-                     "IFNULL((SELECT 1 FROM {quiz_multichoice_user_answers} ua WHERE question_nid = nid AND question_vid = vid AND result_id = %d AND ua.answer_id = ma.answer_id),0) as user_answer, " .
-                     "(SELECT is_correct FROM {quiz_node_results_answers} WHERE question_nid = nid AND question_vid = vid AND result_id = %d) as question_correct " .
-                     "FROM {node} " .
+                     "IFNULL((SELECT 1 FROM {quiz_multichoice_user_answers} ua WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d AND ua.answer_id = ma.answer_id),0) as user_answer, " .
+                     "(SELECT is_correct FROM {quiz_node_results_answers} WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d) as question_correct " .
+                     "FROM {node} n " .
                      "LEFT JOIN {node_revisions} USING (nid, vid) " .
-                     "LEFT JOIN {quiz_multichoice_answers} ma USING (nid, vid)" .
-                     "WHERE nid = %d AND vid = %d", $rid, $rid, $nid, $vid);
+                     "LEFT JOIN {quiz_multichoice_answers} ma USING (nid, vid) " .
+                     "WHERE n.nid = %d AND n.vid = %d", $rid, $rid, $nid, $vid);
   if ($result) {
     $question = new stdClass();
     while ($next_row = db_fetch_array($result)) {
