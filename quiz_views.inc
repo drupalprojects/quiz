@@ -507,7 +507,7 @@ function quiz_views_default_views() {
   $view->page_empty = t('There are no quiz results.');
   $view->page_empty_format = '1';
   $view->page_type = 'table';
-  $view->url = 'admin/quiz';
+  $view->url = 'admin/quiz/results';
   $view->use_pager = TRUE;
   $view->nodes_per_page = '25';
   $view->menu = TRUE;
