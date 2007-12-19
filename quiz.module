@@ -708,6 +708,8 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
 /**
  * Theme a message about the quiz's availability for quiz takers.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_availability($node) {
   $status = _quiz_availability($node);
@@ -729,6 +731,8 @@ function theme_quiz_availability($node) {
 
 /**
  * Theme the node view for quizzes.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $output = '';
@@ -2115,6 +2119,8 @@ function _quiz_status_access($node) {
  * 
  * @param $results
  *  As returned by _quiz_get_results().
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_admin($results) {
   $output = '';
@@ -2155,6 +2161,8 @@ function theme_quiz_admin($results) {
  *  An array of quiz information.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_get_user_results($results) {
   $output = '';
@@ -2189,6 +2197,8 @@ function theme_quiz_get_user_results($results) {
 
 /**
  * Theme the filtered question list.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_filtered_questions($form) {
   $quiz_id = is_numeric(arg(1)) ? arg(1) : NULL;
@@ -2223,6 +2233,8 @@ function theme_quiz_filtered_questions($form) {
  *  Array of question nodes.
  * @return
  *  HTML for a table.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_question_table($questions, $quiz_id = NULL) {
   $output = '';
@@ -2249,7 +2261,7 @@ function theme_quiz_question_table($questions, $quiz_id = NULL) {
 /**
  * Pass the correct mark to the theme so that theme authors can use an image.
  * 
- * TODO: A default image might be better here.
+ * @ingroup themeable
  */
 function theme_quiz_score_correct() {
   return theme('image', drupal_get_path('module', 'quiz') .'/images/correct.gif', t('correct'));
@@ -2258,7 +2270,7 @@ function theme_quiz_score_correct() {
 /**
  * Pass the incorrect mark to the theme so that theme authors can use an image.
  *
- * TODO: A default image might be better here.
+ * @ingroup themeable
  */
 function theme_quiz_score_incorrect() {
   return theme('image', drupal_get_path('module', 'quiz') .'/images/incorrect.gif', t('incorrect'));
@@ -2273,6 +2285,8 @@ function theme_quiz_score_incorrect() {
  *  The number of questions for this quiz as returned by quiz_get_number_of_questions().
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_progress($question_number, $num_of_question) {
   // Determine the percentage finished (not used, but left here for other implementations).
@@ -2297,6 +2311,8 @@ function theme_quiz_progress($question_number, $num_of_question) {
  *  The question node.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_take_question($quiz, $question_node) {
   //Calculation for quiz progress bar.
@@ -2326,6 +2342,8 @@ function theme_quiz_take_question($quiz, $question_node) {
  *  Filtered text of the summary.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
@@ -2356,6 +2374,8 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
  *  Filtered text of the summary.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
@@ -2384,6 +2404,8 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
  *  Filtered text of the summary.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
@@ -2410,6 +2432,8 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
  *  Binary flag for whether to show question feedback.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
   $header = array(t('Question Result(s)'), '');
@@ -2442,6 +2466,8 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
  *  User's response to previous question.
  * @return
  *  Themed html.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_question_feedback($quiz, $report) {
   $output = '<div class="quiz-summary-question">';
@@ -2452,6 +2478,8 @@ function theme_quiz_question_feedback($quiz, $report) {
 
 /**
  * Allow the option to theme the questions form.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_questions($form) {
   $output = '';
@@ -2464,6 +2492,8 @@ function theme_quiz_questions($form) {
  *
  * @return
  *  Themed html feedback.
+ * 
+ * @ingroup themeable
  */
 function theme_quiz_no_feedback() {
   return t('Thanks for taking the quiz!');

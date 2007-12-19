@@ -752,6 +752,8 @@ function multichoice_list_questions() {
  *
  * @return string
  *  HTML output.
+ * 
+ * @ingroup themeable
  */
 function theme_multichoice_form($form) {
   // Format table header.
@@ -796,7 +798,7 @@ function theme_multichoice_form($form) {
 /**
  * Theme a selection indicator for an answer.
  *
- * TODO: Default images would be nice...
+ * @ingroup themeable
  */
 function theme_multichoice_selected() {
   return theme_image(drupal_get_path('module', 'quiz') .'/images/selected.gif', t('selected'));
@@ -805,7 +807,7 @@ function theme_multichoice_selected() {
 /**
  * Theme an indicator that an answer is not selected or correct.
  *
- * TODO: Default images would be nice...
+ * @ingroup themeable
  */
 function theme_multichoice_unselected() {
   return theme_image(drupal_get_path('module', 'quiz') .'/images/unselected.gif', t('unselected'));
@@ -813,6 +815,8 @@ function theme_multichoice_unselected() {
 
 /**
  * Theme function for the multichoice form.
+ * 
+ * @ingroup themeable
  */
 function theme_multichoice_render_question_form($form) {
   $output = '';
@@ -822,6 +826,8 @@ function theme_multichoice_render_question_form($form) {
 
 /**
  * Theme a multichoice question report for quiz feedback.
+ * 
+ * @ingroup themeable
  */
 function theme_multichoice_report($question, $showpoints, $showfeedback) {
   // Build the question answers header (add blank space for IE).
@@ -850,7 +856,18 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
   $q_output .= theme('table', $innerheader, $rows) .'<br />';
   return $q_output;
 }
-
+/**
+ * Displays feedback for multichoice
+ *
+ * @param $quiz
+ *   The quiz node.
+ * @param $report
+ *   The report variables.
+ * @return $output
+ *   HTML output to be written to the screen.
+ * 
+ * @ingroup themeable
+ */
 function theme_multichoice_feedback($quiz, $report) {
   $output = '<span class="quiz-summary-text">'. $report->body .'</span><br />';
   foreach ($report->answers as $answer) {
@@ -890,6 +907,8 @@ function theme_multichoice_feedback($quiz, $report) {
  *  The question node to generate a title for.
  * @return
  *  A title string.
+ * 
+ * @ingroup themeable
  */
 function theme_multichoice_generate_title($node) {
   $title = '';
