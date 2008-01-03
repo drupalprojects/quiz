@@ -698,7 +698,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
  */
 function multichoice_get_report($nid, $vid, $rid) {
   $result = db_query("SELECT *, " .
-                     "IFNULL((SELECT 1 FROM {quiz_multichoice_user_answers} ua WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d AND ua.answer_id = ma.answer_id),0) as user_answer, " .
+                     "COALESCE((SELECT 1 FROM {quiz_multichoice_user_answers} ua WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d AND ua.answer_id = ma.answer_id),0) as user_answer, " .
                      "(SELECT is_correct FROM {quiz_node_results_answers} WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d) as question_correct " .
                      "FROM {node} n " .
                      "LEFT JOIN {node_revisions} USING (nid, vid) " .

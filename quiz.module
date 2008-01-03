@@ -679,7 +679,7 @@ function quiz_load($node) {
     SELECT nr.nid, qnr.question_status 
   FROM {quiz_node_relationship} qnr 
   INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
-  WHERE qnr.parent_vid = %d AND qnr.parent_nid', $quiz_vid, $node->nid);
+  WHERE qnr.parent_vid = %d AND qnr.parent_nid = %d', $quiz_vid, $node->nid);
   while ($question = db_fetch_object($results)) {
     $additions->status[$question->child_nid] = $question->status;
   }
@@ -853,10 +853,10 @@ function quiz_get_user_results() {
   global $user;
   $results = array();
   $dbresult = db_query("SELECT
-                          n.nid nid,
-                          n.title title,
-                          u.name name,
-                          qnrs.result_id result_id,
+                          n.nid as nid,
+                          n.title as title,
+                          u.name as name,
+                          qnrs.result_id as result_id,
                           qnrs.time_start,
                           qnrs.time_end
                         FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u
@@ -1257,7 +1257,7 @@ function quiz_build_question_list($quiz) {
   $questions = array();
 
   // Get required questions first.
-  $result = db_query("SELECT child_nid nid, child_vid vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
+  $result = db_query("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
   while ($question_node = db_fetch_array($result)) {
     $questions[] = $question_node;
   }
@@ -1305,7 +1305,7 @@ function _quiz_get_random_questions($num_random, $tid) {
     }
     else {
       // Select random question from assigned pool.
-      $result = db_query_range("SELECT child_nid nid, child_vid vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
+      $result = db_query_range("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
     }
     while ($question_node = db_fetch_array($result)) {
       $questions[] = $question_node;
@@ -1950,10 +1950,10 @@ function quiz_admin() {
 function _quiz_get_results($nid = '', $uid = 0) {
   $results = array();
   $args = array();
-  $sql = "SELECT n.nid nid,
-                 n.title title,
-                 u.name name,
-                 qnrs.result_id result_id,
+  $sql = "SELECT n.nid as nid,
+                 n.title as title,
+                 u.name as name,
+                 qnrs.result_id as result_id,
                  qnrs.time_start,
                  qnrs.time_end
           FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u

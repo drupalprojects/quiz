@@ -106,16 +106,122 @@ function quiz_install() {
           option_end INTEGER UNSIGNED DEFAULT 0,
           PRIMARY KEY(option_id)
         ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
-
-      // Default the "Show Author and Date" for quiz nodes to OFF.
-      $temp_array = variable_get('theme_settings', $default);
-      $temp_array['toggle_node_info_quiz'] = 0;
-      variable_set('theme_settings', $temp_array);
       break;
 
     case 'pgsql':
+      /**
+       * Connect all the quiz specific properties to the correct version of a quiz.
+       */
+        // Create the quiz node properties table
+        db_query("CREATE TABLE {quiz_node_properties} (
+          property_id SERIAL,
+          vid int_unsigned NOT NULL,
+          nid int_unsigned NOT NULL,
+          number_of_random_questions smallint_unsigned DEFAULT 0 NOT NULL,
+          pass_rate smallint_unsigned NOT NULL,
+          summary_pass TEXT,
+          summary_default TEXT,
+          shuffle smallint_unsigned NOT NULL,
+          backwards_navigation smallint_unsigned NOT NULL,
+          feedback_time smallint_unsigned NOT NULL,
+          quiz_open int_unsigned DEFAULT 0,
+          quiz_close int_unsigned DEFAULT 0,
+          takes smallint_unsigned NOT NULL,
+          time_limit int_unsigned DEFAULT 0 NOT NULL,
+          quiz_always smallint NOT NULL DEFAULT 0,
+          tid int_unsigned NOT NULL DEFAULT 0,
+          PRIMARY KEY(property_id)
+        );");
+        db_query("CREATE INDEX idx_{quiz_node_properties}_vidnid ON {quiz_node_properties}(vid, nid);");
+
+      /**
+       * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
+       * making the quiz question the child.
+       *
+       * The quiz_node_relationship table stores this relationship in a way that allows a quiz question to be
+       * the child of multiple quizzes without losing version history.
+       *
+       * Future functionality will allow a quiz question to be a parent of another quiz question with the same
+       * data model.  This will make adaptive quiz functionality possible without redesign.
+       */
+        // Create the quiz node relationship table
+        db_query("CREATE TABLE {quiz_node_relationship} (
+          parent_nid int_unsigned NOT NULL,
+          parent_vid int_unsigned NOT NULL,
+          child_nid int_unsigned NOT NULL,
+          child_vid int_unsigned NOT NULL,
+          question_status smallint_unsigned DEFAULT 1 NOT NULL,
+          PRIMARY KEY(parent_nid, parent_vid, child_nid, child_vid)
+        );");
+    
+      /**
+       * This connects all the quiz question specific properties to the correct version of a quiz question.
+       */
+        // Create the quiz node question properties table
+        db_query("CREATE TABLE {quiz_node_question_properties} (
+          nid int_unsigned NOT NULL,
+          vid int_unsigned NOT NULL,
+          number_of_answers smallint_unsigned DEFAULT 1 NOT NULL
+        );");
+    
+      /**
+       * Quiz specific options concerning  availability and access to scores.
+       */
+        // Create the quiz node results table
+        db_query("CREATE TABLE {quiz_node_results} (
+          result_id SERIAL,
+          nid int_unsigned NOT NULL,
+          vid int_unsigned NOT NULL,
+          uid int_unsigned NOT NULL,
+          time_start int_unsigned DEFAULT 0,
+          time_end int_unsigned DEFAULT 0,
+          released int_unsigned DEFAULT 0,
+          score smallint NOT NULL DEFAULT 0,
+          PRIMARY KEY(result_id)
+        );");
+    
+      /**
+       * Information about a particular question in a result
+       */
+        db_query("CREATE TABLE {quiz_node_results_answers} (
+          result_id int_unsigned NOT NULL ,
+          question_nid int_unsigned NOT NULL ,
+          question_vid int_unsigned NOT NULL ,
+          is_correct smallint_unsigned NOT NULL DEFAULT '0',
+          points_awarded smallint NOT NULL DEFAULT '0',
+          answer_timestamp int_unsigned NOT NULL,
+          PRIMARY KEY(result_id, question_nid, question_vid)
+        );");
+    
+      /**
+       * Allows custom feedback based on the results of a user completing a quiz.
+       */
+        // Create the quiz node result options table
+        db_query("CREATE TABLE {quiz_node_result_options} (
+          option_id SERIAL,
+          nid int_unsigned NOT NULL,
+          vid int_unsigned NOT NULL,
+          option_name VARCHAR(255) NOT NULL,
+          option_summary TEXT,
+          option_start int_unsigned DEFAULT 0,
+          option_end int_unsigned DEFAULT 0,
+          PRIMARY KEY(option_id)
+        );");
+
+        db_query("CREATE FUNCTION plus_bigint_smallint_unsigned(bigint,smallint_unsigned)
+          RETURNS bigint AS 'select $1 + $2::bigint'
+          LANGUAGE 'sql';");
+
+        db_query("CREATE OPERATOR + ( 
+          PROCEDURE = plus_bigint_smallint_unsigned, 
+          LEFTARG = bigint, 
+          RIGHTARG = smallint_unsigned );");
       break;
   }
+  // Default the "Show Author and Date" for quiz nodes to OFF.
+  $temp_array = variable_get('theme_settings', $default);
+  $temp_array['toggle_node_info_quiz'] = 0;
+  variable_set('theme_settings', $temp_array);
 }
 
 /**
@@ -129,8 +235,20 @@ function quiz_uninstall() {
   db_query('DROP TABLE {quiz_node_result_options}');
   db_query('DROP TABLE {quiz_node_results_answers}');
   
-  // delete from nodes and node_revisions
-  db_query('DELETE FROM node, node_revisions USING node LEFT JOIN node_revisions USING (nid) WHERE type IN ("quiz")');
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      // delete from nodes and node_revisions
+      db_query('DELETE FROM {node}, {node_revisions} USING {node} LEFT JOIN {node_revisions} USING (nid) WHERE type IN ("quiz")');
+      break;
+    case 'pgsql':
+      // delete from nodes and node_revisions
+      db_query("DELETE FROM {node_revisions} WHERE nid IN (SELECT nid FROM {node} WHERE type IN ('quiz'))");
+      db_query("DELETE FROM {node} WHERE type IN ('quiz')");
+      db_query("DROP OPERATOR + ( LEFTARG = bigint, RIGHTARG = smallint_unsigned );");
+      db_query("DROP FUNCTION plus_bigint_smallint_unsigned(bigint,smallint_unsigned);");
+      break;
+  }
 
   variable_del('quiz_name');
   variable_del('quiz_default_close');
