@@ -2,7 +2,7 @@ $Id$
 
 Changes since quiz version 1.1
 ------------
-- Added support for views 5.x-1.x
+- Added support for views 5.x-1.x via contrib module 'Quiz Views'
 - Added additional permission options.
 - Added feedback ranges
 - Added support for feedback options by category
