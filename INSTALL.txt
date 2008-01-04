@@ -6,8 +6,13 @@ Installation
 1. Copy the entire quiz/ folder into your modules directory.
 
 2. Log in to your site as an administrator, and go to the Administer >> Site building >> Modules
-   section. Enable both the Quiz module and at least one question type module 
+   section. Enable both the Quiz module and at least one question type module
    (for example, Multichoice).
+
+3. You can optionally install quiz views module for an enhanced UI
+
+   **NOTE: The permissions for views are handled seperately, each view must be configured for the
+   appropriate level of permission. 
 
    **NOTE: matching.module at this point is there only for testing purposes and 
    will not actually do anything. Please ignore it for now.**
