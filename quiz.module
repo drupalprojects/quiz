@@ -326,7 +326,12 @@ function quiz_form(&$node) {
 
   for ($i=0; $i < $num_options; $i++) {
     $option = (count($options) > 0) ? array_shift($options) : null; // grab each option in the array
-
+    $form['resultoptions'][$i] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Result Option ') . ($i + 1),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
     $form['resultoptions'][$i]['option_name'] = array(
       '#type' => 'textfield',
       '#title' => t('The name of the result'),
