@@ -286,7 +286,7 @@ function quiz_form(&$node) {
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
       '#default_value' => $node->pass_rate,
-      '#description' => t('Pass rate for the @quiz as a percentage score', array('@quiz' => QUIZ_NAME)),
+      '#description' => t('Pass rate for the @quiz as a percentage score. (For personality quiz enter 0, and use result options.)', array('@quiz' => QUIZ_NAME)),
       '#required' => FALSE,
     );
     $form['summaryoptions']['summary_pass'] = array(
