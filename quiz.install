@@ -245,7 +245,7 @@ function quiz_uninstall() {
       // delete from nodes and node_revisions
       db_query("DELETE FROM {node_revisions} WHERE nid IN (SELECT nid FROM {node} WHERE type IN ('quiz'))");
       db_query("DELETE FROM {node} WHERE type IN ('quiz')");
-      db_query("DROP OPERATOR + ( LEFTARG = bigint, RIGHTARG = smallint_unsigned );");
+      db_query("DROP OPERATOR + ( bigint, smallint_unsigned );");
       db_query("DROP FUNCTION plus_bigint_smallint_unsigned(bigint,smallint_unsigned);");
       break;
   }
@@ -394,6 +394,136 @@ function quiz_update_2() {
       ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
       quiz_data_update_2();
       break;
+      
+    case 'pgsql':
+  	
+      /**
+       * Stores correct answers for multichoice quiz.
+       */
+      // Creates the quiz node user answers multichoice table.
+      $ret[] = update_sql("CREATE TABLE {quiz_multichoice_user_answers} (
+        question_nid int_unsigned NOT NULL,
+        question_vid int_unsigned NOT NULL,
+        result_id int_unsigned NOT NULL,
+        answer_id int_unsigned NOT NULL,
+        PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
+      );");
+
+      /**
+       * Stores user answers for multichoice quiz.
+       */
+      // Creates the quiz node answers multichoice table.
+      $ret[] = update_sql("CREATE TABLE {quiz_multichoice_answers} (
+        answer_id SERIAL,
+        nid int_unsigned NOT NULL,
+        vid int_unsigned NOT NULL,
+        answer varchar(255) NOT NULL,
+        feedback text,
+        result_option int_unsigned DEFAULT 0,
+        is_correct smallint_unsigned DEFAULT 0,
+        PRIMARY KEY(answer_id)
+      );");
+
+      /**
+       * This connects all the quiz specific properties to the correct version of a quiz.
+       */
+      // Creates the quiz node properties table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_properties} (
+        property_id SERIAL,
+        vid int_unsigned NOT NULL,
+        nid int_unsigned NOT NULL,
+        number_of_random_questions smallint_unsigned DEFAULT 0 NOT NULL,
+        pass_rate smallint_unsigned NOT NULL,
+        summary_pass text,
+        summary_default text,
+        shuffle smallint_unsigned NOT NULL,
+        backwards_navigation smallint_unsigned NOT NULL,
+        feedback_time smallint_unsigned NOT NULL,
+        quiz_open int_unsigned DEFAULT 0,
+        quiz_close int_unsigned DEFAULT 0,
+        takes smallint_unsigned NOT NULL,
+        time_limit int_unsigned DEFAULT 0 NOT NULL,
+        quiz_always smallint NOT NULL default 0,
+        tid int_unsigned NOT NULL DEFAULT 0,
+        PRIMARY KEY(property_id)
+      );");
+      $ret[] = update_sql("CREATE INDEX idx_{quiz_node_properties}_vidnid ON {quiz_node_properties}(vid, nid);");
+
+      /**
+       * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
+       * making the quiz question the child.
+       *
+       * The quiz_node_relationship table stores this relationship in a way that allows a quiz question to be 
+       * the child of multiple quizzes without losing version history.
+       *
+       * Future functionality will allow a quiz question to be a parent of another quiz question with the same
+       * data model.  This will make adaptive quiz functionality possible without redesign.
+       */
+      // Creates the quiz node relationship table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_relationship} (
+        parent_nid int_unsigned NOT NULL,
+        parent_vid int_unsigned NOT NULL,
+        child_nid int_unsigned NOT NULL,
+        child_vid int_unsigned NOT NULL,
+        question_status smallint_unsigned DEFAULT 1 NOT NULL,
+        PRIMARY KEY(parent_nid, parent_vid, child_nid, child_vid)
+      );");
+
+      /**
+       * This connects all the quiz question specific properties to the correct version of a quiz question.
+       */
+      // Creates the quiz node question properties table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_question_properties} (
+        nid int_unsigned NOT NULL,
+        vid int_unsigned NOT NULL,
+        number_of_answers smallint_unsigned DEFAULT 1 NOT NULL
+      );");
+
+      /**
+       * Quiz specific options concerning  availability and access to scores.
+       */
+      // Creates the quiz node results table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_results} (
+        result_id SERIAL,
+        nid int_unsigned NOT NULL,
+        vid int_unsigned NOT NULL,
+        uid int_unsigned NOT NULL,
+        time_start int_unsigned DEFAULT 0,
+        time_end int_unsigned DEFAULT 0,
+        released int_unsigned DEFAULT 0,
+        score smallint NOT NULL DEFAULT 0,
+        PRIMARY KEY(result_id)
+      );");
+
+      /**
+       * Information about a particular question in a result
+       */
+      $ret[] = update_sql("CREATE TABLE {quiz_node_results_answers} (
+        result_id int_unsigned NOT NULL ,
+        question_nid int_unsigned NOT NULL ,
+        question_vid int_unsigned NOT NULL ,
+        is_correct smallint_unsigned NOT NULL DEFAULT '0',
+        points_awarded smallint NOT NULL DEFAULT '0',
+        answer_timestamp int_unsigned NOT NULL,
+        PRIMARY KEY(result_id, question_nid, question_vid)
+      );");
+    
+      /**
+       * Allows custom feedback based on the results of a user completing a quiz.
+       */
+      // Creates the quiz node result options table.
+      $ret[] = update_sql("CREATE TABLE {quiz_node_result_options} (
+        option_id SERIAL,
+        nid int_unsigned NOT NULL,
+        vid int_unsigned NOT NULL,
+        option_name VARCHAR(255) NOT NULL,
+        option_summary text,
+        option_start int_unsigned DEFAULT 0,
+        option_end int_unsigned DEFAULT 0,
+        PRIMARY KEY(option_id)
+      );");
+      quiz_data_update_2();
+      break;
   }
   return $ret;
 }
@@ -500,28 +630,60 @@ function quiz_data_update_2() {
       } /* end foreach */
     } /* end while */
   } /* end while */
-  $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '({quiz_multichoice_answers}_answer_id');
-  $results = db_fetch_object($select_questionanswer);
-  if ($results->id > 0) {
-    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
-    $value = $results->id + $old_value->id;
-    db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_multichoice_answers}_answer_id');
-  }
-  else {
-    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
-    $value = $old_value->id;
-    db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_multichoice_answers}_answer_id', $value);
-  }
-  $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_node_results}_result_id');
-  $results = db_fetch_object($select_questionanswer);
-  if ($results->id > 0) {
-    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
-    $value = $results->id + $old_value->id;
-    db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_node_results}_result_id');
-  }
-  else {
-    $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
-    $value = $old_value->id;
-    db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_node_results}_result_id', $value);
-  }
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '({quiz_multichoice_answers}_answer_id');
+      $results = db_fetch_object($select_questionanswer);
+      if ($results->id > 0) {
+        $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
+        $value = $results->id + $old_value->id;
+        db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_multichoice_answers}_answer_id');
+      }
+      else {
+        $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_question_answer}_aid'));
+        $value = $old_value->id;
+        db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_multichoice_answers}_answer_id', $value);
+      }
+      $select_questionanswer = db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_node_results}_result_id');
+      $results = db_fetch_object($select_questionanswer);
+      if ($results->id > 0) {
+        $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
+        $value = $results->id + $old_value->id;
+        db_query("UPDATE {sequences} SET id = %d, WHERE name = '%d'", $value, '{quiz_node_results}_result_id');
+      }
+      else {
+        $old_value = db_fetch_object(db_query("SELECT name,id FROM {sequences} WHERE name='%s'", '{quiz_results}_rid'));
+        $value = $old_value->id;
+        db_query("INSERT INTO {sequences} (name,id) VALUES('%s',%d)", '{quiz_node_results}_result_id', $value);
+      }
+      break;
+      
+    case 'pgsql':
+      // {quiz_multichoice_answers}_answer_id_seq
+      $select = db_query("SELECT max(answer_id) AS id FROM {quiz_multichoice_answers}");
+      $results = db_fetch_object($select);
+      if ($results->id > 0) {
+        db_query("SELECT setval('%s',%d)",'{quiz_multichoice_answers}_answer_id_seq', $results->id);
+      }
+      // {quiz_node_properties}_property_id_seq
+      $select = db_query("SELECT max(property_id) AS id FROM {quiz_node_properties}");
+      $results = db_fetch_object($select);
+      if ($results->id > 0) {
+        db_query("SELECT setval('%s',%d)",'{quiz_node_properties}_property_id_seq', $results->id);
+      }
+      // {quiz_node_result_options}_option_id_seq
+      $select = db_query("SELECT max(option_id) AS id FROM {quiz_node_result_options}");
+      $results = db_fetch_object($select);
+      if ($results->id > 0) {
+        db_query("SELECT setval('%s',%d)",'{quiz_node_result_options}_option_id_seq', $results->id);
+      }
+      // {quiz_node_results}_result_id_seq
+      $select = db_query("SELECT max(result_id) AS id FROM {quiz_node_results}");
+      $results = db_fetch_object($select);
+      if ($results->id > 0) {
+        db_query("SELECT setval('%s',%d)",'{quiz_node_results}_result_id_seq', $results->id);
+      }
+      break;
+  } /* end switch */      
 }
