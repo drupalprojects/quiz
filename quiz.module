@@ -1114,7 +1114,7 @@ function _quiz_get_summary_text($quiz, $score) {
       $summary = t('The user passed this quiz.');
     }
     else if (trim($quiz->summary_pass) != '') {
-      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format);
+      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format, FALSE);
     }
   }
   // If the user did not pass or we are not using pass/fail.
@@ -1127,7 +1127,7 @@ function _quiz_get_summary_text($quiz, $score) {
       }
     }
     else if (trim($quiz->summary_pass) != '') {
-      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format);
+      $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format, FALSE);
     }
   }
   return $summary;
