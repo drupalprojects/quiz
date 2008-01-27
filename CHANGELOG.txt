@@ -1,6 +1,11 @@
 $Id$
 
-Changes since quiz version 1.1
+version 5.x-2.0-beta2
+------------
+- Added pgsql update mechanism
+- Custom php is now executed when used with php filter in text summaries
+
+version 5.x-2.0-beta1
 ------------
 - Added support for views 5.x-1.x via contrib module 'Quiz Views'
 - Added additional permission options.
