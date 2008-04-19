@@ -547,7 +547,7 @@ function quiz_data_update_2() {
     $quiz_close = $row->quiz_close;
     $takes = $row->takes;
     $time_limit = $row->time_limit;
-    $quiz_alaways = $row->quiz_always;
+    $quiz_always = $row->quiz_always;
     $node = node_load($nid);
     $vid = $node->vid;
     $tid = $node->tid;
