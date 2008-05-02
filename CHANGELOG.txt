@@ -3,6 +3,7 @@ $Id$
 -----------
 5.x-2.x-dev
 -----------
+- Fixed a bug with multichoice answers not showing users choices correctly
 
 version 5.x-2.0-beta3
 ------------

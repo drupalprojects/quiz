@@ -597,9 +597,11 @@ function multichoice_evaluate_question($question, $rid = null) {
   // Unset $_POST, otherwise it tries to use the previous answers on the next page...
   unset($_POST['tries']);
 
+  $numanswers = db_query("SELECT count(answer_id) FROM {quiz_multichoice_answers} " .
+                      "WHERE nid = %d AND vid = %d AND is_correct = 1", $question->nid, $question->vid);
   if ($rid && !empty($tries)) {
     foreach ($tries as $answer_id) {
-      multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id);
+      multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id, $numanswers);
     }
   }
 
@@ -619,9 +621,9 @@ function multichoice_evaluate_question($question, $rid = null) {
  * @param $answer_id
  *  The answer id.
  */
-function multichoice_store_answer($nid, $vid, $rid, $answer_id) {
+function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers) {
   $result = db_query("SELECT result_id FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid);
-  if (db_num_rows($result)) {
+  if (db_num_rows($result)==$numanswers) {
     db_query("UPDATE {quiz_multichoice_user_answers} " . 
             "SET answer_id = %d " . 
             "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
@@ -650,7 +652,7 @@ function multichoice_calculate_result($nid, $vid, $tried) {
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
-  return ($correct_answers === $tried);
+  return (array_values($correct_answers) === array_values($tried));
 }
 
 // New singing and dancing one.
