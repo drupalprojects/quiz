@@ -1642,7 +1642,7 @@ function quiz_questions_form() {
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
-    '#title' => 'New Revision',
+    '#title' => t('New Revision'),
     '#description' => t('Allow question status changes to create a new revision of the quiz?'),
   );
 
