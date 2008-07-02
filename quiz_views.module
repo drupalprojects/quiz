@@ -237,7 +237,7 @@ function quiz_views_tables() {
         'handler' => views_handler_field_dates(),
         'help' => t('Display the start date of a quiz.'),
       ),
-      'quiz_closed' => array(
+      'quiz_close' => array(
         'name' => t('Quiz: End Time'),
         'sortable' => TRUE,
         'handler' => views_handler_field_dates(),
