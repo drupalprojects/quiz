@@ -664,25 +664,25 @@ function quiz_data_update_2() {
       $select = db_query("SELECT max(answer_id) AS id FROM {quiz_multichoice_answers}");
       $results = db_fetch_object($select);
       if ($results->id > 0) {
-        db_query("SELECT setval('%s',%d)",'{quiz_multichoice_answers}_answer_id_seq', $results->id);
+        db_query("SELECT setval('%s',%d)", '{quiz_multichoice_answers}_answer_id_seq', $results->id);
       }
       // {quiz_node_properties}_property_id_seq
       $select = db_query("SELECT max(property_id) AS id FROM {quiz_node_properties}");
       $results = db_fetch_object($select);
       if ($results->id > 0) {
-        db_query("SELECT setval('%s',%d)",'{quiz_node_properties}_property_id_seq', $results->id);
+        db_query("SELECT setval('%s',%d)", '{quiz_node_properties}_property_id_seq', $results->id);
       }
       // {quiz_node_result_options}_option_id_seq
       $select = db_query("SELECT max(option_id) AS id FROM {quiz_node_result_options}");
       $results = db_fetch_object($select);
       if ($results->id > 0) {
-        db_query("SELECT setval('%s',%d)",'{quiz_node_result_options}_option_id_seq', $results->id);
+        db_query("SELECT setval('%s',%d)", '{quiz_node_result_options}_option_id_seq', $results->id);
       }
       // {quiz_node_results}_result_id_seq
       $select = db_query("SELECT max(result_id) AS id FROM {quiz_node_results}");
       $results = db_fetch_object($select);
       if ($results->id > 0) {
-        db_query("SELECT setval('%s',%d)",'{quiz_node_results}_result_id_seq', $results->id);
+        db_query("SELECT setval('%s',%d)", '{quiz_node_results}_result_id_seq', $results->id);
       }
       break;
   } /* end switch */      
