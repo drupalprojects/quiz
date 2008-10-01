@@ -1,12 +1,12 @@
 $Id$
 
 -----------
-5.x-2.0-dev
+HEAD
 -----------
-
-changes since 5.x-2.0-beta2
-------------
-
+- Beginning migration to Drupal 6
+- updated to use schema api in quiz
+- Updated to use new (D6) theme system
+- Updated to use new (D6) menu system
 
 version 5.x-2.0-beta2
 ------------

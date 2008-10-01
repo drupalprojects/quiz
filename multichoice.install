@@ -2,98 +2,75 @@
 // $Id$
 
 /**
+ * @file
+ * Multichoice Install (a quiz question type)
+ */
+
+/**
  * Implementation of hook_install()
  */
 function multichoice_install() {
-  switch ($GLOBALS['db_type']) {
-    case 'mysql':
-    case 'mysqli':
-  	  /**
-  	   * Stores correct answers for multichoice quiz.
-  	   */
-        // Create the quiz node user answers multichoice table.
-        db_query("CREATE TABLE {quiz_multichoice_user_answers} (
-          question_nid INTEGER UNSIGNED NOT NULL,
-          question_vid INTEGER UNSIGNED NOT NULL,
-          result_id INTEGER UNSIGNED NOT NULL,
-          answer_id INTEGER UNSIGNED NOT NULL,
-          PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
-	  
-  	  /**
-  	   * Stores user answers for multichoice quiz.
-  	   */
-        // Create the quiz node answers multichoice table.
-        db_query("CREATE TABLE {quiz_multichoice_answers} (
-          answer_id INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
-          nid INTEGER UNSIGNED NOT NULL,
-          vid INTEGER UNSIGNED NOT NULL,
-          answer varchar(255) NOT NULL,
-          feedback LONGTEXT,
-          result_option INTEGER UNSIGNED DEFAULT 0,
-          is_correct TINYINT UNSIGNED DEFAULT 0,
-          PRIMARY KEY(answer_id)
-        ) /*!40100 DEFAULT CHARACTER SET utf8 */;");
+  drupal_install_schema('multichoice');
+}
 
-      break;
+/**
+ * Implementation of hook_schema().
+ */
+function multichoice_schema() {
+  /**
+   * Stores correct answers for multichoice quiz.
+   */
+  // Create the quiz node user answers multichoice table.
+  $schema['quiz_multichoice_user_answers'] = array(
+    'fields' => array(
+      'question_nid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'question_vid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'result_id' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'answer_id' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+    ),
+    'primary key' => array(
+      'result_id', 'question_nid', 'question_vid', 'answer_id',
+    ),
+  );
+	  
+  /**
+   * Stores user answers for multichoice quiz.
+   */
+  // Create the quiz node answers multichoice table.
+  $schema['quiz_multichoice_answers'] = array(
+    'fields' => array(
+      'answer_id' => array( 'type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'nid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'vid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'answer' => array( 'type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'feedback' => array( 'type' => 'text', 'length' => 65535),
+      'result_option' => array( 'type' => 'int', 'unsigned' => TRUE, 'default' => 0),
+	'is_correct' => array( 'type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0),
+    ),
+    'primary key' => array(
+      'answer_id',
+    ),
+  );	
 
-    case 'pgsql':
-  	  /**
-  	   * Stores correct answers for multichoice quiz.
-  	   */
-        // Create the quiz node user answers multichoice table.
-        db_query("CREATE TABLE {quiz_multichoice_user_answers} (
-          question_nid int_unsigned NOT NULL,
-          question_vid int_unsigned NOT NULL,
-          result_id int_unsigned NOT NULL,
-          answer_id int_unsigned NOT NULL,
-          PRIMARY KEY(result_id, question_nid, question_vid, answer_id)
-        );");
-	  
-  	  /**
-  	   * Stores user answers for multichoice quiz.
-  	   */
-        // Create the quiz node answers multichoice table.
-        db_query("CREATE TABLE {quiz_multichoice_answers} (
-          answer_id SERIAL,
-          nid int_unsigned NOT NULL,
-          vid int_unsigned NOT NULL,
-          answer varchar(255) NOT NULL,
-          feedback text,
-          result_option int_unsigned DEFAULT 0,
-          is_correct smallint_unsigned DEFAULT 0,
-          PRIMARY KEY(answer_id)
-        );");
-	
-      break;
-	  
-  }
   // Default the "Show Author and Date" for this question type to OFF.
-  $temp_array = variable_get('theme_settings', $default);
+  $temp_array = variable_get('theme_settings','' /*$default*/);
   $temp_array['toggle_node_info_multichoice'] = 0;
   variable_set('theme_settings', $temp_array);
+
+  return $schema;
 }
 
 /**
  * Implementation of hook_uninstall()
  */
 function multichoice_uninstall() {
-  // Remove the two tables we created for this module.
-  if (db_table_exists('quiz_multichoice_answers')) {
-    db_query('DROP TABLE {quiz_multichoice_answers}');
-  }
-  if (db_table_exists('quiz_multichoice_user_answers')) {
-    db_query('DROP TABLE {quiz_multichoice_user_answers}');
-  }
+  drupal_uninstall_schema('multichoice');
 
-  // Erase any saved variable settings from the database.
-  db_query("DELETE FROM {variable} WHERE name LIKE '%s%%'", 'multichoice_');
-  
   // Delete from nodes and node_revisions.
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      db_query('DELETE FROM node, node_revisions, quiz_node_question_properties USING node LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
+      db_query('DELETE FROM {node}, {node_revisions}, {quiz_node_question_properties} USING {node} LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
       break;
     case 'pgsql':
       db_query("DELETE FROM {quiz_node_question_properties} WHERE nid IN (SELECT nid FROM {node} WHERE type IN ('multichoice'))");

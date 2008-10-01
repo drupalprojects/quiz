@@ -60,8 +60,7 @@ function quiz_perm() {
 /**
  * Implementation of hook_access().
  */
-function quiz_access($op, $node) {
-  global $user;
+function quiz_access($op, $node, $account) {
 
   if ($op == 'view') {
     return user_access('access quiz');
@@ -96,100 +95,96 @@ function quiz_node_info() {
 }
 
 /**
+ * Implementation of hook_init().
+ * 
+ * Add quiz-specific styling.
+ */
+function quiz_init() {
+  // MPB FIXME: Probably don't want to add this to _every_ page.
+  drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
+}
+
+/**
  * Implementation of hook_menu().
  */
-function quiz_menu($may_cache) {
-  $items = array();
-  if ($may_cache) {
-    $access = user_access(QUIZ_PERM_ADMIN_CONFIG);
-    $items[] = array(
-      'path' => 'admin/settings/quiz',
-      'title' => t('@quiz Configuration', array('@quiz' => QUIZ_NAME)),
-      'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('quiz_admin_settings'),
-      'access' => user_access(QUIZ_PERM_ADMIN_CONFIG),
-      'type' => MENU_NORMAL_ITEM, // optional
-    );
+function quiz_menu() {
 
-    $items[] = array(
-      'path' => 'node/add/quiz',
-      'title' => t('@quiz', array('@quiz' => QUIZ_NAME)),
-      'access' => user_access('create quiz'),
-    );
+   
+  //drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
 
-    $items[] = array(
-      'path' => 'admin/quiz/results',
-      'title' => t('@quiz Results', array('@quiz' => QUIZ_NAME)),
-      'callback' => 'quiz_admin',
-      'access' => user_access('administer quiz'),
-      'type' => MENU_NORMAL_ITEM,
-    );
-  }
-  else {
-    drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
-    if (arg(0) == 'node' && is_numeric(arg(1))) {
-      $node = node_load(arg(1));
-      if ($node->type == 'quiz') {
-        // Menu item for creating adding questions to quiz.
-        $items[] = array(
-          'path' => 'node/'. arg(1) .'/questions',
-          'title' => t('Manage questions'),
-          'callback' => 'quiz_questions',
-          'access' => user_access('create quiz'),
-          'type' => MENU_LOCAL_TASK,
-        );
-      if (user_access('administer quiz')) {
-          $items[] = array(
-            'path' => 'node/'. arg(1) .'/quiz/admin',
-            'title' => t('Quiz Admin', array('@quiz' => QUIZ_NAME)),
-            'callback' => 'theme_quiz_view',
-            'callback arguments' => array(node_load(arg(1))),
-            'access' => user_access('administer quiz'),
-            'type' => MENU_LOCAL_TASK,
-          );
-        }
-      }
-    }
-    else {
-      $items[] = array(
-        'path' => 'user/'. arg(1) .'/myresults',
-        'title' => t('My Results'),
-        'callback' => 'quiz_get_user_results',
-        'access' => user_access('user results'),
-        'type' => MENU_LOCAL_TASK,
-      );
+  $items['admin/settings/quiz'] = array(
+    'title' => t('@quiz Configuration', array('@quiz' => QUIZ_NAME)),
+    'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_admin_settings'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM, // optional
+  );
+  $items['admin/quiz/results'] = array(
+    'title' => t('@quiz Results', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'quiz_admin',
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+	
+    // MPB FIXME: This won't work. Hook_menu is not called on each request.
+	//$node = node_load(arg(1));
+    //if ($node->type == 'quiz') {
 
-      $items[] = array(
-        'path' => 'user/quiz/'. arg(2) .'/userresults',
-        'title' => t('User Results'),
-        'callback' => 'quiz_user_results',
-        'access' => user_access('user results'),
-        'type' => MENU_CALLBACK,
-      );
+  // Menu item for adding questions to quiz.
+  $items['node/%/questions'] = array(
+    'title' => t('Manage questions'),
+    'page callback' => 'quiz_questions',
+    'page arguments' => array(1),
+    'access arguments' => array('create quiz'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['node/%/admin'] = array(
+    'title' => t('Quiz Admin', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'theme_quiz_view',
+    'page arguments' => array(1),
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_LOCAL_TASK,
+  );
+    //}
+  $items['user/%/myresults'] = array(
+    'title' => t('My Results'),
+    'page callback' => 'quiz_get_user_results',
+    //'page arguments' => array(1),
+    'access arguments' => array('user results'),
+    'type' => MENU_LOCAL_TASK,
+  );
 
-      $items[] = array(
-        'path' => 'admin/quiz/'. arg(2) .'/view',
-        'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-        'callback' => 'quiz_admin_results',
-        'access' => user_access('administer quiz'),
-        'type' => MENU_CALLBACK,
-      );
-               
-      $items[] = array(
-        'path' => 'admin/quiz/'. arg(2) .'/delete',
-        'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
-        'callback' => 'quiz_admin_result_delete',
-        'access' => user_access('administer quiz'),
-        'type' => MENU_CALLBACK,
-      );
-    }
-  }
+  $items['user/quiz/%/userresults'] = array(
+    'title' => t('User Results'),
+    'page callback' => 'quiz_user_results',
+    //'page arguments' => array(2),
+    'access arguments' => array('user results'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['admin/quiz/%/view'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'quiz_admin_results',
+    'page arguments' => array(2),	  
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_CALLBACK,
+  );
+  
+  $items['admin/quiz/%/delete'] = array(
+    'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'quiz_admin_result_delete',
+    //'page arguments' => array(2),
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
 /**
  * Implementation of hook_form().
+ * 
+ * This is an admin form used to build a new quiz.
  */
 function quiz_form(&$node) {
   $form['title'] = array(
@@ -269,7 +264,7 @@ function quiz_form(&$node) {
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
- // Quiz summary options.
+  // Quiz summary options.
   $form['summaryoptions'] = array(
     '#type' => 'fieldset',
     '#title' => t('@quiz Summary Options', array('@quiz' => QUIZ_NAME)),
@@ -505,7 +500,7 @@ function quiz_validate($node) {
 }
 
 /**
- * Updates quiz-question relation entires in the quiz_node_relationship table.
+ * Updates quiz-question relation entries in the quiz_node_relationship table.
  *
  * @access public
  * @param integer $old_quiz_vid
@@ -560,10 +555,10 @@ function _quiz_insert_resultoptions($node) {
  */
 function _quiz_insert_result_option($option) {
   if (empty($option['option_id'])) {
-    $option['option_id'] = db_next_id('{quiz_node_result_options}'.'_option_id');
-    $sql = "INSERT INTO {quiz_node_result_options} (nid, vid, option_id, option_name, option_summary, option_start, option_end)".
-           " VALUES(%d, %d, %d, '%s', '%s', %d, %d)";
-    $values = array($option['nid'],
+    $sql = "INSERT INTO {quiz_node_result_options} (nid, vid, option_name, option_summary, option_start, option_end)".
+           " VALUES(%d, %d, '%s', '%s', %d, %d)";
+   $option['option_id'] = db_last_insert_id('{quiz_node_result_options}','option_id');
+   $values = array($option['nid'],
                     $option['vid'],
                     $option['option_id'],
                     $option['option_name'],
@@ -616,7 +611,7 @@ function quiz_update($node) {
 }
 
 /**
- * Result of option-specific updates.
+ * Modify result of option-specific updates.
  *
  * @param $node
  *  The quiz node.
@@ -683,7 +678,6 @@ function quiz_load($node) {
 /**
  * Implementation of hook_view().
  */
-
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser) {
     //load the questions in the view page
@@ -718,8 +712,54 @@ function theme_quiz_availability($node) {
   return $output;
 }
 
+function quiz_theme() {
+  return array(
+    'quiz_availability' => array(
+      'arguments' => array('node' => NULL),
+    ),
+	'quiz_view' => array(
+	  'arguments' => array('node' => NULL, 'teaser' => FALSE, 'page' => FALSE),
+	),
+	'quiz_get_user_results' => array(
+      'arguments' => array('results' => NULL),
+	),
+	'quiz_question_table' => array(
+	  'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
+	),
+	
+	'quiz_filtered_questions' => array(
+	  'arguments' => array('form' => NULL),
+	),
+	'quiz_take_question' => array(
+	  'arguments' => array('quiz' => NULL, 'question_node' => NULL),
+	),
+	'quiz_admin' => array(
+	  'arguments' => array('results' => NULL),
+	),
+	'quiz_admin_summary' => array(
+	  'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+	),
+	'quiz_user_summary' => array(
+	  'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+	),
+	'quiz_feedback' => array(
+	  'arguments' => array('questions' => NULL, 'showpoints' =>TRUE, 'showfeedback' => FALSE),
+	),
+	'quiz_question_feedback' => array(
+	  'arguments' => array('quiz' => NULL, 'report' => NULL),
+	),
+	'quiz_question_table' => array(
+	  'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
+	),
+	'quiz_questions' => array(
+      'arguments' => array('form' => NULL),
+	),	
+	'quiz_no_feedback' => array(),	
+  );
+}
+
 /**
- * Theme the node view for quizzes.
+ * Hook Theme the node view for quizzes.
  * 
  * @ingroup themeable
  */
@@ -774,7 +814,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (function_exists(taxonomy_node_get_terms)) {
     $output .= '<h3>'. t('Taxonomy selection') .'</h3>';
     $terms = array();
-    foreach (taxonomy_node_get_terms($node->nid) as $term) {
+    foreach (taxonomy_node_get_terms($node) as $term) {
       $terms[] = check_plain($term->name);
     }
     if (!empty($terms)) {
@@ -874,15 +914,15 @@ function quiz_get_user_results() {
  *  HTML output for page.
  */
 function quiz_take_quiz() {
-  global $user;
-  if (arg(0) == 'node' && is_numeric(arg(1)) && user_access('access quiz')) {
-    if ($quiz = node_load(arg(1))) {
+  if (user_access('access quiz')) {
+    if ($quiz = menu_get_object()) {
+	
       // If anonymous user and no unique hash, refresh with a unique string to prevent caching.
-      if (!$user->uid && arg(4) == NULL) {
+      if (!$quiz->name && arg(4) == NULL) {
         drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
       }
       if ($user->uid && $quiz->takes != 0) {
-        $times = db_num_rows(db_query("SELECT result_id " .
+        $times = db_result(db_query("SELECT COUNT('result_id') " .
                                       "FROM {quiz_node_results} " .
                                       "WHERE nid = %d AND vid = %d AND uid = %d",
                                       $quiz->nid, $quiz->vid, $user->uid));
@@ -932,7 +972,10 @@ function quiz_take_quiz() {
           $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
           $former_question = node_load(array('nid' => $former_question_array['nid']));
+          
+          // Call hook_evaluate_question
           $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+          
           quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
 
           // Stash feedback in the session, since the $_POST gets cleared.
@@ -991,14 +1034,17 @@ function quiz_take_quiz() {
  * Store a quiz question result.
  */
 function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
-  $result = db_query("SELECT result_id FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid);
-  if (db_num_rows($result)) {
+  watchdog('quiz', 'quiz_store_question_result: storing.');
+  $result = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid));
+  if ($result && $result['count'] > 0) {
+    watchdog('quiz', 'quiz_store_question_result: updating');
     db_query("UPDATE {quiz_node_results_answers} ".
             "SET is_correct = %d, points_awarded = %d, answer_timestamp = %d " . 
             "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
             $is_correct, ($is_correct) ? 1 : 0, time(), $nid, $vid, $rid);
   }
   else {
+    watchdog('quiz', 'quiz_store_question_result: inserting');
     db_query("INSERT INTO {quiz_node_results_answers} " .
             "(question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp) " .
             "VALUES (%d, %d, %d, %d, %d, %d)",
@@ -1189,11 +1235,12 @@ function quiz_start_actions($quiz) {
   }
 
   // Insert quiz_node_results record.
-  $rid = db_next_id('{quiz_node_results}_result_id');
   $result = db_query("INSERT INTO {quiz_node_results} " .
                      "(result_id, nid, vid, uid, time_start) " .
                      "VALUES (%d, %d, %d, %d, %d)", $rid, $quiz->nid, $quiz->vid, $user->uid, time());
-  if ($result) {
+  $rid = db_last_insert_id('{quiz_node_results}', 'result_id');
+
+ if ($result) {
     return $rid;
   }
   else {
@@ -1306,8 +1353,8 @@ function _quiz_get_random_questions($num_random, $tid) {
 /**
  * Implementation of hook_help().
  */
-function quiz_help($section) {
-  switch ($section) {
+function quiz_help($path, $arg) {
+  switch ($path) {
     case 'admin/help#quiz':
       return t('
 <h3>Description</h3>
@@ -1413,10 +1460,10 @@ function quiz_help($section) {
     </dl>
   </li>
   <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>
-  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong>Submit questions</strong>.</li>
+  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong></strong>.</li>
   <li>Repeat process until satisfied with question selection.</li>
 </ol>
-    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/access'), '@admin-modules' => url('admin/build/modules'), '@admin-taxonomy' => url('admin/content/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
+    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/permissions'), '@admin-modules' => url('admin/build/modules'), '@admin-taxonomy' => url('admin/content/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
     case 'node/add#quiz':
       return t('A collection of questions designed to create interactive tests');
     default:
@@ -1542,8 +1589,9 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
  * @return
  *  HTML output to create page.
  */
-function quiz_questions_form() {
-  $quiz = node_load(arg(1));
+function quiz_questions_form($context, $qid) {
+  //$quiz = node_load(arg(1));
+  $quiz = node_load($qid);
 
   // Set page title.
   drupal_set_title(check_plain($quiz->title));
@@ -1642,16 +1690,16 @@ function quiz_questions_form() {
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
-    '#title' => 'New Revision',
+    '#title' => t('New Revision'),
     '#description' => t('Allow question status changes to create a new revision of the quiz?'),
   );
+
+  $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
 
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit questions'),
   );
-
-  $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
 
   return $form;
 }
@@ -1665,7 +1713,7 @@ function quiz_questions_form() {
  *  Array of questions objects.
  */
 function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
-  $quiz       = node_load( (int) arg(1) );
+  $quiz       = menu_get_object();
   $types      = _quiz_get_question_types();
   $where_sql  = '';
   $questions = array();
@@ -1702,8 +1750,15 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
   return $questions;
 }
 
-function quiz_questions() {
-  return drupal_get_form('quiz_questions_form');
+/**
+ * Creates a form for quiz questions.
+ *
+ * @param $qid
+ *   ID of quiz to create
+ * @return unknown
+ */
+function quiz_questions($qid) {
+  return drupal_get_form('quiz_questions_form', $qid);
 }
 
 /**
@@ -1716,40 +1771,39 @@ function quiz_questions() {
  * @param $values
  *  Array containing the form values.
  */
-function quiz_questions_form_submit($form_id, $values) {
-  // Load the node.
-  $quiz = node_load(arg(1));
+function quiz_questions_form_submit($form, &$form_state) {
+ 
   // Update quiz with selected question options.
-  if (!quiz_update_questions($values['question_status'], $values['new_revision'])) {
+  if (!quiz_update_questions($form_state['values']['question_status'], $form_state['values']['new_revision'])) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
     return;
   }
 
   // Check if selecting random question from pool, and not via term.
-  if (empty($values['random_term_id'])) {
+  if (empty($form_state['values']['random_term_id'])) {
     $assigned_random =0;
-    if (is_array($values['question_status'])) {
-      foreach ($values['question_status'] as $id => $status) {
+    if (is_array($form_state['values']['question_status'])) {
+      foreach ($form_state['values']['question_status'] as $id => $status) {
         if (QUESTION_ALWAYS == $status) {
           $assigned_random++;
         }
       }
     }
 
-    if ($values['num_random_questions'] > $assigned_random) {
-      $values['num_random_questions'] = $assigned_random;
+    if ($form_state['values']['num_random_questions'] > $assigned_random) {
+      $form_state['values']['num_random_questions'] = $assigned_random;
       drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), 'status'));
     }
   }
   else {
     // Warn user if not enough questions available with this term_id.
-    $available_random = count(_quiz_get_random_questions($values['num_random_questions'], $values['random_term_id']));
-    if ($values['num_random_questions'] > $available_random) {
+    $available_random = count(_quiz_get_random_questions($form_state['values']['num_random_questions'], $form_state['values']['random_term_id']));
+    if ($form_state['values']['num_random_questions'] > $available_random) {
       drupal_set_message(t('There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@random' => $available_random, '@quiz' => QUIZ_NAME)), 'error');
     }
   }
 
-  $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d", $values['num_random_questions'], $values['random_term_id'], $quiz->vid, $quiz->nid);
+  $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d", $form_state['values']['num_random_questions'], $form_state['values']['random_term_id'], $quiz->vid, $quiz->nid);
   if (!$result) {
     drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
@@ -1770,7 +1824,7 @@ function quiz_questions_form_submit($form_id, $values) {
  *  Number of questions that meet the criteria.
  */
 function quiz_get_num_questions($nid, $vid, $type) {
-  return db_num_rows(db_query("SELECT parent_vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $vid, $nid, $type));
+  return db_result(db_query("SELECT COUNT('parent_vid') FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $vid, $nid, $type));
 }
 
 /**
@@ -1826,7 +1880,9 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
 
   // Create new revision of current quiz (if any question status has been changed).
   if (!empty($changes)) {
-    drupal_execute('node_form', array('revision' => '1'), $quiz);
+    $rev = array('revision' => '1');
+    // Node form is now conditionally loaded. Need to do something else here.
+    drupal_execute('node_form', $rev, $quiz);
     drupal_set_message(t('A new revision of the @quiz has been created.', array('@quiz' => QUIZ_NAME)));
   }
 
@@ -1872,6 +1928,8 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
 
 /**
  * Implementation of hook_settings().
+ * 
+ * This builds the main settings form for the quiz module.
  */
 function quiz_admin_settings() {
   $form = array();
@@ -1906,21 +1964,23 @@ function quiz_admin_settings() {
 
 /**
  * Validation of the Form Settings form.
+ * 
+ * Checks the values for the form administration form for quiz settings.
  */
-function quiz_settings_form_validate($form_id, $form_values) {
-  if (!is_numeric($form_values['num_random_questions']) || $form_values['num_random_questions'] <0 ) {
+function quiz_settings_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['num_random_questions']) || $form_state['values']['num_random_questions'] <0 ) {
     form_set_error('num_random_questions', t('The number of random questions must be at least 0.'));
   }
-  if (!is_numeric($form_values['quiz_default_close']) || $form_values['quiz_default_close'] <= 0) {
+  if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
   }
-  if (!is_numeric($form_values['quiz_default_pass_rate'])) {
+  if (!is_numeric($form_state['values']['quiz_default_pass_rate'])) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
   }
-  if ($form_values['quiz_default_pass_rate'] > 100) {
+  if ($form_state['values']['quiz_default_pass_rate'] > 100) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
   }
-  if ($form_values['quiz_default_pass_rate'] < 0) {
+  if ($form_state['values']['quiz_default_pass_rate'] < 0) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
   }
 }
@@ -1990,12 +2050,15 @@ function quiz_user_results() {
 /*
  * Quiz Results Admin.
  */
-function quiz_admin_results() {
-  $result = db_fetch_object(db_query('SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', arg(2)));
+function quiz_admin_results($qid) {
+  $result = db_fetch_object(db_query(
+    'SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', 
+    $qid
+  ));
   if ($result->nid) {
     $quiz = node_load($result->nid);
-    $questions = _quiz_get_answers(arg(2));
-    $score = quiz_calculate_score($quiz, arg(2));
+    $questions = _quiz_get_answers($qid);
+    $score = quiz_calculate_score($quiz, $qid);
     $summary = _quiz_get_summary_text($quiz, $score);
     return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
@@ -2011,6 +2074,9 @@ function quiz_admin_result_delete() {
     return drupal_get_form('quiz_admin_result_delete_form');
 }
 
+/**
+ * Creates a form used for deleting a set of quiz results.
+ */
 function quiz_admin_result_delete_form() {
   $form['del_rid'] = array('#type' => 'hidden', '#value' => arg(2));
   return confirm_form($form,
@@ -2020,11 +2086,12 @@ function quiz_admin_result_delete_form() {
                       t('Delete'),
                       t('Cancel'));
 }
-function quiz_admin_result_delete_form_submit($form_id, $form_values) {
-  db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_values['del_rid']);
-  db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_values['del_rid']);
+function quiz_admin_result_delete_form_submit($form, &$form_state) {
+  db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
+  db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
   drupal_set_message(t('Deleted result.'));
-  return "admin/quiz/results";
+  $form_state['redirect'] = 'admin/quiz/results';
+  $form_state['nid'] = $node->nid;  
 }
 
 function _quiz_get_answers($rid) {
@@ -2032,6 +2099,7 @@ function _quiz_get_answers($rid) {
   $ids = db_query("SELECT question_nid, question_vid, type FROM {quiz_node_results_answers} " .
                   "LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid) WHERE result_id = %d ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
+    watchdog('quiz','_quiz_get_answers: looping through question');
     $questions[$line->question_nid] = module_invoke($line->type, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
   return $questions;

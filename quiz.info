@@ -2,3 +2,5 @@
 name = Quiz
 package = Quiz
 description = "Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly."
+core = 6.x
+php = 5.1

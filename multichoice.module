@@ -21,8 +21,7 @@ function multichoice_perm() {
 /**
  * Implementation of hook_access().
  */
-function multichoice_access($op, $node) {
-  global $user;
+function multichoice_access($op, $node, $account) {
 
   if ($op == 'create') {
     return user_access('create multichoice');
@@ -51,24 +50,15 @@ function multichoice_node_info() {
 /**
  * Implementation of hook_menu().
  */
-function multichoice_menu($may_cache) {
-  $items = array();
-  if ($may_cache) {
-    $items[] = array(
-      'path' => 'node/add/multichoice',
-      'title' => t(MULTICHOICE_NAME),
-      'access' => user_access('create multichoice'),
-    );
-    $items[] = array(
-      'path' => 'admin/settings/multichoice',
+function multichoice_menu() {
+    $items['admin/settings/multichoice'] = array(
       'title' => t('Multichoice Configuration'),
-      'description' => t('Configure Multichoice questions fo users.'),
-      'callback' => 'drupal_get_form',
-      'callback arguments' => array('multichoice_admin_settings_form'),
-      'access' => user_access(QUIZ_PERM_ADMIN_CONFIG),
+      'description' => t('Configure Multichoice questions for users.'),
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('multichoice_admin_settings_form'),
+      'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
       'type' => MENU_NORMAL_ITEM,
     );
-  }
   return $items;
 }
 
@@ -401,8 +391,8 @@ function multichoice_insert(&$node) {
   foreach ($node->answers as $value) {
     if (trim($value['answer']) != "") {
       db_query("INSERT INTO {quiz_multichoice_answers} " .
-              "(answer_id, nid, vid, answer, feedback, is_correct, result_option) VALUES (%d, %d, %d, '%s', '%s', %d, %d)", 
-              db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
+              "(nid, vid, answer, feedback, is_correct, result_option) VALUES (%d, %d, '%s', '%s', %d, %d)", 
+              $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
 }
@@ -438,8 +428,8 @@ function multichoice_update($node) {
     else if (trim($value['answer']) != "") {
       // If there is an answer, insert a new row.
       db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, is_correct, result_option) " .
-              "VALUES(%d, %d, %d, '%s', '%s', %d, %d)", 
-              db_next_id('{quiz_multichoice_answers}_answer_id'), $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
+              "VALUES(%d, %d, '%s', '%s', %d, %d)", 
+               $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
 
@@ -454,7 +444,8 @@ function multichoice_update($node) {
       // This will also create new quiz-question relation entries in the quiz_node_relationship table.
       $sql = "SELECT * FROM {node} WHERE vid = %d";
       $quiz_old = db_fetch_object(db_query($sql, $quiz->parent_vid));
-      drupal_execute('node_form', array('revision' => '1'), $quiz_old);
+	  $rev = array('revision' => '1');
+      drupal_execute('node_form', $rev, $quiz_old);
   		
       // Update question vid in quiz_node_relationship table for each row that
       // contains the question vid prior to the increment (new revision).
@@ -522,13 +513,16 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
 /**
  * Print question to screen.
  *
+ * @param $context
+ *  Form processing context.
  * @param $node
  *  Question node.
  *
  * @return
  *  HTML output.
  */
-function multichoice_render_question_form($node) {
+function multichoice_render_question_form($context, $node) {
+  
   // Radio buttons for single selection questions, checkboxes for multiselect.
   if ($node->multiple_answers == 0) {
     $type = 'radios';
@@ -558,7 +552,7 @@ function multichoice_render_question_form($node) {
     '#default_value' => -1,
   );
   
-  $quiz = node_load(arg(1)); 
+  $quiz = menu_get_object(); 
   if ($quiz->backwards_navigation == 1 && $node->question_number) {
     $form['back'] = array(
       '#type' => 'submit',
@@ -597,9 +591,11 @@ function multichoice_evaluate_question($question, $rid = null) {
   // Unset $_POST, otherwise it tries to use the previous answers on the next page...
   unset($_POST['tries']);
 
+  $numanswers = db_query("SELECT count(answer_id) FROM {quiz_multichoice_answers} " .
+                      "WHERE nid = %d AND vid = %d AND is_correct = 1", $question->nid, $question->vid);
   if ($rid && !empty($tries)) {
     foreach ($tries as $answer_id) {
-      multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id);
+      multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id, $numanswers);
     }
   }
 
@@ -619,9 +615,14 @@ function multichoice_evaluate_question($question, $rid = null) {
  * @param $answer_id
  *  The answer id.
  */
-function multichoice_store_answer($nid, $vid, $rid, $answer_id) {
-  $result = db_query("SELECT result_id FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid);
-  if (db_num_rows($result)) {
+function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers) {
+  $result = db_result(db_query(
+    "SELECT COUNT('result_id') AS count FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", 
+    $nid, 
+    $vid, 
+    $rid
+  ));
+  if (!empty($result) && $result['count'] == $numanswers) {
     db_query("UPDATE {quiz_multichoice_user_answers} " . 
             "SET answer_id = %d " . 
             "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
@@ -650,7 +651,7 @@ function multichoice_calculate_result($nid, $vid, $tried) {
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
-  return ($correct_answers === $tried);
+  return (array_values($correct_answers) === array_values($tried));
 }
 
 // New singing and dancing one.
@@ -934,4 +935,35 @@ function theme_multichoice_generate_title($node) {
     $shortstring = substr($shortstring, 0, $breakpoint);
   }
   return $title . $shortstring;
+}
+/**
+ * 
+ * Hook_theme() required by 6.x
+ * 
+ * @return
+ * An array of themable functions
+ *
+ * @ingroup themeable
+ */
+function multichoice_theme() {
+  return array(
+    'multichoice_generate_title' => array(
+      'arguments' => array('node' => NULL),
+    ),
+    'multichoice_feedback' => array(
+      'arguments' => array('quiz' => NULL, 'report' => NULL),
+    ),
+    'multichoice_report' => array(
+      'arguments' => array('question' => NULL, 'showpoints' => NULL, '$showfeedback' => NULL),
+    ),
+    'multichoice_selected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_unselected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_form' => array(
+      'arguments' => array('form' => NULL),
+    ),	
+  );
 }
