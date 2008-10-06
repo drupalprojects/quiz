@@ -1,6 +1,6 @@
 ; $Id$
 name = Multichoice
 package = Quiz
-description = Multiple choice question type
+description = This provides multiple choice questions for use by the Quiz module.
 dependencies[] = quiz
 core = 6.x
