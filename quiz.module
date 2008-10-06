@@ -509,11 +509,10 @@ function quiz_validate($node) {
  *  The quiz vid of the latest revision.
  */
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
-  $sql = "INSERT INTO {quiz_node_relationship} " .
-         "(parent_nid, parent_vid, child_nid, child_vid, question_status) " .
-         "SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status " .
-         "FROM {quiz_node_relationship} AS src " .
-         "WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
+  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
+    SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status 
+    FROM {quiz_node_relationship} AS src 
+    WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
   db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER);
 }
 
@@ -726,12 +725,14 @@ function quiz_theme() {
 	'quiz_question_table' => array(
 	  'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
 	),
-	
 	'quiz_filtered_questions' => array(
 	  'arguments' => array('form' => NULL),
 	),
 	'quiz_take_question' => array(
 	  'arguments' => array('quiz' => NULL, 'question_node' => NULL),
+	),
+	'quiz_take_summary' => array(
+	  'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => ''),
 	),
 	'quiz_admin' => array(
 	  'arguments' => array('results' => NULL),
@@ -910,124 +911,129 @@ function quiz_get_user_results() {
 /**
  * Handles quiz taking.
  *
+ * This gets executed when the main quiz node is first loaded.
+ *
  * @return
  *  HTML output for page.
  */
 function quiz_take_quiz() {
-  if (user_access('access quiz')) {
-    if ($quiz = menu_get_object()) {
-	
-      // If anonymous user and no unique hash, refresh with a unique string to prevent caching.
-      if (!$quiz->name && arg(4) == NULL) {
+  // If no access, fail.
+  if (!user_access('access quiz')) {
+    drupal_access_denied();
+    return;
+  }
+  
+  // Load the quiz node and prepare it for display:
+  $quiz = menu_get_object();
+  if(!isset($quiz)) {
+    drupal_not_found();
+    return;
+  }
+  
+  // If anonymous user and no unique hash, refresh with a unique string to prevent caching.
+  if (!$quiz->name && arg(4) == NULL) {
+    drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
+  }
+  
+  if ($user->uid && $quiz->takes != 0) {
+    // TODO mbutcher: This is not working. Check inserts into quiz_node_results.
+    $query = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d AND vid = %d AND uid = %d";
+    $times = db_result(db_query($query, $quiz->nid, $quiz->vid, $user->uid));
+    if ($times >= $quiz->takes) {
+      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
+      return;
+    }
+  }
+
+  if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
+    // First time running through quiz.
+    if ($rid = quiz_start_actions($quiz)) {
+      // Create question list.
+      $questions = quiz_build_question_list($quiz);
+      if ($questions === FALSE) {
+        drupal_set_message(t('Not enough random questions were found. Please !add more questions before trying to take this @quiz.',
+                            array('@quiz' => QUIZ_NAME, '!add more questions' => l('add more questions', 'node/'. arg(1) .'/questions'))), 'error');
+        return '';
+      }
+      if (count($questions) == 0) {
+        drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
+                          array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+        return '';
+      }
+      // Initialize session variables.
+      $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
+      $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
+      $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
+    }
+    else {
+      return '';
+    }
+  }
+
+  if ($_POST['op'] == t('Back')) {
+    unset($_POST['tries']);
+    array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+  }
+
+  // Check for answer submission.
+  if ($_POST['op'] == t('Submit')) {
+    if (!isset($_POST['tries'])) {
+      drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
+    }
+    else {
+      unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+      $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+      $former_question = node_load(array('nid' => $former_question_array['nid']));
+      
+      // Call hook_evaluate_question
+      $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+      
+      quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+
+      // Stash feedback in the session, since the $_POST gets cleared.
+      if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+        $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+        $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
+      }
+      // If anonymous user, refresh url with unique hash to prevent caching.
+      if (!$user->uid) {
         drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
-      }
-      if ($user->uid && $quiz->takes != 0) {
-        $times = db_result(db_query("SELECT COUNT('result_id') " .
-                                      "FROM {quiz_node_results} " .
-                                      "WHERE nid = %d AND vid = %d AND uid = %d",
-                                      $quiz->nid, $quiz->vid, $user->uid));
-        if ($times >= $quiz->takes) {
-          drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
-          return;
-        }
-      }
-
-      if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-        // First time running through quiz.
-        if ($rid = quiz_start_actions($quiz)) {
-          // Create question list.
-          $questions = quiz_build_question_list($quiz);
-          if ($questions === FALSE) {
-            drupal_set_message(t('Not enough random questions were found. Please !add more questions before trying to take this @quiz.',
-                                array('@quiz' => QUIZ_NAME, '!add more questions' => l('add more questions', 'node/'. arg(1) .'/questions'))), 'error');
-            return '';
-          }
-          if (count($questions) == 0) {
-            drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
-                              array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
-            return '';
-          }
-          // Initialize session variables.
-          $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
-          $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
-          $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
-        }
-        else {
-          return '';
-        }
-      }
-
-      if ($_POST['op'] == t('Back')) {
-        unset($_POST['tries']);
-        array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
-      }
-
-      // Check for answer submission.
-      if ($_POST['op'] == t('Submit')) {
-        if (!isset($_POST['tries'])) {
-          drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
-        }
-        else {
-          unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
-          $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
-          $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-          $former_question = node_load(array('nid' => $former_question_array['nid']));
-          
-          // Call hook_evaluate_question
-          $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-          
-          quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
-
-          // Stash feedback in the session, since the $_POST gets cleared.
-          if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-            $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
-            $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
-          }
-          // If anonymous user, refresh url with unique hash to prevent caching.
-          if (!$user->uid) {
-            drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
-          }
-        }
-      }
-
-      // If we had feedback from the last question.
-      if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-        $output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
-      }
-
-      // If this quiz is in progress, load the next questions and return it via the theme.
-      if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-        $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
-        $output .= theme('quiz_take_question', $quiz, $question_node);
-        unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
-        return $output;
-      }
-
-      // At the end of quiz.
-      else {
-        $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-
-        if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
-          $output = theme('quiz_no_feedback');
-        }
-        else {
-          // Get the results and summary text for this quiz.
-          $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['result_id']);
-          $summary = _quiz_get_summary_text($quiz, $score);
-
-          // Get the themed summary page.
-          $output .= theme('quiz_take_summary', $quiz, $questions, $score, $summary);
-        }
-
-        // Remove session variables.
-        unset($_SESSION['quiz_'. $quiz->nid]);
-        
-        return $output;
       }
     }
   }
-  // If we got this far, the quiz does not exist.
-  drupal_not_found();
+
+  // If we had feedback from the last question.
+  if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    $output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+  }
+
+  // If this quiz is in progress, load the next questions and return it via the theme.
+  if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
+    $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
+    $output .= theme('quiz_take_question', $quiz, $question_node);
+    unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+  }
+  // Else we're at the end of quiz.
+  else {
+    $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
+      $output = theme('quiz_no_feedback');
+    }
+    else {
+      // Get the results and summary text for this quiz.
+      $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['result_id']);
+      $summary = _quiz_get_summary_text($quiz, $score);
+
+      // Get the themed summary page.
+      $output .= theme('quiz_take_summary', $quiz, $questions, $score, $summary);
+    }
+
+    // Remove session variables.
+    unset($_SESSION['quiz_'. $quiz->nid]);
+  }
+  return $output;
 }
 
 /**
@@ -1057,9 +1063,7 @@ function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
  */
 function quiz_end_actions($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
-  db_query("UPDATE {quiz_node_results} " .
-          "SET time_end = %d, score = %d " .
-          "WHERE result_id = %d",
+  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",
           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
   return $score;
 }
@@ -1171,8 +1175,11 @@ function _quiz_get_summary_text($quiz, $score) {
       if ($quiz->pass_rate > 0) {
         $summary = t('The user failed this quiz.');
       }
+      else {
+        $summary = t('the user completed this quiz.');
+      }
     }
-    else if (trim($quiz->summary_pass) != '') {
+    else if (trim($quiz->summary_default) != '') {
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format, FALSE);
     }
   }
@@ -1195,53 +1202,74 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
   return db_result(db_query('SELECT option_summary FROM {quiz_node_result_options} WHERE nid = %d AND vid = %d AND %d BETWEEN option_start AND option_end', $qnid, $qvid, $score));
 }
 
+
+/**
+ * Check a user/quiz combo to see if the user passed the given quiz.
+ * A quiz is keyed by nid/vid, so you need both.
+ * This will return TRUE if the user has passed the quiz at least once, and
+ * false otherwise. Note that a FALSE may simply indicate that the user has not 
+ * taken the quiz.
+ * @param $uid
+ *  The user ID.
+ * @param $nid
+ *  The node ID.
+ * @param $vid
+ *  The version ID.
+ */
+function quiz_is_passed($uid, $nid, $vid) {
+  $passed = db_result(db_query("SELECT COUNT(result_id) AS passed_count
+    FROM {quiz_node_results} qnrs 
+    INNER JOIN {quiz_node_properties} USING (vid, nid) 
+    WHERE qnrs.vid = %d AND qnrs.nid = %d AND qnrs.uid =%d AND score >= pass_rate", 
+    $vid, $nid, $uid
+  ));
+  
+  // Force into boolean context
+  return ($passed !== FALSE && $passed > 0);
+}
+
 /**
  * Actions to take place at the start of a quiz.
  *
- * @param $uid
- *  User ID
- * @param $nid
- *  Quiz node ID
- * @return integer
- *  Returns quiz_node_results result_id, or false if there is an error.
+ * This is called when the quiz node is viewed for the first time. It ensures that 
+ * the quiz can be taken at this time. 
+ *
+ * @param $quiz
+ *  The quiz node.
+ * @return
+ *  Returns quiz_node_results result_id, or FALSE if there is an error.
  */
 function quiz_start_actions($quiz) {
+  global $user;
+  
   // Make sure this is available.
-  if (!$quiz->quiz_always == 1) {
-  	// Compare current GMT time to the open and close dates (which should still be in GMT time).
-    if (gmmktime() >= $quiz->quiz_close || gmmktime() < $quiz->quiz_open) {
+  if ($quiz->quiz_always != 1) {
+    // Compare current GMT time to the open and close dates (which should still be in GMT time).
+    $now = gmmktime();
+    if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
+      // TODO mbutcher: Does this ever get called? quiz_take_quiz() should do this already.
       if (!user_access('create quiz')) {
+        watchdog('quiz','User has insufficient access to take this quiz. 1222.');
         return FALSE;
       }
     }
   }
 
-  // Get the results.
-  global $user;
-  //$results = _quiz_get_results($quiz->nid, $user->uid);
-
-  // Check to see if the user alredy passed this quiz,
-  // but only perform this check if it is a registered user.
-  if ($user->uid) {
-    $passed = db_result(db_query("SELECT result_id " .
-                                 "FROM {quiz_node_results} qnrs " .
-                                 "INNER JOIN {quiz_node_properties} USING (vid, nid) " .
-                                 "WHERE qnrs.vid = %d AND qnrs.nid = %d AND qnrs.uid =%d " .
-                                 "AND score >= pass_rate", $quiz->vid, $quiz->nid, $user->uid));
-    if ($passed) {
+  // Check to see if the (a) user is registered, and (b) user alredy passed this quiz.
+  if ($user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
-    }
   }
 
   // Insert quiz_node_results record.
-  $result = db_query("INSERT INTO {quiz_node_results} " .
-                     "(result_id, nid, vid, uid, time_start) " .
-                     "VALUES (%d, %d, %d, %d, %d)", $rid, $quiz->nid, $quiz->vid, $user->uid, time());
-  $rid = db_last_insert_id('{quiz_node_results}', 'result_id');
-
- if ($result) {
-    return $rid;
+  $result = db_query(
+    "INSERT INTO {quiz_node_results} (result_id, nid, vid, uid, time_start) VALUES (%d, %d, %d, %d, %d)", 
+    $rid, $quiz->nid, $quiz->vid, $user->uid, time()
+  );
+  
+  if ($result) {
+    // Return the last RID.
+    return db_last_insert_id('quiz_node_results', 'result_id');
   }
   else {
     drupal_set_message(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), 'error'));
@@ -1332,12 +1360,13 @@ function _quiz_get_random_questions($num_random, $tid) {
       $term_ids = implode(',', $term_ids);
 
       // Get all published questions with one of the allowed term ids.
-      $result = db_query_range("SELECT n.nid, n.vid " .
-                               "FROM {node} n " .
-                               "INNER JOIN {term_node} tn USING (nid)".
-                               "WHERE n.status = 1 AND tn.tid IN ($term_ids) ".
-                               "AND n.type IN ('". implode("','", _quiz_get_question_types()) ."') ".
-                               "ORDER BY RAND()", 0, $num_random);
+      $result = db_query_range("SELECT n.nid, n.vid 
+        FROM {node} n 
+        INNER JOIN {term_node} tn USING (nid)
+        WHERE n.status = 1 AND tn.tid IN ($term_ids) 
+        AND n.type IN ('"
+        . implode("','", _quiz_get_question_types()) 
+        . "') ORDER BY RAND()", 0, $num_random);
     }
     else {
       // Select random question from assigned pool.
@@ -1348,127 +1377,6 @@ function _quiz_get_random_questions($num_random, $tid) {
     }
   }
   return $questions;
-}
-
-/**
- * Implementation of hook_help().
- */
-function quiz_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#quiz':
-      return t('
-<h3>Description</h3>
-<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Finally, it provides a mechanism for ensuring question quality through a combination of community revision and moderation. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>
-<h3>Creating Your First Quiz</h3>
-<p>Creating an initial quiz requires three steps:</p>
-<ol>
-  <li>Create at least one taxonomy vocabulary and assign it to the quiz and question type modules</li>
-  <li>Create a series of questions</li>
-  <li>Create a quiz based on the series of questions</li>
-</ol>
-    <h4>Setting Quiz Permissions</h4>
-    <p>The quiz module and included multichoice module both have a plethora of permission options.<br />Unless you take care setting your permissions, the quiz module might not do everything you want it to do.</p>
-    <h5><strong><a href="@admin-access#module-quiz">Quiz Permissions</a></strong></h5>
-    <dl><dt><strong>access quiz</strong></dt>
-    <dd>allows users to take quizzes</dd>
-    <dt><strong>administer quiz</strong></dt>
-    <dd>allows users to edit quizzes</dd>
-    <dt><strong>administer quiz configuration</strong></dt>
-    <dd>allows users to use global admin settings, as well as override userresults if they don\'t have that permission. Can also delete quizzes</dd>
-    <dt><strong>create quiz</strong></dt>
-    <dd>Can create a new quiz</dd>
-    <dt><strong>user results</strong></dt>
-    <dd>Can view other user\'s results.</dd></dl>
-    <h5><strong><a href="@admin-access#module-multichoice">Multichoice Permissions</a></strong></h5>
-    <dl><dt><strong>allow any number of answers</strong></dt>
-    <dd>can submit questions with more than one correct answer.</dd>
-    <dt><strong>allow feedback</strong></dt>
-    <dd>Can create feedback when creating a new multichoice question.</dd>
-    <dt><strong>allow multiple correct answers</strong></dt>
-    <dd></dd>
-    <dt><strong>allow user titles</strong></dt>
-    <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>
-    <dt><strong>create multichoice</strong></dt>
-    <dd>users can create multichoice questions</dd>
-    <dt><strong>edit own multichoice</strong></dt>
-    <dd>can edit their own multi-choice questions.</dd></dl>
-<h4>Setting up a vocabulary</h4>
-<ol>
-  <li>If not already enabled, go to the <a href="@admin-modules">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
-  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href="@admin-taxonomy">Administer >> Content management >> Categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>
-  <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:
-    <ul>
-      <li>Literature
-        <ul>
-          <li>Children\'s books</li>
-          <li>Poetry</li>
-          <li>Shakespeare</li>
-        </ul>
-      </li>
-      <li>Mathematics
-        <ul>
-          <li>Algebra</li>
-          <li>Trigonometry</li>
-          <li>Calculus</li>
-        </ul>
-      </li>
-      <li>Information Technology
-        <ul>
-          <li>Hardware</li>
-          <li>Programming</li>
-          <li>Databases</li>
-        </ul>
-      </li>
-  </li>
-</ol>
-<h4>Creating quiz questions</h4>
-<ol>
-  <li>Begin by clicking <a href="@create-content">Create content</a>, and then select a question type node (for example, <a href="@multichoice">multichoice</a>)</li>
-  <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:
-    <dl>
-      <dt><strong>Title</strong></dt>
-      <dd>Question title. This will be displayed as the heading of the question.</dd>
-      <dt><strong>Taxonomy selection</strong></dt>
-      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed.</dd>
-      <dt><strong>Question</strong></dt>
-      <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>
-      <dt><strong>Multiple Answers</strong></dt>
-      <dd>Whether or not the question has multiple correct answers, such as a "Select all that apply" question.</dd>
-      <dt><strong>Correct</strong></dt>
-      <dd>Indicates that given answer is a correct answer.</dd>
-      <dt><strong>Answer</strong></dt>
-      <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>
-      <dt><strong>Feedback</strong></dt>
-      <dd>Feedback, if supplied, will be provided to the user at the end of the quiz.</dd>
-    </dl>
-  </li>
-  <li>Repeat for each question you would like included on the quiz.</li>
-</ol>
-<h4>Creating the quiz</h4>
-<ol>
-  <li>Go to <a href="@create-quiz">Create content >> Quiz</a> to access the quiz creation form.</li>
-  <li>Fill out the form to set the @quiz options:
-    <dl>
-      <dt><strong>Title</strong></dt>
-      <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>
-      <dt><strong>Taxonomy selection</strong></dt>
-      <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>
-      <dt><strong>Shuffle questions</strong></dt>
-      <dd>Whether or not to shuffle (randomize) the questions.</dd>
-      <dt><strong>Number of takes</strong></dt>
-      <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>
-    </dl>
-  </li>
-  <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>
-  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong></strong>.</li>
-  <li>Repeat process until satisfied with question selection.</li>
-</ol>
-    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/permissions'), '@admin-modules' => url('admin/build/modules'), '@admin-taxonomy' => url('admin/content/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
-    case 'node/add#quiz':
-      return t('A collection of questions designed to create interactive tests');
-    default:
-      break;
-  }
 }
 
 /**
@@ -1881,8 +1789,10 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
   // Create new revision of current quiz (if any question status has been changed).
   if (!empty($changes)) {
     $rev = array('revision' => '1');
-    // Node form is now conditionally loaded. Need to do something else here.
+    // Node form is now conditionally loaded. Can we solve this problem another way?
+    include_once drupal_get_path('module','node') . '/node.pages.inc';
     drupal_execute('node_form', $rev, $quiz);
+    
     drupal_set_message(t('A new revision of the @quiz has been created.', array('@quiz' => QUIZ_NAME)));
   }
 
@@ -2405,7 +2315,6 @@ function theme_quiz_take_question($quiz, $question_node) {
 function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
   drupal_set_title(check_plain($quiz->title));
-
   // Display overall result.
   $output = '';
   if ($score['percentage_score']) {
@@ -2415,6 +2324,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, ($quiz->pass_rate > 0), TRUE);
+  
   return $output;
 }
 
@@ -2555,3 +2465,127 @@ function theme_quiz_questions($form) {
 function theme_quiz_no_feedback() {
   return t('Thanks for taking the quiz!');
 }
+
+
+// Since this is big and rarely modified, keep it at the end.
+/**
+ * Implementation of hook_help().
+ */
+function quiz_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#quiz':
+      return t('
+<h3>Description</h3>
+<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Finally, it provides a mechanism for ensuring question quality through a combination of community revision and moderation. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>
+<h3>Creating Your First Quiz</h3>
+<p>Creating an initial quiz requires three steps:</p>
+<ol>
+  <li>Create at least one taxonomy vocabulary and assign it to the quiz and question type modules</li>
+  <li>Create a series of questions</li>
+  <li>Create a quiz based on the series of questions</li>
+</ol>
+    <h4>Setting Quiz Permissions</h4>
+    <p>The quiz module and included multichoice module both have a plethora of permission options.<br />Unless you take care setting your permissions, the quiz module might not do everything you want it to do.</p>
+    <h5><strong><a href="@admin-access#module-quiz">Quiz Permissions</a></strong></h5>
+    <dl><dt><strong>access quiz</strong></dt>
+    <dd>allows users to take quizzes</dd>
+    <dt><strong>administer quiz</strong></dt>
+    <dd>allows users to edit quizzes</dd>
+    <dt><strong>administer quiz configuration</strong></dt>
+    <dd>allows users to use global admin settings, as well as override userresults if they don\'t have that permission. Can also delete quizzes</dd>
+    <dt><strong>create quiz</strong></dt>
+    <dd>Can create a new quiz</dd>
+    <dt><strong>user results</strong></dt>
+    <dd>Can view other user\'s results.</dd></dl>
+    <h5><strong><a href="@admin-access#module-multichoice">Multichoice Permissions</a></strong></h5>
+    <dl><dt><strong>allow any number of answers</strong></dt>
+    <dd>can submit questions with more than one correct answer.</dd>
+    <dt><strong>allow feedback</strong></dt>
+    <dd>Can create feedback when creating a new multichoice question.</dd>
+    <dt><strong>allow multiple correct answers</strong></dt>
+    <dd></dd>
+    <dt><strong>allow user titles</strong></dt>
+    <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>
+    <dt><strong>create multichoice</strong></dt>
+    <dd>users can create multichoice questions</dd>
+    <dt><strong>edit own multichoice</strong></dt>
+    <dd>can edit their own multi-choice questions.</dd></dl>
+<h4>Setting up a vocabulary</h4>
+<ol>
+  <li>If not already enabled, go to the <a href="@admin-modules">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>
+  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href="@admin-taxonomy">Administer >> Content management >> Categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>
+  <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:
+    <ul>
+      <li>Literature
+        <ul>
+          <li>Children\'s books</li>
+          <li>Poetry</li>
+          <li>Shakespeare</li>
+        </ul>
+      </li>
+      <li>Mathematics
+        <ul>
+          <li>Algebra</li>
+          <li>Trigonometry</li>
+          <li>Calculus</li>
+        </ul>
+      </li>
+      <li>Information Technology
+        <ul>
+          <li>Hardware</li>
+          <li>Programming</li>
+          <li>Databases</li>
+        </ul>
+      </li>
+  </li>
+</ol>
+<h4>Creating quiz questions</h4>
+<ol>
+  <li>Begin by clicking <a href="@create-content">Create content</a>, and then select a question type node (for example, <a href="@multichoice">multichoice</a>)</li>
+  <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:
+    <dl>
+      <dt><strong>Title</strong></dt>
+      <dd>Question title. This will be displayed as the heading of the question.</dd>
+      <dt><strong>Taxonomy selection</strong></dt>
+      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed.</dd>
+      <dt><strong>Question</strong></dt>
+      <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>
+      <dt><strong>Multiple Answers</strong></dt>
+      <dd>Whether or not the question has multiple correct answers, such as a "Select all that apply" question.</dd>
+      <dt><strong>Correct</strong></dt>
+      <dd>Indicates that given answer is a correct answer.</dd>
+      <dt><strong>Answer</strong></dt>
+      <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>
+      <dt><strong>Feedback</strong></dt>
+      <dd>Feedback, if supplied, will be provided to the user at the end of the quiz.</dd>
+    </dl>
+  </li>
+  <li>Repeat for each question you would like included on the quiz.</li>
+</ol>
+<h4>Creating the quiz</h4>
+<ol>
+  <li>Go to <a href="@create-quiz">Create content >> Quiz</a> to access the quiz creation form.</li>
+  <li>Fill out the form to set the @quiz options:
+    <dl>
+      <dt><strong>Title</strong></dt>
+      <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>
+      <dt><strong>Taxonomy selection</strong></dt>
+      <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>
+      <dt><strong>Shuffle questions</strong></dt>
+      <dd>Whether or not to shuffle (randomize) the questions.</dd>
+      <dt><strong>Number of takes</strong></dt>
+      <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>
+    </dl>
+  </li>
+  <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>
+  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong></strong>.</li>
+  <li>Repeat process until satisfied with question selection.</li>
+</ol>
+    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/permissions'), '@admin-modules' => url('admin/build/modules'), '@admin-taxonomy' => url('admin/content/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
+    case 'node/add#quiz':
+      return t('A collection of questions designed to create interactive tests');
+    default:
+      break;
+  }
+}
+
