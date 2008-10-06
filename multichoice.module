@@ -543,7 +543,8 @@ function multichoice_render_question_form($context, $node) {
   }
 
   $form['start'] = array('#type' => 'markup', '#value' => '<div class="multichoice_form">');
-  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format, FALSE));
+  // $node->body has already been escaped by node_prepare()
+  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
 
   // Create form.
   $form['tries'] = array(
