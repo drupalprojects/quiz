@@ -308,13 +308,15 @@ function multichoice_validate(&$node) {
     if (!$corrects) {
       form_set_error("answers][0]['correct'", t('No correct choice(s).'));
     }
-    if ($node->multiple_answers && $corrects < 2) {
+    // We want to allow multi-answer even if there is only one answer.
+    if ($node->multiple_answers && $corrects < 1) {
       form_set_error('multiple_answers', t('Multiple answers selected, but only %count correct answer(s) present.', array('%count' => $corrects)));
     }
+    
     if (!$answers) {
       form_set_error("answers][0]['answer'", t('No answers.'));
     }
-    if ($answers < 2) {
+    else if ($answers < 2) {
       form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
     }
   }
@@ -512,6 +514,8 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
 
 /**
  * Print question to screen.
+ *
+ * This assumes that node_prepare() has already been called on the $node.
  *
  * @param $context
  *  Form processing context.
