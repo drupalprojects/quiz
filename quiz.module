@@ -935,8 +935,8 @@ function quiz_take_quiz() {
     drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
   }
   
+  /* Moved to quiz_start_actions()
   if ($user->uid && $quiz->takes != 0) {
-    // TODO mbutcher: This is not working. Check inserts into quiz_node_results.
     $query = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d AND vid = %d AND uid = %d";
     $times = db_result(db_query($query, $quiz->nid, $quiz->vid, $user->uid));
     if ($times >= $quiz->takes) {
@@ -944,6 +944,7 @@ function quiz_take_quiz() {
       return;
     }
   }
+  */
 
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
     // First time running through quiz.
@@ -966,6 +967,7 @@ function quiz_take_quiz() {
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
     }
     else {
+      drupal_set_message('Failed to start action for a new quiz.');
       return '';
     }
   }
@@ -1242,24 +1244,51 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_actions($quiz) {
   global $user;
   
+  $user_is_admin = user_access('create quiz');
+  
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
     // Compare current GMT time to the open and close dates (which should still be in GMT time).
     $now = gmmktime();
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
-      // TODO mbutcher: Does this ever get called? quiz_take_quiz() should do this already.
-      if (!user_access('create quiz')) {
-        watchdog('quiz','User has insufficient access to take this quiz. 1222.');
+      if (!$user_is_admin) {
+        // Can't take quiz.
         return FALSE;
       }
     }
   }
-
+  
+  // Check to see if this user is allowed to take the quiz again:
+  if($quiz->takes > 0) {
+    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = %s AND nid = %s AND vid = %s";
+    $taken = db_result(db_query($query, $user->uid, $quiz->nid, $quiz->vid));
+    $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
+    $taken_times   = format_plural($taken, '1 time', '@count times');
+    
+    // The user has already taken this quiz (nid/vid combo).
+    if ($taken) {
+      // If the user has already taken this quiz too many times, stop the user.
+      if ($taken >= $quiz->takes) {
+        drupal_set_message(t('You have already taken this quiz @really. You may not take it again.', array('@really' => $taken_times)), 'error');
+        if (!$user_is_admin) {
+          return FALSE;          
+        }
+      }
+      // If the user has taken the quiz more than once, see if we should report this.
+      else if (variable_get('quiz_show_allowed_times', TRUE)) {
+        drupal_set_message(t("You can only take this quiz @allowed. You have taken it @really.", array('@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
+      }
+    }
+  }
+  
   // Check to see if the (a) user is registered, and (b) user alredy passed this quiz.
   if ($user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
   }
+  
+  // On error, we want to return before here to avoid creating an empty entry in quiz_node_results.
+  // Otherwise, we get fairly clutter Quiz Results.
 
   // Insert quiz_node_results record.
   $result = db_query(
@@ -1868,6 +1897,20 @@ function quiz_admin_settings() {
     '#default_value' => QUIZ_NAME,
     '#description' => t('How do you want to refer to quizzes across the site (for example: quiz, test, assessment).  This will affect display text but will not affect menu paths.'),
     '#required' => TRUE,
+  );
+  
+  $form['quiz_limits'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Limits and Restrictions'),
+    '#description' => t('Configure limits and restrictions on users who are taking quizes.'),
+  );
+  
+  $form['quiz_limits']['quiz_show_allowed_times'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show allowed times'),
+    '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
+    '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
+    
   );
   return system_settings_form($form);
 }
