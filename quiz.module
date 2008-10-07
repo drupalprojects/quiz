@@ -54,7 +54,7 @@ define('QUIZ_PERM_ADMIN_CONFIG', 'administer quiz configuration');
  * Implementation of hook_perm().
  */
 function quiz_perm() {
-  return array(QUIZ_PERM_ADMIN_CONFIG, 'access quiz', 'create quiz', 'administer quiz', 'user results');
+  return array(QUIZ_PERM_ADMIN_CONFIG, 'access quiz', 'create quiz', 'administer quiz', 'user results', 'own results');
 }
 
 /**
@@ -150,16 +150,16 @@ function quiz_menu() {
   $items['user/%/myresults'] = array(
     'title' => t('My Results'),
     'page callback' => 'quiz_get_user_results',
-    //'page arguments' => array(1),
-    'access arguments' => array('user results'),
+    'page arguments' => array(1),
+    'access arguments' => array('own results'),
     'type' => MENU_LOCAL_TASK,
   );
 
   $items['user/quiz/%/userresults'] = array(
     'title' => t('User Results'),
     'page callback' => 'quiz_user_results',
-    //'page arguments' => array(2),
-    'access arguments' => array('user results'),
+    'page arguments' => array(2),
+    'access arguments' => array('own results'),
     'type' => MENU_CALLBACK,
   );
   
@@ -879,33 +879,39 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
  * @return
  *  HTML output for page.
  */
-function quiz_get_user_results() {
+function quiz_get_user_results($user_id) {
   global $user;
-  $results = array();
-  $dbresult = db_query("SELECT
-                          n.nid as nid,
-                          n.title as title,
-                          u.name as name,
-                          qnrs.result_id as result_id,
-                          qnrs.time_start,
-                          qnrs.time_end
-                        FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u
-                        WHERE
-                          n.type = 'quiz'
-                            AND
-                          n.nid = qnp.nid
-                            AND
-                          qnrs.nid = qnp.nid
-                            AND
-                          u.uid = qnrs.uid
-                            AND
-                          u.uid = ". $user->uid ."
-                        ORDER BY qnrs.result_id ASC");
-  // Create an array out of the results.
-  while ($line = db_fetch_array($dbresult)) {
-    $results[$line['result_id']] = $line;
+  
+  if ($user_id == $user->uid || user_access('user results')) {
+    $results = array();
+    $dbresult = db_query("SELECT
+                            n.nid as nid,
+                            n.title as title,
+                            u.name as name,
+                            qnrs.result_id as result_id,
+                            qnrs.time_start,
+                            qnrs.time_end
+                          FROM {node} n, {quiz_node_properties} qnp, {quiz_node_results} qnrs, {users} u
+                          WHERE
+                            n.type = 'quiz'
+                              AND
+                            n.nid = qnp.nid
+                              AND
+                            qnrs.nid = qnp.nid
+                              AND
+                            u.uid = qnrs.uid
+                              AND
+                            u.uid = %d
+                          ORDER BY qnrs.result_id ASC", $user_id);
+    // Create an array out of the results.
+    while ($line = db_fetch_array($dbresult)) {
+     $results[$line['result_id']] = $line;
+    }
+    return theme('quiz_get_user_results', $results);
   }
-  return theme('quiz_get_user_results', $results);
+  else {
+    return 'You have no permission to view the results of this user.';
+  }
 }
 
 /**
@@ -1986,12 +1992,22 @@ function _quiz_get_results($nid = '', $uid = 0) {
 /*
  * Quiz Results User.
  */
-function quiz_user_results() {
-  $result = db_fetch_object(db_query('SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', arg(2)));
+function quiz_user_results($result_id) {
+  global $user;
+  
+  $result = db_fetch_object(db_query('SELECT qnp.nid, qnrs.uid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', $result_id));
   if ($result->nid) {
+    
+    // User can view own results (quiz_menu sets access to 'own results').
+    // User with role 'user results' can view other user's results.
+    if ($result->uid != $user->uid && !user_access('user results')) {
+      drupal_access_denied();
+      return;
+    }
+    
     $quiz = node_load($result->nid);
-    $questions = _quiz_get_answers(arg(2));
-    $score = quiz_calculate_score($quiz, arg(2));
+    $questions = _quiz_get_answers($result_id);
+    $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
     return theme('quiz_user_summary', $quiz, $questions, $score, $summary);
   }
