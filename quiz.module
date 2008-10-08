@@ -126,20 +126,16 @@ function quiz_menu() {
     'access arguments' => array('administer quiz'),
     'type' => MENU_NORMAL_ITEM,
   );
-	
-    // MPB FIXME: This won't work. Hook_menu is not called on each request.
-	//$node = node_load(arg(1));
-    //if ($node->type == 'quiz') {
-
+  
   // Menu item for adding questions to quiz.
-  $items['node/%/questions'] = array(
+  $items['node/%quiz_type_access/questions'] = array(
     'title' => t('Manage questions'),
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
     'access arguments' => array('create quiz'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['node/%/admin'] = array(
+  $items['node/%quiz_type_access/admin'] = array(
     'title' => t('Quiz Admin', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'theme_quiz_view',
     'page arguments' => array(1),
@@ -179,6 +175,19 @@ function quiz_menu() {
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * Load a quiz node and validate it.
+ *
+ * @param $arg 
+ *  The Node ID
+ * @return 
+ *  A quiz node object or FALSE if a load failed.
+ */
+function quiz_type_access_load($arg) {
+  // Simple verification/load of the node.
+  return (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
 }
 
 /**
@@ -716,46 +725,49 @@ function quiz_theme() {
     'quiz_availability' => array(
       'arguments' => array('node' => NULL),
     ),
-	'quiz_view' => array(
-	  'arguments' => array('node' => NULL, 'teaser' => FALSE, 'page' => FALSE),
-	),
-	'quiz_get_user_results' => array(
-      'arguments' => array('results' => NULL),
-	),
-	'quiz_question_table' => array(
-	  'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
-	),
-	'quiz_filtered_questions' => array(
-	  'arguments' => array('form' => NULL),
-	),
-	'quiz_take_question' => array(
-	  'arguments' => array('quiz' => NULL, 'question_node' => NULL),
-	),
-	'quiz_take_summary' => array(
-	  'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => ''),
-	),
-	'quiz_admin' => array(
-	  'arguments' => array('results' => NULL),
-	),
-	'quiz_admin_summary' => array(
-	  'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
-	),
-	'quiz_user_summary' => array(
-	  'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
-	),
-	'quiz_feedback' => array(
-	  'arguments' => array('questions' => NULL, 'showpoints' =>TRUE, 'showfeedback' => FALSE),
-	),
-	'quiz_question_feedback' => array(
-	  'arguments' => array('quiz' => NULL, 'report' => NULL),
-	),
-	'quiz_question_table' => array(
-	  'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
-	),
-	'quiz_questions' => array(
+    'quiz_view' => array(
+      'arguments' => array('node' => NULL, 'teaser' => FALSE, 'page' => FALSE),
+    ),
+    'quiz_get_user_results' => array(
+        'arguments' => array('results' => NULL),
+    ),
+    'quiz_question_table' => array(
+      'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
+    ),
+    'quiz_filtered_questions' => array(
       'arguments' => array('form' => NULL),
-	),	
-	'quiz_no_feedback' => array(),	
+    ),
+    'quiz_take_question' => array(
+      'arguments' => array('quiz' => NULL, 'question_node' => NULL),
+    ),
+    'quiz_take_summary' => array(
+      'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => ''),
+    ),
+    'quiz_admin' => array(
+      'arguments' => array('results' => NULL),
+    ),
+    'quiz_admin_summary' => array(
+      'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+    ),
+    'quiz_user_summary' => array(
+      'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+    ),
+    'quiz_feedback' => array(
+      'arguments' => array('questions' => NULL, 'showpoints' =>TRUE, 'showfeedback' => FALSE),
+    ),
+    'quiz_question_feedback' => array(
+      'arguments' => array('quiz' => NULL, 'report' => NULL),
+    ),
+    'quiz_questions' => array(
+        'arguments' => array('form' => NULL),
+    ),	
+    'quiz_progress' => array(
+      'arguments' => array('question_number' =>NULL, 'num_of_question' => NULL),
+    ),
+    'quiz_question_table' => array(
+      'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
+    ),
+    'quiz_no_feedback' => array(),
   );
 }
 
@@ -1532,10 +1544,8 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
  * @return
  *  HTML output to create page.
  */
-function quiz_questions_form($context, $qid) {
-  //$quiz = node_load(arg(1));
-  $quiz = node_load($qid);
-
+function quiz_questions_form($context, $quiz) {
+  
   // Set page title.
   drupal_set_title(check_plain($quiz->title));
 
@@ -1700,8 +1710,8 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
  *   ID of quiz to create
  * @return unknown
  */
-function quiz_questions($qid) {
-  return drupal_get_form('quiz_questions_form', $qid);
+function quiz_questions($node) {
+  return drupal_get_form('quiz_questions_form', $node);
 }
 
 /**
@@ -1715,7 +1725,9 @@ function quiz_questions($qid) {
  *  Array containing the form values.
  */
 function quiz_questions_form_submit($form, &$form_state) {
- 
+  // This is used for the update below. This is ugly and should be fixed.
+  $quiz = node_load(arg(1));
+  
   // Update quiz with selected question options.
   if (!quiz_update_questions($form_state['values']['question_status'], $form_state['values']['new_revision'])) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
