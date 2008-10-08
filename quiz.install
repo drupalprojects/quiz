@@ -80,6 +80,7 @@ function quiz_schema() {
         'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
         'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
         'number_of_answers' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1),
+        //'multianswer' => array('type' => 'int', 'size' =>'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       ),
     );
 

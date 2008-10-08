@@ -380,6 +380,7 @@ function multichoice_insert(&$node) {
   $node->number_of_answers = multichoice_get_number_of_corrects($node->answers);
   $quiz_vid     = $node->quiz_vid;
   $question_vid = $node->vid;
+  //$multi_answer = $quiz->multiple_answers ? 1 : 0;
   // Instead of just storing whether a question has multiple answers,
   // we will store the actual number of correct answers.
   db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
