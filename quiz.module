@@ -1084,7 +1084,8 @@ function quiz_build_question_list($quiz) {
 
   // Get random questions for the remainder.
   if ($quiz->number_of_random_questions > 0) {
-    $questions = array_merge($questions, _quiz_get_random_questions($quiz->number_of_random_questions, $quiz->tid));
+    //$questions = array_merge($questions, _quiz_get_random_questions($quiz->number_of_random_questions, $quiz->tid));
+    $questions = array_merge($questions, _quiz_get_random_questions($quiz));
     if ($quiz->number_of_random_questions > count($questions)) {
       // Unable to find enough requested random questions.
       return FALSE;
@@ -1364,10 +1365,21 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
   return db_result(db_query('SELECT option_summary FROM {quiz_node_result_options} WHERE nid = %d AND vid = %d AND %d BETWEEN option_start AND option_end', $qnid, $qvid, $score));
 }
 
-function _quiz_get_random_questions($num_random, $tid) {
+function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
+  
+  if (!is_object($quiz)) {
+    drupal_set_message('The question pool cannot be generated.', 'error');
+    watchdog('quiz', '_quiz_get_random_questions was called incorrectly.', array(), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  $num_random = $quiz->number_of_random_questions;
+  $tid = $quiz->tid;
+  
   $questions = array();
   if ($num_random > 0) {
     if ($tid > 0) {
+      $questions = _quiz_get_random_taxonomy_question_ids($tid);
+      /*
       // Select random questions by taxonomy.
       $term = taxonomy_get_term($tid);
       $tree = taxonomy_get_tree($term->vid, $term->tid);
@@ -1389,15 +1401,59 @@ function _quiz_get_random_questions($num_random, $tid) {
         AND n.type IN ('"
         . implode("','", _quiz_get_question_types()) 
         . "') ORDER BY RAND()", 0, $num_random);
+      */
     }
     else {
+      drupal_set_message('By Rand Pool, getting ' . $quiz->number_of_random_questions);
       // Select random question from assigned pool.
       $result = db_query_range("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
-    }
-    while ($question_node = db_fetch_array($result)) {
-      $questions[] = $question_node;
+      while ($question_node = db_fetch_array($result)) {
+        $questions[] = $question_node;
+      }
     }
   }
+  return $questions;
+}
+
+/**
+ * Given a term ID, get all of the question nid/vids that have that ID.
+ * @param $tid
+ *  Integer term ID.
+ * @return
+ *  Array of nid/vid combos, like array(array('nid'=>1, 'vid'=>2)).
+ */
+function _quiz_get_random_taxonomy_question_ids($tid) {
+  if ($tid == 0) {
+    return array();
+  }
+  
+  // Select random questions by taxonomy.
+  $term = taxonomy_get_term($tid);
+  $tree = taxonomy_get_tree($term->vid, $term->tid);
+
+  // Flatten the taxonomy tree, and just keep term id's.
+  $term_ids[] = $term->tid;
+  if (is_array($tree)) {
+    foreach ($tree as $term) {
+      $term_ids[] = $term->tid;
+    }
+  }
+  $term_ids = implode(',', $term_ids);
+
+  // Get all published questions with one of the allowed term ids.
+  $result = db_query_range("SELECT n.nid, n.vid 
+    FROM {node} n 
+    INNER JOIN {term_node} tn USING (nid)
+    WHERE n.status = 1 AND tn.tid IN ($term_ids) 
+    AND n.type IN ('"
+    . implode("','", _quiz_get_question_types()) 
+    . "') ORDER BY RAND()", 0, $num_random);
+
+  $questions = array();
+  while ($question_node = db_fetch_array($result)) {
+    $questions[] = $question_node;
+  }
+  
   return $questions;
 }
 
