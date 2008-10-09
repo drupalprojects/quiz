@@ -775,13 +775,19 @@ function quiz_take_quiz() {
     }
   }
 
+  // Navigate backwards
   if ($_POST['op'] == t('Back')) {
     unset($_POST['tries']);
     
+    // We maintain two lists -- previous questions and upcomming questions.
+    // When we go backward, we pop one from the previous and prepend it to 
+    // the upcomming.
+    // TODO: This can be maintained more efficiently with a single array of
+    // all questions and then a pointer to the current question. That makes 
+    // rewinding much easier.
     $quiz_id = 'quiz_' . $quiz->nid;
     $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
     array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
-    //var_dump($_SESSION);
   }
 
   // Check for answer submission.
@@ -791,7 +797,11 @@ function quiz_take_quiz() {
     }
     else {
       //unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+      
+      // Previous quiz questions: Questions that have been asked already. We save a record of all of them
+      // so that a user can navigate backward all the way to the beginning of the quiz.
       $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+      
       $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
       $former_question = node_load(array('nid' => $former_question_array['nid']));
       
