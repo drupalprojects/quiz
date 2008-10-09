@@ -73,6 +73,145 @@ function quiz_get_user_results($user_id) {
 }
 
 // THEME FUNCTIONS
+
+/**
+ * Theme a message about the quiz's availability for quiz takers.
+ * 
+ * @ingroup themeable
+ */
+function theme_quiz_availability($node) {
+  $status = _quiz_availability($node);
+  $output = '<div class="quiz_availability"><p>';
+  switch ($status) {
+    case 'future':
+      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));
+      break;
+    case 'open':
+      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));
+      break;
+    case 'closed':
+      $output .= t('This quiz is no longer available.');
+      break;
+  }
+  $output .= '</p></div>'."\n";
+  return $output;
+}
+
+
+/**
+ * Theme the node view for quizzes.
+ * 
+ * @ingroup themeable
+ */
+function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
+  $output = '';
+  // Output quiz options.
+  $output .= '<h3>'. t('@quiz Options', array('@quiz' => QUIZ_NAME)) .'</h3>';
+  $header = array(
+    t('# of Random Questions'),
+    t('Shuffle?'),
+    t('Feedback'),
+    t('Number of takes'),
+  );
+  $shuffle = $node->shuffle == 1 ? t('Yes') : t('No');
+  $feedback_options = _quiz_get_feedback_options();
+  $feedback = $feedback_options[$node->feedback_time];
+  $takes = $node->takes == 0 ? t('Unlimited') : check_plain($node->takes);
+  $rows = array();
+  $rows[] = array(
+    check_plain($node->number_of_random_questions),
+    $shuffle,
+    $feedback,
+    $takes,
+  );
+  $output .= theme('table', $header, $rows);
+  // Format Quiz Dates.
+  $output .= '<h3>'. t('@quiz start/end', array('@quiz' => QUIZ_NAME)) .'</h3>';
+  if (!$node->quiz_always) {
+    // If we are previewing, make sure the dates are timestamps and not form arrays.
+    if (is_array($node->quiz_open)) {
+      quiz_translate_form_date($node, 'quiz_open');
+    }
+    if (is_array($node->quiz_close)) {
+      quiz_translate_form_date($node, 'quiz_close');
+    }
+
+    // Format the availability info.
+    $output .= '<p>'. format_date($node->quiz_open) .' &mdash; '. format_date($node->quiz_close) .'</p>';
+    $output .= '<p><strong>'. t('Days @quiz live for: ', array('@quiz' => QUIZ_NAME))  .'</strong> '. floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) .'</p>';
+    $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
+    $remaining = ($remaining < 0)?'Expired':$remaining;
+    $output .= '<p><strong>Days remaining:</strong> '. $remaining .'</p>';
+    $elapsed = floor((time() - $node->quiz_open) / 60 / 60 / 24);
+    $elapsed = ($elapsed < 0)?(-$elapsed) .' days to go':$elapsed;
+    $output .= '<p><strong>Days since start:</strong> '. $elapsed .'</p>';
+  }
+  else {
+    $output .= '<p>'. t('This Quiz is always available.') .'</p>'."\n";
+  }
+
+  // Format taxonomy selection (if applicable).
+  if (function_exists(taxonomy_node_get_terms)) {
+    $output .= '<h3>'. t('Taxonomy selection') .'</h3>';
+    $terms = array();
+    foreach (taxonomy_node_get_terms($node) as $term) {
+      $terms[] = check_plain($term->name);
+    }
+    if (!empty($terms)) {
+      $terms = implode(', ', $terms);
+      $output .= "<p>$terms</p>";
+    }
+    else {
+      $output .= '<p>'. t('No selected terms found') .'</p>';
+    }
+  }
+
+  // Format pass / fail and summary options.
+  if ($node->pass_rate || $node->summary_default || $node->summary_pass) {
+    if ($node->pass_rate) {
+      $output .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
+      $output .= '<p><strong>'. t('Percentage needed to pass:') .'</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
+      $output .= '<div><strong>'. t('Summary text if the user passed:') .'</strong> ';
+      $output .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
+      $output .= '</div>'."\n";
+    }
+    $output .= '<div><strong>'. t('Default summary text:') .'</strong> ';
+    $output .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
+    $output .= '</div>'."\n";
+  }
+
+  // Format result options if available.
+  if (count($node->resultoptions)) {
+    $scored_quiz = ($node->pass_rate > 0);
+
+    $output .= '<h3>'. t('!quiz Results', array('!quiz' => QUIZ_NAME)) .'</h3>';
+
+    $header = array(t('Name') => 'option_name', t('Summary') => 'option_summary');
+    if ($scored_quiz) {
+      $header = array_merge($header, array(t('Start') => 'option_start', t('End') => 'option_end'));
+    }
+    $values = array_values($header);
+
+    foreach ($node->resultoptions as $option) {
+      $row = array();
+      foreach ($values as $field) {
+        $row[] = $option[$field];
+      }
+      $option_rows[] = $row;
+    }
+    $output .= theme('table', array_keys($header), $option_rows);
+
+  }
+
+  // Format quiz questions.
+  if (is_numeric(arg(1))) {
+    $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
+    $questions = _quiz_get_questions($node->vid);
+    $output .= theme('quiz_question_table', $questions, $node->nid);
+  }
+  return $output;
+}
+
 /**
  * Theme the user results page.
  * 

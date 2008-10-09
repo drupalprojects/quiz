@@ -40,9 +40,6 @@ function quiz_admin_results($qid) {
   }
 }
 
- 
- 
- 
 /**
  * Creates a form for quiz questions.
  *
@@ -55,9 +52,9 @@ function quiz_admin_results($qid) {
 function quiz_questions($node) {
   return drupal_get_form('quiz_questions_form', $node);
 }
- 
- // EDIT QUIZ
- 
+
+// EDIT QUIZ
+
 /**
  * Handles "manage questions" tab.
  *
@@ -162,12 +159,14 @@ function quiz_questions_form($context, $quiz) {
   // Show the number of 'always' questions in the 'always' table header.
   $form['filtered_question_list_always']['#title'] .= ' ('. count($form['filtered_question_list_always']['type']) .')';
 
+  /* MPB FIXME: This has been hidden until the logic is fixed. See 
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
-    '#title' => t('New Revision'),
+    '#title' => t('New revision'),
     '#description' => t('Allow question status changes to create a new revision of the quiz?'),
   );
+  */
 
   $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
 
@@ -202,10 +201,11 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   // Check if selecting random question from pool, and not via term.
   if (empty($form_state['values']['random_term_id'])) {
-   $assigned_random =0;
+   $assigned_random = 
+   0;
    if (is_array($form_state['values']['question_status'])) {
      foreach ($form_state['values']['question_status'] as $id => $status) {
-       if (QUESTION_ALWAYS == $status) {
+       if (QUESTION_RANDOM == $status) {
          $assigned_random++;
        }
      }
