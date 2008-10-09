@@ -78,6 +78,7 @@ function multichoice_admin_settings_form() {
 
 /**
  * Implementation of hook_form().
+ * Admin for create/update of a multichoice question.
  */
 function multichoice_form(&$node) {
   // Quiz ID used here to tie creation of a question to a specific quiz.
@@ -597,9 +598,13 @@ function multichoice_evaluate_question($question, $rid = null) {
   // Unset $_POST, otherwise it tries to use the previous answers on the next page...
   unset($_POST['tries']);
 
-  $numanswers = db_query("SELECT count(answer_id) FROM {quiz_multichoice_answers} " .
-                      "WHERE nid = %d AND vid = %d AND is_correct = 1", $question->nid, $question->vid);
+  $numanswers = db_query("SELECT count(answer_id) FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $question->nid, $question->vid);
   if ($rid && !empty($tries)) {
+    
+    // Clear old answers
+    multichoice_clear_answer($question->nid, $question->vid, $rid);
+    
+    // Enter new answers
     foreach ($tries as $answer_id) {
       multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id, $numanswers);
     }
@@ -607,6 +612,24 @@ function multichoice_evaluate_question($question, $rid = null) {
 
   // Return whether or not the user's response was correct. 
   return multichoice_calculate_result($question->nid, $question->vid, $tries);
+}
+
+/**
+ * Clear an old answer.
+ * This is used for backward navigation. Before updating an answer, we have to clear 
+ * old answers.
+ * @param $nid
+ *  Question node id.
+ * @param $vid
+ *  Question node revision id.
+ * @param $rid
+ *  Result id.
+ */
+function multichoice_clear_answer($nid, $vid, $rid) {
+  $sql = 'DELETE FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
+  if (db_affected_rows(db_query($sql, $nid, $vid, $rid)) > 0) {
+    drupal_set_message("Your old answer has been deleted.");  
+  }
 }
 
 /**
@@ -620,24 +643,37 @@ function multichoice_evaluate_question($question, $rid = null) {
  *  Result id.
  * @param $answer_id
  *  The answer id.
+ * @param $numanswers
+ *  Number of answers expected. (Unused)
  */
-function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers) {
+function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1) {
   $result = db_result(db_query(
-    "SELECT COUNT('result_id') AS count FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", 
+    "SELECT COUNT('result_id') AS count FROM {quiz_multichoice_user_answers}
+     WHERE question_nid = %d AND question_vid = %d AND result_id = %d", 
     $nid, 
     $vid, 
     $rid
   ));
-  if (!empty($result) && $result['count'] == $numanswers) {
-    db_query("UPDATE {quiz_multichoice_user_answers} " . 
-            "SET answer_id = %d " . 
-            "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
-            $answer_id, $nid, $vid, $rid);
+  if (!empty($result) && $result == $numanswers) {
+    drupal_set_message("Updating");
+    db_query(
+      "UPDATE {quiz_multichoice_user_answers} SET answer_id = %d 
+       WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
+      $answer_id, 
+      $nid, 
+      $vid, 
+      $rid
+    );
   }
   else {
-    db_query("INSERT INTO {quiz_multichoice_user_answers} " .
-             "(question_nid, question_vid, result_id, answer_id) " .
-             "VALUES (%d, %d, %d, %d)", $nid, $vid, $rid, $answer_id);
+    db_query(
+      "INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id) 
+       VALUES (%d, %d, %d, %d)", 
+      $nid, 
+      $vid, 
+      $rid, 
+      $answer_id
+    );
   }
 }
 
