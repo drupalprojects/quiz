@@ -777,7 +777,11 @@ function quiz_take_quiz() {
 
   if ($_POST['op'] == t('Back')) {
     unset($_POST['tries']);
-    array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+    
+    $quiz_id = 'quiz_' . $quiz->nid;
+    $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
+    array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
+    //var_dump($_SESSION);
   }
 
   // Check for answer submission.
@@ -786,8 +790,8 @@ function quiz_take_quiz() {
       drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
     }
     else {
-      unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
-      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+      //unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
       $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
       $former_question = node_load(array('nid' => $former_question_array['nid']));
       
