@@ -9,8 +9,9 @@ to collect those questions into quizzes.
 
 Requirements
 ------------
-Drupal 5.x
-PHP 4.3.0 or greater
+Drupal 6.x
+PHP 4.3.0 or greater (5 is strongly recommended)
+MySQL 5
 
 The module consists of two types of modules: the Quiz module itself 
 (quiz.module), and various question types (example: multichoice.module). The 
@@ -38,13 +39,17 @@ Installation
 ------------
 Please refer to the INSTALL file for installation directions.
 
+Support
+-------
+- Visit the Quiz group at http://groups.drupal.org
+
 
 Credits
 -------
 - Specification:      Robert Douglass
 - Original author:    Károly Négyesi
 - Update to Drupal 5: Wim Mostrey and riverfr0zen
-- Current maintainer: Angela Byron
+- Maintainers: Angela Byron, westwesterson, mbutcher
 
 I'd like to extend a heart-felt thank you to the folks at Google for their 
 Summer of Code program, without which my working on this module would not have 

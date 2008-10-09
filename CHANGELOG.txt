@@ -3,10 +3,15 @@ $Id$
 -----------
 HEAD
 -----------
-- Beginning migration to Drupal 6
-- updated to use schema api in quiz
+- Preparing for version 3.0
+
+version 6.x-2.0-alpha1
+----------------------
+- Migration to Drupal 6
+- Updated to use schema api in quiz
 - Updated to use new (D6) theme system
 - Updated to use new (D6) menu system
+- Many bugs fixed
 
 version 5.x-2.0-beta2
 ------------
