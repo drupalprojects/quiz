@@ -1469,7 +1469,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
   $questions = array();
   if ($num_random > 0) {
     if ($tid > 0) {
-      $questions = _quiz_get_random_taxonomy_question_ids($tid);
+      $questions = _quiz_get_random_taxonomy_question_ids($tid,$num_random);
       /*
       // Select random questions by taxonomy.
       $term = taxonomy_get_term($tid);
@@ -1505,6 +1505,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
   return $questions;
 }
 
+
 /**
  * Given a term ID, get all of the question nid/vids that have that ID.
  * @param $tid
@@ -1512,7 +1513,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
  * @return
  *  Array of nid/vid combos, like array(array('nid'=>1, 'vid'=>2)).
  */
-function _quiz_get_random_taxonomy_question_ids($tid) {
+function _quiz_get_random_taxonomy_question_ids($tid,$num_random) {
   if ($tid == 0) {
     return array();
   }

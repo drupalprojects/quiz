@@ -201,8 +201,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   // Check if selecting random question from pool, and not via term.
   if (empty($form_state['values']['random_term_id'])) {
-   $assigned_random = 
-   0;
+   $assigned_random = 0;
    if (is_array($form_state['values']['question_status'])) {
      foreach ($form_state['values']['question_status'] as $id => $status) {
        if (QUESTION_RANDOM == $status) {
@@ -219,8 +218,9 @@ function quiz_questions_form_submit($form, &$form_state) {
   else {
     // Warn user if not enough questions available with this term_id.
     //$available_random = count(_quiz_get_random_questions($form_state['values']['num_random_questions'], $form_state['values']['random_term_id']));
-    $available_random = count(_quiz_get_random_taxonomy_question_ids($form_state['values']['random_term_id']));
+    $available_random = count(_quiz_get_random_taxonomy_question_ids($form_state['values']['random_term_id'],$form_state['values']['num_random_questions']));
     if ($form_state['values']['num_random_questions'] > $available_random) {
+      $form_state['values']['num_random_questions'] = $available_random;
       drupal_set_message(t('There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@random' => $available_random, '@quiz' => QUIZ_NAME)), 'error');
     }
   }
