@@ -315,6 +315,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   // Quiz node vid (revision) was updated.
   if ($node->revision) {
+    
     // Insert a new row in the quiz_node_properties table.
     quiz_insert($node);
 
@@ -338,12 +339,14 @@ function quiz_update($node) {
         summary_pass = '%s',
         summary_default = '%s',
         quiz_always = %d,
-        feedback_time = %d
+        feedback_time = %d,
+        number_of_random_questions = %d
       WHERE vid = %d 
         AND nid = %d";
     db_query($sql, $node->vid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, 
-      $node->feedback_time, $node->vid, $node->nid);
+      $node->feedback_time, $node->number_of_random_questions,
+      $node->vid, $node->nid);
   }
   _quiz_update_resultoptions($node);
 }
@@ -379,6 +382,7 @@ function quiz_load($node) {
   while ($option = db_fetch_array($result_options)) {
     $additions->resultoptions[$option['option_id']] = $option;
   }
+  
   return $additions;
 }
 
@@ -523,6 +527,12 @@ function quiz_form(&$node) {
     '#default_value' => $node->summary_default,
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
+  );
+  
+  $num_rand = (isset($node->number_of_random_questions)) ? $node->number_of_random_questions : 0;
+  $form['number_of_random_questions'] = array(
+    '#type' => 'value',
+    '#value' => $num_rand,
   );
 
   $form['resultoptions'] = array(
@@ -1233,69 +1243,6 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
     }
   }
   
-  /*
-  // Get array of all questions with a valid (enabled) question type (in database).
-  $questions_in_db = _quiz_get_unused_questions($quiz->vid, TRUE) + _quiz_get_questions($quiz->vid, TRUE, TRUE);
-
-  // Create an array of question statuses (in database), keyed by question nid.
-  $status_in_db = array();
-  foreach ($questions_in_db as $question) {
-    $status_in_db[$question->nid] = $question->status;
-  }
-
-  // Determine which questions have had their status changed;
-  // e.g. unassigned questions assigned to either 'always' or 'random', etc.
-  $changes = array_diff_assoc($submitted_questions, $status_in_db);
-  
-  // Create new revision of current quiz (if any question status has been changed).
-  if (!empty($changes)) {
-    $rev = array('revision' => '1');
-    // Node form is now conditionally loaded. Can we solve this problem another way?
-    include_once drupal_get_path('module','node') . '/node.pages.inc';
-    drupal_execute('node_form', $rev, $quiz);
-    
-    drupal_set_message(t('A new revision of the @quiz has been created.', array('@quiz' => QUIZ_NAME)));
-  }
-
-  // Separate all questions that have had their status changed
-  //  into corresponding arrays (inserts or updates).
-  $inserts = array();
-  $updates = array();
-  foreach ($changes as $nid => $status) {
-    if ($status_in_db[$nid] == QUESTION_NEVER) {
-      $inserts[$nid] = $status;
-    }
-    else {
-      $updates[$nid] = $status;
-    }
-  }
-  
-  drupal_set_message("Updates/Inserts:" . count($updates) . '/' . count($inserts));
-
-  // Insert question(s) into quiz; status will be either 'always' or 'random'.
-  foreach ($inserts as $nid => $status) {
-    $child_vid = $questions_in_db[$nid]->vid;
-    $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
-      SELECT src.nid, src.vid, %d, %d, %d FROM {node} AS src WHERE src.nid = %d";
-    $result = db_query($sql, $nid, $child_vid, $status, $quiz->nid);
-
-    if (!$result) {
-      return FALSE;
-    }
-  }
-
-  // Update question status in quiz; i.e. change status from 'always' or 'random' to another status.
-  foreach ($updates as $nid => $status) {
-    $child_vid = $questions_in_db[$nid]->vid;
-    $sql = "UPDATE {quiz_node_relationship} SET question_status = %d 
-      WHERE parent_vid = (SELECT src.vid FROM {node} AS src WHERE src.nid = %d) AND parent_nid = %d AND child_vid = %d";
-    $result = db_query($sql, $status, $quiz->nid, $quiz->nid, $child_vid);
-
-    if (!$result) {
-      return FALSE;
-    }
-  }
-  */
   return TRUE;
 }
 
