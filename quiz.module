@@ -367,9 +367,9 @@ function quiz_load($node) {
   $additions = db_fetch_object(db_query('SELECT qnp.* FROM {quiz_node_properties} qnp WHERE qnp.vid = %d AND qnp.nid = %d ORDER BY qnp.property_id DESC', $quiz_vid, $node->nid));
   
   $results   = db_query('SELECT nr.nid, qnr.question_status 
-  FROM {quiz_node_relationship} qnr 
-  INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
-  WHERE qnr.parent_vid = %d AND qnr.parent_nid = %d', $quiz_vid, $node->nid);
+    FROM {quiz_node_relationship} qnr 
+    INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
+    WHERE qnr.parent_vid = %d AND qnr.parent_nid = %d', $quiz_vid, $node->nid);
   
   while ($question = db_fetch_object($results)) {
     $additions->status[$question->child_nid] = $question->status;
@@ -675,7 +675,7 @@ function quiz_type_access_load($arg) {
  *  Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid, $nid) {
-  $sql = 'SELECT count(*) + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) 
+  $sql = 'SELECT COUNT(*) + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) 
     FROM {quiz_node_relationship} qnr 
     WHERE qnr.parent_vid = %d 
       AND qnr.parent_nid = %d 
@@ -1150,25 +1150,94 @@ function quiz_node_map($node) {
  * are 'random', 'always', 'never'.
  *
  * @access public
+ * @param &$quiz
+ *  The quiz node. This is modified internally.
  * @param $submitted_questions
  *  Array of submitted question statuses indexed (keyed) by the question nid.
  * @return boolean
  *  True if update was a success, false if there was a problem.
  */
-function quiz_update_questions($submitted_questions, $revision = FALSE) {
-  // Load quiz node.
-  $quiz = node_load(arg(1));
-  $return = true;
+function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) {
 
-  // No questions to update.
+  // No questions to update, so return now.
   if (empty($submitted_questions)) {
-    return FALSE;
+    return FALSE; // This will cause an error message.
   }
-
+  
+  // Loop through all questions and determine whether an update needs to be made.
+  // As we go, we store the questions that will need to be updated.
+  $existing_questions = _quiz_get_questions($quiz->vid, TRUE, TRUE);
+  $i_am_different_now = FALSE;
+  $questions = array(); // These are the questions that will be put into the Quiz.
+  foreach ($submitted_questions as $nid => $stat) {
+    $existing = $existing_questions[$nid];
+    if($stat != QUESTION_NEVER) {
+      if ($existing) {
+        if($existing->status != $stat) {
+          // Question's status has been changed.
+          $existing->status = $stat;
+          $i_am_different = TRUE;
+        }
+        // else This question is the same. Do nothing.
+        $questions[] = $existing;
+      }
+      else {
+        $new_question = node_load($nid);
+        $new_question->status = $stat;
+        $questions[] = $new_question;
+        // A new question was added to the quiz.
+        $i_am_different = TRUE;
+      }
+    }  
+    // Question is marked never, but it was something else on the last version of the quiz.
+    elseif (!empty($existing) && $stat != $existing->status) {
+      // Delete items moved from ALWAYS or RANDOM to NEVER
+      $existing->status = $stat;
+      $questions[] = $existing;
+      $i_am_different = TRUE;
+    }
+    // else Question isn't on the quiz, and isn't marked for inclusion.
+    //else {
+      // Question isn't part of the quiz.
+    //}
+  }
+  
+  if (!$i_am_different) {
+    // Nothing else to do.
+    return TRUE;
+  }
+  
+  // If we get here, then we (may) need to create a new VID and then store the questions.
+  
+  if ($revision) {
+    // Create a new Quiz VID
+    $quiz->revision = 1; // Need new vid.
+    node_save($quiz); // This updates the $quiz referent.
+  }
+  
+  // When node_save() calls all of the node API hooks, old quiz info is automatically
+  // inserted into quiz_node_relationship. We could get clever and try to do strategic
+  // updates/inserts/deletes, but that method has already proven error prone as the module
+  // has gained complexity (See 5.x-2.0-RC2). 
+  // So we go with the brute force method:
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $quiz->vid);
+  
+  // Now we do an insert of everything in the quiz.
+  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
+      VALUES (%d, %d, %d, %d, %d)";
+  
+  foreach ($questions as $question) {
+    if ($question->status != QUESTION_NEVER) {
+      //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
+      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->status);
+    }
+  }
+  
+  /*
   // Get array of all questions with a valid (enabled) question type (in database).
   $questions_in_db = _quiz_get_unused_questions($quiz->vid, TRUE) + _quiz_get_questions($quiz->vid, TRUE, TRUE);
 
-  // Create an array of question statuses (in database), keyed by question vid.
+  // Create an array of question statuses (in database), keyed by question nid.
   $status_in_db = array();
   foreach ($questions_in_db as $question) {
     $status_in_db[$question->nid] = $question->status;
@@ -1177,7 +1246,7 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
   // Determine which questions have had their status changed;
   // e.g. unassigned questions assigned to either 'always' or 'random', etc.
   $changes = array_diff_assoc($submitted_questions, $status_in_db);
-
+  
   // Create new revision of current quiz (if any question status has been changed).
   if (!empty($changes)) {
     $rev = array('revision' => '1');
@@ -1200,12 +1269,14 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
       $updates[$nid] = $status;
     }
   }
+  
+  drupal_set_message("Updates/Inserts:" . count($updates) . '/' . count($inserts));
 
   // Insert question(s) into quiz; status will be either 'always' or 'random'.
   foreach ($inserts as $nid => $status) {
     $child_vid = $questions_in_db[$nid]->vid;
-    $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) " .
-           "SELECT src.nid, src.vid, %d, %d, %d FROM {node} AS src WHERE src.nid = %d";
+    $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
+      SELECT src.nid, src.vid, %d, %d, %d FROM {node} AS src WHERE src.nid = %d";
     $result = db_query($sql, $nid, $child_vid, $status, $quiz->nid);
 
     if (!$result) {
@@ -1216,15 +1287,15 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
   // Update question status in quiz; i.e. change status from 'always' or 'random' to another status.
   foreach ($updates as $nid => $status) {
     $child_vid = $questions_in_db[$nid]->vid;
-    $sql =
-      "UPDATE {quiz_node_relationship} SET question_status = %d "
-      ."WHERE parent_vid = (SELECT src.vid FROM {node} AS src WHERE src.nid = %d) AND parent_nid = %d AND child_vid = %d";
+    $sql = "UPDATE {quiz_node_relationship} SET question_status = %d 
+      WHERE parent_vid = (SELECT src.vid FROM {node} AS src WHERE src.nid = %d) AND parent_nid = %d AND child_vid = %d";
     $result = db_query($sql, $status, $quiz->nid, $quiz->nid, $child_vid);
 
     if (!$result) {
       return FALSE;
     }
   }
+  */
   return TRUE;
 }
 
@@ -1233,11 +1304,17 @@ function quiz_update_questions($submitted_questions, $revision = FALSE) {
 /**
  * Insert call specific to result options.
  *
+ * This is called by quiz_insert().
+ *
  * @param $node
  *  The quiz node.
  */
 function _quiz_insert_resultoptions($node) {
-  foreach ($node->resultoptions as $option) {
+  if (!$node->resultoptions) {
+    return;
+  }
+  
+  foreach ($node->resultoptions as $id => $option) {
     if ($option['option_name']) {
       $option['nid'] = $node->nid;
       $option['vid'] = $node->vid;
@@ -1253,21 +1330,17 @@ function _quiz_insert_resultoptions($node) {
  *  The option array to insert.
  */
 function _quiz_insert_result_option($option) {
-  if (empty($option['option_id'])) {
-    $sql = "INSERT INTO {quiz_node_result_options} (nid, vid, option_name, option_summary, option_start, option_end)
-      VALUES(%d, %d, '%s', '%s', %d, %d)";
-   $option['option_id'] = db_last_insert_id('{quiz_node_result_options}','option_id');
-   $values = array(
-      $option['nid'],
-      $option['vid'],
-      $option['option_id'],
-      $option['option_name'],
-      $option['option_summary'],
-      $option['option_start'],
-      $option['option_end'],
-    );
-    db_query($sql, $values);
-  }
+  $sql = "INSERT INTO {quiz_node_result_options} (nid, vid, option_name, option_summary, option_start, option_end)
+    VALUES(%d, %d, '%s', '%s', %d, %d)";
+  $values = array(
+    $option['nid'],
+    $option['vid'],
+    $option['option_name'],
+    $option['option_summary'],
+    $option['option_start'],
+    $option['option_end'],
+  );
+  db_query($sql, $values);
 }
 
 /**
@@ -1277,6 +1350,10 @@ function _quiz_insert_result_option($option) {
  *  The quiz node.
  */
 function _quiz_update_resultoptions($node) {
+  if (!$node->resultoptions) {
+    return;
+  }
+  
   foreach ($node->resultoptions as $option) {
     if (!empty($option['option_name']) && empty($option['option_id'])) {
       // Oops, this is actually a new result option.
@@ -1418,7 +1495,6 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
       */
     }
     else {
-      drupal_set_message('By Rand Pool, getting ' . $quiz->number_of_random_questions);
       // Select random question from assigned pool.
       $result = db_query_range("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
       while ($question_node = db_fetch_array($result)) {

@@ -159,14 +159,12 @@ function quiz_questions_form($context, $quiz) {
   // Show the number of 'always' questions in the 'always' table header.
   $form['filtered_question_list_always']['#title'] .= ' ('. count($form['filtered_question_list_always']['type']) .')';
 
-  /* MPB FIXME: This has been hidden until the logic is fixed. See 
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
     '#title' => t('New revision'),
     '#description' => t('Allow question status changes to create a new revision of the quiz?'),
   );
-  */
 
   $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
 
@@ -190,11 +188,13 @@ function quiz_questions_form($context, $quiz) {
   *  Array containing the form values.
   */
 function quiz_questions_form_submit($form, &$form_state) {
-  // This is used for the update below. This is ugly and should be fixed.
+  // This is ugly and should be fixed.
   $quiz = node_load(arg(1));
+  
+  $new_revision = $form_state['values']['new_revision'];
 
   // Update quiz with selected question options.
-  if (!quiz_update_questions($form_state['values']['question_status'], $form_state['values']['new_revision'])) {
+  if (!quiz_update_questions($quiz, $form_state['values']['question_status'], $new_revision)) {
     form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
     return;
   }
@@ -224,6 +224,8 @@ function quiz_questions_form_submit($form, &$form_state) {
       drupal_set_message(t('There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@random' => $available_random, '@quiz' => QUIZ_NAME)), 'error');
     }
   }
+
+  
 
   $result = db_query("UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d", $form_state['values']['num_random_questions'], $form_state['values']['random_term_id'], $quiz->vid, $quiz->nid);
   if (!$result) {
