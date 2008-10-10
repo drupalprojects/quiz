@@ -90,6 +90,7 @@ function quiz_questions_form($context, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
+  
   $form['filtered_random_question_list']['num_random_questions'] = array(
     '#type' => 'textfield',
     '#title' => t('Number questions to randomize'),
@@ -97,15 +98,18 @@ function quiz_questions_form($context, $quiz) {
     '#default_value' => $quiz->number_of_random_questions,
     '#description' => t('The number of randomly selected questions to assign to this quiz.'),
   );
+  
 
-  $form['filtered_random_question_list']['random_term_id'] = array(
-    '#type' => 'select',
-    '#title' => t('Terms'),
-    '#size' => 1,
-    '#options' => _quiz_taxonomy_select($quiz->tid),
-    '#default_value' => $quiz->tid,
-    '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
-  );
+  if (function_exists('taxonomy_get_vocabularies')) {
+    $form['filtered_random_question_list']['random_term_id'] = array(
+      '#type' => 'select',
+      '#title' => t('Terms'),
+      '#size' => 1,
+      '#options' => _quiz_taxonomy_select($quiz->tid),
+      '#default_value' => $quiz->tid,
+      '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
+    );
+  }
 
   // Display questions 'random' on this quiz.
   $form['filtered_question_list_random'] = array(
