@@ -23,6 +23,8 @@
 //
 // Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
 // Then they are in quiz.admin.inc.
+//
+// Views support is included in quiz.views.inc
 
 include(drupal_get_path('module', 'quiz') .'/quiz_datetime.inc');
 
@@ -63,16 +65,12 @@ function quiz_help($path, $arg) {
 }
 
 /**
- * Get an array of feedback options.
- *
- * @return
- *  An array of feedback options.
+ * This module is Views 2.0 enabled.
+ * Implementation of hook_views_api().
  */
-function _quiz_get_feedback_options() {
+function quiz_views_api() {
   return array(
-    QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
-    QUIZ_FEEDBACK_QUESTION => t('After each question'),
-    QUIZ_FEEDBACK_NEVER => t('Do not show'),
+    'api' => '2.0',
   );
 }
 
@@ -1744,6 +1742,21 @@ function _quiz_status_access($node) {
   return FALSE;
 }
 */
+/**
+ * Get an array of feedback options.
+ *
+ * @return
+ *  An array of feedback options.
+ */
+function _quiz_get_feedback_options() {
+  return array(
+    QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
+    QUIZ_FEEDBACK_QUESTION => t('After each question'),
+    QUIZ_FEEDBACK_NEVER => t('Do not show'),
+  );
+}
+
+
 
 /**
  * Takes a time element and prepares to send it to form_date().
