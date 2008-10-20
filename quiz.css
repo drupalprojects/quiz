@@ -49,3 +49,18 @@ td.quiz_summary_qcell table td {
 .quiz_answer_feedback {
   font-style: italic;
 }
+
+.quiz_summary_header {
+  font-weight: bold;
+}
+.quiz_summary_text {
+  
+}
+div.multichoice_answer_correct {
+  padding: 5px;
+  border: 1px solid green;
+}
+div.multichoice_answer_incorrect {
+  padding: 5px;
+  border: 1px solid red;
+}

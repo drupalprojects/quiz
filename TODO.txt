@@ -2,9 +2,8 @@ $Id$
 
 For a current TODO list please visit http://groups.drupal.org/quiz
 
-Important
+Items
 ---------
-- Add option to display quiz results in user profile (maybe?)
 - Add time limit
 - Complete matching question type and add additional question types
 - Allow for attachments (sound, images, etc.) to be integrated into questions
