@@ -439,8 +439,8 @@ function multichoice_update($node) {
 
   // Quiz node vid (revision) was updated.
   if ($node->revision) {
-  	// Gather all quiz node vids from quiz_node_relationship table that contain
-  	// the question being updated and create a new revision of the quizzes.
+    // Gather all quiz node vids from quiz_node_relationship table that contain
+    // the question being updated and create a new revision of the quizzes.
     $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND status != %d";
     $result = db_query($sql, $node->old_vid, QUESTION_NEVER);
     while ($quiz = db_fetch_object($result)) {
@@ -448,9 +448,9 @@ function multichoice_update($node) {
       // This will also create new quiz-question relation entries in the quiz_node_relationship table.
       $sql = "SELECT * FROM {node} WHERE vid = %d";
       $quiz_old = db_fetch_object(db_query($sql, $quiz->parent_vid));
-	  $rev = array('revision' => '1');
+      $rev = array('revision' => '1');
       drupal_execute('node_form', $rev, $quiz_old);
-  		
+
       // Update question vid in quiz_node_relationship table for each row that
       // contains the question vid prior to the increment (new revision).
       $sql = "SELECT vid FROM {node} WHERE nid = %d";

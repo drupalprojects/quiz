@@ -390,6 +390,7 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
+  drupal_set_message("Quiz view called");
   if (!$teaser) {
     //load the questions in the view page
     $node->content['body']['#value'] = quiz_take_quiz();
