@@ -390,10 +390,9 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
-  drupal_set_message("Quiz view called");
   if (!$teaser) {
     //load the questions in the view page
-    $node->content['body']['#value'] = quiz_take_quiz();
+    $node->content['body']['#value'] = quiz_take_quiz($node);
   }
   else {
     $node = node_prepare($node, $teaser);
@@ -728,18 +727,18 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  *
  * This gets executed when the main quiz node is first loaded.
  *
+ * @param $quiz
+ *  The quiz node.
+ * 
  * @return
  *  HTML output for page.
  */
-function quiz_take_quiz() {
+function quiz_take_quiz($quiz) {
   // If no access, fail.
   if (!user_access('access quiz')) {
     drupal_access_denied();
     return;
   }
-  
-  // Load the quiz node and prepare it for display:
-  $quiz = menu_get_object();
   if(!isset($quiz)) {
     drupal_not_found();
     return;
