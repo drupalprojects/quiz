@@ -75,6 +75,7 @@ function quiz_schema() {
    * This connects all the quiz question specific properties to the correct version of a quiz question.
    */
     // Create the quiz node question properties table
+    // XXX: This should be considered deprecated, as it is highly specific to multichoice.
     $schema['quiz_node_question_properties'] = array(
       'fields' => array(
         'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),

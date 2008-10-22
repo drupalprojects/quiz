@@ -11,6 +11,62 @@
 define('MULTICHOICE_NAME', 'Multi-Choice Question');
 
 /**
+ * Implementation of hook_help().
+ */
+function multichoice_help($path, $a_really_important_array) {
+  if ($path == 'admin/help#multichoice') {
+    return '<p>' . t('The multichoice module provides a multiple-choice question type to the Quiz module.') .
+      '</p><p>' . t('With this module, you can create new multiple choice and multiple answer questions that can 
+      be added to a quiz.') . '</p>';
+  }
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function multichoice_menu() {
+  $items['admin/settings/multichoice'] = array(
+    'title' => t('Multichoice Configuration'),
+    'description' => t('Configure Multichoice questions for users.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('multichoice_admin_settings_form'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * 
+ * Implementation of hook_theme().
+ *
+ * @ingroup themeable
+ */
+function multichoice_theme() {
+  return array(
+    'multichoice_generate_title' => array(
+      'arguments' => array('node' => NULL),
+    ),
+    'multichoice_feedback' => array(
+      'arguments' => array('quiz' => NULL, 'report' => NULL),
+    ),
+    'multichoice_report' => array(
+      'arguments' => array('question' => NULL, 'showpoints' => NULL, '$showfeedback' => NULL),
+    ),
+    'multichoice_selected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_unselected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
  * Implementation of hook_perm().
  */
 function multichoice_perm() {
@@ -28,7 +84,7 @@ function multichoice_access($op, $node, $account) {
   }
 
   if ($op == 'update' || $op == 'delete') {
-    if (user_access('edit own multichoice') && ($user->uid == $node->uid)) {
+    if (user_access('edit own multichoice') && ($account->uid == $node->uid)) {
       return TRUE;
     }
   }
@@ -47,23 +103,10 @@ function multichoice_node_info() {
   );
 }
 
-/**
- * Implementation of hook_menu().
- */
-function multichoice_menu() {
-    $items['admin/settings/multichoice'] = array(
-      'title' => t('Multichoice Configuration'),
-      'description' => t('Configure Multichoice questions for users.'),
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('multichoice_admin_settings_form'),
-      'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-      'type' => MENU_NORMAL_ITEM,
-    );
-  return $items;
-}
 
 /**
  * Admin settings form.
+ * @todo Move this to multichoice.admin.inc?
  */
 function multichoice_admin_settings_form() {
   $form['multichoice_default_answers'] = array(
@@ -267,7 +310,7 @@ function _multichoice_find_correct($answers) {
 /**
  * Implementation of hook_validate().
  */
-function multichoice_validate(&$node) {
+function multichoice_validate($node, &$form) {
   // Hard-code questions to have no teaser and to not be promoted to front page.
   $node->teaser = 0;
   $node->promote = 0;
@@ -344,7 +387,9 @@ function multichoice_validate(&$node) {
 
 /**
  * Implementation of hook_submit().
- */
+ * FIXME: There is no hook_submit() defined in the API. It appears to be gone. This 
+ * should be migrated to hook_nodeapi($op='submit).
+ *//*
 function multichoice_submit(&$node) {
   if (!user_access('allow user titles') || empty($node->title)) {
     // User is not allowed to set a title or they left it blank, so make one for them.
@@ -353,6 +398,23 @@ function multichoice_submit(&$node) {
   if (!user_access('allow multiple correct answers')) {
     // Convert the select box to the old checkbox.
     $node->answers[$node->correct]['correct'] = TRUE;
+  }
+}*/
+
+/**
+ * Implementation of hook_nodeapi().
+ * This is supposed to replace the hook_submit() features from the 5.x version.
+ */
+function multichoice_nodeapi(&$node, $op) {
+  if ($op == 'presave' && $node->type == 'multichoice') {
+    if (!user_access('allow user titles') || empty($node->title)) {
+      // User is not allowed to set a title or they left it blank, so make one for them.
+      $node->title = theme('multichoice_generate_title', $node);
+    }
+    if (!user_access('allow multiple correct answers')) {
+      // Convert the select box to the old checkbox.
+      $node->answers[$node->correct]['correct'] = TRUE;
+    }
   }
 }
 
@@ -408,15 +470,17 @@ function multichoice_update($node) {
   $question_vid = $node->vid;
   $node->number_of_answers = multichoice_get_number_of_corrects($node->answers);
   if ($node->revision) {
-    db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) " .
-             "VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
+    db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) 
+      VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
   }
   else {
-    db_query("UPDATE {quiz_node_question_properties} " .
-            "SET number_of_answers = %d WHERE nid = %d AND vid = %d",
-            $node->number_of_answers, $node->nid, $node->vid);
+    db_query("UPDATE {quiz_node_question_properties} 
+      SET number_of_answers = %d WHERE nid = %d AND vid = %d",
+      $node->number_of_answers, $node->nid, $node->vid);
   }
-  while (list($key, $value) = each($node->answers)) {
+  // Use foreach on small lists...
+  //while (list($key, $value) = each($node->answers)) {
+  foreach ($node->answers as $key => $value) {
     if ($value['answer_id']) {
       $value['answer'] = trim($value['answer']);
       if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
@@ -549,7 +613,6 @@ function multichoice_render_question_form($context, $node) {
     }
   }
 
-  $form['start'] = array('#type' => 'markup', '#value' => '<div class="multichoice_form">');
   // $node->body has already been escaped by node_prepare()
   $form['question'] = array('#type' => 'markup', '#value' => $node->body);
 
@@ -604,7 +667,7 @@ function _multichoice_get_response_answers($question, $rid) {
 }
 
 function multichoice_render_question($node) {
-  return drupal_get_form('multichoice_render_question_form', $node);
+  return  drupal_get_form('multichoice_render_question_form', $node);
 }
 
 /**
@@ -910,17 +973,6 @@ function theme_multichoice_unselected() {
 }
 
 /**
- * Theme function for the multichoice form.
- * 
- * @ingroup themeable
- */
-function theme_multichoice_render_question_form($form) {
-  $output = '';
-  $output .= drupal_render($form) .'</div>';
-  return $output;
-}
-
-/**
  * Theme a multichoice question report for quiz feedback.
  * 
  * @ingroup themeable
@@ -1045,34 +1097,4 @@ function theme_multichoice_generate_title($node) {
   }
   return $title . $shortstring;
 }
-/**
- * 
- * Hook_theme() required by 6.x
- * 
- * @return
- * An array of themable functions
- *
- * @ingroup themeable
- */
-function multichoice_theme() {
-  return array(
-    'multichoice_generate_title' => array(
-      'arguments' => array('node' => NULL),
-    ),
-    'multichoice_feedback' => array(
-      'arguments' => array('quiz' => NULL, 'report' => NULL),
-    ),
-    'multichoice_report' => array(
-      'arguments' => array('question' => NULL, 'showpoints' => NULL, '$showfeedback' => NULL),
-    ),
-    'multichoice_selected' => array(
-      'arguments' => array(),
-    ),
-    'multichoice_unselected' => array(
-      'arguments' => array(),
-    ),
-    'multichoice_form' => array(
-      'arguments' => array('form' => NULL),
-    ),
-  );
-}
+
