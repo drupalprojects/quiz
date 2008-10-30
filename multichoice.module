@@ -445,7 +445,7 @@ function multichoice_update($node) {
     } 
     else if (trim($value['answer']) != "") {
       // If there is an answer, insert a new row.
-      db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, is_correct, result_option) " .
+      db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) " .
               "VALUES(%d, %d, '%s', '%s', %d, %d)", 
                $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
