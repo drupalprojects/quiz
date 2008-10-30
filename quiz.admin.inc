@@ -276,6 +276,17 @@ function quiz_admin_settings() {
     '#default_value' => variable_get('quiz_use_passfail', 1),
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
+  
+  $form['quiz_max_result_options'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum Result Options'),
+    '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
+    '#default_value' => variable_get('quiz_max_result_options',5),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => FALSE,
+  );
+  
 
   $form['quiz_look_feel'] = array(
     '#type' => 'fieldset',

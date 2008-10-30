@@ -542,7 +542,7 @@ function quiz_form(&$node) {
   );
 
   $options = $node->resultoptions;
-  $num_options = max(3, (!empty($options)) ? count($options) : 5);
+  $num_options = max(3, (!empty($options)) ? count($options) : variable_get('quiz_max_result_options', 5));
 
   for ($i=0; $i < $num_options; $i++) {
     $option = (count($options) > 0) ? array_shift($options) : null; // grab each option in the array
