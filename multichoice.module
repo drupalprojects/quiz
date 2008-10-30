@@ -124,8 +124,22 @@ function multichoice_admin_settings_form() {
  * Admin for create/update of a multichoice question.
  */
 function multichoice_form(&$node) {
+  
+  $is_personality = _multichoice_is_personality_question($node);  
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
+  
+  if ($is_personality && !isset($quiz_id) || intval($quiz_id) == 0) {
+    drupal_set_message('Trying to find quiz');
+    // We have to actually look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
+    // design.
+    $result = db_result(db_query("SELECT nid FROM quiz_node_result_options WHERE option_id = %d", $node->answers[0]['result_option']));
+    if ($result) {
+      $quiz_id = $result;
+    } else drupal_set_message('No quiz');
+    // else: This means the quiz that this question originally belonged to has been deleted. Let user fix it.
+  }
+  
   if (!empty($quiz_id)) {
     $quiz = node_load((int)$quiz_id);
     $form['quiz_id'] = array(
@@ -137,7 +151,9 @@ function multichoice_form(&$node) {
       '#value' => $quiz->vid,
     );
   }
-
+  
+  
+  
   // Display the multichoice form.
 
   // Allow user to set title?
@@ -185,6 +201,13 @@ function multichoice_form(&$node) {
   if ($_POST['more']) {
     $node->rows += 5;
   }
+
+  // We store this for reference.
+  $form['num_answers'] = array(
+    '#type' => 'value',
+    '#value' => $node->rows,
+  );
+  
   $answers = $node->answers;
 
   // Display answer rows.
@@ -204,6 +227,7 @@ function multichoice_form(&$node) {
 
     // This is not a scored quiz, therefore no correct answers
     // so creator must assign answers to result options.
+    //if ($is_personality) {
     if (isset($quiz_id) && $quiz->pass_rate == 0) {
       if (empty($result_options)) {
         $result_options = array(0 => 'None');
@@ -386,22 +410,6 @@ function multichoice_validate($node, &$form) {
 }
 
 /**
- * Implementation of hook_submit().
- * FIXME: There is no hook_submit() defined in the API. It appears to be gone. This 
- * should be migrated to hook_nodeapi($op='submit).
- *//*
-function multichoice_submit(&$node) {
-  if (!user_access('allow user titles') || empty($node->title)) {
-    // User is not allowed to set a title or they left it blank, so make one for them.
-    $node->title = theme('multichoice_generate_title', $node);
-  }
-  if (!user_access('allow multiple correct answers')) {
-    // Convert the select box to the old checkbox.
-    $node->answers[$node->correct]['correct'] = TRUE;
-  }
-}*/
-
-/**
  * Implementation of hook_nodeapi().
  * This is supposed to replace the hook_submit() features from the 5.x version.
  */
@@ -494,8 +502,8 @@ function multichoice_update($node) {
       }
     } 
     else if (trim($value['answer']) != "") {
-      // If there is an answer, insert a new row.
-      db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, is_correct, result_option) " .
+      // If there is an answer, insert a new row. // Removed answer_id
+      db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) " .
               "VALUES(%d, %d, '%s', '%s', %d, %d)", 
                $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
@@ -797,10 +805,17 @@ function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1)
  *  TRUE if the user selected exactly all of the correct answers, otherwise FALSE.
  */
 function multichoice_calculate_result($nid, $vid, $tried) {
+  $correct_answers = array();
   $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $nid, $vid);
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
+  
+  if (empty($correct_answers)) {
+    // We are in a personality test. Score doesn't matter. Just return TRUE.
+    return TRUE;
+  }
+  
   return (array_values($correct_answers) === array_values($tried));
 }
 
@@ -894,6 +909,27 @@ function multichoice_list_questions() {
     $questions[] = $question;
   }
   return $questions;
+}
+
+/**
+ * Find out if this question is a personality-style question.
+ * 
+ * @param $node
+ *  A multichoice node.
+ * 
+ * @return boolean
+ *   TRUE if this is a personality question, FALSE otherwise.
+ */
+function _multichoice_is_personality_question($node) {
+  /* 
+   * We need some way to find this out. So far, the best candidate seems to be 
+   * this: Only personality questions appear to have result options.
+   *
+   * This does illustrate a defect in the whole personality implementation, though.
+   * Personality questions are bound (via result_option) to the quiz in which they
+   * were created. This stands in start contrast to other multichoice questions.
+   */
+  return ($node->answers && count($node->answers) > 0 && $node->answers[0]['result_option'] > 0);
 }
 
 /**
