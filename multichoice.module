@@ -749,10 +749,17 @@ function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1)
  *  TRUE if the user selected exactly all of the correct answers, otherwise FALSE.
  */
 function multichoice_calculate_result($nid, $vid, $tried) {
+  $correct_answers = array();
   $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $nid, $vid);
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
+  
+  if (empty($correct_answers)) {
+    // We are in a personality test. Just return TRUE.
+    return TRUE;
+  }
+  
   return (array_values($correct_answers) === array_values($tried));
 }
 
