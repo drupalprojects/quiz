@@ -869,17 +869,17 @@ function quiz_take_quiz($quiz) {
  * Store a quiz question result.
  */
 function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
-  watchdog('quiz', 'quiz_store_question_result: storing.');
+  //watchdog('quiz', 'quiz_store_question_result: storing.');
   $result = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid));
   if ($result && $result['count'] > 0) {
-    watchdog('quiz', 'quiz_store_question_result: updating');
+    //watchdog('quiz', 'quiz_store_question_result: updating');
     db_query("UPDATE {quiz_node_results_answers} ".
             "SET is_correct = %d, points_awarded = %d, answer_timestamp = %d " . 
             "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
             $is_correct, ($is_correct) ? 1 : 0, time(), $nid, $vid, $rid);
   }
   else {
-    watchdog('quiz', 'quiz_store_question_result: inserting');
+    //watchdog('quiz', 'quiz_store_question_result: inserting');
     db_query("INSERT INTO {quiz_node_results_answers} " .
             "(question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp) " .
             "VALUES (%d, %d, %d, %d, %d, %d)",
