@@ -566,7 +566,7 @@ function multichoice_render_question_form($context, $node) {
   //$form['start'] = array('#type' => 'markup', '#value' => '<div class="multichoice_form">');
   
   // $node->body has already been escaped by node_prepare()
-  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
+  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format));
 
   // Create form.
   $form['tries'] = array(
@@ -1008,7 +1008,7 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
  * @ingroup themeable
  */
 function theme_multichoice_feedback($quiz, $report) {
-  $output = '<span class="quiz_summary_text">'. $report->body .'</span><br />';
+  $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
       $answers[] = $answer['answer'];
