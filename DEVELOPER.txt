@@ -1,0 +1,14 @@
+Hooks you need to implement when developing a new question type:
+
+hook_list_questions() // List of questions
+hook_quiz_question_info() // Info about a question type.
+hook_evaluate_question() // Check whether question is correct or not.
+hook_get_report()
+hook_render_question()
+
+Theme functions
+===============
+Where {$type} is the question type, e.g. multichoice or long_answer...
+
+theme_{$type}_report() // Report at end of quiz
+theme_{$type}_feedback() // Feedback given during the taking of the quiz.

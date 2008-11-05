@@ -74,10 +74,12 @@ function quiz_questions_form($context, $quiz) {
     '#title' => t('Create additional questions'),
     '#theme' => 'additional_questions',
   );
-  foreach (_quiz_get_question_types() as $type) {
+  $types = _quiz_get_question_types();
+  foreach ($types as $type => $info) {
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => l(t($type), 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to '. $type .' administration'))) .' ',
+      // FIXME: This looks broken:
+      '#value' => l(t($info['name']), 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .' ',
     );
   }
 

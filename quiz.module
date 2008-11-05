@@ -747,17 +747,6 @@ function quiz_take_quiz($quiz) {
     drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
   }
   
-  /* Moved to quiz_start_actions()
-  if ($user->uid && $quiz->takes != 0) {
-    $query = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d AND vid = %d AND uid = %d";
-    $times = db_result(db_query($query, $quiz->nid, $quiz->vid, $user->uid));
-    if ($times >= $quiz->takes) {
-      drupal_set_message(t('You have already taken this @quiz %d times.', array('@quiz' => QUIZ_NAME, '%d' => $times)), 'status');
-      return;
-    }
-  }
-  */
-
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
     // First time running through quiz.
     if ($rid = quiz_start_actions($quiz)) {
@@ -813,7 +802,7 @@ function quiz_take_quiz($quiz) {
       $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
       $former_question = node_load(array('nid' => $former_question_array['nid']));
       
-      // Call hook_evaluate_question
+      // Call hook_evaluate_question().
       $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
       
       quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
@@ -1482,7 +1471,7 @@ function _quiz_get_random_taxonomy_question_ids($tid,$num_random) {
     INNER JOIN {term_node} tn USING (nid)
     WHERE n.status = 1 AND tn.tid IN ($term_ids) 
     AND n.type IN ('"
-    . implode("','", _quiz_get_question_types()) 
+    . implode("','", array_keys(_quiz_get_question_types())) 
     . "') ORDER BY RAND()", 0, $num_random);
 
   $questions = array();
@@ -1496,14 +1485,19 @@ function _quiz_get_random_taxonomy_question_ids($tid,$num_random) {
 /**
  * Retrieve list of question types.
  *
- * Determined by which modules implement the list_questions() hook.
- *
  * @return
  *  Array of question types.
  */
 function _quiz_get_question_types() {
+  return module_invoke_all('quiz_question_info');
+}
+/* 
+function _quiz_get_question_types() {
   return module_implements('list_questions');
 }
+*/
+
+
 
 /**
  * Retrieve list of vocabularies for all quiz question types.
@@ -1513,7 +1507,8 @@ function _quiz_get_question_types() {
  */
 function _quiz_get_vocabularies() {
   $vocabularies = array();
-  foreach (_quiz_get_question_types() as $type) {
+  $types = array_keys(_quiz_get_question_types());
+  foreach ($types as $type) {
     foreach (taxonomy_get_vocabularies($type) as $vid => $vocabulary) {
       $vocabularies[$vid] = $vocabulary;
     }
@@ -1552,8 +1547,8 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
   $where_sql    = '';
 
   if ($include_all_types === TRUE) {
-    $types = _quiz_get_question_types();
-    if (count($types)) {
+    $types = array_keys(_quiz_get_question_types());
+    if (count($types) > 0) {
     $str_types = "'". implode("','", $types) ."'";
       $where_add[] = 'question.type IN ( '. $str_types .' )';
     }
@@ -1614,11 +1609,11 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
  */
 function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
   $quiz       = menu_get_object();
-  $types      = _quiz_get_question_types();
+  $types      = array_keys(_quiz_get_question_types());
   $where_sql  = '';
   $questions = array();
 
-  if (count($types)) {
+  if (count($types) > 0) {
     $where_sql = "AND question.type IN ('". implode("','", $types) ."')";
   }
 

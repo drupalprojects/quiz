@@ -8,7 +8,7 @@
  * Allows the creation of multiple choice questions (ex: a, b, c, d or true/false)
  */
 
-define('MULTICHOICE_NAME', 'Multi-Choice Question');
+define('MULTICHOICE_NAME', 'Multi-choice question');
 
 /**
  * Implementation of hook_help().
@@ -52,7 +52,7 @@ function multichoice_theme() {
       'arguments' => array('quiz' => NULL, 'report' => NULL),
     ),
     'multichoice_report' => array(
-      'arguments' => array('question' => NULL, 'showpoints' => NULL, '$showfeedback' => NULL),
+      'arguments' => array('question' => NULL, 'showpoints' => NULL, 'showfeedback' => NULL),
     ),
     'multichoice_selected' => array(
       'arguments' => array(),
@@ -101,6 +101,13 @@ function multichoice_node_info() {
       'description' => t('A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)'),
     )
   );
+}
+
+/**
+ * Implementation of hook_quiz_question_info
+ */
+function multichoice_quiz_question_info() {
+  return array('multichoice' => array('name' => t(MULTICHOICE_NAME),));
 }
 
 
@@ -457,16 +464,16 @@ function multichoice_insert(&$node) {
   db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
   // We came from editing a quiz, so we should add this question to the quiz directly.
   if ($node->quiz_id > 0) { 
-    db_query('INSERT INTO {quiz_node_relationship} '.
-              '(parent_nid, parent_vid, child_nid, child_vid, question_status) VALUES (%d, %d, %d, %d, %d)', 
-              $node->quiz_id, $quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
+    db_query('INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
+      VALUES (%d, %d, %d, %d, %d)', 
+      $node->quiz_id, $quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
   }
   
   foreach ($node->answers as $value) {
     if (trim($value['answer']) != "") {
-      db_query("INSERT INTO {quiz_multichoice_answers} " .
-              "(nid, vid, answer, feedback, is_correct, result_option) VALUES (%d, %d, '%s', '%s', %d, %d)", 
-              $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
+      db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) 
+        VALUES (%d, %d, '%s', '%s', %d, %d)", 
+        $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
 }
@@ -622,7 +629,7 @@ function multichoice_render_question_form($context, $node) {
   }
 
   // $node->body has already been escaped by node_prepare()
-  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
+  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format));
 
   // Create form.
   $form['tries'] = array(
@@ -900,7 +907,12 @@ function multichoice_get_report($nid, $vid, $rid) {
  *  Array of questions.
  */
 function multichoice_list_questions() {
-  $result = db_query("SELECT nid, body, format FROM {node} WHERE type= '%s'", 'multichoice');
+  $sql = "SELECT n.nid, n.vid, r.body, r.format 
+    FROM {node} AS n
+    INNER JOIN {node_revisions} AS r USING(vid) 
+    WHERE n.type = '%s' ORDER BY n.changed";
+  // Old query: "SELECT nid, body, format FROM {node} WHERE type = '%s'"
+  $result = db_query($sql, 'multichoice');
   $questions = array();
   while ($node = db_fetch_object($result)) {
     $question = new stdClass();
@@ -1053,7 +1065,7 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
  * @ingroup themeable
  */
 function theme_multichoice_feedback($quiz, $report) {
-  $output = '<span class="quiz_summary_text">'. $report->body .'</span><br />';
+  $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
       $answers[] = $answer['answer'];
