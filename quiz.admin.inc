@@ -76,10 +76,11 @@ function quiz_questions_form($context, $quiz) {
   );
   $types = _quiz_get_question_types();
   foreach ($types as $type => $info) {
+    $url_type = str_replace('_', '-', $type);
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
       // FIXME: This looks broken:
-      '#value' => l(t($info['name']), 'node/add/'. $type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .' ',
+      '#value' => l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .' ',
     );
   }
 
