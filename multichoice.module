@@ -140,7 +140,7 @@ function multichoice_form(&$node) {
     drupal_set_message('Trying to find quiz');
     // We have to actually look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
     // design.
-    $result = db_result(db_query("SELECT nid FROM quiz_node_result_options WHERE option_id = %d", $node->answers[0]['result_option']));
+    $result = db_result(db_query("SELECT nid FROM {quiz_node_result_options} WHERE option_id = %d", $node->answers[0]['result_option']));
     if ($result) {
       $quiz_id = $result;
     } else drupal_set_message('No quiz');
@@ -580,7 +580,8 @@ function multichoice_load($node) {
  */
 function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create multichoice')) {
-    $mynode = node_prepare($node, $teaser);
+    // This is not necessary:
+    //$mynode = node_prepare($node, $teaser);
     $mynode->content['body'] = array('#value' => multichoice_render_question($node));
     return $mynode;
   } 
@@ -628,7 +629,6 @@ function multichoice_render_question_form($context, $node) {
     }
   }
 
-  // $node->body has already been escaped by node_prepare()
   $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format));
 
   // Create form.
