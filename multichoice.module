@@ -89,7 +89,7 @@ function multichoice_form(&$node) {
   if ($is_personality && !isset($quiz_id) || intval($quiz_id) == 0) {
     // We have to actually look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
     // design.
-    $result = db_result(db_query("SELECT nid FROM quiz_node_result_options WHERE option_id = %d", $node->answers[0]['result_option']));
+    $result = db_result(db_query("SELECT nid FROM {quiz_node_result_options} WHERE option_id = %d", $node->answers[0]['result_option']));
     if ($result) {
       $quiz_id = $result;
     }
