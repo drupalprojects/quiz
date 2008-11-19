@@ -41,7 +41,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'result_id',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'nid' => array(
         'title' => t('Quiz Node NID.'),
@@ -53,7 +53,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
         'relationship' => array(
           'handler' => 'views_handler_relationship',
           'base' => 'node',
@@ -78,7 +78,7 @@ function quiz_views_data() {
           'field' => 'vid',
           'label' => t('node'),
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'uid' => array(
         'title' => t('User ID.'),
@@ -90,7 +90,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
         // Related to USERS
         'relationship' => array(
           'handler' => 'views_handler_relationship',
@@ -109,7 +109,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'time_end' => array(
         'title' => t('Quiz End Time'),
@@ -121,7 +121,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       //'released' => array(
       //  'title' => t('Released'),
@@ -137,7 +137,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
     ),
     
@@ -166,7 +166,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
         'relationship' => array(
           'handler' => 'views_handler_relationship',
           'base' => 'node',
@@ -184,7 +184,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'nid',
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
         'relationship' => array(
           'handler' => 'views_handler_relationship',
           'base' => 'node',
@@ -209,7 +209,7 @@ function quiz_views_data() {
           'field' => 'vid',
           'label' => t('node'),
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'number_of_random_questions' => array(
         'title' => t('Number of random questions.'),
@@ -220,7 +220,7 @@ function quiz_views_data() {
           //'name_field' => 'title',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'pass_rate' => array(
         'title' => t('Pass rate'),
@@ -231,7 +231,7 @@ function quiz_views_data() {
           //'name_field' => 'title',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'shuffle' => array(
         'title' => t('Shuffle'),
@@ -242,7 +242,7 @@ function quiz_views_data() {
           'numeric' => TRUE,
           'validate_type' => 'vid',
         ),*/
-        'sort' => 'views_handler_sort',
+      'sort' => array('handler' => 'views_handler_sort'),
       ),
       'backwards_navigation' => array(
         'title' => t('Backwards navigation'),
@@ -252,7 +252,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),*/
-        'sort' => 'views_handler_sort',
+      'sort' => array('handler' => 'views_handler_sort'),
       ),
       'feedback_time' => array(
         'title' => t('Feedback Time'),
@@ -262,7 +262,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),*/
-        'sort' => 'views_handler_sort',
+      'sort' => array('handler' => 'views_handler_sort'),
       ),
       'time_limit' => array(
         'title' => t('Time limit'),
@@ -272,7 +272,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'quiz_open' => array(
         'title' => t('Quiz open time'),
@@ -282,7 +282,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_date',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'quiz_close' => array(
         'title' => t('Quiz close time'),
@@ -292,7 +292,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_date',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'quiz_always' => array(
         'title' => t('Always Available'),
@@ -302,7 +302,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),*/
-        'sort' => 'views_handler_sort',
+      'sort' => array('handler' => 'views_handler_sort'),
       ),
       'takes' => array(
         'title' => t('Number of takes'),
@@ -312,7 +312,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
       ),
       'tid' => array(
         'title' => t('Term ID'),
@@ -322,7 +322,7 @@ function quiz_views_data() {
           'handler' => 'views_handler_argument_numeric',
           'numeric' => TRUE,
         ),
-        'sort' => 'views_handler_sort',
+        'sort' => array('handler' => 'views_handler_sort'),
         
         // Related to TERM
         'relationship' => array(
