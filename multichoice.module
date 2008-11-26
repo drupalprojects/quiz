@@ -578,16 +578,16 @@ function multichoice_load($node) {
 /**
  * Implementation of hook_view().
  */
-function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
+function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && user_access('create multichoice')) {
     // This is not necessary:
     //$mynode = node_prepare($node, $teaser);
-    $mynode->content['body'] = array('#value' => multichoice_render_question($node));
-    return $mynode;
+    $node->content['body'] = array('#value' => multichoice_render_question($node));
+    return $node;
   } 
   else if ($teaser) {
-    $mynode = node_prepare($node, $teaser);
-    return $mynode;
+    $node = node_prepare($node, $teaser);
+    return $node;
   } 
   else {
     drupal_access_denied();
