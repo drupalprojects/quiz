@@ -1652,6 +1652,7 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
 function _quiz_get_results($nid = '', $uid = 0) {
   $results = array();
   $args = array();
+  /* This seems to have an unnecessary join in here:
   $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
           FROM {node} n
           INNER JOIN {quiz_node_properties} qnp
@@ -1660,6 +1661,14 @@ function _quiz_get_results($nid = '', $uid = 0) {
           WHERE n.type = 'quiz'
             AND n.nid = qnp.nid
             AND qnrs.nid = qnp.nid
+            AND u.uid = qnrs.uid";
+  */
+  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
+          FROM {node} n
+          INNER JOIN {quiz_node_results} qnrs
+          INNER JOIN {users} u
+          WHERE n.type = 'quiz'
+            AND qnrs.nid = n.nid
             AND u.uid = qnrs.uid";
   if ($nid) {
     $sql .= " AND qnrs.nid = %d";
