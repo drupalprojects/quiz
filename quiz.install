@@ -8,6 +8,16 @@
  */
 
 /**
+ * Implementation of hook_update_N().
+ * Add aid to quiz_node_properties table.
+ */
+function quiz_update_6300() {
+  $result = array();
+  db_add_field($result, 'quiz_node_properties', 'aid', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE));
+  return $result;
+}
+
+/**
  * Implementation of hook_install()
  */
 function quiz_install() {
@@ -32,6 +42,7 @@ function quiz_schema() {
       'property_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
       'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'aid' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'number_of_random_questions' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'pass_rate' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE),
       'summary_pass' => array('type' => 'text', 'length' => 65535),

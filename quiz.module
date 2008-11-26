@@ -319,11 +319,11 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
   $sql = "INSERT INTO {quiz_node_properties} 
-    (vid, nid, number_of_random_questions, shuffle, 
+    (vid, nid, aid, number_of_random_questions, shuffle, 
       backwards_navigation, quiz_open, quiz_close, takes, pass_rate, summary_pass, 
       summary_default, quiz_always, feedback_time, tid) 
-    VALUES(%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation,
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation,
           $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass,   
           $node->summary_default, $node->quiz_always, $node->feedback_time, $node->tid);
   _quiz_insert_resultoptions($node);
@@ -350,6 +350,7 @@ function quiz_update($node) {
     quiz_translate_form_date($node, 'quiz_close');
     $sql = "UPDATE {quiz_node_properties} 
       SET vid = %d,
+        aid='%s',
         shuffle = %d,
         backwards_navigation = %d,
         quiz_open = %d,
@@ -363,7 +364,7 @@ function quiz_update($node) {
         number_of_random_questions = %d
       WHERE vid = %d 
         AND nid = %d";
-    db_query($sql, $node->vid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
+    db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, 
       $node->feedback_time, $node->number_of_random_questions,
       $node->vid, $node->nid);
@@ -450,6 +451,28 @@ function quiz_form(&$node) {
     '#title' => t('Shuffle questions'),
     '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
     '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  
+  /*
+   * Added the action as a dropdown for selection with specific quizzes
+   * This allows you to choose a defined action from the actions module for use when
+   * a user completes the quiz.
+   */
+  $form['aid'] = array(
+    '#title' => t('Assign Action'),
+    '#description' => t('Select an action to be preformed after a user has completed this quiz.'),
+    '#type' => 'select',
+    /*
+     * An idea here would be to add a system conf variable into the quiz_action_options() function that
+     * could filter the type of actions you could display on your quizzes.  For Example: you create
+     * a custom module that defines some actions that you only want a user to choose when creating
+     * a quiz and selecting an action from the dropdown.  You setup your actions with type 'quiz' and
+     * then add in that variable into the function and it will automatically filter and show only 
+     * those specific actions.  @note:  In doing this you loose your default "Choose an Action"
+     * option.  Review actions and the quiz_action_options() function for further explaination.
+     */
+    '#options' => quiz_action_options(),
+    '#default_value' => MD5($node->aid),
   );
   
   $form['backwards_navigation'] = array(
@@ -678,6 +701,24 @@ function quiz_validate($node) {
     form_set_error('pass_rate', t('Unscored quiz, but no result options defined.'));
   }
 }
+/**
+ * Implementation of hook_nodeapi()
+ */
+function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
+  // We need to filter on node type to prevent this from overriding any other node
+  if($node->type == 'quiz') {
+    switch($op) {
+      case 'presave':
+        /*
+         * convert the action id to the actual id from the MD5 hash 
+         * Why the actions module does this I do not know?  Maybe to prevent invalid values put
+         * into the options value="" field.
+         */
+        $node->aid = actions_function_lookup($node->aid);
+        break;
+    }
+  }
+}
 
 // END HOOKS
 
@@ -903,6 +944,24 @@ function quiz_end_actions($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",
           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+
+  /**
+   * Lets piggy back here to perform the quiz defined action since were done with this quiz.
+   * We will verify that there is an associated action with this quiz and then perform that action.
+   */
+  if(!empty($quiz->aid)) {
+    /**
+     * Some actions are reliant on objects and I am unsure which ones, for now I have simply
+     * passed the actions_do() function an empty array.  By passing this function a single id
+     * then it will retrieve the callback, get the parameters and perform that function (action)
+     * for you.
+     * @TODO: Add ability to assign multiple actions and pass the actions_do() an array of aid's
+     * @TODO: Find out if we do in fact need to pass an object here for certain actions.
+     * @TODO: Create feature to only fire action if certain score is reached.
+     */
+    $holder = array();
+    actions_do($quiz->aid, $holder, $holder);
+  }
   return $score;
 }
 
@@ -1815,4 +1874,27 @@ function _quiz_form_prepare_date($time = '', $offset = 0) {
     );
   }
   return $time_array;
+}
+
+/**
+ * This function was copied from the triggers module as to prevent having to be dependent
+ * on that module for the actions to work.  The trigger function is called trigger_options()
+ *
+ * @param $type
+ *   One of 'node', 'user', 'comment'.
+ * @return
+ *   Array keyed by action ID.
+ */
+function quiz_action_options($type = 'all') {
+  $options = array(t('Choose an action'));
+  foreach (actions_actions_map(actions_get_all_actions()) as $aid => $action) {
+    $options[$action['type']][$aid] = $action['description'];
+  }
+
+  if ($type == 'all') {
+    return $options;
+  }
+  else {
+    return $options[$type];
+  }
 }
