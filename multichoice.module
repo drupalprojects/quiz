@@ -14,21 +14,34 @@ define('MULTICHOICE_NAME', 'Multi-Choice Question');
  * Implementation of hook_perm().
  */
 function multichoice_perm() {
-  return array('create multichoice', 'edit own multichoice', 'allow any number of answers',
-               'allow multiple correct answers', 'allow feedback', 'allow user titles');
+  return array(
+    // Manage questions:
+    'create multichoice', 'edit own multichoice', 
+    // Allow editing of fields:
+    'allow any number of answers', 'allow multiple correct answers', 'allow feedback', 'allow user titles'
+  );
 }
 
 /**
  * Implementation of hook_access().
  */
 function multichoice_access($op, $node, $account) {
-
+  
+  if (!$account) {
+    global $user;
+    $account = $user;
+  }
+  
+  if ($op == 'view') {
+    return user_access('create multichoice', $account);
+  } 
+  
   if ($op == 'create') {
-    return user_access('create multichoice');
+    return user_access('create multichoice', $account);
   }
 
   if ($op == 'update' || $op == 'delete') {
-    if (user_access('edit own multichoice') && ($user->uid == $node->uid)) {
+    if (user_access('edit own multichoice', $account) && ($account->uid == $node->uid)) {
       return TRUE;
     }
   }
