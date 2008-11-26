@@ -555,7 +555,7 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
  *  HTML output.
  */
 function multichoice_render_question_form($context, $node) {
-    $quiz = menu_get_object(); // Get the quiz object.
+  $quiz = menu_get_object(); // Get the quiz object.
   
   // Radio buttons for single selection questions, checkboxes for multiselect.
   if ($node->multiple_answers == 0) {
@@ -567,11 +567,16 @@ function multichoice_render_question_form($context, $node) {
 
   // Get options.
   $options = array();
+  $fake_answer_id = 0;
   while (list($key, $answer) = each($node->answers)) {
     if (empty($answer['correct']) && !isset($answer['answer']) && empty($answer['feedback'])) {
       unset($node->answers[$key]);
     }
     else {
+      if (!isset($answer['answer_id'])) {
+        // We are probably in a preview. Generate fake answer IDs. Later we will disabled submit, too.
+        $answer['answer_id'] = ++$fake_answer_id;
+      }
       $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
     }
   }
@@ -612,6 +617,12 @@ function multichoice_render_question_form($context, $node) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
+  
+  if ($fake_answer_id > 0) {
+    // This is not a real quiz question
+    $form['submit']['#disabled'] = TRUE;
+    $form['submit']['#description'] = "Preview only. Submission is disabled.";
+  }
 
   return $form;
 }
