@@ -93,19 +93,34 @@ function long_answer_theme() {
  * Implementation of hook_perm().
  */
 function long_answer_perm() {
-  return array('create long answer', 'edit own long answer', 'score long answer');
+  return array(
+    // Editing
+    'create long answer', 'edit any long answer', 'edit own long answer', 'delete any long answer', 'delete own long answer',
+    // Scoring
+    'score long answer',
+  );
 }
 
 /**
  * Implementation of hook_access().
  */
 function long_answer_access($op, $node, $account) {
-  switch ($op) {
+  
+  // Allow admin to do whatever.
+  if (user_access('administer quiz', $account)) {
+    return TRUE;
+  }
+  
+ switch ($op) {
+    case 'view':
     case 'create':
-      return user_access('create long answer');
+      return user_access('create long answer', $account);
     case 'update':
+      if (user_access('edit any long answer', $account) || user_access('edit own long answer', $account) && ($account->uid == $node->uid)) {
+        return TRUE;
+      }
     case 'delete':
-      if (user_access('edit own long answer') && ($account->uid == $node->uid)) {
+      if (user_access('delete any long answer', $account) || user_access('delete own long answer', $account) && ($account->uid == $node->uid)) {
         return TRUE;
       }
   }
