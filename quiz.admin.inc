@@ -135,7 +135,7 @@ function quiz_questions_form($context, $quiz) {
   // Get all questions and their status in relation to this quiz.
   $questions = array_merge(_quiz_get_unused_questions($quiz->vid), _quiz_get_questions($quiz->vid));
   foreach ($questions as $question) {
-    switch ($question->status) {
+    switch ($question->question_status) {
       case QUESTION_RANDOM:
         $_form =& $form['filtered_question_list_random'];
         break;
@@ -152,7 +152,7 @@ function quiz_questions_form($context, $quiz) {
    $_form['question_status'][$question->nid] = array(
      '#type' => 'radios',
      '#options' => array(QUESTION_RANDOM => '', QUESTION_ALWAYS => '', QUESTION_NEVER => ''),
-     '#default_value' => $question->status,
+     '#default_value' => $question->question_status,
    );
    $_form['question'][$question->nid] = array(
      '#type' => 'markup',

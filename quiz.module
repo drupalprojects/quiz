@@ -390,14 +390,19 @@ function quiz_load($node) {
   $quiz_vid  = $node->vid;
   $additions = db_fetch_object(db_query('SELECT qnp.* FROM {quiz_node_properties} qnp WHERE qnp.vid = %d AND qnp.nid = %d ORDER BY qnp.property_id DESC', $quiz_vid, $node->nid));
   
-  $results   = db_query('SELECT nr.nid, qnr.question_status 
+  /* 
+   * This doesn't appear to have ever worked.... It just adds an empty item to $additions->status.
+   * Also, I can't find where this information is ever used, so there's probably no point in fixing it.
+  $results   = db_query('SELECT nr.nid, qnr.question_status, qnr.child_nid 
     FROM {quiz_node_relationship} qnr 
     INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
     WHERE qnr.parent_vid = %d AND qnr.parent_nid = %d', $quiz_vid, $node->nid);
   
   while ($question = db_fetch_object($results)) {
+    $additions->question_status[$question->child_nid] = $question->status;
     $additions->status[$question->child_nid] = $question->status;
-  }
+    
+  }*/
 
   $result_options = db_query('SELECT * FROM {quiz_node_result_options} WHERE nid = %d AND vid= %d', $node->nid, $node->vid);
   while ($option = db_fetch_array($result_options)) {
@@ -1219,7 +1224,7 @@ function quiz_node_map($node) {
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
   $new_question->type = $node->type;
-  $new_question->status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
+  $new_question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
   return $new_question;
 }
 
@@ -1251,9 +1256,10 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
     $existing = $existing_questions[$nid];
     if($stat != QUESTION_NEVER) {
       if ($existing) {
-        if($existing->status != $stat) {
+        // This appears to be comparing publishing status with question_status?
+        if($existing->question_status != $stat) {
           // Question's status has been changed.
-          $existing->status = $stat;
+          $existing->question_status = $stat;
           $i_am_different = TRUE;
         }
         // else This question is the same. Do nothing.
@@ -1261,16 +1267,16 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
       }
       else {
         $new_question = node_load($nid);
-        $new_question->status = $stat;
+        $new_question->question_status = $stat;
         $questions[] = $new_question;
         // A new question was added to the quiz.
         $i_am_different = TRUE;
       }
     }  
     // Question is marked never, but it was something else on the last version of the quiz.
-    elseif (!empty($existing) && $stat != $existing->status) {
+    elseif (!empty($existing) && $stat != $existing->question_status) {
       // Delete items moved from ALWAYS or RANDOM to NEVER
-      $existing->status = $stat;
+      $existing->question_status = $stat;
       $questions[] = $existing;
       $i_am_different = TRUE;
     }
@@ -1305,9 +1311,9 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
       VALUES (%d, %d, %d, %d, %d)";
   
   foreach ($questions as $question) {
-    if ($question->status != QUESTION_NEVER) {
+    if ($question->question_status != QUESTION_NEVER) {
       //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
-      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->status);
+      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->question_status);
     }
   }
   

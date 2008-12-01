@@ -300,7 +300,7 @@ function theme_quiz_question_table($questions, $quiz_id = NULL) {
   $status_descriptions = array(t('Random'), t('Always'), t('Never'));
   while (list($key, $question) = each($questions)) {
     $rows[] = array(
-      $status_descriptions[$question->status],
+      $status_descriptions[$question->question_status],
       $question->question,
       $question->type,
       l(t('Edit'), 'node/'. $question->nid .'/edit/'. $quiz_id));
