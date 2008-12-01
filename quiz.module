@@ -369,6 +369,7 @@ function quiz_load($node) {
   $quiz_vid  = $node->vid;
   $additions = db_fetch_object(db_query('SELECT qnp.* FROM {quiz_node_properties} qnp WHERE qnp.vid = %d AND qnp.nid = %d ORDER BY qnp.property_id DESC', $quiz_vid, $node->nid));
   
+  /* Removed because it is non-functional. There is no 4question->child_nid, nor is their a $question->status.
   $results   = db_query('SELECT nr.nid, qnr.question_status 
     FROM {quiz_node_relationship} qnr 
     INNER JOIN {node_revisions} nr ON (qnr.parent_vid = nr.vid AND qnr.parent_nid = nr.nid)
@@ -377,6 +378,7 @@ function quiz_load($node) {
   while ($question = db_fetch_object($results)) {
     $additions->status[$question->child_nid] = $question->status;
   }
+  */
 
   $result_options = db_query('SELECT * FROM {quiz_node_result_options} WHERE nid = %d AND vid= %d', $node->nid, $node->vid);
   while ($option = db_fetch_array($result_options)) {
