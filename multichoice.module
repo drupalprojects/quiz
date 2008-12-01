@@ -267,9 +267,14 @@ function multichoice_form(&$node) {
     // This is a scored quiz, just need to know the correct answer(s).
     else {
       if (user_access('allow multiple correct answers')) {
+
+        // Preview mode has $answers[$i]['correct']. A saved form 
+        // stores the flag in $answers[$i]['is_correct'].
+        $correct = $answers[$i]['is_correct'] || $answers[$i]['correct'];
+        
         $form['answers'][$i]['correct'] = array(
           '#type' => 'checkbox',
-          '#default_value' => $answers[$i]['is_correct'],
+          '#default_value' => $correct,
         );
       }
     }
