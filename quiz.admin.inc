@@ -290,6 +290,15 @@ function quiz_admin_settings() {
     '#required' => FALSE,
   );
   
+  // Added for support of actions and allowing the user to filter the actions dropdown by a value.
+  $form['quiz_action_type'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default actions type'),
+    '#size' => 25,
+    '#default_value' => variable_get('quiz_action_type', 'all'),
+    '#description' => t('Filter the actions dropdown by a specific type.'),
+  );
+  
 
   $form['quiz_look_feel'] = array(
     '#type' => 'fieldset',

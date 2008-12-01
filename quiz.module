@@ -460,7 +460,7 @@ function quiz_form(&$node) {
    */
   $form['aid'] = array(
     '#title' => t('Assign Action'),
-    '#description' => t('Select an action to be preformed after a user has completed this quiz.'),
+    '#description' => t('Select an action to be preformed after a user has completed this @quiz.', array('@quiz' => QUIZ_NAME)),
     '#type' => 'select',
     /*
      * An idea here would be to add a system conf variable into the quiz_action_options() function that
@@ -471,7 +471,7 @@ function quiz_form(&$node) {
      * those specific actions.  @note:  In doing this you loose your default "Choose an Action"
      * option.  Review actions and the quiz_action_options() function for further explaination.
      */
-    '#options' => quiz_action_options(),
+    '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
     '#default_value' => MD5($node->aid),
   );
   
@@ -1895,6 +1895,9 @@ function quiz_action_options($type = 'all') {
     return $options;
   }
   else {
+    $options[$type][0] = t('Choose an action');
+    // Lets sort it to get the choose an action back first.
+    ksort($options[$type]);
     return $options[$type];
   }
 }
