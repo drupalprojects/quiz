@@ -148,7 +148,20 @@ function quiz_init() {
 function quiz_menu() {
 
   // ADMIN //
-  $items['admin/settings/quiz'] = array(
+  $items['admin/quiz'] = array(
+    'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    //'weight' => -1,
+    //'position' => 'right',
+    //'menu_name' => 'name of menu',
+  );
+  
+  $items['admin/quiz/settings'] = array(
     'title' => t('@quiz configuration', array('@quiz' => QUIZ_NAME)),
     'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'drupal_get_form',
@@ -157,10 +170,12 @@ function quiz_menu() {
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
   );
+  
   $items['admin/quiz/results'] = array(
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
+    'description' => 'View results.',
     'page callback' => 'quiz_admin',
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
   );

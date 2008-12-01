@@ -26,8 +26,8 @@ function multichoice_help($path, $a_really_important_array) {
  * Implementation of hook_menu().
  */
 function multichoice_menu() {
-  $items['admin/settings/multichoice'] = array(
-    'title' => t('Multichoice Configuration'),
+  $items['admin/quiz/multichoice'] = array(
+    'title' => t('Multichoice configuration'),
     'description' => t('Configure Multichoice questions for users.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('multichoice_admin_settings_form'),
