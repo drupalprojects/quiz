@@ -174,15 +174,25 @@ function quiz_menu() {
   $items['admin/quiz/results'] = array(
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
-    'page callback' => 'quiz_admin',
+    'page callback' => 'quiz_admin_quizzes',
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
   );
   
+  $items['admin/quiz/%/results'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View results for the given quiz.'),
+    'page callback' => 'quiz_admin_results',
+    'page arguments' => array(2),
+    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'file' => 'quiz.admin.inc',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+  );
+  
   $items['admin/quiz/%/view'] = array(
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'quiz_admin_results',
+    'page callback' => 'quiz_admin',
     'page arguments' => array(2),	  
     'access arguments' => array('administer quiz'),
     'type' => MENU_CALLBACK,
@@ -1784,6 +1794,32 @@ function _quiz_get_results($nid = '', $uid = 0) {
   $dbresult = db_query($sql, $args);
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['result_id']] = $line;
+  }
+  return $results;
+}
+
+/**
+ * Get a full list of the quizzes
+ */
+function _quiz_get_quizzes($uid = 0) {
+  $results = array();
+  $args = array();
+  $sql = "SELECT n.nid, n.title, u.name, n.created
+          FROM {node} n
+          INNER JOIN {quiz_node_properties} qnp
+          INNER JOIN {users} u
+          WHERE n.type = 'quiz'
+            AND n.nid = qnp.nid
+            AND u.uid = n.uid";
+
+  if ($uid != 0) {
+    $sql .= " AND n.uid = %d";
+    $args[] = $uid;
+  }
+  $sql .= " ORDER BY n.nid DESC";
+  $dbresult = db_query($sql, $args);
+  while ($line = db_fetch_array($dbresult)) {
+    $results[$line['nid']] = $line;
   }
   return $results;
 }

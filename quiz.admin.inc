@@ -13,9 +13,30 @@
 /**
  * Quiz Admin.
  */
-function quiz_admin() {
-  $results = _quiz_get_results();
+function quiz_admin($nid) {
+  $breadcrumb = drupal_get_breadcrumb();
+  //lets add the Quiz Results to the breadcrumb array
+  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
+  drupal_set_breadcrumb($breadcrumb);
+  
+  $results = _quiz_get_results($nid);
   return theme('quiz_admin', $results);
+}
+
+/**
+ * Displays the quizzes by title with a link to the appropriate results
+ * for that specific quiz.
+ *
+ * @return unknown
+ */
+function quiz_admin_quizzes() {
+  $results = _quiz_get_quizzes();
+  /**
+   * @FIXME: This would not let me put the function through the theme()?
+   * I have no idea why so I just called the function staticly , cleared cache and all..
+   * I must be missing something?  Mabye I need to register it somehow?
+   */
+  return theme_quiz_admin_quizzes($results);
 }
  
  // QUIZ RESULTS ADMIN
@@ -24,6 +45,10 @@ function quiz_admin() {
   * Quiz Results Admin.
   */
 function quiz_admin_results($qid) {
+  $breadcrumb = drupal_get_breadcrumb();
+  //lets add the Quiz Results to the breadcrumb array
+  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
+  
   $result = db_fetch_object(db_query(
     'SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', 
     $qid
@@ -33,9 +58,16 @@ function quiz_admin_results($qid) {
     $questions = _quiz_get_answers($qid);
     $score = quiz_calculate_score($quiz, $qid);
     $summary = _quiz_get_summary_text($quiz, $score);
+    
+    //lets add the quiz title to the breadcrumb array
+    //@FIXME do we need check_plain in the l() function?
+    $breadcrumb[] = l(check_plain($quiz->title), 'admin/quiz/'.$result->nid.'/view');
+    drupal_set_breadcrumb($breadcrumb);
     return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
   else {
+    //set the breadcrumb without the title since there isn't one and show error page
+    drupal_set_breadcrumb($breadcrumb);
     drupal_not_found();
   }
 }
@@ -388,6 +420,41 @@ function quiz_admin_result_delete_form_submit($form, &$form_state) {
 // Remember to updated quiz_theme() in quiz.module
 
 /**
+ * Theme the admin quizzes table.
+ * 
+ * @param $results
+ *  As returned by _quiz_get_quizzes().
+ * 
+ * @ingroup themeable
+ */
+function theme_quiz_admin_quizzes($results) {
+  $output = '';
+  $rows = array();
+
+  while (list($key, $result) = each($results)) {
+    $rows[] = array(
+      l(check_plain($result['title']), 'admin/quiz/'. $result['nid'] .'/view'),
+      check_plain($result['name']),
+      format_date($result['created'], 'small'),
+    );
+  }
+
+  $header = array(
+    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
+    t('Username'),
+    t('Created'));
+
+  if (!empty($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+  else {
+    $output .= t('No @quizzes found.', array('@quiz' => QUIZ_NAME));
+  }
+  return $output;
+} 
+
+
+/**
  * Theme the admin results table.
  * 
  * @param $results
@@ -401,7 +468,7 @@ function theme_quiz_admin($results) {
 
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l('view', 'admin/quiz/'. $result['result_id'] .'/view') .' | '. l('delete', 'admin/quiz/'. $result['result_id'] .'/delete'),
+      l('view', 'admin/quiz/'. $result['result_id'] .'/results') .' | '. l('delete', 'admin/quiz/'. $result['result_id'] .'/delete'),
       check_plain($result['title']),
       check_plain($result['name']),
       $result['result_id'],
