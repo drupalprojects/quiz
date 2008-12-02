@@ -27,22 +27,21 @@ function quiz_admin($nid) {
  * Displays the quizzes by title with a link to the appropriate results
  * for that specific quiz.
  *
- * @return unknown
+ * @return
+ *  Formatted data.
  */
 function quiz_admin_quizzes() {
   $results = _quiz_get_quizzes();
-  /**
-   * @FIXME: This would not let me put the function through the theme()?
-   * I have no idea why so I just called the function staticly , cleared cache and all..
-   * I must be missing something?  Mabye I need to register it somehow?
-   */
-  return theme_quiz_admin_quizzes($results);
+  return theme('quiz_admin_quizzes', $results);
 }
  
  // QUIZ RESULTS ADMIN
  
- /*
+ /**
   * Quiz Results Admin.
+  *
+  * @param $qid
+  *  The quiz result ID for a particular result.
   */
 function quiz_admin_results($qid) {
   $breadcrumb = drupal_get_breadcrumb();
@@ -59,14 +58,13 @@ function quiz_admin_results($qid) {
     $score = quiz_calculate_score($quiz, $qid);
     $summary = _quiz_get_summary_text($quiz, $score);
     
-    //lets add the quiz title to the breadcrumb array
-    //@FIXME do we need check_plain in the l() function?
-    $breadcrumb[] = l(check_plain($quiz->title), 'admin/quiz/'.$result->nid.'/view');
+    // Lets add the quiz title to the breadcrumb array.
+    $breadcrumb[] = l($quiz->title, 'admin/quiz/'.$result->nid.'/view');
     drupal_set_breadcrumb($breadcrumb);
     return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
   else {
-    //set the breadcrumb without the title since there isn't one and show error page
+    // Set the breadcrumb without the title since there isn't one and show error page.
     drupal_set_breadcrumb($breadcrumb);
     drupal_not_found();
   }
@@ -79,7 +77,8 @@ function quiz_admin_results($qid) {
  *
  * @param $qid
  *   ID of quiz to create
- * @return unknown
+ * @return
+ *   String containing the form.
  */
 function quiz_questions($node) {
   return drupal_get_form('quiz_questions_form', $node);
@@ -92,6 +91,10 @@ function quiz_questions($node) {
  *
  * Displays form which allows questions to be assigned to the given quiz.
  *
+ * @param $context
+ *  The form context
+ * @param $quiz
+ *  The quiz node.
  * @return
  *  HTML output to create page.
  */

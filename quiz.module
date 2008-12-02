@@ -321,6 +321,10 @@ function quiz_theme() {
       'file' => 'quiz.pages.inc',
       'arguments' => array(),
     ),
+    'quiz_admin_quizzes' => array(
+      'file' => 'quiz.admin.inc',
+      'arguments' => array('results' => NULL),
+    ),
   );
 }
 
