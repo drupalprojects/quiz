@@ -45,11 +45,19 @@ function quiz_admin_quizzes() {
   */
 function quiz_admin_results($qid) {
   $breadcrumb = drupal_get_breadcrumb();
-  //lets add the Quiz Results to the breadcrumb array
+  // Lets add the Quiz Results to the breadcrumb array.
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
   
+  // We join against node because we might have multiple versions
+  // of a quiz, and joining against quiz_node_properties would 
+  // return multiple rows with the same quiz result. Since we are
+  // only hitting the {node} index, this should be fast.
   $result = db_fetch_object(db_query(
-    'SELECT qnp.nid FROM {quiz_node_properties} qnp, {quiz_node_results} qnrs WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d', 
+    "SELECT qnrs.nid
+      FROM  {quiz_node_results} qnrs
+      INNER JOIN {node} n
+      WHERE qnrs.nid = n.nid 
+        AND qnrs.result_id = %d", 
     $qid
   ));
   if ($result->nid) {
@@ -436,16 +444,16 @@ function theme_quiz_admin_quizzes($results) {
 
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l(check_plain($result['title']), 'admin/quiz/'. $result['nid'] .'/view'),
+      l($result['title'], 'admin/quiz/'. $result['nid'] .'/view'),
       check_plain($result['name']),
       format_date($result['created'], 'small'),
     );
   }
 
   $header = array(
-    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
-    t('Username'),
-    t('Created'));
+    t('@quiz title', array('@quiz' => QUIZ_NAME)),
+    t('Created by'),
+    t('Created on'));
 
   if (!empty($rows)) {
     $output .= theme('table', $header, $rows);

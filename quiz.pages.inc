@@ -468,6 +468,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
 
   // Go through each of the questions.
   foreach ($questions as $question) {
+    drupal_set_message('Question: ' . $question->type, 'status');
     $cols = array();
     // Ask each question to render a themed report of how the user did.
     $cols[] = array('data' => theme($question->type .'_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');

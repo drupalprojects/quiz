@@ -11,13 +11,21 @@
  * Theme the feedback report for a quiz. This report is generated (typically) at the end of the quiz.
  */
 function theme_long_answer_report($question, $show_points, $show_feedback) {
+  if (is_array($question)) {
+    // Cast this if it is an assoc array.
+    $question = (object)$question;
+  }
+  
   $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. 
     check_markup($question->body) .
     '</div>';
+    
+
   
   $result = '<div class="quiz_answer_feedback">';
   if ($question && !empty($question->answers)) {
-    $answer = $question->answers[0];
+    $answer = (object) current($question->answers);
+    
     if ($answer->is_evaluated == 1) {
       // Show score:
       if ($show_points) {
@@ -26,8 +34,8 @@ function theme_long_answer_report($question, $show_points, $show_feedback) {
       }
       
       // Show feedback, if any.
-      if ($show_feedback && !empty($answer['feedback'])) {
-        $result .= '</div><div class="quiz_answer_feedback">' . $answer['feedback'];
+      if ($show_feedback && !empty($answer->feedback)) {
+        $result .= '</div><div class="quiz_answer_feedback">' . $answer->feedback;
       }
       
     }

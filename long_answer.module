@@ -303,7 +303,7 @@ function long_answer_render_question($node) {
 /**
  * Imlementation of hook_get_report().
  *
- * @return stdClass
+ * @return
  *  Node containing all of the items from the question plus the user's answer.
  *  Since a long answer has only one answer, we only return one answer (contrast
  *  with multichoice.)

@@ -906,6 +906,7 @@ function quiz_take_quiz($quiz) {
 
       // Stash feedback in the session, since the $_POST gets cleared.
       if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+        // Invoke hook_get_report().
         $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
         $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
       }
@@ -1171,22 +1172,30 @@ function quiz_start_actions($quiz) {
  */
 function quiz_calculate_score($quiz, $rid) {
   if ($quiz->pass_rate > 0) {
-    $score = db_fetch_array(db_query("SELECT count(*) as question_count, sum(is_correct) as num_correct " .
-                                "FROM {quiz_node_results_answers} " .
-                                "WHERE result_id = %d", $rid));
+    $score = db_fetch_array(db_query(
+      "SELECT count(*) as question_count, sum(is_correct) as num_correct 
+        FROM {quiz_node_results_answers} 
+        WHERE result_id = %d", 
+      $rid
+    ));
     if ($score['question_count'] > 0) {
       $score['percentage_score'] = round(($score['num_correct']*100) / $score['question_count']);
     }
   }
+  // FIXME: Whoa! This is dependant on the multichoice module. BAD!
   else {
-    $score = db_fetch_array(db_query("SELECT " .
-                                     "(SELECT count(*) FROM {quiz_node_results_answers} WHERE result_id = %d) as question_count," .
-                                     "(SELECT option_summary " .
-                                     "FROM {quiz_multichoice_user_answers} " .
-                                     "LEFT JOIN {quiz_multichoice_answers} USING (answer_id) " .
-                                     "LEFT JOIN {quiz_node_result_options} ON (result_option = option_id) " .
-                                     "WHERE result_id = %d " .
-                                     "GROUP BY result_option ORDER BY COUNT(result_option) desc LIMIT 1) as result_option", $rid, $rid));
+    $score = db_fetch_array(db_query("SELECT 
+      (SELECT count(*) FROM {quiz_node_results_answers} WHERE result_id = %d) 
+      AS question_count,
+      (SELECT option_summary FROM {quiz_multichoice_user_answers} 
+        LEFT JOIN {quiz_multichoice_answers} USING (answer_id) 
+        LEFT JOIN {quiz_node_result_options} ON (result_option = option_id) 
+        WHERE result_id = %d 
+        GROUP BY result_option ORDER BY COUNT(result_option) desc LIMIT 1) 
+      AS result_option", 
+      $rid, 
+      $rid)
+    );
   }
   return $score;
 }
@@ -1762,8 +1771,15 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
 
 
 
-/*
+/**
  * Get a full results list.
+ *
+ * @param $nid
+ *  Node ID for the quiz.
+ * @param $uid
+ *  Optional user ID to constrain results to just that user.
+ * @return
+ *  A list of results.
  */
 function _quiz_get_results($nid = '', $uid = 0) {
   $results = array();
@@ -1803,17 +1819,30 @@ function _quiz_get_results($nid = '', $uid = 0) {
 }
 
 /**
- * Get a full list of the quizzes
+ * Get a full list of the quizzes.
+ * 
+ * @param $uid
+ *  An optional user ID. If supplied, only quizzes created by that user will be returned.
+ * @return
+ *  A list of all quizzes.
  */
 function _quiz_get_quizzes($uid = 0) {
   $results = array();
   $args = array();
+  /* Not sure what the first inner join is supposed to do here. But as a negative 
+   * side effect, it returns duplicates of every quiz that has multiple vids.
   $sql = "SELECT n.nid, n.title, u.name, n.created
           FROM {node} n
           INNER JOIN {quiz_node_properties} qnp
           INNER JOIN {users} u
           WHERE n.type = 'quiz'
             AND n.nid = qnp.nid
+            AND u.uid = n.uid";
+  */
+  $sql = "SELECT n.nid, n.title, u.name, n.created
+          FROM {node} n
+          INNER JOIN {users} u
+          WHERE n.type = 'quiz'
             AND u.uid = n.uid";
 
   if ($uid != 0) {
@@ -1837,6 +1866,7 @@ function _quiz_get_answers($rid) {
     ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     //watchdog('quiz','_quiz_get_answers: looping through question');
+    // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($line->type, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
   return $questions;
