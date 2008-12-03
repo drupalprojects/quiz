@@ -153,12 +153,18 @@ function long_answer_score_form_validate($form, $form_state) {
 
 function long_answer_score_form_submit($form, &$form_state) {
   
+  $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
+  $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));
+  
+  $quiz = node_load($result->nid, $result->vid);
+  drupal_set_message('Quiz VID' .  $quiz->vid, 'status');
+  
   $nid = $form_state['values']['question_nid'];
   $vid = $form_state['values']['question_vid'];
   $rid = $form_state['values']['result_id'];
   $score = $form_state['values']['score'];
   
-  $result = long_answer_score_an_answer($nid, $vid, $rid, $score);
+  $result = long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score);
   
   if($result == 1) {
     drupal_set_message("The score has been saved.");

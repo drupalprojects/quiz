@@ -401,6 +401,11 @@ function long_answer_save_answer($nid, $vid, $rid, $answer) {
  * Set a score for a long answer question.
  *
  * This stores a score for a long answer question and marks that question as having been evaluated.
+ * The function updates all of the necessary data sources so that the individual answer results should be
+ * reflected in the total scoring table.
+ *
+ * @param $quiz
+ *  Quiz node.
  * @param $nid
  *  Node ID of question.
  * @param $vid
@@ -411,11 +416,48 @@ function long_answer_save_answer($nid, $vid, $rid, $answer) {
  *  The numeric score to assign the result.
  * 
  * @return int
- *  Number of scores adjusted. If 0, then there was an error. Otherwise, this should be 1.
+ *  Number of scores adjusted. If a change was made, this should be 1.
  */
-function long_answer_score_an_answer($nid, $vid, $rid, $score) {
+function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
+  // Quiz scoring information is spread out across three tables:
+  // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
+  // 2. The Quiz module (needlessly?) retains a limited amount of scoring information. This appears to be used only
+  //    infrequently.
+  // 3. The Quiz module retains an overall score for a quiz. This is the percentage score for the combination of all
+  //    questions on the quiz.
+  //
+  // We update all three.
+  
+  // First, we update the long answer table
   db_query("UPDATE {quiz_long_answer_user_answers} SET score = %d, is_evaluated = 1 WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $score, $nid, $vid, $rid);
-  return db_affected_rows();
+  $changed = db_affected_rows();
+  
+  if ($changed > 0) {
+    // Second, we update the main quiz answers table
+
+    // What do we do about the quiz_node_results_answers table? It assumes strict
+    // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
+    $max = db_result(db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE vid = %d', $vid));
+    drupal_set_message("Max: " . $max . ', VID: ' . $vid);
+    if ($max <= 0) {
+      $is_correct = 0;
+      $points_awarded = 0;
+    }
+    else {
+      $is_correct = (($score * 100) / $max > 50) ? 1 : 0;
+      $points_awarded = $score;
+    }
+    
+    $sql = 'UPDATE {quiz_node_results_answers} 
+      SET points_awarded = %d, is_correct = %d 
+      WHERE question_vid = %d AND result_id = %d';
+    db_query($sql, $points_awarded, $is_correct, $vid, $rid);
+
+    // Third, we update the main quiz results table
+    quiz_update_total_score($quiz, $rid);
+  }
+  
+  return $changed;
 }
 
 /**

@@ -977,15 +977,17 @@ function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
  */
 function quiz_end_actions($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
+  
+  // Why is this using the $_SESSION's RID?
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",
           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
-  /**
+  /*
    * Lets piggy back here to perform the quiz defined action since were done with this quiz.
    * We will verify that there is an associated action with this quiz and then perform that action.
    */
   if(!empty($quiz->aid)) {
-    /**
+    /*
      * Some actions are reliant on objects and I am unsure which ones, for now I have simply
      * passed the actions_do() function an empty array.  By passing this function a single id
      * then it will retrieve the callback, get the parameters and perform that function (action)
@@ -998,6 +1000,31 @@ function quiz_end_actions($quiz, $rid) {
     actions_do($quiz->aid, $holder, $holder);
   }
   return $score;
+}
+
+/**
+ * Update a score for a quiz.
+ *
+ * This updates the quiz node results table.
+ *
+ * It is used in cases where a quiz score is changed after the quiz has been taken. For example,
+ * if a long answer question is scored later by a human, then the quiz should be updated when that answer
+ * is scored.
+ *
+ * Important: The value stored in the table is the *percentage* score.
+ *
+ * @param $quiz
+ *  The quiz node for the quiz that is being scored.
+ * @param $rid 
+ *  The result ID to update.
+ * @return
+ *  The score as an integer representing percentage. E.g. 55 is 55%.
+ */
+function quiz_update_total_score($quiz, $rid) {
+  drupal_set_message("Percentage score is " . $score['percentage_score']);
+  $score = quiz_calculate_score($quiz, $rid);
+  db_query('UPDATE {quiz_node_results} SET score = %d WHERE result_id = %d', $score['percentage_score'], $rid);
+  return $score['percentage_score'];
 }
 
 /**
