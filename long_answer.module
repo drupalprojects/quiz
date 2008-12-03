@@ -47,7 +47,7 @@ function long_answer_menu() {
     'description' => t('Score a response to a long-answer question.'),
     'page callback' => 'long_answer_edit_score',
     'page arguments' => array(3, 4),
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_NORMAL_ITEM,
     'access arguments' => array('score long answer'),
     'file' => 'long_answer.admin.inc'
   );
@@ -72,6 +72,9 @@ function long_answer_node_info() {
   );
 }
 
+/**
+ * Implementation of hook_theme().
+ */
 function long_answer_theme() {
   return array(
     'long_answer_report' => array(
@@ -111,7 +114,7 @@ function long_answer_access($op, $node, $account) {
     return TRUE;
   }
   
- switch ($op) {
+  switch ($op) {
     case 'view':
     case 'create':
       return user_access('create long answer', $account);
@@ -438,7 +441,6 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
     // What do we do about the quiz_node_results_answers table? It assumes strict
     // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
     $max = db_result(db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE vid = %d', $vid));
-    drupal_set_message("Max: " . $max . ', VID: ' . $vid);
     if ($max <= 0) {
       $is_correct = 0;
       $points_awarded = 0;

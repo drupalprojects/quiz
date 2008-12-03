@@ -157,7 +157,6 @@ function long_answer_score_form_submit($form, &$form_state) {
   $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));
   
   $quiz = node_load($result->nid, $result->vid);
-  drupal_set_message('Quiz VID' .  $quiz->vid, 'status');
   
   $nid = $form_state['values']['question_nid'];
   $vid = $form_state['values']['question_vid'];

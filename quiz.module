@@ -1021,7 +1021,6 @@ function quiz_end_actions($quiz, $rid) {
  *  The score as an integer representing percentage. E.g. 55 is 55%.
  */
 function quiz_update_total_score($quiz, $rid) {
-  drupal_set_message("Percentage score is " . $score['percentage_score']);
   $score = quiz_calculate_score($quiz, $rid);
   db_query('UPDATE {quiz_node_results} SET score = %d WHERE result_id = %d', $score['percentage_score'], $rid);
   return $score['percentage_score'];
@@ -1225,7 +1224,7 @@ function quiz_calculate_score($quiz, $rid) {
       $scores[] = $function($quiz, $question->child_nid, $question->child_vid, $rid);
     }
     else {
-      drupal_set_message('A quiz question could not be score: No scoring info is available', 'error');
+      drupal_set_message('A quiz question could not be scored: No scoring info is available', 'error');
       $dummy_score = new stdClass();
       $dummy_score->possible = 0;
       $dummy_score->attained = 0;

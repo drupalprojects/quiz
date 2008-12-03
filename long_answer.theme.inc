@@ -20,8 +20,6 @@ function theme_long_answer_report($question, $show_points, $show_feedback) {
     check_markup($question->body) .
     '</div>';
     
-
-  
   $result = '<div class="quiz_answer_feedback">';
   if ($question && !empty($question->answers)) {
     $answer = (object) current($question->answers);
@@ -40,9 +38,14 @@ function theme_long_answer_report($question, $show_points, $show_feedback) {
       
     }
     else {
-      $result .= t('Your answer has not yet been scored.') . 
+      $result .= t('This answer has not yet been scored.') . 
         '<br/>' . 
         t('Until the answer is scored, the total score will not be correct.');
+    }
+    
+    if (user_access('score long answer')) {
+      $path = sprintf('admin/quiz/score-long-answer/%s/%s', $question->vid, $answer->result_id);
+      $result .= '<p>' . l(t('Score this answer'), $path) . '</p>';
     }
   }
   else {
