@@ -325,6 +325,31 @@ function long_answer_get_report($nid, $vid, $rid) {
   return $node;
 }
 
+/**
+ * Implementation of hook_quiz_question_score()
+ */
+function long_answer_quiz_question_score($quiz, $question_nid, $question_vid, $rid) {
+  $sql = "SELECT ua.score, ua.is_evaluated, np.maximum_score
+    FROM {quiz_long_answer_user_answers} ua 
+    INNER JOIN {quiz_long_answer_node_properties} np ON ua.question_vid = np.vid
+    WHERE result_id = %d
+      AND question_vid = %d";
+  $answer = db_fetch_object(db_query($sql, $rid, $question_vid));
+  
+  $score = new stdClass();
+  $score->possible = $answer->maximum_score;
+  $score->attained = $answer->score;
+  $score->is_evaluated = ($answer->is_evaluated == 1);
+  return $score;
+}
+
+/*
+ * Long answers do not support personality questions.
+ */
+// function long_answer_quiz_personality_question_score($quiz, $question_nid, $question_vid, $rid) {
+//   return NULL;
+// }
+
 ////////////// INTERNAL PUBLIC /////////////////
 
 /**

@@ -524,10 +524,15 @@ function theme_quiz_admin($results) {
 function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
   drupal_set_title(check_plain($quiz->title));
+  
+  if (!$score['is_evaluated']) {
+    drupal_set_message('This quiz has not been scored yet.', 'error');
+  }
 
   // Display overall result.
   $output = '';
-  $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
+  $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   // Get the feedback for all questions.

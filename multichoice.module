@@ -451,6 +451,66 @@ function multichoice_nodeapi(&$node, $op) {
 }
 
 /**
+ * Implementation of hook_quiz_question_score()
+ */
+function multichoice_quiz_question_score($quiz, $question_nid, $question_vid, $rid) {
+  $sql = "SELECT is_correct 
+    FROM {quiz_node_results_answers} 
+    WHERE result_id = %d
+      AND question_vid = %d";
+  $correct = db_result(db_query($sql, $rid, $question_vid));
+  
+  $score = new stdClass();
+  $score->possible = 1;
+  $score->attained = $correct;
+  return $score;
+  
+  /* OLD from quiz.module
+  if ($quiz->pass_rate > 0) {
+    $score = db_fetch_array(db_query(
+      "SELECT count(*) as question_count, sum(is_correct) as num_correct 
+        FROM {quiz_node_results_answers} 
+        WHERE result_id = %d", 
+      $rid
+    ));
+    if ($score['question_count'] > 0) {
+      $score['percentage_score'] = round(($score['num_correct']*100) / $score['question_count']);
+    }
+  }
+  // FIXME: Whoa! This is dependant on the multichoice module. BAD!
+  else {
+    $score = db_fetch_array(db_query("SELECT 
+      (SELECT count(*) FROM {quiz_node_results_answers} WHERE result_id = %d) 
+      AS question_count,
+      (SELECT option_summary FROM {quiz_multichoice_user_answers} 
+        LEFT JOIN {quiz_multichoice_answers} USING (answer_id) 
+        LEFT JOIN {quiz_node_result_options} ON (result_option = option_id) 
+        WHERE result_id = %d 
+        GROUP BY result_option ORDER BY COUNT(result_option) desc LIMIT 1) 
+      AS result_option", 
+      $rid, 
+      $rid)
+    );
+  }
+  return $score;
+  */
+}
+
+/**
+ * Implementation of hook_quiz_personality_question_score().
+ */
+function multichoice_quiz_personality_question_score($quiz, $question_nid, $question_vid, $rid) {
+  // Return the result_option.
+  $sql = 'SELECT qnro.option_summary 
+    FROM {quiz_multichoice_user_answers} qmua
+    INNER JOIN {quiz_multichoice_answers} qma USING (answer_id)
+    INNER JOIN {quiz_node_result_options} qnro ON (qma.result_option = qnro.option_id)
+    WHERE qmua.result_id = %d
+      AND qmua.question_vid = %d';
+  return db_result(db_query($sql, $rid, $question_vid));
+}
+
+/**
  * Get the number of correct answers in an array of multichoice answers.
  *
  * @param $answers

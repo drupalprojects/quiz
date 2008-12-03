@@ -406,10 +406,21 @@ function theme_quiz_take_question($quiz, $question_node) {
 function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
   drupal_set_title(check_plain($quiz->title));
+  
   // Display overall result.
   $output = '';
-  if ($score['percentage_score']) {
-    $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  
+  // Only display scoring information if this is not a personality test:
+  //if ($score['percentage_score']) {
+  if (!empty($score['possible_score'])) {
+    if (!$score['is_evaluated']) {
+      $msg = t(
+        'Parts of this @quiz have not been evaluated yet. The score below is not final.', 
+        array('@quiz' => QUIZ_NAME)
+      );
+      drupal_set_message($msg, 'error');
+    }
+    $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
     $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
   }
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
@@ -438,10 +449,15 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
 function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
   drupal_set_title(check_plain($quiz->title));
+  
+  if (!$score['is_evaluated']) {
+    $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
+    drupal_set_message($msg, 'status');
+  }
 
   // Display overall result.
   $output = '';
-  $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
   // Get the feedback for all questions.
@@ -468,7 +484,6 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
 
   // Go through each of the questions.
   foreach ($questions as $question) {
-    drupal_set_message('Question: ' . $question->type, 'status');
     $cols = array();
     // Ask each question to render a themed report of how the user did.
     $cols[] = array('data' => theme($question->type .'_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');

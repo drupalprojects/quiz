@@ -1171,33 +1171,106 @@ function quiz_start_actions($quiz) {
  *  Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $rid) {
-  if ($quiz->pass_rate > 0) {
-    $score = db_fetch_array(db_query(
-      "SELECT count(*) as question_count, sum(is_correct) as num_correct 
-        FROM {quiz_node_results_answers} 
-        WHERE result_id = %d", 
-      $rid
-    ));
-    if ($score['question_count'] > 0) {
-      $score['percentage_score'] = round(($score['num_correct']*100) / $score['question_count']);
+
+  // Handle personality-style quiz scoring separately:
+  if ($quiz->pass_rate == 0) {
+    return quiz_calculate_personality_score($quiz, $rid);
+  }
+  
+  // 1. Get each question for the quiz.
+  $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type 
+    FROM {quiz_node_relationship} qnr 
+    INNER JOIN {node} n ON n.nid = qnr.child_nid
+    WHERE qnr.parent_nid = %d';
+  $results = db_query($sql, $quiz->nid);
+  
+
+  
+  // 2. Callback into the modules and let them do the scoring. 
+  $scores = array();
+  $count = 0;
+  while ($question = db_fetch_object($results)) {
+    // Invoke hook_quiz_question_score().
+    // We don't use module_invoke() because (1) we don't necessarily want to wed quiz type to 
+    // module, and (2) this is more efficient -- no NULL checks.
+    $function = $question->type . '_quiz_question_score';
+    if (function_exists($function)) {
+      $scores[] = $function($quiz, $question->child_nid, $question->child_vid, $rid);
+    }
+    else {
+      drupal_set_message('A quiz question could not be score: No scoring info is available', 'error');
+      $dummy_score = new stdClass();
+      $dummy_score->possible = 0;
+      $dummy_score->attained = 0;
+      $scores[] = $dummy_score;
+    }
+    ++$count;
+  }
+  
+  // 3. Sum up the results
+  $possible_score = 0;
+  $total_score = 0;
+  $is_evaluated = TRUE;
+  foreach ($scores as $score) {
+    $possible_score += $score->possible;
+    $total_score += $score->attained;
+    if (isset($score->is_evaluated)) {
+      // Flag the entire quiz if one question has not been 
+      // evaluated.
+      $is_evaluated &= $score->is_evaluated;
+    }
+  }  
+  
+  // 4. Return the score
+  return array(
+    'question_count' => $count,
+    'possible_score' => $possible_score,
+    'numeric_score' => $total_score,
+    'percentage_score' => ($possible_score == 0) ? 0 : round(($total_score * 100) / $possible_score),
+    'is_evaluated' => $is_evaluated,
+  );
+  
+}
+
+/**
+ * Calculates score for a personality quiz.
+ */
+function quiz_calculate_personality_score($quiz, $rid) {
+  $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type 
+    FROM {quiz_node_relationship} qnr 
+    INNER JOIN {node} n ON n.nid = qnr.child_nid
+    WHERE qnr.parent_nid = %d';
+  $results = db_query($sql, $quiz->nid);
+  
+  $count = 0;
+  $scores = array();
+  $options = array();
+  while ($question = db_fetch_object($results)) {
+    $function = $question->type . '_quiz_personality_question_score';
+    if (function_exists($function)) {
+      $option_id = $function($quiz, $question->child_nid, $question->child_vid, $rid);
+      //$options[$option_id] = isset($options[$option_id]) ? $options[$option_id] + 1 : 1;
+      ++$options[$option_id];
+    }
+    ++$count;
+  }
+  
+  // Figure out the most popular option:
+  $best = new stdClass();
+  $best->id = NULL;
+  $best->count = 0;
+  foreach ($options as $id => $number) {
+    if ($number >= $best->count) {
+      $best->id = $id;
+      $best->count = $number;
     }
   }
-  // FIXME: Whoa! This is dependant on the multichoice module. BAD!
-  else {
-    $score = db_fetch_array(db_query("SELECT 
-      (SELECT count(*) FROM {quiz_node_results_answers} WHERE result_id = %d) 
-      AS question_count,
-      (SELECT option_summary FROM {quiz_multichoice_user_answers} 
-        LEFT JOIN {quiz_multichoice_answers} USING (answer_id) 
-        LEFT JOIN {quiz_node_result_options} ON (result_option = option_id) 
-        WHERE result_id = %d 
-        GROUP BY result_option ORDER BY COUNT(result_option) desc LIMIT 1) 
-      AS result_option", 
-      $rid, 
-      $rid)
-    );
-  }
-  return $score;
+  
+  // Return total number of questions and the option_summary for the best option.
+  return array(
+    'question_count' => $count,
+    'result_option' => $best->id,
+  );
 }
 
 /**
