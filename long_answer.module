@@ -298,8 +298,12 @@ function long_answer_list_questions($count = 0, $offset = 0) {
 
 /**
  * Implementation of hook_render_question().
+ *
+ * @param $node
+ *  The question node.
  */
 function long_answer_render_question($node) {
+  //var_dump($node);
   return drupal_get_form('long_answer_question_form', $node);
 }
 
@@ -601,10 +605,7 @@ function long_answer_insert($node) {
  * Implementation of hook_view()
  */
 function long_answer_view($node, $teaser = FALSE, $page = FALSE) {
-  $content =& $node->content; // $content is all we should change.
-  
-  $content['maximum_score']['#value'] = drupal_get_form('long_answer_question_form', $node);
-
+  $node->content['body']['#value'] = drupal_get_form('long_answer_question_form', $node);
   return $node;
 }
 

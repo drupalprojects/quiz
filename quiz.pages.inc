@@ -371,6 +371,8 @@ function theme_quiz_progress($question_number, $num_of_question) {
  *  Themed html.
  * 
  * @ingroup themeable
+ *
+ * @deprecated This should not be used. Rendering is now done through the standard node rendering system.
  */
 function theme_quiz_take_question($quiz, $question_node) {
   //Calculation for quiz progress bar.
@@ -541,5 +543,9 @@ function theme_quiz_questions($form) {
  */
 function theme_quiz_no_feedback() {
   return t('Thanks for taking the quiz!');
+}
+
+function theme_quiz_question_node($node) {
+  return $node->body;
 }
  

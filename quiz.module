@@ -325,6 +325,10 @@ function quiz_theme() {
       'file' => 'quiz.admin.inc',
       'arguments' => array('results' => NULL),
     ),
+    'quiz_question_node' => array(
+      'file' => 'quiz.pages.inc',
+      'arguments' => array('question_node' => NULL),
+    ),
   );
 }
 
@@ -447,7 +451,8 @@ function quiz_load($node) {
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser) {
     //load the questions in the view page
-    $node->content['body']['#value'] = quiz_take_quiz($node);
+    //$node->content['body']['#value'] = quiz_take_quiz($node);
+    $node->content = quiz_take_quiz($node);
   }
   else {
     $node = node_prepare($node, $teaser);
@@ -752,6 +757,16 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         break;
     }
   }
+  /* If we want to pre-process question nodes before they get rendered, here's how to do it:
+  if ($op == 'view' && in_array($node->type, array_keys(_quiz_get_question_types())) && $a3) {
+    drupal_set_message("Do global munging of node content here.");
+    //var_dump($node->content);
+  }
+  if ($op == 'alter' && in_array($node->type, array_keys(_quiz_get_question_types())) && $a3) {
+    drupal_set_message("Do alter of node content here.");
+    //var_dump($node->content);
+  }
+  */
 }
 
 // END HOOKS
@@ -865,7 +880,7 @@ function quiz_take_quiz($quiz) {
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
     }
     else {
-      return '';
+      return array('body' => array('#value' => ''));
     }
   }
 
@@ -916,16 +931,34 @@ function quiz_take_quiz($quiz) {
       }
     }
   }
+  
+  // The content array:
+  //$content['body'] = array();
 
   // If we had feedback from the last question.
   if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-    $output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    $content['body']['feedback']['#value'] = rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    //$output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
   }
 
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
     $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
-    $output .= theme('quiz_take_question', $quiz, $question_node);
+    //$output .= theme('quiz_take_question', $quiz, $question_node);
+    // Start mods...
+    
+    $number_of_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
+    $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+    $question_node->question_number = $question_number;
+    $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions);
+    $content['progress']['#weight'] = -50;
+    
+    // Basically, we store the results of what would normally be a node_view() of the question node in 
+    // the $content for the quiz node. Since we want to override the default theme, we use the 
+    // quiz_node_view() function, which performs the steps in node_view(), but in a way more 
+    // specific to our needs.
+    $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
+    drupal_set_title($quiz->title);
     unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
   }
   // Else we're at the end of quiz.
@@ -933,7 +966,7 @@ function quiz_take_quiz($quiz) {
     $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
-      $output = theme('quiz_no_feedback');
+      $content['body']['#value'] = theme('quiz_no_feedback');
     }
     else {
       // Get the results and summary text for this quiz.
@@ -941,13 +974,24 @@ function quiz_take_quiz($quiz) {
       $summary = _quiz_get_summary_text($quiz, $score);
 
       // Get the themed summary page.
-      $output .= theme('quiz_take_summary', $quiz, $questions, $score, $summary);
+      $content['body']['#value'] = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
     }
 
     // Remove session variables.
     unset($_SESSION['quiz_'. $quiz->nid]);
   }
-  return $output;
+  //return $output;
+  return $content;
+}
+
+/**
+ * Basically replace node_view() for questions that are to be rendered into a quiz page.
+ */
+function quiz_node_view($question_node) {
+  $question_node = node_build_content($question_node, FALSE, TRUE);
+  node_invoke_nodeapi($question_node, 'alter', FALSE, TRUE);
+  $question_node->body = drupal_render($question_node->content);
+  return theme('quiz_question_node', $question_node);
 }
 
 /**
