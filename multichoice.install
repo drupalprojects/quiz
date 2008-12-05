@@ -45,7 +45,7 @@ function multichoice_schema() {
       'answer' => array( 'type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'feedback' => array( 'type' => 'text', 'length' => 65535),
       'result_option' => array( 'type' => 'int', 'unsigned' => TRUE, 'default' => 0),
-	'is_correct' => array( 'type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0),
+      'is_correct' => array( 'type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0),
     ),
     'primary key' => array(
       'answer_id',
@@ -53,7 +53,7 @@ function multichoice_schema() {
   );	
 
   // Default the "Show Author and Date" for this question type to OFF.
-  $temp_array = variable_get('theme_settings','' /*$default*/);
+  $temp_array = variable_get('theme_settings',array());
   $temp_array['toggle_node_info_multichoice'] = 0;
   variable_set('theme_settings', $temp_array);
 
