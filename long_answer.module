@@ -238,10 +238,18 @@ function long_answer_question_form($context, $node) {
 /**
  * Implementation of Quiz's hook_evaluate_question().
  *
- * @return boolean
- *  FALSE to indicate that the current question has not been evaluated.
+ * @return
+ *  Object with nid, vid, rid, score, is_correct flags set.
  */
 function long_answer_evaluate_question($question, $rid, $answer = '') {
+  
+  // Create the initial result object:
+  $result = new stdClass();
+  $result->nid = $question->nid;
+  $result->vid = $question->vid;
+  $result->rid = $rid;
+  $result->score = 0;
+  $result->is_correct = FALSE;
 
   if (empty($answer)) {
     $answer = $_POST['tries'];
@@ -257,8 +265,15 @@ function long_answer_evaluate_question($question, $rid, $answer = '') {
     long_answer_save_answer($question->nid, $question->vid, $rid, $answer);
   }
 
-  // We always return FALSE (not passed) because essays are not graded in real time.
-  return FALSE;
+  return $result;
+}
+
+/**
+ * Implementation of quiz hook_skip_question().
+ */
+function long_answer_skip_question($question, $rid) {
+  // Delete any old answers for this question.
+  long_answer_delete_answer($question->nid, $question->vid, $rid);
 }
 
 /**

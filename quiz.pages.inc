@@ -151,7 +151,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   }
 
   // Format taxonomy selection (if applicable).
-  if (function_exists(taxonomy_node_get_terms)) {
+  if (function_exists('taxonomy_node_get_terms')) {
     $output .= '<h3>'. t('Taxonomy selection') .'</h3>';
     $terms = array();
     foreach (taxonomy_node_get_terms($node) as $term) {
@@ -176,12 +176,12 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
       $output .= '</div>'."\n";
     }
     $output .= '<div><strong>'. t('Default summary text:') .'</strong> ';
-    $output .= ($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
+    $output .= !empty($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
     $output .= '</div>'."\n";
   }
 
   // Format result options if available.
-  if (count($node->resultoptions)) {
+  if (!empty($node->resultoptions)) {
     $scored_quiz = ($node->pass_rate > 0);
 
     $output .= '<h3>'. t('!quiz Results', array('!quiz' => QUIZ_NAME)) .'</h3>';
@@ -262,6 +262,7 @@ function theme_quiz_filtered_questions($form) {
   $quiz_id = is_numeric(arg(1)) ? arg(1) : NULL;
   $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'), t('Edit'));
   $rows = array();
+  $output = '';
 
   while (list($nid, $values) = each($form['question_status'])) {
     if (is_numeric($nid)) {

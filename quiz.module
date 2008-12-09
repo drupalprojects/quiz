@@ -416,12 +416,39 @@ function quiz_delete($node) {
   db_query('DELETE FROM {quiz_node_result_options} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
 }
 
+function _quiz_get_node_defaults() {
+  return array(
+    'property_id' => NULL,
+    'aid' => NULL,
+    'number_of_random_questions' => 0,
+    'pass_rate' => 75,
+    'summary_pass' => '',
+    'summary_default' => '',
+    'shuffle' => 0,
+    'backwards_navigation' => 0,
+    'feedback_time' => 0,
+    'quiz_open' => 0,
+    'quiz_close' => 0,
+    'takes' => 0,
+    'time_limit' => 0,
+    'quiz_always' => 0,
+    'tid' => 0,
+  );
+}
+
 /**
  * Implementation of hook_load().
  */
 function quiz_load($node) {
+  
+  $default_additions = _quiz_get_node_defaults();
+  $fields = implode(', ', array_keys($default_additions));
+  
   $quiz_vid  = $node->vid;
-  $additions = db_fetch_object(db_query('SELECT qnp.* FROM {quiz_node_properties} qnp WHERE qnp.vid = %d AND qnp.nid = %d ORDER BY qnp.property_id DESC', $quiz_vid, $node->nid));
+  $sql = 'SELECT %s FROM {quiz_node_properties} WHERE vid = %d AND nid = %d ORDER BY property_id DESC';
+  $fetched_additions = db_fetch_array(db_query($sql, $fields, $quiz_vid, $node->nid));
+  
+  $additions = ($fetched_additions) ? (object)($fetched_additions += $default_additions) : NULL;
   
   /* 
    * This doesn't appear to have ever worked.... It just adds an empty item to $additions->status.
@@ -577,7 +604,7 @@ function quiz_form(&$node) {
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
     // New nodes get the default.
-    if (!$node->nid) {
+    if (empty($node->nid)) {
       $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
     }
     $form['summaryoptions']['pass_rate'] = array(
@@ -625,7 +652,7 @@ function quiz_form(&$node) {
     '#tree' => TRUE,
   );
 
-  $options = $node->resultoptions;
+  $options = !empty($node->resultoptions) ? $node->resultoptions : array();
   $num_options = max(3, (!empty($options)) ? count($options) : variable_get('quiz_max_result_options', 5));
 
   for ($i=0; $i < $num_options; $i++) {
@@ -755,6 +782,17 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
          */
         $node->aid = actions_function_lookup($node->aid);
         break;
+      case 'prepare':
+        // Meet E_STRICT on new nodes.
+        $defaults = _quiz_get_node_defaults();
+        if (!isset($node->nid)) {
+          //drupal_set_message('Building defaults');
+          foreach ($defaults as $key => $value) {
+            if (!isset($node->$key)) {
+              $node->$key = $value;
+            }
+          }
+        }
     }
   }
   /* If we want to pre-process question nodes before they get rendered, here's how to do it:
@@ -898,9 +936,8 @@ function quiz_take_quiz($quiz) {
     $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
     array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
   }
-
   // Check for answer submission.
-  if ($_POST['op'] == t('Submit')) {
+  elseif ($_POST['op'] == t('Submit')) {
     if (!isset($_POST['tries'])) {
       drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
     }
@@ -916,8 +953,7 @@ function quiz_take_quiz($quiz) {
       
       // Call hook_evaluate_question().
       $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-      
-      quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+      quiz_store_question_result($result);
 
       // Stash feedback in the session, since the $_POST gets cleared.
       if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
@@ -930,6 +966,22 @@ function quiz_take_quiz($quiz) {
         drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
       }
     }
+  }
+  // Check for a skip.
+  elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
+    
+    // Advance the question.
+    $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+    
+    // Load the last asked question.
+    $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+    $former_question = node_load(array('nid' => $former_question_array['nid']));
+    
+    // Call hook_skip_question().
+    $result = module_invoke($former_question->type, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    
+    // Report that the question was skipped:
+    quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
   }
   
   // The content array:
@@ -986,6 +1038,11 @@ function quiz_take_quiz($quiz) {
 
 /**
  * Basically replace node_view() for questions that are to be rendered into a quiz page.
+ *
+ * @param $question_node
+ *  The question node that should be rendered.
+ * @return
+ *  A string containing the body of the node.
  */
 function quiz_node_view($question_node) {
   $question_node = node_build_content($question_node, FALSE, TRUE);
@@ -996,23 +1053,45 @@ function quiz_node_view($question_node) {
 
 /**
  * Store a quiz question result.
+ * 
+ * @param $released
+ *  stdClass object with the following attributes:
+ *  - nid, vid, rid, is_correct, score (default: 1 if correct, 0 otherwise), is_skipped (default: FALSE)
  */
-function quiz_store_question_result($nid, $vid, $rid, $is_correct) {
-  //watchdog('quiz', 'quiz_store_question_result: storing.');
-  $result = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid));
-  if ($result && $result['count'] > 0) {
-    //watchdog('quiz', 'quiz_store_question_result: updating');
-    db_query("UPDATE {quiz_node_results_answers} ".
-            "SET is_correct = %d, points_awarded = %d, answer_timestamp = %d " . 
-            "WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
-            $is_correct, ($is_correct) ? 1 : 0, time(), $nid, $vid, $rid);
+//function quiz_store_question_result($nid, $vid, $rid, $is_correct, $is_skipped = FALSE) {}
+function quiz_store_question_result($result) {
+  
+  if (!is_object($result) || !$result->nid || !$result->vid || !$result->rid) {
+    // FIXME: This error is for debugging only. Remove before 3.0 is released.
+    drupal_set_message("No answer could be saved. If you see this message, file a bug report.", 'error');
+    return;
+  }
+  
+  if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
+    $result->is_correct = FALSE;
+    $result->score = 0;
   }
   else {
-    //watchdog('quiz', 'quiz_store_question_result: inserting');
-    db_query("INSERT INTO {quiz_node_results_answers} " .
-            "(question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp) " .
-            "VALUES (%d, %d, %d, %d, %d, %d)",
-            $nid, $vid, $rid, $is_correct, ($is_correct) ? 1 : 0, time());
+    // Make sure this is set.
+    $result->is_skipped = FALSE;
+  }
+  if (!isset($result->score)) {
+    $result->score = $result->is_correct ? 1 : 0;
+  }
+  
+  //watchdog('quiz', 'quiz_store_question_result: storing.');
+  $rid_count = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid));
+  if ($rid_count > 0) {
+    db_query("UPDATE {quiz_node_results_answers} 
+      SET is_correct = %d, points_awarded = %d, answer_timestamp = %d, is_skipped = %d
+      WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
+      $result->is_correct, $result->score, time(), $result->is_skipped, $result->nid, $result->vid, $result->rid);
+  }
+  else {
+    db_query("INSERT INTO {quiz_node_results_answers} 
+      (question_nid, question_vid, result_id, is_correct, points_awarded, answer_timestamp, is_skipped)
+      VALUES (%d, %d, %d, %d, %d, %d, %d)",
+      $result->nid, $result->vid, $result->rid, $result->is_correct, $result->score, time(), $result->is_skipped);
   }
 }
 
@@ -1212,7 +1291,7 @@ function quiz_start_actions($quiz) {
   }
   
   // On error, we want to return before here to avoid creating an empty entry in quiz_node_results.
-  // Otherwise, we get fairly clutter Quiz Results.
+  // Otherwise, we get fairly cluttered Quiz Results.
 
   // Insert quiz_node_results record.
   $result = db_query(

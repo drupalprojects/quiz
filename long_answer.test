@@ -181,7 +181,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $result = long_answer_evaluate_question($question, 1);
     
     $this->assertTrue((count($result) > 0), t('See if a result was returned from the evaluator.'));
-    $this->assertEqual($result['answers'], 0, t('Test that answer was not marked correct.'));
+    $this->assertEqual($result->is_correct, 0, t('Test that answer was not marked correct.'));
   }
   
   /**

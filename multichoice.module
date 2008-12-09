@@ -217,7 +217,7 @@ function multichoice_form(&$node) {
   if (!isset($node->rows)) {
     $node->rows = max(2, $node->answers ? count($node->answers) : variable_get('multichoice_default_answers', 5));
   }
-  if ($_POST['more']) {
+  if (!empty($_POST['more'])) {
     $node->rows += 5;
   }
 
@@ -446,6 +446,16 @@ function multichoice_nodeapi(&$node, $op) {
     if (!user_access('allow multiple correct answers')) {
       // Convert the select box to the old checkbox.
       $node->answers[$node->correct]['correct'] = TRUE;
+    }
+  }
+  
+  if ($op == 'prepare' && $node->type == 'multichoice') {
+    // Set defaults to pass E_STRICT on new node creation
+    if (!isset($node->multiple_answers)) {
+      $node->multiple_answers = FALSE;
+    }
+    if (!isset($node->answers)) {
+      $node->answers = NULL;
     }
   }
 }
@@ -803,9 +813,22 @@ function multichoice_evaluate_question($question, $rid = null) {
       multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id /*, $numanswers*/);
     }
   }
+  
+  $result = new stdClass();
+  $result->nid = $question->nid;
+  $result->vid = $question->vid;
+  $result->rid = $rid;
+  $result->score = 0;
+  $result->is_correct = 0;
+
+  // Calculate the score.
+  multichoice_calculate_result($result, $tries);
 
   // Return whether or not the user's response was correct. 
-  return multichoice_calculate_result($question->nid, $question->vid, $tries);
+  //return multichoice_calculate_result($question->nid, $question->vid, $tries);
+  
+  // Return result object  
+  return $result;
 }
 
 /**
@@ -898,9 +921,11 @@ function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1)
  * @return
  *  TRUE if the user selected exactly all of the correct answers, otherwise FALSE.
  */
-function multichoice_calculate_result($nid, $vid, $tried) {
+//function multichoice_calculate_result($nid, $vid, $tried) {
+function multichoice_calculate_result(&$result, $tried) {
   $correct_answers = array();
-  $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $nid, $vid);
+  $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", 
+    $result->nid, $result->vid);
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
@@ -910,7 +935,13 @@ function multichoice_calculate_result($nid, $vid, $tried) {
     return TRUE;
   }
   
-  return (array_values($correct_answers) === array_values($tried));
+  $all_correct = (array_values($correct_answers) === array_values($tried));
+  
+  // Modify result object.
+  $result->score = $all_correct ? 1 : 0;
+  $result->is_correct = $all_correct;
+  
+  return $all_correct;
 }
 
 // New singing and dancing one.
@@ -1028,7 +1059,7 @@ function _multichoice_is_personality_question($node) {
    * Personality questions are bound (via result_option) to the quiz in which they
    * were created. This stands in start contrast to other multichoice questions.
    */
-  return ($node->answers && count($node->answers) > 0 && $node->answers[0]['result_option'] > 0);
+  return (!empty($node->answers) && $node->answers[0]['result_option'] > 0);
 }
 
 /**
