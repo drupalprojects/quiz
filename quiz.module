@@ -70,7 +70,8 @@ function quiz_help($path, $arg) {
  */
 function quiz_views_api() {
   return array(
-    'api' => '2.0',
+    'api' => 2,
+    //'path' => drupal_get_path('module', 'quiz') . '/includes/views',
   );
 }
 

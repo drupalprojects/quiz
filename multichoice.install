@@ -36,10 +36,26 @@ function multichoice_schema() {
   // Create the quiz node user answers multichoice table.
   $schema['quiz_multichoice_user_answers'] = array(
     'fields' => array(
-      'question_nid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-      'question_vid' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-      'result_id' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-      'answer_id' => array( 'type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'question_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+    ),
+      'question_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'result_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'answer_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array(
       'result_id', 'question_nid', 'question_vid', 'answer_id',
@@ -52,19 +68,44 @@ function multichoice_schema() {
   // Create the quiz node answers multichoice table.
   $schema['quiz_multichoice_answers'] = array(
     'fields' => array(
-      'answer_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
-      'nid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
-      'vid' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'answer_id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       //'answer' => array( 'type' => 'varchar', 'length' => 255, 'not null' => TRUE),
-      'answer' => array('type' => 'text'),
-      'feedback' => array('type' => 'text', 'length' => 65535),
-      'result_option' => array( 'type' => 'int', 'unsigned' => TRUE, 'default' => 0),
-	'is_correct' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'default' => 0),
+      'answer' => array(
+        'type' => 'text'
+      ),
+      'feedback' => array(
+        'type' => 'text',
+      ),
+      'result_option' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0,
+      ),
+     'is_correct' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array(
       'answer_id',
     ),
-  );	
+  );
 
   // Default the "Show Author and Date" for this question type to OFF.
   $temp_array = variable_get('theme_settings','' /*$default*/);
