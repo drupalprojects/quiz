@@ -237,7 +237,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     
     $unanswered = long_answer_get_all_unscored_answers();
     
-    drupal_set_message(__FUNCTION__ . ' Unanswered: ' . $unanswered);
+    drupal_set_message(__FUNCTION__ . ' Unanswered: ' . count($unanswered));
     
     $this->assertEqual(count($unanswered), 1, t('There should be only one unanswered question in *all* questions.'));
     

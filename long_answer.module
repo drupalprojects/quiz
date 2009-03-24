@@ -290,7 +290,7 @@ function long_answer_list_questions($count = 0, $offset = 0) {
   $sql = "SELECT n.nid, n.vid, r.body, r.format 
     FROM {node} AS n
     INNER JOIN {node_revisions} AS r USING(vid) 
-    WHERE n.type = '%s' ORDER BY n.changed";
+    WHERE n.type = '%s' ORDER BY n.type, n.changed";
   $type = 'long_answer';
   
   if ($count == 0) {
