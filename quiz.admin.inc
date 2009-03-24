@@ -207,7 +207,8 @@ function quiz_questions_form($context, $quiz) {
     );
   }
   // Show the number of 'always' questions in the 'always' table header.
-  $form['filtered_question_list_always']['#title'] .= ' ('. count($form['filtered_question_list_always']['type']) .')';
+  $always_count = isset($form['filtered_question_list_always']['type']) ? count($form['filtered_question_list_always']['type']) : 0;
+  $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
 
   $form['new_revision'] = array(
     '#type' => 'checkbox',
