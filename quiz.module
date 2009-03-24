@@ -886,6 +886,8 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  *  HTML output for page.
  */
 function quiz_take_quiz($quiz) {
+  global $user;
+  
   // If no access, fail.
   if (!user_access('access quiz')) {
     drupal_access_denied();
@@ -926,8 +928,12 @@ function quiz_take_quiz($quiz) {
     }
   }
 
+  
+  if (!isset($_POST['op'])) {
+    // Starting new quiz... Do we need to show instructions here?
+  }
   // Navigate backwards
-  if ($_POST['op'] == t('Back')) {
+  elseif ($_POST['op'] == t('Back')) {
     unset($_POST['tries']);
     
     // We maintain two lists -- previous questions and upcomming questions.
@@ -1695,7 +1701,7 @@ function _quiz_update_resultoptions($node) {
  *  Filtered summary text or null if we are not displaying any summary.
  */
 function _quiz_get_summary_text($quiz, $score) {
-  if ($score['result_option']) {
+  if (!empty($score['result_option'])) {
     // Unscored quiz, return the proper result option.
     return $score['result_option'];
   }
@@ -1705,6 +1711,7 @@ function _quiz_get_summary_text($quiz, $score) {
   if ($quiz->pass_rate > 0) {
     $score_result = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
   }
+  $summary = '';
 
   // If we are using pass/fail, and they passed.
   if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
