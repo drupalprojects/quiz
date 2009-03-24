@@ -962,7 +962,9 @@ function quiz_take_quiz($quiz) {
       $former_question = node_load(array('nid' => $former_question_array['nid']));
       
       // Call hook_evaluate_question().
-      $result = module_invoke($former_question->type, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+      $types = _quiz_get_question_types();
+      $module = $types[$former_question->type]['module'];
+      $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
       quiz_store_question_result($result);
 
       // Stash feedback in the session, since the $_POST gets cleared.

@@ -117,10 +117,12 @@ function multichoice_node_info() {
 }
 
 /**
- * Implementation of hook_quiz_question_info
+ * Implementation of hook_quiz_question_info().
+ *
+ * Data structure is array('type' => array('name'=>'Human Name', 'module'=>'handling_module))
  */
 function multichoice_quiz_question_info() {
-  return array('multichoice' => array('name' => t(MULTICHOICE_NAME),));
+  return array('multichoice' => array('name' => t(MULTICHOICE_NAME), 'module' => 'multichoice'));
 }
 
 

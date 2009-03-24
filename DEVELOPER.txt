@@ -15,3 +15,14 @@ Where {$type} is the question type, e.g. multichoice or long_answer...
 
 theme_{$type}_report() // Report at end of quiz
 theme_{$type}_feedback() // Feedback given during the taking of the quiz.
+
+
+To create a new question type using quiz_question
+=================================================
+
+1. Create a new module
+2. Use your module's .install file to create the necessary tables
+3. Make sure you module implements hook_quiz_question_info()
+4. Define classes that implement QuizQuestion and QuizQuestionResponse.
+  (Hint: You may want to extend the Abstract classes where available.)
+  For a complete example, see quiz_question.truefalse.inc.

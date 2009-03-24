@@ -280,7 +280,12 @@ function long_answer_skip_question($question, $rid) {
  * Implementation of hook_quiz_question_info
  */
 function long_answer_quiz_question_info() {
-  return array('long_answer' => array('name' => t('Long answer question'),));
+  return array(
+    'long_answer' => array(
+      'name' => t('Long answer question'),
+      'module' => 'long_answer',
+    )
+  );
 }
 
 /**
