@@ -1335,12 +1335,18 @@ function quiz_calculate_score($quiz, $rid) {
   }
   
   // 1. Get each question for the quiz.
+  /*
   $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type 
     FROM {quiz_node_relationship} qnr 
     INNER JOIN {node} n ON n.nid = qnr.child_nid
     WHERE qnr.parent_nid = %d';
   $results = db_query($sql, $quiz->nid);
-  
+  */
+  $sql = 'SELECT question_nid AS child_nid, question_vid AS child_vid, type
+  FROM {quiz_node_results_answers}
+  LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid)
+  WHERE result_id = %d';
+  $results = db_query($sql, $rid);
 
   
   // 2. Callback into the modules and let them do the scoring. 
