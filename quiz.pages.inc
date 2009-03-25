@@ -483,7 +483,8 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
  * @ingroup themeable
  */
 function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
-  $header = array(t('Question Result(s)'), '');
+  $header = array(format_plural(count($questions), 'Question Result', 'Question Results'));
+  //$header = array(t('Question Result(s)'), '');
   $rows = array();
   
   // Go through each of the questions.
