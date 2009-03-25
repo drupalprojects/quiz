@@ -140,11 +140,11 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
     $output .= '<p>'. format_date($node->quiz_open) .' &mdash; '. format_date($node->quiz_close) .'</p>';
     $output .= '<p><strong>'. t('Days @quiz live for: ', array('@quiz' => QUIZ_NAME))  .'</strong> '. floor(($node->quiz_close - $node->quiz_open) / 60 / 60 / 24) .'</p>';
     $remaining = floor(($node->quiz_close - time()) / 60 / 60 / 24);
-    $remaining = ($remaining < 0)?'Expired':$remaining;
-    $output .= '<p><strong>Days remaining:</strong> '. $remaining .'</p>';
+    $remaining = ($remaining < 0) ? t('Expired') : $remaining;
+    $output .= '<p><strong>'. t('Days remaining:') . '</strong> '. $remaining .'</p>';
     $elapsed = floor((time() - $node->quiz_open) / 60 / 60 / 24);
-    $elapsed = ($elapsed < 0)?(-$elapsed) .' days to go':$elapsed;
-    $output .= '<p><strong>Days since start:</strong> '. $elapsed .'</p>';
+    $elapsed = ($elapsed < 0)?(-$elapsed) . t(' days to go') : $elapsed;
+    $output .= '<p><strong>' . t('Days since start:') . '</strong> '. $elapsed .'</p>';
   }
   else {
     $output .= '<p>'. t('This Quiz is always available.') .'</p>'."\n";
