@@ -1072,7 +1072,6 @@ function quiz_node_view($question_node) {
  */
 //function quiz_store_question_result($nid, $vid, $rid, $is_correct, $is_skipped = FALSE) {}
 function quiz_store_question_result($result) {
-  
   if (!is_object($result) || !$result->nid || !$result->vid || !$result->rid) {
     // FIXME: This error is for debugging only. Remove before 3.0 is released.
     drupal_set_message("No answer could be saved. If you see this message, file a bug report.", 'error');
@@ -1092,7 +1091,7 @@ function quiz_store_question_result($result) {
   }
   
   //watchdog('quiz', 'quiz_store_question_result: storing.');
-  $rid_count = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $nid, $vid, $rid));
+  $rid_count = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $result->nid, $result->vid, $result->rid));
   if ($rid_count > 0) {
     db_query("UPDATE {quiz_node_results_answers} 
       SET is_correct = %d, points_awarded = %d, answer_timestamp = %d, is_skipped = %d
@@ -1364,7 +1363,9 @@ function quiz_calculate_score($quiz, $rid) {
     // Invoke hook_quiz_question_score().
     // We don't use module_invoke() because (1) we don't necessarily want to wed quiz type to 
     // module, and (2) this is more efficient -- no NULL checks.
-    $function = $question->type . '_quiz_question_score';
+    $mod = quiz_module_for_type($question->type);
+    $function = $mod . '_quiz_question_score';
+    
     if (function_exists($function)) {
       $scores[] = $function($quiz, $question->child_nid, $question->child_vid, $rid);
     }
@@ -1378,7 +1379,7 @@ function quiz_calculate_score($quiz, $rid) {
     ++$count;
   }
   
-  // 3. Sum up the results
+  // 3. Sum the results
   $possible_score = 0;
   $total_score = 0;
   $is_evaluated = TRUE;
@@ -1401,6 +1402,11 @@ function quiz_calculate_score($quiz, $rid) {
     'is_evaluated' => $is_evaluated,
   );
   
+}
+
+function quiz_module_for_type($type) {
+  $types = _quiz_get_question_types();
+  return $types[$type]['module'];
 }
 
 /**
@@ -2111,8 +2117,9 @@ function _quiz_get_answers($rid) {
     ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     //watchdog('quiz','_quiz_get_answers: looping through question');
+    $module = quiz_module_for_type($line->type);
     // Invoke hook_get_report().
-    $questions[$line->question_nid] = module_invoke($line->type, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
   return $questions;
 }

@@ -499,13 +499,16 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
  * @param $score
  *  The numeric score to assign the result.
  * 
- * @return stdClass
- *  An object if successful, or FALSE if no result could be found. The object contains the following properties:
+ * @return Assoc array
+ *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
  *  <code>
- *  $obj->answer_id; // The answer ID
- *  $obj->answer; // The full text of the answer
- *  $obj->is_evaluated; // 0 if the question has not been evaluated, 1 if it has
- *  $obj->score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
+ *  answer_id; // The answer ID
+ *  answer; // The full text of the answer
+ *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
+ *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
+ *  question_vid
+ *  question_nid
+ *  result_id
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
