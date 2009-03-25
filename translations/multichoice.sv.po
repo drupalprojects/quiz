@@ -1,0 +1,223 @@
+# $Id$
+#
+# Swedish translation of Drupal (multichoices)
+# Generated from files:
+#  multichoice.module,v 1.65.2.14 2008/12/01 21:33:43 mbutcher
+#  multichoice.install,v 1.6 2008/10/01 19:17:03 mbutcher
+#  multichoice.info,v 1.7.2.1 2008/10/06 16:51:49 mbutcher
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Quiz - Multichoice 6.x\n"
+"POT-Creation-Date: 2009-03-25 11:56+0100\n"
+"PO-Revision-Date: 2009-03-25 18:18+0100\n"
+"Last-Translator: Magnus Gunnarsson <seals@passagen.se>\n"
+"Language-Team: drupalsverige.se\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Poedit-Language: Swedish\n"
+"X-Poedit-Country: SWEDEN\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: multichoice.module:58
+msgid "A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)"
+msgstr "En frågetyp för modulen Quiz: låter dig skapa flervalsfrågor (ex: A, B, C, D eller sant/falskt)"
+
+#: multichoice.module:68
+msgid "Multichoice Configuration"
+msgstr "Konfigurering av flervalsfrågor"
+
+#: multichoice.module:69
+msgid "Configure Multichoice questions for users."
+msgstr "Konfigurera flervalsfrågor för användare."
+
+#: multichoice.module:84
+msgid "Default Number of Answers"
+msgstr "Förvalt antal svar"
+
+#: multichoice.module:86
+msgid "The default number of answers to display when creating a question."
+msgstr "Förvalt antal svar att visa när en fråga skapas."
+
+#: multichoice.module:131
+msgid "Title"
+msgstr "Titel"
+
+#: multichoice.module:134
+msgid "Add a title that will help distinguish this question from other questions. This will not be seen during the quiz."
+msgstr "Lägg till en titel som hjälper den utmärka denna fråga från andra frågor. Detta kommer inte att ses under frågesporten."
+
+#: multichoice.module:146
+msgid "Question"
+msgstr "Fråga"
+
+#: multichoice.module:156
+msgid "Multiple answers"
+msgstr "Flera svar"
+
+#: multichoice.module:157
+msgid "Should the quiz-taker be allowed to select multiple correct answers?"
+msgstr "Skall deltagaren få välja flera korrekta svar?"
+
+#: multichoice.module:177
+msgid "Choices"
+msgstr "Val"
+
+#: multichoice.module:256
+msgid "I need more answers"
+msgstr "Jag behöver fler svar"
+
+#: multichoice.module:263;1003
+msgid "Correct Answer"
+msgstr "Rätt svar"
+
+#: multichoice.module:264
+msgid "Which of the answer choices is correct?"
+msgstr "Vilket av följande svarsalternativ är korrekt?"
+
+#: multichoice.module:310
+msgid "Question text is empty"
+msgstr "Frågetext är tom"
+
+#: multichoice.module:323
+msgid "Single choice yet multiple correct answers are present"
+msgstr "Ett val, men flera korrekta svarsalternativ finns tillgängliga."
+
+#: multichoice.module:331
+msgid "Feedback is given without an answer."
+msgstr "Gensvar ges utan ett svar."
+
+#: multichoice.module:335
+msgid "Empty answer marked as correct choice."
+msgstr "Tomma svar markeras som korrekt val."
+
+#: multichoice.module:341
+msgid "No correct choice(s)."
+msgstr "Inget korrekt val."
+
+#: multichoice.module:345
+msgid "Multiple answers selected, but only %count correct answer(s) present."
+msgstr "Flera svar valda, men enbart %count rätta svar finns tillgängliga."
+
+#: multichoice.module:349
+msgid "No answers."
+msgstr "Inget svar."
+
+#: multichoice.module:352
+msgid "Must have at least two answers."
+msgstr "Måste ha åtminstone två svar."
+
+#: multichoice.module:359
+msgid "You must select an association for each answer"
+msgstr "Du måste välja en assosciation för varje svar"
+
+#: multichoice.module:370
+msgid "You must have exactly @num answer choices. There are currently @answers answer choices."
+msgstr "Du måste ha exat @num svarsalternativ. Det finns för närvarande @answer svarsalternativ."
+
+#: multichoice.module:616
+msgid "Back"
+msgstr "Tillbaka"
+
+#: multichoice.module:622
+msgid "Submit"
+msgstr "Skicka"
+
+#: multichoice.module:931;1066
+msgid "Correct"
+msgstr "Rätt"
+
+#: multichoice.module:931
+msgid "Result Option"
+msgstr "Alternativ för resultat"
+
+#: multichoice.module:933
+msgid "Answer"
+msgstr "Svar"
+
+#: multichoice.module:935
+msgid "Feedback"
+msgstr "Gensvar"
+
+#: multichoice.module:938
+msgid "Delete"
+msgstr "Ta bort"
+
+#: multichoice.module:971
+msgid "selected"
+msgstr "vald"
+
+#: multichoice.module:980
+msgid "unselected"
+msgstr "ej vald"
+
+#: multichoice.module:1001
+msgid "Answers"
+msgstr "Svar"
+
+#: multichoice.module:1005
+msgid "User Answer"
+msgstr "Användarens svar"
+
+#: multichoice.module:1069
+msgid "Incorrect"
+msgstr "Fel"
+
+#: multichoice.module:1050
+msgid "Your answer"
+msgid_plural "Your answers"
+msgstr[0] "Ditt svar"
+msgstr[1] "Dina svar"
+
+#: multichoice.module:1051
+msgid "Correct answer"
+msgid_plural "Correct answers"
+msgstr[0] "Rätt svar"
+msgstr[1] "Rätta svar"
+
+#: multichoice.module:19
+msgid "create multichoice"
+msgstr "skapa flervalsfråga"
+
+#: multichoice.module:19
+msgid "edit own multichoice"
+msgstr "redigera egen flervalsfråga"
+
+#: multichoice.module:21
+msgid "allow any number of answers"
+msgstr "tillåt valbart antal svar"
+
+#: multichoice.module:21
+msgid "allow multiple correct answers"
+msgstr "tillåt flera rätta svar"
+
+#: multichoice.module:21
+msgid "allow feedback"
+msgstr "tillåt gensvar"
+
+#: multichoice.module:21
+msgid "allow user titles"
+msgstr "tillåt titlar för användare"
+
+#: multichoice.module:0
+msgid "multichoice"
+msgstr "flervals"
+
+#: multichoice.install:86
+msgid "The Multichoice module, it's settings, and all saved questions were successfully removed."
+msgstr "Modulen Multichoice, dess inställningar, och alla sparade frågor raderades utan problem."
+
+#: multichoice.info:0
+msgid "Multichoice"
+msgstr "Flervals"
+
+#: multichoice.info:0
+msgid "This provides multiple choice questions for use by the Quiz module."
+msgstr "Detta tillhandahåller flervalsfrågor för användning med modulen Quiz."
+
+#: multichoice.info:0
+msgid "Quiz"
+msgstr "Frågesport"
+

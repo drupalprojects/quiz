@@ -1,0 +1,1069 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  quiz.admin.inc,v 1.1.2.7 2008/10/10 21:27:37 mbutcher
+#  quiz.module,v 1.136.2.15 2008/12/01 19:01:13 mbutcher
+#  multichoice.module,v 1.65.2.14 2008/12/01 21:33:43 mbutcher
+#  quiz.pages.inc,v 1.1.2.2 2008/10/09 15:33:24 mbutcher
+#  quiz.help.inc: n/a
+#  quiz_views.module,v 1.2.2.3 2008/11/19 21:03:37 mbutcher
+#  quiz_datetime.inc,v 1.2 2007/04/13 20:33:38 webchick
+#  matching.module,v 1.6 2007/04/13 20:33:38 webchick
+#  multichoice.install,v 1.6 2008/10/01 19:17:03 mbutcher
+#  multichoice.info,v 1.7.2.1 2008/10/06 16:51:49 mbutcher
+#  quiz.info,v 1.9.2.1 2008/10/06 16:51:49 mbutcher
+#  quiz_views.info,v 1.2.2.1 2008/10/17 21:52:27 mbutcher
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-25 11:54+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: quiz.admin.inc:74
+msgid "Create additional questions"
+msgstr ""
+
+#: quiz.admin.inc:87
+msgid "Questions 'always' on this quiz"
+msgstr ""
+
+#: quiz.admin.inc:96
+msgid "Number of questions to randomize"
+msgstr ""
+
+#: quiz.admin.inc:99
+msgid "The number of randomly selected questions to assign to this quiz."
+msgstr ""
+
+#: quiz.admin.inc:106
+msgid "Terms"
+msgstr ""
+
+#: quiz.admin.inc:110
+msgid "Randomly select from questions with this term, or choose from the random question pool below"
+msgstr ""
+
+#: quiz.admin.inc:117
+msgid "Questions 'random' on this quiz"
+msgstr ""
+
+#: quiz.admin.inc:126
+msgid "Questions 'never' on this quiz"
+msgstr ""
+
+#: quiz.admin.inc:169
+msgid "New revision"
+msgstr ""
+
+#: quiz.admin.inc:170
+msgid "Allow question status changes to create a new revision of the quiz?"
+msgstr ""
+
+#: quiz.admin.inc:177
+msgid "Submit questions"
+msgstr ""
+
+#: quiz.admin.inc:202
+msgid "Either no questions were selected, or there was a problem updating your @quiz. Please try again."
+msgstr ""
+
+#: quiz.admin.inc:219
+msgid "The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned."
+msgstr ""
+
+#: quiz.admin.inc:228
+msgid "There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz."
+msgstr ""
+
+#: quiz.admin.inc:242
+msgid "There was an error updating the @quiz."
+msgstr ""
+
+#: quiz.admin.inc:246
+msgid "Questions updated successfully."
+msgstr ""
+
+#: quiz.admin.inc:261
+msgid "Default number of days before a @quiz is closed"
+msgstr ""
+
+#: quiz.admin.inc:263
+msgid "Supply a number of days to calculate the default close date for new quizzes."
+msgstr ""
+
+#: quiz.admin.inc:268
+msgid "Default percentage needed to pass a @quiz"
+msgstr ""
+
+#: quiz.admin.inc:270
+msgid "Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default."
+msgstr ""
+
+#: quiz.admin.inc:275
+msgid "Allow quiz creators to set a pass/fail option when creating a @quiz."
+msgstr ""
+
+#: quiz.admin.inc:277
+msgid "Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option."
+msgstr ""
+
+#: quiz.admin.inc:282
+msgid "Look and Feel Settings"
+msgstr ""
+
+#: quiz.admin.inc:285
+msgid "Control aspects of the Quiz module's display"
+msgstr ""
+
+#: quiz.admin.inc:290
+msgid "Display name"
+msgstr ""
+
+#: quiz.admin.inc:292
+msgid "Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>."
+msgstr ""
+
+#: quiz.admin.inc:299
+msgid "Show allowed times"
+msgstr ""
+
+#: quiz.admin.inc:300
+msgid "When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test."
+msgstr ""
+
+#: quiz.admin.inc:315
+msgid "The number of random questions must be at least 0."
+msgstr ""
+
+#: quiz.admin.inc:318
+msgid "The default number of days before a quiz is closed must be a number greater than 0."
+msgstr ""
+
+#: quiz.admin.inc:321 quiz.module:608
+msgid "The pass rate value must be a number between 0% and 100%."
+msgstr ""
+
+#: quiz.admin.inc:324 quiz.module:611
+msgid "The pass rate value must not be more than 100%."
+msgstr ""
+
+#: quiz.admin.inc:327 quiz.module:614
+msgid "The pass rate value must not be less than 0%."
+msgstr ""
+
+#: quiz.admin.inc:346
+msgid "Are you sure you want to delete this @quiz result?"
+msgstr ""
+
+#: quiz.admin.inc:348
+msgid "This action cannot be undone."
+msgstr ""
+
+#: quiz.admin.inc:349 multichoice.module:938
+msgid "Delete"
+msgstr ""
+
+#: quiz.admin.inc:350
+msgid "Cancel"
+msgstr ""
+
+#: quiz.admin.inc:357
+msgid "Deleted result."
+msgstr ""
+
+#: quiz.admin.inc:386 quiz.pages.inc:235
+msgid "In Progress"
+msgstr ""
+
+#: quiz.admin.inc:391 quiz.pages.inc:240
+msgid "Action"
+msgstr ""
+
+#: quiz.admin.inc:392 quiz.pages.inc:241
+msgid "@quiz Title"
+msgstr ""
+
+#: quiz.admin.inc:393 quiz.pages.inc:242
+msgid "Username"
+msgstr ""
+
+#: quiz.admin.inc:394 quiz.pages.inc:243
+msgid "Result<br />ID"
+msgstr ""
+
+#: quiz.admin.inc:395 quiz.pages.inc:244
+msgid "Time Started"
+msgstr ""
+
+#: quiz.admin.inc:396 quiz.pages.inc:245
+msgid "Finished?"
+msgstr ""
+
+#: quiz.admin.inc:402 quiz.pages.inc:251
+msgid "No @quiz results found."
+msgstr ""
+
+#: quiz.admin.inc:429
+msgid "This person got %num_correct of %question_count correct."
+msgstr ""
+
+#: quiz.admin.inc:430
+msgid "Total score: @score%"
+msgstr ""
+
+#: quiz.help.inc:15
+msgid "\n<h3>Description</h3>\n<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Finally, it provides a mechanism for ensuring question quality through a combination of community revision and moderation. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>\n<h3>Creating Your First Quiz</h3>\n<p>Creating an initial quiz requires three steps:</p>\n<ol>\n  <li>Create at least one taxonomy vocabulary and assign it to the quiz and question type modules</li>\n  <li>Create a series of questions</li>\n  <li>Create a quiz based on the series of questions</li>\n</ol>\n    <h4>Setting Quiz Permissions</h4>\n    <p>The quiz module and included multichoice module both have a plethora of permission options.<br />Unless you take care setting your permissions, the quiz module might not do everything you want it to do.</p>\n    <h5><strong><a href=\"@admin-access#module-quiz\">Quiz Permissions</a></strong></h5>\n    <dl><dt><strong>access quiz</strong></dt>\n    <dd>allows users to take quizzes</dd>\n    <dt><strong>administer quiz</strong></dt>\n    <dd>allows users to edit quizzes</dd>\n    <dt><strong>administer quiz configuration</strong></dt>\n    <dd>allows users to use global admin settings, as well as override userresults if they don't have that permission. Can also delete quizzes</dd>\n    <dt><strong>create quiz</strong></dt>\n    <dd>Can create a new quiz</dd>\n    <dt><strong>user results</strong></dt>\n    <dd>Can view other user's results.</dd></dl>\n    <h5><strong><a href=\"@admin-access#module-multichoice\">Multichoice Permissions</a></strong></h5>\n    <dl><dt><strong>allow any number of answers</strong></dt>\n    <dd>can submit questions with more than one correct answer.</dd>\n    <dt><strong>allow feedback</strong></dt>\n    <dd>Can create feedback when creating a new multichoice question.</dd>\n    <dt><strong>allow multiple correct answers</strong></dt>\n    <dd></dd>\n    <dt><strong>allow user titles</strong></dt>\n    <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>\n    <dt><strong>create multichoice</strong></dt>\n    <dd>users can create multichoice questions</dd>\n    <dt><strong>edit own multichoice</strong></dt>\n    <dd>can edit their own multi-choice questions.</dd></dl>\n<h4>Setting up a vocabulary</h4>\n<ol>\n  <li>If not already enabled, go to the <a href=\"@admin-modules\">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>\n  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href=\"@admin-taxonomy\">Administer >> Content management >> Categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>\n  <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:\n    <ul>\n      <li>Literature\n        <ul>\n          <li>Children's books</li>\n          <li>Poetry</li>\n          <li>Shakespeare</li>\n        </ul>\n      </li>\n      <li>Mathematics\n        <ul>\n          <li>Algebra</li>\n          <li>Trigonometry</li>\n          <li>Calculus</li>\n        </ul>\n      </li>\n      <li>Information Technology\n        <ul>\n          <li>Hardware</li>\n          <li>Programming</li>\n          <li>Databases</li>\n        </ul>\n      </li>\n  </li>\n</ol>\n<h4>Creating quiz questions</h4>\n<ol>\n  <li>Begin by clicking <a href=\"@create-content\">Create content</a>, and then select a question type node (for example, <a href=\"@multichoice\">multichoice</a>)</li>\n  <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:\n    <dl>\n      <dt><strong>Title</strong></dt>\n      <dd>Question title. This will be displayed as the heading of the question.</dd>\n      <dt><strong>Taxonomy selection</strong></dt>\n      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed.</dd>\n      <dt><strong>Question</strong></dt>\n      <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>\n      <dt><strong>Multiple Answers</strong></dt>\n      <dd>Whether or not the question has multiple correct answers, such as a \"Select all that apply\" question.</dd>\n      <dt><strong>Correct</strong></dt>\n      <dd>Indicates that given answer is a correct answer.</dd>\n      <dt><strong>Answer</strong></dt>\n      <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>\n      <dt><strong>Feedback</strong></dt>\n      <dd>Feedback, if supplied, will be provided to the user at the end of the quiz.</dd>\n    </dl>\n  </li>\n  <li>Repeat for each question you would like included on the quiz.</li>\n</ol>\n<h4>Creating the quiz</h4>\n<ol>\n  <li>Go to <a href=\"@create-quiz\">Create content >> Quiz</a> to access the quiz creation form.</li>\n  <li>Fill out the form to set the @quiz options:\n    <dl>\n      <dt><strong>Title</strong></dt>\n      <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>\n      <dt><strong>Taxonomy selection</strong></dt>\n      <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>\n      <dt><strong>Shuffle questions</strong></dt>\n      <dd>Whether or not to shuffle (randomize) the questions.</dd>\n      <dt><strong>Number of takes</strong></dt>\n      <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>\n    </dl>\n  </li>\n  <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>\n  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong></strong>.</li>\n  <li>Repeat process until satisfied with question selection.</li>\n</ol>\n    "
+msgstr ""
+
+#: quiz.help.inc:124
+msgid "A collection of questions designed to create interactive tests"
+msgstr ""
+
+#: quiz.pages.inc:87
+msgid "This quiz will not be available until %time."
+msgstr ""
+
+#: quiz.pages.inc:90
+msgid "This quiz closes %time."
+msgstr ""
+
+#: quiz.pages.inc:93
+msgid "This quiz is no longer available."
+msgstr ""
+
+#: quiz.pages.inc:109
+msgid "@quiz Options"
+msgstr ""
+
+#: quiz.pages.inc:111
+msgid "# of Random Questions"
+msgstr ""
+
+#: quiz.pages.inc:112
+msgid "Shuffle?"
+msgstr ""
+
+#: quiz.pages.inc:113 multichoice.module:935
+msgid "Feedback"
+msgstr ""
+
+#: quiz.pages.inc:114 quiz.module:484 quiz_views.module:316
+msgid "Number of takes"
+msgstr ""
+
+#: quiz.pages.inc:116
+msgid "Yes"
+msgstr ""
+
+#: quiz.pages.inc:116
+msgid "No"
+msgstr ""
+
+#: quiz.pages.inc:119 quiz.module:478
+msgid "Unlimited"
+msgstr ""
+
+#: quiz.pages.inc:129
+msgid "@quiz start/end"
+msgstr ""
+
+#: quiz.pages.inc:141
+msgid "Days @quiz live for: "
+msgstr ""
+
+#: quiz.pages.inc:150
+msgid "This Quiz is always available."
+msgstr ""
+
+#: quiz.pages.inc:155
+msgid "Taxonomy selection"
+msgstr ""
+
+#: quiz.pages.inc:165
+msgid "No selected terms found"
+msgstr ""
+
+#: quiz.pages.inc:172
+msgid "Pass / fail and summary options"
+msgstr ""
+
+#: quiz.pages.inc:173
+msgid "Percentage needed to pass:"
+msgstr ""
+
+#: quiz.pages.inc:174
+msgid "Summary text if the user passed:"
+msgstr ""
+
+#: quiz.pages.inc:175;179
+msgid "No text defined."
+msgstr ""
+
+#: quiz.pages.inc:178
+msgid "Default summary text:"
+msgstr ""
+
+#: quiz.pages.inc:187 quiz.module:542
+msgid "!quiz Results"
+msgstr ""
+
+#: quiz.pages.inc:189
+msgid "Name"
+msgstr ""
+
+#: quiz.pages.inc:189
+msgid "Summary"
+msgstr ""
+
+#: quiz.pages.inc:191
+msgid "Start"
+msgstr ""
+
+#: quiz.pages.inc:191
+msgid "End"
+msgstr ""
+
+#: quiz.pages.inc:208
+msgid "@quiz Questions"
+msgstr ""
+
+#: quiz.pages.inc:263;300
+msgid "Random"
+msgstr ""
+
+#: quiz.pages.inc:263;300
+msgid "Always"
+msgstr ""
+
+#: quiz.pages.inc:263;300
+msgid "Never"
+msgstr ""
+
+#: quiz.pages.inc:263;308 multichoice.module:146
+msgid "Question"
+msgstr ""
+
+#: quiz.pages.inc:263;308
+msgid "Type"
+msgstr ""
+
+#: quiz.pages.inc:263;274;306;308
+msgid "Edit"
+msgstr ""
+
+#: quiz.pages.inc:282;314
+msgid "No questions found."
+msgstr ""
+
+#: quiz.pages.inc:308
+msgid "Status"
+msgstr ""
+
+#: quiz.pages.inc:325
+msgid "correct"
+msgstr ""
+
+#: quiz.pages.inc:334
+msgid "incorrect"
+msgstr ""
+
+#: quiz.pages.inc:358
+msgid "Question %x of %y"
+msgstr ""
+
+#: quiz.pages.inc:412;444
+msgid "You got %num_correct of %question_count correct."
+msgstr ""
+
+#: quiz.pages.inc:413
+msgid "Your score: %score%"
+msgstr ""
+
+#: quiz.pages.inc:445
+msgid "Your score was: @score%"
+msgstr ""
+
+#: quiz.pages.inc:467
+msgid "Question Result(s)"
+msgstr ""
+
+#: quiz.pages.inc:527
+msgid "Thanks for taking the quiz!"
+msgstr ""
+
+#: quiz_datetime.inc:27
+msgid "Please supply a valid date."
+msgstr ""
+
+#: matching.module:16;0
+msgid "matching"
+msgstr ""
+
+#: matching.module:25
+msgid "Matching question type for quiz module."
+msgstr ""
+
+#: matching.module:27
+msgid "A question type for the quiz module: allows you to create matching type questions, which connect terms with one another."
+msgstr ""
+
+#: multichoice.module:58
+msgid "A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)"
+msgstr ""
+
+#: multichoice.module:68
+msgid "Multichoice Configuration"
+msgstr ""
+
+#: multichoice.module:69
+msgid "Configure Multichoice questions for users."
+msgstr ""
+
+#: multichoice.module:84
+msgid "Default Number of Answers"
+msgstr ""
+
+#: multichoice.module:86
+msgid "The default number of answers to display when creating a question."
+msgstr ""
+
+#: multichoice.module:131 quiz.module:415
+msgid "Title"
+msgstr ""
+
+#: multichoice.module:134
+msgid "Add a title that will help distinguish this question from other questions. This will not be seen during the quiz."
+msgstr ""
+
+#: multichoice.module:156
+msgid "Multiple answers"
+msgstr ""
+
+#: multichoice.module:157
+msgid "Should the quiz-taker be allowed to select multiple correct answers?"
+msgstr ""
+
+#: multichoice.module:177
+msgid "Choices"
+msgstr ""
+
+#: multichoice.module:256
+msgid "I need more answers"
+msgstr ""
+
+#: multichoice.module:263;1003
+msgid "Correct Answer"
+msgstr ""
+
+#: multichoice.module:264
+msgid "Which of the answer choices is correct?"
+msgstr ""
+
+#: multichoice.module:310
+msgid "Question text is empty"
+msgstr ""
+
+#: multichoice.module:323
+msgid "Single choice yet multiple correct answers are present"
+msgstr ""
+
+#: multichoice.module:331
+msgid "Feedback is given without an answer."
+msgstr ""
+
+#: multichoice.module:335
+msgid "Empty answer marked as correct choice."
+msgstr ""
+
+#: multichoice.module:341
+msgid "No correct choice(s)."
+msgstr ""
+
+#: multichoice.module:345
+msgid "Multiple answers selected, but only %count correct answer(s) present."
+msgstr ""
+
+#: multichoice.module:349
+msgid "No answers."
+msgstr ""
+
+#: multichoice.module:352
+msgid "Must have at least two answers."
+msgstr ""
+
+#: multichoice.module:359
+msgid "You must select an association for each answer"
+msgstr ""
+
+#: multichoice.module:370
+msgid "You must have exactly @num answer choices. There are currently @answers answer choices."
+msgstr ""
+
+#: multichoice.module:616 quiz.module:791
+msgid "Back"
+msgstr ""
+
+#: multichoice.module:622 quiz.module:806
+msgid "Submit"
+msgstr ""
+
+#: multichoice.module:931;1066
+msgid "Correct"
+msgstr ""
+
+#: multichoice.module:931
+msgid "Result Option"
+msgstr ""
+
+#: multichoice.module:933
+msgid "Answer"
+msgstr ""
+
+#: multichoice.module:971
+msgid "selected"
+msgstr ""
+
+#: multichoice.module:980
+msgid "unselected"
+msgstr ""
+
+#: multichoice.module:1001
+msgid "Answers"
+msgstr ""
+
+#: multichoice.module:1005
+msgid "User Answer"
+msgstr ""
+
+#: multichoice.module:1069
+msgid "Incorrect"
+msgstr ""
+
+#: multichoice.module:1050
+msgid "Your answer"
+msgid_plural "Your answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: multichoice.module:1051
+msgid "Correct answer"
+msgid_plural "Correct answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: multichoice.module:19
+msgid "create multichoice"
+msgstr ""
+
+#: multichoice.module:19
+msgid "edit own multichoice"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow any number of answers"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow multiple correct answers"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow feedback"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow user titles"
+msgstr ""
+
+#: multichoice.module:0
+msgid "multichoice"
+msgstr ""
+
+#: quiz.module:73
+msgid "At the end of the @quiz"
+msgstr ""
+
+#: quiz.module:74
+msgid "After each question"
+msgstr ""
+
+#: quiz.module:75
+msgid "Do not show"
+msgstr ""
+
+#: quiz.module:110
+msgid "@quiz"
+msgstr ""
+
+#: quiz.module:134
+msgid "@quiz configuration"
+msgstr ""
+
+#: quiz.module:135
+msgid "Configure @quiz options."
+msgstr ""
+
+#: quiz.module:143
+msgid "@quiz results"
+msgstr ""
+
+#: quiz.module:151
+msgid "View @quiz"
+msgstr ""
+
+#: quiz.module:160
+msgid "Delete @quiz"
+msgstr ""
+
+#: quiz.module:170
+msgid "Manage questions"
+msgstr ""
+
+#: quiz.module:179
+msgid "Quiz admin"
+msgstr ""
+
+#: quiz.module:190
+msgid "My results"
+msgstr ""
+
+#: quiz.module:199
+msgid "User results"
+msgstr ""
+
+#: quiz.module:417
+msgid "The name of the @quiz."
+msgstr ""
+
+#: quiz.module:423
+msgid "Description"
+msgstr ""
+
+#: quiz.module:425
+msgid "A description of what the @quiz entails"
+msgstr ""
+
+#: quiz.module:432
+msgid "Shuffle questions"
+msgstr ""
+
+#: quiz.module:434
+msgid "Whether to shuffle/randomize the questions on the @quiz"
+msgstr ""
+
+#: quiz.module:439 quiz_views.module:256
+msgid "Backwards navigation"
+msgstr ""
+
+#: quiz.module:441
+msgid "Whether to allow user to go back and revisit their answers"
+msgstr ""
+
+#: quiz.module:445 quiz_views.module:266
+msgid "Feedback Time"
+msgstr ""
+
+#: quiz.module:449
+msgid "Indicates at what point feedback for each question will be given to the user"
+msgstr ""
+
+#: quiz.module:455
+msgid "Availability options"
+msgstr ""
+
+#: quiz.module:461 quiz_views.module:306
+msgid "Always Available"
+msgstr ""
+
+#: quiz.module:463
+msgid "Click this option to ignore the open and close dates."
+msgstr ""
+
+#: quiz.module:467
+msgid "Open Date"
+msgstr ""
+
+#: quiz.module:469
+msgid "The date this @quiz will become available."
+msgstr ""
+
+#: quiz.module:473
+msgid "Close Date"
+msgstr ""
+
+#: quiz.module:475
+msgid "The date this @quiz will cease to be available."
+msgstr ""
+
+#: quiz.module:487
+msgid "The number of times a user is allowed to take the @quiz"
+msgstr ""
+
+#: quiz.module:493
+msgid "@quiz Summary Options"
+msgstr ""
+
+#: quiz.module:505
+msgid "Pass rate for @quiz (%)"
+msgstr ""
+
+#: quiz.module:507
+msgid "Pass rate for the @quiz as a percentage score. (For personality quiz enter 0, and use result options.)"
+msgstr ""
+
+#: quiz.module:512
+msgid "Summary text if passed."
+msgstr ""
+
+#: quiz.module:515
+msgid "Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used."
+msgstr ""
+
+#: quiz.module:528
+msgid "Default summary text."
+msgstr ""
+
+#: quiz.module:531
+msgid "Default summary. Leave blank if you don't want to give a summary."
+msgstr ""
+
+#: quiz.module:555
+msgid "Result Option "
+msgstr ""
+
+#: quiz.module:561
+msgid "The name of the result"
+msgstr ""
+
+#: quiz.module:562
+msgid "Not displayed on personality !quiz."
+msgstr ""
+
+#: quiz.module:569
+msgid "Percentage Start Range"
+msgstr ""
+
+#: quiz.module:570;577
+msgid "Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes."
+msgstr ""
+
+#: quiz.module:576
+msgid "Percentage End Range"
+msgstr ""
+
+#: quiz.module:583
+msgid "Display text for the result"
+msgstr ""
+
+#: quiz.module:585
+msgid "Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses."
+msgstr ""
+
+#: quiz.module:605
+msgid "Please make sure the close date is after the open date."
+msgstr ""
+
+#: quiz.module:623
+msgid "Option has no summary text."
+msgstr ""
+
+#: quiz.module:630
+msgid "The range %start value must be a number between 0% and 100%."
+msgstr ""
+
+#: quiz.module:633
+msgid "The range %start value must not be less than 0%."
+msgstr ""
+
+#: quiz.module:636
+msgid "The range %start value must not be more than 100%."
+msgstr ""
+
+#: quiz.module:642
+msgid "The start must be less than the end of the range."
+msgstr ""
+
+#: quiz.module:648
+msgid "The ranges must not overlap each other. (%intersect)"
+msgstr ""
+
+#: quiz.module:656
+msgid "Option has a summary, but no name."
+msgstr ""
+
+#: quiz.module:660
+msgid "Unscored quiz, but no result options defined."
+msgstr ""
+
+#: quiz.module:771
+msgid "Not enough random questions were found. Please !add more questions before trying to take this @quiz."
+msgstr ""
+
+#: quiz.module:776
+msgid "No questions were found. Please !assign questions before trying to take this @quiz."
+msgstr ""
+
+#: quiz.module:808
+msgid "You must select an answer before you can progress to the next question!"
+msgstr ""
+
+#: quiz.module:1007
+msgid "This @quiz is not currently available."
+msgstr ""
+
+#: quiz.module:1026
+msgid "You have already taken this quiz @really. You may not take it again."
+msgstr ""
+
+#: quiz.module:1033
+msgid "You can only take this quiz @allowed. You have taken it @really."
+msgstr ""
+
+#: quiz.module:1040
+msgid "You have already passed this @quiz."
+msgstr ""
+
+#: quiz.module:1057
+msgid "There was a problem starting the @quiz. Please try again later."
+msgstr ""
+
+#: quiz.module:1367
+msgid "The user passed this quiz."
+msgstr ""
+
+#: quiz.module:1379
+msgid "The user failed this quiz."
+msgstr ""
+
+#: quiz.module:1382
+msgid "the user completed this quiz."
+msgstr ""
+
+#: quiz.module:1412;0
+msgid "quiz"
+msgstr ""
+
+#: quiz.module:1412
+msgid "_quiz_get_random_questions was called incorrectly."
+msgstr ""
+
+#: quiz.module:1019;1020
+msgid "1 time"
+msgid_plural "@count times"
+msgstr[0] ""
+msgstr[1] ""
+
+#: quiz.module:83
+msgid "access quiz"
+msgstr ""
+
+#: quiz.module:83
+msgid "create quiz"
+msgstr ""
+
+#: quiz.module:83
+msgid "administer quiz"
+msgstr ""
+
+#: quiz.module:83
+msgid "user results"
+msgstr ""
+
+#: quiz.module:83
+msgid "own results"
+msgstr ""
+
+#: quiz_views.module:31
+msgid "Quiz Results"
+msgstr ""
+
+#: quiz_views.module:32
+msgid "Quiz Results are the results of a quiz a user has taken."
+msgstr ""
+
+#: quiz_views.module:43
+msgid "Result ID"
+msgstr ""
+
+#: quiz_views.module:44
+msgid "The ID of the result."
+msgstr ""
+
+#: quiz_views.module:55;186
+msgid "Quiz Node NID."
+msgstr ""
+
+#: quiz_views.module:56;187
+msgid "The ID of the Quiz Node."
+msgstr ""
+
+#: quiz_views.module:69;87;182;200;218
+msgid "node"
+msgstr ""
+
+#: quiz_views.module:73;204
+msgid "Quiz Node VID."
+msgstr ""
+
+#: quiz_views.module:74;205
+msgid "The Version ID of the Quiz Node."
+msgstr ""
+
+#: quiz_views.module:92
+msgid "User ID."
+msgstr ""
+
+#: quiz_views.module:93
+msgid "The ID of the user who took this quiz."
+msgstr ""
+
+#: quiz_views.module:107
+msgid "user"
+msgstr ""
+
+#: quiz_views.module:111
+msgid "Quiz Start Time."
+msgstr ""
+
+#: quiz_views.module:112
+msgid "Time the quiz was started."
+msgstr ""
+
+#: quiz_views.module:123
+msgid "Quiz End Time"
+msgstr ""
+
+#: quiz_views.module:124
+msgid "Time the quiz was finished."
+msgstr ""
+
+#: quiz_views.module:139
+msgid "Score"
+msgstr ""
+
+#: quiz_views.module:140
+msgid "Score on the Quiz."
+msgstr ""
+
+#: quiz_views.module:168
+msgid "Quiz node property ID"
+msgstr ""
+
+#: quiz_views.module:223
+msgid "Number of random questions."
+msgstr ""
+
+#: quiz_views.module:224
+msgid "The number of questions on this quiz that will be randomly selected."
+msgstr ""
+
+#: quiz_views.module:234
+msgid "Pass rate"
+msgstr ""
+
+#: quiz_views.module:235
+msgid "The percentage of questions that must be right before the quiz is passed."
+msgstr ""
+
+#: quiz_views.module:245
+msgid "Shuffle"
+msgstr ""
+
+#: quiz_views.module:246
+msgid "Indicates whether questions will be shuffled."
+msgstr ""
+
+#: quiz_views.module:257
+msgid "Indicates whether quiz takers can go back to previous questions."
+msgstr ""
+
+#: quiz_views.module:267
+msgid "Indicates whether quiz takers will get feedback after every question."
+msgstr ""
+
+#: quiz_views.module:276
+msgid "Time limit"
+msgstr ""
+
+#: quiz_views.module:277
+msgid "The time limit on a quiz."
+msgstr ""
+
+#: quiz_views.module:286
+msgid "Quiz open time"
+msgstr ""
+
+#: quiz_views.module:287
+msgid "The first time a new quiz can be taken."
+msgstr ""
+
+#: quiz_views.module:296
+msgid "Quiz close time"
+msgstr ""
+
+#: quiz_views.module:297
+msgid "The last time a new quiz can be taken."
+msgstr ""
+
+#: quiz_views.module:307
+msgid "Indicates whether quiz is always available (Open and Close time are ignored)."
+msgstr ""
+
+#: quiz_views.module:317
+msgid "The number of times a quiz can be taken."
+msgstr ""
+
+#: quiz_views.module:326
+msgid "Term ID"
+msgstr ""
+
+#: quiz_views.module:327
+msgid "The term ID used to select questions based on taxonomy."
+msgstr ""
+
+#: quiz_views.module:340
+msgid "term"
+msgstr ""
+
+#: quiz_views.module:0
+msgid "quiz_views"
+msgstr ""
+
+#: multichoice.install:86
+msgid "The Multichoice module, it's settings, and all saved questions were successfully removed."
+msgstr ""
+
+#: multichoice.info:0
+msgid "Multichoice"
+msgstr ""
+
+#: multichoice.info:0
+msgid "This provides multiple choice questions for use by the Quiz module."
+msgstr ""
+
+#: multichoice.info:0 quiz.info:0;0 quiz_views.info:0
+msgid "Quiz"
+msgstr ""
+
+#: quiz.info:0
+msgid "Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly. If in doubt, use the Multichoice module."
+msgstr ""
+
+#: quiz_views.info:0
+msgid "Quiz Views"
+msgstr ""
+
+#: quiz_views.info:0
+msgid "Exposes quiz to views for more advanced interface capabilites"
+msgstr ""
+

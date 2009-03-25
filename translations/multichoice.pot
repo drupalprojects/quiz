@@ -1,0 +1,222 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  multichoice.module,v 1.65.2.14 2008/12/01 21:33:43 mbutcher
+#  multichoice.install,v 1.6 2008/10/01 19:17:03 mbutcher
+#  multichoice.info,v 1.7.2.1 2008/10/06 16:51:49 mbutcher
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-03-25 11:56+0100\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: multichoice.module:58
+msgid "A question type for the quiz module: allows you to create multiple choice questions (ex: A, B, C, D or true/false)"
+msgstr ""
+
+#: multichoice.module:68
+msgid "Multichoice Configuration"
+msgstr ""
+
+#: multichoice.module:69
+msgid "Configure Multichoice questions for users."
+msgstr ""
+
+#: multichoice.module:84
+msgid "Default Number of Answers"
+msgstr ""
+
+#: multichoice.module:86
+msgid "The default number of answers to display when creating a question."
+msgstr ""
+
+#: multichoice.module:131
+msgid "Title"
+msgstr ""
+
+#: multichoice.module:134
+msgid "Add a title that will help distinguish this question from other questions. This will not be seen during the quiz."
+msgstr ""
+
+#: multichoice.module:146
+msgid "Question"
+msgstr ""
+
+#: multichoice.module:156
+msgid "Multiple answers"
+msgstr ""
+
+#: multichoice.module:157
+msgid "Should the quiz-taker be allowed to select multiple correct answers?"
+msgstr ""
+
+#: multichoice.module:177
+msgid "Choices"
+msgstr ""
+
+#: multichoice.module:256
+msgid "I need more answers"
+msgstr ""
+
+#: multichoice.module:263;1003
+msgid "Correct Answer"
+msgstr ""
+
+#: multichoice.module:264
+msgid "Which of the answer choices is correct?"
+msgstr ""
+
+#: multichoice.module:310
+msgid "Question text is empty"
+msgstr ""
+
+#: multichoice.module:323
+msgid "Single choice yet multiple correct answers are present"
+msgstr ""
+
+#: multichoice.module:331
+msgid "Feedback is given without an answer."
+msgstr ""
+
+#: multichoice.module:335
+msgid "Empty answer marked as correct choice."
+msgstr ""
+
+#: multichoice.module:341
+msgid "No correct choice(s)."
+msgstr ""
+
+#: multichoice.module:345
+msgid "Multiple answers selected, but only %count correct answer(s) present."
+msgstr ""
+
+#: multichoice.module:349
+msgid "No answers."
+msgstr ""
+
+#: multichoice.module:352
+msgid "Must have at least two answers."
+msgstr ""
+
+#: multichoice.module:359
+msgid "You must select an association for each answer"
+msgstr ""
+
+#: multichoice.module:370
+msgid "You must have exactly @num answer choices. There are currently @answers answer choices."
+msgstr ""
+
+#: multichoice.module:616
+msgid "Back"
+msgstr ""
+
+#: multichoice.module:622
+msgid "Submit"
+msgstr ""
+
+#: multichoice.module:931;1066
+msgid "Correct"
+msgstr ""
+
+#: multichoice.module:931
+msgid "Result Option"
+msgstr ""
+
+#: multichoice.module:933
+msgid "Answer"
+msgstr ""
+
+#: multichoice.module:935
+msgid "Feedback"
+msgstr ""
+
+#: multichoice.module:938
+msgid "Delete"
+msgstr ""
+
+#: multichoice.module:971
+msgid "selected"
+msgstr ""
+
+#: multichoice.module:980
+msgid "unselected"
+msgstr ""
+
+#: multichoice.module:1001
+msgid "Answers"
+msgstr ""
+
+#: multichoice.module:1005
+msgid "User Answer"
+msgstr ""
+
+#: multichoice.module:1069
+msgid "Incorrect"
+msgstr ""
+
+#: multichoice.module:1050
+msgid "Your answer"
+msgid_plural "Your answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: multichoice.module:1051
+msgid "Correct answer"
+msgid_plural "Correct answers"
+msgstr[0] ""
+msgstr[1] ""
+
+#: multichoice.module:19
+msgid "create multichoice"
+msgstr ""
+
+#: multichoice.module:19
+msgid "edit own multichoice"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow any number of answers"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow multiple correct answers"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow feedback"
+msgstr ""
+
+#: multichoice.module:21
+msgid "allow user titles"
+msgstr ""
+
+#: multichoice.module:0
+msgid "multichoice"
+msgstr ""
+
+#: multichoice.install:86
+msgid "The Multichoice module, it's settings, and all saved questions were successfully removed."
+msgstr ""
+
+#: multichoice.info:0
+msgid "Multichoice"
+msgstr ""
+
+#: multichoice.info:0
+msgid "This provides multiple choice questions for use by the Quiz module."
+msgstr ""
+
+#: multichoice.info:0
+msgid "Quiz"
+msgstr ""
+

@@ -1,0 +1,941 @@
+# $Id$
+#
+# Swedish translation of Drupal (quiz)
+# Generated from files:
+#  quiz.admin.inc,v 1.1.2.7 2008/10/10 21:27:37 mbutcher
+#  quiz.module,v 1.136.2.15 2008/12/01 19:01:13 mbutcher
+#  quiz.pages.inc,v 1.1.2.2 2008/10/09 15:33:24 mbutcher
+#  quiz.help.inc: n/a
+#  quiz.info,v 1.9.2.1 2008/10/06 16:51:49 mbutcher
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Quiz 6.x\n"
+"POT-Creation-Date: 2009-03-25 11:55+0100\n"
+"PO-Revision-Date: 2009-03-25 17:23+0100\n"
+"Last-Translator: Magnus Gunnarsson <seals@passagen.se>\n"
+"Language-Team: drupalsverige.se\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n!=1);\n"
+"X-Poedit-Language: Swedish\n"
+"X-Poedit-Country: SWEDEN\n"
+"X-Poedit-SourceCharset: utf-8\n"
+
+#: quiz.admin.inc:74
+msgid "Create additional questions"
+msgstr "Skapa ytterligare frågor"
+
+#: quiz.admin.inc:87
+msgid "Questions 'always' on this quiz"
+msgstr "Frågor \"alltid\" på denna frågesport"
+
+#: quiz.admin.inc:96
+msgid "Number of questions to randomize"
+msgstr "Antal frågor att slumpa"
+
+#: quiz.admin.inc:99
+msgid "The number of randomly selected questions to assign to this quiz."
+msgstr "Antal slumpvis valda frågor som skall läggas till denna frågesport."
+
+#: quiz.admin.inc:106
+msgid "Terms"
+msgstr "Termer"
+
+#: quiz.admin.inc:110
+msgid "Randomly select from questions with this term, or choose from the random question pool below"
+msgstr "Slumpvis valda från frågor med denna term, eller välj från högen med slumpade frågor nedan."
+
+#: quiz.admin.inc:117
+msgid "Questions 'random' on this quiz"
+msgstr "Frågor \"slumpade\" på denna frågesport"
+
+#: quiz.admin.inc:126
+msgid "Questions 'never' on this quiz"
+msgstr "Frågor \"aldrig\" på denna frågesport"
+
+#: quiz.admin.inc:169
+msgid "New revision"
+msgstr "Ny revision"
+
+#: quiz.admin.inc:170
+msgid "Allow question status changes to create a new revision of the quiz?"
+msgstr "Skall statusändringar för frågorna skapa en ny revision av frågesporten?"
+
+#: quiz.admin.inc:177
+msgid "Submit questions"
+msgstr "Skicka frågor"
+
+#: quiz.admin.inc:202
+msgid "Either no questions were selected, or there was a problem updating your @quiz. Please try again."
+msgstr "Antingen var inga frågor valda, eller så var det ett problem med att uppdatera din @quiz. Var vänlig försök igen."
+
+#: quiz.admin.inc:219
+msgid "The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned."
+msgstr "Antalet slumpade frågor för denna @quiz har sänkts till %anum för att överensstämma med antalet frågor som du tilldelade."
+
+#: quiz.admin.inc:228
+msgid "There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz."
+msgstr "Det finns för närvarande inte tillräckligt många frågor tilldelade till denna term (@random). Var vänlig sänk antalet slumpade frågor eller tilldela fler frågor till denna taxonomiterm innan du gör denna @quiz."
+
+#: quiz.admin.inc:242
+msgid "There was an error updating the @quiz."
+msgstr "Fel vid uppdatering av @quiz."
+
+#: quiz.admin.inc:246
+msgid "Questions updated successfully."
+msgstr "Frågorna uppdaterades utan problem."
+
+#: quiz.admin.inc:261
+msgid "Default number of days before a @quiz is closed"
+msgstr "Förvalt antal dagar innan en @quiz stängs"
+
+#: quiz.admin.inc:263
+msgid "Supply a number of days to calculate the default close date for new quizzes."
+msgstr "Ange antalet dagar för att räkna fram det förvalda slutdatumet för nya frågesporter."
+
+#: quiz.admin.inc:268
+msgid "Default percentage needed to pass a @quiz"
+msgstr "Förvald procentsats som behövs för att klara en @quiz"
+
+#: quiz.admin.inc:270
+msgid "Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default."
+msgstr "Ange ett nummer mellan 1 och 100 som skall anges som förvalt antal procent rätta svar som behövs för att klara en frågesport. Ange 0 om du vill ignorera sammanfattningen av antalet rätt eller fel som standard."
+
+#: quiz.admin.inc:275
+msgid "Allow quiz creators to set a pass/fail option when creating a @quiz."
+msgstr "Låter skapare av frågesporter ange ett alternativ för klarade/misslyckade när de skapar en @quiz."
+
+#: quiz.admin.inc:277
+msgid "Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option."
+msgstr "Kryssa för detta för att visa alternativen klarade/misslyckade i formuläret @quiz. Om du vill hindra andra frågesportsskapare från att ändra den förvalda procenten av rätt/fel låter du bli att kryssa för detta."
+
+#: quiz.admin.inc:282
+msgid "Look and Feel Settings"
+msgstr "Inställningar för utseende och känsla"
+
+#: quiz.admin.inc:285
+msgid "Control aspects of the Quiz module's display"
+msgstr "Kontrolleringsaspekter för visning av modulen Quiz"
+
+#: quiz.admin.inc:290
+msgid "Display name"
+msgstr "Visningsnamn"
+
+#: quiz.admin.inc:292
+msgid "Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>."
+msgstr "Ändra namnet på frågesportens typ. Kallar du det <em>test</em> eller <em>utvärdering</em> istället? Ändra visningsnamnet för modulen till något annat. För närvarande kallas den @quiz. Som standard kallas den <em>Frågesport</em>."
+
+#: quiz.admin.inc:299
+msgid "Show allowed times"
+msgstr "Visa tillåtna gånger"
+
+#: quiz.admin.inc:300
+msgid "When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test."
+msgstr "När en användare börjar en ny frågesport, visa antalet gånger som användaren får göra testet, och hur många gånger som de redan har gjort det."
+
+#: quiz.admin.inc:315
+msgid "The number of random questions must be at least 0."
+msgstr "Antal slumpade frågor måste vara åtminstone 0."
+
+#: quiz.admin.inc:318
+msgid "The default number of days before a quiz is closed must be a number greater than 0."
+msgstr "Det förvalda antalet dagar innan en frågesport stängs måste vara större än 0."
+
+#: quiz.admin.inc:321
+#: quiz.module:608
+msgid "The pass rate value must be a number between 0% and 100%."
+msgstr "Värdet på graden för att klara måste vara ett nummer mellan 0% och 100%."
+
+#: quiz.admin.inc:324
+#: quiz.module:611
+msgid "The pass rate value must not be more than 100%."
+msgstr "Värdet på graden för att klara får inte ha ett värde större än 100%."
+
+#: quiz.admin.inc:327
+#: quiz.module:614
+msgid "The pass rate value must not be less than 0%."
+msgstr "Värdet på graden för att klara får inte ha ett värde lägre än 0%."
+
+#: quiz.admin.inc:346
+msgid "Are you sure you want to delete this @quiz result?"
+msgstr "Är du säker på att du vill radera detta resultat för @quiz?"
+
+#: quiz.admin.inc:348
+msgid "This action cannot be undone."
+msgstr "Denna åtgärd kan inte ångras."
+
+#: quiz.admin.inc:349
+msgid "Delete"
+msgstr "Ta bort"
+
+#: quiz.admin.inc:350
+msgid "Cancel"
+msgstr "Avbryt"
+
+#: quiz.admin.inc:357
+msgid "Deleted result."
+msgstr "Raderade resultat."
+
+#: quiz.admin.inc:386
+#: quiz.pages.inc:235
+msgid "In Progress"
+msgstr "Pågående"
+
+#: quiz.admin.inc:391
+#: quiz.pages.inc:240
+msgid "Action"
+msgstr "Handling"
+
+#: quiz.admin.inc:392
+#: quiz.pages.inc:241
+msgid "@quiz Title"
+msgstr "Titel för @quiz"
+
+#: quiz.admin.inc:393
+#: quiz.pages.inc:242
+msgid "Username"
+msgstr "Användarnamn"
+
+#: quiz.admin.inc:394
+#: quiz.pages.inc:243
+msgid "Result<br />ID"
+msgstr "Resultat<br />ID"
+
+#: quiz.admin.inc:395
+#: quiz.pages.inc:244
+msgid "Time Started"
+msgstr "Tid vid startandet"
+
+#: quiz.admin.inc:396
+#: quiz.pages.inc:245
+msgid "Finished?"
+msgstr "Avslutad?"
+
+#: quiz.admin.inc:402
+#: quiz.pages.inc:251
+msgid "No @quiz results found."
+msgstr "Inga resultat funna för @quiz."
+
+#: quiz.admin.inc:429
+msgid "This person got %num_correct of %question_count correct."
+msgstr "Denna person fick  %num_correct av %question_count rätt."
+
+#: quiz.admin.inc:430
+msgid "Total score: @score%"
+msgstr "Total poäng: @score%"
+
+#: quiz.help.inc:15
+msgid ""
+"\n"
+"<h3>Description</h3>\n"
+"<p>The quiz module allows users to administer a quiz, as a sequence of questions, and track the answers given. It allows for the creation of questions (and their answers), and organizes these questions into a quiz. Finally, it provides a mechanism for ensuring question quality through a combination of community revision and moderation. Its target audience includes educational institutions, online training programs, employers, and people who just want to add a fun activity for their visitors to their Drupal site.</p>\n"
+"<h3>Creating Your First Quiz</h3>\n"
+"<p>Creating an initial quiz requires three steps:</p>\n"
+"<ol>\n"
+"  <li>Create at least one taxonomy vocabulary and assign it to the quiz and question type modules</li>\n"
+"  <li>Create a series of questions</li>\n"
+"  <li>Create a quiz based on the series of questions</li>\n"
+"</ol>\n"
+"    <h4>Setting Quiz Permissions</h4>\n"
+"    <p>The quiz module and included multichoice module both have a plethora of permission options.<br />Unless you take care setting your permissions, the quiz module might not do everything you want it to do.</p>\n"
+"    <h5><strong><a href=\"@admin-access#module-quiz\">Quiz Permissions</a></strong></h5>\n"
+"    <dl><dt><strong>access quiz</strong></dt>\n"
+"    <dd>allows users to take quizzes</dd>\n"
+"    <dt><strong>administer quiz</strong></dt>\n"
+"    <dd>allows users to edit quizzes</dd>\n"
+"    <dt><strong>administer quiz configuration</strong></dt>\n"
+"    <dd>allows users to use global admin settings, as well as override userresults if they don't have that permission. Can also delete quizzes</dd>\n"
+"    <dt><strong>create quiz</strong></dt>\n"
+"    <dd>Can create a new quiz</dd>\n"
+"    <dt><strong>user results</strong></dt>\n"
+"    <dd>Can view other user's results.</dd></dl>\n"
+"    <h5><strong><a href=\"@admin-access#module-multichoice\">Multichoice Permissions</a></strong></h5>\n"
+"    <dl><dt><strong>allow any number of answers</strong></dt>\n"
+"    <dd>can submit questions with more than one correct answer.</dd>\n"
+"    <dt><strong>allow feedback</strong></dt>\n"
+"    <dd>Can create feedback when creating a new multichoice question.</dd>\n"
+"    <dt><strong>allow multiple correct answers</strong></dt>\n"
+"    <dd></dd>\n"
+"    <dt><strong>allow user titles</strong></dt>\n"
+"    <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>\n"
+"    <dt><strong>create multichoice</strong></dt>\n"
+"    <dd>users can create multichoice questions</dd>\n"
+"    <dt><strong>edit own multichoice</strong></dt>\n"
+"    <dd>can edit their own multi-choice questions.</dd></dl>\n"
+"<h4>Setting up a vocabulary</h4>\n"
+"<ol>\n"
+"  <li>If not already enabled, go to the <a href=\"@admin-modules\">Administer >> Site building >> Modules</a> section of the control panel and check the <strong>enable</strong> checkbox to enable the <strong>taxonomy module</strong>.</li>\n"
+"  <li>If you do not already have a taxonomy <strong>vocabulary</strong> suitable for quizzes, go to <a href=\"@admin-taxonomy\">Administer >> Content management >> Categories</a> and create a vocabulary for quizzes (for example, <strong>Quiz Topics</strong>). Ensure that under <strong>Types</strong>, both <strong>quiz</strong> and all question types (for example, <strong>multichoice</strong>) are selected. Depending on your needs, you may wish to create a hierarchical vocabulary, so that topics can be sub-divided into smaller areas, and/or enable multiple select to associate quizzes and questions with more than one category.</li>\n"
+"  <li>Add a series of <strong>terms</strong> to the vocabulary to which questions and quizzes can be assigned. For example:\n"
+"    <ul>\n"
+"      <li>Literature\n"
+"        <ul>\n"
+"          <li>Children's books</li>\n"
+"          <li>Poetry</li>\n"
+"          <li>Shakespeare</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"      <li>Mathematics\n"
+"        <ul>\n"
+"          <li>Algebra</li>\n"
+"          <li>Trigonometry</li>\n"
+"          <li>Calculus</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"      <li>Information Technology\n"
+"        <ul>\n"
+"          <li>Hardware</li>\n"
+"          <li>Programming</li>\n"
+"          <li>Databases</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"  </li>\n"
+"</ol>\n"
+"<h4>Creating quiz questions</h4>\n"
+"<ol>\n"
+"  <li>Begin by clicking <a href=\"@create-content\">Create content</a>, and then select a question type node (for example, <a href=\"@multichoice\">multichoice</a>)</li>\n"
+"  <li>Fill out the question form. The presented interface will vary depending on the question type, but for multiple choice questions:\n"
+"    <dl>\n"
+"      <dt><strong>Title</strong></dt>\n"
+"      <dd>Question title. This will be displayed as the heading of the question.</dd>\n"
+"      <dt><strong>Taxonomy selection</strong></dt>\n"
+"      <dd>Any taxonomy vocabularies that are assigned to the question type will be displayed.</dd>\n"
+"      <dt><strong>Question</strong></dt>\n"
+"      <dd>The actual question text (for example, <strong>What is 2+2?</strong>).</dd>\n"
+"      <dt><strong>Multiple Answers</strong></dt>\n"
+"      <dd>Whether or not the question has multiple correct answers, such as a \"Select all that apply\" question.</dd>\n"
+"      <dt><strong>Correct</strong></dt>\n"
+"      <dd>Indicates that given answer is a correct answer.</dd>\n"
+"      <dt><strong>Answer</strong></dt>\n"
+"      <dd>An answer choice (for example, <strong>4</strong>). If more answers are required, check <strong>I need more answers</strong> and click the <b>Preview</b> button.</dd>\n"
+"      <dt><strong>Feedback</strong></dt>\n"
+"      <dd>Feedback, if supplied, will be provided to the user at the end of the quiz.</dd>\n"
+"    </dl>\n"
+"  </li>\n"
+"  <li>Repeat for each question you would like included on the quiz.</li>\n"
+"</ol>\n"
+"<h4>Creating the quiz</h4>\n"
+"<ol>\n"
+"  <li>Go to <a href=\"@create-quiz\">Create content >> Quiz</a> to access the quiz creation form.</li>\n"
+"  <li>Fill out the form to set the @quiz options:\n"
+"    <dl>\n"
+"      <dt><strong>Title</strong></dt>\n"
+"      <dd>Quiz title. This will be displayed as the heading of the quiz.</dd>\n"
+"      <dt><strong>Taxonomy selection</strong></dt>\n"
+"      <dd>Any taxonomy vocabularies that are assigned to the quiz type will be displayed. Select from the terms displayed in order to assign the quiz to vocabulary terms.</dd>\n"
+"      <dt><strong>Shuffle questions</strong></dt>\n"
+"      <dd>Whether or not to shuffle (randomize) the questions.</dd>\n"
+"      <dt><strong>Number of takes</strong></dt>\n"
+"      <dd>Number of takes to allow user. Varies from 1-9 or Unlimited times.</dd>\n"
+"    </dl>\n"
+"  </li>\n"
+"  <li>Once the quiz has been created, click the <b>add questions</b> tab to assign questions to the quiz.</li>\n"
+"  <li>Select a radio button next to each question indicating if the question should appear (Randomly, Always, or Never), and click <strong></strong>.</li>\n"
+"  <li>Repeat process until satisfied with question selection.</li>\n"
+"</ol>\n"
+"    "
+msgstr ""
+"\n"
+"<h3>Beskrivning</h3>\n"
+"<p>Modulen Quiz låter användare administera en frågesport, som en serie av frågor, och sen spåra de givna svaren. Det tillåter skapadet av frågor (och dess svar) och organiserar dessa frågor till en frågesport. Slutligen så tillhandahåller det en mekanism för att säkerställa frågornas kvalitet genom en kombination av communityts revisioner och modereringar. Dess målgrupp inkluderar utbildningsinstitutioner, träningsprogram online, arbetsgivare, och folk som helt enkelt vill lägga till en kul aktivitet för deras besökare till deras webbplats genom Drupal.</p>\n"
+"<h3>Att skapa din första frågesport</h3>\n"
+"<p>Att skapa en första frågesport kräver tre steg:</p>\n"
+"</ol>\n"
+"  <li>Skapa åtminstone ett vokabulär för taxonomi och tilldela det till frågesporten och typ av modul för frågesporten.</li>\n"
+"  <li>Skapa en serie av frågor</li>\n"
+"  <li>Skapa en frågesport baserad på serierna av frågor</li>\n"
+"</ol>\n"
+"<h4>Att ange tillstånd för Quiz</h4>\n"
+"<p>Modulen Quiz och inkluderade modulen Multichoice har båda ett överflöd av alternativ för tillstånd.<br />Om du inte är noggrann med att ställa in dina tillstånd så kan det sluta med att modulen Quiz inte gör allt det du vill.</p>\n"
+"<h5><strong><a href=\"@admin-access#module-quiz\">Rättigheter för Quiz</a></strong></h5>\n"
+"    <dl><dt><strong>åtkomst till frågesport</strong></dt>\n"
+"    <dd>låter användare deltaga i frågesporter</dd>\n"
+"    <dt><strong>administrera frågesport</strong></dt>\n"
+"    <dd>låter användare redigera frågesporter</dd>\n"
+"    <dt><strong>administrera inställning för frågesport</strong></dt>\n"
+"    <dd>låter användare använda globala administrationsinställningar, så väl som åsidosätta resultatet för användaren om de inte har den rättigheten. Kan också radera frågesporter</dd>\n"
+"    <dt><strong>skapa frågesport</strong></dt>\n"
+"    <dd>Kan skapa en ny frågesport</dd>\n"
+"    <dt><strong>resultat för användare</strong></dt>\n"
+"    <dd>Kan visa andra användares resultat.</dd></dl>\n"
+"    <h5><strong><a href=\"@admin-access#module-multichoice\">Rättigheter för Multichoice</a></strong></h5>\n"
+"    <dl><dt><strong>tillåt hur många svar som helst</strong></dt>\n"
+"    <dd>kan skicka frågor med fler än ett korrekt svar.</dd>\n"
+"    <dt><strong>tillåt gensvar</strong></dt>\n"
+"    <dd>Kan skapa gensvar när en ny flervalsfråga skapas.</dd>\n"
+"    <dt><strong>tillåt flera antal rätta svar</strong></dt>\n"
+"    <dd></dd>\n"
+"    <dt><strong>tillåt rubriker för användare</strong></dt>\n"
+"    <dd>Låter en användare välja ett namn för deras fråga. Annars skapas detta automatiskt. Frågans namn ses aldrig på @quiz.</dd>\n"
+"    <dt><strong>skapa flervalsfråga</strong></dt>\n"
+"    <dd>users kan skapa flervalsfrågor</dd>\n"
+"    <dt><strong>redigera egna flervalsfrågor</strong></dt>\n"
+"    <dd>kan redigera egna flervalsfrågor.</dd></dl>\n"
+"<h4>Att ange ett vokabulär</h4>\n"
+"<ol>\n"
+"  <li>Om det inte redan är tillgängligt, gå till sektionen<a href=\"@admin-modules\">Administrera >> Uppbyggnad >> Moduler</a> för kontrollpanelen och kryssa för <strong>aktivera</strong> i rutan för att aktivera <strong>modulen taxonomi</strong>.</li>\n"
+"  <li>Om du inte redan har ett <strong>vokabulär</strong> för taxonomi som passar för frågor, gå till <a href=\"@admin-taxonomy\">Administrera >> Innehåll >> Taxonomi</a> och skapa ett vokabulär för frågor (till exempel, <strong>Rubrik för frågesporter</strong>). Säkerställ att under <strong>Typ</strong>, är både <strong>frågesport</strong> och alla frågetyper (till exempel, <strong>flervalsfråga</strong>) valda. Beroende på dina behov, kan du behöva skapa ett hierarkist vokabulär, så att rubriker kan delas in i mindre avdelningar, och/eller aktivera flera val för att assosciera frågesporter och frågor med fler än en kategori.</li>\n"
+"  <li>Lägg till en serie av<strong>termer</strong> till vokabulärer till vilken frågan och frågesporten kan tilldelas till. Till exempel:\n"
+"    <ul>\n"
+"      <li>Litteratur\n"
+"        <ul>\n"
+"          <li>Barnböcker</li>\n"
+"          <li>Poesi</li>\n"
+"          <li>Shakespeare</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"      <li>Mattematik\n"
+"        <ul>\n"
+"          <li>Algebra</li>\n"
+"          <li>Trigonometry</li>\n"
+"          <li>Integralräkning</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"      <li>Informationsteknologi\n"
+"        <ul>\n"
+"          <li>Hårdvara</li>\n"
+"          <li>Programmering</li>\n"
+"          <li>Databaser</li>\n"
+"        </ul>\n"
+"      </li>\n"
+"  </li>\n"
+"</ol>\n"
+"<h4>Att skapa frågor för frågesport</h4>\n"
+"<ol>\n"
+"  <li>Börja med att klicka på  <a href=\"@create-content\">Skapa innehåll</a>, och sen välja en typ av nod för frågan (till exempel, <a href=\"@multichoice\">flervalsfråga</a>)</li>\n"
+"  <li>Fyll i frågeformuläret. Det återgivna gränssnittet kommer att variera beroende på typ av fråga, men för flervalsfrågor:\n"
+"    <dl>\n"
+"      <dt><strong>Titel</strong></dt>\n"
+"      <dd>Titel på fråga. Detta kommer att visas som rubriken för frågan.</dd>\n"
+"      <dt><strong>Val av taxonomi</strong></dt>\n"
+"      <dd>Alla vokabulärer för taxonomier som är tilldelade till en frågetyp kommer att visas.</dd>\n"
+"      <dt><strong>Fråga</strong></dt>\n"
+"      <dd>Den faktiska texten för frågan (till exempel, <strong>Vad är 2+2?</strong>).</dd>\n"
+"      <dt><strong>Flera svar</strong></dt>\n"
+"      <dd>Huruvida frågan har flera korrekta svar eller inte, såsom en fråga \"Välj alla som stämmer överens\".</dd>\n"
+"      <dt><strong>Rätt</strong></dt>\n"
+"      <dd>Indikerar att givet svar är korrekt svar.</dd>\n"
+"      <dt><strong>Svar</strong></dt>\n"
+"      <dd>Ett svarsalternativ (till exempel, <strong>4</strong>). Om fler svar krävs, kryssa för <strong>Jag behöver fler svar</strong> och klicka på knappen <b>Förhandsvisa</b>.</dd>\n"
+"      <dt><strong>Gensvar</strong></dt>\n"
+"      <dd>Gensvar, om tillhandahåller, kommer att tillhandahållas till användaren i slutet av frågesporten.</dd>\n"
+"    </dl>\n"
+"  </li>\n"
+"  <li>Repetera för varje fråga du vill inkludera på frågesporten.</li>\n"
+"</ol>\n"
+"<h4>Att skapa frågesporten</h4>\n"
+"<ol>\n"
+"  <li>Gå till <a href=\"@create-quiz\">Skapa innehåll >> Frågesport</a> för att komma till formuläret för att skapa frågesport.</li>\n"
+"  <li>Fyll i formuläret för att ange alternativ för @quiz:\n"
+"    <dl>\n"
+"      <dt><strong>Titel</strong></dt>\n"
+"      <dd>Titel på frågesport. Detta kommer att visas som rubrik för frågesporten.</dd>\n"
+"      <dt><strong>Val av taxonomi</strong></dt>\n"
+"      <dd>Alla vokabulärer för taxonomier som är tilldelade till frågesporten kommer att visas. Välj från termerna som visas för att tilldela frågesporten till vokabulärets termer.</dd>\n"
+"      <dt><strong>Blandade frågor</strong></dt>\n"
+"      <dd>Huruvida frågorna skall blandas (slumpvis).</dd>\n"
+"      <dt><strong>Antal gånger</strong></dt>\n"
+"      <dd>Antal gånger som en användare tillåts göra. Varierar från 1-9 eller or Oändligt antal gånger.</dd>\n"
+"    </dl>\n"
+"  </li>\n"
+"  <li>När frågesporten har skapats, klicka på fliken <b>lägg till frågor</b> för att tilldela frågor till frågesporten.</li>\n"
+"  <li>Välj en radioknapp bredvid varje fråga som indikerar om frågan skall visas (Slumpvis, Alltid, eller Aldrig), och klicka<strong></strong>.</li>\n"
+"  <li>Repetera proceduren tills du är nöjd med valet av frågor.</li>\n"
+"</ol>\n"
+"    "
+
+#: quiz.help.inc:124
+msgid "A collection of questions designed to create interactive tests"
+msgstr "En samling av frågor byggda för att skapa interaktiva prov"
+
+#: quiz.pages.inc:87
+msgid "This quiz will not be available until %time."
+msgstr "Denna frågesport kommer inte att vara tillgänglig förrän %time."
+
+#: quiz.pages.inc:90
+msgid "This quiz closes %time."
+msgstr "Denna frågesport stänger %time."
+
+#: quiz.pages.inc:93
+msgid "This quiz is no longer available."
+msgstr "Denna frågesport är inte längre tillgänglig."
+
+#: quiz.pages.inc:109
+msgid "@quiz Options"
+msgstr "Alternativ för @quiz"
+
+#: quiz.pages.inc:111
+msgid "# of Random Questions"
+msgstr "antal av slumpade frågor"
+
+#: quiz.pages.inc:112
+msgid "Shuffle?"
+msgstr "Blanda?"
+
+#: quiz.pages.inc:113
+msgid "Feedback"
+msgstr "Gensvar"
+
+#: quiz.pages.inc:114
+#: quiz.module:484
+msgid "Number of takes"
+msgstr "Antal omgångar"
+
+#: quiz.pages.inc:116
+msgid "Yes"
+msgstr "Ja"
+
+#: quiz.pages.inc:116
+msgid "No"
+msgstr "Nej"
+
+#: quiz.pages.inc:119
+#: quiz.module:478
+msgid "Unlimited"
+msgstr "Obegränsad"
+
+#: quiz.pages.inc:129
+msgid "@quiz start/end"
+msgstr "@quiz börjar/slutar"
+
+#: quiz.pages.inc:141
+msgid "Days @quiz live for: "
+msgstr "Dagar @quiz är aktiv för: "
+
+#: quiz.pages.inc:150
+msgid "This Quiz is always available."
+msgstr "Denna frågesport är alltid tillgänglig."
+
+#: quiz.pages.inc:155
+msgid "Taxonomy selection"
+msgstr "Val av taxonomi"
+
+#: quiz.pages.inc:165
+msgid "No selected terms found"
+msgstr "Inga valda termer funna"
+
+#: quiz.pages.inc:172
+msgid "Pass / fail and summary options"
+msgstr "Alternativ för sammanfattning och klarade / misslyckades"
+
+#: quiz.pages.inc:173
+msgid "Percentage needed to pass:"
+msgstr "Procentsats som behövs för att klara:"
+
+#: quiz.pages.inc:174
+msgid "Summary text if the user passed:"
+msgstr "Text för sammanfattning om användare klarade:"
+
+#: quiz.pages.inc:175;179
+msgid "No text defined."
+msgstr "Ingen text definierad."
+
+#: quiz.pages.inc:178
+msgid "Default summary text:"
+msgstr "Förvald text för sammanfattning:"
+
+#: quiz.pages.inc:187
+#: quiz.module:542
+msgid "!quiz Results"
+msgstr "Resultat för !quiz"
+
+#: quiz.pages.inc:189
+msgid "Name"
+msgstr "Namn"
+
+#: quiz.pages.inc:189
+msgid "Summary"
+msgstr "Sammanfattning"
+
+#: quiz.pages.inc:191
+msgid "Start"
+msgstr "Börjar"
+
+#: quiz.pages.inc:191
+msgid "End"
+msgstr "Slutar"
+
+#: quiz.pages.inc:208
+msgid "@quiz Questions"
+msgstr "Frågor för @quiz"
+
+#: quiz.pages.inc:263;300
+msgid "Random"
+msgstr "Slumpvis"
+
+#: quiz.pages.inc:263;300
+msgid "Always"
+msgstr "Alltid"
+
+#: quiz.pages.inc:263;300
+msgid "Never"
+msgstr "Aldrig"
+
+#: quiz.pages.inc:263;308
+msgid "Question"
+msgstr "Fråga"
+
+#: quiz.pages.inc:263;308
+msgid "Type"
+msgstr "Typ"
+
+#: quiz.pages.inc:263;274;306;308
+msgid "Edit"
+msgstr "Redigera"
+
+#: quiz.pages.inc:282;314
+msgid "No questions found."
+msgstr "Ingra frågor funna."
+
+#: quiz.pages.inc:308
+msgid "Status"
+msgstr "Status"
+
+#: quiz.pages.inc:325
+msgid "correct"
+msgstr "rätt"
+
+#: quiz.pages.inc:334
+msgid "incorrect"
+msgstr "fel"
+
+#: quiz.pages.inc:358
+msgid "Question %x of %y"
+msgstr "Fråga %x av %y"
+
+#: quiz.pages.inc:412;444
+msgid "You got %num_correct of %question_count correct."
+msgstr "Du fick %num_correct av %question_count rätt."
+
+#: quiz.pages.inc:413
+msgid "Your score: %score%"
+msgstr "Din poäng: %score%"
+
+#: quiz.pages.inc:445
+msgid "Your score was: @score%"
+msgstr "Din poäng var: @score%"
+
+#: quiz.pages.inc:467
+msgid "Question Result(s)"
+msgstr "Frågeresultat"
+
+#: quiz.pages.inc:527
+msgid "Thanks for taking the quiz!"
+msgstr "Tack för att du genomförde denna frågesport!"
+
+#: quiz.module:73
+msgid "At the end of the @quiz"
+msgstr "Vid slutet av en @quiz"
+
+#: quiz.module:74
+msgid "After each question"
+msgstr "Efter varje fråga"
+
+#: quiz.module:75
+msgid "Do not show"
+msgstr "Visa inte"
+
+#: quiz.module:110
+msgid "@quiz"
+msgstr "@quiz"
+
+#: quiz.module:134
+msgid "@quiz configuration"
+msgstr "inställningar för @quiz"
+
+#: quiz.module:135
+msgid "Configure @quiz options."
+msgstr "Konfigurera alternativ för @quiz."
+
+#: quiz.module:143
+msgid "@quiz results"
+msgstr "resultat för @quiz"
+
+#: quiz.module:151
+msgid "View @quiz"
+msgstr "Visa @quiz"
+
+#: quiz.module:160
+msgid "Delete @quiz"
+msgstr "Radera @quiz"
+
+#: quiz.module:170
+msgid "Manage questions"
+msgstr "Hantera frågor"
+
+#: quiz.module:179
+msgid "Quiz admin"
+msgstr "Administrera Quiz"
+
+#: quiz.module:190
+msgid "My results"
+msgstr "Mina resultat"
+
+#: quiz.module:199
+msgid "User results"
+msgstr "Resultat för användare"
+
+#: quiz.module:415
+msgid "Title"
+msgstr "Titel"
+
+#: quiz.module:417
+msgid "The name of the @quiz."
+msgstr "Namnet för @quiz."
+
+#: quiz.module:423
+msgid "Description"
+msgstr "Beskrivning"
+
+#: quiz.module:425
+msgid "A description of what the @quiz entails"
+msgstr "En beskrivning för vad en @quiz innehåller"
+
+#: quiz.module:432
+msgid "Shuffle questions"
+msgstr "Blandade frågor"
+
+#: quiz.module:434
+msgid "Whether to shuffle/randomize the questions on the @quiz"
+msgstr "Huruvida att blanda/slumpa frågorna för en @quiz"
+
+#: quiz.module:439
+msgid "Backwards navigation"
+msgstr "Bakåtnavigering"
+
+#: quiz.module:441
+msgid "Whether to allow user to go back and revisit their answers"
+msgstr "Huruvida att tillåta en användare att gå tillbaka och återbesöka sina svar"
+
+#: quiz.module:445
+msgid "Feedback Time"
+msgstr "Tid för gensvar"
+
+#: quiz.module:449
+msgid "Indicates at what point feedback for each question will be given to the user"
+msgstr "Indikerar vid vilken tidpunkt gensvar för varje fråga skall ges till användare"
+
+#: quiz.module:455
+msgid "Availability options"
+msgstr "Tillgängliga alternativ"
+
+#: quiz.module:461
+msgid "Always Available"
+msgstr "Alltid tillgänglig"
+
+#: quiz.module:463
+msgid "Click this option to ignore the open and close dates."
+msgstr "Kryssa i detta alternativ för att ignorera start- och slutdatum"
+
+#: quiz.module:467
+msgid "Open Date"
+msgstr "Datum för öppnande"
+
+#: quiz.module:469
+msgid "The date this @quiz will become available."
+msgstr "Datumet som denna @quiz kommer att vara tillgänglig."
+
+#: quiz.module:473
+msgid "Close Date"
+msgstr "Datum för stängande"
+
+#: quiz.module:475
+msgid "The date this @quiz will cease to be available."
+msgstr "Datumet som denna @quiz upphör att vara tillgänglig."
+
+#: quiz.module:487
+msgid "The number of times a user is allowed to take the @quiz"
+msgstr "Antal gånger som en användare är tillåten att genomföra en @quiz"
+
+#: quiz.module:493
+msgid "@quiz Summary Options"
+msgstr "Alternativ för sammanfattning för @quiz"
+
+#: quiz.module:505
+msgid "Pass rate for @quiz (%)"
+msgstr "Antal klarade för @quiz (%)"
+
+#: quiz.module:507
+msgid "Pass rate for the @quiz as a percentage score. (For personality quiz enter 0, and use result options.)"
+msgstr "Antal klarade för @quiz som en procentuell poäng. (För personliga frågesporter, ange 0 och använd alternativ för resultat.)"
+
+#: quiz.module:512
+msgid "Summary text if passed."
+msgstr "Sammanfattande text om klarad."
+
+#: quiz.module:515
+msgid "Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used."
+msgstr "Sammanfattning för när användare får tillräckligt många rätta svar för att klara @quiz. Lämna blankt om du inte vill ge olika sammanfattande text om de har klarat, eller om du inte använder alternativet \"procent för att klara\" ovan. Om du inte använder fältet \"Procentsats som behövs för att klara\" kommer inte denna text att användas."
+
+#: quiz.module:528
+msgid "Default summary text."
+msgstr "Förvald text för sammanfattning."
+
+#: quiz.module:531
+msgid "Default summary. Leave blank if you don't want to give a summary."
+msgstr "Förvald sammanfattning. Lämna blank om du inte vill återge en sammanfattning."
+
+#: quiz.module:555
+msgid "Result Option "
+msgstr "Alternativ för resultat"
+
+#: quiz.module:561
+msgid "The name of the result"
+msgstr "Namnet på resultatet"
+
+#: quiz.module:562
+msgid "Not displayed on personality !quiz."
+msgstr "Visas inte på personliga !@quiz."
+
+#: quiz.module:569
+msgid "Percentage Start Range"
+msgstr "Startvärde för procentsats"
+
+#: quiz.module:570;577
+msgid "Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes."
+msgstr "Visa detta resultat för poäng på frågesporter inom denna spännvidd (0-100). Lämna blankt för personliga frågesporter."
+
+#: quiz.module:576
+msgid "Percentage End Range"
+msgstr "Slutvärde för procentsats"
+
+#: quiz.module:583
+msgid "Display text for the result"
+msgstr "Visa text för resultatet"
+
+#: quiz.module:585
+msgid "Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses."
+msgstr "Sammanfattning av resultat. Detta är sammanfattningen som visas när en användare misslyckas i detta resultat beroende på hans/hennes svar."
+
+#: quiz.module:605
+msgid "Please make sure the close date is after the open date."
+msgstr "Var vänlig säkerställ att slutdatum är efter startdatum."
+
+#: quiz.module:623
+msgid "Option has no summary text."
+msgstr "Alternativer har ingen sammanfattande text."
+
+#: quiz.module:630
+msgid "The range %start value must be a number between 0% and 100%."
+msgstr "Värdet för omfattningen %start måste vara ett nummer mellan 0% och 100%."
+
+#: quiz.module:633
+msgid "The range %start value must not be less than 0%."
+msgstr "Värdet för omfattningen %start får inte vara mindre än 0%."
+
+#: quiz.module:636
+msgid "The range %start value must not be more than 100%."
+msgstr "Värdet för omfattningen %start får inte vara mer än 100%."
+
+#: quiz.module:642
+msgid "The start must be less than the end of the range."
+msgstr "Startvärdet måste vara mindre än slutet för omfånget."
+
+#: quiz.module:648
+msgid "The ranges must not overlap each other. (%intersect)"
+msgstr "Omfånget får inte överlappa varandra. (%intersext)"
+
+#: quiz.module:656
+msgid "Option has a summary, but no name."
+msgstr "Alternativet har en sammanfattning, men inget namn."
+
+#: quiz.module:660
+msgid "Unscored quiz, but no result options defined."
+msgstr "Frågesport utan poäng, men inget alternativ för resultat definierat."
+
+#: quiz.module:771
+msgid "Not enough random questions were found. Please !add more questions before trying to take this @quiz."
+msgstr "Inte tillräckligt många slumpvisa frågor hittades. Var vänlig !add fler frågor innan du försöker genomföra denna @quiz."
+
+#: quiz.module:776
+msgid "No questions were found. Please !assign questions before trying to take this @quiz."
+msgstr "Inga frågor hittades. Var vänlig !assign frågor innan du försöker genomföra denna @quiz."
+
+#: quiz.module:791
+msgid "Back"
+msgstr "Tillbaka"
+
+#: quiz.module:806
+msgid "Submit"
+msgstr "Skicka"
+
+#: quiz.module:808
+msgid "You must select an answer before you can progress to the next question!"
+msgstr "Du måste välja ett svar innan du kan gå vidare till nästa fråga!"
+
+#: quiz.module:1007
+msgid "This @quiz is not currently available."
+msgstr "Denna @quiz är för närvarande inte tillgänglig."
+
+#: quiz.module:1026
+msgid "You have already taken this quiz @really. You may not take it again."
+msgstr "Du har redan genomfört denna frågesport @really. Du får inte genomföra den igen."
+
+#: quiz.module:1033
+msgid "You can only take this quiz @allowed. You have taken it @really."
+msgstr "Du kan enbart genomföra frågesporten @allowed. Du har genomfört den @really."
+
+#: quiz.module:1040
+msgid "You have already passed this @quiz."
+msgstr "Du har redan klarat denna @quiz."
+
+#: quiz.module:1057
+msgid "There was a problem starting the @quiz. Please try again later."
+msgstr "Det uppstod ett problem att starta @quiz. Var vänlig försök igen senare."
+
+#: quiz.module:1367
+msgid "The user passed this quiz."
+msgstr "Användarnen klarade denna frågesport."
+
+#: quiz.module:1379
+msgid "The user failed this quiz."
+msgstr "Användaren misslyckades med denna frågesport."
+
+#: quiz.module:1382
+msgid "the user completed this quiz."
+msgstr "användaren slutförde denna frågesport."
+
+#: quiz.module:1412;0
+msgid "quiz"
+msgstr "frågesport"
+
+#: quiz.module:1412
+msgid "_quiz_get_random_questions was called incorrectly."
+msgstr "_quiz_get_random_questions anropades felaktigt."
+
+#: quiz.module:1019;1020
+msgid "1 time"
+msgid_plural "@count times"
+msgstr[0] "1 gång"
+msgstr[1] "@count gånger"
+
+#: quiz.module:83
+msgid "access quiz"
+msgstr "åtkomst till frågesport"
+
+#: quiz.module:83
+msgid "create quiz"
+msgstr "skapa frågesport"
+
+#: quiz.module:83
+msgid "administer quiz"
+msgstr "administrera frågesport"
+
+#: quiz.module:83
+msgid "user results"
+msgstr "resultat för användare"
+
+#: quiz.module:83
+msgid "own results"
+msgstr "eget resultat"
+
+#: quiz.info:0;0
+msgid "Quiz"
+msgstr "Frågesport"
+
+#: quiz.info:0
+msgid "Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly. If in doubt, use the Multichoice module."
+msgstr "Skapa interaktiva, flersida frågesporter. Denna modul måste ha åtminstone en modul för frågetyp aktiverad för att fungera utan problem. Om du är osäker, använd modulen Multichoice."
+
