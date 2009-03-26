@@ -17,10 +17,6 @@ function theme_quiz_question_report($question, $show_points, $show_feedback) {
   }
   
   $answer = $question->answers[0];
-  drupal_set_message('<pre id="mpb">' . __FUNCTION__ . ' ' . 
-    print_r($answer, TRUE) . 
-    ' ('. __FILE__ . ': ' . __LINE__ .')</pre>');
-  
   $types = _quiz_get_question_types();
   $constructor = $types[$question->type]['response provider'];
   $result = new $constructor($answer['result_id'], $question);

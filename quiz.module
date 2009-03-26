@@ -1538,9 +1538,13 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
   // Loop through all questions and determine whether an update needs to be made.
   // As we go, we store the questions that will need to be updated.
   $existing_questions = _quiz_get_questions($quiz->vid, TRUE, TRUE);
-  $i_am_different_now = FALSE;
+  $i_am_different = FALSE;
   $questions = array(); // These are the questions that will be put into the Quiz.
   foreach ($submitted_questions as $nid => $stat) {
+    if (!isset($existing_questions[$nid])) {
+      // This means the question has been deleted.
+      continue;
+    }
     $existing = $existing_questions[$nid];
     if($stat != QUESTION_NEVER) {
       if ($existing) {
