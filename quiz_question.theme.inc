@@ -69,16 +69,3 @@ function theme_quiz_question_report($question, $show_points, $show_feedback) {
   
   return $slug . $result;
 }
-
-/**
- * Implementation of theme_$type_feedback().
- * This is basically useless for long answer questions.
- */
-function theme_quiz_question_feedback($quiz, $report) {
-  $output = '<div class="quiz_summary_text"><strong>' . t('Q:') . '</strong>'. 
-    check_markup($report->body, $report->format) .
-    '<br /><em>'.
-    t('The answer to this question will be scored by hand.')
-    . '</em></div>';
-  return $output;
-}
