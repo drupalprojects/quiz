@@ -21,13 +21,21 @@ class TrueFalseQuestion implements QuizQuestion {
   }
   
   public function save($is_new = FALSE) {
+    
+    drupal_set_message('Save called', 'status');
+    
+    if (!isset($this->node->feedback)) {
+      $this->node->feedback = '';
+    }
+    
     if ($is_new || $this->node->revision == 1) {
-      $sql = "INSERT INTO {quiz_truefalse_node} (nid, vid, correct_answer) VALUES (%d, %d, %d)";
-      db_query($sql, $this->node->nid, $this->node->vid, (int)$this->node->correct_answer);
+      $sql = "INSERT INTO {quiz_truefalse_node} (nid, vid, correct_answer, feedback) VALUES (%d, %d, %d, '%s')";
+      db_query($sql, $this->node->nid, $this->node->vid, (int)$this->node->correct_answer, $this->node->feedback);
     }
     else {
-      $sql = "UPDATE {quiz_truefalse_node} SET correct_answer = %d WHERE nid = %d AND vid = %d";
-      db_query($sql, (int)$this->node->correct_answer, $this->node->nid, $this->node->vid);
+      drupal_set_message('Updating', 'status');
+      $sql = "UPDATE {quiz_truefalse_node} SET correct_answer = %d, feedback = '%s' WHERE nid = %d AND vid = %d";
+      db_query($sql, (int)$this->node->correct_answer, $this->node->feedback, $this->node->nid, $this->node->vid);
     }
   }
   
@@ -48,9 +56,17 @@ class TrueFalseQuestion implements QuizQuestion {
     }
   }
   
+  public function load() {
+    $sql = 'SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
+    $result = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
+    return $result;
+  }
+  
   public function view() {
     return $this->getQuestionForm($this->node);
   }
+  
+  
   
   // This is called whenever a question is rendered, either 
   // to an administrator or to a quiz taker.
@@ -70,7 +86,7 @@ class TrueFalseQuestion implements QuizQuestion {
         1 => t('True'),
         0 => t('False'),
       ),
-      '#default_value' => 'true',
+      '#default_value' => 1,
       '#required' => TRUE,
     );
     
@@ -82,14 +98,17 @@ class TrueFalseQuestion implements QuizQuestion {
     
     return $form;
   }
-  public function getAdminForm() {
+  public function getAdminForm($edit = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',
       '#value' => t('There are no settings for this question type.'),
     );
     return $form;
   }
-  public function getCreationForm() {
+  public function getCreationForm($edit) {
+    drupal_set_message('<pre id="mpb">' . __FUNCTION__ . ' ' . 
+      print_r($this->node, TRUE) . 
+      ' ('. __FILE__ . ': ' . __LINE__ .')</pre>');
     $form['correct_answer'] = array(
       '#type' => 'radios',
       '#title' => t('Correct answer'),
@@ -97,9 +116,25 @@ class TrueFalseQuestion implements QuizQuestion {
         1 => t('True'),
         0 => t('False'),
       ),
-      '#default_value' => 'true',
+      '#default_value' => isset($node->correct_answer) ? $node->correct_answer : 1,
       '#required' => TRUE,
     );
+    $form['fiedback_fields'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Feedback Settings'),
+      '#description' => t('Settings pertaining to feedback given along with results.'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['fiedback_fields']['feedback'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Feedback Text'),
+      '#description' => t('Text to be displayed when the results are displayed'),
+      '#rows' => 5,
+      '#cols' => 60,
+      '#required' => FALSE,
+    );
+    
     return $form;
   }
   public function getMaximumScore() {
@@ -137,7 +172,8 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
   }
   
   public function save() {
-    $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
+    $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) 
+      VALUES (%d, %d, %d, %d, %d)";
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->score);
   }
   public function delete() {
@@ -151,5 +187,38 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
   }
   public function getResponse() {
     return $this->answer;
+  }
+  
+  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
+    
+    // Build the question answers header (add blank space for IE).
+    if ($showpoints) {
+      $innerheader[] = t('Correct Answer');
+    }
+    $innerheader[] = t('User Answer');
+    if ($showfeedback) {
+      $innerheader[] = '&nbsp;';
+    }
+    
+    if (empty($this->question->answers)) {
+      return t('Missing question.');
+    }
+    
+    $answer = $this->question->answers[0];
+    $correct_answer = $answer['is_correct'] ? $answer['answer'] : !$answer['answer'];
+    $user_answer = $answer['answer'];
+    
+    if ($showpoints) {
+      $rows[0][] = ($correct_answer ? t('True') : t('False'));
+    }
+    $rows[0][] = ($user_answer ? t('True') : t('False'));
+    if($showfeedback && !empty($this->question->feedback)) {
+      $rows[0][] = $this->question->feedback;
+    }
+
+    // Add the cell with the question and the answers.
+    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body) .'</div>';
+    $q_output .= theme('table', $innerheader, $rows) .'<br />';
+    return $q_output;
   }
 }

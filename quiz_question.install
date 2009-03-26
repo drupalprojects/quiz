@@ -49,7 +49,10 @@ function quiz_question_schema() {
         'unsigned' => TRUE,
         'size' => 'tiny',
         'default' => 0,
-        ),
+      ),
+      'feedback' => array(
+        'type' => 'text',
+      ),
     ),
     'primary key' => array(
       'vid','nid'

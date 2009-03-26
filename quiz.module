@@ -302,7 +302,7 @@ function quiz_theme() {
       'arguments' => array('questions' => NULL, 'showpoints' =>TRUE, 'showfeedback' => FALSE),
       'file' => 'quiz.pages.inc',
     ),
-    'quiz_question_feedback' => array(
+    'quiz_single_question_feedback' => array(
       'arguments' => array('quiz' => NULL, 'report' => NULL),
       'file' => 'quiz.pages.inc',
     ),
@@ -326,7 +326,7 @@ function quiz_theme() {
       'file' => 'quiz.admin.inc',
       'arguments' => array('results' => NULL),
     ),
-    'quiz_question_node' => array(
+    'quiz_single_question_node' => array(
       'file' => 'quiz.pages.inc',
       'arguments' => array('question_node' => NULL),
     ),
@@ -1060,7 +1060,7 @@ function quiz_node_view($question_node) {
   $question_node = node_build_content($question_node, FALSE, TRUE);
   node_invoke_nodeapi($question_node, 'alter', FALSE, TRUE);
   $question_node->body = drupal_render($question_node->content);
-  return theme('quiz_question_node', $question_node);
+  return theme('quiz_single_question_node', $question_node);
 }
 
 /**
@@ -1173,7 +1173,7 @@ function quiz_update_total_score($quiz, $rid) {
  *  Themed feedback for output.
  */
 function quiz_get_feedback($quiz, $report) {
-  return theme('quiz_question_feedback', $quiz, $report);
+  return theme('quiz_single_question_feedback', $quiz, $report);
 }
 
 /**

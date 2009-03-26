@@ -484,14 +484,14 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
  */
 function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
   $header = array(format_plural(count($questions), 'Question Result', 'Question Results'));
-  //$header = array(t('Question Result(s)'), '');
   $rows = array();
   
   // Go through each of the questions.
   foreach ($questions as $question) {
     $cols = array();
     // Ask each question to render a themed report of how the user did.
-    $cols[] = array('data' => theme($question->type .'_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');
+    $module = quiz_module_for_type($question->type);
+    $cols[] = array('data' => theme($module .'_report', $question, $showpoints, $showfeedback), 'class' => 'quiz_summary_qrow');
 
     // Get the score result for each question only if it's a scored quiz.
     if ($showpoints) {
@@ -518,7 +518,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
  * 
  * @ingroup themeable
  */
-function theme_quiz_question_feedback($quiz, $report) {
+function theme_quiz_single_question_feedback($quiz, $report) {
   $output = '<div class="quiz-summary-question">';
   $output .= theme($report->type .'_feedback', $quiz, $report);
   $output .= '</div><br class="clear" />';
@@ -548,7 +548,7 @@ function theme_quiz_no_feedback() {
   return t('Thanks for taking the quiz!');
 }
 
-function theme_quiz_question_node($node) {
+function theme_quiz_single_question_node($node) {
   return $node->body;
 }
  

@@ -70,6 +70,22 @@ function quiz_question_perm() {
 }
 
 /**
+ * Implementation of hook_theme().
+ */
+function quiz_question_theme() {
+  return array(
+    'quiz_question_report' => array(
+      'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
+      'file' => 'quiz_question.theme.inc',
+    ),
+    'quiz_question_feedback' => array(
+      'arguments' => array('quiz' => NULL, 'report' => NULL),
+      'file' => 'quiz_question.theme.inc',
+    ),
+  );
+}
+
+/**
  * Implementation of hook_node_info().
  */
 function quiz_question_node_info() {
@@ -167,7 +183,7 @@ function quiz_question_form(&$node, $form_state) {
   }
   
   $question = _quiz_question_get_instance($node);
-  $form = array_merge($form, $question->getCreationForm());
+  $form = array_merge($form, $question->getCreationForm($form_state));
   
   // If coming from quiz view, go back there on submit.
   if (!empty($quiz_id)) {
@@ -280,7 +296,6 @@ function quiz_question_get_report($nid, $vid, $rid) {
   $node = node_load($nid, $vid);
   $result = _quiz_question_response_get_instance($rid, $node)->getReport();
   
-  // FIXME:This is prone to conflicts, since each type has its own answer ID.
   $node->answers[$result['answer_id']] = $result;
   
   // If this has been evaluated, we mark it as correct.
@@ -370,7 +385,7 @@ function quiz_question_delete(&$node) {
  * Implementation of hook_load().
  */
 function quiz_question_load($node) {
-  return _quiz_question_get_instance($node)->view();
+  return _quiz_question_get_instance($node)->load();
 }
 
 // END NODE API

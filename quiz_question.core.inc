@@ -84,6 +84,10 @@ interface QuizQuestion {
    */
   public function view();
   /**
+   * Retrieve information about the question and add it to the node.
+   */
+  public function load();
+  /**
    * Get the form that will be displayed to the test-taking user.
    *
    * @param $node
@@ -100,17 +104,18 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getAdminForm();
+  public function getAdminForm($edit = NULL);
   /**
    * Get the form used to create a new question.
    * @return
    *  Must return a FAPI array.
    */
-  public function getCreationForm();
+  public function getCreationForm($edit);
   /**
    * Get the maximum possible score for this question.
    */
   public function getMaximumScore();
+
 }
 
 /**
@@ -172,6 +177,15 @@ interface QuizQuestionResponse {
    *  result_id
    */
   public function getReport();
+  
+  /**
+   * Return an HTML marked-up report for displaying the results of this question.
+   *
+   * @return 
+   *  An HTML string.
+   */
+  public function formatReport($showPoints, $showFeedback);
+  
   /**
    * Get the integer score.
    */
@@ -250,7 +264,7 @@ abstract class AbstractQuizQuestionResponse {
     // Basically, we encode internal information in a
     // legacy array format for Quiz.
     $report = array(
-      'answer_id' => 0,
+      'answer_id' => 0, // <-- Stupid vestige of multichoice.
       'answer' => $this->answer,
       'is_evaluated' => $this->isEvaluated(),
       'is_correct' => $this->isCorrect(),
