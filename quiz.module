@@ -1130,8 +1130,8 @@ function quiz_end_actions($quiz, $rid) {
      * @TODO: Find out if we do in fact need to pass an object here for certain actions.
      * @TODO: Create feature to only fire action if certain score is reached.
      */
-    $holder = array();
-    actions_do($quiz->aid, $holder, $holder);
+    $context = array();
+    actions_do($quiz->aid, $quiz, $context, $score);
   }
   module_invoke_all('quiz_finished', $quiz, $score);
   return $score;
