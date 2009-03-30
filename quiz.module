@@ -1116,23 +1116,21 @@ function quiz_end_actions($quiz, $rid) {
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",
           time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
-  /*
-   * Lets piggy back here to perform the quiz defined action since were done with this quiz.
-   * We will verify that there is an associated action with this quiz and then perform that action.
-   */
-  if(!empty($quiz->aid)) {
+  // Lets piggy back here to perform the quiz defined action since were done with this quiz.
+  // We will verify that there is an associated action with this quiz and then perform that action.
+  if (!empty($quiz->aid)) {
     /*
      * Some actions are reliant on objects and I am unsure which ones, for now I have simply
      * passed the actions_do() function an empty array.  By passing this function a single id
      * then it will retrieve the callback, get the parameters and perform that function (action)
      * for you.
      * @TODO: Add ability to assign multiple actions and pass the actions_do() an array of aid's
-     * @TODO: Find out if we do in fact need to pass an object here for certain actions.
      * @TODO: Create feature to only fire action if certain score is reached.
      */
     $context = array();
     actions_do($quiz->aid, $quiz, $context, $score);
   }
+  
   module_invoke_all('quiz_finished', $quiz, $score);
   return $score;
 }
