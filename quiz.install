@@ -9,6 +9,18 @@
 
 /**
  * Implementation of hook_update_N(). 
+ * Add and rearrange indexes across several of the tables.
+ */
+function quiz_update_6302() {
+  $result = array();
+  // FIXME work in progress, need to go back and compare to the last tagged
+  // release to make verify everything is here/dropped properly. DEFINITELY NOT right now.
+  db_add_index($result, 'quiz_node_result_options', 'quiz_id', array('vid, nid'));
+  db_add_index($result, 'quiz_node_properties', 'quiz_id', array('vid, nid'));
+  db_add_index($result, 'quiz_node_results', 'user_results', array('uid', 'vid', 'nid'));
+}
+/**
+ * Implementation of hook_update_N(). 
  * Add is_skipped column to quiz answer field. This allows questions to be skipped.
  */
 function quiz_update_6301() {
@@ -148,9 +160,8 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('property_id'),
-    'unique keys' => array(
-      'node_ids' => array('vid', 'nid'),
-    )
+    // 'unique keys' => array('vid'),
+    'indexes' => array('quiz_id' => array('vid', 'nid')),
   );
 
   /*
@@ -275,11 +286,8 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('result_id'),
-    'unique keys' => array(
-      'user_results' => array('uid', 'vid', 'nid'),
-    ),
     'indexes' => array(
-      'uid' => array('uid'),
+      'user_results' => array('uid', 'vid', 'nid'),
     ),
   );
 
@@ -374,7 +382,10 @@ function quiz_schema() {
         'default' => 0,
       ),
     ),
-    'primary key' => array('option_id')
+    'primary key' => array('option_id'),
+    'indexes' => array(
+      'quiz_id' => array('vid, nid'),
+    )
   );
   return $schema;
 }
