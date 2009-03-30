@@ -2,9 +2,9 @@ NOTES ON DEVELOPING EXTENSIONS FOR QUIZ
 =======================================
 
 Hooks for interacting with a quiz:
-
+ - hook_quiz_begin($quiz, $rid): This hook is called when a user first begins a quiz.
  - hook_quiz_finished($quiz, $score): This hook is called immediately after a user finishes taking a quiz.
-
+ 
 
 DEVELOPING NEW QUESTION TYPES:
 

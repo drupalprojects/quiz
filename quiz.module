@@ -1131,6 +1131,7 @@ function quiz_end_actions($quiz, $rid) {
     actions_do($quiz->aid, $quiz, $context, $score);
   }
   
+  // Call hook_quiz_finished().
   module_invoke_all('quiz_finished', $quiz, $score);
   return $score;
 }
@@ -1315,12 +1316,17 @@ function quiz_start_actions($quiz) {
   
   if ($result) {
     // Return the last RID.
-    return db_last_insert_id('quiz_node_results', 'result_id');
+    $rid = db_last_insert_id('quiz_node_results', 'result_id');
   }
   else {
     drupal_set_message(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), 'error'));
     return FALSE;
   }
+  
+  // Call hook_quiz_begin().
+  module_invoke_all('quiz_begin', $quiz, $rid);
+  
+  return $rid;
 }
 
 /**
