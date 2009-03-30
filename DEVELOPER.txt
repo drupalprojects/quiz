@@ -1,3 +1,24 @@
+NOTES ON DEVELOPING EXTENSIONS FOR QUIZ
+=======================================
+
+Hooks for interacting with a quiz:
+
+ - hook_quiz_finished($quiz, $score): This hook is called immediately after a user finishes taking a quiz.
+
+
+DEVELOPING NEW QUESTION TYPES:
+
+There are two different ways to create a new question type: the "old" way, which 
+uses traditional Drupal hooks, but requires substantial coding, and the "new" OO
+way, which is much faster to develop.
+
+1. Creating a question type the old way
+=======================================
+
+To create a question type the "old" way, you will need to develop a custom 
+module that parforms all of the necessary actions. There are several hooks you 
+will need to implement. The best place to start is with the multichoice module.
+
 Hooks you need to implement when developing a new question type:
 
 hook_list_questions() // List of questions
@@ -17,8 +38,13 @@ theme_{$type}_report() // Report at end of quiz
 theme_{$type}_feedback() // Feedback given during the taking of the quiz.
 
 
-To create a new question type using quiz_question
-=================================================
+2. Creating a new question type using quiz_question
+===================================================
+
+In this method, you need to create a new module that extends the existing 
+question type core. The True/False question type provides a precise example.
+
+Here are the steps:
 
 1. Create a new module
 2. Use your module's .install file to create the necessary tables

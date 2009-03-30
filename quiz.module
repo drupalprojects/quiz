@@ -1133,6 +1133,7 @@ function quiz_end_actions($quiz, $rid) {
     $holder = array();
     actions_do($quiz->aid, $holder, $holder);
   }
+  module_invoke_all('quiz_finished', $quiz, $score);
   return $score;
 }
 
