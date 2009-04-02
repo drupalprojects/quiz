@@ -1546,11 +1546,7 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
   $i_am_different = FALSE;
   $questions = array(); // These are the questions that will be put into the Quiz.
   foreach ($submitted_questions as $nid => $stat) {
-    if (!isset($existing_questions[$nid])) {
-      // This means the question has been deleted.
-      continue;
-    }
-    $existing = $existing_questions[$nid];
+    $existing = in_array($nid, $existing_questions);// $existing_questions[$nid];
     if($stat != QUESTION_NEVER) {
       if ($existing) {
         // This appears to be comparing publishing status with question_status?
