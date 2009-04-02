@@ -23,6 +23,7 @@ function long_answer_help($path, $arg) {
  * Implementation of hook_menu().
  */
 function long_answer_menu() {
+  /*
   $items['admin/quiz/long_answer'] = array(
     'title' => t('Long-answer configuration'),
     'description' => t('Configure long-answer questions for users.'),
@@ -32,6 +33,7 @@ function long_answer_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'long_answer.admin.inc',
   );
+  */
   $items['admin/quiz/score-long-answer'] = array(
     'title' => t('Score long-answer questions'),
     'description' => t('Score the answers from quizzes that use long answer questions.'),
@@ -56,8 +58,34 @@ function long_answer_menu() {
 }
 
 /**
+ * Implementation of hook_quiz_question_info().
+ */
+function long_answer_quiz_question_info() { 
+  return array(
+    'long_answer' => array(
+      'name' => 'Long answer question',
+      'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
+      'question provider' => 'LongAnswerQuestion',
+      'response provider' => 'LongAnswerResponse',
+      'module' => 'long_answer',
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_autoload_info().
+ */
+function long_answer_autoload_info() {
+  return array(
+    'LongAnswerQuestion' => array('file' => 'long_answer.classes.inc'),
+    'LongAnswerResponse' => array('file' => 'long_answer.classes.inc'),
+  );
+}
+
+/**
  * Implementation of hook_node_info();
  */
+ /*
 function long_answer_node_info() {
   return array( 
     'long_answer' => array(
@@ -71,6 +99,7 @@ function long_answer_node_info() {
     ),
   );
 }
+*/
 
 /**
  * Implementation of hook_theme().
@@ -95,6 +124,7 @@ function long_answer_theme() {
 /**
  * Implementation of hook_perm().
  */
+ /*
 function long_answer_perm() {
   return array(
     // Editing
@@ -103,10 +133,12 @@ function long_answer_perm() {
     'score long answer',
   );
 }
+*/
 
 /**
  * Implementation of hook_access().
  */
+ /*
 function long_answer_access($op, $node, $account) {
   
   // Allow admin to do whatever.
@@ -128,10 +160,12 @@ function long_answer_access($op, $node, $account) {
       }
   }
 }
+*/
 
 /**
  * Implementation of hook_form().
  */
+ /*
 function long_answer_form(&$node) {
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
@@ -189,10 +223,11 @@ function long_answer_form(&$node) {
   }
   return $form;
 }
-
+*/
 /**
  * Implementation of hook_validate().
  */
+ /*
 function long_answer_validate($node, &$form) {
   // Check to make sure that there is a question.
   if (empty($node->body)) {
@@ -205,12 +240,13 @@ function long_answer_validate($node, &$form) {
     form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
   }
 }
-
+*/
 /**
  * Question form displayed to the test taker.
  * 
  * This form is displayed to the user when the user is taking a quiz.
  */
+ /*
 function long_answer_question_form($context, $node) {
   
   $form['question'] = array(
@@ -232,6 +268,7 @@ function long_answer_question_form($context, $node) {
   
   return $form;
 }
+*/
 
 ////////////// QUIZ HOOKS /////////////////
 
@@ -241,6 +278,7 @@ function long_answer_question_form($context, $node) {
  * @return
  *  Object with nid, vid, rid, score, is_correct flags set.
  */
+ /*
 function long_answer_evaluate_question($question, $rid, $answer = '') {
   
   // Create the initial result object:
@@ -267,30 +305,22 @@ function long_answer_evaluate_question($question, $rid, $answer = '') {
 
   return $result;
 }
-
+*/
 /**
  * Implementation of quiz hook_skip_question().
  */
+ /*
 function long_answer_skip_question($question, $rid) {
   // Delete any old answers for this question.
   long_answer_delete_answer($question->nid, $question->vid, $rid);
 }
+*/
 
-/**
- * Implementation of hook_quiz_question_info
- */
-function long_answer_quiz_question_info() {
-  return array(
-    'long_answer' => array(
-      'name' => t('Long answer question'),
-      'module' => 'long_answer',
-    )
-  );
-}
 
 /**
  * Implementation of hook_list_questions().
  */
+/*
 function long_answer_list_questions($count = 0, $offset = 0) {
   $sql = "SELECT n.nid, n.vid, r.body, r.format 
     FROM {node} AS n
@@ -315,18 +345,19 @@ function long_answer_list_questions($count = 0, $offset = 0) {
   
   return $questions;
 }
-
+*/
 /**
  * Implementation of hook_render_question().
  *
  * @param $node
  *  The question node.
  */
+ /*
 function long_answer_render_question($node) {
   //var_dump($node);
   return drupal_get_form('long_answer_question_form', $node);
 }
-
+*/
 /**
  * Imlementation of hook_get_report().
  *
@@ -335,6 +366,7 @@ function long_answer_render_question($node) {
  *  Since a long answer has only one answer, we only return one answer (contrast
  *  with multichoice.)
  */
+ /*
 function long_answer_get_report($nid, $vid, $rid) {
   $node = node_load($nid, $vid);
   
@@ -351,10 +383,11 @@ function long_answer_get_report($nid, $vid, $rid) {
   
   return $node;
 }
-
+*/
 /**
  * Implementation of hook_quiz_question_score()
  */
+/*
 function long_answer_quiz_question_score($quiz, $question_nid, $question_vid, $rid) {
   $sql = "SELECT ua.score, ua.is_evaluated, np.maximum_score
     FROM {quiz_long_answer_user_answers} ua 
@@ -369,7 +402,7 @@ function long_answer_quiz_question_score($quiz, $question_nid, $question_vid, $r
   $score->is_evaluated = ($answer->is_evaluated == 1);
   return $score;
 }
-
+*/
 /*
  * Long answers do not support personality questions.
  */
@@ -397,10 +430,12 @@ function long_answer_quiz_question_score($quiz, $question_nid, $question_vid, $r
  * @return int
  *  Number of answers deleted. This should be 0 or 1.
  */
+/*
 function long_answer_delete_answer($nid, $vid, $rid) {
   db_query('DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d', $nid, $vid, $rid);
   return db_affected_rows();
 }
+*/
 
 /**
  * Save an answer.
@@ -419,10 +454,12 @@ function long_answer_delete_answer($nid, $vid, $rid) {
  * @return int
  *  Answer ID.
  */
+/*
 function long_answer_save_answer($nid, $vid, $rid, $answer) {
   db_query("INSERT INTO {quiz_long_answer_user_answers} (answer, question_nid, question_vid, result_id) VALUES ('%s', %d, %d, %d)", $answer, $nid, $vid, $rid);
   return db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
 }
+*/
 
 /**
  * Set a score for a long answer question.
@@ -496,8 +533,6 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
  *  Version ID of question.
  * @param $rid
  *  Result ID for the quiz results.
- * @param $score
- *  The numeric score to assign the result.
  * 
  * @return Assoc array
  *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
@@ -586,6 +621,7 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
 /**
  * Implementation of hook_nodeapi().
  */
+ /*
 function long_answer_nodeapi(&$node, $op) {
   if ($op == 'presave' && $node->type == 'long_answer') {
     // This handles the case where users are not allowed to enter their 
@@ -601,10 +637,11 @@ function long_answer_nodeapi(&$node, $op) {
     db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d', $node->nid, $node->vid);
   }
 }
-
+*/
 /**
  * Implementation of hook_insert()
  */
+ /*
 function long_answer_insert($node) {
   db_query('INSERT INTO {quiz_long_answer_node_properties} (nid, vid, maximum_score) VALUES (%d, %d, %d)', 
     $node->nid, 
@@ -623,18 +660,20 @@ function long_answer_insert($node) {
     );
   }
 }
-
+*/
 /**
  * Implementation of hook_view()
  */
+ /*
 function long_answer_view($node, $teaser = FALSE, $page = FALSE) {
   $node->content['body']['#value'] = drupal_get_form('long_answer_question_form', $node);
   return $node;
 }
-
+*/
 /**
  * Implementation of hook_update().
  */
+ /*
 function long_answer_update($node) {
 
   // New revision == insert
@@ -657,17 +696,19 @@ function long_answer_update($node) {
 
   }
 }
-
+*/
 /**
  * Implementation of hook_delete().
  */
+ /*
 function long_answer_delete(&$node) {
   db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $node->nid);
 }
-
+*/
 /**
  * Implementation of hook_load().
  */
+ /*
 function long_answer_load($node) {
   
   $extra = db_fetch_object(db_query(
@@ -678,3 +719,4 @@ function long_answer_load($node) {
   
   return $extra;
 }
+*/

@@ -14,7 +14,7 @@
  */
 function quiz_question_help($path, $args) {
   if ($path == 'admin/help#quiz_quesion') {
-    return t('Support for Quiz question types');
+    return t('Support for Quiz question types.');
   }
 }
 
@@ -344,14 +344,9 @@ function quiz_question_insert($node) {
   _quiz_question_get_instance($node)->save(TRUE);
   // If the form says this should be attached to a quiz, attach it.
   if (isset($node->quiz_id) && $node->quiz_id > 0) {
-    db_query('INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
-        VALUES (%d, %d, %d, %d, %d)', 
-      $node->quiz_id, 
-      $node->quiz_vid, 
-      $node->nid, 
-      $node->vid, 
-      QUESTION_ALWAYS
-    );
+    $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status) 
+        VALUES (%d, %d, %d, %d, %d)';
+    db_query($sql, $node->quiz_id, $node->quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
   }
 }
 
@@ -450,5 +445,14 @@ function quiz_question_quiz_question_info() {
       'response provider' => 'TrueFalseResponse',
       'module' => 'quiz_question',
     ),
+    /*
+    'long_answer' => array(
+      'name' => 'Long answer question',
+      'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
+      'question provider' => 'LongAnswerQuestion',
+      'response provider' => 'LongAnswerResponse',
+      'module' => 'quiz_question',
+    ),
+    */
   );
 }
