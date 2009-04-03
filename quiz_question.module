@@ -257,6 +257,8 @@ function quiz_question_evaluate_question($question, $rid, $answer = NULL) {
  * Implementation of quiz hook_skip_question().
  */
 function quiz_question_skip_question($question, $rid) {
+  unset($_POST['tries']); // Unset any answer that might have been set.
+  
   // Delete any old answers for this question (for backwards nav).
   _quiz_question_response_get_instance($rid, $question)->delete();
   

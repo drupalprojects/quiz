@@ -122,7 +122,11 @@ function multichoice_node_info() {
  * Data structure is array('type' => array('name'=>'Human Name', 'module'=>'handling_module))
  */
 function multichoice_quiz_question_info() {
-  return array('multichoice' => array('name' => t(MULTICHOICE_NAME), 'module' => 'multichoice'));
+  return array('multichoice' => array(
+    'name' => t(MULTICHOICE_NAME), 
+    'module' => 'multichoice'
+    )
+  );
 }
 
 
@@ -726,6 +730,10 @@ function multichoice_render_question_form($context, $node) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
+  $form['op'] = array(
+    '#type' => 'submit',
+    '#value' => t('Skip'),
+  );
   
   if ($fake_answer_id > 0) {
     // This is not a real quiz question. It's just a preview.
@@ -800,6 +808,22 @@ function multichoice_evaluate_question($question, $rid = null) {
   //return multichoice_calculate_result($question->nid, $question->vid, $tries);
   
   // Return result object  
+  return $result;
+}
+
+function multichoice_skip_question($question, $rid) {
+  // Clear old answers
+  unset($_POST['tries']); // Normally, this should be blank.
+  multichoice_clear_answer($question->nid, $question->vid, $rid);
+  
+  $result = new stdClass();
+  $result->nid = $question->nid;
+  $result->vid = $question->vid;
+  $result->rid = $rid;
+  $result->is_skipped = TRUE;
+  $result->score = 0;
+  $result->is_correct = 0;
+  
   return $result;
 }
 
