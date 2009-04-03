@@ -227,13 +227,13 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
 
       if ($answer->is_evaluated == 1) {
         // Show score:
-        if ($show_points) {
+        if ($showpoints) {
           $args = array('@yours' => $answer->score, '@total' => $this->question->maximum_score);
           $result .= t('Score: @yours of @total possible points', $args);
         }
 
         // Show feedback, if any.
-        if ($show_feedback && !empty($answer->feedback)) {
+        if ($showfeedback && !empty($answer->feedback)) {
           $result .= '</div><div class="quiz_answer_feedback">' . $answer->feedback;
         }
 
@@ -245,7 +245,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       }
 
       if (user_access('score long answer')) {
-        $path = sprintf('admin/quiz/score-long-answer/%s/%s', $this->question->vid, $this->result_id);
+        $path = sprintf('admin/quiz/score-long-answer/%s/%s', $this->question->vid, $this->rid);
         $result .= '<p>' . l(t('Score this answer'), $path) . '</p>';
       }
     }
