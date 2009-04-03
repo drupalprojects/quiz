@@ -78,10 +78,6 @@ class LongAnswerQuestion implements QuizQuestion {
        '#cols' => 60,
        '#required' => FALSE,
      );
-     $form['submit'] = array(
-       '#type' => 'submit',
-       '#value' => t('Submit'),
-     );
      return $form;
   }
   public function getAdminForm($edit = NULL) {

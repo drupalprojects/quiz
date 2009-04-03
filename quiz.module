@@ -71,7 +71,7 @@ function quiz_help($path, $arg) {
 function quiz_views_api() {
   return array(
     'api' => 2,
-    //'path' => drupal_get_path('module', 'quiz') . '/includes/views',
+    'path' => drupal_get_path('module', 'quiz') . '/includes/views',
   );
 }
 
@@ -888,6 +888,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  */
 function quiz_take_quiz($quiz) {
   global $user;
+  $allow_skipping = TRUE;
   
   // If no access, fail.
   if (!user_access('access quiz')) {
@@ -991,10 +992,12 @@ function quiz_take_quiz($quiz) {
     $former_question = node_load(array('nid' => $former_question_array['nid']));
     
     // Call hook_skip_question().
-    $result = module_invoke($former_question->type, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    $module = quiz_module_for_type($former_question->type);
+    $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     
     // Report that the question was skipped:
-    quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+    //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+    quiz_store_question_result($result);
   }
   
   // The content array:
@@ -1073,13 +1076,16 @@ function quiz_node_view($question_node) {
  */
 //function quiz_store_question_result($nid, $vid, $rid, $is_correct, $is_skipped = FALSE) {}
 function quiz_store_question_result($result) {
+  /*
   if (!is_object($result) || !$result->nid || !$result->vid || !$result->rid) {
     // FIXME: This error is for debugging only. Remove before 3.0 is released.
     drupal_set_message("No answer could be saved. If you see this message, file a bug report.", 'error');
     return;
   }
+  */
   
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
+    drupal_set_message('Last question skipped.', 'status');
     $result->is_correct = FALSE;
     $result->score = 0;
   }

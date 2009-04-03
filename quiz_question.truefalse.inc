@@ -86,15 +86,11 @@ class TrueFalseQuestion implements QuizQuestion {
         1 => t('True'),
         0 => t('False'),
       ),
-      '#default_value' => 1,
+      //'#default_value' => 1,
       '#required' => TRUE,
     );
     
-    // Submit button
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Submit'),
-    );
+    
     
     return $form;
   }

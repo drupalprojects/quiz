@@ -204,7 +204,28 @@ function quiz_question_validate($node, &$form) {
  * Get the form to show to the user.
  */
 function quiz_question_question_form($context, $node) {
-  return _quiz_question_get_instance($node)->getQuestionForm($node, $context);
+  $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
+  $quiz = menu_get_object(); // Get the quiz object.
+  
+  if ($quiz->backwards_navigation == 1 && !empty($node->question_number)) {
+    $form['back'] = array(
+      '#type' => 'submit',
+      '#value' => t('Back'),
+    );
+  }
+  
+  // Add navigation at the bottom:
+  // Submit button
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  $form['op']  = array(
+    '#type' => 'submit',
+    '#value' => t('Skip'),
+  );
+  
+  return $form;
 }
 
 /**
@@ -238,6 +259,15 @@ function quiz_question_evaluate_question($question, $rid, $answer = NULL) {
 function quiz_question_skip_question($question, $rid) {
   // Delete any old answers for this question (for backwards nav).
   _quiz_question_response_get_instance($rid, $question)->delete();
+  
+  // This is the standard response:
+  $response = new stdClass();
+  $response->nid = $question->nid;
+  $response->vid = $question->vid;
+  $response->rid = $rid;
+  $response->is_skipped = TRUE;
+  
+  return $response;
 }
 
 /**
