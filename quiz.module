@@ -499,6 +499,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
  * This is an admin form used to build a new quiz. It is called as part of the node edit form.
  */
 function quiz_form(&$node) {
+  $form = array();
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
@@ -1543,20 +1544,22 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
   // Loop through all questions and determine whether an update needs to be made.
   // As we go, we store the questions that will need to be updated.
   $existing_questions = _quiz_get_questions($quiz->vid, TRUE, TRUE);
+  $existing_question_nids = array_keys($existing_questions);
   $i_am_different = FALSE;
   $questions = array(); // These are the questions that will be put into the Quiz.
   foreach ($submitted_questions as $nid => $stat) {
-    $existing = in_array($nid, $existing_questions);// $existing_questions[$nid];
+    $existing = in_array($nid, $existing_question_nids);// $existing_questions[$nid];
     if($stat != QUESTION_NEVER) {
       if ($existing) {
+        $existing_question = $existing_questions[$nid];
         // This appears to be comparing publishing status with question_status?
-        if($existing->question_status != $stat) {
+        if($existing_question->question_status != $stat) {
           // Question's status has been changed.
-          $existing->question_status = $stat;
+          $existing_question->question_status = $stat;
           $i_am_different = TRUE;
         }
         // else This question is the same. Do nothing.
-        $questions[] = $existing;
+        $questions[] = $existing_question;
       }
       else {
         $new_question = node_load($nid);

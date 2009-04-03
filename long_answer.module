@@ -67,7 +67,7 @@ function long_answer_quiz_question_info() {
       'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
       'question provider' => 'LongAnswerQuestion',
       'response provider' => 'LongAnswerResponse',
-      'module' => 'long_answer',
+      'module' => 'quiz_question', // All wrapper functions are in that module.
     ),
   );
 }
