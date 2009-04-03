@@ -13,8 +13,6 @@
  */
 function quiz_update_6302() {
   $result = array();
-  // FIXME work in progress, need to go back and compare to the last tagged
-  // release to make verify everything is here/dropped properly. DEFINITELY NOT right now.
   db_add_index($result, 'quiz_node_result_options', 'quiz_id', array('vid, nid'));
   db_add_index($result, 'quiz_node_properties', 'quiz_id', array('vid, nid'));
   db_add_index($result, 'quiz_node_results', 'user_results', array('uid', 'vid', 'nid'));
