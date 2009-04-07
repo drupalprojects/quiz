@@ -207,7 +207,7 @@ function quiz_question_question_form($context, $node) {
   $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
   $quiz = menu_get_object(); // Get the quiz object.
   
-  if ($quiz->backwards_navigation == 1 && !empty($node->question_number)) {
+  if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
     $form['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
@@ -220,10 +220,13 @@ function quiz_question_question_form($context, $node) {
     '#type' => 'submit',
     '#value' => t('Submit'),
   );
-  $form['op']  = array(
-    '#type' => 'submit',
-    '#value' => t('Skip'),
-  );
+  if (empty($node->no_skip_button)) {
+    $form['op']  = array(
+      '#type' => 'submit',
+      '#value' => t('Skip'),
+    );
+    
+  }
   
   return $form;
 }
