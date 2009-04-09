@@ -6,7 +6,6 @@
  * This file provides metadata to the Views 2 API for views integration.
  *
  */
-
 function quiz_views_handlers() {
   return array(
     'info' => array(
