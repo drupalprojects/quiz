@@ -78,6 +78,12 @@ class QuizDirectionsQuestion implements QuizQuestion {
 
 }
 
+/**
+ * Class that describes a "Directions question response". For 
+ * the most part, no real scoring takes place for a direction
+ * node. However, there are a few behind-the-scenes tricks that
+ * are done here to make the quiz-taking process a little easier. 
+ */
 class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
   
   public function __construct($rid, $question, $answer = NULL) {
@@ -89,6 +95,17 @@ class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
   public function save() {}
   public function delete() {}
   public function score() {
+    // First, due to popular demand, if the directions are at the beginning of
+    // the quiz, we restart the timer after the user has read the question.
+    $quiz_nid = arg(1);
+    $quiz_key = 'quiz_' . $quiz_nid;
+    if (isset($_SESSION[$quiz_key]['previous_quiz_questions']) && count($_SESSION[$quiz_key]['previous_quiz_questions']) === 1) {
+      // reset the timer.
+      $sql = 'UPDATE {quiz_node_results} SET time_start=%d WHERE result_id = %d';
+      db_query($sql, time(), $this->rid);
+    }
+    
+    // Set the score
     $this->score = 0;
     return 0;
   }
