@@ -1134,7 +1134,10 @@ function quiz_end_actions($quiz, $rid) {
      * @TODO: Add ability to assign multiple actions and pass the actions_do() an array of aid's
      * @TODO: Create feature to only fire action if certain score is reached.
      */
-    $context = array('result_id' => $rid);
+    $context = array(
+      'result_id' => $rid,
+      'score' => $score,
+    );
     actions_do($quiz->aid, $quiz, $context, $score);
   }
   
