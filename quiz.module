@@ -1134,12 +1134,12 @@ function quiz_end_actions($quiz, $rid) {
      * @TODO: Add ability to assign multiple actions and pass the actions_do() an array of aid's
      * @TODO: Create feature to only fire action if certain score is reached.
      */
-    $context = array();
+    $context = array('result_id' => $rid);
     actions_do($quiz->aid, $quiz, $context, $score);
   }
   
   // Call hook_quiz_finished().
-  module_invoke_all('quiz_finished', $quiz, $score);
+  module_invoke_all('quiz_finished', $quiz, $score, $rid);
   return $score;
 }
 
