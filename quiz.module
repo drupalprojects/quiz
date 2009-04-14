@@ -357,12 +357,9 @@ function quiz_insert($node) {
   
   $sql = "INSERT INTO {quiz_node_properties} 
     (vid, nid, aid, number_of_random_questions, shuffle, 
-      backwards_navigation, quiz_open, quiz_close, takes, pass_rate, summary_pass, 
-      summary_default, quiz_always, feedback_time, tid) 
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation,
-          $node->quiz_open, $node->quiz_close, $node->takes, $node->pass_rate, $node->summary_pass,   
-          $node->summary_default, $node->quiz_always, $node->feedback_time, $tid);
+      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid) 
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $tid);
   _quiz_insert_resultoptions($node);
 }
 
@@ -393,18 +390,23 @@ function quiz_update($node) {
         quiz_open = %d,
         quiz_close = %d,
         takes = %d,
+        time_limit = '%d',
         pass_rate = %d,
         summary_pass = '%s',
         summary_default = '%s',
         quiz_always = %d,
         feedback_time = %d,
-        number_of_random_questions = %d
+        number_of_random_questions = %d        
       WHERE vid = %d 
         AND nid = %d";
-    db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
-      $node->takes, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, 
+    $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, 
+      $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, 
       $node->feedback_time, $node->number_of_random_questions,
       $node->vid, $node->nid);
+      
+    // if (db_affected_rows($resource) == 0) {
+    //       drupal_set_message('No quiz was found that could be modified.', 'status');
+    //     }
   }
   _quiz_update_resultoptions($node);
 }
@@ -499,7 +501,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
  * This is an admin form used to build a new quiz. It is called as part of the node edit form.
  */
 function quiz_form(&$node) {
-  $form = array();
+  $form = array(); 
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
@@ -597,6 +599,30 @@ function quiz_form(&$node) {
     '#default_value' => $node->takes,
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  
+  $form['timer'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Timed Quiz'),
+    '#description' => t('Quizzes can have time limits placed upon them. In such cases, a quiz must be completed, from start to finish, in the given time limit.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  //if (!function_exists('jquery_countdown_add')) {
+    $form['timer']['warning'] = array(
+      '#type' => 'markup',
+      '#value' => '<p><strong>' . 
+        t('For the timer to be displayed on the user\'s page, you will need to install the !link module. 
+        Without this timer, the user will not know how long he or she has to complete the quiz.', array('!link' => l('JQuery Countdown', 'http://drupal.org/project/jquery_countdown')))
+        . '</strong></p>',
+    );
+  //}
+  
+  $form['timer']['time_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time Limit'),
+    '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,    
+    '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
   );
 
   // Quiz summary options.
@@ -725,7 +751,11 @@ function quiz_validate($node) {
   if ($node->pass_rate < 0) {
     form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
   }
-
+    
+  if ($node->time_limit < 0 || !is_numeric($node->time_limit)) {
+    form_set_error('time_limit', t('Time limit must be a non negative interger '));
+  }
+  
   $taken_values = array();
   $num_options =0;
   foreach ($node->resultoptions as $option) {
@@ -910,21 +940,27 @@ function quiz_take_quiz($quiz) {
     if ($rid = quiz_start_actions($quiz)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
+      
       if ($questions === FALSE) {
         drupal_set_message(t('Not enough random questions were found. Please !add more questions before trying to take this @quiz.',
           array('@quiz' => QUIZ_NAME, '!add more questions' => l('add more questions', 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
+      
       if (count($questions) == 0) {
         drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
                           array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
+      
       // Initialize session variables.
       $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
+      $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
+      $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
     }
+    
     else {
       return array('body' => array('#value' => ''));
     }
@@ -967,7 +1003,7 @@ function quiz_take_quiz($quiz) {
       $types = _quiz_get_question_types();
       $module = $types[$former_question->type]['module'];
       $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-      quiz_store_question_result($result);
+      quiz_store_question_result($result, array('set_msg' => TRUE));
 
       // Stash feedback in the session, since the $_POST gets cleared.
       if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
@@ -997,7 +1033,7 @@ function quiz_take_quiz($quiz) {
     
     // Report that the question was skipped:
     //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
-    quiz_store_question_result($result);
+    quiz_store_question_result($result, array('set_msg' => TRUE));
   }
   
   // The content array:
@@ -1021,6 +1057,39 @@ function quiz_take_quiz($quiz) {
     $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions);
     $content['progress']['#weight'] = -50;
     
+    if ($_SESSION['quiz_'. $quiz->nid]['question_duration']) {
+      $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
+      if ($_SESSION['quiz_'. $quiz->nid]['question_duration'] < -10) {
+        unset($_SESSION['quiz_'. $quiz->nid]);
+        drupal_set_message('You have left this quiz partically');
+        return ;
+      }
+      $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
+      
+      if (function_exists('jquery_countdown_add')) {
+        jquery_countdown_add(".countdown", array("until" => $time, "onExpiry" => "finished"));
+        drupal_add_js('function finished() { alert("time up!") }', 'inline');
+      }
+    
+      if ($time == 1) {
+        // Load the last asked question.
+        while (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
+          $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+          $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+          $former_question = node_load(array('nid' => $former_question_array['nid']));
+      
+          // Call hook_skip_question().
+          $module = quiz_module_for_type($former_question->type);
+          $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+      
+         // Report that the question was skipped:
+         //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+          quiz_store_question_result($result, array('set_mesg' => FALSE));
+        }
+        $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();      
+      }
+      $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
+    }
     // Basically, we store the results of what would normally be a node_view() of the question node in 
     // the $content for the quiz node. Since we want to override the default theme, we use the 
     // quiz_node_view() function, which performs the steps in node_view(), but in a way more 
@@ -1031,7 +1100,8 @@ function quiz_take_quiz($quiz) {
   }
   // Else we're at the end of quiz.
   else {
-    $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);    
+    //print_r($score);exit;Array ( [question_count] => 2 [possible_score] => 2 [numeric_score] => 2 [percentage_score] => 100 [is_evaluated] => 1 )     
     
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
       $content['body']['#value'] = theme('quiz_no_feedback');
@@ -1075,7 +1145,7 @@ function quiz_node_view($question_node) {
  *  - nid, vid, rid, is_correct, score (default: 1 if correct, 0 otherwise), is_skipped (default: FALSE)
  */
 //function quiz_store_question_result($nid, $vid, $rid, $is_correct, $is_skipped = FALSE) {}
-function quiz_store_question_result($result) {
+function quiz_store_question_result($result, $options) {
   /*
   if (!is_object($result) || !$result->nid || !$result->vid || !$result->rid) {
     // FIXME: This error is for debugging only. Remove before 3.0 is released.
@@ -1085,9 +1155,11 @@ function quiz_store_question_result($result) {
   */
   
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
-    drupal_set_message('Last question skipped.', 'status');
+    if ($options['set_msg']) {
+      drupal_set_message('Last question skipped.', 'status');
+    }
     $result->is_correct = FALSE;
-    $result->score = 0;
+    $result->score = 0;    
   }
   else {
     // Make sure this is set.
@@ -1120,8 +1192,7 @@ function quiz_end_actions($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
   
   // Why is this using the $_SESSION's RID?
-  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",
-          time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
   // We will verify that there is an associated action with this quiz and then perform that action.
@@ -1349,8 +1420,7 @@ function quiz_start_actions($quiz) {
  * @return array
  *  Contains three elements: question_count, num_correct and percentage_score.
  */
-function quiz_calculate_score($quiz, $rid) {
-
+function quiz_calculate_score($quiz, $rid) {  
   // Handle personality-style quiz scoring separately:
   if ($quiz->pass_rate == 0) {
     return quiz_calculate_personality_score($quiz, $rid);
@@ -1676,12 +1746,17 @@ function _quiz_insert_result_option($option) {
  *  The quiz node.
  */
 function _quiz_update_resultoptions($node) {
-  if (!$node->resultoptions) {
+  if (empty($node->resultoptions)) {
     return;
   }
   
   foreach ($node->resultoptions as $option) {
-    if (!empty($option['option_name']) && empty($option['option_id'])) {
+    // MPB: Added this when empty options started showing up.
+    // FIXME: Need to find the source of the empty options and remove it.
+    if (empty($option['option_name'])) {
+      return;
+    }
+    elseif (!empty($option['option_name']) && empty($option['option_id'])) {
       // Oops, this is actually a new result option.
       $option['nid'] = $node->nid;
       $option['vid'] = $node->vid;

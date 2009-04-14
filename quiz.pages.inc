@@ -358,6 +358,7 @@ function theme_quiz_progress($question_number, $num_of_question) {
   $output .= '<div id="quiz_progress">';
   $output .= t('Page %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
   $output .= '</div><br />'."\n";
+  $output .= '<div class="countdown"></div>';
   return $output;
 }
 
