@@ -101,22 +101,17 @@ function quiz_access($op, $node, $account) {
   
   if (!user_access('access quiz')) {
     // If you can't access, you get NOTHING!
+    // Otherwise, we allow further permission checking.
     return FALSE;
   }
   
   switch($op) {
-    case 'view':
-      return TRUE; // We know from above that user has at least 'access quiz'.
     case 'create':
       return user_access('create quiz', $account);
     case 'update':
       return (user_access('edit any quiz', $account)  || (user_access('edit own quiz', $account) && $account->uid == $node->uid));
     case 'delete':
       return (user_access('delete any quiz', $account)  || (user_access('delete own quiz', $account) && $account->uid == $node->uid));
-    
-    // There should be no default case that we catch. If some other unknown op comes through, we ignore it.
-    //default:
-    //  return user_access('administer quiz');
   }
 }
 
