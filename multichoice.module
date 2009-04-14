@@ -728,12 +728,14 @@ function multichoice_render_question_form($context, $node) {
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => t('Next'),
   );
+  /*
   $form['op'] = array(
     '#type' => 'submit',
     '#value' => t('Skip'),
   );
+  */
   
   if ($fake_answer_id > 0) {
     // This is not a real quiz question. It's just a preview.

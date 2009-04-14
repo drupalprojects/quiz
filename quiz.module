@@ -980,9 +980,29 @@ function quiz_take_quiz($quiz) {
     array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
   }
   // Check for answer submission.
-  elseif ($_POST['op'] == t('Submit')) {
+  elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next')) {
     if (!isset($_POST['tries'])) {
-      drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
+      // Moving skip logic here...
+      
+      if ($allow_skipping) {
+        // Advance the question.
+        $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+
+        // Load the last asked question.
+        $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+        $former_question = node_load(array('nid' => $former_question_array['nid']));
+
+        // Call hook_skip_question().
+        $module = quiz_module_for_type($former_question->type);
+        $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+
+        // Report that the question was skipped:
+        //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
+        quiz_store_question_result($result, array('set_msg' => TRUE));
+      }
+      else {
+        drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
+      }
     }
     else {
       //unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
@@ -1013,6 +1033,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
+  // XXX: Deprecated. Causing too many UI issues.
   elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
     
     // Advance the question.

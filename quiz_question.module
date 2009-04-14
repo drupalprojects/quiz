@@ -218,8 +218,9 @@ function quiz_question_question_form($context, $node) {
   // Submit button
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => t('Next'),
   );
+  /*
   if (empty($node->no_skip_button)) {
     $form['op']  = array(
       '#type' => 'submit',
@@ -227,6 +228,7 @@ function quiz_question_question_form($context, $node) {
     );
     
   }
+  */
   
   return $form;
 }
