@@ -90,6 +90,7 @@ function multichoice_access($op, $node, $account) {
   
   switch ($op) {
     case 'view':
+      return user_access('view quiz question outside of a quiz');
     case 'create':
       return user_access('create multichoice', $account);
     case 'update':

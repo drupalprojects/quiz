@@ -86,7 +86,9 @@ function quiz_perm() {
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // Managing results:
-    'user results', 'own results'
+    'user results', 'own results',
+    // Allow a quiz question to be viewed outside of a test.
+    'view quiz question outside of a quiz',
   );
 }
 
