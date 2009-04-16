@@ -1,4 +1,5 @@
 <?php
+// $Id$
 
 class quiz_views_handler_field_takes extends views_handler_field {
   function render($values) {

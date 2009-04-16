@@ -24,7 +24,8 @@
 // Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
 // Then they are in quiz.admin.inc.
 //
-// Views support is included in quiz.views.inc
+// Views support is included in includes/views/quiz.views.inc
+define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 
 include(drupal_get_path('module', 'quiz') .'/quiz_datetime.inc');
 
@@ -71,7 +72,7 @@ function quiz_help($path, $arg) {
 function quiz_views_api() {
   return array(
     'api' => 2,
-    'path' => drupal_get_path('module', 'quiz') . '/includes/views',
+    'path' => QUIZ_VIEWS_DIR,
   );
 }
 

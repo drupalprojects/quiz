@@ -9,7 +9,7 @@
 function quiz_views_handlers() {
   return array(
     'info' => array(
-      'path' => drupal_get_path('module', 'quiz') . '/includes/views/handlers',
+      'path' => QUIZ_VIEWS_DIR . '/handlers',
     ),
     'handlers' => array(
       // Fields
@@ -19,13 +19,45 @@ function quiz_views_handlers() {
       'quiz_views_handler_field_question_status' => array(
         'parent' => 'views_handler_field',
       ),
+      'quiz_views_handler_field_user_quiz_state' => array(
+        'parent' => 'views_handler_field',
+      ),
       // Filters
       'quiz_views_handler_filter_question_status' => array(
         'parent' => 'views_handler_filter_in_operator',
       ),
+      'quiz_views_handler_filter_quiz_nid' => array(
+        'parent' => 'views_handler_filter',
+      ),
+      'quiz_views_handler_filter_user_quiz_state' => array(
+        'parent' => 'views_handler_filter',
+      ),
+      // Relationships
+      'quiz_views_handler_relationship_vid_from_nid' => array(
+        'parent' => 'views_handler_relationship',
+      ),
+      // Arguments
+      'quiz_views_handler_argument_quiz_nid' => array(
+        'parent' => 'views_handler_argument_numeric',
+      ),
     ),
   );
 }
+
+//function quiz_views_plugins() {
+//  $plugins = array();
+//  $plugins['argument validator'] = array(
+//    'quiz_vid_from_nid' => array(
+//      'title' => t('Quiz Revision'),
+//      'help' => t('After standard nid validation, transform the quiz nid into a (configurable) corresponding vid. You WILL want to use this validator if you have any instances with multiple quiz revisions.'),
+//      'handler' => 'quiz_views_plugin_vid_from_nid',
+//      'path' => QUIZ_VIEWS_DIR . '/plugins',
+//      // 'parent' => 'views_plugin_argument_validate_numeric',
+//    ),
+//  );
+//
+//  return $plugins;
+//}
 
 /**
  * Implementation of hook_views_data().
@@ -68,7 +100,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_numeric',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
@@ -79,6 +111,7 @@ function quiz_views_data() {
       ),
     ),
     'nid' => array(
+      'real field' => 'vid',
       'title' => t('Quiz Node NID'),
       'help' => t('The ID of the Quiz Node.'),
       'field' => array(
@@ -86,11 +119,16 @@ function quiz_views_data() {
         'click sortable' => TRUE,
       ),
       'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        //'name_field' => 'title',
+        'handler' => 'quiz_views_handler_argument_quiz_nid',
+        'name field' => 'title',
+        'name table' => 'node',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'vid',
       ),
+//      'filter' => array(
+//        'handler' => 'quiz_views_handler_filter_quiz_nid',
+//        'help' => t('Filter results to a particular subset of quiz versions.')
+//      ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -108,18 +146,35 @@ function quiz_views_data() {
       ),
       'argument' => array(
         'handler' => 'views_handler_argument_numeric',
-        //'name_field' => 'title',
+        'name field' => 'title',
+        'name table' => 'node_revisions',
         'numeric' => TRUE,
-        'validate_type' => 'vid',
+        'validate type' => 'vid',
       ),
       // Related to NODE
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node_revisions',
         'field' => 'vid',
-        'label' => t('node revision'),
+        'label' => t('quiz node revision'),
       ),
       'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    'single_version' => array(
+      'real field' => 'nid',
+      'title' => t('Specific Quiz Version'),
+      'help' => t('Takes a quiz NID and provides a single version of the quiz; the quiz version to be used is configurable.'),
+//      'argument' => array(
+//        'handler' => 'quiz_views_handler_argument_single_vid',
+//        'numeric' => TRUE,
+//        'validate type' => 'nid',
+//      ),
+      'relationship' => array(
+        'handler' => 'quiz_views_handler_relationship_quiz_nid',
+        'base' => 'quiz_node_properties',
+        'field' => 'vid',
+        'label' => t('quiz vid from nid'),
+      ),
     ),
     'number_of_random_questions' => array(
       'title' => t('Number of random questions'),
@@ -156,7 +211,7 @@ function quiz_views_data() {
       /*'argument' => array(
         'handler' => 'views_handler_argument_numeric',
         'numeric' => TRUE,
-        'validate_type' => 'vid',
+        'validate type' => 'vid',
       ),*/
     'sort' => array('handler' => 'views_handler_sort'),
     ),
@@ -278,7 +333,8 @@ function quiz_views_data() {
     'table' => array(
       'group' => t('Quiz Questions'),
       'join' => array(
-        // This is vid because vid is always more specific.
+        // This is vid because vid is always more specific. We never work with
+        // nid.
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'parent_vid',
@@ -286,20 +342,21 @@ function quiz_views_data() {
         ),
       ),
     ),
+    // FIXME: I'm increasingly thinking that (almost) ALL of this table's fields should go away
     'parent_nid' => array(
       'title' => t('Quiz Node ID'),
       'help' => t('The node id of the quiz to which the question is attached.'),
-      'field' => array(
-        'handler' => 'views_handler_field_numeric',
-        'click sortable' => TRUE,
-      ),
+//      'field' => array(
+//        'handler' => 'views_handler_field_numeric',
+//        'click sortable' => TRUE,
+//      ),
       'argument' => array(
         // This'll get us the node title for the title, which may or may not be
         // preferable; that's the only difference between this handler and the
         // standard numeric handler
         'handler' => 'views_handler_argument_node_nid',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -322,7 +379,7 @@ function quiz_views_data() {
         // This'll get us the node title for the title, which may or may not be preferable
         'handler' => 'views_handler_argument_node_vid',
         'numeric' => TRUE,
-        'validate_type' => 'vid',
+        'validate type' => 'vid',
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -347,7 +404,7 @@ function quiz_views_data() {
         // standard numeric handler
         'handler' => 'views_handler_argument_node_nid',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -370,7 +427,7 @@ function quiz_views_data() {
         // This'll get us the node title for the title, which may or may not be preferable
         'handler' => 'views_handler_argument_node_vid',
         'numeric' => TRUE,
-        'validate_type' => 'vid',
+        'validate type' => 'vid',
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -425,11 +482,12 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_numeric',
         'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'result_id',
+        'validate type' => 'result_id',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
     'nid' => array(
+      'real field' => 'vid',
       'title' => t('Quiz Node NID'),
       'help' => t('The ID of the Quiz Node.'),
 //      'field' => array(
@@ -437,10 +495,10 @@ function quiz_views_data() {
 //        'click sortable' => TRUE,
 //      ),
       'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
+        'handler' => 'quiz_views_handler_argument_quiz_nid',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'vid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
@@ -461,7 +519,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_numeric',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'vid',
+        'validate type' => 'vid',
       ),
       // Related to NODE
       'relationship' => array(
@@ -483,7 +541,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_user_uid',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       // Related to USERS
@@ -505,7 +563,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_date',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
@@ -520,7 +578,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_date',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
@@ -539,10 +597,24 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_numeric',
         //'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'nid',
+        'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
+    'quiz_state' => array(
+      'title' => t('Quiz State'),
+      'help' => t('The state of the quiz for the provided user. Calculated on the fly; can be "Finished," "In Progress," or "Not Started".'),
+      'real field' => 'time_start', // Technically wrong, since it's an amalgam, but in here for safety's sake for the moment
+      'field' => array(
+        'handler' => 'quiz_views_handler_field_user_quiz_state',
+        'click sortable' => TRUE,
+        'additional fields' => array('finish_time' => array('table' => 'quiz_node_results', 'field' => 'time_end')),
+      ),
+      'filter' => array(
+        'handler' => 'quiz_views_handler_filter_user_quiz_state',
+        'help' => t('Filter the results based on the state of quizzes with respect to users (i.e., whether they have started, finished, or are in progress on the quiz).'),
+      ),
+    )
   ); // End quiz_node_results
 
   $hdata['quiz_node_results_answers'] = array(
@@ -568,7 +640,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_numeric',
         'name_field' => 'title',
         'numeric' => TRUE,
-        'validate_type' => 'result_id', // TODO ??
+        'validate type' => 'result_id', // TODO ??
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),

@@ -1,4 +1,5 @@
 <?php
+// $Id$
 
 /**
  * Views field handler that translates question status integer constants (as
