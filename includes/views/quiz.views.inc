@@ -36,6 +36,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_relationship_vid_from_nid' => array(
         'parent' => 'views_handler_relationship',
       ),
+//      'quiz_og_views_handler_relationship_group_quizzes' => array(
+//        'parent' => 'views_handler_relationship',
+//      ),
       // Arguments
       'quiz_views_handler_argument_quiz_nid' => array(
         'parent' => 'views_handler_argument_numeric',
@@ -69,7 +72,7 @@ function quiz_views_data() {
 
     // Table Definition
     'table' => array(
-      'group' => 'Quiz',
+      'group' => t('Quiz'),
       // Base tables:
       'base' => array(
         'field' => 'vid',
@@ -81,9 +84,10 @@ function quiz_views_data() {
       // Allow attachment to a node:
       'join' => array(
         // This is vid because vid is always more specific. FIXME changed to try to fix the joining problems
-        'node' => array('left_field' => 'nid',
-        'field' => 'nid',
-        'type' => 'INNER',
+        'node' => array(
+          'left_field' => 'nid',
+          'field' => 'nid',
+          'type' => 'INNER',
         ),
       ),
     ),
@@ -139,7 +143,7 @@ function quiz_views_data() {
     ),
     'vid' => array(
       'title' => t('Quiz Node VID'),
-      'help' => t('The Version ID of the Quiz Node.'),
+      'help' => t('The Revision ID of the Quiz Node.'),
       'field' => array(
         'handler' => 'views_handler_field',
         'click sortable' => TRUE,
@@ -160,22 +164,22 @@ function quiz_views_data() {
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
-    'single_version' => array(
-      'real field' => 'nid',
-      'title' => t('Specific Quiz Version'),
-      'help' => t('Takes a quiz NID and provides a single version of the quiz; the quiz version to be used is configurable.'),
-//      'argument' => array(
-//        'handler' => 'quiz_views_handler_argument_single_vid',
-//        'numeric' => TRUE,
-//        'validate type' => 'nid',
+//    'single_version' => array(
+//      'real field' => 'nid',
+//      'title' => t('Specific Quiz Version'),
+//      'help' => t('Takes a quiz NID and provides a single version of the quiz; the quiz version to be used is configurable.'),
+////      'argument' => array(
+////        'handler' => 'quiz_views_handler_argument_single_vid',
+////        'numeric' => TRUE,
+////        'validate type' => 'nid',
+////      ),
+//      'relationship' => array(
+//        'handler' => 'quiz_views_handler_relationship_quiz_nid',
+//        'base' => 'quiz_node_properties',
+//        'field' => 'vid',
+//        'label' => t('quiz vid from nid'),
 //      ),
-      'relationship' => array(
-        'handler' => 'quiz_views_handler_relationship_quiz_nid',
-        'base' => 'quiz_node_properties',
-        'field' => 'vid',
-        'label' => t('quiz vid from nid'),
-      ),
-    ),
+//    ),
     'number_of_random_questions' => array(
       'title' => t('Number of random questions'),
       'help' => t('The number of questions on this quiz that will be randomly selected.'),
@@ -342,7 +346,6 @@ function quiz_views_data() {
         ),
       ),
     ),
-    // FIXME: I'm increasingly thinking that (almost) ALL of this table's fields should go away
     'parent_nid' => array(
       'title' => t('Quiz Node ID'),
       'help' => t('The node id of the quiz to which the question is attached.'),
@@ -465,7 +468,7 @@ function quiz_views_data() {
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'vid',
-          'type' => 'INNER',
+          'type' => 'LEFT', // I think...
         ),
       ),
     ),
@@ -604,18 +607,56 @@ function quiz_views_data() {
     'quiz_state' => array(
       'title' => t('Quiz State'),
       'help' => t('The state of the quiz for the provided user. Calculated on the fly; can be "Finished," "In Progress," or "Not Started".'),
-      'real field' => 'time_start', // Technically wrong, since it's an amalgam, but in here for safety's sake for the moment
       'field' => array(
         'handler' => 'quiz_views_handler_field_user_quiz_state',
         'click sortable' => TRUE,
         'additional fields' => array('finish_time' => array('table' => 'quiz_node_results', 'field' => 'time_end')),
       ),
+//      'relationship' => array(
+//        'handler' => 'quiz_views_handler_relationship_user_quiz_state',
+//        'join' => 'LEFT',
+//      ),
       'filter' => array(
         'handler' => 'quiz_views_handler_filter_user_quiz_state',
         'help' => t('Filter the results based on the state of quizzes with respect to users (i.e., whether they have started, finished, or are in progress on the quiz).'),
       ),
     )
   ); // End quiz_node_results
+
+  if (module_exists('quiz_og')) {
+    $data['quiz_node_results']['og_group'] = array(
+      'real field' => 'uid',
+      // 'help' => t('')
+      'title' => t('Quizzes from user groups'),
+      'relationship' => array(
+        'handler' => 'quiz_og_views_handler_relationship_group_quizzes',
+        'help' => t('Gets all the quiz nids from all the groups to which the provided user argument belongs.'),
+        'relationship table' => 'quiz_og_properties',
+        'relationship field' => 'group_nid',
+        'base' => 'og_uid',
+      ),
+    );
+    $data['quiz_og_properties'] = array(
+      'table' => array(
+        'group' => t('Quiz'),
+        'join' => array(
+          'quiz_node_properties' => array(
+            'left field' => 'vid',
+            'field' => 'vid',
+            'type' => 'INNER',
+          ),
+        ),
+      ),
+      'group_nid' => array(
+        'title' => t('Group NID'),
+        'help' => t('The node ID of the OG organic group to which the quiz has been attached.'),
+        'relationship' => array(
+          'handler' => 'quiz_og_views_handler_relationship_group_nid',
+            'base' => 'quiz_node_properties', // i THINK this is redundant
+        ),
+      ),
+    );
+  }
 
   $hdata['quiz_node_results_answers'] = array(
     'table' => array(
