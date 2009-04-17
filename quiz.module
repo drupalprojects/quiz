@@ -480,6 +480,7 @@ function quiz_load($node) {
  * Implementation of hook_view().
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
+  drupal_alter('quiz_view', $node, $teaser, $page);
   if (!$teaser) {
     //load the questions in the view page
     //$node->content['body']['#value'] = quiz_take_quiz($node);
@@ -1364,6 +1365,7 @@ function quiz_start_actions($quiz) {
   if ($quiz->quiz_always != 1) {
     // Compare current GMT time to the open and close dates (which should still be in GMT time).
     $now = gmmktime();
+    
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
       if (!$user_is_admin) {
