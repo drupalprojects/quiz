@@ -110,6 +110,14 @@ function quiz_questions_form($context, $quiz) {
 
   // Set page title.
   drupal_set_title(check_plain($quiz->title));
+  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
+  drupal_add_js($path, 'module');
+  
+  // This is a target for AHAH callbacks. Do not remove.
+  $form['ahah_target'] = array(
+    '#type' => 'markup',
+    '#value' => '<div id="questions-always-target"></div>',
+  );
 
   // Display links to create other questions.
   $form['additional_questions'] = array(
@@ -123,91 +131,139 @@ function quiz_questions_form($context, $quiz) {
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
       // FIXME: This looks broken:
-      '#value' => l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .' ',
+      '#value' => '<div>' . l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
     );
   }
 
   // Display questions 'always' on this quiz.
   $form['filtered_question_list_always'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Questions 'always' on this quiz"),
-    '#theme' => 'quiz_filtered_questions',
+    '#title' => t("Questions always on this quiz"),
+ //   '#theme' => 'quiz_filtered_questions',
+    '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-
   
-  $form['filtered_random_question_list']['number_of_random_questions'] = array(
+  $form['filtered_question_list_always']['always_autocomplete'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add a question'),
+    '#description' => t('Begin typing a name. Suggestions will be presented based on your typing.'),
+    '#default_value' => t(''),
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => FALSE,
+    '#autocomplete_path' => 'admin/quiz/listquestions',
+  );
+  $form['filtered_question_list_always']['add_to_list'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add Question'),
+    '#submit' => 'quiz_questions_form_submit',
+    '#ahah' => array(
+      'path' => 'admin/quiz/newquestion',
+      'wrapper' => 'questions-always-target',
+      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
+    ),
+  );
+  $form['filtered_question_list_always']['remove_from_quiz'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
+  
+  // Display questions 'random' on this quiz.
+  $form['filtered_question_list_random'] = array(
+    '#type' => 'fieldset',
+    '#title' => t("Pool of questions randomly selected for this quiz"),
+    '#theme' => 'question_selection_table',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
+    'question_status' => array('#tree' => TRUE),
+  );
+  
+  $form['filtered_question_list_random']['number_of_random_questions'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of questions to randomize'),
     '#size' => 3,
     '#default_value' => $quiz->number_of_random_questions,
     '#description' => t('The number of randomly selected questions to assign to this quiz.'),
+    '#weight' => 1,
   );
   
 
-  if (function_exists('taxonomy_get_vocabularies')) {
-    $form['filtered_random_question_list']['random_term_id'] = array(
+  $terms =  _quiz_taxonomy_select($quiz->tid);
+  if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
+    $form['filtered_question_list_random']['random_term_id'] = array(
       '#type' => 'select',
       '#title' => t('Terms'),
       '#size' => 1,
       '#options' => _quiz_taxonomy_select($quiz->tid),
       '#default_value' => $quiz->tid,
       '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
+      '#weight' => 2,
     );
   }
 
-  // Display questions 'random' on this quiz.
-  $form['filtered_question_list_random'] = array(
-    '#type' => 'fieldset',
-    '#title' => t("Questions 'random' on this quiz"),
-    '#theme' => 'quiz_filtered_questions',
-    '#collapsible' => TRUE,
-    'question_status' => array('#tree' => TRUE),
+  $form['filtered_question_list_random']['random_autocomplete'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add a question'),
+    '#description' => t('Begin typing a name. Suggestions will be presented based on your typing.'),
+    '#default_value' => t(''),
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => FALSE,
+    '#weight' => -2,
+    '#autocomplete_path' => 'admin/quiz/listquestions',
   );
-
-  // Display filtered question list.
-  $form['filtered_question_list'] = array(
-    '#type' => 'fieldset',
-    '#title' => t("Questions 'never' on this quiz"),
-    '#theme' => 'quiz_filtered_questions',
-    '#collapsible' => TRUE,
-    'question_status' => array('#tree' => TRUE),
+  $form['filtered_question_list_random']['add_to_random'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add Question'),
+    '#submit' => 'quiz_questions_form_submit',
+    '#weight' => -1,
+    '#ahah' => array(
+      'path' => 'admin/quiz/newquestion',
+      'wrapper' => 'questions-always-target',
+      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
+    ),
   );
-
-  // Get all questions and their status in relation to this quiz.
-  $questions = array_merge(_quiz_get_unused_questions($quiz->vid), _quiz_get_questions($quiz->vid));
+    
+  // Build up a list of questions, sorted into those that are random and those that are 
+  // always on the quiz.
+  $questions = _quiz_get_questions($quiz->vid);
+  $rows = array();
+  $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
+  $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
   foreach ($questions as $question) {
-    switch ($question->question_status) {
-      case QUESTION_RANDOM:
-        $_form =& $form['filtered_question_list_random'];
-        break;
-
-      case QUESTION_ALWAYS:
-        $_form =& $form['filtered_question_list_always'];
-        break;
-
-      case QUESTION_NEVER:
-        $_form =& $form['filtered_question_list'];
-        break;
-    }
-
-   $_form['question_status'][$question->nid] = array(
-     '#type' => 'radios',
-     '#options' => array(QUESTION_RANDOM => '', QUESTION_ALWAYS => '', QUESTION_NEVER => ''),
-     '#default_value' => $question->question_status,
-   );
-   $_form['question'][$question->nid] = array(
-     '#type' => 'markup',
-     '#value' => $question->question,
-   );
-   $_form['type'][$question->nid] = array(
-     '#type' => 'markup',
-     '#value' => $question->type,
+    $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
+    $fieldset = 'filtered_question_list_' . $id_mod;
+    $id = $id_mod . '-' . $question->nid;
+         
+    $form[$fieldset]['weights'][$id] = array(
+      //'#type' => 'weight',
+      //'#delta' => 60,
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 4,
+      '#default_value' => isset($question->weight) ? $question->weight : 0,
+    );
+    $form[$fieldset]['titles'][$id] = array(
+      // '#value' => $question->question, // Question is too long for drag and drop.
+      '#value' => $question->title,
+    );
+    $form[$fieldset]['types'][$id] = array(
+      '#value' => $question->type,
+    );
+    $form[$fieldset]['view_links'][$id] = array(
+      '#value' => l('View', 'node/' . $question->nid),
+    );
+    $form[$fieldset]['remove_links'][$id] = array(
+      // FIXME: This does not degrade for non-JS browsers.
+      //'#value' => l('Remove', 'node/' . $question->nid .'/questions/remove', array('attributes' => array('class' => 'rem-link'))),
+      '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
   }
+
   // Show the number of 'always' questions in the 'always' table header.
-  $always_count = isset($form['filtered_question_list_always']['type']) ? count($form['filtered_question_list_always']['type']) : 0;
+  $always_count = isset($form['filtered_question_list_always']['titles']) ? count($form['filtered_question_list_always']['titles']) : 0;
   $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
 
   $form['new_revision'] = array(
@@ -243,55 +299,151 @@ function quiz_questions_form_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
   
   $new_revision = $form_state['values']['new_revision'];
-
-  // Update quiz with selected question options.
-  if (!quiz_update_questions($quiz, $form_state['values']['question_status'], $new_revision)) {
-    form_set_error('', t('Either no questions were selected, or there was a problem updating your @quiz. Please try again.', array('@quiz' => QUIZ_NAME)));
-    return;
+  $num_random = $form_state['values']['number_of_random_questions'];
+  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
+  
+  $removed = explode(',', $form_state['values']['remove_from_quiz']);  
+  // Get quiz questions that will always be on the quiz:
+  $questions = array();
+  foreach ($form_state['values']['weights'] as $id => $weight) {
+    if (in_array($id, $removed)) {
+      // Skip items that should be removed.
+      continue;
+    }
+    list($state, $nid) = explode('-', $id, 2);
+    $nid = (int)$nid;
+    $question['nid'] = $nid;
+    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    $question['weight'] = $weight;
+    
+    // Add item as an object in the questions array.
+    $questions[] = (object)$question;
   }
-
-  // Check if selecting random question from pool, and not via term.
-  if (empty($form_state['values']['random_term_id'])) {
+  
+  // Save questions.
+  quiz_set_questions($quiz, $questions, (bool)$new_revision);
+  
+  // If using random questions and no term ID is specified, make sure we have enough.
+  if (empty($term_id)) {
    $assigned_random = 0;
-   if (is_array($form_state['values']['question_status'])) {
-     foreach ($form_state['values']['question_status'] as $id => $status) {
-       if (QUESTION_RANDOM == $status) {
-         $assigned_random++;
-       }
+   
+   foreach ($questions as $question) {
+     if ($question->state == QUESTION_RANDOM) {
+       ++$assigned_random;
      }
    }
-
-   if ($form_state['values']['number_of_random_questions'] > $assigned_random) {
-     $form_state['values']['number_of_random_questions'] = $assigned_random;
+   
+   // Adjust number of random questions downward to match number of selected questions..
+   if ($num_random > $assigned_random) {
+     $num_random = $assigned_random;
      drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), 'warning'));
    }
   }
   else {
     // Warn user if not enough questions available with this term_id.
-    //$available_random = count(_quiz_get_random_questions($form_state['values']['number_of_random_questions'], $form_state['values']['random_term_id']));
-    $available_random = count(_quiz_get_random_taxonomy_question_ids($form_state['values']['random_term_id'],$form_state['values']['number_of_random_questions']));
-    if ($form_state['values']['number_of_random_questions'] > $available_random) {
-      $form_state['values']['number_of_random_questions'] = $available_random;
+    $available_random = count(_quiz_get_random_taxonomy_question_ids($term_id, $num_random));
+    if ($num_random > $available_random) {
+      $num_random = $available_random;
       drupal_set_message(t('There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@random' => $available_random, '@quiz' => QUIZ_NAME)), 'error');
     }
   }
 
-  
-
-  $result = db_query(
-    "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d", 
-    $form_state['values']['number_of_random_questions'], 
-    $form_state['values']['random_term_id'], 
-    $quiz->vid, 
-    $quiz->nid
-  );
-  if (!$result) {
+  // Update the quiz properties.
+  $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d";
+  if (db_query($sql, $num_random, $term_id, $quiz->vid, $quiz->nid) == FALSE) {
     drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
-  // Otherwise just give general feedback.
   else {
     drupal_set_message(t('Questions updated successfully.'));
   }
+}
+
+/**
+ * Autocompletion function for quiz questions.
+ */
+function quiz_admin_list_questions_ac($vid, $string = '') {
+  $type_map = _quiz_get_question_types();
+  $values = array_keys($type_map);
+  $placeholder = db_placeholders($values, 'varchar');
+  $query = strtolower($string);
+  
+  $sql = "SELECT node.nid, node.title, node.type
+    FROM {node} 
+    INNER JOIN {node_revisions} ON node.vid = node_revisions.vid
+    WHERE node.type IN ($placeholder)
+      AND node.status = 1
+      AND (LOWER(node.title) LIKE '%%%s%%' OR LOWER(node_revisions.body) LIKE '%%%s%%')";
+  
+  array_push($values, $query, $query);
+  $result = db_query_range(db_rewrite_sql($sql), $values, 0, 20);
+  
+  $matches = array();
+  while ($node = db_fetch_object($result)) {
+    $type = $type_map[$node->type]['name'];
+    $key = sprintf('%s [type:%s, id:%d]', $node->title, $type, $node->nid);
+    $matches[$key] = $key;
+  }
+  
+  drupal_json($matches);
+}
+
+/**
+ * AHAH form completion for adding new questions.
+ */
+function quiz_admin_add_question_ahah() {
+  $cached_form_state = array();
+  $form_id = $_POST['form_build_id'];
+  
+  // Make sure the form exists
+  if (!($cached_form = form_get_cache($form_id, $cached_form_state))) {
+    form_set_error('form_token', t('Validation error, please try again. If this error persists, please contact the site administrator.'));
+    $output = theme('status_messages');
+    print drupal_to_js(array('status' => TRUE, 'data' => $output));
+    exit();
+  }
+  
+  // Just remember that $form_state is not checked, here. It's raw POST.
+  $form_state = array('values' => $_POST);
+  
+  if (!empty($form_state['values']['always_autocomplete'])) {
+    $new_question = $form_state['values']['always_autocomplete'];
+    $frequency = 'always';
+  }
+  elseif(!empty($form_state['values']['random_autocomplete'])) {
+    drupal_set_message('Adding random question', 'status');
+    $new_question = $form_state['values']['random_autocomplete'];
+    $frequency = 'random';
+  }
+  else {
+    form_set_error('form_token', t('No question was found.'));
+    $output = theme('status_messages');
+    print drupal_to_js(array('status' => TRUE, 'data' => $output));
+    exit();
+  }
+  
+  $matches = array();
+  $reg = '/id:([0-9]+)\]$/';
+  preg_match($reg, $new_question, $matches);
+  
+  // Modify the form to add a new entry to weights.
+  if (!empty($matches[1]) && empty($cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]])) {
+    $cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 4,
+      '#default_value' => 0,
+    );
+  }
+  
+  // Re-save the cache.
+  form_set_cache($form_id, $cached_form, $cached_form_state);
+  
+  // Because rendering a new table row is not possible from the server side, we
+  // need to launch a one-time JavaScript to add the item to the table.
+  $output = theme('status_messages') . '<script>Quiz.addQuestion("' . $frequency . '");</script>';
+  
+  print drupal_to_js(array('status' => TRUE, 'data' => $output));
+  exit;
 }
 
 // Quiz Admin Settings
@@ -539,5 +691,42 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
   return $output;
+}
+
+/**
+ * Theme a question selection table, adding drag and drop support.
+ */
+function theme_question_selection_table($form) {
+  // This is a temporary hack.
+  static $table_counter = 0;
+  ++$table_counter;
+  
+  $question_types = _quiz_get_question_types();
+  
+  //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
+  drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
+  
+  $headers = array(t('Question'), t('Type'), t('Actions'), t('Weight'));
+  $rows = array();
+  if (!empty($form['titles'])) {
+    foreach (element_children($form['titles']) as $nid) {
+      $form['weights'][$nid]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
+      $type = $form['types'][$nid]['#value'];
+      
+      $rows[] = array(
+        'class' => 'draggable',
+        'data' => array(
+          drupal_render($form['titles'][$nid]), 
+          $question_types[$type]['name'],
+          $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
+          drupal_render($form['weights'][$nid]),
+        ),
+      );
+      unset($form['types'][$nid], $form['view_links'][$nid], $form['remove_links'][$nid]);
+    }
+    
+  }
+  $table = theme('table', $headers, $rows, array('id' => 'questions-order-' . $table_counter));
+  return $table . drupal_render($form);
 }
  

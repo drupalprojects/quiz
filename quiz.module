@@ -207,6 +207,27 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
   
+  // JSON callback
+  $items['admin/quiz/listquestions'] = array(
+    'title' => t('List Quiz Questions'),
+    'description' => t('Auto-completion question listing.'),
+    'page callback' => 'quiz_admin_list_questions_ac',
+    'page arguments' => array(''),
+    'type' => MENU_CALLBACK,
+    //'access callback' => 'user_access',
+    'access arguments' => array('create quiz'),
+    'file' => 'quiz.admin.inc'
+  );
+  // AHAH callback
+  $items['admin/quiz/newquestion'] = array(
+    'title' => t('Add a Question to a Quiz'),
+    'description' => t('AHAH Callback for adding a quiz question'),
+    'page callback' => 'quiz_admin_add_question_ahah',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('create quiz'),
+    'file' => 'quiz.admin.inc',
+  );
+  
   // Menu item for adding questions to quiz.
   $items['node/%quiz_type_access/questions'] = array(
     'title' => t('Manage questions'),
@@ -328,6 +349,10 @@ function quiz_theme() {
       'file' => 'quiz.pages.inc',
       'arguments' => array('question_node' => NULL),
     ),
+    'question_selection_table' => array(
+      'file' => 'quiz.admin.inc',
+      'arguments' => array('form' => array()),
+    )
   );
 }
 
@@ -1568,7 +1593,13 @@ function quiz_build_question_list($quiz) {
   $questions = array();
 
   // Get required questions first.
-  $result = db_query("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
+  $sql = "SELECT child_nid as nid, child_vid as vid 
+    FROM {quiz_node_relationship} 
+    WHERE parent_vid = %d 
+      AND parent_nid = %d 
+      AND question_status = %d
+    ORDER BY weight";
+  $result = db_query($sql, $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
   while ($question_node = db_fetch_array($result)) {
     $questions[] = $question_node;
   }
@@ -1615,11 +1646,65 @@ function quiz_get_num_questions($nid, $vid, $type) {
 function quiz_node_map($node) {
   $new_question = new stdClass();
   $new_question->question = check_markup($node->body, $node->format);
+  $new_question->title = check_plain($node->title);
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
   $new_question->type = $node->type;
   $new_question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
+  $new_question->weight = $node->weight;
   return $new_question;
+}
+
+/**
+ * Sets the questions that are assigned to a quiz.
+ *
+ * @param $quiz
+ *   The quiz to modify.
+ * @param $questions
+ *   An array of questions.
+ * @param $set_new_revision
+ *   If TRUE, a new revision will be generated. Note that saving
+ *  quiz questions unmodified will still generate a new revision of the quiz if this
+ *  is set to TRUE. Why? For a few reasons:
+ *  - All of the questions are updated to their latest VID. That is supposed to be a feature.
+ *  - All weights are updated
+ *  - All status flags are updated
+ * @return
+ *   Boolean TRUE if update was successful, FALSE otherwise.
+ */
+function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
+  if ($set_new_revision) {
+    // Create a new Quiz VID, even if nothing changed.
+    $quiz->revision = 1;
+    node_save($quiz);
+  }
+  
+  // XXX: Should we be verifying here that the nodes submitted as $questions are actually
+  // recognized question types? It adds quite a performance hit, but could be beneficial.
+  
+  // When node_save() calls all of the node API hooks, old quiz info is automatically
+  // inserted into quiz_node_relationship. We could get clever and try to do strategic
+  // updates/inserts/deletes, but that method has already proven error prone as the module
+  // has gained complexity (See 5.x-2.0-RC2). 
+  // So we go with the brute force method:
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $quiz->vid);
+  
+  if (empty($questions)) {
+    return TRUE; // This is not an error condition.
+  }
+  
+  // Now we do an insert of everything in the quiz. (Note that we are using a subselect to get the most recent vid.)
+  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight) 
+      VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d)";
+  
+  foreach ($questions as $question) {
+    if ($question->state != QUESTION_NEVER) {
+      //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
+      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);
+    }
+  }
+  
+  return TRUE;
 }
 
 /**
@@ -1630,9 +1715,11 @@ function quiz_node_map($node) {
  * @param &$quiz
  *  The quiz node. This is modified internally.
  * @param $submitted_questions
- *  Array of submitted question statuses indexed (keyed) by the question nid.
+ *  Array of submitted question statuses indexed (keyed) by the question nid. If this
+ *  is empty, all of the quiz questions will be deleted from this quiz.
  * @return boolean
  *  True if update was a success, false if there was a problem.
+ * @deprecated See quiz_set_questions() for the new version.
  */
 function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) {
 
@@ -2029,7 +2116,7 @@ function _quiz_taxonomy_select($value = 0) {
  *  An array of questions.
  */
 function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
-  $quiz         = node_load( (int) arg(1) );
+  $quiz         = node_load((int) arg(1));
   $filter_types = '';
   $questions    = array();
   $where_add    = array();
@@ -2061,13 +2148,13 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
     $where_sql = trim( $where_sql, ' AND ');
   }
 
-  $result = db_query('SELECT DISTINCT question.nid, question.vid, question.type, nr.body, nr.format, qnr.question_status
+  $result = db_query('SELECT DISTINCT question.nid, question.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight
     FROM {node} question
     INNER JOIN {node_revisions} nr ON question.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr ON nr.vid = qnr.child_vid
       AND qnr.parent_vid = %d 
       AND qnr.question_status != %d 
-    '. $where_sql, $quiz_vid, QUESTION_NEVER
+    '. $where_sql . ' ORDER BY weight', $quiz_vid, QUESTION_NEVER
   );
 
   // Create questions array.

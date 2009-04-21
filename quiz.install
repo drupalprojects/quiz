@@ -6,6 +6,13 @@
  * Quiz install schema for installing the quiz module
  *
  */
+ 
+function quiz_update_6304() {
+  $result = array();
+  db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+  
+  return $result;
+}
 
 /**
  * Implementation of hook_update_N(). 
@@ -15,7 +22,7 @@ function quiz_update_6303() {
   $result = array();
   
   // Add a field that allows an admin to mark a quiz as invalid.
-  db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => '', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
   
   return $result;
 }
@@ -216,6 +223,11 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'weight' => array(
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
       ),
     ),
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
