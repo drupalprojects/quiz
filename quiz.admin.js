@@ -103,16 +103,19 @@ $(document).ready(function () {
   // "Add question" button's submit handler (for both autocomplete fields).
   
   $('#edit-always-autocomplete').keypress(function (e) {
-      //$('#edit-add-to-list').click(); 
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Keyup caught');
-      return false;
+      if (e.which == 13) {
+        e.preventDefault();
+        e.stopPropagation();
+        return true;
+      }
   });
   
   $('#edit-random-autocomplete').submit(function (e) {
-    $('#edit-add-to-random').click(); 
-    e.preventDefault();
+    if (e.which == 13) {
+      e.preventDefault();
+      e.stopPropagation();
+      return true;
+    }
   });
   
 });
