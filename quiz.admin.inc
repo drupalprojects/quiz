@@ -89,6 +89,13 @@ function quiz_admin_results($qid) {
  *   String containing the form.
  */
 function quiz_questions($node) {
+  // Set page title.
+  drupal_set_title(check_plain($node->title));
+  
+  // Add JS
+  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
+  drupal_add_js($path, 'module');
+  
   return drupal_get_form('quiz_questions_form', $node);
 }
 
@@ -107,12 +114,6 @@ function quiz_questions($node) {
  *  HTML output to create page.
  */
 function quiz_questions_form($context, $quiz) {
-
-  // Set page title.
-  drupal_set_title(check_plain($quiz->title));
-  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
-  drupal_add_js($path, 'module');
-  
   // This is a target for AHAH callbacks. Do not remove.
   $form['ahah_target'] = array(
     '#type' => 'markup',
@@ -281,6 +282,30 @@ function quiz_questions_form($context, $quiz) {
   );
 
   return $form;
+}
+
+/**
+ * Validate that the supplied questions are real.
+ */
+function quiz_questions_form_validate($form, $form_state) {
+  $question_types = array_keys(_quiz_get_question_types());
+  $removed = explode(',', $form_state['values']['remove_from_quiz']);
+  $placeholders = db_placeholders($question_types, 'varchar');
+  $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
+  foreach ($form_state['values']['weights'] as $id => $weight) {
+    if (in_array($id, $removed)) {
+      // Ignore items that are going to be removed anyway.
+      continue;
+    }
+    list($state, $nid) = explode('-', $id, 2);
+    $params = $question_types; // Copy array.
+    $params[] = $nid;
+    
+    if (db_result(db_query($sql, $params)) == 0) {
+      form_set_error('filtered_question_list_always', 'One of the supplied questions was invalid. It has been removed from the quiz.');
+      unset($form_state['values']['weights'][$id]);
+    }
+  }
 }
  
 

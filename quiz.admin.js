@@ -14,7 +14,8 @@ Quiz.addQuestion = function (key) {
   var matches = selectedItem.match(Quiz.reg);
   var statusCode = (key == 'always' ? 1 : 2); // e.g. QUIZ_ALWAYS, QUIZ_RANDOM
   
-  if (matches.length < 4) {
+  if (!matches || matches.length < 4) {
+    alert('Error: The entered question was not found.')
     return;
   }
   
@@ -51,7 +52,7 @@ Drupal.behaviors.attachRemoveAction = function () {
     var remID = $this.parents('tr').find('.question-order-weight').attr('id');
      
     var matches = remID.match(/edit-weights-([a-zA-Z]+)-([0-9]+)/);
-    if (matches.length < 3) {
+    if (!matches || matches.length < 3) {
       return false;
     }
     
@@ -102,20 +103,22 @@ $(document).ready(function () {
   // Effectively bind the autocomplete submit handler to the 
   // "Add question" button's submit handler (for both autocomplete fields).
   
-  $('#edit-always-autocomplete').keypress(function (e) {
+  
+  $('#edit-always-autocomplete,#edit-random-autocomplete').keypress(function (e) {
       if (e.which == 13) {
+        
+        /* We could do something like this....
+        $this = $(this);
+        if ($this.val().length > 0) {
+          Quix.addQuestion();
+        }
+        */
+        
+        // Kill the 'return' handler before the form gets accidentally submitted.
         e.preventDefault();
         e.stopPropagation();
         return true;
       }
-  });
-  
-  $('#edit-random-autocomplete').submit(function (e) {
-    if (e.which == 13) {
-      e.preventDefault();
-      e.stopPropagation();
-      return true;
-    }
   });
   
 });
