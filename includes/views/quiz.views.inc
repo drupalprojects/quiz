@@ -40,6 +40,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_argument_quiz_nid' => array(
         'parent' => 'views_handler_argument_numeric',
       ),
+      'quiz_views_handler_argument_user_uid_nullable' => array(
+        'parent' => 'views_handler_argument_user_uid',
+      ),
     ),
   );
 }
@@ -103,6 +106,7 @@ function quiz_views_data() {
       'field' => array(
         'handler' => 'views_handler_field',
         'click sortable' => TRUE,
+        ''
       ),
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_quiz_nid',
@@ -523,10 +527,12 @@ function quiz_views_data() {
         'click sortable' => TRUE,
       ),
       'argument' => array(
-        'handler' => 'views_handler_argument_user_uid',
+        'handler' => 'quiz_views_handler_argument_user_uid_nullable',
         //'name_field' => 'title',
         'numeric' => TRUE,
         'validate type' => 'nid',
+        'name' => 'name',
+        'table' => 'users',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       // Related to USERS
