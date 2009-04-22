@@ -327,7 +327,7 @@ function multichoice_form(&$node) {
   if (!user_access('allow multiple correct answers')) {
     $form['correct'] = array(
       '#type' => 'select',
-      '#title' => t('Correct Answer'),
+      '#title' => t('Correct answer'),
       '#description' => t('Which of the answer choices is correct?'),
       '#required' => TRUE,
       '#size' => 1,
@@ -632,6 +632,7 @@ function multichoice_update($node) {
  * Implementation of hook_delete().
  */
 function multichoice_delete(&$node) {
+  drupal_set_message('CALLED', 'status');
   // Delete all answers for this question.
   db_query("DELETE FROM {quiz_multichoice_answers} WHERE nid = %d", $node->nid);
   // For all quizzes that have this quiz with status ALWAYS, reduce number of questions by 1.

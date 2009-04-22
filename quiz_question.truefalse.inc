@@ -102,9 +102,6 @@ class TrueFalseQuestion implements QuizQuestion {
     return $form;
   }
   public function getCreationForm($edit) {
-    drupal_set_message('<pre id="mpb">' . __FUNCTION__ . ' ' . 
-      print_r($this->node, TRUE) . 
-      ' ('. __FILE__ . ': ' . __LINE__ .')</pre>');
     $form['correct_answer'] = array(
       '#type' => 'radios',
       '#title' => t('Correct answer'),
