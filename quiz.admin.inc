@@ -146,19 +146,31 @@ function quiz_questions_form($context, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
   
-  $form['filtered_question_list_always']['always_autocomplete'] = array(
+  $form['filtered_question_list_always']['always_box'] = array(
+    '#type' => 'fieldset',
+    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
+    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+       t('To add a new question, use the "Create additional questions" section above.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  
+  $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
     '#type' => 'textfield',
-    '#title' => t('Add a question'),
-    '#description' => t('Begin typing a name. Suggestions will be presented based on your typing.'),
-    '#default_value' => t(''),
+    //'#title' => t('Find a question'),
+    // '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+    //       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+    //       t('To add a new question, use the "Create additional questions" section above.'),
+    '#default_value' => '',
     '#size' => 60,
     '#maxlength' => 256,
     '#required' => FALSE,
     '#autocomplete_path' => 'admin/quiz/listquestions',
   );
-  $form['filtered_question_list_always']['add_to_list'] = array(
+  $form['filtered_question_list_always']['always_box']['add_to_list'] = array(
     '#type' => 'submit',
-    '#value' => t('Add Question'),
+    '#value' => t('Add to quiz'),
     '#submit' => 'quiz_questions_form_submit',
     '#ahah' => array(
       'path' => 'admin/quiz/newquestion',
@@ -186,8 +198,40 @@ function quiz_questions_form($context, $quiz) {
     '#title' => t('Number of questions to randomize'),
     '#size' => 3,
     '#default_value' => $quiz->number_of_random_questions,
-    '#description' => t('The number of randomly selected questions to assign to this quiz.'),
+    '#description' => t('The number of randomly selected questions that should be assigned to this quiz.'),
     '#weight' => 1,
+  );
+  
+  $form['filtered_question_list_random']['random_box'] = array(
+    '#type' => 'fieldset',
+    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
+    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+       t('To add a new question, use the "Create additional questions" section above.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#weight' => -1,
+  );
+  
+  $form['filtered_question_list_random']['random_box']['random_autocomplete'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => FALSE,
+    '#weight' => -2,
+    '#autocomplete_path' => 'admin/quiz/listquestions',
+  );
+  $form['filtered_question_list_random']['random_box']['add_to_random'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add to quiz'),
+    '#submit' => 'quiz_questions_form_submit',
+    '#weight' => -1,
+    '#ahah' => array(
+      'path' => 'admin/quiz/newquestion',
+      'wrapper' => 'questions-always-target',
+      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
+    ),
   );
   
 
@@ -204,28 +248,7 @@ function quiz_questions_form($context, $quiz) {
     );
   }
 
-  $form['filtered_question_list_random']['random_autocomplete'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Add a question'),
-    '#description' => t('Begin typing a name. Suggestions will be presented based on your typing.'),
-    '#default_value' => t(''),
-    '#size' => 60,
-    '#maxlength' => 256,
-    '#required' => FALSE,
-    '#weight' => -2,
-    '#autocomplete_path' => 'admin/quiz/listquestions',
-  );
-  $form['filtered_question_list_random']['add_to_random'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add Question'),
-    '#submit' => 'quiz_questions_form_submit',
-    '#weight' => -1,
-    '#ahah' => array(
-      'path' => 'admin/quiz/newquestion',
-      'wrapper' => 'questions-always-target',
-      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
-    ),
-  );
+  
     
   // Build up a list of questions, sorted into those that are random and those that are 
   // always on the quiz.
@@ -292,6 +315,7 @@ function quiz_questions_form_validate($form, $form_state) {
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
+  $already_checked = array();
   foreach ($form_state['values']['weights'] as $id => $weight) {
     if (in_array($id, $removed)) {
       // Ignore items that are going to be removed anyway.
@@ -302,8 +326,15 @@ function quiz_questions_form_validate($form, $form_state) {
     $params[] = $nid;
     
     if (db_result(db_query($sql, $params)) == 0) {
-      form_set_error('filtered_question_list_always', 'One of the supplied questions was invalid. It has been removed from the quiz.');
+      form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
+    }
+    elseif (in_array($nid, $already_checked)) {
+      form_set_error('none', 'A duplicate question has been removed. You can only ask a question once per quiz.');
+      unset($form_state['values']['weights'][$id]);
+    }
+    else {
+      $already_checked[] = $nid;
     }
   }
 }
