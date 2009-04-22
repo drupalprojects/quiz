@@ -393,8 +393,8 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
   $query = strtolower($string);
   
   $sql = "SELECT node.nid, node.title, node.type
-    FROM {node} 
-    INNER JOIN {node_revisions} ON node.vid = node_revisions.vid
+    FROM {node} node
+    INNER JOIN {node_revisions} node_revisions ON node.vid = node_revisions.vid
     WHERE node.type IN ($placeholder)
       AND node.status = 1
       AND (LOWER(node.title) LIKE '%%%s%%' OR LOWER(node_revisions.body) LIKE '%%%s%%')";
