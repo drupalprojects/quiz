@@ -277,7 +277,7 @@ function multichoice_form(&$node) {
 
         // Preview mode has $answers[$i]['correct']. A saved form 
         // stores the flag in $answers[$i]['is_correct'].
-        $correct = $answers[$i]['is_correct'] || $answers[$i]['correct'];
+        $correct = !empty($answers[$i]['is_correct']) || !empty($answers[$i]['correct']);
         
         $form['answers'][$i]['correct'] = array(
           '#type' => 'checkbox',
@@ -509,7 +509,12 @@ function multichoice_get_number_of_corrects($answers) {
   $corrects =0;
   if (is_array($answers)) {
     foreach ($answers as $answer) {
-      $corrects += $answer['correct'];
+      // We have to filter this because personality questions don't
+      // actually *set* $answer['correct']. Doing a += on a NULL will
+      // generate an E_NOTICE.
+      if (!empty($answer['correct'])) {
+        $corrects += $answer['correct'];
+      }
     }
   }
   return $corrects;
@@ -534,6 +539,16 @@ function multichoice_insert(&$node) {
   }
   
   foreach ($node->answers as $value) {
+    
+    // Result options are for personality questions.
+    if (!isset($value['result_option'])) {
+      $value['result_option'] = 0;
+    }
+    
+    if (!isset($value['correct'])) {
+      $value['correct'] = 0;
+    }
+    
     if (trim($value['answer']) != "") {
       db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) 
         VALUES (%d, %d, '%s', '%s', %d, %d)", 
@@ -560,6 +575,15 @@ function multichoice_update($node) {
   // Use foreach on small lists...
   //while (list($key, $value) = each($node->answers)) {
   foreach ($node->answers as $key => $value) {
+    // Avoid E_NOTICE messages by assigning default 
+    // values.
+    if (!isset($value['correct'])) {
+      $value['correct'] = 0;
+    }
+    if (!isset($value['result_option'])) {
+      $value['result_option'] = 0;
+    }
+    
     if ($value['answer_id']) {
       $value['answer'] = trim($value['answer']);
       if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
@@ -706,25 +730,31 @@ function multichoice_render_question_form($context, $node) {
     '#options' => $options,
   );
   
-  // Find out if there is already an answer (e.g. if Back has been clicked).
-  // If there is an answer or answers, then put this into the $form['tries'] 
-  // field.
-  $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
-  $answers = _multichoice_get_response_answers($node, $rid);
-  if (count($answers) > 0) {
-    if ($type == 'radios') { // Only one for radio
-      $form['tries']['#default_value'] = $answers[0];
-    } elseif ($type == 'checkboxes') { // Array for checkboxes
-      $form['tries']['#default_value'] = $answers;
-    }
+  if (empty($_SESSION['quiz_' . $quiz->nid])) {
+    drupal_set_message(t('You are viewing a question outside of a quiz. This is not scored.'), 'status');
   }
+  else {
+    // Find out if there is already an answer (e.g. if Back has been clicked).
+    // If there is an answer or answers, then put this into the $form['tries'] 
+    // field.
+    $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
+    $answers = _multichoice_get_response_answers($node, $rid);
+    if (count($answers) > 0) {
+      if ($type == 'radios') { // Only one for radio
+        $form['tries']['#default_value'] = $answers[0];
+      } elseif ($type == 'checkboxes') { // Array for checkboxes
+        $form['tries']['#default_value'] = $answers;
+      }
+    }
 
-  // Print a back button if necessary.
-  if ($quiz->backwards_navigation == 1 && $node->question_number) {
-    $form['back'] = array(
-      '#type' => 'submit',
-      '#value' => t('Back'),
-    );
+    // Print a back button if necessary.
+    if ($quiz->backwards_navigation == 1 && $node->question_number) {
+      $form['back'] = array(
+        '#type' => 'submit',
+        '#value' => t('Back'),
+      );
+    }
+    
   }
 
   $form['submit'] = array(

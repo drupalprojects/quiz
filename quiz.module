@@ -1235,6 +1235,9 @@ function quiz_store_question_result($result, $options) {
  */
 function quiz_end_actions($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
+  if (!isset($score['percentage_score'])) {
+    $score['percentage_score'] = 0;
+  }
   
   // Why is this using the $_SESSION's RID?
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
@@ -1557,8 +1560,7 @@ function quiz_calculate_personality_score($quiz, $rid) {
     $function = $question->type . '_quiz_personality_question_score';
     if (function_exists($function)) {
       $option_id = $function($quiz, $question->child_nid, $question->child_vid, $rid);
-      //$options[$option_id] = isset($options[$option_id]) ? $options[$option_id] + 1 : 1;
-      ++$options[$option_id];
+      $options[$option_id] = isset($options[$option_id]) ? $options[$option_id] + 1 : 1;
     }
     ++$count;
   }
