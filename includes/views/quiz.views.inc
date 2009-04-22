@@ -36,9 +36,6 @@ function quiz_views_handlers() {
       'quiz_views_handler_relationship_vid_from_nid' => array(
         'parent' => 'views_handler_relationship',
       ),
-//      'quiz_og_views_handler_relationship_group_quizzes' => array(
-//        'parent' => 'views_handler_relationship',
-//      ),
       // Arguments
       'quiz_views_handler_argument_quiz_nid' => array(
         'parent' => 'views_handler_argument_numeric',
@@ -46,21 +43,6 @@ function quiz_views_handlers() {
     ),
   );
 }
-
-//function quiz_views_plugins() {
-//  $plugins = array();
-//  $plugins['argument validator'] = array(
-//    'quiz_vid_from_nid' => array(
-//      'title' => t('Quiz Revision'),
-//      'help' => t('After standard nid validation, transform the quiz nid into a (configurable) corresponding vid. You WILL want to use this validator if you have any instances with multiple quiz revisions.'),
-//      'handler' => 'quiz_views_plugin_vid_from_nid',
-//      'path' => QUIZ_VIEWS_DIR . '/plugins',
-//      // 'parent' => 'views_plugin_argument_validate_numeric',
-//    ),
-//  );
-//
-//  return $plugins;
-//}
 
 /**
  * Implementation of hook_views_data().
@@ -622,41 +604,6 @@ function quiz_views_data() {
       ),
     )
   ); // End quiz_node_results
-
-  if (module_exists('quiz_og')) {
-    $data['quiz_node_results']['og_group'] = array(
-      'real field' => 'uid',
-      // 'help' => t('')
-      'title' => t('Quizzes from user groups'),
-      'relationship' => array(
-        'handler' => 'quiz_og_views_handler_relationship_group_quizzes',
-        'help' => t('Gets all the quiz nids from all the groups to which the provided user argument belongs.'),
-        'relationship table' => 'quiz_og_properties',
-        'relationship field' => 'group_nid',
-        'base' => 'og_uid',
-      ),
-    );
-    $data['quiz_og_properties'] = array(
-      'table' => array(
-        'group' => t('Quiz'),
-        'join' => array(
-          'quiz_node_properties' => array(
-            'left field' => 'vid',
-            'field' => 'vid',
-            'type' => 'INNER',
-          ),
-        ),
-      ),
-      'group_nid' => array(
-        'title' => t('Group NID'),
-        'help' => t('The node ID of the OG organic group to which the quiz has been attached.'),
-        'relationship' => array(
-          'handler' => 'quiz_og_views_handler_relationship_group_nid',
-            'base' => 'quiz_node_properties', // i THINK this is redundant
-        ),
-      ),
-    );
-  }
 
   $hdata['quiz_node_results_answers'] = array(
     'table' => array(
