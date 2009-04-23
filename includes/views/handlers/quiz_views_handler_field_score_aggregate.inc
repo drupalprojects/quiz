@@ -16,23 +16,11 @@ class quiz_views_handler_field_score_aggregate extends views_handler_field_numer
 
   function query() {
     $this->ensure_my_table();
-    // $this->add_additional_fields();
-    // $results_field_alias = $this->additional_fields['qnr_score']['field'];
-    dsm($this);
-    // $results_table = $this->query->get_table_info($this->additional_fields['qnr_score']['table']);
     $this->query->add_field($this->table_alias, $this->group_field);
     $this->field_alias = $this->query->add_field(
-      NULL, "AVERAGE($this->table_alias.$this->real_field)",
-      $results_table['alias'] . '__average', array('aggregate' => TRUE)
+      NULL, "AVG($this->table_alias.$this->real_field)",
+      $this->table_alias . '__average', array('aggregate' => TRUE)
     );
     $this->query->add_groupby("$this->table_alias.$this->group_field"); // nid is OK for average. Others maybe not so much
-
-//    $base_join = $this->get_join_data($this->table_alias, $this->base_table);
-//    $results_join = $this->get_join_data($this->results_table['alias'], $this->base_table);
-//
-//    $this->add_relationship($this->table_alias . '__join', $this->get_join_data($this->table_alias, $this->base_table), $this->base_table);
-//    $this->add_relationship($this->table_alias . '__join', $results_join, $this->base_table, $this->table);
-    dsm($this);
-    dsm($this->query);
   }
 }
