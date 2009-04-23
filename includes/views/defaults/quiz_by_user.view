@@ -190,6 +190,33 @@ $handler->override_option('arguments', array(
     'validate_argument_php' => '',
   ),
 ));
+$handler->override_option('filters', array(
+  'nid' => array(
+    'operator' => '=',
+    'value' => '',
+    'group' => '0',
+    'exposed' => FALSE,
+    'expose' => array(
+      'operator' => FALSE,
+      'label' => '',
+    ),
+    'which_vid' => 'latest',
+    'secondary' => 'results',
+    'id' => 'nid',
+    'table' => 'quiz_node_properties',
+    'field' => 'nid',
+    'relationship' => 'none',
+    'secondary_group_by' => 'uid',
+    'secondary_group_by_table' => 'quiz_node_results',
+    'secondary_table' => 'quiz_node_results',
+    'secondaries' => array(
+      'secondary_group_by' => 'uid',
+      'secondary_table' => 'quiz_node_results',
+      'secondary_vid' => 'vid',
+      'secondary_nid' => 'nid',
+    ),
+  ),
+));
 $handler->override_option('access', array(
   'type' => 'none',
 ));
