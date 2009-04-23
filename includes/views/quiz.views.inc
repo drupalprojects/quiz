@@ -32,6 +32,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_filter_user_quiz_state' => array(
         'parent' => 'views_handler_filter',
       ),
+      'quiz_views_handler_filter_user_nullable' => array(
+        'parent' => 'views_handler_filter_boolean_operator',
+      ),
       // Relationships
       'quiz_views_handler_relationship_vid_from_nid' => array(
         'parent' => 'views_handler_relationship',
@@ -106,7 +109,6 @@ function quiz_views_data() {
       'field' => array(
         'handler' => 'views_handler_field',
         'click sortable' => TRUE,
-        ''
       ),
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_quiz_nid',
@@ -115,10 +117,12 @@ function quiz_views_data() {
         'numeric' => TRUE,
         'validate type' => 'vid',
       ),
-//      'filter' => array(
-//        'handler' => 'quiz_views_handler_filter_quiz_nid',
-//        'help' => t('Filter results to a particular subset of quiz versions.')
-//      ),
+      'filter' => array(
+        'handler' => 'quiz_views_handler_filter_quiz_nid',
+        'help' => t('Filter results to a particular subset of quiz versions.'),
+        'group by' => 'vid',
+        // 'secondary group by' => 'vid',
+      ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -150,22 +154,6 @@ function quiz_views_data() {
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
-//    'single_version' => array(
-//      'real field' => 'nid',
-//      'title' => t('Specific Quiz Version'),
-//      'help' => t('Takes a quiz NID and provides a single version of the quiz; the quiz version to be used is configurable.'),
-////      'argument' => array(
-////        'handler' => 'quiz_views_handler_argument_single_vid',
-////        'numeric' => TRUE,
-////        'validate type' => 'nid',
-////      ),
-//      'relationship' => array(
-//        'handler' => 'quiz_views_handler_relationship_quiz_nid',
-//        'base' => 'quiz_node_properties',
-//        'field' => 'vid',
-//        'label' => t('quiz vid from nid'),
-//      ),
-//    ),
     'number_of_random_questions' => array(
       'title' => t('Number of random questions'),
       'help' => t('The number of questions on this quiz that will be randomly selected.'),
@@ -347,6 +335,13 @@ function quiz_views_data() {
         'numeric' => TRUE,
         'validate type' => 'nid',
       ),
+      'filter' => array(
+        'handler' => 'quiz_views_handler_filter_quiz_nid',
+        'help' => t('Filter results to a particular subset of quiz versions.'),
+        'nid field' => 'parent_nid',
+        'vid field' => 'parent_vid',
+        'secondary group' => 'child_nid',
+      ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node',
@@ -489,6 +484,12 @@ function quiz_views_data() {
         'numeric' => TRUE,
         'validate type' => 'vid',
       ),
+      'filter' => array(
+        'handler' => 'quiz_views_handler_filter_quiz_nid',
+        'help' => t('Filter results to a particular subset of quiz versions.'),
+        'nid field' => 'nid',
+        'vid field' => 'vid',
+      ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
@@ -528,11 +529,13 @@ function quiz_views_data() {
       ),
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_user_uid_nullable',
-        //'name_field' => 'title',
         'numeric' => TRUE,
         'validate type' => 'nid',
-        'name' => 'name',
-        'table' => 'users',
+        'name field' => 'name',
+        'name table' => 'users',
+      ),
+      'filter' => array(
+        'handler' => 'quiz_views_handler_filter_user_nullable',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       // Related to USERS
