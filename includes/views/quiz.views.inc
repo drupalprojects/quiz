@@ -22,6 +22,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_field_user_quiz_state' => array(
         'parent' => 'views_handler_field',
       ),
+      'quiz_views_handler_field_score_aggregate' => array(
+        'parent' => 'views_handler_field_numeric',
+      ),
       // Filters
       'quiz_views_handler_filter_question_status' => array(
         'parent' => 'views_handler_filter_in_operator',
@@ -594,6 +597,15 @@ function quiz_views_data() {
         'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    'score_aggregate' => array(
+      'title' => t('Score Aggregations'),
+      'help' => t('Aggregate scores on quizzes using a variety of different algorithms.'),
+      'real field' => 'score',
+      'field' => array(
+        'handler' => 'quiz_views_handler_field_score_aggregate',
+        'group field' => 'nid',
+      ),
     ),
     'quiz_state' => array(
       'title' => t('Quiz State'),
