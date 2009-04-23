@@ -43,7 +43,6 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
 
   function title_query() {
     $titles = array();
-    // $this->subselect_vids();
     $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
 
     $result = db_query("SELECT n.title FROM {node_revisions} n WHERE n.vid IN ($placeholders)", $this->corresponding_vids);
@@ -58,7 +57,6 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
    * retrieving vids from the provided nids.
    */
   function query() {
-    // drupal_set_message('query');
     $this->ensure_my_table();
     $this->break_phrase();
 
