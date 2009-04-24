@@ -22,7 +22,7 @@ function quiz_update_6303() {
   $result = array();
   
   // Add a field that allows an admin to mark a quiz as invalid.
-  db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => '', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
   
   return $result;
 }
