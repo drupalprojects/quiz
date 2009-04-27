@@ -352,7 +352,15 @@ function quiz_theme() {
     'question_selection_table' => array(
       'file' => 'quiz.admin.inc',
       'arguments' => array('form' => array()),
-    )
+    ),
+    'quiz_score_correct' => array(
+      'file' => 'quiz.pages.inc',
+      'arguments' => array(),
+    ),
+    'quiz_score_incorrect' => array(
+      'file' => 'quiz.pages.inc',
+      'arguments' => array(),
+    ),
   );
 }
 
@@ -1052,7 +1060,8 @@ function quiz_take_quiz($quiz) {
       // Stash feedback in the session, since the $_POST gets cleared.
       if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
         // Invoke hook_get_report().
-        $report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+        //$report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+        $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
         $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
       }
       // If anonymous user, refresh url with unique hash to prevent caching.

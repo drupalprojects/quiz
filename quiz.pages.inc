@@ -501,6 +501,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
       
       // Get the score result for each question only if it's a scored quiz.
       if ($showpoints) {
+        
         $theme = ($question->correct) ? 'quiz_score_correct' : 'quiz_score_incorrect';
         $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
       }
