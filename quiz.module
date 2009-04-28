@@ -937,6 +937,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
   db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER);
 }
 
+
 /**
  * Handles quiz taking.
  *
@@ -968,8 +969,14 @@ function quiz_take_quiz($quiz) {
   }
   
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
+    $rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid);
+    
+    // Are we resuming an in-progress quiz?
+    if ($rid > 0) {
+      _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
+    }
     // First time running through quiz.
-    if ($rid = quiz_start_actions($quiz)) {
+    elseif ($rid = quiz_start_actions($quiz)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
       
@@ -981,7 +988,7 @@ function quiz_take_quiz($quiz) {
       
       if (count($questions) == 0) {
         drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
-                          array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+          array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
       
@@ -1815,6 +1822,100 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
 }
 
 // End of "Public" Functions
+
+/**
+ * Resume an in-progress quiz.
+ *
+ * This sets the user's session back to the state it was in when the quiz was aborted.
+ *
+ * This function should only be called if the quiz needs resuming. Outside logic needs to
+ * check that, though.
+ *
+ * @param $quiz
+ *   The current quiz.
+ * @param $uid
+ *   The ID of the current user.
+ * @param $rid
+ *   The result ID found for the current quiz.
+ */
+function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
+  // Create question list.
+  $questions = quiz_build_question_list($quiz);
+  $already_answered = array();
+
+  // Now we need to make sure to set previous questions to be correct. 
+  // This includes corrections for cases where questions were shuffled.
+  
+  $sql = "SELECT question_nid AS nid, question_vid AS vid 
+    FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp";
+  $answered_questions = db_query($sql, $rid);
+  while($answered = db_fetch_object($answered_questions)) {
+    foreach ($questions as $question) {
+      if ($question['vid'] == $answered->vid) {
+        $already_answered[] = $answered->vid;
+      }
+    }
+  }
+  
+  reset($questions);
+  $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = array();
+  $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
+  
+  foreach ($questions as $question) {
+    if (in_array($question['vid'], $already_answered)) {
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $question;
+    }
+    else {
+      $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][] = $question;
+    }
+  }
+  
+  $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
+  $_SESSION['quiz_'. $quiz->nid]['question_number'] = count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+  
+  // Timed quizzes are likely to have expired by this point. But we let
+  // the quiz_take_quiz handler handle that.
+  $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
+  $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
+  
+  drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
+}
+
+
+/**
+ * Returns the result ID for any current result set for the given quiz.
+ *
+ * @param $uid
+ *   User ID
+ * @param $nid 
+ *   Quiz node ID
+ * @param $vid
+ *   Quiz node version ID
+ * @param $now
+ *   Timestamp used to check whether the quiz is still open. Default: current time.
+ *
+ * @return
+ *   If a quiz is still open and the user has not finished the quiz, 
+ *   return the result set ID so that the user can continue.
+ *
+ *   If no quiz is in progress, this will return 0.
+ */
+function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
+  if (!isset($now)) {
+    $now = time();
+  }
+  
+  // Get any quiz that is (a) open, (b) for this user, and (c) has not already
+  // been completed.
+  $sql = "SELECT result_id 
+    FROM {quiz_node_results} qnr
+    INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
+    WHERE %d BETWEEN qnp.quiz_open AND qnp.quiz_close
+      AND qnr.vid = %d AND qnr.uid = %d
+      AND qnr.time_end = 0";
+  $rid = db_result(db_query($sql, $now, $vid, $uid));
+  return (int)$rid;
+}
 
 /**
  * Insert call specific to result options.
