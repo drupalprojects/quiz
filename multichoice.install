@@ -125,7 +125,7 @@ function multichoice_uninstall() {
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
-      db_query('DELETE FROM {node}, {node_revisions}, {quiz_node_question_properties} USING {node} LEFT JOIN node_revisions USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
+      db_query('DELETE FROM {node}, {node_revisions}, {quiz_node_question_properties} USING {node} LEFT JOIN {node_revisions} USING (nid) LEFT JOIN {quiz_node_question_properties} USING (nid) WHERE type IN ("multichoice")');
       break;
     case 'pgsql':
       db_query("DELETE FROM {quiz_node_question_properties} WHERE nid IN (SELECT nid FROM {node} WHERE type IN ('multichoice'))");
