@@ -423,12 +423,12 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
   $placeholder = db_placeholders($values, 'varchar');
   $query = strtolower($string);
   
-  $sql = "SELECT node.nid, node.title, node.type
-    FROM {node} node
-    INNER JOIN {node_revisions} node_revisions ON node.vid = node_revisions.vid
-    WHERE node.type IN ($placeholder)
-      AND node.status = 1
-      AND (LOWER(node.title) LIKE '%%%s%%' OR LOWER(node_revisions.body) LIKE '%%%s%%')";
+  $sql = "SELECT n.nid, n.title, n.type
+    FROM {node} n
+    INNER JOIN {node_revisions} r ON n.vid = r.vid
+    WHERE n.type IN ($placeholder)
+      AND n.status = 1
+      AND (LOWER(n.title) LIKE '%%%s%%' OR LOWER(r.body) LIKE '%%%s%%')";
   
   array_push($values, $query, $query);
   $result = db_query_range(db_rewrite_sql($sql), $values, 0, 20);
