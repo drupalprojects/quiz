@@ -122,6 +122,7 @@ function multichoice_uninstall() {
   drupal_uninstall_schema('multichoice');
 
   // Delete from nodes and node_revisions.
+  /*
   switch ($GLOBALS['db_type']) {
     case 'mysql':
     case 'mysqli':
@@ -133,11 +134,11 @@ function multichoice_uninstall() {
       db_query("DELETE FROM {node} WHERE type IN ('multichoice')");
       break;
   }
-
+  */
   // Truncate the cache so users don't run into any unexpected errors.
   cache_clear_all('variables', 'cache');
   
   // Inform the user that uninstall was sucessful.
-  drupal_set_message(t("The Multichoice module, it's settings, and all saved questions were successfully removed."));
+  drupal_set_message(t("The Multichoice module has been uninstalled. Multichoice nodes may still exist, but they will not function properly."));
 }
        
