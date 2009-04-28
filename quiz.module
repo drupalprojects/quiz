@@ -1910,7 +1910,7 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
   $sql = "SELECT result_id 
     FROM {quiz_node_results} qnr
     INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
-    WHERE %d BETWEEN qnp.quiz_open AND qnp.quiz_close
+    WHERE (qnp.quiz_always = 1 OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
       AND qnr.vid = %d AND qnr.uid = %d
       AND qnr.time_end = 0";
   $rid = db_result(db_query($sql, $now, $vid, $uid));
