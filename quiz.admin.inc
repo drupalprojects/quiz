@@ -551,7 +551,13 @@ function quiz_admin_settings() {
     '#description' => t('Filter the actions dropdown by a specific type.'),
   );
   
-
+  $form['quiz_remove_partial_quiz_record'] = array(
+    '#type' => 'select',
+    '#title' => t('Remove Incomplete Quiz Records (older than)'),
+    '#options' => quiz_remove_partial_quiz_record_value(),
+    '#description' => t('Number of days that you like to keep the incomplete quiz records'),
+  );
+  
   $form['quiz_look_feel'] = array(
     '#type' => 'fieldset',
     '#title' => t('Look and Feel Settings'),
@@ -786,3 +792,14 @@ function theme_question_selection_table($form) {
   return $table . drupal_render($form);
 }
  
+function quiz_remove_partial_quiz_record_value() {
+  $list = array();
+  $list[0] = t('Never');
+  for ($i=1; $i<31; $i++) {
+    $list[$i*86400] = $i. ' ' . t('Day(s)');
+  }
+  for ($i=35; $i<125; $i+=5) {
+    $list[$i*86400] = $i . ' ' . t('Day(s)');
+  }
+  return $list;
+}

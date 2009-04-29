@@ -192,7 +192,7 @@ function quiz_menu() {
   $items['admin/quiz/%/view'] = array(
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'quiz_admin',
-    'page arguments' => array(2),	  
+    'page arguments' => array(2),   
     'access arguments' => array('administer quiz'),
     'type' => MENU_CALLBACK,
     'file' => 'quiz.admin.inc',
@@ -2554,5 +2554,16 @@ function quiz_action_options($type = 'all') {
     // Lets sort it to get the choose an action back first.
     ksort($options[$type]);
     return $options[$type];
+  }
+}
+
+/*
+ * Implementation of hook_cron()
+ */
+  
+function quiz_cron() {  
+  $rm_time = variable_get('quiz_remove_partial_quiz_record','0');  
+  if ($rm_time) { // $time = 0 for never
+    db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
   }
 }
