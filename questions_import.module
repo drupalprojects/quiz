@@ -1,0 +1,344 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Questions Import 
+ * 
+ * This module allows you to import questions to quiz node in CSV format.
+ */
+
+define('MAX_CSV_LINE_LENGTH', 1000);
+
+/**
+ * Implementation of hook_help().
+ */
+
+function questions_import_help($path, $arg) {
+  if ($path == 'admin/help#questions_import') {
+    return '<p>' . t('This module allows you to import questions to quiz node in CSV format.') . '</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm()
+ * Valid permissions for this module
+ * @return array An array of valid permissions.
+ */
+
+function questions_import_perm() {
+  return array('import_questions');
+} 
+
+/**
+ * Implementation of hook_menu
+ * 
+ */
+
+function questions_import_menu() {  
+  $items = array();  
+  $items['admin/quiz/questions_import'] = array(
+    'title' => t('Import Quiz Questions'),
+    'description' => t('Import Questions to quiz node in CSV format'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('questions_import_form'),
+    'access arguments' => array('import_questions'),
+    'type' => MENU_NORMAL_ITEM,    
+  );  
+  return $items;
+}
+
+
+/*
+ * Implementation of hook_form
+ * form to upload questions 
+ */
+  
+function questions_import_form()  {
+  $form['#attributes'] = array('enctype' => 'multipart/form-data');
+  
+  $form['quiz_node'] = array(
+    '#type' => 'select',
+    '#title' => t('Quiz Node'),     
+    '#options' => questions_import_quiz_node(),    
+    '#description' => t('Select the quiz node under which you want to add questions'),
+    '#required' => TRUE,
+  );
+  
+  $form['question_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Question type'),    
+    '#options' => questions_import_question_type(),
+    '#description' => t('Select the quiz question type you wish to upload'),    
+    '#required' => TRUE,
+  );
+  
+  $form['import_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Import type'),    
+    '#options' => questions_import_type(),
+    '#description' => t('Select the import type csv, XML'),    
+    '#required' => TRUE,
+  );
+  
+  $form['field_separator'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Field Separator'), 
+    '#default_value' => t(','),
+    '#description' => t('Special character used to separator the fields usually , : or ; '),
+    '#size' => 3,    
+    '#required' => TRUE,
+  );
+    
+  //'upload' will be used in file_check_upload()
+  $form['upload'] = array(
+    '#type' => 'file',
+    '#title' => t('Upload'),
+    '#size' => 30,
+    '#description' => t('Upload the file that has quiz questions'),    
+  );
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('import'),
+  );
+  
+  $form['#validate'][] = 'questions_import_form_validate';
+  $form['#submit'][] = 'questions_import_form_submit';
+
+  return $form;
+}
+
+/*
+ * @return 
+ * this function return a list of quiz node title and its id. 
+ */
+  
+function questions_import_quiz_node() {
+  $list = array();
+  $results = db_query("SELECT nid, title FROM {node} WHERE type = '%s'", 'quiz');
+  while($node = db_fetch_object($results)) {
+    $list[$node->nid] = substr($node->title, 0, 30);
+    // truncate the node title if its length is greater than 30 characters
+  }
+  return $list;
+}
+
+/*
+ * @return 
+ * this function return a list of available quiz questions type.
+ */
+
+function questions_import_question_type() {
+  $list = array();
+  //checks whether the multichoice module is enabled or not.
+  if (module_exists('multichoice')) {
+    $list['multichoice'] = t('Multichoice');  
+  }
+  /*if (module_exists('foo_bar')) {
+    $list['xml'] = t('XML');
+  }*/
+  return $list;
+}
+
+/*
+ * @return
+ * This function is intended to return list of allowed import types CSV, XML, YML etc
+ */  
+function questions_import_type() {
+  return array('csv' => 'CSV');
+}
+
+/*
+ * 
+ * Implementation of hook_validate()
+ */
+  
+function questions_import_form_validate($form, &$form_state) {
+  $SESSION['questions_import_start'] = microtime();
+  $allowed_extensions = 'csv txt'; 
+  // it suppose to be a string which file extensions separated by space, not an array
+  $allowd_size = file_upload_max_size();
+  $field_separator = $form_state['values']['field_separator'];
+  $op = $form_state['values']['import_type'];
+
+  
+  $file = file_save_upload('upload'); 
+  // creates a drupal file object
+  
+  if (!$file) {
+    form_set_error('upload', 'You must select a valid file to upload.');
+  }
+  
+  //there is a bug in Drupal file validator, refer  http://api.drupal.org/api/function/file_validate_extensions it Bypass validation for uid  = 1 so using custom validation functions which is same as drupal file_validate_extensions but it does not Bypass for uid = 1
+  
+  else { 
+       
+    $error_msg = question_import_validate_extensions($file, $allowed_extensions);
+    if($error_msg != '') {
+      form_set_error('upload', $error_msg);      
+    }
+    
+    $error_msg = question_import_validate_size($file, $allowd_size);      
+    if($error_msg != '') {
+      form_set_error('upload', $error_msg);
+    } 
+    
+    switch ($op) {
+      
+      case 'csv':
+      $error_msg = questions_import_validate_multichoice_csv($file, $field_separator);
+      break;
+      
+      /*case 'xml':
+      $error_msg = questions_import_validate_multichoice_xml($file, $field_separator);
+      break;*/
+      
+    }
+    
+    if($error_msg != '') {
+      form_set_error('upload', $error_msg);      
+    }
+  }  
+}
+
+/*
+ * @function
+ * This function checks whether the file has enough number of fields
+ */
+  
+function questions_import_validate_multichoice_csv($file, $separator) {
+  $error_msg = '';
+  $row = 0;
+  $lines = file($file->filepath);
+  //reads the whole file content to an array
+  if (empty($lines)) {
+    return '<p>' . t('No lines were found in @filename.', array('@filename' => $file->filename)) . '</p>';
+  }  
+  foreach ($lines as $line) { 
+    $line = check_plain(trim($line));    
+    if (!empty($line)) {
+      ++$row; // alway use pre_increment it is faster than post increment
+      $fields = explode($separator, $line);
+      $field_count = count($fields);
+      /* a line should have minmum of four fields i.e 
+       * question, option1, option2, correct option
+       * or maximum of 6 fields where additional two options will be option3 and option4 */ 
+      if ($field_count < 4 || $field_count > 6)
+        $error_msg .= '<p>' . t('line : ') . $row . ' '. $line . ' </p>';
+    }
+  }
+  $error_msg .= !empty($error_msg) ? '<p>' . t('Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
+  return $error_msg;   
+}
+
+function questions_import_form_submit(&$form, &$form_state) {
+  $time = 0;
+  $op = ''; 
+  $quiz_nid = $form_state['values']['quiz_node'];
+  $op = $form_state['values']['import_type']; 
+  switch ($op) {
+    case 'csv':
+      $count = questions_import_submit_multichoice_csv(&$form, &$form_state);
+      break;
+    /*
+    case 'xml':
+    $error_msg = questions_import_validate_multichoice_xml($file, $field_separator);
+    break;
+    */
+  }
+  $SESSION['questions_import_end'] = microtime();
+  $time = $SESSION['questions_import_end'] - $SESSION['questions_import_start'];											 
+  drupal_set_message($count .' Questions were imported successfully in '. $time . ' seconds');
+  drupal_goto('node/' . $quiz_nid . '/questions');
+  
+}
+function questions_import_submit_multichoice_csv(&$form, &$form_state) {
+  global $user;  
+  $row = 0;
+  $output = '';
+  $quiz_nid = $form_state['values']['quiz_node'];
+  $quiz_vid = node_load($quiz_nid);
+  $file = file_save_upload('upload');
+  //creates drupal file object 
+  $lines = file($file->filepath);
+  $separator = $form_state['values']['field_separator'];
+  //print_r($lines);exit;
+  foreach ($lines as $line) { 
+    $line = check_plain(trim($line));    
+    if (!empty($line)) {
+      $node = new stdClass();
+      $node->type = $form_state['values']['question_type']; // multichoice
+      $node->quiz_id = $quiz_nid;      
+      $node->quiz_vid = $quiz_vid->vid;
+      $line = explode($separator, $line);           
+      $question = array_shift($line);
+      $answer = array_pop($line);
+      $options = $line;      
+      ++$row;
+      $node->title = $node->body = $node->teaser = trim($question);            
+      $node->num_answers = count($options);
+      $node->answers = array();    
+      foreach ($options as $option) {      
+        $node->answers[] = array(
+          'correct' => (trim($answer) == trim($option)) ? 1 : 0, 
+          'answer' => trim($option),
+          'feedback' => ''      
+        );
+      } 
+      $node->uid = $user->uid;
+      $node->name = $user->name;    
+      $node->promote = 0;
+      $node->sticky = 0;
+      $node->status = 1;
+      $node->comment = 0;
+      $node->moderate = 0;
+      $node->multiple_answers = 0;
+      $node->more = 0;    
+      $node->validate = 1;
+      $node->is_new = 1;
+      $node->format = 1;
+      $node->scored_quiz = 1;
+      $node->revision = 1;    
+      $node->op = t('Save'); 
+      $node->preview = t('Preview');
+      node_save($node);
+    }
+  }
+  return $row;  
+}
+
+function question_import_validate_extensions($file, $extensions){
+  global $user;
+  $errors = '';
+
+  // Bypass validation for uid  = 1.
+  //if ($user->uid != 1) {
+    $regex = '/\.('. ereg_replace(' +', '|', preg_quote($extensions)) .')$/i';
+    if (!preg_match($regex, $file->filename)) {
+      $errors = '<p>' . t('Only files with the following extensions are allowed: %files-allowed.', array('%files-allowed' => $extensions)) . '</p>';
+    }
+  //}
+  return $errors;
+
+}
+
+
+function question_import_validate_size($file, $file_limit = 0, $user_limit = 0) {
+  global $user;
+
+  $errors = '';
+
+  // Bypass validation for uid  = 1.
+  //if ($user->uid != 1) {
+    if ($file_limit && $file->filesize > $file_limit) {
+      $errors = '<p>' . t('The file is %filesize exceeding the maximum file size of %maxsize.', array('%filesize' => format_size($file->filesize), '%maxsize' => format_size($file_limit))) . '</p>';
+    }
+
+    $total_size = file_space_used($user->uid) + $file->filesize;
+    if ($user_limit && $total_size > $user_limit) {
+      $errors = '<p>' . t('The file is %filesize which would exceed your disk quota of %quota.', array('%filesize' => format_size($file->filesize), '%quota' => format_size($user_limit))) . '</p>';
+    }
+  //}
+  return $errors;
+}

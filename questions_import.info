@@ -1,0 +1,9 @@
+; $Id$
+name = Questions Import
+package = Quiz
+description = This module allows you to import questions to quiz node in CSV format.
+dependencies[] = quiz
+dependencies[] = multichoice
+dependencies[] = quiz_question
+core = 6.x
+php = 5
