@@ -613,12 +613,8 @@ function quiz_views_data() {
       'field' => array(
         'handler' => 'quiz_views_handler_field_user_quiz_state',
         'click sortable' => TRUE,
-        'additional fields' => array('finish_time' => array('table' => 'quiz_node_results', 'field' => 'time_end')),
+        // 'additional fields' => array('finish_time' => array('table' => 'quiz_node_results', 'field' => 'time_end')),
       ),
-//      'relationship' => array(
-//        'handler' => 'quiz_views_handler_relationship_user_quiz_state',
-//        'join' => 'LEFT',
-//      ),
       'filter' => array(
         'handler' => 'quiz_views_handler_filter_user_quiz_state',
         'help' => t('Filter the results based on the state of quizzes with respect to users (i.e., whether they have started, finished, or are in progress on the quiz).'),
