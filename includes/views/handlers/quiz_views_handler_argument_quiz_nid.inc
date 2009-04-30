@@ -12,6 +12,11 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
   var $corresponding_vids = array();
   var $phrase_broken = FALSE;
 
+  function construct() {
+    parent::construct();
+    $this->nid_field = $this->definition['nid field'];
+  }
+
   function option_definition() {
     $options = parent::option_definition();
 
@@ -63,10 +68,10 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     // Do subselect to get relevant vids, then add where clause
     if ($this->subselect_vids()) {
       $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
-      $this->query->add_where(0, "$this->table_alias.$this->real_field IN ($placeholders)", $this->corresponding_vids);
+      $this->query->add_where(0, "$this->table_alias.$this->nid_field IN ($placeholders)", $this->corresponding_vids);
     }
     else {
-      $this->query->add_where(0, "$this->table_alias.$this->real_field = %d", $this->corresponding_vids);
+      $this->query->add_where(0, "$this->table_alias.$this->nid_field = %d", $this->corresponding_vids);
     }
   }
 

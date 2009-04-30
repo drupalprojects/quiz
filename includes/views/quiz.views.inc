@@ -80,6 +80,11 @@ function quiz_views_data() {
           'field' => 'nid',
           'type' => 'INNER',
         ),
+        'node_revisions' => array(
+          'left_field' => 'vid',
+          'field' => 'vid',
+          'type' => 'INNER',
+        ),
       ),
     ),
 
@@ -106,7 +111,6 @@ function quiz_views_data() {
       ),
     ),
     'nid' => array(
-      'real field' => 'vid',
       'title' => t('Quiz Node NID'),
       'help' => t('The ID of the Quiz Node.'),
       'field' => array(
@@ -116,13 +120,15 @@ function quiz_views_data() {
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_quiz_nid',
         'name field' => 'title',
-        'name table' => 'node',
+        'name table' => 'node_revisions',
         'numeric' => TRUE,
         'validate type' => 'vid',
+        'nid field' => 'nid',
       ),
       'filter' => array(
         'handler' => 'quiz_views_handler_filter_quiz_nid',
-        'help' => t('Filter results to a particular subset of quiz versions.'),
+        'title' => t('Quiz Version'),
+        'help' => t('Filter results to a specific subset of quiz versions.'),
         'group by' => 'vid',
         // 'secondary group by' => 'vid',
       ),
