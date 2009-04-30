@@ -2,6 +2,15 @@
 // $Id$
 
 class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
+  var $states = array();
+  function init(&$view, $options) {
+    parent::init($view, $options);
+    $this->states = array(
+      'not_started' => t('Not Started'),
+      'in_progress' => t('In Progress'),
+      'finished' => t('Finished'),
+    );
+  }
 
   function options_definition() {
     $options = parent::option_definition();
@@ -14,13 +23,13 @@ class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
       '#type' => 'radios',
       '#description' => t('The final result set will only include quiz results in the state you select here.'),
       '#title' => t('Quiz State'),
-      '#options' => array(
-        'not_started' => t('Not Started'),
-        'in_progress' => t('In Progress'),
-        'finished' => t('Finished'),
-      ),
+      '#options' => $this->states,
       '#default_value' => $this->options['quiz_state'],
     );
+  }
+
+  function admin_summary() {
+    return 'is ' . $this->states[$this->options['quiz_state']];
   }
 
   function query() {
