@@ -18,8 +18,10 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
   var $secondary_table_alias;
   var $secondary_tables = array(
     'none' => array(
-      'secondary_group_by' => NULL,
-      'secondary_table' => NULL,
+      'secondary_group_by' => 'nid',
+      'secondary_table' => 'quiz_node_results',
+      'secondary_vid' => 'vid',
+      'secondary_nid' => 'nid',
     ),
     'results' => array(
       'secondary_group_by' => 'uid',
@@ -82,7 +84,6 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
   }
 
   function value_submit($form, &$form_state) {
-//    dsm($form_state);
     $form_state['values']['options']['secondaries'] = $this->secondary_tables[$form_state['values']['options']['secondary']];
   }
 

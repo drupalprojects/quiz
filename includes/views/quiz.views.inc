@@ -36,7 +36,7 @@ function quiz_views_handlers() {
         'parent' => 'views_handler_filter',
       ),
       'quiz_views_handler_filter_user_nullable' => array(
-        'parent' => 'views_handler_filter_boolean_operator',
+        'parent' => 'views_handler_filter',
       ),
       // Relationships
       'quiz_views_handler_relationship_vid_from_nid' => array(
@@ -530,7 +530,7 @@ function quiz_views_data() {
       'sort' => array('handler' => 'views_handler_sort'),
     ),
     'uid' => array(
-      'title' => t('User ID'),
+      'title' => t('User'),
       'help' => t('The ID of the user who took this quiz.'),
       'field' => array(
         'handler' => 'views_handler_field_user',
@@ -545,6 +545,7 @@ function quiz_views_data() {
       ),
       'filter' => array(
         'handler' => 'quiz_views_handler_filter_user_nullable',
+        'help' => t('Filter on the user who owns the quiz results.'),
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       // Related to USERS

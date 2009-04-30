@@ -32,7 +32,6 @@ class quiz_views_handler_argument_user_uid_nullable extends views_handler_argume
     else {
       $group = 0;
     }
-
     
     // By adding the ISNULL, joins can properly inform us about quiz state
     $this->query->add_where($group, $where, $this->argument);
