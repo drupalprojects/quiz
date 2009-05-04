@@ -2,7 +2,9 @@
 name = Quiz
 package = Quiz
 description = "Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly. If in doubt, use the Multichoice module."
-dependencies[] = jquery_countdown
 dependencies[] = taxonomy
 core = 6.x
 php = 5.1
+
+; This is (or should be) recommended, but not required.
+;dependencies[] = jquery_countdown 
