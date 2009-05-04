@@ -55,9 +55,8 @@ function quiz_admin_results($qid) {
   $result = db_fetch_object(db_query(
     "SELECT qnrs.nid
       FROM  {quiz_node_results} qnrs
-      INNER JOIN {node} n
-      WHERE qnrs.nid = n.nid 
-        AND qnrs.result_id = %d", 
+      INNER JOIN {node} n ON qnrs.nid = n.nid 
+      WHERE qnrs.result_id = %d", 
     $qid
   ));
   if ($result->nid) {

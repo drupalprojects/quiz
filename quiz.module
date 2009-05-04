@@ -2360,11 +2360,9 @@ function _quiz_get_results($nid = '', $uid = 0) {
   */
   $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
           FROM {node} n
-          INNER JOIN {quiz_node_results} qnrs
-          INNER JOIN {users} u
-          WHERE n.type = 'quiz'
-            AND qnrs.nid = n.nid
-            AND u.uid = qnrs.uid";
+          INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
+          INNER JOIN {users} u ON u.uid = qnrs.uid
+          WHERE n.type = 'quiz'";
   if ($nid) {
     $sql .= " AND qnrs.nid = %d";
     $args[] = $nid;
@@ -2405,8 +2403,8 @@ function _quiz_get_quizzes($uid = 0) {
   $sql = "SELECT n.nid, n.title, u.name, n.created
           FROM {node} n
           INNER JOIN {users} u
-          WHERE n.type = 'quiz'
-            AND u.uid = n.uid";
+          ON u.uid = n.uid
+          WHERE n.type = 'quiz'";
 
   if ($uid != 0) {
     $sql .= " AND n.uid = %d";

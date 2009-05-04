@@ -1,5 +1,4 @@
 <?php
-
 $view = new view;
 $view->name = 'questions_by_quiz';
 $view->description = 'View of all the questions associated with a particular quiz';
@@ -339,4 +338,19 @@ $handler->override_option('style_options', array(
     ),
   ),
   'default' => 'title',
+));
+$handler = $view->new_display('page', 'Questions by Specific Quiz', 'page_1');
+$handler->override_option('path', 'admin/quiz/questions_by_quiz/%');
+$handler->override_option('menu', array(
+  'type' => 'none',
+  'title' => 'Questions by Quiz',
+  'description' => '',
+  'weight' => '0',
+  'name' => 'navigation',
+));
+$handler->override_option('tab_options', array(
+  'type' => 'none',
+  'title' => '',
+  'description' => '',
+  'weight' => 0,
 ));
