@@ -900,7 +900,8 @@ function quiz_type_access_load($arg) {
  *  Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid, $nid) {
-  $sql = 'SELECT COUNT(*) + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) 
+  // The CAST is required for PostgreSQL.
+  $sql = 'SELECT CAST (COUNT(*) AS INT) + CAST((SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) AS INT)
     FROM {quiz_node_relationship} qnr 
     WHERE qnr.parent_vid = %d 
       AND qnr.parent_nid = %d 
