@@ -156,8 +156,10 @@ function multichoice_form(&$node) {
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
   
-  if ($is_personality && !isset($quiz_id) || intval($quiz_id) == 0) {
-    // We have to actually look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
+  // Second isset is there b/c of hiccups during node preview.
+  if ($is_personality && isset($node->answers[0]['result_option']) && (!isset($quiz_id) || intval($quiz_id) == 0)) {
+    
+    // We have to actually  look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
     // design.
     $result = db_result(db_query("SELECT nid FROM {quiz_node_result_options} WHERE option_id = %d", $node->answers[0]['result_option']));
     if ($result) {
@@ -304,7 +306,7 @@ function multichoice_form(&$node) {
         '#value' => '',
       );
     }
-    if ($answers[$i]['answer_id']) {
+    if (!empty($answers[$i]['answer_id'])) {
       $form['answers'][$i]['delete'] = array(
         '#type' => 'checkbox',
         '#default_value' => 0,
@@ -697,7 +699,7 @@ function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
  *  HTML output.
  */
 function multichoice_render_question_form($context, $node) {
-    $quiz = menu_get_object(); // Get the quiz object.
+  $quiz = menu_get_object(); // Get the quiz object.
   
   // Radio buttons for single selection questions, checkboxes for multiselect.
   if ($node->multiple_answers == 0) {
@@ -731,7 +733,7 @@ function multichoice_render_question_form($context, $node) {
     '#options' => $options,
   );
   
-  if (empty($_SESSION['quiz_' . $quiz->nid])) {
+  if (empty($quiz) || empty($_SESSION['quiz_' . $quiz->nid])) {
     drupal_set_message(t('You are viewing a question outside of a quiz. This is not scored.'), 'status');
   }
   else {
@@ -1089,7 +1091,7 @@ function _multichoice_is_personality_question($node) {
    * Personality questions are bound (via result_option) to the quiz in which they
    * were created. This stands in start contrast to other multichoice questions.
    */
-  return (!empty($node->answers) && $node->answers[0]['result_option'] > 0);
+  return (!empty($node->answers) && isset($node->answers[0]['result_option']) && $node->answers[0]['result_option'] > 0);
 }
 
 /**
