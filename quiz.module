@@ -86,7 +86,7 @@ function quiz_perm() {
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // Managing results:
-    'user results', 'own results',
+    'view user results', 'view own results',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
   );
@@ -255,7 +255,7 @@ function quiz_menu() {
     'title' => t('My results'),
     'page callback' => 'quiz_get_user_results',
     'page arguments' => array(1),
-    'access arguments' => array('own results'),
+    'access arguments' => array('view own results'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.pages.inc',
   );
@@ -264,7 +264,7 @@ function quiz_menu() {
     'title' => t('User results'),
     'page callback' => 'quiz_user_results',
     'page arguments' => array(2),
-    'access arguments' => array('own results'),
+    'access arguments' => array('view own results'),
     'type' => MENU_CALLBACK,
     'file' => 'quiz.pages.inc',
   );

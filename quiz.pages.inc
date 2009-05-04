@@ -21,7 +21,7 @@ function quiz_user_results($result_id) {
     
     // User can view own results (quiz_menu sets access to 'own results').
     // User with role 'user results' can view other user's results.
-    if ($result->uid != $user->uid && !user_access('user results')) {
+    if ($result->uid != $user->uid && !user_access('view user results')) {
       drupal_access_denied();
       return;
     }
@@ -46,7 +46,7 @@ function quiz_user_results($result_id) {
 function quiz_get_user_results($user_id) {
   global $user;
   
-  if ($user_id == $user->uid || user_access('user results')) {
+  if ($user_id == $user->uid || user_access('view user results')) {
     $results = array();
     $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
       FROM {node} n 
