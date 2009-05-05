@@ -159,6 +159,15 @@ function quiz_menu() {
     //'position' => 'right',
     //'menu_name' => 'name of menu',
   );
+  $items['admin/quiz/reports'] = array(
+    'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
   
   $items['admin/quiz/settings'] = array(
     'title' => t('@quiz configuration', array('@quiz' => QUIZ_NAME)),
@@ -170,7 +179,7 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
   
-  $items['admin/quiz/results'] = array(
+  $items['admin/quiz/reports/results'] = array(
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
@@ -179,11 +188,11 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
   
-  $items['admin/quiz/%/results'] = array(
+  $items['admin/quiz/reports/%/results'] = array(
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'description' => t('View results for the given quiz.'),
     'page callback' => 'quiz_admin_results',
-    'page arguments' => array(2),
+    'page arguments' => array(3),
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'quiz.admin.inc',
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
