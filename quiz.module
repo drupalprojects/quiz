@@ -901,7 +901,7 @@ function quiz_type_access_load($arg) {
  */
 function quiz_get_number_of_questions($vid, $nid) {
   // The CAST is required for PostgreSQL.
-  $sql = 'SELECT CAST (COUNT(*) AS INT) + CAST((SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) AS INT)
+  $sql = 'SELECT CAST(COUNT(*) AS UNSIGNED INTEGER) + CAST((SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) AS UNSIGNED INTEGER)
     FROM {quiz_node_relationship} qnr 
     WHERE qnr.parent_vid = %d 
       AND qnr.parent_nid = %d 
