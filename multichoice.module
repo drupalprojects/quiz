@@ -610,7 +610,7 @@ function multichoice_update($node) {
   if ($node->revision) {
     // Gather all quiz node vids from quiz_node_relationship table that contain
     // the question being updated and create a new revision of the quizzes.
-    $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND status != %d";
+    $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND question_status != %d";
     $result = db_query($sql, $node->old_vid, QUESTION_NEVER);
     while ($quiz = db_fetch_object($result)) {
       // Create new revision of the quiz.

@@ -40,7 +40,7 @@ function multichoice_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'question_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
