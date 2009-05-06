@@ -909,13 +909,17 @@ function quiz_type_access_load($arg) {
  *  Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid, $nid) {
-  // The CAST is required for PostgreSQL.
-  $sql = 'SELECT CAST(COUNT(*) AS UNSIGNED INTEGER) + CAST((SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d) AS UNSIGNED INTEGER)
-    FROM {quiz_node_relationship} qnr 
-    WHERE qnr.parent_vid = %d 
-      AND qnr.parent_nid = %d 
-      AND question_status = %d';
-  return db_result(db_query($sql, $vid, $nid, $vid, $nid, QUESTION_ALWAYS));
+  // PostgreSQL cannot handle addition of count() columns plus int columns, so we have to do this as two queries:
+  // $sql = 'SELECT COUNT(*) + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d AND nid = %d)
+  //     FROM {quiz_node_relationship} qnr 
+  //     WHERE qnr.parent_vid = %d 
+  //       AND qnr.parent_nid = %d 
+  //       AND question_status = %d';
+  //   return db_result(db_query($sql, $vid, $nid, $vid, $nid, QUESTION_ALWAYS));
+  $sql = 'SELECT COUNT(*) FROM {quiz_node_relationship} qnr WHERE qnr.parent_vid = %d AND question_status = %d';
+  $always_count = db_result(db_query($sql, $vid, QUESTION_ALWAYS));
+  $rand_count = db_result(db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d', $vid));
+  return $always_count + (int)$rand_count;
 }
 
 /**
