@@ -291,7 +291,7 @@ function questions_import_form_submit(&$form, &$form_state) {
     $count = questions_import_submit_multichoice_aiken(&$form, &$form_state);
     break;
   }
-  $time =  questions_import_get_microtime() - $start;
+  $time =  substr(questions_import_get_microtime() - $start, 0, 6);
 
   drupal_set_message(t('@count Questions were imported successfully in @time seconds', array('@count' => $count, '@time' => $time)));
   drupal_goto('node/' . $quiz_nid . '/questions');

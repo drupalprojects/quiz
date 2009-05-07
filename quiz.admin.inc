@@ -9,7 +9,7 @@
 
 
 // QUIZ ADMIN
- 
+
 /**
  * Quiz Admin.
  */
@@ -18,7 +18,7 @@ function quiz_admin($nid) {
   //lets add the Quiz Results to the breadcrumb array
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
   drupal_set_breadcrumb($breadcrumb);
-  
+
   $results = _quiz_get_results($nid);
   return theme('quiz_admin', $results);
 }
@@ -34,9 +34,9 @@ function quiz_admin_quizzes() {
   $results = _quiz_get_quizzes();
   return theme('quiz_admin_quizzes', $results);
 }
- 
+
  // QUIZ RESULTS ADMIN
- 
+
  /**
   * Quiz Results Admin.
   *
@@ -47,16 +47,16 @@ function quiz_admin_results($qid) {
   $breadcrumb = drupal_get_breadcrumb();
   // Lets add the Quiz Results to the breadcrumb array.
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
-  
+
   // We join against node because we might have multiple versions
-  // of a quiz, and joining against quiz_node_properties would 
+  // of a quiz, and joining against quiz_node_properties would
   // return multiple rows with the same quiz result. Since we are
   // only hitting the {node} index, this should be fast.
   $result = db_fetch_object(db_query(
     "SELECT qnrs.nid
       FROM  {quiz_node_results} qnrs
-      INNER JOIN {node} n ON qnrs.nid = n.nid 
-      WHERE qnrs.result_id = %d", 
+      INNER JOIN {node} n ON qnrs.nid = n.nid
+      WHERE qnrs.result_id = %d",
     $qid
   ));
   if ($result->nid) {
@@ -64,7 +64,7 @@ function quiz_admin_results($qid) {
     $questions = _quiz_get_answers($qid);
     $score = quiz_calculate_score($quiz, $qid);
     $summary = _quiz_get_summary_text($quiz, $score);
-    
+
     // Lets add the quiz title to the breadcrumb array.
     $breadcrumb[] = l($quiz->title, 'admin/quiz/'.$result->nid.'/view');
     drupal_set_breadcrumb($breadcrumb);
@@ -90,11 +90,11 @@ function quiz_admin_results($qid) {
 function quiz_questions($node) {
   // Set page title.
   drupal_set_title(check_plain($node->title));
-  
+
   // Add JS
   $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
   drupal_add_js($path, 'module');
-  
+
   return drupal_get_form('quiz_questions_form', $node);
 }
 
@@ -144,7 +144,7 @@ function quiz_questions_form($context, $quiz) {
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-  
+
   $form['filtered_question_list_always']['always_box'] = array(
     '#type' => 'fieldset',
     '#title' => '<strong>' . t('Find and add a question') . '</strong>',
@@ -154,7 +154,7 @@ function quiz_questions_form($context, $quiz) {
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
   );
-  
+
   $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
     '#type' => 'textfield',
     //'#title' => t('Find a question'),
@@ -181,7 +181,7 @@ function quiz_questions_form($context, $quiz) {
     '#type' => 'hidden',
     '#default_value' => '',
   );
-  
+
   // Display questions 'random' on this quiz.
   $form['filtered_question_list_random'] = array(
     '#type' => 'fieldset',
@@ -191,7 +191,7 @@ function quiz_questions_form($context, $quiz) {
     '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
     'question_status' => array('#tree' => TRUE),
   );
-  
+
   $form['filtered_question_list_random']['number_of_random_questions'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of questions to randomize'),
@@ -200,7 +200,7 @@ function quiz_questions_form($context, $quiz) {
     '#description' => t('The number of randomly selected questions that should be assigned to this quiz.'),
     '#weight' => 1,
   );
-  
+
   $form['filtered_question_list_random']['random_box'] = array(
     '#type' => 'fieldset',
     '#title' => '<strong>' . t('Find and add a question') . '</strong>',
@@ -211,7 +211,7 @@ function quiz_questions_form($context, $quiz) {
     '#collapsed' => FALSE,
     '#weight' => -1,
   );
-  
+
   $form['filtered_question_list_random']['random_box']['random_autocomplete'] = array(
     '#type' => 'textfield',
     '#default_value' => '',
@@ -232,7 +232,7 @@ function quiz_questions_form($context, $quiz) {
       'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
     ),
   );
-  
+
 
   $terms =  _quiz_taxonomy_select($quiz->tid);
   if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
@@ -247,9 +247,9 @@ function quiz_questions_form($context, $quiz) {
     );
   }
 
-  
-    
-  // Build up a list of questions, sorted into those that are random and those that are 
+
+
+  // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   $questions = _quiz_get_questions($quiz->vid);
   $rows = array();
@@ -259,7 +259,7 @@ function quiz_questions_form($context, $quiz) {
     $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
     $fieldset = 'filtered_question_list_' . $id_mod;
     $id = $id_mod . '-' . $question->nid;
-         
+
     $form[$fieldset]['weights'][$id] = array(
       //'#type' => 'weight',
       //'#delta' => 60,
@@ -323,7 +323,7 @@ function quiz_questions_form_validate($form, $form_state) {
     list($state, $nid) = explode('-', $id, 2);
     $params = $question_types; // Copy array.
     $params[] = $nid;
-    
+
     if (db_result(db_query($sql, $params)) == 0) {
       form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
@@ -337,13 +337,13 @@ function quiz_questions_form_validate($form, $form_state) {
     }
   }
 }
- 
+
 
  /**
   * Submit function for quiz_questions.
-  * 
+  *
   * Updates from the "manage questions" tab.
-  * 
+  *
   * @param $form_id
   *  A string containing the form id.
   * @param $values
@@ -352,12 +352,12 @@ function quiz_questions_form_validate($form, $form_state) {
 function quiz_questions_form_submit($form, &$form_state) {
   // This is ugly and should be fixed.
   $quiz = node_load(arg(1));
-  
+
   $new_revision = $form_state['values']['new_revision'];
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
-  
-  $removed = explode(',', $form_state['values']['remove_from_quiz']);  
+
+  $removed = explode(',', $form_state['values']['remove_from_quiz']);
   // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($form_state['values']['weights'] as $id => $weight) {
@@ -370,24 +370,24 @@ function quiz_questions_form_submit($form, &$form_state) {
     $question['nid'] = $nid;
     $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
     $question['weight'] = $weight;
-    
+
     // Add item as an object in the questions array.
     $questions[] = (object)$question;
   }
-  
+
   // Save questions.
   quiz_set_questions($quiz, $questions, (bool)$new_revision);
-  
+
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {
    $assigned_random = 0;
-   
+
    foreach ($questions as $question) {
      if ($question->state == QUESTION_RANDOM) {
        ++$assigned_random;
      }
    }
-   
+
    // Adjust number of random questions downward to match number of selected questions..
    if ($num_random > $assigned_random) {
      $num_random = $assigned_random;
@@ -421,24 +421,24 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
   $values = array_keys($type_map);
   $placeholder = db_placeholders($values, 'varchar');
   $query = strtolower($string);
-  
+
   $sql = "SELECT n.nid, n.title, n.type
     FROM {node} n
     INNER JOIN {node_revisions} r ON n.vid = r.vid
     WHERE n.type IN ($placeholder)
       AND n.status = 1
       AND (LOWER(n.title) LIKE '%%%s%%' OR LOWER(r.body) LIKE '%%%s%%')";
-  
+
   array_push($values, $query, $query);
   $result = db_query_range(db_rewrite_sql($sql), $values, 0, 20);
-  
+
   $matches = array();
   while ($node = db_fetch_object($result)) {
     $type = $type_map[$node->type]['name'];
     $key = sprintf('%s [type:%s, id:%d]', $node->title, $type, $node->nid);
     $matches[$key] = $key;
   }
-  
+
   drupal_json($matches);
 }
 
@@ -448,7 +448,7 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
 function quiz_admin_add_question_ahah() {
   $cached_form_state = array();
   $form_id = $_POST['form_build_id'];
-  
+
   // Make sure the form exists
   if (!($cached_form = form_get_cache($form_id, $cached_form_state))) {
     form_set_error('form_token', t('Validation error, please try again. If this error persists, please contact the site administrator.'));
@@ -456,10 +456,10 @@ function quiz_admin_add_question_ahah() {
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
-  
+
   // Just remember that $form_state is not checked, here. It's raw POST.
   $form_state = array('values' => $_POST);
-  
+
   if (!empty($form_state['values']['always_autocomplete'])) {
     $new_question = $form_state['values']['always_autocomplete'];
     $frequency = 'always';
@@ -475,11 +475,11 @@ function quiz_admin_add_question_ahah() {
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
-  
+
   $matches = array();
   $reg = '/id:([0-9]+)\]$/';
   preg_match($reg, $new_question, $matches);
-  
+
   // Modify the form to add a new entry to weights.
   if (!empty($matches[1]) && empty($cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]])) {
     $cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]] = array(
@@ -489,14 +489,14 @@ function quiz_admin_add_question_ahah() {
       '#default_value' => 0,
     );
   }
-  
+
   // Re-save the cache.
   form_set_cache($form_id, $cached_form, $cached_form_state);
-  
+
   // Because rendering a new table row is not possible from the server side, we
   // need to launch a one-time JavaScript to add the item to the table.
   $output = theme('status_messages') . '<script>Quiz.addQuestion("' . $frequency . '");</script>';
-  
+
   print drupal_to_js(array('status' => TRUE, 'data' => $output));
   exit;
 }
@@ -505,7 +505,7 @@ function quiz_admin_add_question_ahah() {
 
 /**
  * Implementation of hook_settings().
- * 
+ *
  * This builds the main settings form for the quiz module.
  */
 function quiz_admin_settings() {
@@ -516,21 +516,28 @@ function quiz_admin_settings() {
     '#default_value' => variable_get('quiz_default_close', 30),
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
   );
-   
+
   $form['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
     '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_pass_rate', 75),
     '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default.'),
   );
-   
+
   $form['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_use_passfail', 1),
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
-  
+
+  $form['quiz_email_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Email Results to user', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_email_results', 1),
+    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
+  );
+
   $form['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
@@ -540,7 +547,7 @@ function quiz_admin_settings() {
     '#maxlength' => 2,
     '#required' => FALSE,
   );
-  
+
   // Added for support of actions and allowing the user to filter the actions dropdown by a value.
   $form['quiz_action_type'] = array(
     '#type' => 'textfield',
@@ -549,14 +556,14 @@ function quiz_admin_settings() {
     '#default_value' => variable_get('quiz_action_type', 'all'),
     '#description' => t('Filter the actions dropdown by a specific type.'),
   );
-  
+
   $form['quiz_remove_partial_quiz_record'] = array(
     '#type' => 'select',
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
   );
-  
+
   $form['quiz_look_feel'] = array(
     '#type' => 'fieldset',
     '#title' => t('Look and Feel Settings'),
@@ -564,12 +571,12 @@ function quiz_admin_settings() {
     '#collapsed' => TRUE,
     '#description' => t('Control aspects of the Quiz module\'s display'),
   );
-     
+
   $form['quiz_look_feel']['quiz_name'] = array(
     '#type' => 'textfield',
     '#title' => t('Display name'),
     '#default_value' => QUIZ_NAME,
-    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>.', 
+    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>.',
       array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
@@ -581,13 +588,13 @@ function quiz_admin_settings() {
     '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
 
   );
-  
+
   return system_settings_form($form);
 }
 
 /**
   * Validation of the Form Settings form.
-  * 
+  *
   * Checks the values for the form administration form for quiz settings.
   */
 function quiz_settings_form_validate($form, &$form_state) {
@@ -607,9 +614,9 @@ function quiz_settings_form_validate($form, &$form_state) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
   }
 }
- 
+
  // DELETE QUIZ RESULTS
- 
+
  /**
   * Delete Result.
   */
@@ -630,15 +637,15 @@ function quiz_admin_result_delete_form() {
     t('Cancel')
   );
 }
- 
+
 function quiz_admin_result_delete_form_submit($form, &$form_state) {
   db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
   db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
   drupal_set_message(t('Deleted result.'));
   $form_state['redirect'] = 'admin/quiz/results';
-  $form_state['nid'] = $node->nid;  
+  $form_state['nid'] = $node->nid;
 }
- 
+
 
 
 // THEME FUNCTIONS
@@ -646,10 +653,10 @@ function quiz_admin_result_delete_form_submit($form, &$form_state) {
 
 /**
  * Theme the admin quizzes table.
- * 
+ *
  * @param $results
  *  As returned by _quiz_get_quizzes().
- * 
+ *
  * @ingroup themeable
  */
 function theme_quiz_admin_quizzes($results) {
@@ -676,15 +683,15 @@ function theme_quiz_admin_quizzes($results) {
     $output .= t('No @quizzes found.', array('@quiz' => QUIZ_NAME));
   }
   return $output;
-} 
+}
 
 
 /**
  * Theme the admin results table.
- * 
+ *
  * @param $results
  *  As returned by _quiz_get_results().
- * 
+ *
  * @ingroup themeable
  */
 function theme_quiz_admin($results) {
@@ -717,11 +724,11 @@ function theme_quiz_admin($results) {
     $output .= t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
   }
   return $output;
-} 
+}
 
 /**
  * Theme the summary page for admins.
- * 
+ *
  * @param $quiz
  *  The quiz node object.
  * @param $questions
@@ -732,13 +739,13 @@ function theme_quiz_admin($results) {
  *  Filtered text of the summary.
  * @return
  *  Themed html.
- * 
+ *
  * @ingroup themeable
  */
 function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // Set the title here so themers can adjust.
   drupal_set_title(check_plain($quiz->title));
-  
+
   if (!$score['is_evaluated']) {
     drupal_set_message('This quiz has not been scored yet.', 'error');
   }
@@ -761,23 +768,23 @@ function theme_question_selection_table($form) {
   // This is a temporary hack.
   static $table_counter = 0;
   ++$table_counter;
-  
+
   $question_types = _quiz_get_question_types();
-  
+
   //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
   drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
-  
+
   $headers = array(t('Question'), t('Type'), t('Actions'), t('Weight'));
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $nid) {
       $form['weights'][$nid]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
       $type = $form['types'][$nid]['#value'];
-      
+
       $rows[] = array(
         'class' => 'draggable',
         'data' => array(
-          drupal_render($form['titles'][$nid]), 
+          drupal_render($form['titles'][$nid]),
           $question_types[$type]['name'],
           $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
           drupal_render($form['weights'][$nid]),
@@ -785,12 +792,12 @@ function theme_question_selection_table($form) {
       );
       unset($form['types'][$nid], $form['view_links'][$nid], $form['remove_links'][$nid]);
     }
-    
+
   }
   $table = theme('table', $headers, $rows, array('id' => 'questions-order-' . $table_counter));
   return $table . drupal_render($form);
 }
- 
+
 function quiz_remove_partial_quiz_record_value() {
   $list = array();
   $list[0] = t('Never');
