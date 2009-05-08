@@ -313,7 +313,7 @@ function questions_import_submit_multichoice_aiken(&$form, &$form_state) {
       if (empty($current_line)) {
         break;
       }
-      $line[] = $current_line;
+      $line[] = check_plain($current_line);
     }
 
     // read each question and its choices and correct answer.
