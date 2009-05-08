@@ -533,7 +533,7 @@ function quiz_admin_settings() {
 
   $form['quiz_email_results'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Email Results to user', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#title' => t('Enable Sending Quiz Results to User Email ID', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_email_results', 1),
     '#description' => t('Check this to send users quiz results over email at the end of quiz.')
   );
@@ -587,6 +587,20 @@ function quiz_admin_settings() {
     '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
     '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
 
+  );
+
+  $form['quiz_look_feel']['quiz_email_results_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Configure Email subject'),
+    '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
+    '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
+  );
+
+  $form['quiz_look_feel']['quiz_email_results_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Configure Email format'),
+    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
+    '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
 
   return system_settings_form($form);

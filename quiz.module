@@ -1307,7 +1307,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   // function to export result in pdf, XML, CVS format
   // function to display results visually
   //function to send results over email
-  if ($user->uid && variable_get('quiz_email_results', 1)) { // email can be sent only for registered users
+  if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
   }
 }
@@ -1319,25 +1319,52 @@ function quiz_quiz_finished($quiz, $score, $rid) {
  */
 
 function quiz_mail($key, &$message, $params) {
+  global $user;
   list($quiz, $score, $rid) = $params;
+  $substitutions = array(
+    '!title' => $quiz->title,
+    '!sitename' => variable_get('site_name', 'Test Center'),
+    '!username' => $user->name,
+    '!title' => $quiz->title,
+    '!date' => date("F j, Y, g:i a"),
+    '!desc' => $quiz->body,
+    '!correct'=> $score['numeric_score'],
+    '!total' => $score['question_count'],
+    '!percentage' => $score['percentage_score'],
+    '!url' => url('user/quiz/' . $rid . '/userresults'),
+  );
 
   switch($key) {
     case 'notice':
-      $message['subject'] = t("!title Results Notice from !sitename", array('!title' => $quiz->title, '!sitename' => variable_get('site_name', 'Test Center')));
+      $subject = variable_get('quiz_email_results_subject', quiz_email_results_format('subject'));
+      $body = variable_get('quiz_email_results_body', quiz_email_results_format('body'));
 
-      $message['body'] = t("Dear !username \n\n", array('!username' => $quiz->name));
-      $message['body'] .= t("You have attened a !title quiz on !date \n\n", array('!title' => $quiz->title, '!date' => date("F j, Y, g:i a")));
-
-      $message['body'] .= t("Test Description : !desc \n\n", array('!desc' => $quiz->body));
-
-      $message['body'] .= t("You got !correct out of !total. Your percentage is !percentage \n\n.", array('!correct'=> $score['numeric_score'], '!total' => $score['question_count'], '!percentage' => $score['percentage_score']));
-
-      $message['body'] .= t("You can access your result in here !url\n", array('!url' => url("user/quiz/$rid/userresults", array('absolute' => TRUE))));
-      //drupal_set_message('Results has been sent to your email ID');
+      foreach ($substitutions as $key => $value) {
+        $subject = str_replace($key, $value, $subject);
+        $body = str_replace($key, $value, $body);
+       }
+      $message['subject'] = $subject;
+      $message['body'] = $body;
     break;
   }
 }
 
+/*
+ * This functions returns the default email subject and body format which will be used at the end of quiz
+ */
+
+function quiz_email_results_format($type){
+  if ($type == 'subject') {
+    return t('!title Results Notice from !sitename');
+  }
+  if ($type == 'body') {
+    return t('Dear !username ') . "\n\n" .
+      t('You have attended a !title quiz on !date') . "\n" .
+      t('Test Description : !desc') . "\n" .
+      t('You got !correct out of !total. Your percentage is !percentage') . "\n" .
+      t('You can access your result here !url') . "\n";
+  }
+}
 /**
  * Update a score for a quiz.
  *

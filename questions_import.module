@@ -380,7 +380,7 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
       $node->answers[] = array(
         'correct' => (trim($answer) == trim($option)) ? 1 : 0,
         'answer' => trim($option),
-        'feedback' => ''
+        'feedback' => '',
       );
     }
     questions_import_node_save(&$node);
