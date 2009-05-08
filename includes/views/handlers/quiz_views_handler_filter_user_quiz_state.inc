@@ -3,44 +3,67 @@
 
 class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
   var $states = array();
+  var $no_operator = TRUE; // for nicer formatting of the form
+  var $no_single = TRUE; // always only a single value, at least for now
+
   function init(&$view, $options) {
     parent::init($view, $options);
     $this->states = array(
+      'any' => t('All Results (Do not filter)'),
       'not_started' => t('Not Started'),
       'in_progress' => t('In Progress'),
       'finished' => t('Finished'),
     );
   }
 
-  function options_definition() {
+  function option_definition() {
     $options = parent::option_definition();
-    $options['quiz_state'] = array('default' => 'finished');
+    $options['value']['quiz_state'] = array('default' => 'finished');
     return $options;
   }
 
-  function options_form(&$form, &$form_state) {
-    $form['quiz_state'] = array(
+  function value_form(&$form, &$form_state) {
+    $form['value'] = array();
+    $form['value']['quiz_state'] = $this->base_form_item();
+  }
+
+  function base_form_item() {
+    return array(
       '#type' => 'radios',
-      '#description' => t('The final result set will only include quiz results in the state you select here.'),
       '#title' => t('Quiz State'),
+      '#description' => t('Output will be limited to only include quiz results in this state. If the filter is exposed, the value set here will be used as the default. Note that "Any" is only useful for exposed filters.'),
       '#options' => $this->states,
-      '#default_value' => $this->options['quiz_state'],
+      '#default_value' => !empty($this->value['quiz_state']) ? $this->value['quiz_state'] : 'any',
     );
   }
 
+  function exposed_form(&$form, &$form_state) {
+    if (empty($this->options['exposed'])) {
+      return;
+    }
+    if (!empty($this->options['expose']['identifier'])) {
+      $value = $this->options['expose']['identifier'];
+
+      $form[$value]['quiz_state'] = $this->base_form_item();
+      unset($form[$value]['quiz_state']['#title'], $form[$value]['quiz_state']['#description']);
+    }
+  }
+
   function admin_summary() {
-    return 'is ' . $this->states[$this->options['quiz_state']];
+    return 'is ' . $this->states[$this->value['quiz_state']];
   }
 
   function query() {
+    if (empty($this->value) || $this->value == 'any') {
+      return;
+    }
+    
     $this->ensure_my_table();
-    if ($this->options['quiz_state'] == 'not_started') {
+    if ($this->value == 'not_started') {
       $this->query->add_where(0, "$this->table_alias.time_end IS NULL");
     }
     else {
-      // $field = $this->query->add_field($table_alias, "time_end");
-      $operator = $this->options['quiz_state'] == 'in_progress' ? '=' : '>';
-      // $this->query->add_where(0, "$table_alias.$field $operator 0");
+      $operator = $this->value == 'in_progress' ? '=' : '>';
       $this->query->add_where(0, "$this->table_alias.time_end $operator 0");
     }
   }
