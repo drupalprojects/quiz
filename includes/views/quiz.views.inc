@@ -25,6 +25,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_field_score_aggregate' => array(
         'parent' => 'views_handler_field_numeric',
       ),
+      'quiz_views_handler_field_number_questions' => array(
+        'parent' => 'views_handler_field',
+      ),
       // Filters
       'quiz_views_handler_filter_question_status' => array(
         'parent' => 'views_handler_filter_in_operator',
@@ -420,6 +423,16 @@ function quiz_views_data() {
       ),
       'sort' => array(
         'handler' => 'views_handler_sort',
+      ),
+      'number_questions' => array(
+        'title' => t('Number of Questions'),
+        'help' => t('The number of questions assigned to the quiz.'),
+        'field' => array(
+          'handler' => 'quiz_views_handler_field_number_questions',
+        ),
+        'sort' => array(
+          'handler' => 'views_handler_sort',
+        )
       ),
     ),
   ); // End quiz_node_relationship
