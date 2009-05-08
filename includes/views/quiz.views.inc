@@ -92,10 +92,6 @@ function quiz_views_data() {
     'property_id' => array(
       'title' => t('Quiz node property ID'),
       'help' => 'The unique ID for a property.',
-//      'field' => array(
-//        'handler' => 'views_handler_field_numeric',
-//        'click sortable' => TRUE,
-//      ),
       'argument' => array(
         'handler' => 'views_handler_argument_numeric',
         //'name_field' => 'title',
@@ -195,11 +191,6 @@ function quiz_views_data() {
         'handler' => 'views_handler_field_boolean',
         'click sortable' => TRUE,
       ),
-      /*'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        'numeric' => TRUE,
-        'validate type' => 'vid',
-      ),*/
     'sort' => array('handler' => 'views_handler_sort'),
     ),
     'backwards_navigation' => array(
@@ -209,10 +200,6 @@ function quiz_views_data() {
         'handler' => 'views_handler_field_boolean',
         'click sortable' => TRUE,
       ),
-      /*'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        'numeric' => TRUE,
-      ),*/
     'sort' => array('handler' => 'views_handler_sort'),
     ),
     'feedback_time' => array(
@@ -222,10 +209,6 @@ function quiz_views_data() {
         'handler' => 'views_handler_field_boolean',
         'click sortable' => TRUE,
       ),
-      /*'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        'numeric' => TRUE,
-      ),*/
     'sort' => array('handler' => 'views_handler_sort'),
     ),
     'time_limit' => array(
@@ -252,7 +235,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_date',
         'numeric' => TRUE,
       ),
-      'sort' => array('handler' => 'views_handler_sort'),
+      'sort' => array('handler' => 'views_handler_sort_date'),
     ),
     'quiz_close' => array(
       'title' => t('Close time'),
@@ -265,7 +248,7 @@ function quiz_views_data() {
         'handler' => 'views_handler_argument_date',
         'numeric' => TRUE,
       ),
-      'sort' => array('handler' => 'views_handler_sort'),
+      'sort' => array('handler' => 'views_handler_sort_date'),
     ),
     'quiz_always' => array(
       'title' => t('Always Available'),
@@ -274,10 +257,6 @@ function quiz_views_data() {
         'handler' => 'views_handler_field_boolean',
         'click sortable' => TRUE,
       ),
-      /*'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        'numeric' => TRUE,
-      ),*/
     'sort' => array('handler' => 'views_handler_sort'),
     ),
     'takes' => array(
@@ -332,10 +311,6 @@ function quiz_views_data() {
     'parent_nid' => array(
       'title' => t('Quiz Node ID'),
       'help' => t('The node id of the quiz to which the question is attached.'),
-//      'field' => array(
-//        'handler' => 'views_handler_field_numeric',
-//        'click sortable' => TRUE,
-//      ),
       'argument' => array(
         // This'll get us the node title for the title, which may or may not be
         // preferable; that's the only difference between this handler and the
@@ -483,10 +458,6 @@ function quiz_views_data() {
       'real field' => 'vid',
       'title' => t('Quiz Node NID'),
       'help' => t('The ID of the Quiz Node.'),
-//      'field' => array(
-//        'handler' => 'views_handler_field',
-//        'click sortable' => TRUE,
-//      ),
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_quiz_nid',
         //'name_field' => 'title',
@@ -569,7 +540,7 @@ function quiz_views_data() {
         'numeric' => TRUE,
         'validate type' => 'nid',
       ),
-      'sort' => array('handler' => 'views_handler_sort'),
+      'sort' => array('handler' => 'views_handler_sort_date'),
     ),
     'time_end' => array(
       'title' => t('Quiz End Time'),
@@ -584,12 +555,8 @@ function quiz_views_data() {
         'numeric' => TRUE,
         'validate type' => 'nid',
       ),
-      'sort' => array('handler' => 'views_handler_sort'),
+      'sort' => array('handler' => 'views_handler_sort_date'),
     ),
-    //'released' => array(
-    //  'title' => t('Released'),
-    //  'help' => t('The quiz release status'),
-    //),
     'score' => array(
       'title' => t('Score'),
       'help' => t('Score on the Quiz.'),
@@ -599,9 +566,19 @@ function quiz_views_data() {
       ),
       'argument' => array(
         'handler' => 'views_handler_argument_numeric',
-        //'name_field' => 'title',
         'numeric' => TRUE,
         'validate type' => 'nid',
+      ),
+      'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    'is_invalid' => array(
+      'title' => t('Is Invalid'),
+      'help' => t('Indicates whether or not a quiz result is valid. This is a simple database boolean; the meaning of the "valid" flag should vary according to your use case.'),
+      'field' => array(
+        'handler' => 'views_handler_field_boolean',
+      ),
+      'filter' => array(
+        'handler' => 'views_handler_filter_boolean_operator',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
@@ -620,7 +597,6 @@ function quiz_views_data() {
       'field' => array(
         'handler' => 'quiz_views_handler_field_user_quiz_state',
         'click sortable' => TRUE,
-        // 'additional fields' => array('finish_time' => array('table' => 'quiz_node_results', 'field' => 'time_end')),
       ),
       'filter' => array(
         'handler' => 'quiz_views_handler_filter_user_quiz_state',
@@ -628,42 +604,5 @@ function quiz_views_data() {
       ),
     )
   ); // End quiz_node_results
-
-  $hdata['quiz_node_results_answers'] = array(
-    'table' => array(
-      'group' => t('Quiz Results'),
-      'join' => array(
-        'quiz_node_properties' => array(
-          'left table' => 'quiz_node_results',
-          'left field' => 'result_id',
-          'field' => 'result_id',
-          'type' => 'INNER',
-        ),
-      ),
-    ),
-    'result_id' => array(
-      'title' => t('Result ID'),
-      'help' => t('The ID of the result.'),
-//      'field' => array(
-//        'handler' => 'views_handler_field_numeric',
-//        'click sortable' => TRUE,
-//      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        'name_field' => 'title',
-        'numeric' => TRUE,
-        'validate type' => 'result_id', // TODO ??
-      ),
-      'sort' => array('handler' => 'views_handler_sort'),
-    ),
-    'nid' => array(),
-    'vid' => array(),
-    'uid' => array(),
-    'time_start' => array(),
-    'time_end' => array(),
-    'released' => array(),
-    'score' => array(),
-  ); // End quiz_node_results_answers
-
   return $data;
 }
