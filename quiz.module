@@ -1333,7 +1333,7 @@ function quiz_mail($key, &$message, $params) {
       $message['body'] .= t("You got !correct out of !total. Your percentage is !percentage \n\n.", array('!correct'=> $score['numeric_score'], '!total' => $score['question_count'], '!percentage' => $score['percentage_score']));
 
       $message['body'] .= t("You can access your result in here !url\n", array('!url' => url("user/quiz/$rid/userresults", array('absolute' => TRUE))));
-      drupal_set_message('Results has been sent to your email ID');
+      //drupal_set_message('Results has been sent to your email ID');
     break;
   }
 }

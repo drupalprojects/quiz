@@ -343,23 +343,7 @@ function questions_import_submit_multichoice_aiken(&$form, &$form_state) {
         'feedback' => '', //No feedback option as of now
       );
     }
-    $node->uid = $user->uid;
-    $node->name = $user->name;
-    $node->promote = 0;
-    $node->sticky = 0;
-    $node->status = 1;
-    $node->comment = 0;
-    $node->moderate = 0;
-    $node->multiple_answers = 0;
-    $node->more = 0;
-    $node->validate = 1;
-    $node->is_new = 1;
-    $node->format = 1;
-    $node->scored_quiz = 1;
-    $node->revision = 1;
-    $node->op = t('Save');
-    $node->preview = t('Preview');
-    node_save($node);
+    questions_import_node_save(&$node);
     ++$row;
   }
   return $row;
@@ -389,7 +373,6 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
     $question = array_shift($line);
     $answer = array_pop($line);
     $options = $line;
-    ++$row;
     $node->title = $node->body = $node->teaser = trim($question);
     $node->num_answers = count($options);
     $node->answers = array();
@@ -400,6 +383,14 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
         'feedback' => ''
       );
     }
+    questions_import_node_save(&$node);
+    ++$row;
+  }
+  return $row;
+}
+
+function questions_import_node_save(&$node) {
+    global $user;
     $node->uid = $user->uid;
     $node->name = $user->name;
     $node->promote = 0;
@@ -417,8 +408,6 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
     $node->op = t('Save');
     $node->preview = t('Preview');
     node_save($node);
-  }
-  return $row;
 }
 
 function question_import_validate_extensions($file, $extensions){
