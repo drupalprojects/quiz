@@ -510,35 +510,44 @@ function quiz_admin_add_question_ahah() {
  */
 function quiz_admin_settings() {
   $form = array();
-  $form['quiz_default_close'] = array(
+
+  $form['quiz_global_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Quiz Global Configuration'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Control aspects of the Quiz module\'s display'),
+  );
+
+  $form['quiz_global_settings']['quiz_default_close'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_close', 30),
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
   );
 
-  $form['quiz_default_pass_rate'] = array(
+  $form['quiz_global_settings']['quiz_default_pass_rate'] = array(
     '#type' => 'textfield',
     '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_pass_rate', 75),
     '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default.'),
   );
 
-  $form['quiz_use_passfail'] = array(
+  $form['quiz_global_settings']['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_use_passfail', 1),
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['quiz_email_results'] = array(
+  $form['quiz_global_settings']['quiz_email_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable Sending Quiz Results to User Email ID', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_email_results', 1),
     '#description' => t('Check this to send users quiz results over email at the end of quiz.')
   );
 
-  $form['quiz_max_result_options'] = array(
+  $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
     '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
@@ -549,7 +558,7 @@ function quiz_admin_settings() {
   );
 
   // Added for support of actions and allowing the user to filter the actions dropdown by a value.
-  $form['quiz_action_type'] = array(
+  $form['quiz_global_settings']['quiz_action_type'] = array(
     '#type' => 'textfield',
     '#title' => t('Default actions type'),
     '#size' => 25,
@@ -557,7 +566,7 @@ function quiz_admin_settings() {
     '#description' => t('Filter the actions dropdown by a specific type.'),
   );
 
-  $form['quiz_remove_partial_quiz_record'] = array(
+  $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
     '#type' => 'select',
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),

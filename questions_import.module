@@ -232,7 +232,7 @@ function questions_import_validate_multichoice_aiken($file, $separator) {
 
     // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
     foreach ($line as $l) {
-    // yet to add validation code
+    // yet to add more validation code
     }
     ++$row;
   }
@@ -262,18 +262,27 @@ function questions_import_validate_multichoice_csv($file, $separator) {
       /* a line should have minmum of four fields i.e
        * question, option1, option2, correct option
        * or maximum of 6 fields where additional two options will be option3 and option4 */
-      if ($field_count < 4 || $field_count > 6)
+      if ($field_count < 4)
         $error_msg .= '<p>' . t('line : ') . $row . ' '. $line . ' </p>';
     }
   }
-  $error_msg .= !empty($error_msg) ? '<p>' . t('CVS Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
+  $error_msg .= !empty($error_msg) ? '<p>' . t('CSV Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
   return $error_msg;
 }
+
+/*
+ * Returns formatted microtime.
+ */
 
 function questions_import_get_microtime() {
   list($usec, $sec) = explode(" ", microtime());
   return ((float)$usec + (float)$sec);
 }
+
+/*
+ * This is a generic questions import submit calls specific import function like questions_import_submit_multichoice_csv, questions_import_submit_multichoice_aiken
+ *
+ */
 
 function questions_import_form_submit(&$form, &$form_state) {
   $time = 0;
@@ -295,7 +304,13 @@ function questions_import_form_submit(&$form, &$form_state) {
 
   drupal_set_message(t('@count Questions were imported successfully in @time seconds', array('@count' => $count, '@time' => $time)));
   drupal_goto('node/' . $quiz_nid . '/questions');
+  return $count;
 }
+
+/* This function imports multichoice questions from Moodle Aiken format file.
+ * @return
+ * Return the number of questions successfully imported.
+ */
 
 function questions_import_submit_multichoice_aiken(&$form, &$form_state) {
   global $user;
@@ -343,11 +358,18 @@ function questions_import_submit_multichoice_aiken(&$form, &$form_state) {
         'feedback' => '', //No feedback option as of now
       );
     }
-    questions_import_node_save(&$node);
+    //node_save(questions_import_node_save_static_data(&$node));
     ++$row;
+    $output .= node_view(questions_import_node_save_static_data(&$node));
   }
-  return $row;
+  return $output;
+  //return $row;
 }
+
+/* This function imports multichoice questions from CSV file.
+ * @return
+ * Return the number of questions successfully imported.
+ */
 
 function questions_import_submit_multichoice_csv(&$form, &$form_state) {
   global $user;
@@ -359,7 +381,6 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
   //creates drupal file object
   $lines = file($file->filepath);
   $separator = $form_state['values']['field_separator'];
-  //print_r($lines);exit;
   foreach ($lines as $line) {
     $line = check_plain(trim($line));
     if (empty($line)) {
@@ -383,13 +404,19 @@ function questions_import_submit_multichoice_csv(&$form, &$form_state) {
         'feedback' => '',
       );
     }
-    questions_import_node_save(&$node);
+    node_save(questions_import_node_save_static_data(&$node));
     ++$row;
   }
   return $row;
 }
 
-function questions_import_node_save(&$node) {
+/*
+ * This function sets the static data pertaining to $node object
+ * @return
+ * Return a node object
+ */
+
+function questions_import_node_save_static_data(&$node) {
     global $user;
     $node->uid = $user->uid;
     $node->name = $user->name;
@@ -407,13 +434,18 @@ function questions_import_node_save(&$node) {
     $node->revision = 1;
     $node->op = t('Save');
     $node->preview = t('Preview');
-    node_save($node);
+    return $node;
 }
+
+/*
+ * Checks the extension of import file.
+ * @return
+ * Return error message if the import file extension is not in $extensions array.
+ */
 
 function question_import_validate_extensions($file, $extensions){
   global $user;
   $errors = '';
-
   // Bypass validation for uid  = 1.
   //if ($user->uid != 1) {
     $regex = '/\.('. ereg_replace(' +', '|', preg_quote($extensions)) .')$/i';
@@ -426,17 +458,20 @@ function question_import_validate_extensions($file, $extensions){
 }
 
 
+/*
+ * Checks the size of import file.
+ * @return
+ * Return error message if file size exceed maximum file size or disk quota of user.
+ */
+
 function question_import_validate_size($file, $file_limit = 0, $user_limit = 0) {
   global $user;
-
   $errors = '';
-
   // Bypass validation for uid  = 1.
   //if ($user->uid != 1) {
     if ($file_limit && $file->filesize > $file_limit) {
       $errors = '<p>' . t('The file is %filesize exceeding the maximum file size of %maxsize.', array('%filesize' => format_size($file->filesize), '%maxsize' => format_size($file_limit))) . '</p>';
     }
-
     $total_size = file_space_used($user->uid) + $file->filesize;
     if ($user_limit && $total_size > $user_limit) {
       $errors = '<p>' . t('The file is %filesize which would exceed your disk quota of %quota.', array('%filesize' => format_size($file->filesize), '%quota' => format_size($user_limit))) . '</p>';
