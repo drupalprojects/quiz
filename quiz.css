@@ -54,7 +54,7 @@ td.quiz_summary_qcell table td {
   font-weight: bold;
 }
 .quiz_summary_text {
-  
+
 }
 div.multichoice_answer_correct {
   padding: 5px;
@@ -63,4 +63,9 @@ div.multichoice_answer_correct {
 div.multichoice_answer_incorrect {
   padding: 5px;
   border: 1px solid red;
+}
+
+.add-questions {
+  background: transparent url(images/add.png) no-repeat scroll 0% 10%;
+  padding: 0 0 1em 2em;
 }
