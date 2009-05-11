@@ -6,29 +6,47 @@
  * Quiz install schema for installing the quiz module
  *
  */
- 
-function quiz_update_6304() {
+
+/**
+ * Implementation of hook_update_N().
+ *  Adding new field to integrate quiz node and userpoints modules
+ */
+
+function quiz_update_6305() {
   $result = array();
-  db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
-  
+
+  db_add_field($result, 'quiz_node_properties', 'has_userpoints', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+
   return $result;
 }
 
 /**
- * Implementation of hook_update_N(). 
+ * Implementation of hook_update_N().
+ *
+ */
+
+function quiz_update_6304() {
+  $result = array();
+  db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
+
+  return $result;
+}
+
+/**
+ * Implementation of hook_update_N().
  * Add new field for invalidating entire quizzes. Use it on those mean cheaters.
  */
 function quiz_update_6303() {
   $result = array();
-  
+
   // Add a field that allows an admin to mark a quiz as invalid.
   db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  
+
   return $result;
 }
 
 /**
- * Implementation of hook_update_N(). 
+ * Implementation of hook_update_N().
  * Add and rearrange indexes across several of the tables.
  */
 function quiz_update_6302() {
@@ -36,16 +54,16 @@ function quiz_update_6302() {
   db_add_index($result, 'quiz_node_result_options', 'quiz_id', array('vid, nid'));
   db_add_index($result, 'quiz_node_properties', 'quiz_id', array('vid, nid'));
   db_add_index($result, 'quiz_node_results', 'user_results', array('uid', 'vid', 'nid'));
-  
+
   return $result;
 }
 /**
- * Implementation of hook_update_N(). 
+ * Implementation of hook_update_N().
  * Add is_skipped column to quiz answer field. This allows questions to be skipped.
  */
 function quiz_update_6301() {
   $result = array();
-  
+
   // Do this:
   //'is_skipped' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
   db_add_field($result, 'quiz_node_results_answers', 'is_skipped', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
@@ -225,8 +243,8 @@ function quiz_schema() {
         'default' => 1,
       ),
       'weight' => array(
-        'type' => 'int', 
-        'not null' => TRUE, 
+        'type' => 'int',
+        'not null' => TRUE,
         'default' => 0
       ),
     ),
@@ -310,10 +328,10 @@ function quiz_schema() {
         'default' => 0,
       ),
       'is_invalid' => array(
-        'type' => 'int', 
-        'size' => 'tiny', 
-        'unsigned' => TRUE, 
-        'not null' => TRUE, 
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
         'default' => 0
       ),
     ),

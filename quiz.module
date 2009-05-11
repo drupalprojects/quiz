@@ -397,9 +397,9 @@ function quiz_insert($node) {
 
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, shuffle,
-      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid)
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $tid);
+      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints)
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d)";
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid);
   _quiz_insert_resultoptions($node);
 }
 
@@ -436,12 +436,13 @@ function quiz_update($node) {
         summary_default = '%s',
         quiz_always = %d,
         feedback_time = %d,
-        number_of_random_questions = %d
+        number_of_random_questions = %d,
+        has_userpoints = %d
       WHERE vid = %d
         AND nid = %d";
     $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
-      $node->feedback_time, $node->number_of_random_questions,
+      $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints,
       $node->vid, $node->nid);
 
     // if (db_affected_rows($resource) == 0) {
@@ -479,6 +480,7 @@ function _quiz_get_node_defaults() {
     'time_limit' => 0,
     'quiz_always' => 0,
     'tid' => 0,
+    'has_userpoints' => 0,
   );
 }
 
@@ -642,29 +644,32 @@ function quiz_form(&$node) {
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['timer'] = array(
+  $form['addons'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Timed Quiz'),
-    '#description' => t('Quizzes can have time limits placed upon them. In such cases, a quiz must be completed, from start to finish, in the given time limit.'),
+    '#title' => t('Quiz Addons Properties'),
+    '#description' => t('Configure Quiz  !url and their Properties', array('!url' => l(t('Addons'), 'admin/quiz/settings'))),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
-  //if (!function_exists('jquery_countdown_add')) {
-    $form['timer']['warning'] = array(
-      '#type' => 'markup',
-      '#value' => '<p><strong>' .
-        t('For the timer to be displayed on the user\'s page, you will need to install the !link module.
-        Without this timer, the user will not know how long he or she has to complete the quiz.', array('!link' => l('JQuery Countdown', 'http://drupal.org/project/jquery_countdown')))
-        . '</strong></p>',
-    );
-  //}
 
-  $form['timer']['time_limit'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Time Limit'),
-    '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
-    '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
+
+  if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
+    $form['addons']['time_limit'] = array(
+      '#type' => 'textfield',
+      '#title' => t(' Time Limit'),
+      '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
+      '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
   );
+  }
+
+  if (module_exists('userpoints') && variable_get('quiz_has_userpoints', 0)) {
+    $form['addons']['has_userpoints'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
+      '#title' => t('Enable UserPoints Module Integration'),
+      '#description' => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
+    );
+  }
 
   // Quiz summary options.
   $form['summaryoptions'] = array(
@@ -1141,7 +1146,7 @@ function quiz_take_quiz($quiz) {
       }
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
 
-      if (function_exists('jquery_countdown_add')) {
+      if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
         jquery_countdown_add(".countdown", array("until" => $time, "onExpiry" => "finished"));
         drupal_add_js('function finished() { alert("time up!") }', 'inline');
       }
@@ -1306,11 +1311,28 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   // function to export results to grade book will be added later
   // function to export result in pdf, XML, CVS format
   // function to display results visually
+
   //function to send results over email
   if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
   }
+
+  //calls userpoints functions to credit user point based on number of correct answers
+  //print_r($quiz);exit;
+  if($quiz->has_userpoints) {
+    $variables = array(
+      '@title' => $quiz->title,
+      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
+      '@time' => date('l jS \of F Y h:i:s A'),
+    );
+    $params = array(
+      'points' => $score['numeric_score'],
+      'description' => t('Attened @title @quiz on @time', $variables),
+    );
+    userpoints_userpointsapi($params);
+  }
 }
+
 
 /*
  *

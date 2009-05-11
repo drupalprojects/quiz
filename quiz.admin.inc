@@ -513,7 +513,7 @@ function quiz_admin_settings() {
 
   $form['quiz_global_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Quiz Global Configuration'),
+    '#title' => t('Global Configuration'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#description' => t('Control aspects of the Quiz module\'s display'),
@@ -547,6 +547,8 @@ function quiz_admin_settings() {
     '#description' => t('Check this to send users quiz results over email at the end of quiz.')
   );
 
+
+
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
@@ -571,6 +573,44 @@ function quiz_admin_settings() {
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
+  );
+
+  $target = array(
+    'attributes' => array(
+      'target' => '_blank'
+    ),
+  );
+
+  $links = array(
+    '!views' => l(t('Views'), 'http://drupal.org/project/views', $target),
+    '!cck' => l(t('CCK'), 'http://drupal.org/project/cck', $target),
+    '!jquery_countdown' => l(t('JQuery Countdown'), 'http://drupal.org/project/jquery_countdown', $target),
+    '!userpoints' => l(t('UserPoints'), 'http://drupal.org/project/userpoints', $target),
+    '@quiz' => QUIZ_NAME,
+  );
+
+  $form['quiz_addons'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Addons Configuration'),
+    '#description' => t('Quiz module can integrate with other d.o modules like !views, !cck, !userpoints, !jquery_countdown. Here you can configure the way quiz module integrates to other modules. Disabled checkbox indicates modules are not enabled/installed', $links),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['quiz_addons']['quiz_has_userpoints'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable UserPoints Module Integration'),
+    '#default_value' => variable_get('quiz_has_userpoints', 0),
+    '#description' => t('!userpoints an *optional* module for quiz, provides way for users to gain or lose points for performing certain actions on your site like attending @quiz.  you will need to install the !userpoints module to use this feature.', $links),
+    '#disabled' => !module_exists('userpoints'),
+  );
+
+  $form['quiz_addons']['quiz_has_timer'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display Timer of Timed Quiz'),
+    '#default_value' => variable_get('quiz_has_timer', 0),
+    '#description' => t('!jquery_countdown an *optional* module for quiz used for the timer to be displayed on the user\'s page, you will need to install the !jquery_countdown module. Without this timer, the user will not know how long he or she has to complete the @quiz', $links),
+    '#disabled' => !function_exists('jquery_countdown_add'),
   );
 
   $form['quiz_look_feel'] = array(
