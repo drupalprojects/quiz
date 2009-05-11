@@ -206,6 +206,15 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
 }
 
 /**
+ * Implementation of hook_perm().
+ */
+function long_answer_perm() {
+  return array(
+    'score long answer',
+  );
+}
+
+/**
  * Given a quiz, return a list of all of the unscored answers.
  * 
  * @param $nid
