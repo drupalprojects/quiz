@@ -5,5 +5,6 @@ description = This module allows you to import questions to quiz node in CSV for
 dependencies[] = quiz
 dependencies[] = multichoice
 dependencies[] = quiz_question
+dependencies[] = querypath
 core = 6.x
 php = 5

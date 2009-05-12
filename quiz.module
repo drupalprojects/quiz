@@ -693,7 +693,7 @@ function quiz_form(&$node) {
     );
     $form['summaryoptions']['summary_pass'] = array(
       '#type' => 'textarea',
-      '#title' => t('Summary text if passed.'),
+      '#title' => t('Summary text if passed'),
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
       '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
@@ -709,7 +709,7 @@ function quiz_form(&$node) {
   }
   $form['summaryoptions']['summary_default'] = array(
     '#type' => 'textarea',
-    '#title' => t('Default summary text.'),
+    '#title' => t('Default summary text'),
     '#default_value' => $node->summary_default,
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
@@ -798,8 +798,10 @@ function quiz_validate($node) {
     form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
   }
 
-  if ($node->time_limit < 0 || !is_numeric($node->time_limit)) {
-    form_set_error('time_limit', t('Time limit must be a non negative interger '));
+  if (isset($node->time_limit)) {
+    if ($node->time_limit < 0 || !is_numeric($node->time_limit)) {
+      form_set_error('time_limit', t('Time limit must be a non negative interger '));
+    }
   }
 
   $taken_values = array();
