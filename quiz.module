@@ -1143,7 +1143,7 @@ function quiz_take_quiz($quiz) {
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
       if ($_SESSION['quiz_'. $quiz->nid]['question_duration'] < -10) {
         unset($_SESSION['quiz_'. $quiz->nid]);
-        drupal_set_message('You have left this quiz partically');
+        drupal_set_message('You have left this quiz partially complete.');
         return ;
       }
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
@@ -1536,15 +1536,16 @@ function quiz_start_actions($quiz) {
 
     // The user has already taken this quiz (nid/vid combo).
     if ($taken) {
+      if ($user_is_admin) {
+        drupal_set_message('You have taken this quiz already. Since you have "create quiz" permissions, you can take this quiz as many times as you would like.', 'status');
+      }
       // If the user has already taken this quiz too many times, stop the user.
-      if ($taken >= $quiz->takes) {
+      elseif ($taken >= $quiz->takes) {
         drupal_set_message(t('You have already taken this quiz @really. You may not take it again.', array('@really' => $taken_times)), 'error');
-        if (!$user_is_admin) {
-          return FALSE;
-        }
+        return FALSE;
       }
       // If the user has taken the quiz more than once, see if we should report this.
-      else if (variable_get('quiz_show_allowed_times', TRUE)) {
+      elseif (variable_get('quiz_show_allowed_times', TRUE)) {
         drupal_set_message(t("You can only take this quiz @allowed. You have taken it @really.", array('@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
       }
     }
