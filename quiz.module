@@ -1511,7 +1511,7 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_actions($quiz) {
   global $user;
 
-  $user_is_admin = user_access('create quiz');
+  $user_is_admin = user_access('administer quiz') || user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
@@ -1519,8 +1519,11 @@ function quiz_start_actions($quiz) {
     $now = gmmktime();
 
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-      drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
-      if (!$user_is_admin) {
+      if ($user_is_admin) {
+        drupal_set_message(t('You are marked as an administrator or owner for this quiz. While you can take this quiz, the open/close times prohibit other users from taking this quiz.'), 'status');
+      }
+      else {
+        drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
         // Can't take quiz.
         return FALSE;
       }
@@ -1538,7 +1541,7 @@ function quiz_start_actions($quiz) {
     if ($taken) {
       if ($user_is_admin) {
         
-        drupal_set_message('You have taken this quiz already. Since you have "create quiz" permissions, you can take this quiz as many times as you would like.', 'status');
+        drupal_set_message('You have taken this quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', 'status');
       }
       // If the user has already taken this quiz too many times, stop the user.
       elseif ($taken >= $quiz->takes) {
