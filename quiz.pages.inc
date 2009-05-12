@@ -14,8 +14,8 @@ function quiz_user_results($result_id) {
   
   $sql = 'SELECT qnp.nid, qnrs.uid 
     FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs 
-    WHERE qnrs.nid = qnp.nid AND qnrs.result_id = %d';
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    WHERE qnrs.result_id = %d';
   $result = db_fetch_object(db_query( $sql, $result_id));
   if ($result->nid) {
     
@@ -50,13 +50,10 @@ function quiz_get_user_results($user_id) {
     $results = array();
     $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
       FROM {node} n 
-      INNER JOIN {quiz_node_properties} qnp
-      INNER JOIN {quiz_node_results} qnrs
-      INNER JOIN {users} u
+      INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
+      INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+      INNER JOIN {users} u ON u.uid = qnrs.uid
       WHERE n.type = 'quiz'
-        AND n.nid = qnp.nid
-        AND qnrs.nid = qnp.nid
-        AND u.uid = qnrs.uid
         AND u.uid = %d
       ORDER BY qnrs.result_id ASC";
     
