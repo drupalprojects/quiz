@@ -607,7 +607,7 @@ function quiz_admin_settings() {
 
   $form['quiz_addons']['quiz_has_timer'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display Timer of Timed Quiz'),
+    '#title' => t('Display Timer for Timed Quiz'),
     '#default_value' => variable_get('quiz_has_timer', 0),
     '#description' => t('!jquery_countdown an *optional* module for quiz used for the timer to be displayed on the user\'s page, you will need to install the !jquery_countdown module. Without this timer, the user will not know how long he or she has to complete the @quiz', $links),
     '#disabled' => !function_exists('jquery_countdown_add'),
