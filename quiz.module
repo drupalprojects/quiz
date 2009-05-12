@@ -1537,6 +1537,7 @@ function quiz_start_actions($quiz) {
     // The user has already taken this quiz (nid/vid combo).
     if ($taken) {
       if ($user_is_admin) {
+        
         drupal_set_message('You have taken this quiz already. Since you have "create quiz" permissions, you can take this quiz as many times as you would like.', 'status');
       }
       // If the user has already taken this quiz too many times, stop the user.
