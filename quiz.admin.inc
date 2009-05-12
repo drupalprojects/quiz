@@ -763,7 +763,7 @@ function theme_quiz_admin($results) {
 
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l('view', 'admin/quiz/'. $result['result_id'] .'/results') .' | '. l('delete', 'admin/quiz/'. $result['result_id'] .'/delete'),
+      l(t('View'), 'admin/quiz/reports/' . $result['result_id'] . '/results') . ' | ' . l(t('Delete'), 'admin/quiz/' . $result['result_id'] . '/delete'),
       check_plain($result['title']),
       check_plain($result['name']),
       $result['result_id'],
