@@ -725,7 +725,7 @@ function multichoice_render_question_form($context, $node) {
     }
   }
 
-  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format));
+  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format, FALSE));
 
   // Create form.
   $form['tries'] = array(
