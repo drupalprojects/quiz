@@ -1410,6 +1410,8 @@ function quiz_email_results_format($type){
 function quiz_update_total_score($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
   db_query('UPDATE {quiz_node_results} SET score = %d WHERE result_id = %d', $score['percentage_score'], $rid);
+  // Call hook_quiz_scored().
+  module_invoke_all('quiz_scored', $quiz, $score, $rid);
   return $score['percentage_score'];
 }
 
