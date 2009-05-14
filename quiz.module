@@ -1082,6 +1082,7 @@ function quiz_take_quiz($quiz) {
       // Call hook_evaluate_question().
       $types = _quiz_get_question_types();
       $module = $types[$former_question->type]['module'];
+      //drupal_set_message($module . ' evaluate_question called');
       $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
       quiz_store_question_result($result, array('set_msg' => TRUE));
 
@@ -1542,7 +1543,7 @@ function quiz_start_actions($quiz) {
     // The user has already taken this quiz (nid/vid combo).
     if ($taken) {
       if ($user_is_admin) {
-        
+
         drupal_set_message('You have taken this quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', 'status');
       }
       // If the user has already taken this quiz too many times, stop the user.

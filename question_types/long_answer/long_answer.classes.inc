@@ -12,31 +12,31 @@
  * Implementation of QuizQuestion.
  */
 class LongAnswerQuestion implements QuizQuestion {
-  
+
   /**
    * The current node for this question.
    */
   protected $node = NULL;
-  
+
   public function __construct($node) {
     $this->node = $node;
   }
-  
+
   public function save($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-    
+
     if ($is_new || $this->node->revision == 1) {
       $sql = 'INSERT INTO {quiz_long_answer_node_properties} (nid, vid, maximum_score) VALUES (%d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score);
-    } 
+    }
     else {
       $sql = 'UPDATE {quiz_long_answer_node_properties} SET maximum_score = %d WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->maximum_score, $this->node->nid, $this->node->vid);
     }
   }
-  
+
   public function validate($node, &$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
     $maximum_score = $node->maximum_score;
@@ -53,21 +53,22 @@ class LongAnswerQuestion implements QuizQuestion {
       db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->node->nid);
     }
   }
-  
+
   public function load() {
     $sql = 'SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d';
     return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
   }
-  
+
   public function view() {
     return $this->getQuestionForm($this->node);
   }
-  
-  // This is called whenever a question is rendered, either 
+
+  // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
+    //print_r($node);exit;
     $form['question'] = array(
-       '#type' => 'markup', 
+       '#type' => 'markup',
        '#value' => $node->body
      );
      $form['tries'] = array(
@@ -106,10 +107,10 @@ class LongAnswerQuestion implements QuizQuestion {
 }
 
 class LongAnswerResponse extends AbstractQuizQuestionResponse {
-  
+
   /**
    * Get all quiz scores that have not yet been evaluated.
-   * 
+   *
    * @param $count
    *  Number of items to return (default: 50).
    * @param $offset
@@ -120,9 +121,9 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
-      FROM {quiz_long_answer_user_answers} AS a 
+      FROM {quiz_long_answer_user_answers} AS a
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
-      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id 
+      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
       WHERE is_evaluated = 0';
     $results = db_query_range($sql, $offset, $count);
     $unscored = array();
@@ -137,10 +138,10 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   }
   /**
    * Given a quiz, return a list of all of the unscored answers.
-   * 
+   *
    * @param $nid
    *  Node ID for the quiz to check.
-   * @param $vid 
+   * @param $vid
    *  Version ID for the quiz to check.
    * @param $count
    *  Number of items to return (default: 50).
@@ -158,19 +159,19 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     }
     return $unscored;
   }
-  
+
   /**
    * ID of the answer.
    */
   protected $answer_id = 0;
-  
+
   public function __construct($rid, $question, $answer = NULL) {
     $this->rid = $rid;
     $this->question = $question;
-    
+
     if (!isset($answer)) {
-      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id 
-        FROM {quiz_long_answer_user_answers} 
+      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+        FROM {quiz_long_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
       $r = db_fetch_object(db_query($sql, $question->nid, $question->vid, $rid));
 
@@ -185,35 +186,39 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       $this->answer = $answer;
     }
   }
-  
+
   public function save() {
     $sql = "INSERT INTO {quiz_long_answer_user_answers} (answer, question_nid, question_vid, result_id) VALUES ('%s', %d, %d, %d)";
     db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
+
   public function delete() {
     $sql = 'DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
+
   public function score() {
     $sql = "SELECT score FROM {quiz_long_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
     $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
     $this->score = $score;
     return $score;
   }
+
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-    
+
     return (($actual / $possible) * 100 > 50);
   }
+
   public function getResponse() {
     return $this->answer;
   }
-  
+
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. 
+
+    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body) .
       '</div>';
 
@@ -235,8 +240,8 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
 
       }
       else {
-        $result .= t('This answer has not yet been scored.') . 
-          '<br/>' . 
+        $result .= t('This answer has not yet been scored.') .
+          '<br/>' .
           t('Until the answer is scored, the total score will not be correct.');
       }
 

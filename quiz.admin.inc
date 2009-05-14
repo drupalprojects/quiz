@@ -704,8 +704,9 @@ function quiz_admin_result_delete_form() {
 function quiz_admin_result_delete_form_submit($form, &$form_state) {
   db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
   db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
-  drupal_set_message(t('Deleted result.'));
-  $form_state['redirect'] = 'admin/quiz/results';
+  drupal_set_message(t('Result.'));
+  //$form_state['redirect'] = 'admin/quiz/results';
+  $form_state['redirect'] = 'admin/quiz/reports/results';
   $form_state['nid'] = $node->nid;
 }
 
