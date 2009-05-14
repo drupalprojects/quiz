@@ -109,10 +109,20 @@ class MatchingQuestion implements QuizQuestion {
       $form['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $question['question'],
-        '#options' => $select_option,
+        '#options' => $this->customShuffle($select_option),
       );
     }
     return $form;
+  }
+
+  public function customShuffle($array = array()) {
+    $new_array = array();
+    while (count($array)) {
+      $element = array_rand($array);
+      $new_array[$element] = $array[$element];
+      unset($array[$element]);
+    }
+    return $new_array;
   }
 
   public function getQuestion($node) {
