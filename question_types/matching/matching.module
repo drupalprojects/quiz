@@ -34,6 +34,21 @@ function matching_help($path, $args) {
 }
 
 /**
+ * Implementation of hook_menu().
+ */
+function matching_menu() {
+  $items['admin/quiz/matching'] = array(
+    'title' => t('Matching configuration'),
+    'description' => t('Configure Matching questions for users.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('matching_admin_settings_form'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
  * Implementation of hook_quiz_question_info().
  */
 function matching_quiz_question_info() {
@@ -83,3 +98,18 @@ function matching_list_questions() {
   return array();
 }
 */
+
+/**
+ * Admin settings form. *
+ */
+
+function matching_admin_settings_form() {
+  $form['quiz_matching_form_size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default Number of Answers'),
+    '#default_value' => variable_get('quiz_matching_form_size', 5),
+    '#description' => t('The default number of answers to display when creating a question.'),
+    '#required' => TRUE,
+  );
+  return system_settings_form($form);
+}
