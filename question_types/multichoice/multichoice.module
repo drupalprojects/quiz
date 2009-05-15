@@ -256,7 +256,7 @@ function multichoice_form(&$node) {
     // This is not a scored quiz, therefore no correct answers
     // so creator must assign answers to result options.
     //if ($is_personality) {
-    if (isset($quiz_id) && $quiz->pass_rate == 0) {
+    if (isset($quiz_id) && isset($quiz->pass_rate) && $quiz->pass_rate == 0) {
       if (empty($result_options)) {
         $result_options = array(0 => 'None');
         if (is_array($quiz->resultoptions)) {
