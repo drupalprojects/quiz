@@ -108,7 +108,7 @@ function matching_admin_settings_form() {
     '#type' => 'textfield',
     '#title' => t('Default Number of Answers'),
     '#default_value' => variable_get('quiz_matching_form_size', 5),
-    '#description' => t('The default number of answers to display when creating a question.'),
+    '#description' => t('The default number of answers to display when creating a question. CHOOSING A LESSER VALUE WILL BREAK ALREADY CREATED QUESTIONS.'),
     '#required' => TRUE,
   );
   return system_settings_form($form);
