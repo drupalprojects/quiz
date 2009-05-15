@@ -277,10 +277,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
     $results = db_query("SELECT match_id, answer FROM {quiz_matching_user_answers} WHERE result_id = %d", $this->rid);
     while($result = db_fetch_object($results)) {
-      $user_answers[$result->match_id] = array(
-        'match_id' => $result->match_id,
-        'answer' => $result->answer
-      );
+      $user_answers[$result->match_id] = $result->answer;
     }
     return $user_answers;
   }
@@ -307,9 +304,11 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     //$correct_answers = $this->question
     $user_answers = $this->getUserAnswers();
 
+    //print_r($correct_answers);
+    //print_r($user_answers);
+    //exit;
     foreach ($correct_answers as $correct_answer) {
-      $id = $user_answers[$correct_answer['match_id']]['match_id'];
-
+      $id = $user_answers[$correct_answer['match_id']];
       $rows[] = array(
         'match' => $correct_answer['question'],
         'correct_answer' => $correct_answer['answer'],
