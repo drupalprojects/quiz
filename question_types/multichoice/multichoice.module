@@ -322,7 +322,7 @@ function multichoice_form(&$node) {
   if (user_access('allow any number of answers')) {
     $form['more'] = array(
       '#type' => 'checkbox',
-      '#title' => t('I need more answers'),
+      '#title' => t('I need more answers (click "Preview" to generate more fields)'),
     );
   }
 
