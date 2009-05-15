@@ -111,23 +111,24 @@ class TrueFalseQuestion implements QuizQuestion {
         1 => t('True'),
         0 => t('False'),
       ),
-      '#default_value' => isset($node->correct_answer) ? $node->correct_answer : 1,
+      '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
       '#required' => TRUE,
     );
-    $form['fiedback_fields'] = array(
+    $form['feedback_fields'] = array(
       '#type' => 'fieldset',
       '#title' => t('Feedback Settings'),
       '#description' => t('Settings pertaining to feedback given along with results.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
-    $form['fiedback_fields']['feedback'] = array(
+    $form['feedback_fields']['feedback'] = array(
       '#type' => 'textarea',
       '#title' => t('Feedback Text'),
       '#description' => t('Text to be displayed when the results are displayed'),
       '#rows' => 5,
       '#cols' => 60,
       '#required' => FALSE,
+      '#default_value' => isset($this->node->feedback) ? $this->node->feedback : '',
     );
 
     return $form;
