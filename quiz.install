@@ -11,7 +11,6 @@
  * Implementation of hook_update_N().
  *  Adding new field to integrate quiz node and userpoints modules
  */
-
 function quiz_update_6305() {
   $result = array();
 
@@ -195,6 +194,13 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'has_userpoints' => array(
+        'type' => 'int', 
+        'size' => 'tiny', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+        'default' => 0
       ),
     ),
     'primary key' => array('property_id'),
