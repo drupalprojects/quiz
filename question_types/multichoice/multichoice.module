@@ -576,6 +576,7 @@ function multichoice_update($node) {
   }
   // Use foreach on small lists...
   //while (list($key, $value) = each($node->answers)) {
+  //print_r($node->answers);exit;
   foreach ($node->answers as $key => $value) {
     // Avoid E_NOTICE messages by assigning default
     // values.

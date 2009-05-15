@@ -30,16 +30,12 @@ class MatchingQuestion implements QuizQuestion {
 
   public function save($is_new = FALSE) {
 
-    //print_r($this->node);
     for($i = 1; $i <= variable_get('quiz_matching_form_size', 5); $i++) {
       //$foo->{'prop_' . $i};
       $question = $this->node->{'question_' . $i};
       $answer = $this->node->{'answer_' . $i};
       $feedback = $this->node->{'feedback_' . $i};
-     // echo var_dump($question);
-     // echo var_dump($answer);
-     // echo var_dump($feedback);
-      //  exit;
+
       if (empty($question) || empty($answer)) {
         continue;
       }
@@ -50,9 +46,10 @@ class MatchingQuestion implements QuizQuestion {
 
       }
       else {
-        drupal_set_message('match update called');
-        $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE nid = %d AND vid = %d";
-        db_query($sql, $question, $answer, $feedback, $this->node->nid, $this->node->vid);
+        $match_id = $this->node->{'match_id_' . $i};
+        $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
+        db_query($sql, $question, $answer, $feedback, $match_id);
+
       }
     }
   }
@@ -78,7 +75,7 @@ class MatchingQuestion implements QuizQuestion {
 
   public function load() {
     $rows = $result = array();
-    $sql = "SELECT question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
+    $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
       $rows[] = $result;
@@ -159,30 +156,45 @@ class MatchingQuestion implements QuizQuestion {
   }
 
   public function getCreationForm($edit) {
+
     $form['match'] = array(
       '#type' => 'fieldset',
       '#title' => t('Match Question')
     );
+
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
+
+      $match_id = $this->node->{$i - 1}->match_id;
+      $question = $this->node->{$i - 1}->question;
+      $answer = $this->node->{$i - 1}->answer;
+      $feedback = $this->node->{$i - 1}->feedback;
+
       $form['match']['question_' . $i] = array(
         '#type' => 'fieldset',
         '#title' => t('Question '. $i),
+      );
+      $form['match']['question_' . $i]['match_id_'.$i] = array(
+        '#type' => 'hidden',
+        '#default_value' => isset($match_id) ? $match_id : ''
       );
       $form['match']['question_' . $i]['question_'.$i] = array(
         '#type' => 'textarea',
         '#title' => t('Question'),
         '#rows' => 2,
+        '#default_value' => isset($question) ? $question : ''
       );
       $form['match']['question_' . $i]['answer_'.$i] = array(
         '#type' => 'textarea',
         '#title' => t('Match'),
         '#rows' => 2,
+        '#default_value' => $answer//isset($answer) ? $answer : ''
       );
 
       $form['match']['question_' . $i]['feedback_'.$i] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback / Reason'),
         '#rows' => 2,
+        '#default_value' => isset($feeback) ? $feeback : ''
       );
     }
     return $form;
