@@ -660,7 +660,13 @@ function quiz_form(&$node) {
       '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
       '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
   );
+  } else {
+    $form['addons']['time_limit'] = array(
+      '#type' => 'value',
+      '#value' => 0,
+    );
   }
+  
 
   if (module_exists('userpoints') && variable_get('quiz_has_userpoints', 0)) {
     $form['addons']['has_userpoints'] = array(
