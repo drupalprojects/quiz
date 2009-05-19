@@ -340,7 +340,11 @@ function multichoice_form(&$node) {
 
   // If coming from quiz view, go back there on submit.
   if (!empty($quiz_id)) {
-    $form['#redirect'] = 'node/'. $quiz_id .'/questions';
+    $form['destination'] = array(
+      '#type' => 'hidden',
+      '#value' => 'node/'. $quiz_id .'/questions',
+    );
+    
   }
   return $form;
 }
