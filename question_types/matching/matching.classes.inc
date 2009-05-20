@@ -109,7 +109,7 @@ class MatchingQuestion implements QuizQuestion {
         '#options' => $this->customShuffle($select_option),
       );
     }
-    return $form;
+    return $this->customShuffle($form);
   }
 
   public function customShuffle($array = array()) {
