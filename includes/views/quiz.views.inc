@@ -569,6 +569,10 @@ function quiz_views_data() {
         'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort_date'),
+      'filter' => array(
+        'handler' => 'views_handler_filter_date',
+        'allow empty' => TRUE,
+      ),
     ),
     'score' => array(
       'title' => t('Score'),
