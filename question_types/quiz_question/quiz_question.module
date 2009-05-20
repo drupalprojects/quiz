@@ -41,17 +41,13 @@ function quiz_question_menu() {
 
   $types = _quiz_question_get_implementations();
   foreach ($types as $type => $definition) {
-    $items['admin/quiz/' . str_replace('_', '-', $types)] = array(
+    $items['admin/quiz/' . str_replace('_', '-', $type)] = array(
       'title' => t('@name administration', array('@name' => $definition['name'])),
       'description' => t('Configure the @name question type.', array('@name' => $definition['name'])),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('quiz_question_type_settings_form', $type),
       'access arguments' => array('configure quiz question types'),
-
-      'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
-      //'file' => 'module.admin.inc'
-      //'weight' => 0,
-      //'menu_name' => 'name of menu',
+      'type' => MENU_NORMAL_ITEM,
     );
 
   }
