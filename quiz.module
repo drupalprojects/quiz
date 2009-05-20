@@ -666,7 +666,7 @@ function quiz_form(&$node) {
       '#value' => 0,
     );
   }
-  
+
 
   if (module_exists('userpoints') && variable_get('quiz_has_userpoints', 0)) {
     $form['addons']['has_userpoints'] = array(
@@ -1101,7 +1101,8 @@ function quiz_take_quiz($quiz) {
       }
       // If anonymous user, refresh url with unique hash to prevent caching.
       if (!$user->uid) {
-        drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time()));
+        //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
+        drupal_goto('node/' . $quiz->nid, array('quizkey' => md5(mt_rand() . time())));
       }
     }
   }
