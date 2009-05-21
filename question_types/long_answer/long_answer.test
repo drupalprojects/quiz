@@ -7,13 +7,13 @@
  */
 
 class LongAnswerUnitTest extends DrupalWebTestCase {
-  
+
   var $question_node_type = 'long_answer';
   var $nid1 = NULL;
   var $max_score = 1234; // Impossible value, given max limit of 3 digits.
   var $title = '';
   var $body = '';
-  
+
   public function getInfo() {
     return array(
       'name' => t('Long answer unit tests.'),
@@ -21,15 +21,15 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
       'group' => t('Quiz'),
     );
   }
-  
+
   public function setUp() {
     parent::setUp('quiz', 'views', 'long_answer');
   }
-  
+
   //public function testModuleIsEnabled() {
   //  $this->assertTrue(in_array('long_answer', module_list(FALSE, TRUE, TRUE)), t('Test that module is installed.'));
   //}
-  
+
   /**
    * Check that hook_quiz_question_info is working.
    */
@@ -38,7 +38,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
     $this->assertTrue(isset($info['long_answer']), t('Check that long answer question type exists.'));
   }
-  
+
   /**
    * Utility function for creating a new test question.
    */
@@ -53,12 +53,12 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
       'maximum_score' => $this->max_score,
       'revisions' => TRUE,
     );
-    
+
     $node = $this->drupalCreateNode($settings);
-    
+
     return $node;
   }
-  
+
   /*
   public function createQuiz() {
     $title = 'Test Quiz';
@@ -69,13 +69,13 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
       'body' => $body,
       'revisions' => TRUE,
     );
-    
+
     $node = $this->drupalCreateNode($settings);
-    
+
     return $node;
   }
   */
-  
+
   /**
    * Run a bundle of Node API tests.
    *
@@ -85,33 +85,33 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->unitTestCreateQuestionNode();
     $this->unitTestCheckNodeProperties();
     $this->unitTestUpdateQuestionNode();
-    
+
     $this->unitTestListQuestions();
-    
+
     // Revisions
     $this->unitTestCreateQuestionRevision();
-    
+
     $this->unitTestDeleteQuestionNode();
   }
-  
+
   /**
    * Create and then update a node.
    */
   public function unitTestCreateQuestionNode() {
     $node = $this->createLongAnswerQuestion();
-    
+
     if (!$node) {
       throw new Exception('Expected to have a node to work with.');
     }
     $this->nid1 = $node->nid;
-    
+
     $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
     $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
     $this->assertEqual($node->maximum_score, $this->max_score, t('Stored score should be the same as original score.'));
     $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be long_answer'));
   }
-  
-  
+
+
   /**
    * Test that the appropriate data was stored in the node properties table.
    */
@@ -119,7 +119,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $max = db_result(db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->nid1));
     $this->assertEqual($max, $this->max_score, t('Test that max score was appropriately stored in database.'));
   }
-  
+
   /**
    * Check that question exists in DB.
    */
@@ -128,7 +128,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     drupal_set_message("Question Count: " . count($questions));
     $this->assertEqual(count($questions), 1, t('Verify that the question exists.'));
   }
-  
+
   /**
    * Test updating of a question.
    */
@@ -140,9 +140,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
 
     $nodeCopy = node_load($node->nid, $node->vid);
     $this->assertEqual($nodeCopy->maximum_score, $newScore, t('Check that stored score is the same as newly assigned score.'));
-    
+
   }
-  
+
   /**
    * Test creation of node revision.
    */
@@ -151,14 +151,14 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $oldVid = $node->vid;
     $node->revision = 1;
     node_save($node);
-    
+
     $oldMax = $node->maximum_score;
-    
+
     $nodeCopy = node_load($node->nid, $node->vid);
     $this->assertNotEqual($nodeCopy->vid, $oldVid, t('Check that VID of new version is not the same as old VID.'));
     $this->assertEqual($oldMax, $nodeCopy->maximum_score, t('Check that new VID has an entry in node properties.'));
   }
-  
+
   /**
    * Test deeting of question node.
    */
@@ -168,22 +168,22 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
       throw new Exception("Expected fixture to have valid nid1");
     }
     unset($node);
-    
+
     node_delete($this->nid1);
     $node = node_load($this->nid);
     $this->assertFalse($node, t('Test that node was deleted'));
   }
-  
+
   /**
    * The main callback for answering a question.
    */
   public function testEvaluateQuestion() {
     $result = long_answer_evaluate_question($question, 1);
-    
+
     $this->assertTrue((count($result) > 0), t('See if a result was returned from the evaluator.'));
     $this->assertEqual($result->is_correct, 0, t('Test that answer was not marked correct.'));
   }
-  
+
   /**
    * Test suite to write, update and delete answers.
    */
@@ -194,29 +194,29 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->unitTestGetAnswer();
     $this->unitTestDeleteAnswer();
   }
-  
+
   /**
    * Test saving an answer.
    */
   public function unitTestSaveAnswer() {
     $answer_id = long_answer_save_answer(1, 1, 1, 'THIS IS A TEST ANSWER');
-    
+
     // FIXME: This should just select * from the table and check to make sure there is an entry.
     // We should not assume IDs are serial.
     $this->assertEqual($answer_id, 1, 'Answer ID is set to 1 -- first answer');
   }
-  
+
   /**
    * Test modifying (scoring) an answer.
    */
   public function unitTestScoreAnswer() {
     $change = long_answer_score_an_answer(1, 1, 1, 30);
     $this->assertEqual($change, 1, t('Only one row was changed.'));
-    
+
     $unanswered = long_answer_get_all_unscored_answers();
     $this->assertEqual(count($unanswered), 0, t('There should be no unscored questions.'));
   }
-  
+
   public function unitTestGetAnswer() {
     $answer = long_answer_get_answer(1, 1, 1);
     $this->assertTrue(($answer !== FALSE), t('Check that an answer was returned.'));
@@ -224,7 +224,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->assertEqual($answer['answer_id'], 1, t('Check that this is first answer'));
     $this->assertEqual($answer['answer'], 'THIS IS A TEST ANSWER', t('Check that answer text is expected.'));
   }
-  
+
   /**
    * Test deleting an answer.
    */
@@ -232,20 +232,20 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $removed = long_answer_delete_answer(1, 1, 1);
     $this->assertEqual($removed, 1, t('A single answer should be deleted.'));
   }
-  
+
   public function unitTestGetUnscoredAnswers() {
-    
+
     $unanswered = long_answer_get_all_unscored_answers();
-    
+
     drupal_set_message(__FUNCTION__ . ' Unanswered: ' . count($unanswered));
-    
+
     $this->assertEqual(count($unanswered), 1, t('There should be only one unanswered question in *all* questions.'));
-    
-    $unanswered = long_answer_get_unscored_answers_by_question(1,1);
+
+    $unanswered = long_answer_get_unscored_answers_by_question(1, 1);
     $this->assertEqual(count($unanswered), 1, t('There should be only one unanswered question for the quiz.'));
   }
-  
-  
+
+
 }
 
 /*
@@ -258,44 +258,44 @@ class LongAnswerFunctionalTest extends DrupalWebTestCase {
       'group' => t('Quiz'),
     );
   }
-  
+
   public function setUp() {
     parent::setUp('quiz', 'views', 'long_answer');
   }
-  
+
   public function testEditScore() {
     $node = $this->createLongAnswerQuestion();
     $rid = 1;
     $answer_text = 'This is a test answer';
     $answer_id = long_answer_save_answer($node->nid, $node->vid, $rid, $answer_text);
-    
+
     $form = long_answer_edit_score($node->vid, $rid);
-    
+
     print_r($form);
-    
+
     $pattern = '|' . $answer_text . '|';
     $this->assertText($form['answer']['#value'], check_markup($answer->answer), t('Test that answer was correctly loaded'));
   }
-  
+
   public function testCreateQuestion() {
     $path = 'node/add/long-answer';
     $submit = 'Save';
-    
+
     $data = array(
-      
+
     );
   }
-  
+
   public function testModifyQuestion() {
-    
+
   }
-  
+
   public function testAnswerQuestion() {
-    
+
   }
-  
+
   public function testScoringQuestion() {
-    
+
   }
 }
 */
