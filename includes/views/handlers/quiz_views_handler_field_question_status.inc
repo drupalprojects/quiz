@@ -2,6 +2,7 @@
 // $Id$
 
 /**
+ * @file
  * Views field handler that translates question status integer constants (as
  * defined in quiz.module) into their human-readable string counterparts.
  */

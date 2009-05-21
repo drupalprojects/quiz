@@ -66,7 +66,7 @@ function quiz_admin_results($qid) {
     $summary = _quiz_get_summary_text($quiz, $score);
 
     // Lets add the quiz title to the breadcrumb array.
-    $breadcrumb[] = l($quiz->title, 'admin/quiz/'.$result->nid.'/view');
+    $breadcrumb[] = l($quiz->title, 'admin/quiz/' . $result->nid . '/view');
     drupal_set_breadcrumb($breadcrumb);
     return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
   }
@@ -464,7 +464,7 @@ function quiz_admin_add_question_ahah() {
     $new_question = $form_state['values']['always_autocomplete'];
     $frequency = 'always';
   }
-  elseif(!empty($form_state['values']['random_autocomplete'])) {
+  elseif (!empty($form_state['values']['random_autocomplete'])) {
     drupal_set_message('Adding random question', 'status');
     $new_question = $form_state['values']['random_autocomplete'];
     $frequency = 'random';
@@ -553,7 +553,7 @@ function quiz_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
     '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
-    '#default_value' => variable_get('quiz_max_result_options',5),
+    '#default_value' => variable_get('quiz_max_result_options', 5),
     '#size' => 2,
     '#maxlength' => 2,
     '#required' => FALSE,
@@ -866,10 +866,10 @@ function quiz_remove_partial_quiz_record_value() {
   $list = array();
   $list[0] = t('Never');
   for ($i=1; $i<31; $i++) {
-    $list[$i*86400] = $i. ' ' . t('Day(s)');
+    $list[$i * 86400] = $i . ' ' . t('Day(s)');
   }
   for ($i=35; $i<125; $i+=5) {
-    $list[$i*86400] = $i . ' ' . t('Day(s)');
+    $list[$i * 86400] = $i . ' ' . t('Day(s)');
   }
   return $list;
 }

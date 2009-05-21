@@ -1,5 +1,6 @@
 <?php
-/* $Id$ */
+
+// $Id$
 
 /**
  * @file
@@ -108,7 +109,7 @@ function quiz_access($op, $node, $account) {
     return FALSE;
   }
 
-  switch($op) {
+  switch ($op) {
     case 'create':
       return user_access('create quiz', $account);
     case 'update':
@@ -252,7 +253,7 @@ function quiz_menu() {
   $items['node/%quiz_type_access/admin'] = array(
     'title' => t('Quiz admin', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'theme',
-    'page arguments' => array('quiz_view',1),
+    'page arguments' => array('quiz_view', 1),
     'access arguments' => array('administer quiz'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.admin.inc',
@@ -319,15 +320,15 @@ function quiz_theme() {
       'file' => 'quiz.admin.inc',
     ),
     'quiz_admin_summary' => array(
-      'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+      'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
       'file' => 'quiz.admin.inc',
     ),
     'quiz_user_summary' => array(
-      'arguments' => array('quiz' =>NULL, 'questions' => NULL, 'score' =>NULL, 'summary' => NULL),
+      'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_feedback' => array(
-      'arguments' => array('questions' => NULL, 'showpoints' =>TRUE, 'showfeedback' => FALSE),
+      'arguments' => array('questions' => NULL, 'showpoints' => TRUE, 'showfeedback' => FALSE),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_single_question_feedback' => array(
@@ -339,7 +340,7 @@ function quiz_theme() {
         'file' => 'quiz.pages.inc',
     ),
     'quiz_progress' => array(
-      'arguments' => array('question_number' =>NULL, 'num_of_question' => NULL),
+      'arguments' => array('question_number' => NULL, 'num_of_question' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_question_table' => array(
@@ -660,7 +661,8 @@ function quiz_form(&$node) {
       '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
       '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
   );
-  } else {
+  }
+  else {
     $form['addons']['time_limit'] = array(
       '#type' => 'value',
       '#value' => 0,
@@ -739,7 +741,7 @@ function quiz_form(&$node) {
   $num_options = max(3, (!empty($options)) ? count($options) : variable_get('quiz_max_result_options', 5));
 
   for ($i=0; $i < $num_options; $i++) {
-    $option = (count($options) > 0) ? array_shift($options) : null; // grab each option in the array
+    $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
     $form['resultoptions'][$i] = array(
       '#type' => 'fieldset',
       '#title' => t('Result Option ') . ($i + 1),
@@ -848,7 +850,7 @@ function quiz_validate($node) {
         }
       }
     }
-    else if (!empty($option['option_summary'])) {
+    elseif (!empty($option['option_summary'])) {
         form_set_error('option_summary', t('Option has a summary, but no name.'));
     }
   }
@@ -861,8 +863,8 @@ function quiz_validate($node) {
  */
 function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   // We need to filter on node type to prevent this from overriding any other node
-  if($node->type == 'quiz') {
-    switch($op) {
+  if ($node->type == 'quiz') {
+    switch ($op) {
       case 'presave':
         /*
          * convert the action id to the actual id from the MD5 hash
@@ -985,7 +987,7 @@ function quiz_take_quiz($quiz) {
     drupal_access_denied();
     return;
   }
-  if(!isset($quiz)) {
+  if (!isset($quiz)) {
     drupal_not_found();
     return;
   }
@@ -1285,7 +1287,7 @@ function quiz_end_actions($quiz, $rid) {
   }
 
   // Why is this using the $_SESSION's RID?
-  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d",time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d", time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
   // We will verify that there is an associated action with this quiz and then perform that action.
@@ -1329,7 +1331,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
 
   //calls userpoints functions to credit user point based on number of correct answers
   //print_r($quiz);exit;
-  if($quiz->has_userpoints) {
+  if ($quiz->has_userpoints) {
     $variables = array(
       '@title' => $quiz->title,
       '@quiz' => variable_get('quiz_name', QUIZ_NAME),
@@ -1360,13 +1362,13 @@ function quiz_mail($key, &$message, $params) {
     '!title' => $quiz->title,
     '!date' => date("F j, Y, g:i a"),
     '!desc' => $quiz->body,
-    '!correct'=> $score['numeric_score'],
+    '!correct' => $score['numeric_score'],
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
     '!url' => url('user/quiz/' . $rid . '/userresults'),
   );
 
-  switch($key) {
+  switch ($key) {
     case 'notice':
       $subject = variable_get('quiz_email_results_subject', quiz_email_results_format('subject'));
       $body = variable_get('quiz_email_results_body', quiz_email_results_format('body'));
@@ -1385,7 +1387,7 @@ function quiz_mail($key, &$message, $params) {
  * This functions returns the default email subject and body format which will be used at the end of quiz
  */
 
-function quiz_email_results_format($type){
+function quiz_email_results_format($type) {
   if ($type == 'subject') {
     return t('!title Results Notice from !sitename');
   }
@@ -1541,8 +1543,8 @@ function quiz_start_actions($quiz) {
   }
 
   // Check to see if this user is allowed to take the quiz again:
-  if($quiz->takes > 0) {
-    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = %s AND nid = %s AND vid = %s";
+  if ($quiz->takes > 0) {
+    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = '%s' AND nid = '%s' AND vid = '%s'";
     $taken = db_result(db_query($query, $user->uid, $quiz->nid, $quiz->vid));
     $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
     $taken_times   = format_plural($taken, '1 time', '@count times');
@@ -1877,11 +1879,11 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
   $questions = array(); // These are the questions that will be put into the Quiz.
   foreach ($submitted_questions as $nid => $stat) {
     $existing = in_array($nid, $existing_question_nids);// $existing_questions[$nid];
-    if($stat != QUESTION_NEVER) {
+    if ($stat != QUESTION_NEVER) {
       if ($existing) {
         $existing_question = $existing_questions[$nid];
         // This appears to be comparing publishing status with question_status?
-        if($existing_question->question_status != $stat) {
+        if ($existing_question->question_status != $stat) {
           // Question's status has been changed.
           $existing_question->question_status = $stat;
           $i_am_different = TRUE;
@@ -1972,7 +1974,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   $sql = "SELECT question_nid AS nid, question_vid AS vid
     FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp";
   $answered_questions = db_query($sql, $rid);
-  while($answered = db_fetch_object($answered_questions)) {
+  while ($answered = db_fetch_object($answered_questions)) {
     foreach ($questions as $question) {
       if ($question['vid'] == $answered->vid) {
         $already_answered[] = $answered->vid;
@@ -2162,7 +2164,7 @@ function _quiz_get_summary_text($quiz, $score) {
     if ($admin) {
       $summary = t('The user passed this quiz.');
     }
-    else if (trim($quiz->summary_pass) != '') {
+    elseif (trim($quiz->summary_pass) != '') {
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_pass, $quiz->format, FALSE);
     }
   }
@@ -2178,7 +2180,7 @@ function _quiz_get_summary_text($quiz, $score) {
         $summary = t('the user completed this quiz.');
       }
     }
-    else if (trim($quiz->summary_default) != '') {
+    elseif (trim($quiz->summary_default) != '') {
       $summary = (!empty($score_result)) ? $score_result : check_markup($quiz->summary_default, $quiz->format, FALSE);
     }
   }
@@ -2214,7 +2216,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
   $questions = array();
   if ($num_random > 0) {
     if ($tid > 0) {
-      $questions = _quiz_get_random_taxonomy_question_ids($tid,$num_random);
+      $questions = _quiz_get_random_taxonomy_question_ids($tid, $num_random);
       /*
       // Select random questions by taxonomy.
       $term = taxonomy_get_term($tid);
@@ -2258,7 +2260,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
  * @return
  *  Array of nid/vid combos, like array(array('nid'=>1, 'vid'=>2)).
  */
-function _quiz_get_random_taxonomy_question_ids($tid,$num_random) {
+function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
   if ($tid == 0) {
     return array();
   }
@@ -2683,7 +2685,7 @@ function quiz_action_options($type = 'all') {
  */
 
 function quiz_cron() {
-  $rm_time = variable_get('quiz_remove_partial_quiz_record','0');
+  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
   if ($rm_time) { // $time = 0 for never
     db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
   }

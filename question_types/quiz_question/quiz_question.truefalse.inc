@@ -1,6 +1,6 @@
 <?php
 
-//$Id$
+// $Id$
 
 /**
  * Defines the classes necessary for a True/False quiz.
@@ -209,7 +209,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
       $rows[0][] = ($correct_answer ? t('True') : t('False'));
     }
     $rows[0][] = ($user_answer ? t('True') : t('False'));
-    if($showfeedback && !empty($this->question->feedback)) {
+    if ($showfeedback && !empty($this->question->feedback)) {
       $rows[0][] = $this->question->feedback;
     }
 

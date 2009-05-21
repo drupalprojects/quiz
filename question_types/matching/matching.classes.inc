@@ -30,7 +30,7 @@ class MatchingQuestion implements QuizQuestion {
 
   public function save($is_new = FALSE) {
 
-    for($i = 1; $i <= variable_get('quiz_matching_form_size', 5); $i++) {
+    for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); $i++) {
       //$foo->{'prop_' . $i};
       $question = $this->node->{'question_' . $i};
       $answer = $this->node->{'answer_' . $i};
@@ -135,7 +135,7 @@ class MatchingQuestion implements QuizQuestion {
       );
       $select_option[$result->match_id] = $result->answer;
     }
-    return array($questions,$select_option);
+    return array($questions, $select_option);
   }
 
   public function getAdminForm($edit = NULL) {
@@ -173,24 +173,24 @@ class MatchingQuestion implements QuizQuestion {
         '#type' => 'fieldset',
         '#title' => t('Question '. $i),
       );
-      $form['match']['question_' . $i]['match_id_'.$i] = array(
+      $form['match']['question_' . $i]['match_id_' . $i] = array(
         '#type' => 'hidden',
         '#default_value' => isset($match_id) ? $match_id : ''
       );
-      $form['match']['question_' . $i]['question_'.$i] = array(
+      $form['match']['question_' . $i]['question_' . $i] = array(
         '#type' => 'textarea',
         '#title' => t('Question'),
         '#rows' => 2,
         '#default_value' => isset($question) ? $question : ''
       );
-      $form['match']['question_' . $i]['answer_'.$i] = array(
+      $form['match']['question_' . $i]['answer_' . $i] = array(
         '#type' => 'textarea',
         '#title' => t('Match'),
         '#rows' => 2,
         '#default_value' => $answer//isset($answer) ? $answer : ''
       );
 
-      $form['match']['question_' . $i]['feedback_'.$i] = array(
+      $form['match']['question_' . $i]['feedback_' . $i] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback / Reason'),
         '#rows' => 2,
@@ -210,7 +210,7 @@ class MatchingQuestion implements QuizQuestion {
 
     $results = db_query("SELECT match_id, question, answer FROM {quiz_matching_node} WHERE nid = %d AND vid = %d", $this->node->nid, $this->node->vid);
 
-    while($result = db_fetch_object($results)) {
+    while ($result = db_fetch_object($results)) {
       $correct_answers[$result->match_id] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
@@ -276,7 +276,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $user_answers = array();
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
     $results = db_query("SELECT match_id, answer FROM {quiz_matching_user_answers} WHERE result_id = %d", $this->rid);
-    while($result = db_fetch_object($results)) {
+    while ($result = db_fetch_object($results)) {
       $user_answers[$result->match_id] = $result->answer;
     }
     return $user_answers;

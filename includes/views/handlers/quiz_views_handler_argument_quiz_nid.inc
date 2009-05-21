@@ -1,6 +1,11 @@
 <?php
 // $Id$
 
+/*
+ * @file
+ * Handles argument quiz nid.
+ */
+
 class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeric {
   /**
    * An array that the subselect will fill with all the corresponding quiz node,
@@ -106,7 +111,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
       $this->phrase_broken = TRUE;
     }
   }
-  
+
   /**
    * Helper method to retrieve the vid(s) the final view query should actually
    * be run against.

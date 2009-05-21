@@ -1,6 +1,10 @@
 <?php
 // $Id$
 
+/*
+ * @file
+ * Handles filter user quiz state.
+ */
 class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
   var $states = array();
   var $no_operator = TRUE; // for nicer formatting of the form
@@ -57,7 +61,7 @@ class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
     if (empty($this->value) || $this->value == 'any') {
       return;
     }
-    
+
     $this->ensure_my_table();
     if ($this->value == 'not_started') {
       $this->query->add_where(0, "$this->table_alias.time_end IS NULL");

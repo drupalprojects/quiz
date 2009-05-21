@@ -251,11 +251,11 @@ function quiz_question_evaluate_question($question, $rid, $answer = NULL) {
   // If a rid is set, we are taking a quiz.
   if ($rid && !empty($answer)) {
     // We don't know whether or not the user has gone back a question. However,
-    // we do know that deleting a question for this result set should be safe in 
+    // we do know that deleting a question for this result set should be safe in
     // the case where the user has not gone back (since there will be no entries
     // to delete). So we always run the delete.
     $response->delete();
-    
+
     $response->save();
   }
 
@@ -373,7 +373,7 @@ function quiz_question_type_settings_form($context, $type) {
  * Implementation of hook_nodeapi().
  */
 function quiz_question_nodeapi(&$node, $op) {
-  if($op == 'delete revision') {
+  if ($op == 'delete revision') {
     _quiz_question_get_instance($node)->delete();
   }
 }

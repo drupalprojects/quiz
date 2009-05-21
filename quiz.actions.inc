@@ -1,5 +1,7 @@
 <?php
+// $Id$
 /**
+ * @file
  * Example Action Implementation.
  *
  * This does not provide functional code, but is an illustration of how actions can be created for
@@ -16,34 +18,34 @@
 
 /**
  * Implementation of hook_action_info().
- * An action consists of two or three parts: 
- * (1) an action definition (returned by this hook), 
- * (2) a function which does the action 
- *   (which by convention is named module + '_' + description of what the function does + '_action'), 
- * (3) and an optional form definition function that defines a configuration form 
+ * An action consists of two or three parts:
+ * (1) an action definition (returned by this hook),
+ * (2) a function which does the action
+ *   (which by convention is named module + '_' + description of what the function does + '_action'),
+ * (3) and an optional form definition function that defines a configuration form
  *   (which has the name of the action with '_form' appended to it.)
- * 
+ *
  */
 function quiz_action_info() {
   /*
   //this is the name of your function to execute (custom_action)
-	//whatever your name here is you MUST have a function that matches
+  //whatever your name here is you MUST have a function that matches
   $info['custom_action'] = array(
-		//this is how we can filter the dropdown box on the quiz create page there will be an
-		//admin setting that will allow you to filter your dropdown results by 'type'
+    //this is how we can filter the dropdown box on the quiz create page there will be an
+    //admin setting that will allow you to filter your dropdown results by 'type'
     'type' => 'quiz',
-		//self explainatory
+    //self explainatory
     'description' => t('Custom Desription'),
-		//This allows you to configure your action with parameters through the admin
-		//If set to TRUE then you will need a custom form function for your options
+    //This allows you to configure your action with parameters through the admin
+    //If set to TRUE then you will need a custom form function for your options
     'configurable' => TRUE,
-		//this will filter out actions based hooks, You will only use this if your going to get
-		//extremely advanced.
+    //this will filter out actions based hooks, You will only use this if your going to get
+    //extremely advanced.
     'hooks' => array(
       'any' => TRUE,
     ),
   );
-	*/
+  */
   //return your array of actions
   return $info;
 }
@@ -84,7 +86,7 @@ function quiz_custom_action_form($context) {
     '#type' => 'sumbit',
     '#value' => t('Submit')
   );
-	*/
+  */
   return $form;
 }
 /**
@@ -100,7 +102,7 @@ function quiz_custom_action_validate($form, $form_state) {
   if(empty($playing_card)) {
     form_set_error('playing_card_id', t('Please select the pllaying card to give away.'));
   }
-	*/
+  */
 }
 /**
  * Custom submit handler when creating a new action for a playing card.
@@ -112,6 +114,5 @@ function quiz_custom_action_validate($form, $form_state) {
 function quiz_custom_action_submit($form, $form_state) {
   /*
   return array('playing_card_id' => (int) $form_state['values']['playing_card_id']);
-	*/
+  */
 }
-?>

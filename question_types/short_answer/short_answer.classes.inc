@@ -1,11 +1,13 @@
 <?php
 
+// $Id$
+
 /**
  * The main classes for the short answer question type.
  *
  * These inherit or implement code found in quiz_question.classes.inc.
  *
- * If you are developing your own question type, the easiest place to start is with 
+ * If you are developing your own question type, the easiest place to start is with
  * quiz_question.truefalse.inc. This and long answer are good for understanding
  * question types that involve textual answers.
  *
@@ -19,51 +21,51 @@
  * adding long answer as a dependency.
  */
 class ShortAnswerQuestion implements QuizQuestion {
-  
+
   // Answer matching algorithms.
   const ANSWER_MATCH = 0;
   const ANSWER_INSENSITIVE_MATCH = 1;
   const ANSWER_REGEX = 2;
   const ANSWER_MANUAL = 3;
-  
+
   // Field display types.
   const TEXT_ENTRY_TEXTFIELD = 0;
   const TEXT_ENTRY_TEXTAREA = 1;
-  
+
   /**
    * The current node for this question.
    */
   protected $node = NULL;
-  
+
   public function __construct($node) {
     $this->node = $node;
   }
-  
+
   public function save($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-    
+
     if ($is_new || $this->node->revision == 1) {
-      $sql = 'INSERT INTO {quiz_short_answer_node_properties} 
-        (nid, vid, maximum_score, correct_answer, correct_answer_evaluation) 
+      $sql = 'INSERT INTO {quiz_short_answer_node_properties}
+        (nid, vid, maximum_score, correct_answer, correct_answer_evaluation)
         VALUES (%d, %d, %d, \'%s\', %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation);
-    } 
+    }
     else {
-      $sql = 'UPDATE {quiz_short_answer_node_properties} 
+      $sql = 'UPDATE {quiz_short_answer_node_properties}
         SET maximum_score = %d, correct_answer = \'%s\', correct_answer_evaluation = %d
         WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid);
     }
   }
-  
+
   public function validate($node, &$form) {
     $maximum_score = $node->maximum_score;
     if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
       form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
     }
-    
+
     if ($node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($node->correct_answer)) {
       form_set_error('correct_answer_evaluation', t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
@@ -77,23 +79,23 @@ class ShortAnswerQuestion implements QuizQuestion {
       db_query('DELETE FROM {quiz_short_answer_node_properties} WHERE nid = %d', $this->node->nid);
     }
   }
-  
+
   public function load() {
     $sql = 'SELECT maximum_score, correct_answer, correct_answer_evaluation
-      FROM {quiz_short_answer_node_properties} 
+      FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
     return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
   }
-  
+
   public function view() {
     return $this->getQuestionForm($this->node);
   }
-  
-  // This is called whenever a question is rendered, either 
+
+  // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
     $form['question'] = array(
-       '#type' => 'markup', 
+       '#type' => 'markup',
        '#value' => $node->body
      );
      $form['tries'] = array(
@@ -105,7 +107,7 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
      );
-     
+
      return $form;
   }
   public function getAdminForm($edit = NULL) {
@@ -122,7 +124,7 @@ class ShortAnswerQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => t('There are currently no available configuration options.'),
     );
-    
+
   }
   public function getCreationForm($edit) {
      $form['answer'] = array(
@@ -132,7 +134,7 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#collapsible' => TRUE,
        '#collapsed' => FALSE,
      );
-    
+
     $form['answer']['correct_answer_evaluation'] = array(
        '#type' => 'radios',
        '#title' => t('Pick one'),
@@ -146,24 +148,24 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_MATCH,
        '#required' => FALSE,
      );
-     
+
      $form['answer']['regex_box'] = array(
        '#type' => 'fieldset',
        '#title' => t('About regular expressions'),
        '#collapsible' => TRUE,
        '#collapsed' => TRUE,
      );
-     
+
      $form['answer']['regex_box']['regex_help'] = array(
        '#type' => 'markup',
-       '#value' => '<p>' . 
-         t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') . 
-         '</p><p>' . 
+       '#value' => '<p>' .
+         t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
+         '</p><p>' .
          t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
          '</p>',
      );
-     
-     
+
+
      $form['answer']['correct_answer'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
@@ -182,14 +184,14 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#maxlength' => 3,
        '#required' => FALSE,
      );
-     
+
      return $form;
-     
+
   }
   public function getMaximumScore() {
     return $this->node->maximum_score;
   }
-  
+
   /**
    * Evaluate the correctness of an answer based on the correct answer and evaluation method.
    */
@@ -213,7 +215,7 @@ class ShortAnswerQuestion implements QuizQuestion {
         }
         break;
     }
-    
+
     return $score;
   }
 
@@ -223,10 +225,10 @@ class ShortAnswerQuestion implements QuizQuestion {
  * The short answer question response class.
  */
 class ShortAnswerResponse extends AbstractQuizQuestionResponse {
-  
+
   /**
    * Get all quiz scores that have not yet been evaluated.
-   * 
+   *
    * @param $count
    *  Number of items to return (default: 50).
    * @param $offset
@@ -237,9 +239,9 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
-      FROM {quiz_short_answer_user_answers} AS a 
+      FROM {quiz_short_answer_user_answers} AS a
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
-      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id 
+      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
       WHERE is_evaluated = 0';
     $results = db_query_range($sql, $offset, $count);
     $unscored = array();
@@ -254,10 +256,10 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
   /**
    * Given a quiz, return a list of all of the unscored answers.
-   * 
+   *
    * @param $nid
    *  Node ID for the quiz to check.
-   * @param $vid 
+   * @param $vid
    *  Version ID for the quiz to check.
    * @param $count
    *  Number of items to return (default: 50).
@@ -275,19 +277,19 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     }
     return $unscored;
   }
-  
+
   /**
    * ID of the answer.
    */
   protected $answer_id = 0;
-  
+
   public function __construct($rid, $question, $answer = NULL) {
     $this->rid = $rid;
     $this->question = $question;
-    
+
     if (!isset($answer)) {
-      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id 
-        FROM {quiz_short_answer_user_answers} 
+      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+        FROM {quiz_short_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
       $r = db_fetch_object(db_query($sql, $question->nid, $question->vid, $rid));
 
@@ -302,16 +304,16 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       $this->answer = $answer;
     }
   }
-  
+
   public function save() {
-    
+
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since
     // score() is called before save()), so we have to set the param here.
     $this->is_evaluated = (int)($this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL);
-    
-    $sql = "INSERT INTO {quiz_short_answer_user_answers} 
-      (answer, question_nid, question_vid, result_id, score, is_evaluated) 
+
+    $sql = "INSERT INTO {quiz_short_answer_user_answers}
+      (answer, question_nid, question_vid, result_id, score, is_evaluated)
       VALUES ('%s', %d, %d, %d, %d, %d)";
     db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->score, $this->is_evaluated);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
@@ -331,23 +333,23 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       $shortAnswer = new ShortAnswerQuestion($this->question);
       $score = $shortAnswer->evaluateAnswer($this->getResponse());
     }
-    
+
     $this->score = $score;
     return $score;
   }
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-    
+
     return (($actual / $possible) > 0.5);
   }
   public function getResponse() {
     return $this->answer;
   }
-  
+
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. 
+
+    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body) .
       '</div>';
 
@@ -369,8 +371,8 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
 
       }
       else {
-        $result .= t('This answer has not yet been scored.') . 
-          '<br/>' . 
+        $result .= t('This answer has not yet been scored.') .
+          '<br/>' .
           t('Until the answer is scored, the total score will not be correct.');
       }
 

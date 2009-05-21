@@ -1,5 +1,10 @@
 <?php
-/* $Id$ */
+// $Id$
+
+/*
+ * @file
+ * Handles field question number.
+ */
 
 class quiz_views_handler_field_number_questions extends views_handler_field {
 

@@ -1,9 +1,11 @@
 <?php
 
+// $Id$
+
 /**
  * Classes used in the Quiz Question module.
  *
- * The core of the Quiz Question module is a set of interfaces and abstract 
+ * The core of the Quiz Question module is a set of interfaces and abstract
  * classes that can be used to quickly and efficiently create new question
  * types.
  *
@@ -14,13 +16,13 @@
  *
  * The case for Quiz question types is that question types all share common
  * structure and logic. Using the standard hook-only Drupal metaphor, we are
- * forced to copy and past large amounts of repetitive code from question 
- * type to question type. By using OO principles and construction, we can 
- * easily encapsulate much of that logic, while still making it easy to 
+ * forced to copy and past large amounts of repetitive code from question
+ * type to question type. By using OO principles and construction, we can
+ * easily encapsulate much of that logic, while still making it easy to
  * extend the existing content.
- * 
+ *
  * Where do I start?
- * To create a new question type, check out the True/False type that is included 
+ * To create a new question type, check out the True/False type that is included
  * in this module.
  *
  * @file
@@ -32,16 +34,16 @@
  * by Quiz.
  */
 interface QuizQuestion {
-  
+
   /**
    * Construct a new quiz question.
    */
   public function __construct($node);
-  
+
   /**
    * Responsible for handling insert/update of question-specific data.
    * This is typically called from within the Node API, so there is no need
-   * to save the node. This function is only responsible for saving data 
+   * to save the node. This function is only responsible for saving data
    * specific to the implement ation.
    *
    * The $is_new flag is set to TRUE whenever the node is being initially
@@ -49,7 +51,7 @@ interface QuizQuestion {
    *
    * A save function is required to handle the following three situations:
    * - A new node is created ($is_new is TRUE)
-   * - A new node *revision* is created ($is_new is NOT set, because the 
+   * - A new node *revision* is created ($is_new is NOT set, because the
    *   node itself is not new).
    * - An existing node revision is modified.
    *
@@ -65,15 +67,15 @@ interface QuizQuestion {
    *
    * @param $node
    *  The node storing the question.
-   * @param $form 
+   * @param $form
    *  The processed form.
    */
   public function validate($node, &$form);
   /**
    * Deletes a question from the database.
-   * 
+   *
    * @param $only_this_version
-   *  If the $only_this_version flag is TRUE, then only the particular 
+   *  If the $only_this_version flag is TRUE, then only the particular
    *  nid/vid combo should be deleted. Otherwise, all questions with the
    *  current nid can be deleted.
    */
@@ -119,11 +121,11 @@ interface QuizQuestion {
 }
 
 /**
- * Each question type must store its own response data and be able to calculate a score for 
+ * Each question type must store its own response data and be able to calculate a score for
  * that data.
  */
 interface QuizQuestionResponse {
-  
+
   /**
    * Create a new user response.
    *
@@ -136,7 +138,7 @@ interface QuizQuestionResponse {
    *  The answer (dependent on question type).
    */
   public function __construct($rid, $question, $answer);
-  
+
   /**
    * Save the current response.
    */
@@ -156,7 +158,7 @@ interface QuizQuestionResponse {
   public function isCorrect();
   /**
    * Indicate whether the response has been evaluated (scored) yet.
-   * Questions that require human scoring (e.g. essays) may need to manually 
+   * Questions that require human scoring (e.g. essays) may need to manually
    * toggle this.
    */
   public function isEvaluated();
@@ -167,7 +169,7 @@ interface QuizQuestionResponse {
   /**
    * Get data suitable for reporting a user's score on the question.
    * This expects an object with the following attributes:
-   * 
+   *
    *  answer_id; // The answer ID
    *  answer; // The full text of the answer
    *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
@@ -177,20 +179,20 @@ interface QuizQuestionResponse {
    *  result_id
    */
   public function getReport();
-  
+
   /**
    * Return an HTML marked-up report for displaying the results of this question.
    *
-   * @return 
+   * @return
    *  An HTML string.
    */
   public function formatReport($showPoints, $showFeedback);
-  
+
   /**
    * Get the integer score.
    */
   public function getScore();
-  
+
   /**
    * Repesent the response as a stdClass object.
    *
@@ -209,17 +211,17 @@ interface QuizQuestionResponse {
  *
  */
 abstract class AbstractQuizQuestionResponse {
-  // These are only public until we can 
+  // These are only public until we can
   // adjust all of Quiz. DO NOT EXPECT THESE
   // TO BE ACCESSIBLE!
   public $score = 0;
   public $rid = 0;
   public $is_correct = FALSE;
-  
+
   protected $evaluated = TRUE;
   protected $question = NULL;
   protected $answer = NULL;
-  
+
   /*
   public function __construct($rid, $question, $answer) {
     $this->rid = $rid;
@@ -227,27 +229,27 @@ abstract class AbstractQuizQuestionResponse {
     $this->answer = $answer;
   }
   */
-  
+
   public function isEvaluated() {
     return $this->evaluated;
   }
-  
+
   /**
    * Check to see if the answer is marked as correct.
-   * 
+   *
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-    
+
     return ($possible == $actual);
   }
-  
+
   function getScore() {
     return $this->score;
   }
-  
+
   function toBareObject() {
     $obj = new stdClass();
     $obj->score = $this->score; // This can be 0 for unscored.
@@ -259,7 +261,7 @@ abstract class AbstractQuizQuestionResponse {
     $obj->is_skipped = FALSE;
     return $obj;
   }
-  
+
   public function getReport() {
     // Basically, we encode internal information in a
     // legacy array format for Quiz.
@@ -268,12 +270,12 @@ abstract class AbstractQuizQuestionResponse {
       'answer' => $this->answer,
       'is_evaluated' => $this->isEvaluated(),
       'is_correct' => $this->isCorrect(),
-      'score' => $this->score, 
-      'question_vid' => $this->question->vid, 
-      'question_nid' => $this->question->nid, 
+      'score' => $this->score,
+      'question_vid' => $this->question->vid,
+      'question_nid' => $this->question->nid,
       'result_id' => $this->rid,
     );
-    
+
     return $report;
   }
 }

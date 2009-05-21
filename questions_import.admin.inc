@@ -75,7 +75,7 @@ function questions_import_form()  {
 function questions_import_quiz_node() {
   $list = array();
   $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
-  while($node = db_fetch_object($results)) {
+  while ($node = db_fetch_object($results)) {
     $list[$node->nid] = substr($node->title, 0, 30);
     // truncate the node title if its length is greater than 30 characters
   }
@@ -138,12 +138,12 @@ function questions_import_form_validate($form, &$form_state) {
   else {
 
     $error_msg = question_import_validate_extensions($file, $allowed_extensions);
-    if($error_msg != '') {
+    if ($error_msg != '') {
       form_set_error('upload', $error_msg);
     }
 
     $error_msg = question_import_validate_size($file, $allowd_size);
-    if($error_msg != '') {
+    if ($error_msg != '') {
       form_set_error('upload', $error_msg);
     }
 
@@ -161,7 +161,7 @@ function questions_import_form_validate($form, &$form_state) {
       break;
     }
 
-    if($error_msg != '') {
+    if ($error_msg != '') {
       form_set_error('upload', $error_msg);
     }
   }
@@ -197,7 +197,7 @@ function questions_import_validate_aiken($file, $separator, $question_type) {
   }
 
   if ($question_type = 'multichoice') {
-    while(!empty($lines)) { // while not empty of file content
+    while (!empty($lines)) { // while not empty of file content
       while ($current_line = trim(array_shift($lines))) {
         if (empty($current_line)) {
           break;
@@ -369,7 +369,7 @@ function questions_import_qti_create_node($item, $form_state) {
  */
 function questions_import_qti_extract_info($file) {
   $items = array();
-  foreach(qp($file, 'item') as $item) {
+  foreach (qp($file, 'item') as $item) {
     $title = $item->attr('title');
     $type = $item->find('itemmetadata>qmd_itemtype')->text();
     $body = $item->end()->find('presentation>material>mattext');
@@ -468,7 +468,7 @@ function questions_import_submit_aiken(&$form, &$form_state) {
   //creates drupal file object
   $lines = file($file->filepath);
   if ($question_type == 'multichoice') {
-    while(!empty($lines)) { // while not empty of file
+    while (!empty($lines)) { // while not empty of file
       while ($current_line = trim(array_shift($lines))) {
         if (empty($current_line)) {
           break;
@@ -486,7 +486,7 @@ function questions_import_submit_aiken(&$form, &$form_state) {
        $options[trim($option[0])] = trim($option[1]);
       }
       //now $options['A'] => Moodle, $options['B'] => ATutor ...
-      $correct = substr(trim($answer),'-1');
+      $correct = substr(trim($answer), '-1');
       $answer = $options[$correct];
 
       $line = array();
@@ -597,7 +597,7 @@ function questions_import_node_save_static_data(&$node) {
  * Return error message if the import file extension is not in $extensions array.
  */
 
-function question_import_validate_extensions($file, $extensions){
+function question_import_validate_extensions($file, $extensions) {
   global $user;
   $errors = '';
   // Bypass validation for uid  = 1.

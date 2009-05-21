@@ -1,6 +1,10 @@
 <?php
 // $Id$
 
+/*
+ * @file
+ * Handles field user quiz state.
+ */
 class quiz_views_handler_field_user_quiz_state extends views_handler_field {
 
   function construct() {

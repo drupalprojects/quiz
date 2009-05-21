@@ -1,8 +1,12 @@
 <?php
 // $Id$
 
+/*
+ * @file
+ * // options are either a) show only the most recent version, b) show the original version.
+ */
 class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
-  // options are either a) show only the most recent version, b) show the original version
+
   /**
    * An array that the subselect will fill with all the corresponding quiz node,
    * according to the configuration on the argument settings form. These vids

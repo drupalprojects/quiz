@@ -1,5 +1,5 @@
 <?php
-//$Id$
+// $Id$
 
 /**
  * @file
@@ -196,10 +196,10 @@ function quiz_schema() {
         'default' => 0,
       ),
       'has_userpoints' => array(
-        'type' => 'int', 
-        'size' => 'tiny', 
-        'unsigned' => TRUE, 
-        'not null' => TRUE, 
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
         'default' => 0
       ),
     ),

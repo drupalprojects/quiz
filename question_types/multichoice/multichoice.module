@@ -1,5 +1,5 @@
 <?php
-/* $Id$ */
+// $Id$
 
 /**
  * @file
@@ -344,7 +344,7 @@ function multichoice_form(&$node) {
       '#type' => 'hidden',
       '#value' => 'node/'. $quiz_id .'/questions',
     );
-    
+
   }
   return $form;
 }
@@ -421,7 +421,7 @@ function multichoice_validate($node, &$form) {
     if (!$answers) {
       form_set_error("answers][0]['answer'", t('No answers.'));
     }
-    else if ($answers < 2) {
+    elseif ($answers < 2) {
       form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
     }
   }
@@ -603,7 +603,7 @@ function multichoice_update($node) {
           $value['answer'], $value['feedback'], $value['correct'], $value['result_option'], $value['answer_id']);
       }
     }
-    else if (trim($value['answer']) != "") {
+    elseif (trim($value['answer']) != '') {
       // If there is an answer, insert a new row. // Removed answer_id
       db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) " .
               "VALUES(%d, %d, '%s', '%s', %d, %d)",
@@ -681,7 +681,7 @@ function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
     $node->content['body'] = array('#value' => multichoice_render_question($node));
     return $node;
   }
-  else if ($teaser) {
+  elseif ($teaser) {
     $node = node_prepare($node, $teaser);
     return $node;
   }
@@ -751,7 +751,8 @@ function multichoice_render_question_form($context, $node) {
     if (count($answers) > 0) {
       if ($type == 'radios') { // Only one for radio
         $form['tries']['#default_value'] = $answers[0];
-      } elseif ($type == 'checkboxes') { // Array for checkboxes
+      }
+      elseif ($type == 'checkboxes') { // Array for checkboxes
         $form['tries']['#default_value'] = $answers;
       }
     }
@@ -817,7 +818,7 @@ function multichoice_render_question($node) {
  *      'tried' => array of selected answer(s)
  *    );
  */
-function multichoice_evaluate_question($question, $rid = null) {
+function multichoice_evaluate_question($question, $rid = NULL) {
   $tries = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
   //drupal_set_message(var_dump($_POST['tries']) . "\n answer called");
 
@@ -1242,7 +1243,7 @@ function theme_multichoice_feedback($quiz, $report) {
     '</span>';
   if ($answer['feedback']) {
     $output .= '<div class="quiz_summary_text"><ul>';
-    foreach($feedbacks as $feedback) {
+    foreach ($feedbacks as $feedback) {
       $output .= '<li>' . $feedback . '</li>';
     }
     $output .='</ul></div>';

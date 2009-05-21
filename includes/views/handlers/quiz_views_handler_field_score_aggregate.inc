@@ -1,6 +1,11 @@
 <?php
 // $Id$
 
+/*
+ * @file
+ *  Handler for field score.
+ */
+
 class quiz_views_handler_field_score_aggregate extends views_handler_field_numeric {
 
   function construct() {
