@@ -1160,7 +1160,8 @@ function quiz_take_quiz($quiz) {
 
       if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
         jquery_countdown_add(".countdown", array("until" => $time, "onExpiry" => "finished"));
-        drupal_add_js('function finished() { alert("time up!") }', 'inline');
+        drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
+        //window.location.reload() method doesn't works here.
       }
 
       if ($time == 1) {
