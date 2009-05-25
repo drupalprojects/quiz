@@ -100,7 +100,7 @@ function matching_list_questions() {
 */
 
 /**
- * Admin settings form. *
+ * Admin settings form.
  */
 
 function matching_admin_settings_form() {

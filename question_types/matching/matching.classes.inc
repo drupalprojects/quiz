@@ -252,10 +252,9 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function score() {
-    //print_r($this->answer);exit;
     //$MatchingQuestion = new MatchingQuestion($this->question);
     //$correct_answers = $MatchingQuestion->getCorrectAnswer();
-    $user_answers = $this->answer;
+    $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
     //print_r($correct_answers);
     //echo "-------------------------\n\n\n";
     foreach ($user_answers as $key => $value) {
