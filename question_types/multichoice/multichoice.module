@@ -541,7 +541,7 @@ function multichoice_insert(&$node) {
   if ($node->quiz_id > 0) {
     db_query('INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status)
       VALUES (%d, %d, %d, %d, %d)',
-      $node->quiz_id, $quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
+      $node->quiz_id, $quiz_vid, $node->nid, $node->vid, isset($node->question_status)? $node->question_status : QUESTION_ALWAYS);
   }
 
   foreach ($node->answers as $value) {
