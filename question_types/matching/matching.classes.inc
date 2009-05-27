@@ -234,6 +234,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
+    $this->is_correct = $this->score();
   }
 
   public function save() {
@@ -258,9 +259,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     //print_r($correct_answers);
     //echo "-------------------------\n\n\n";
     foreach ($user_answers as $key => $value) {
-      if ($key == $value) {
-        $this->score++;
-      }
+      $this->score = ($key == $value) ? 1 : 0;
     }
     return $this->score;
   }

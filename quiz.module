@@ -1092,6 +1092,8 @@ function quiz_take_quiz($quiz) {
       $module = $types[$former_question->type]['module'];
       //drupal_set_message($module . ' evaluate_question called');
       $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+
+      //$result stdClass Object ( [score] => 0 [nid] => 3 [vid] => 3 [rid] => 27 [is_correct] => [is_evaluated] => 1 [is_skipped] => )
       quiz_store_question_result($result, array('set_msg' => TRUE));
 
       // Stash feedback in the session, since the $_POST gets cleared.

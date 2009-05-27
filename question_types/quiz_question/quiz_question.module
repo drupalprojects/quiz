@@ -174,7 +174,6 @@ function quiz_question_form(&$node, $form_state) {
       '#value' => $quiz->vid,
     );
   }
-  //print_r($node);exit;
   $question = _quiz_question_get_instance($node);
   $form = array_merge($form, $question->getCreationForm($form_state));
 
