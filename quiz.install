@@ -9,13 +9,22 @@
 
 /**
  * Implementation of hook_update_N().
+ * Adding a new field to save timer status for a timed quiz.
+ */
+function quiz_update_6306() {
+  $result = array();
+  db_add_field($result, 'quiz_node_results', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
+  return $result;
+}
+
+
+/**
+ * Implementation of hook_update_N().
  *  Adding new field to integrate quiz node and userpoints modules
  */
 function quiz_update_6305() {
   $result = array();
-
   db_add_field($result, 'quiz_node_properties', 'has_userpoints', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-
   return $result;
 }
 
@@ -23,7 +32,6 @@ function quiz_update_6305() {
  * Implementation of hook_update_N().
  *
  */
-
 function quiz_update_6304() {
   $result = array();
   db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
@@ -56,6 +64,7 @@ function quiz_update_6302() {
 
   return $result;
 }
+
 /**
  * Implementation of hook_update_N().
  * Add is_skipped column to quiz answer field. This allows questions to be skipped.

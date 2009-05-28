@@ -970,10 +970,11 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
 /**
  * Handles quiz taking.
  *
- * This gets executed when the main quiz node is first loaded.
+ * This gets executed when the main quiz node is first loaded i.e when you click the
+ * "view" tab of quiz node.
  *
  * @param $quiz
- *  The quiz node.
+ *  The node object of type quiz.
  *
  * @return
  *  HTML output for page.
@@ -998,7 +999,7 @@ function quiz_take_quiz($quiz) {
   }
 
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-    $rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid);
+    $rid = intval(_quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid));
 
     // Are we resuming an in-progress quiz?
     if ($rid > 0) {
@@ -1153,21 +1154,23 @@ function quiz_take_quiz($quiz) {
 
     if ($_SESSION['quiz_'. $quiz->nid]['question_duration']) {
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
+      /*
       if ($_SESSION['quiz_'. $quiz->nid]['question_duration'] < -10) {
         unset($_SESSION['quiz_'. $quiz->nid]);
         drupal_set_message('You have left this quiz partially complete.');
         return ;
-      }
+      }*/
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
-
+      db_query("UPDATE {quiz_node_results} SET time_left = %d WHERE result_id = %d", $time, $_SESSION['quiz_'. $quiz->nid]['result_id']);
       if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-        jquery_countdown_add(".countdown", array("until" => $time, "onExpiry" => "finished"));
+        jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
         drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
         //window.location.reload() method doesn't works here.
       }
 
       if ($time == 1) {
-        // Load the last asked question.
+        /* Quiz has been timed out, run a loop to mark the remaining questions
+         * as skipped */
         while (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
           $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
@@ -1182,6 +1185,7 @@ function quiz_take_quiz($quiz) {
           quiz_store_question_result($result, array('set_mesg' => FALSE));
         }
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
+        // empty the quiz questions
       }
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
     }
@@ -1956,8 +1960,8 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
  *
  * This sets the user's session back to the state it was in when the quiz was aborted.
  *
- * This function should only be called if the quiz needs resuming. Outside logic needs to
- * check that, though.
+ * This function should only be called if the quiz needs resuming. Outside logic
+ * needs to check that, though.
  *
  * @param $quiz
  *   The current quiz.
@@ -1974,9 +1978,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
 
-  $sql = "SELECT question_nid AS nid, question_vid AS vid
-    FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp";
-  $answered_questions = db_query($sql, $rid);
+  $answered_questions = db_query("SELECT question_nid AS nid, question_vid AS vid     FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp", $rid);
   while ($answered = db_fetch_object($answered_questions)) {
     foreach ($questions as $question) {
       if ($question['vid'] == $answered->vid) {
@@ -2004,7 +2006,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Timed quizzes are likely to have expired by this point. But we let
   // the quiz_take_quiz handler handle that.
   $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
-  $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
+  $_SESSION['quiz_'. $quiz->nid]['question_duration'] = db_result(db_query("SELECT time_left FROM {quiz_node_results} WHERE result_id = %d", $rid));
 
   drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
 }
@@ -2032,7 +2034,6 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
   if (!isset($now)) {
     $now = time();
   }
-
   // Get any quiz that is (a) open, (b) for this user, and (c) has not already
   // been completed.
   $sql = "SELECT result_id
@@ -2041,8 +2042,8 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
     WHERE (qnp.quiz_always = 1 OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
       AND qnr.vid = %d AND qnr.uid = %d
       AND qnr.time_end = 0";
-  $rid = db_result(db_query($sql, $now, $vid, $uid));
-  return (int)$rid;
+  return db_result(db_query($sql, $now, $vid, $uid));
+  // return $rid result id
 }
 
 /**
@@ -2690,6 +2691,6 @@ function quiz_action_options($type = 'all') {
 function quiz_cron() {
   $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
   if ($rm_time) { // $time = 0 for never
-    db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
+    db_query("DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d", time(), $rm_time);
   }
 }
