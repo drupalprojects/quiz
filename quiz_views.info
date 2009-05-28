@@ -1,7 +1,0 @@
-; $Id$
-name = Quiz Views
-package = Quiz
-description = "Exposes quiz to views for more advanced interface capabilites"
-dependencies[] = quiz
-dependencies[] = views
-core=6.x

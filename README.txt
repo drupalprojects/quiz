@@ -41,7 +41,7 @@ Please refer to the INSTALL file for installation directions.
 
 Support
 -------
-- Visit the Quiz group at http://groups.drupal.org
+- Visit the Quiz group at http://groups.drupal.org/quiz
 
 
 Credits
@@ -49,7 +49,7 @@ Credits
 - Specification:      Robert Douglass
 - Original author:    Károly Négyesi
 - Update to Drupal 5: Wim Mostrey and riverfr0zen
-- Maintainers: Angela Byron, westwesterson, mbutcher
+- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji
 
 I'd like to extend a heart-felt thank you to the folks at Google for their 
 Summer of Code program, without which my working on this module would not have 

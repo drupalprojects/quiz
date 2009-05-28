@@ -1,8 +1,10 @@
 <?php
+// $Id$
 /**
  * Help text.
  *
  * @file
+ * quiz help function
  */
 
 /**

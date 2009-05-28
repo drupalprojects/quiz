@@ -1,5 +1,5 @@
 <?php
-/* $Id$ */
+// $Id$
 
 /**
  * @file
@@ -8,14 +8,74 @@
  * Allows the creation of multiple choice questions (ex: a, b, c, d or true/false)
  */
 
-define('MULTICHOICE_NAME', 'Multi-Choice Question');
+define('MULTICHOICE_NAME', 'Multi-choice question');
+
+/**
+ * Implementation of hook_help().
+ */
+function multichoice_help($path, $a_really_important_array) {
+  if ($path == 'admin/help#multichoice') {
+    return '<p>' . t('The multichoice module provides a multiple-choice question type to the Quiz module.') .
+      '</p><p>' . t('With this module, you can create new multiple choice and multiple answer questions that can
+      be added to a quiz.') . '</p>';
+  }
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function multichoice_menu() {
+  $items['admin/quiz/multichoice'] = array(
+    'title' => t('Multichoice configuration'),
+    'description' => t('Configure Multichoice questions for users.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('multichoice_admin_settings_form'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ *
+ * Implementation of hook_theme().
+ *
+ * @ingroup themeable
+ */
+function multichoice_theme() {
+  return array(
+    'multichoice_generate_title' => array(
+      'arguments' => array('node' => NULL),
+    ),
+    'multichoice_feedback' => array(
+      'arguments' => array('quiz' => NULL, 'report' => NULL),
+    ),
+    'multichoice_report' => array(
+      'arguments' => array('question' => NULL, 'showpoints' => NULL, 'showfeedback' => NULL),
+    ),
+    'multichoice_selected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_unselected' => array(
+      'arguments' => array(),
+    ),
+    'multichoice_form' => array(
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
 
 /**
  * Implementation of hook_perm().
  */
 function multichoice_perm() {
-  return array('create multichoice', 'edit own multichoice', 'allow any number of answers',
-               'allow multiple correct answers', 'allow feedback', 'allow user titles');
+  return array(
+    // Manage questions:
+    'create multichoice', 'edit own multichoice', 'edit any multichoice', 'delete own multichoice', 'delete any multichoice',
+    // Allow editing of fields:
+    'allow any number of answers', 'allow multiple correct answers', 'allow feedback', 'allow user titles',
+  );
 }
 
 /**
@@ -23,14 +83,24 @@ function multichoice_perm() {
  */
 function multichoice_access($op, $node, $account) {
 
-  if ($op == 'create') {
-    return user_access('create multichoice');
+  // Quiz administrator can do anything.
+  if (user_access('administer quiz', $account)) {
+    return TRUE;
   }
 
-  if ($op == 'update' || $op == 'delete') {
-    if (user_access('edit own multichoice') && ($user->uid == $node->uid)) {
-      return TRUE;
-    }
+  switch ($op) {
+    case 'view':
+      return user_access('view quiz question outside of a quiz');
+    case 'create':
+      return user_access('create multichoice', $account);
+    case 'update':
+      if (user_access('edit any multichoice', $account) || user_access('edit own multichoice', $account) && ($account->uid == $node->uid)) {
+        return TRUE;
+      }
+    case 'delete':
+      if (user_access('delete any multichoice', $account) || user_access('delete own multichoice', $account) && ($account->uid == $node->uid)) {
+        return TRUE;
+      }
   }
 }
 
@@ -48,22 +118,22 @@ function multichoice_node_info() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implementation of hook_quiz_question_info().
+ *
+ * Data structure is array('type' => array('name'=>'Human Name', 'module'=>'handling_module))
  */
-function multichoice_menu() {
-    $items['admin/settings/multichoice'] = array(
-      'title' => t('Multichoice Configuration'),
-      'description' => t('Configure Multichoice questions for users.'),
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('multichoice_admin_settings_form'),
-      'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-      'type' => MENU_NORMAL_ITEM,
-    );
-  return $items;
+function multichoice_quiz_question_info() {
+  return array('multichoice' => array(
+    'name' => t(MULTICHOICE_NAME),
+    'module' => 'multichoice'
+    )
+  );
 }
+
 
 /**
  * Admin settings form.
+ * @todo Move this to multichoice.admin.inc?
  */
 function multichoice_admin_settings_form() {
   $form['multichoice_default_answers'] = array(
@@ -81,8 +151,23 @@ function multichoice_admin_settings_form() {
  * Admin for create/update of a multichoice question.
  */
 function multichoice_form(&$node) {
+
+  $is_personality = _multichoice_is_personality_question($node);
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
+
+  // Second isset is there b/c of hiccups during node preview.
+  if ($is_personality && isset($node->answers[0]['result_option']) && (!isset($quiz_id) || intval($quiz_id) == 0)) {
+
+    // We have to actually  look up the Quiz because personality tests are linked to ONE SINGLE quiz. Not a great
+    // design.
+    $result = db_result(db_query("SELECT nid FROM {quiz_node_result_options} WHERE option_id = %d", $node->answers[0]['result_option']));
+    if ($result) {
+      $quiz_id = $result;
+    }
+    // else: This means the quiz that this question originally belonged to has been deleted. Let user fix it.
+  }
+
   if (!empty($quiz_id)) {
     $quiz = node_load((int)$quiz_id);
     $form['quiz_id'] = array(
@@ -94,6 +179,8 @@ function multichoice_form(&$node) {
       '#value' => $quiz->vid,
     );
   }
+
+
 
   // Display the multichoice form.
 
@@ -139,9 +226,16 @@ function multichoice_form(&$node) {
   if (!isset($node->rows)) {
     $node->rows = max(2, $node->answers ? count($node->answers) : variable_get('multichoice_default_answers', 5));
   }
-  if ($_POST['more']) {
+  if (!empty($_POST['more'])) {
     $node->rows += 5;
   }
+
+  // We store this for reference.
+  $form['num_answers'] = array(
+    '#type' => 'value',
+    '#value' => $node->rows,
+  );
+
   $answers = $node->answers;
 
   // Display answer rows.
@@ -161,7 +255,8 @@ function multichoice_form(&$node) {
 
     // This is not a scored quiz, therefore no correct answers
     // so creator must assign answers to result options.
-    if (isset($quiz_id) && $quiz->pass_rate == 0) {
+    //if ($is_personality) {
+    if (isset($quiz_id) && isset($quiz->pass_rate) && $quiz->pass_rate == 0) {
       if (empty($result_options)) {
         $result_options = array(0 => 'None');
         if (is_array($quiz->resultoptions)) {
@@ -181,9 +276,14 @@ function multichoice_form(&$node) {
     // This is a scored quiz, just need to know the correct answer(s).
     else {
       if (user_access('allow multiple correct answers')) {
+
+        // Preview mode has $answers[$i]['correct']. A saved form
+        // stores the flag in $answers[$i]['is_correct'].
+        $correct = !empty($answers[$i]['is_correct']) || !empty($answers[$i]['correct']);
+
         $form['answers'][$i]['correct'] = array(
           '#type' => 'checkbox',
-          '#default_value' => $answers[$i]['is_correct'],
+          '#default_value' => $correct,
         );
       }
     }
@@ -206,7 +306,7 @@ function multichoice_form(&$node) {
         '#value' => '',
       );
     }
-    if ($answers[$i]['answer_id']) {
+    if (!empty($answers[$i]['answer_id'])) {
       $form['answers'][$i]['delete'] = array(
         '#type' => 'checkbox',
         '#default_value' => 0,
@@ -222,14 +322,14 @@ function multichoice_form(&$node) {
   if (user_access('allow any number of answers')) {
     $form['more'] = array(
       '#type' => 'checkbox',
-      '#title' => t('I need more answers'),
+      '#title' => t('I need more answers (click "Preview" to generate more fields)'),
     );
   }
 
   if (!user_access('allow multiple correct answers')) {
     $form['correct'] = array(
       '#type' => 'select',
-      '#title' => t('Correct Answer'),
+      '#title' => t('Correct answer'),
       '#description' => t('Which of the answer choices is correct?'),
       '#required' => TRUE,
       '#size' => 1,
@@ -240,7 +340,11 @@ function multichoice_form(&$node) {
 
   // If coming from quiz view, go back there on submit.
   if (!empty($quiz_id)) {
-    $form['#redirect'] = 'node/'. $quiz_id .'/questions';
+    $form['destination'] = array(
+      '#type' => 'hidden',
+      '#value' => 'node/'. $quiz_id .'/questions',
+    );
+
   }
   return $form;
 }
@@ -267,7 +371,7 @@ function _multichoice_find_correct($answers) {
 /**
  * Implementation of hook_validate().
  */
-function multichoice_validate(&$node) {
+function multichoice_validate($node, &$form) {
   // Hard-code questions to have no teaser and to not be promoted to front page.
   $node->teaser = 0;
   $node->promote = 0;
@@ -313,16 +417,16 @@ function multichoice_validate(&$node) {
     if ($node->multiple_answers && $corrects < 1) {
       form_set_error('multiple_answers', t('Multiple answers selected, but only %count correct answer(s) present.', array('%count' => $corrects)));
     }
-    
+
     if (!$answers) {
       form_set_error("answers][0]['answer'", t('No answers.'));
     }
-    else if ($answers < 2) {
+    elseif ($answers < 2) {
       form_set_error("answers][1]['answer'", t('Must have at least two answers.'));
     }
   }
   else {
-	// Unscored quiz.
+  // Unscored quiz.
     foreach ($node->answers as $key => $answer) {
       if ($answer['answer'] && !$answer['result_option']) {
         form_set_error('answers][$key][result_option', t('You must select an association for each answer'));
@@ -343,17 +447,60 @@ function multichoice_validate(&$node) {
 }
 
 /**
- * Implementation of hook_submit().
+ * Implementation of hook_nodeapi().
+ * This is supposed to replace the hook_submit() features from the 5.x version.
  */
-function multichoice_submit(&$node) {
-  if (!user_access('allow user titles') || empty($node->title)) {
-    // User is not allowed to set a title or they left it blank, so make one for them.
-    $node->title = theme('multichoice_generate_title', $node);
+function multichoice_nodeapi(&$node, $op) {
+  if ($op == 'presave' && $node->type == 'multichoice') {
+    if (!user_access('allow user titles') || empty($node->title)) {
+      // User is not allowed to set a title or they left it blank, so make one for them.
+      $node->title = theme('multichoice_generate_title', $node);
+    }
+    if (!user_access('allow multiple correct answers')) {
+      // Convert the select box to the old checkbox.
+      $node->answers[$node->correct]['correct'] = TRUE;
+    }
   }
-  if (!user_access('allow multiple correct answers')) {
-    // Convert the select box to the old checkbox.
-    $node->answers[$node->correct]['correct'] = TRUE;
+
+  if ($op == 'prepare' && $node->type == 'multichoice') {
+    // Set defaults to pass E_STRICT on new node creation
+    if (!isset($node->multiple_answers)) {
+      $node->multiple_answers = FALSE;
+    }
+    if (!isset($node->answers)) {
+      $node->answers = NULL;
+    }
   }
+}
+
+/**
+ * Implementation of hook_quiz_question_score()
+ */
+function multichoice_quiz_question_score($quiz, $question_nid, $question_vid, $rid) {
+  $sql = "SELECT is_correct
+    FROM {quiz_node_results_answers}
+    WHERE result_id = %d
+      AND question_vid = %d";
+  $correct = db_result(db_query($sql, $rid, $question_vid));
+
+  $score = new stdClass();
+  $score->possible = 1;
+  $score->attained = $correct;
+  return $score;
+}
+
+/**
+ * Implementation of hook_quiz_personality_question_score().
+ */
+function multichoice_quiz_personality_question_score($quiz, $question_nid, $question_vid, $rid) {
+  // Return the result_option.
+  $sql = 'SELECT qnro.option_summary
+    FROM {quiz_multichoice_user_answers} qmua
+    INNER JOIN {quiz_multichoice_answers} qma USING (answer_id)
+    INNER JOIN {quiz_node_result_options} qnro ON (qma.result_option = qnro.option_id)
+    WHERE qmua.result_id = %d
+      AND qmua.question_vid = %d';
+  return db_result(db_query($sql, $rid, $question_vid));
 }
 
 /**
@@ -368,7 +515,12 @@ function multichoice_get_number_of_corrects($answers) {
   $corrects =0;
   if (is_array($answers)) {
     foreach ($answers as $answer) {
-      $corrects += $answer['correct'];
+      // We have to filter this because personality questions don't
+      // actually *set* $answer['correct']. Doing a += on a NULL will
+      // generate an E_NOTICE.
+      if (!empty($answer['correct'])) {
+        $corrects += $answer['correct'];
+      }
     }
   }
   return $corrects;
@@ -386,17 +538,27 @@ function multichoice_insert(&$node) {
   // we will store the actual number of correct answers.
   db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
   // We came from editing a quiz, so we should add this question to the quiz directly.
-  if ($node->quiz_id > 0) { 
-    db_query('INSERT INTO {quiz_node_relationship} '.
-              '(parent_nid, parent_vid, child_nid, child_vid, question_status) VALUES (%d, %d, %d, %d, %d)', 
-              $node->quiz_id, $quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
+  if ($node->quiz_id > 0) {
+    db_query('INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status)
+      VALUES (%d, %d, %d, %d, %d)',
+      $node->quiz_id, $quiz_vid, $node->nid, $node->vid, isset($node->question_status)? $node->question_status : QUESTION_ALWAYS);
   }
-  
+
   foreach ($node->answers as $value) {
+
+    // Result options are for personality questions.
+    if (!isset($value['result_option'])) {
+      $value['result_option'] = 0;
+    }
+
+    if (!isset($value['correct'])) {
+      $value['correct'] = 0;
+    }
+
     if (trim($value['answer']) != "") {
-      db_query("INSERT INTO {quiz_multichoice_answers} " .
-              "(nid, vid, answer, feedback, is_correct, result_option) VALUES (%d, %d, '%s', '%s', %d, %d)", 
-              $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
+      db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option)
+        VALUES (%d, %d, '%s', '%s', %d, %d)",
+        $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
 }
@@ -408,31 +570,43 @@ function multichoice_update($node) {
   $question_vid = $node->vid;
   $node->number_of_answers = multichoice_get_number_of_corrects($node->answers);
   if ($node->revision) {
-    db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers) " .
-             "VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
+    db_query("INSERT INTO {quiz_node_question_properties} (nid, vid, number_of_answers)
+      VALUES(%d, %d, %d)", $node->nid, $question_vid, $node->number_of_answers);
   }
   else {
-    db_query("UPDATE {quiz_node_question_properties} " .
-            "SET number_of_answers = %d WHERE nid = %d AND vid = %d",
-            $node->number_of_answers, $node->nid, $node->vid);
+    db_query("UPDATE {quiz_node_question_properties}
+      SET number_of_answers = %d WHERE nid = %d AND vid = %d",
+      $node->number_of_answers, $node->nid, $node->vid);
   }
-  while (list($key, $value) = each($node->answers)) {
+  // Use foreach on small lists...
+  //while (list($key, $value) = each($node->answers)) {
+  //print_r($node->answers);exit;
+  foreach ($node->answers as $key => $value) {
+    // Avoid E_NOTICE messages by assigning default
+    // values.
+    if (!isset($value['correct'])) {
+      $value['correct'] = 0;
+    }
+    if (!isset($value['result_option'])) {
+      $value['result_option'] = 0;
+    }
+
     if ($value['answer_id']) {
       $value['answer'] = trim($value['answer']);
       if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
         // Delete this entry.
         db_query("DELETE FROM {quiz_multichoice_answers} WHERE answer_id = %d", $value['answer_id']);
-      } 
+      }
       else {
         // Update this entry.
-        db_query("UPDATE {quiz_multichoice_answers} SET answer = '%s', feedback = '%s', is_correct = %d, result_option = %d WHERE answer_id = %d", 
+        db_query("UPDATE {quiz_multichoice_answers} SET answer = '%s', feedback = '%s', is_correct = %d, result_option = %d WHERE answer_id = %d",
           $value['answer'], $value['feedback'], $value['correct'], $value['result_option'], $value['answer_id']);
       }
-    } 
-    else if (trim($value['answer']) != "") {
-      // If there is an answer, insert a new row.
-      db_query("INSERT INTO {quiz_multichoice_answers} (answer_id, nid, vid, answer, feedback, is_correct, result_option) " .
-              "VALUES(%d, %d, '%s', '%s', %d, %d)", 
+    }
+    elseif (trim($value['answer']) != '') {
+      // If there is an answer, insert a new row. // Removed answer_id
+      db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) " .
+              "VALUES(%d, %d, '%s', '%s', %d, %d)",
                $node->nid, $question_vid, $value['answer'], $value['feedback'], $value['correct'], $value['result_option']);
     }
   }
@@ -441,7 +615,7 @@ function multichoice_update($node) {
   if ($node->revision) {
     // Gather all quiz node vids from quiz_node_relationship table that contain
     // the question being updated and create a new revision of the quizzes.
-    $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND status != %d";
+    $sql = "SELECT DISTINCT parent_vid FROM {quiz_node_relationship} WHERE child_vid = %d AND question_status != %d";
     $result = db_query($sql, $node->old_vid, QUESTION_NEVER);
     while ($quiz = db_fetch_object($result)) {
       // Create new revision of the quiz.
@@ -465,6 +639,7 @@ function multichoice_update($node) {
  * Implementation of hook_delete().
  */
 function multichoice_delete(&$node) {
+  //drupal_set_message('CALLED', 'status');
   // Delete all answers for this question.
   db_query("DELETE FROM {quiz_multichoice_answers} WHERE nid = %d", $node->nid);
   // For all quizzes that have this quiz with status ALWAYS, reduce number of questions by 1.
@@ -492,23 +667,24 @@ function multichoice_load($node) {
 
   $additions->answers = $answers;
   // Just check for multiple answers for now.
-  $additions->multiple_answers = $additions->properties['number_of_answers'] > 1 ? 1 : 0; 
+  $additions->multiple_answers = $additions->properties['number_of_answers'] > 1 ? 1 : 0;
   return $additions;
 }
 
 /**
  * Implementation of hook_view().
  */
-function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
-  if (!$teaser && user_access('create multichoice')) {
-    $mynode = node_prepare($node, $teaser);
-    $mynode->content['body'] = array('#value' => multichoice_render_question($node));
-    return $mynode;
-  } 
-  else if ($teaser) {
-    $mynode = node_prepare($node, $teaser);
-    return $mynode;
-  } 
+function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
+  if (!$teaser /*&& user_access('create multichoice')*/) {
+    // This is not necessary:
+    //$mynode = node_prepare($node, $teaser);
+    $node->content['body'] = array('#value' => multichoice_render_question($node));
+    return $node;
+  }
+  elseif ($teaser) {
+    $node = node_prepare($node, $teaser);
+    return $node;
+  }
   else {
     drupal_access_denied();
   }
@@ -528,8 +704,8 @@ function multichoice_view(&$node, $teaser = FALSE, $page = FALSE) {
  *  HTML output.
  */
 function multichoice_render_question_form($context, $node) {
-    $quiz = menu_get_object(); // Get the quiz object.
-  
+  $quiz = menu_get_object(); // Get the quiz object.
+
   // Radio buttons for single selection questions, checkboxes for multiselect.
   if ($node->multiple_answers == 0) {
     $type = 'radios';
@@ -540,51 +716,73 @@ function multichoice_render_question_form($context, $node) {
 
   // Get options.
   $options = array();
+  $fake_answer_id = 0;
   while (list($key, $answer) = each($node->answers)) {
     if (empty($answer['correct']) && !isset($answer['answer']) && empty($answer['feedback'])) {
       unset($node->answers[$key]);
     }
     else {
+      if (!isset($answer['answer_id'])) {
+        // We are probably in a preview. Generate fake answer IDs. Later we will disabled submit, too.
+        $answer['answer_id'] = ++$fake_answer_id;
+      }
       $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
     }
   }
 
-  $form['start'] = array('#type' => 'markup', '#value' => '<div class="multichoice_form">');
-  // $node->body has already been escaped by node_prepare()
-  $form['question'] = array('#type' => 'markup', '#value' => $node->body);
+  $form['question'] = array('#type' => 'markup', '#value' => check_markup($node->body, $node->format, FALSE));
 
   // Create form.
+
   $form['tries'] = array(
     '#type' => $type,
     '#options' => $options,
   );
-  
-  // Find out if there is already an answer (e.g. if Back has been clicked).
-  // If there is an answer or answers, then put this into the $form['tries'] 
-  // field.
-  $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
-  $answers = _multichoice_get_response_answers($node, $rid);
-  if (count($answers) > 0) {
-    if ($type == 'radios') { // Only one for radio
-      $form['tries']['#default_value'] = $answers[0];
-    } elseif ($type == 'checkboxes') { // Array for checkboxes
-      $form['tries']['#default_value'] = $answers;
-    }
-  }
 
-  // Print a back button if necessary.
-  if ($quiz->backwards_navigation == 1 && $node->question_number) {
-    $form['back'] = array(
-      '#type' => 'submit',
-      '#value' => t('Back'),
-    );
+  if (empty($quiz) || empty($_SESSION['quiz_' . $quiz->nid])) {
+    drupal_set_message(t('You are viewing a question outside of a quiz. This is not scored.'), 'status');
+  }
+  else {
+    // Find out if there is already an answer (e.g. if Back has been clicked).
+    // If there is an answer or answers, then put this into the $form['tries']
+    // field.
+    $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
+    $answers = _multichoice_get_response_answers($node, $rid);
+    if (count($answers) > 0) {
+      if ($type == 'radios') { // Only one for radio
+        $form['tries']['#default_value'] = $answers[0];
+      }
+      elseif ($type == 'checkboxes') { // Array for checkboxes
+        $form['tries']['#default_value'] = $answers;
+      }
+    }
+
+    // Print a back button if necessary.
+    if ($quiz->backwards_navigation == 1 && $node->question_number) {
+      $form['back'] = array(
+        '#type' => 'submit',
+        '#value' => t('Back'),
+      );
+    }
+
   }
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit'),
+    '#value' => t('Next'),
   );
+  /*
+  $form['op'] = array(
+    '#type' => 'submit',
+    '#value' => t('Skip'),
+  );
+  */
 
+  if ($fake_answer_id > 0) {
+    // This is not a real quiz question. It's just a preview.
+    $form['submit']['#disabled'] = TRUE;
+    $form['submit']['#description'] = "Preview only. Submission is disabled.";
+  }
   return $form;
 }
 
@@ -594,7 +792,7 @@ function multichoice_render_question_form($context, $node) {
  */
 function _multichoice_get_response_answers($question, $rid) {
   $answers = array();
-  
+
   $sql = 'SELECT answer_id FROM {quiz_multichoice_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
   $results = db_query($sql, $question->nid, $question->vid, $rid);
   while ($result = db_result($results)) {
@@ -604,7 +802,7 @@ function _multichoice_get_response_answers($question, $rid) {
 }
 
 function multichoice_render_question($node) {
-  return drupal_get_form('multichoice_render_question_form', $node);
+  return  drupal_get_form('multichoice_render_question_form', $node);
 }
 
 /**
@@ -620,8 +818,9 @@ function multichoice_render_question($node) {
  *      'tried' => array of selected answer(s)
  *    );
  */
-function multichoice_evaluate_question($question, $rid = null) {
+function multichoice_evaluate_question($question, $rid = NULL) {
   $tries = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
+  //drupal_set_message(var_dump($_POST['tries']) . "\n answer called");
 
   // Unset $_POST, otherwise it tries to use the previous answers on the next page...
   unset($_POST['tries']);
@@ -629,23 +828,52 @@ function multichoice_evaluate_question($question, $rid = null) {
   // See the note in multichoice_store_answer. This is probably not needed.
   //$numanswers = db_query("SELECT count(answer_id) FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $question->nid, $question->vid);
   if ($rid && !empty($tries)) {
-    
+
     // Clear old answers
     multichoice_clear_answer($question->nid, $question->vid, $rid);
-    
+
     // Enter new answers
     foreach ($tries as $answer_id) {
       multichoice_store_answer($question->nid, $question->vid, $rid, $answer_id /*, $numanswers*/);
     }
   }
 
-  // Return whether or not the user's response was correct. 
-  return multichoice_calculate_result($question->nid, $question->vid, $tries);
+  $result = new stdClass();
+  $result->nid = $question->nid;
+  $result->vid = $question->vid;
+  $result->rid = $rid;
+  $result->score = 0;
+  $result->is_correct = 0;
+
+  // Calculate the score.
+  multichoice_calculate_result($result, $tries);
+
+  // Return whether or not the user's response was correct.
+  //return multichoice_calculate_result($question->nid, $question->vid, $tries);
+
+  // Return result object
+  return $result;
+}
+
+function multichoice_skip_question($question, $rid) {
+  // Clear old answers
+  unset($_POST['tries']); // Normally, this should be blank.
+  multichoice_clear_answer($question->nid, $question->vid, $rid);
+
+  $result = new stdClass();
+  $result->nid = $question->nid;
+  $result->vid = $question->vid;
+  $result->rid = $rid;
+  $result->is_skipped = TRUE;
+  $result->score = 0;
+  $result->is_correct = 0;
+
+  return $result;
 }
 
 /**
  * Clear an old answer.
- * This is used for backward navigation. Before updating an answer, we have to clear 
+ * This is used for backward navigation. Before updating an answer, we have to clear
  * old answers.
  * @param $nid
  *  Question node id.
@@ -659,7 +887,7 @@ function multichoice_clear_answer($nid, $vid, $rid) {
   $del_count = db_affected_rows(db_query($sql, $nid, $vid, $rid));
   /*
   if ($del_count > 0) {
-    drupal_set_message("Your old answer has been deleted.");  
+    drupal_set_message("Your old answer has been deleted.");
   }
   */
 }
@@ -680,43 +908,43 @@ function multichoice_clear_answer($nid, $vid, $rid) {
  */
 function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1) {
   db_query(
-    "INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id) 
-     VALUES (%d, %d, %d, %d)", 
-    $nid, 
-    $vid, 
-    $rid, 
+    "INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id)
+     VALUES (%d, %d, %d, %d)",
+    $nid,
+    $vid,
+    $rid,
     $answer_id
   );
   /*
   $result = db_result(db_query(
     "SELECT COUNT('result_id') AS count FROM {quiz_multichoice_user_answers}
-     WHERE question_nid = %d AND question_vid = %d AND result_id = %d", 
-    $nid, 
-    $vid, 
+     WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
+    $nid,
+    $vid,
     $rid
   ));
   // If there are N results for this nid/vid/rid and the number of total answers is also N,
   // then update instead of inserting. When, exactly, would this case obtain? It is impossible
-  // to answer the same question with the same answer twice, and we must delete retries before 
+  // to answer the same question with the same answer twice, and we must delete retries before
   // re-marking the quiz. :. This is unnecessary:
   if (!empty($result) && $result == $numanswers) {
     //drupal_set_message("Updating");
     db_query(
-      "UPDATE {quiz_multichoice_user_answers} SET answer_id = %d 
+      "UPDATE {quiz_multichoice_user_answers} SET answer_id = %d
        WHERE question_nid = %d AND question_vid = %d AND result_id = %d",
-      $answer_id, 
-      $nid, 
-      $vid, 
+      $answer_id,
+      $nid,
+      $vid,
       $rid
     );
   }
   else {
     db_query(
-      "INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id) 
-       VALUES (%d, %d, %d, %d)", 
-      $nid, 
-      $vid, 
-      $rid, 
+      "INSERT INTO {quiz_multichoice_user_answers} (question_nid, question_vid, result_id, answer_id)
+       VALUES (%d, %d, %d, %d)",
+      $nid,
+      $vid,
+      $rid,
       $answer_id
     );
   }
@@ -733,12 +961,27 @@ function multichoice_store_answer($nid, $vid, $rid, $answer_id, $numanswers = 1)
  * @return
  *  TRUE if the user selected exactly all of the correct answers, otherwise FALSE.
  */
-function multichoice_calculate_result($nid, $vid, $tried) {
-  $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1", $nid, $vid);
+//function multichoice_calculate_result($nid, $vid, $tried) {
+function multichoice_calculate_result(&$result, $tried) {
+  $correct_answers = array();
+  $answers = db_query("SELECT answer_id FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d AND is_correct = 1",
+    $result->nid, $result->vid);
   while ($answer = db_fetch_array($answers)) {
     $correct_answers[] = $answer['answer_id'];
   }
-  return (array_values($correct_answers) === array_values($tried));
+
+  if (empty($correct_answers)) {
+    // We are in a personality test. Score doesn't matter. Just return TRUE.
+    return TRUE;
+  }
+
+  $all_correct = (array_values($correct_answers) === array_values($tried));
+
+  // Modify result object.
+  $result->score = $all_correct ? 1 : 0;
+  $result->is_correct = $all_correct;
+
+  return $all_correct;
 }
 
 // New singing and dancing one.
@@ -757,7 +1000,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
     if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
 
     $rows[] = $cols;
-  	
+
     if ($answer['is_correct'] > 0) {
       $correctanswers[] = $answer['answer_id'];
     }
@@ -785,20 +1028,20 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
  *  Question object with all available answers, and the user answers, and question properties.
  */
 function multichoice_get_report($nid, $vid, $rid) {
-  $sql = "SELECT *, 
-      COALESCE((SELECT 1 
-        FROM {quiz_multichoice_user_answers} ua 
+  $sql = "SELECT *,
+      COALESCE((SELECT 1
+        FROM {quiz_multichoice_user_answers} ua
         WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d AND ua.answer_id = ma.answer_id
-      ),0) AS user_answer, 
-      (SELECT is_correct 
-        FROM {quiz_node_results_answers} 
+      ),0) AS user_answer,
+      (SELECT is_correct
+        FROM {quiz_node_results_answers}
         WHERE question_nid = n.nid AND question_vid = n.vid AND result_id = %d
-      ) AS question_correct 
-    FROM {node} n 
-    LEFT JOIN {node_revisions} USING (nid, vid) 
-    LEFT JOIN {quiz_multichoice_answers} ma USING (nid, vid) 
+      ) AS question_correct
+    FROM {node} n
+    LEFT JOIN {node_revisions} USING (nid, vid)
+    LEFT JOIN {quiz_multichoice_answers} ma USING (nid, vid)
     WHERE n.nid = %d AND n.vid = %d";
-    
+
   $result = db_query($sql, $rid, $rid, $nid, $vid);
   if ($result) {
     $question = new stdClass();
@@ -822,7 +1065,12 @@ function multichoice_get_report($nid, $vid, $rid) {
  *  Array of questions.
  */
 function multichoice_list_questions() {
-  $result = db_query("SELECT nid, body, format FROM {node} WHERE type= '%s'", 'multichoice');
+  $sql = "SELECT n.nid, n.vid, r.body, r.format
+    FROM {node} AS n
+    INNER JOIN {node_revisions} AS r USING(vid)
+    WHERE n.type = '%s' ORDER BY n.changed";
+  // Old query: "SELECT nid, body, format FROM {node} WHERE type = '%s'"
+  $result = db_query($sql, 'multichoice');
   $questions = array();
   while ($node = db_fetch_object($result)) {
     $question = new stdClass();
@@ -831,6 +1079,27 @@ function multichoice_list_questions() {
     $questions[] = $question;
   }
   return $questions;
+}
+
+/**
+ * Find out if this question is a personality-style question.
+ *
+ * @param $node
+ *  A multichoice node.
+ *
+ * @return boolean
+ *   TRUE if this is a personality question, FALSE otherwise.
+ */
+function _multichoice_is_personality_question($node) {
+  /*
+   * We need some way to find this out. So far, the best candidate seems to be
+   * this: Only personality questions appear to have result options.
+   *
+   * This does illustrate a defect in the whole personality implementation, though.
+   * Personality questions are bound (via result_option) to the quiz in which they
+   * were created. This stands in start contrast to other multichoice questions.
+   */
+  return (!empty($node->answers) && isset($node->answers[0]['result_option']) && $node->answers[0]['result_option'] > 0);
 }
 
 /**
@@ -848,7 +1117,7 @@ function multichoice_list_questions() {
  *
  * @return string
  *  HTML output.
- * 
+ *
  * @ingroup themeable
  */
 function theme_multichoice_form($form) {
@@ -910,19 +1179,8 @@ function theme_multichoice_unselected() {
 }
 
 /**
- * Theme function for the multichoice form.
- * 
- * @ingroup themeable
- */
-function theme_multichoice_render_question_form($form) {
-  $output = '';
-  $output .= drupal_render($form) .'</div>';
-  return $output;
-}
-
-/**
  * Theme a multichoice question report for quiz feedback.
- * 
+ *
  * @ingroup themeable
  */
 function theme_multichoice_report($question, $showpoints, $showfeedback) {
@@ -961,11 +1219,11 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
  *   The report variables.
  * @return $output
  *   HTML output to be written to the screen.
- * 
+ *
  * @ingroup themeable
  */
 function theme_multichoice_feedback($quiz, $report) {
-  $output = '<span class="quiz_summary_text">'. $report->body .'</span><br />';
+  $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
       $answers[] = $answer['answer'];
@@ -978,14 +1236,14 @@ function theme_multichoice_feedback($quiz, $report) {
 
   $label_answers = format_plural(count($answers), 'Your answer', 'Your answers');
   $label_correct = format_plural(count($corrects), 'Correct answer', 'Correct answers');
-  $output .= '<span class="quiz_summary_header">' . 
-    $label_answers . 
-    ':</span> <span class="quiz_summary_text">'. 
+  $output .= '<span class="quiz_summary_header">' .
+    $label_answers .
+    ':</span> <span class="quiz_summary_text">'.
     implode(', ', $answers) .
     '</span>';
   if ($answer['feedback']) {
     $output .= '<div class="quiz_summary_text"><ul>';
-    foreach($feedbacks as $feedback) {
+    foreach ($feedbacks as $feedback) {
       $output .= '<li>' . $feedback . '</li>';
     }
     $output .='</ul></div>';
@@ -996,9 +1254,9 @@ function theme_multichoice_feedback($quiz, $report) {
   }
   else {
     $output .= '<div class="multichoice_answer_incorrect">' . t("Incorrect") . "</div>";
-    $output .= '<span class="quiz_summary_header">' . 
-      $label_correct . 
-      ':</span> <span class="quiz_summary_text">'. 
+    $output .= '<span class="quiz_summary_header">' .
+      $label_correct .
+      ':</span> <span class="quiz_summary_text">'.
       implode(', ', $corrects) .
       '</span>';
   }
@@ -1012,12 +1270,12 @@ function theme_multichoice_feedback($quiz, $report) {
  * 1. Pick the first taxonomy term from the first vocabulary.
  * 2. Append a numeric sequence.
  * 3. Append the first 50 chars of question body, or less, depending on where the word breaks are.
- * 
+ *
  * @param $node
  *  The question node to generate a title for.
  * @return
  *  A title string.
- * 
+ *
  * @ingroup themeable
  */
 function theme_multichoice_generate_title($node) {
@@ -1045,34 +1303,4 @@ function theme_multichoice_generate_title($node) {
   }
   return $title . $shortstring;
 }
-/**
- * 
- * Hook_theme() required by 6.x
- * 
- * @return
- * An array of themable functions
- *
- * @ingroup themeable
- */
-function multichoice_theme() {
-  return array(
-    'multichoice_generate_title' => array(
-      'arguments' => array('node' => NULL),
-    ),
-    'multichoice_feedback' => array(
-      'arguments' => array('quiz' => NULL, 'report' => NULL),
-    ),
-    'multichoice_report' => array(
-      'arguments' => array('question' => NULL, 'showpoints' => NULL, '$showfeedback' => NULL),
-    ),
-    'multichoice_selected' => array(
-      'arguments' => array(),
-    ),
-    'multichoice_unselected' => array(
-      'arguments' => array(),
-    ),
-    'multichoice_form' => array(
-      'arguments' => array('form' => NULL),
-    ),
-  );
-}
+

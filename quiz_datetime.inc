@@ -4,10 +4,11 @@
 /////////////////////////////////
 // Date and time routines for use with quiz module.
 // - Based on event module
-// - All references to event variables should be optional 
+// - All references to event variables should be optional
 /////////////////////////////////
 
 /**
+ * @file
  * Handles the start and end times in a node form submission.
  * - Takes the array from form_date() and turns it into a timestamp
  * - Adjusts times for time zone offsets.
@@ -70,7 +71,7 @@ function _quiz_mktime($hour, $minute, $second, $month, $day, $year, $offset = NU
  * @param $offset Time zone offset to apply to the timestamp.
  * @return gmdate() formatted date value
  */
-function _quiz_date($format, $timestamp, $offset = null) {
+function _quiz_date($format, $timestamp, $offset = NULL) {
   global $user;
 
   if (isset($offset)) {
