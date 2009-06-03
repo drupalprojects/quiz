@@ -309,9 +309,9 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       $id = $user_answers[$correct_answer['match_id']];
       $theme = ($correct_answer['answer'] == $correct_answers[$id]['answer']) ? 'quiz_score_correct' : 'quiz_score_incorrect';
       $rows[] = array(
-        'match' => $correct_answer['question'],
-        'correct_answer' => ($showpoints) ? $correct_answer['answer'] : '',
-        'user_answer' => ($showfeedback) ? $correct_answers[$id]['answer'] : '',
+        'match' => check_markup($correct_answer['question'], $this->question->format),
+        'correct_answer' => ($showpoints) ? check_plain($correct_answer['answer']) : '',
+        'user_answer' => ($showfeedback) ? check_plain($correct_answers[$id]['answer']) : '',
         'image' => ($showfeedback) ? array('data' => theme($theme), 'class' => 'quiz_summary_qcell') : '',
       );
     }

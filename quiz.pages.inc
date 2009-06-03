@@ -169,11 +169,11 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
       $output .= '<h3>'. t('Pass / fail and summary options') .'</h3>'."\n";
       $output .= '<p><strong>'. t('Percentage needed to pass:') .'</strong> '. check_plain($node->pass_rate) .'</p>'."\n";
       $output .= '<div><strong>'. t('Summary text if the user passed:') .'</strong> ';
-      $output .= ($node->summary_pass) ? check_markup($node->summary_pass) : t('No text defined.');
+      $output .= ($node->summary_pass) ? check_markup($node->summary_pass, $node->format) : t('No text defined.');
       $output .= '</div>'."\n";
     }
     $output .= '<div><strong>'. t('Default summary text:') .'</strong> ';
-    $output .= !empty($node->summary_default) ? check_markup($node->summary_default) : t('No text defined.');
+    $output .= !empty($node->summary_default) ? check_markup($node->summary_default, $node->format) : t('No text defined.');
     $output .= '</div>'."\n";
   }
 
@@ -181,7 +181,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!empty($node->resultoptions)) {
     $scored_quiz = ($node->pass_rate > 0);
 
-    $output .= '<h3>'. t('!quiz Results', array('!quiz' => QUIZ_NAME)) .'</h3>';
+    $output .= '<h3>'. t('@quiz Results', array('@quiz' => QUIZ_NAME)) .'</h3>';
 
     $header = array(t('Name') => 'option_name', t('Summary') => 'option_summary');
     if ($scored_quiz) {
@@ -424,7 +424,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
     $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
     $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
   }
-  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, ($quiz->pass_rate > 0), TRUE);
 
@@ -460,7 +460,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. check_markup($summary,$quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
   return $output;
