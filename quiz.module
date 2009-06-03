@@ -395,6 +395,10 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_close');
 
   $tid = (isset($node->tid) ? $node->tid : 0);
+  
+  if (!isset($node->has_userpoints)) {
+    $node->has_userporints = 0;
+  }
 
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, shuffle,
@@ -1190,7 +1194,7 @@ function quiz_take_quiz($quiz) {
     // quiz_node_view() function, which performs the steps in node_view(), but in a way more
     // specific to our needs.
     $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
-    drupal_set_title($quiz->title);
+    drupal_set_title(check_plain($quiz->title));
     unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
   }
   // Else we're at the end of quiz.
@@ -1365,7 +1369,7 @@ function quiz_mail($key, &$message, $params) {
     '!title' => $quiz->title,
     '!date' => date("F j, Y, g:i a"),
     '!desc' => $quiz->body,
-    '!correct' => $score['numeric_score'],
+    '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
     '!url' => url('user/quiz/' . $rid . '/userresults'),

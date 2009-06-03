@@ -96,7 +96,7 @@ class ShortAnswerQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => $node->body
+       '#value' => check_markup($node->body, $node->format),
      );
      $form['tries'] = array(
        '#type' => 'textfield',
@@ -324,7 +324,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
   public function score() {
     // Manual scoring means we go with what is in the DB.
-    if ($question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
+    if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
       $sql = "SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
       $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
     }

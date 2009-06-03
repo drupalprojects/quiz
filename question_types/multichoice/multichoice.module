@@ -997,7 +997,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
     if ($showpoints) $cols[] = (($answer['is_correct'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
     $selected = (array_search($answer['answer_id'], $tried) !== FALSE);
     $cols[] = ($selected ? theme_multichoice_selected() : theme_multichoice_unselected());
-    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
+    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback']) .'</div>' : '');
 
     $rows[] = $cols;
 
@@ -1011,7 +1011,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
   }
   else {
     $score = 0;
-    }
+  }
   return array('score' => $score, 'resultstable' => $rows);
 }
 
@@ -1193,15 +1193,14 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
   if ($showfeedback) {
     $innerheader[] = '&nbsp;';
   }
-
   foreach ($question->answers as $aid => $answer) {
     $cols = array();
-    $cols[] = $answer['answer'];
+    $cols[] = check_markup($answer['answer'], $answer['format']);
     if ($showpoints) {
       $cols[] = $answer['is_correct'] ? theme_multichoice_selected() : theme_multichoice_unselected();
     }
     $cols[] = $answer['user_answer'] ? theme_multichoice_selected() : theme_multichoice_unselected();
-    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '';
+    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback'], $answer['format']) .'</div>' : '';
     $rows[] = $cols;
   }
 
@@ -1224,16 +1223,19 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
  */
 function theme_multichoice_feedback($quiz, $report) {
   $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
+  $answers = array();
+  $feedbacks = array();
+  $corrects = array();
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
-      $answers[] = $answer['answer'];
-      $feedbacks[] = $answer['feedback'];
+      $answers[] = check_markup($answer['answer'], $answer['format']);
+      $feedbacks[] = check_markup($answer['feedback'], $answer['format']);
     }
     if ($answer['is_correct']) {
       $corrects[] = $answer['answer'];
     }
   }
-
+  
   $label_answers = format_plural(count($answers), 'Your answer', 'Your answers');
   $label_correct = format_plural(count($corrects), 'Correct answer', 'Correct answers');
   $output .= '<span class="quiz_summary_header">' .

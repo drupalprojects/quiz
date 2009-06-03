@@ -435,7 +435,7 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
   $matches = array();
   while ($node = db_fetch_object($result)) {
     $type = $type_map[$node->type]['name'];
-    $key = sprintf('%s [type:%s, id:%d]', $node->title, $type, $node->nid);
+    $key = sprintf('%s [type:%s, id:%d]', check_plain($node->title), check_plain($type), $node->nid);
     $matches[$key] = $key;
   }
 
@@ -819,7 +819,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
   return $output;
