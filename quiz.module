@@ -90,6 +90,8 @@ function quiz_perm() {
     'view user results', 'view own results',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
+    'assign action',
+    // Allows to use drupal actions and trigger feature
   );
 }
 
@@ -395,7 +397,7 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_close');
 
   $tid = (isset($node->tid) ? $node->tid : 0);
-  
+
   if (!isset($node->has_userpoints)) {
     $node->has_userporints = 0;
   }
@@ -579,22 +581,24 @@ function quiz_form(&$node) {
    * This allows you to choose a defined action from the actions module for use when
    * a user completes the quiz.
    */
-  $form['aid'] = array(
-    '#title' => t('Assign Action'),
-    '#description' => t('Select an action to be preformed after a user has completed this @quiz.', array('@quiz' => QUIZ_NAME)),
-    '#type' => 'select',
-    /*
-     * An idea here would be to add a system conf variable into the quiz_action_options() function that
-     * could filter the type of actions you could display on your quizzes.  For Example: you create
-     * a custom module that defines some actions that you only want a user to choose when creating
-     * a quiz and selecting an action from the dropdown.  You setup your actions with type 'quiz' and
-     * then add in that variable into the function and it will automatically filter and show only
-     * those specific actions.  @note:  In doing this you loose your default "Choose an Action"
-     * option.  Review actions and the quiz_action_options() function for further explaination.
-     */
-    '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
-    '#default_value' => MD5($node->aid),
-  );
+  if (user_access('assign action') || user_access('administer actions')) {
+    $form['aid'] = array(
+      '#title' => t('Assign Action'),
+      '#description' => t('Select an action to be preformed after a user has completed this @quiz.', array('@quiz' => QUIZ_NAME)),
+      '#type' => 'select',
+      /*
+       * An idea here would be to add a system conf variable into the quiz_action_options() function that
+       * could filter the type of actions you could display on your quizzes.  For Example: you create
+       * a custom module that defines some actions that you only want a user to choose when creating
+       * a quiz and selecting an action from the dropdown.  You setup your actions with type 'quiz' and
+       * then add in that variable into the function and it will automatically filter and show only
+       * those specific actions.  @note:  In doing this you loose your default "Choose an Action"
+       * option.  Review actions and the quiz_action_options() function for further explaination.
+       */
+      '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
+      '#default_value' => MD5($node->aid),
+    );
+  }
 
   $form['backwards_navigation'] = array(
     '#type' => 'checkbox',
