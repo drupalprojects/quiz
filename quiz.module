@@ -539,7 +539,7 @@ function quiz_form(&$node) {
 
   $form['resultoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('!quiz Results', array('!quiz' => QUIZ_NAME)),
+    '#title' => t('@quiz Results', array('@quiz' => QUIZ_NAME)),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#tree' => TRUE,
@@ -559,7 +559,7 @@ function quiz_form(&$node) {
     $form['resultoptions'][$i]['option_name'] = array(
       '#type' => 'textfield',
       '#title' => t('The name of the result'),
-      '#description' => t('Not displayed on personality !quiz.', array('!quiz' => QUIZ_NAME)),
+      '#description' => t('Not displayed on personality @quiz.', array('@quiz' => QUIZ_NAME)),
       '#default_value' => $option['option_name'],
       '#maxlength' => 40,
       '#size' => 40,

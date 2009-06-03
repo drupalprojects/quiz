@@ -800,11 +800,11 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
   while (list($key, $answer) = each($answers)) {
     $cols = array();
 
-    $cols[] = $answer['answer'];
+    $cols[] = check_markup($answer['answer']);
     if ($showpoints) $cols[] = (($answer['is_correct'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
     $selected = (array_search($answer['answer_id'], $tried) !== FALSE);
     $cols[] = ($selected ? theme_multichoice_selected() : theme_multichoice_unselected());
-    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
+    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback']) .'</div>' : '');
 
     $rows[] = $cols;
   	
@@ -1009,12 +1009,12 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
 
   foreach ($question->answers as $aid => $answer) {
     $cols = array();
-    $cols[] = $answer['answer'];
+    $cols[] = check_markup($answer['answer']);
     if ($showpoints) {
       $cols[] = $answer['is_correct'] ? theme_multichoice_selected() : theme_multichoice_unselected();
     }
     $cols[] = $answer['user_answer'] ? theme_multichoice_selected() : theme_multichoice_unselected();
-    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '';
+    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback']) .'</div>' : '';
     $rows[] = $cols;
   }
 
@@ -1039,11 +1039,11 @@ function theme_multichoice_feedback($quiz, $report) {
   $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
-      $answers[] = $answer['answer'];
-      $feedbacks[] = $answer['feedback'];
+      $answers[] = check_markup($answer['answer'], $answer['format']);
+      $feedbacks[] = check_markup($answer['feedback'], $answer['format']);
     }
     if ($answer['is_correct']) {
-      $corrects[] = $answer['answer'];
+      $corrects[] = check_markup($answer['answer'], $answer['format']);
     }
   }
 

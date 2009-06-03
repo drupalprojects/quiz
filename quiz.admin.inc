@@ -428,7 +428,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count correct.', array('%num_correct' => $score['num_correct'], '%question_count' => $score['question_count'])) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
   return $output;
