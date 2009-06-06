@@ -276,15 +276,15 @@ function questions_import_form_submit(&$form, &$form_state) {
   $start = questions_import_get_microtime();
   switch ($import_type) {
     case 'csv':
-    $count = questions_import_submit_csv(&$form, &$form_state);
+    $count = questions_import_submit_csv($form, $form_state);
     break;
 
     case 'aiken':
-    $count = questions_import_submit_aiken(&$form, &$form_state);
+    $count = questions_import_submit_aiken($form, $form_state);
     break;
 
     case 'qti':
-    $count = questions_import_submit_qti(&$form, &$form_state);
+    $count = questions_import_submit_qti($form, $form_state);
     break;
   }
   // $count contains number of questions successfully imported.
@@ -361,7 +361,7 @@ function questions_import_qti_create_node($item, $form_state) {
       break;
   }
   //node_save($node);
-  node_save(questions_import_node_save_static_data(&$node));
+  node_save(questions_import_node_save_static_data($node));
 }
 
 /**
