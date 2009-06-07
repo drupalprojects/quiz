@@ -253,14 +253,14 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function score() {
-    //$MatchingQuestion = new MatchingQuestion($this->question);
-    //$correct_answers = $MatchingQuestion->getCorrectAnswer();
+    $wrong_answer = 0;
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
-    //print_r($correct_answers);
-    //echo "-------------------------\n\n\n";
     foreach ($user_answers as $key => $value) {
-      $this->score = ($key == $value) ? 1 : 0;
+      if ($key != $value) {
+        $wrong_answer++;
+      }
     }
+    $this->score = ($wrong_answer > 0) ? 0 : 1;
     return $this->score;
   }
 

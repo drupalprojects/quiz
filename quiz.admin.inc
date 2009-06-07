@@ -138,7 +138,7 @@ function quiz_questions_form($context, $quiz) {
   // Display questions 'always' on this quiz.
   $form['filtered_question_list_always'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Questions always on this quiz"),
+    '#title' => t('Questions always on this quiz'),
  //   '#theme' => 'quiz_filtered_questions',
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
@@ -185,7 +185,7 @@ function quiz_questions_form($context, $quiz) {
   // Display questions 'random' on this quiz.
   $form['filtered_question_list_random'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Pool of questions randomly selected for this quiz"),
+    '#title' => t('Pool of questions randomly selected for this quiz'),
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
