@@ -702,12 +702,12 @@ function quiz_admin_result_delete_form() {
 }
 
 function quiz_admin_result_delete_form_submit($form, &$form_state) {
+  $nid = db_result(db_query("SELECT nid FROM {quiz_node_results} WHERE result_id = %d",$form_state['values']['del_rid']));
   db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
   db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
-  drupal_set_message(t('Result.'));
-  //$form_state['redirect'] = 'admin/quiz/results';
-  $form_state['redirect'] = 'admin/quiz/reports/results';
-  $form_state['nid'] = $node->nid;
+  drupal_set_message(t('Result has been Deleted.'));
+  $form_state['redirect'] = 'admin/quiz/'. intval($nid) .'/view';
+  $form_state['nid'] = $nid;
 }
 
 
@@ -760,26 +760,31 @@ function theme_quiz_admin_quizzes($results) {
  */
 function theme_quiz_admin($results) {
   $output = '';
-  $rows = array();
-
+  $current = current($results);
+  drupal_set_title(t('@current Results', array('@current' => check_plain($current['title']))));
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l(t('View'), 'admin/quiz/reports/' . $result['result_id'] . '/results') . ' | ' . l(t('Delete'), 'admin/quiz/' . $result['result_id'] . '/delete'),
-      check_plain($result['title']),
+      l(theme('image', drupal_get_path('module', 'quiz') . '/images/view.png', t('View')), 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)) . ' | ' . l(theme('image', drupal_get_path('module', 'quiz') . '/images/delete.png', t('View')), 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
+      //check_plain($result['title']),
       check_plain($result['name']),
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+      //($result['time_end'] > 0) ? date('i:s', $result['time_end']) - date('i:s', $result['time_start']) : 0,
+      ($result['time_end']) ? $result['score'] : t('In Progress'),
     );
   }
 
   $header = array(
     t('Action'),
-    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
+    //t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
     t('Result<br />ID'),
     t('Time Started'),
-    t('Finished?'));
+    t('Finished?'),
+    //t('Time Taken <br /> (in sec)'),
+    t('Score'),
+  );
 
   if (!empty($rows)) {
     $output .= theme('table', $header, $rows);
