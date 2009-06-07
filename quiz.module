@@ -2490,7 +2490,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
             AND qnrs.nid = qnp.nid
             AND u.uid = qnrs.uid";
   */
-  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
+  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
