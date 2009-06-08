@@ -159,7 +159,7 @@ class MatchingQuestion implements QuizQuestion {
 
     $form['match'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Match Question')
+      '#title' => t('Match Question'),
     );
 
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
