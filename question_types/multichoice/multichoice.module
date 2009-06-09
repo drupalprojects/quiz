@@ -591,7 +591,7 @@ function multichoice_update($node) {
       $value['result_option'] = 0;
     }
 
-    if ($value['answer_id']) {
+    if ($value['answer_id'] && empty($node->revision)) {
       $value['answer'] = trim($value['answer']);
       if ($value['delete'] == 1 || !isset($value['answer']) || $value['answer'] == '') {
         // Delete this entry.
@@ -603,7 +603,7 @@ function multichoice_update($node) {
           $value['answer'], $value['feedback'], $value['correct'], $value['result_option'], $value['answer_id']);
       }
     }
-    elseif (trim($value['answer']) != '') {
+    elseif (trim($value['answer']) != '' && empty($value['delete'])) {
       // If there is an answer, insert a new row. // Removed answer_id
       db_query("INSERT INTO {quiz_multichoice_answers} (nid, vid, answer, feedback, is_correct, result_option) " .
               "VALUES(%d, %d, '%s', '%s', %d, %d)",
