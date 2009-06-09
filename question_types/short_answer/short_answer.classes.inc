@@ -340,9 +340,9 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-
-    return (($actual / $possible) > 0.5);
+    return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;
   }
+
   public function getResponse() {
     return $this->answer;
   }

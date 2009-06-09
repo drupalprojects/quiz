@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN"><HTML>
+	<HEAD>
+		<TITLE>/moodle/question/format/gift/examples.txt</TITLE>
+	<HEAD>
+	<BODY>
+//  EXAMPLE QUESTIONS for the GIFT import filter<BR>
+//  by Paul Tsuchido Shew, January 2004.<BR>
+<BR>
+//-----------------------------------------//<BR>
+//        EXAMPLES FROM DESCRIPTION<BR>
+//-----------------------------------------//<BR>
+<BR>
+Who's buried in Grant's tomb?{~Grant ~Jefferson =no one}<BR>
+<BR>
+Grant is {~buried =entombed ~living} in Grant's tomb.<BR>
+<BR>
+Grant is buried in Grant's tomb.{FALSE}<BR>
+<BR>
+Who's buried in Grant's tomb?{=no one =nobody}<BR>
+<BR>
+When was Ulysses S. Grant born?{#1822:1}<BR>
+<BR>
+<BR>
+//-----------------------------------------//<BR>
+//       EXAMPLES FROM DOCUMENTATION<BR>
+//-----------------------------------------//<BR>
+<BR>
+// ===Multiple Choice===<BR>
+<BR>
+Who's buried in Grant's tomb?{~Grant ~Jefferson =no one}<BR>
+<BR>
+Grant is {~buried =entombed ~living} in Grant's tomb.<BR>
+<BR>
+The American holiday of Thanksgiving is celebrated on the {<BR>
+    ~second<BR>
+    ~third<BR>
+    =fourth<BR>
+} Thursday of November.<BR>
+<BR>
+Japanese characters originally came from what country? {<BR>
+    ~India<BR>
+    =China<BR>
+    ~Korea<BR>
+    ~Egypt}<BR>
+<BR>
+// ===Short Answer===<BR>
+<BR>
+Who's buried in Grant's tomb?{=no one =nobody}<BR>
+<BR>
+Two plus two equals {=four =4}.<BR>
+<BR>
+// ===True-False===<BR>
+<BR>
+Grant is buried in Grant's tomb.{F}<BR>
+<BR>
+The sun rises in the east.{T}<BR>
+<BR>
+// ===Matching===<BR>
+<BR>
+Matching Question. {<BR>
+    =subquestion1 -&gt; subanswer1<BR>
+    =subquestion2 -&gt; subanswer2<BR>
+    =subquestion3 -&gt; subanswer3<BR>
+    }<BR>
+    <BR>
+Match the following countries with their corresponding capitals. {<BR>
+    =Canada -&gt; Ottawa<BR>
+    =Italy  -&gt; Rome<BR>
+    =Japan  -&gt; Tokyo<BR>
+    =India  -&gt; New Delhi<BR>
+    }<BR>
+<BR>
+// ===Numerical===<BR>
+<BR>
+When was Ulysses S. Grant born? {#1822}<BR>
+<BR>
+What is the value of pi (to 3 decimal places)? {#3.1415:0.0005}.<BR>
+<BR>
+What is the value of pi (to 3 decimal places)? {#3.141..3.142}.<BR>
+<BR>
+When was Ulysses S. Grant born? {#<BR>
+    =1822:0<BR>
+    =%50%1822:2}<BR>
+<BR>
+// OPTIONS <BR>
+<BR>
+// ===Line Comments===<BR>
+<BR>
+// Subheading: Numerical questions below<BR>
+What's 2 plus 2? {#4}<BR>
+<BR>
+<BR>
+// ===Question Name===<BR>
+<BR>
+::Kanji Origins::Japanese characters originally<BR>
+came from what country? {=China}<BR>
+<BR>
+::Thanksgiving Date::The American holiday of Thanksgiving is <BR>
+celebrated on the {~second ~third =fourth} Thursday of November.<BR>
+<BR>
+// ===Feedback===<BR>
+<BR>
+What's the answer to this multiple-choice question?{<BR>
+~wrong answer#feedback comment on the wrong answer<BR>
+~another wrong answer#feedback comment on this wrong answer<BR>
+=right answer#Very good!}<BR>
+    <BR>
+Who's buried in Grant's tomb?{<BR>
+=no one#excellent answer!<BR>
+=nobody#excellent answer!}<BR>
+<BR>
+// ===Specify text format===<BR>
+[markdown]Who's buried in **Grant's tomb**?{<BR>
+=no one#excellent answer!<BR>
+=nobody#excellent answer!}<BR>
+<BR>
+// ===Percentage Answer Weights===<BR>
+Grant is buried in Grant's tomb.{FALSE#No one is buried in Grant's tomb.}<BR>
+<BR>
+Difficult question.{~wrong answer ~%50%half credit answer =full credit answer}<BR>
+         <BR>
+::Jesus' hometown::Jesus Christ was from {<BR>
+    ~Jerusalem#This was an important city, but the wrong answer.<BR>
+    ~%25%Bethlehem#He was born here, but not raised here.<BR>
+    ~%50%Galilee#You need to be more specific.<BR>
+    =Nazareth#Yes! That's right!}.<BR>
+    <BR>
+::Jesus' hometown:: Jesus Christ was from {<BR>
+    =Nazareth#Yes! That's right!<BR>
+    =%75%Nazereth#Right, but misspelled.<BR>
+    =%25%Bethlehem#He was born here, but not raised here.}<BR>
+<BR>
+// ===Multiple Answers===<BR>
+<BR>
+What two people are entombed in Grant's tomb? {<BR>
+    ~No one<BR>
+    ~%50%Grant<BR>
+    ~%50%Grant's wife<BR>
+    ~Grant's father }<BR>
+<BR>
+What two people are entombed in Grant's tomb? {<BR>
+    ~%-50%No one<BR>
+    ~%50%Grant<BR>
+    ~%50%Grant's wife<BR>
+    ~%-50%Grant's father }<BR>
+<BR>
+// ===Special Characters===<BR>
+Which answer equals 5? {<BR>
+     ~ \= 2 + 2<BR>
+     = \= 2 + 3<BR>
+     ~ \= 2 + 4  }<BR>
+<BR>
+::GIFT Control Characters::<BR>
+Which of the following is NOT a control character for the GIFT import format? {<BR>
+   ~ \~     # \~ is a control character.<BR>
+   ~ \=     # \= is a control character.<BR>
+   ~ \#     # \# is a control character.<BR>
+   ~ \{     # \{ is a control character.<BR>
+   ~ \}     # \} is a control character.<BR>
+   = \\     # Correct! \\ (backslash) is not a control character. BUT,<BR>
+              it is used to escape the control characters. So, to specify<BR>
+              a literal backslash, you must escape it with a backslash<BR>
+              (as shown in this example).<BR>
+}<BR>
+<BR>
+<BR>
+<BR>
+//-----------------------------------------//<BR>
+//     EXAMPLES FROM gift/format.php<BR>
+//-----------------------------------------//<BR>
+<BR>
+Who's buried in Grant's tomb?{~Grant ~Jefferson =no one}<BR>
+<BR>
+Grant is {~buried =entombed ~living} in Grant's tomb.<BR>
+<BR>
+Grant is buried in Grant's tomb.{FALSE}<BR>
+<BR>
+Who's buried in Grant's tomb?{=no one =nobody}<BR>
+<BR>
+When was Ulysses S. Grant born?{#1822:5}<BR>
+<BR>
+Match the following countries with their corresponding<BR>
+capitals.{=Canada-&gt;Ottawa =Italy-&gt;Rome =Japan-&gt;Tokyo}<BR>
+<BR>
+//-----------------------------------------//<BR>
+//     MORE COMPLICATED EXAMPLES<BR>
+//-----------------------------------------//<BR>
+<BR>
+::Grant's Tomb::Grant is {<BR>
+      ~buried#No one is buried there.<BR>
+      =entombed#Right answer!<BR>
+      ~living#We hope not!<BR>
+} in Grant's tomb.<BR>
+<BR>
+Difficult multiple choice question.{<BR>
+     ~wrong answer           #comment on wrong answer<BR>
+     ~%50%half credit answer #comment on answer<BR>
+     =full credit answer     #well done!}<BR>
+<BR>
+::Jesus' hometown (Short answer ex.):: Jesus Christ was from {<BR>
+     =Nazareth#Yes! That's right!<BR>
+     =%75%Nazereth#Right, but misspelled.<BR>
+     =%25%Bethlehem#He was born here, but not raised here.<BR>
+}.<BR>
+<BR>
+//this comment will be ignored by the filter<BR>
+::Numerical example::<BR>
+When was Ulysses S. Grant born? {#<BR>
+     =1822:0      #Correct! 100% credit<BR>
+     =%50%1822:2  #He was born in 1822.<BR>
+                  You get 50% credit for being close.<BR>
+}<BR>
+
+	</BODY>
+</HTML>
