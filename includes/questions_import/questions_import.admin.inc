@@ -35,7 +35,7 @@ function questions_import_form()  {
     '#description' => t('Select the quiz question type you wish to upload (only applicable with CSV)'),
     '#required' => FALSE,
   );
-  */ 
+  */
 
   $form['import_type'] = array(
     '#type' => 'select',
@@ -234,33 +234,32 @@ function questions_import_validate_csv($file, $separator) {
   $error_msg = '';
   $row = 0;
   $lines = file($file->filepath);
-  $question_type = 'multichoice';
   //reads the whole file content to an array
   if (empty($lines)) {
     return '<p>' . t('No lines were found in @filename.', array('@filename' => $file->filename)) . '</p>';
   }
-  if ($question_type == 'multichoice') {
-    foreach ($lines as $line) {
-      $line = check_plain(trim($line));
-      if (!empty($line)) {
-        ++$row; // alway use pre_increment it is faster than post increment
-        $fields = explode($separator, $line);
-        $field_count = count($fields);
-        /* a line should have minmum of four fields i.e
-         * question, option1, option2, correct option
-         * or maximum of 6 fields where additional two options will be option3 and option4 */
-        if ($field_count < 4) {
-          $error_msg .= '<p>' . t('line : ') . $row . ' '. $line . ' </p>';
-        }
+
+  foreach ($lines as $line) {
+    $line = check_plain(trim($line));
+    if (!empty($line)) {
+      ++$row; // alway use pre_increment it is faster than post increment
+      $fields = explode($separator, $line);
+      switch ($field[0]) {
+        case 'multichoice':
+          $error_msg .= (count(fields) < 4) ? '<p>' . t('line : ') . $row . ' '. $line . ' </p>' : '';
+          break;
+        case 'true_false':
+          $error_msg .= '';
       }
     }
   }
+
   $error_msg .= !empty($error_msg) ? '<p>' . t('CSV Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
   return $error_msg;
 }
 
 /*
- * This is a generic questions import submit calls specific import function like questions_import_submit_multichoice_csv, questions_import_submit_multichoice_aiken
+ * This is a generic questions import submit calls specific import function like questions_import_submit_csv, questions_import_submit_multichoice_aiken
  *
  */
 
@@ -278,7 +277,7 @@ function questions_import_form_submit(&$form, &$form_state) {
     case 'native':
       $file = file_save_upload('upload');
       $import_function_name = "questions_import_submit_$import_format";
-      $count = $import_function_name($fileform, $form_state, file($file->filepath));
+      $count = $import_function_name($form, $form_state, file($file->filepath));
       break;
     case 'moodle':
       $count = questions_import_submit_moodle_format($import_format, $form, $form_state);
@@ -290,7 +289,7 @@ function questions_import_form_submit(&$form, &$form_state) {
   if ($count) {
     drupal_set_message(t('@count questions were imported successfully in @time seconds.', array('@count' => $count, '@time' => $time)));
     drupal_goto('node/' . $quiz_nid . '/questions');
-  }  
+  }
   return $count;
 }
 
@@ -361,9 +360,9 @@ function questions_import_moodle_create_node($mq, $form_state) {
   $node->log = 'Imported with Moodle importer.';
 
   $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = node_load($quiz_nid);
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
   $node->quiz_id = $quiz_nid;
-  $node->quiz_vid = $quiz_vid->vid;
+  $node->quiz_vid = $quiz_vid;
 
   // already set the type of the node, this is for specialized processing
   switch (strtolower($mq->qtype)) {
@@ -446,9 +445,9 @@ function questions_import_qti_create_node($item, $form_state) {
   $node->log = 'Imported from QTI importer.';
 
   $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = node_load($quiz_nid);
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
   $node->quiz_id = $quiz_nid;
-  $node->quiz_vid = $quiz_vid->vid;
+  $node->quiz_vid = $quiz_vid;
 
   switch (strtolower($item->type)) {
     /*case 'explanation':
@@ -570,7 +569,7 @@ function questions_import_qti_extract_info($file) {
  * Return the number of questions successfully imported.
  */
 
-function questions_import_submit_aiken($form, $form_state) {
+function questions_import_submit_aiken($form, $form_state, $lines) {
   global $user;
   $row = 0;
   $output = '';
@@ -578,10 +577,7 @@ function questions_import_submit_aiken($form, $form_state) {
   $question_type = $form_state['values']['question_type'];
 
   $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = node_load($quiz_nid);
-  $file = file_save_upload('upload');
-  //creates drupal file object
-  $lines = file($file->filepath);
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
   if ($question_type == 'multichoice') {
     while (!empty($lines)) { // while not empty of file
       while ($current_line = trim(array_shift($lines))) {
@@ -608,7 +604,7 @@ function questions_import_submit_aiken($form, $form_state) {
       $node = new stdClass();
       $node->type = $form_state['values']['question_type']; // multichoice, true/false
       $node->quiz_id = $quiz_nid;
-      $node->quiz_vid = $quiz_vid->vid;
+      $node->quiz_vid = $quiz_vid;
       $node->title = $node->body = $node->teaser = trim($question);
       $node->num_answers = count($options);
       $node->answers = array();
@@ -630,8 +626,10 @@ function questions_import_submit_aiken($form, $form_state) {
 }
 
 /* This function imports multichoice questions from CSV file.
+ * @param $lines
+ *  It contains the whole csv file content.
  * @return
- * Return the number of questions successfully imported.
+ *  Return the number of questions successfully imported.
  */
 
 function questions_import_submit_csv($form, $form_state, $lines) {
@@ -640,46 +638,62 @@ function questions_import_submit_csv($form, $form_state, $lines) {
   $output = '';
   $allowed_question_type = quiz_get_questions_type('enabled');
   $separator = $form_state['values']['field_separator'];
-  $quiz_nid = $form_state['values']['quiz_node'];  
-  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid)); //node_load($quiz_nid);  
-  // iterate through all the lines in the file.
+  $quiz_nid = $form_state['values']['quiz_node'];
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid)); //node_load($quiz_nid);
+  // iterate through all the lines in the file. Each line corresponds to one quiz question
   foreach ($lines as $line) {
     $line = trim($line);
     if (empty($line) || $line[0] === '#') {
       continue;
     }
     $node = new stdClass();
-    //create node object    
+    //create node object
     $node->quiz_id = $quiz_nid;
     $node->quiz_vid = $quiz_vid;
     $line = explode($separator, $line);
     // The line variable looks something like
     // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
-    // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, incorrect, Geany, Geany is a text editor for gnome, incorrect, Eclipse, Eclipse is an IDE, correct, Drupal, Drupal is an kick ass CMS, incorrect
-    //converst cvs file fields from string to array
+    // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
     $type = array_shift($line);
     if (!in_array($type, $allowed_question_type)) {
-      print_r($type);
-      print_r($allowed_question_type);
       drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
       continue;
     }
     $node->type = $type;
     $question = array_shift($line);
-    $correct_answer = array_pop($line);
-    $options = $line;
-    $node->title = $node->body = $node->teaser = $question;
-    $node->num_answers = count($options);
-    $node->answers = array();
-    while (!empty($options)) {
-      $answer = array_shift($options);
-      $feedback = array_shift($options);
-      $node->answers[] = array(
-        'answer' => $answer,
-        'feedback' => $feedback,
-        'correct' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
-      );
+    switch ($type) {
+      case 'multichoice':
+        $correct_answer = array_pop($line);
+        $node->num_answers = count($options);
+        $node->answers = array();
+        while (!empty($line)) {
+          $answer = array_shift($line);
+          $feedback = array_shift($line);
+          $node->answers[] = array(
+            'answer' => $answer,
+            'feedback' => $feedback,
+            'correct' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
+          );
+        }
+        break;
+
+      case 'true_false':
+        $node->correct_answer = (trim(array_shift($line)) == 'true') ? 1 : 0;
+        $node->feedback = array_shift($line);
+        break;
+
+      case 'matching':
+        $node->match = array();
+        while (!empty($line)) {
+          $node->match[] = array(
+            'question' => array_shift($line),
+            'answer' => array_shift($line),
+            'feedback' => array_shift($line),
+          );
+        }
+        break;
     }
+    $node->title = $node->body = $node->teaser = $question;
     node_save(questions_import_node_save_static_data($node));
     ++$row;
   }

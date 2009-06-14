@@ -19,7 +19,7 @@ function questions_export_form()  {
   $form['quiz_node'] = array(
     '#type' => 'select',
     '#title' => t('Quiz'),
-    '#options' => questions_export_quiz_nodes(),
+    '#options' => quiz_get_all_quiz_title(),
     '#description' => t('Select the quiz node to export.'),
     '#required' => TRUE,
   );
@@ -40,20 +40,6 @@ function questions_export_form()  {
   $form['#submit'][] = 'questions_export_form_submit';
 
   return $form;
-}
-
-/**
- * @return list of quiz node title and id.
- */
-
-function questions_export_quiz_nodes() {
-  $list = array();
-  $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
-  while ($node = db_fetch_object($results)) {
-    $list[$node->nid] = substr($node->title, 0, 30);
-    // truncate the node title if its length is greater than 30 characters
-  }
-  return $list;
 }
 
 /**

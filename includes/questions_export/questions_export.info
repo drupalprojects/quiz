@@ -1,6 +1,6 @@
 ; $Id$
 name = Questions Export
-package = Quiz
+package = Quiz Addon
 description = This module allows you to export Quiz questions to portable formats.
 dependencies[] = quiz
 dependencies[] = multichoice

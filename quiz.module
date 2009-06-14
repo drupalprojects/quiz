@@ -395,7 +395,7 @@ function quiz_insert($node) {
   quiz_translate_form_date($node, 'quiz_close');
 
   $tid = (isset($node->tid) ? $node->tid : 0);
-  
+
   if (!isset($node->has_userpoints)) {
     $node->has_userporints = 0;
   }
@@ -664,7 +664,7 @@ function quiz_form(&$node) {
       '#title' => t(' Time Limit'),
       '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
       '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
-  );
+    );
   }
   else {
     $form['addons']['time_limit'] = array(
@@ -2696,4 +2696,51 @@ function quiz_cron() {
   if ($rm_time) { // $time = 0 for never
     db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
   }
+}
+
+/*
+ * @return
+ *  This function returns an array of quiz nodes title with nid ndex.
+ */
+function quiz_get_all_quiz_title() {
+  $list = array();
+  $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
+  while ($result = db_fetch_object($results)) {
+    $list[$result->nid] = substr(check_plain($result->title), 0, 30);
+    // truncate the node title if its length is greater than 30 characters
+  }
+  return $list;
+}
+
+
+/*
+ * @return
+ *  This function returns a list of question types based on $op value
+ */
+function quiz_get_questions_type($op = 'enabled') {
+  $quiz_questions_types = array(
+    'matching' => 'matching',
+    'multichoice' => 'multichoice',
+    'quiz_directions' => 'quiz_directions',
+    'quiz_question'  => 'quiz_question',
+    'short_answer' => 'short_answer',
+    'long_answer' => 'long_answer',
+  );
+  switch ($op) {
+    case 'all':
+    $list = $quiz_questions_types;
+    break;
+
+    case 'enabled':
+    $list = array_intersect($quiz_questions_types, module_list());
+    break;
+
+    case 'disabled':
+    $list = array_diff($quiz_questions_types, module_list());
+    break;
+  }
+  if (in_array('quiz_question', $list)) {
+    $list['quiz_question'] = 'true_false';
+  }
+  return $list;
 }
