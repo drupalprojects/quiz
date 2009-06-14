@@ -21,11 +21,12 @@ function questions_import_form()  {
   $form['quiz_node'] = array(
     '#type' => 'select',
     '#title' => t('Quiz Node'),
-    '#options' => questions_import_quiz_node(),
+    '#options' => quiz_get_all_quiz_title(),
     '#description' => t('Select the quiz node under which you want to add questions'),
     '#required' => TRUE,
   );
 
+  /*
   // TODO the formats specify this so this user input doesn't make sense
   $form['question_type'] = array(
     '#type' => 'select',
@@ -34,6 +35,7 @@ function questions_import_form()  {
     '#description' => t('Select the quiz question type you wish to upload (only applicable with CSV)'),
     '#required' => FALSE,
   );
+  */ 
 
   $form['import_type'] = array(
     '#type' => 'select',
@@ -49,7 +51,7 @@ function questions_import_form()  {
     '#default_value' => t(','),
     '#description' => t('Special character used to separator the fields usually , : or ; '),
     '#size' => 3,
-    '#required' => TRUE,
+    //'#required' => TRUE,
   );
 
   //'upload' index will be used in file_check_upload()
@@ -65,24 +67,10 @@ function questions_import_form()  {
     '#value' => t('Import'),
   );
 
-  $form['#validate'][] = 'questions_import_form_validate';
+  //$form['#validate'][] = 'questions_import_form_validate';
   $form['#submit'][] = 'questions_import_form_submit';
 
   return $form;
-}
-
-/*
- * @return
- * this function return a list of quiz node title and its id.
- */
-function questions_import_quiz_node() {
-  $list = array();
-  $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
-  while ($node = db_fetch_object($results)) {
-    $list[$node->nid] = substr($node->title, 0, 30);
-    // truncate the node title if its length is greater than 30 characters
-  }
-  return $list;
 }
 
 /*
@@ -130,14 +118,14 @@ function questions_import_type() {
  */
 function questions_import_form_validate($form, &$form_state) {
   $allowed_extensions = 'csv txt xml jcl';
-  // it suppose to be a string which file extensions separated by space, not an array
+  // it suppose to be a string which file extensions separated by space not an array
   $allowd_size = file_upload_max_size();
 
   $field_separator = $form_state['values']['field_separator'];
   $import_type_info = explode('_', $form_state['values']['import_type']);
   $import_engine = $import_type_info[0];
   $import_format = $import_type_info[1];
-  $question_type =  $form_state['values']['question_type'];
+  //$question_type =  $form_state['values']['question_type'];
 
   $file = file_save_upload('upload');
   // creates a drupal file object
@@ -163,7 +151,7 @@ function questions_import_form_validate($form, &$form_state) {
     switch ($import_engine) {
       case 'native':
         $validator_function_name = "questions_import_validate_$import_format";
-        $error_msg = $validator_function_name($file, $field_separator, $question_type);
+        $error_msg = $validator_function_name($file, $field_separator);
         break;
       case 'moodle':
         // FIXME no validating yet for Moodle
@@ -242,15 +230,16 @@ function questions_import_validate_aiken($file, $separator, $question_type) {
  * This function checks whether the csv import file is in proper format or not.
  */
 
-function questions_import_validate_csv($file, $separator, $question_type) {
+function questions_import_validate_csv($file, $separator) {
   $error_msg = '';
   $row = 0;
   $lines = file($file->filepath);
+  $question_type = 'multichoice';
   //reads the whole file content to an array
   if (empty($lines)) {
     return '<p>' . t('No lines were found in @filename.', array('@filename' => $file->filename)) . '</p>';
   }
-  if ($question_type = 'multichoice') {
+  if ($question_type == 'multichoice') {
     foreach ($lines as $line) {
       $line = check_plain(trim($line));
       if (!empty($line)) {
@@ -287,8 +276,9 @@ function questions_import_form_submit(&$form, &$form_state) {
   $start = microtime(TRUE);
   switch ($import_engine) {
     case 'native':
+      $file = file_save_upload('upload');
       $import_function_name = "questions_import_submit_$import_format";
-      $count = $import_function_name($fileform, $form_state);
+      $count = $import_function_name($fileform, $form_state, file($file->filepath));
       break;
     case 'moodle':
       $count = questions_import_submit_moodle_format($import_format, $form, $form_state);
@@ -297,9 +287,10 @@ function questions_import_form_submit(&$form, &$form_state) {
   // $count contains number of questions successfully imported.
   $end = microtime(TRUE);
   $time =  substr($end - $start, 0, 6);
-
-  drupal_set_message(t('@count questions were imported successfully in @time seconds.', array('@count' => $count, '@time' => $time)));
-  drupal_goto('node/' . $quiz_nid . '/questions');
+  if ($count) {
+    drupal_set_message(t('@count questions were imported successfully in @time seconds.', array('@count' => $count, '@time' => $time)));
+    drupal_goto('node/' . $quiz_nid . '/questions');
+  }  
   return $count;
 }
 
@@ -643,45 +634,56 @@ function questions_import_submit_aiken($form, $form_state) {
  * Return the number of questions successfully imported.
  */
 
-function questions_import_submit_csv($form, $form_state) {
+function questions_import_submit_csv($form, $form_state, $lines) {
   global $user;
   $row = 0;
   $output = '';
-  $question_type = $form_state['values']['question_type'];
-  $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = node_load($quiz_nid);
-  $file = file_save_upload('upload');
-  //creates drupal file object
-  $lines = file($file->filepath);
-  if ($question_type == 'multichoice') {
-    $separator = $form_state['values']['field_separator'];
-    foreach ($lines as $line) {
-      $line = check_plain(trim($line));
-      if (empty($line)) {
-        continue;
-      }
-      $node = new stdClass();
-      $node->type = $form_state['values']['question_type']; // multichoice
-      $node->quiz_id = $quiz_nid;
-      $node->quiz_vid = $quiz_vid->vid;
-      $line = explode($separator, $line);
-      $question = array_shift($line);
-      $answer = array_pop($line);
-      $options = $line;
-      $node->title = $node->body = $node->teaser = trim($question);
-      $node->num_answers = count($options);
-      $node->answers = array();
-      foreach ($options as $option) {
-        $node->answers[] = array(
-          'correct' => (trim($answer) == trim($option)) ? 1 : 0,
-          'answer' => trim($option),
-          'feedback' => '',
-        );
-      }
-      node_save(questions_import_node_save_static_data($node));
-      ++$row;
+  $allowed_question_type = quiz_get_questions_type('enabled');
+  $separator = $form_state['values']['field_separator'];
+  $quiz_nid = $form_state['values']['quiz_node'];  
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid)); //node_load($quiz_nid);  
+  // iterate through all the lines in the file.
+  foreach ($lines as $line) {
+    $line = trim($line);
+    if (empty($line) || $line[0] === '#') {
+      continue;
     }
+    $node = new stdClass();
+    //create node object    
+    $node->quiz_id = $quiz_nid;
+    $node->quiz_vid = $quiz_vid;
+    $line = explode($separator, $line);
+    // The line variable looks something like
+    // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
+    // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, incorrect, Geany, Geany is a text editor for gnome, incorrect, Eclipse, Eclipse is an IDE, correct, Drupal, Drupal is an kick ass CMS, incorrect
+    //converst cvs file fields from string to array
+    $type = array_shift($line);
+    if (!in_array($type, $allowed_question_type)) {
+      print_r($type);
+      print_r($allowed_question_type);
+      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
+      continue;
+    }
+    $node->type = $type;
+    $question = array_shift($line);
+    $correct_answer = array_pop($line);
+    $options = $line;
+    $node->title = $node->body = $node->teaser = $question;
+    $node->num_answers = count($options);
+    $node->answers = array();
+    while (!empty($options)) {
+      $answer = array_shift($options);
+      $feedback = array_shift($options);
+      $node->answers[] = array(
+        'answer' => $answer,
+        'feedback' => $feedback,
+        'correct' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
+      );
+    }
+    node_save(questions_import_node_save_static_data($node));
+    ++$row;
   }
+
   /* else if ($question_type == 'true/false') {
    yet to add
   } */
