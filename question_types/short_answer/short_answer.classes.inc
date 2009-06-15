@@ -42,10 +42,10 @@ class ShortAnswerQuestion implements QuizQuestion {
   }
 
   public function save($is_new = FALSE) {
+
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-
     if ($is_new || $this->node->revision == 1) {
       $sql = 'INSERT INTO {quiz_short_answer_node_properties}
         (nid, vid, maximum_score, correct_answer, correct_answer_evaluation)

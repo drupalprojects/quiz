@@ -1194,7 +1194,7 @@ function quiz_take_quiz($quiz) {
     // quiz_node_view() function, which performs the steps in node_view(), but in a way more
     // specific to our needs.
     $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
-    drupal_set_title(check_plain($quiz->title));
+    //drupal_set_title(check_plain($quiz->title));
     unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
   }
   // Else we're at the end of quiz.

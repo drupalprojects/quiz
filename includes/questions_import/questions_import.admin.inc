@@ -17,7 +17,6 @@ require_once(drupal_get_path('module', 'quiz') .'/includes/moodle_support.php');
 
 function questions_import_form()  {
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
-
   $form['quiz_node'] = array(
     '#type' => 'select',
     '#title' => t('Quiz Node'),
@@ -25,18 +24,6 @@ function questions_import_form()  {
     '#description' => t('Select the quiz node under which you want to add questions'),
     '#required' => TRUE,
   );
-
-  /*
-  // TODO the formats specify this so this user input doesn't make sense
-  $form['question_type'] = array(
-    '#type' => 'select',
-    '#title' => t('Question type'),
-    '#options' => questions_import_question_type(),
-    '#description' => t('Select the quiz question type you wish to upload (only applicable with CSV)'),
-    '#required' => FALSE,
-  );
-  */
-
   $form['import_type'] = array(
     '#type' => 'select',
     '#title' => t('Import type'),
@@ -44,7 +31,6 @@ function questions_import_form()  {
     '#description' => t('Select the import type csv, XML'),
     '#required' => TRUE,
   );
-
   $form['field_separator'] = array(
     '#type' => 'textfield',
     '#title' => t('CSV Field Separator'),
@@ -53,7 +39,6 @@ function questions_import_form()  {
     '#size' => 3,
     //'#required' => TRUE,
   );
-
   //'upload' index will be used in file_check_upload()
   $form['upload'] = array(
     '#type' => 'file',
@@ -61,32 +46,13 @@ function questions_import_form()  {
     '#size' => 30,
     '#description' => t('Upload the file that has quiz questions'),
   );
-
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
-
-  //$form['#validate'][] = 'questions_import_form_validate';
+  $form['#validate'][] = 'questions_import_form_validate';
   $form['#submit'][] = 'questions_import_form_submit';
-
   return $form;
-}
-
-/*
- * @return
- * this function return a list of available quiz questions type.
- */
-function questions_import_question_type() {
-  $list = array();
-  //checks whether the multichoice module is enabled or not.
-  if (module_exists('multichoice')) {
-    $list['multichoice'] = t('Multichoice');
-  }
-  /*if (module_exists('foo_bar')) {
-    $list['xml'] = t('XML');
-  }*/
-  return $list;
 }
 
 /*
@@ -654,21 +620,22 @@ function questions_import_submit_csv($form, $form_state, $lines) {
     // The line variable looks something like
     // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
     // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
-    $type = array_shift($line);
+    $type = questions_import_get_next_csv_field($line);
     if (!in_array($type, $allowed_question_type)) {
       drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
       continue;
     }
     $node->type = $type;
-    $question = array_shift($line);
+    $question = questions_import_get_next_csv_field($line);
     switch ($type) {
+
       case 'multichoice':
         $correct_answer = array_pop($line);
         $node->num_answers = count($options);
         $node->answers = array();
         while (!empty($line)) {
-          $answer = array_shift($line);
-          $feedback = array_shift($line);
+          $answer = questions_import_get_next_csv_field($line);
+          $feedback = questions_import_get_next_csv_field($line);
           $node->answers[] = array(
             'answer' => $answer,
             'feedback' => $feedback,
@@ -678,20 +645,35 @@ function questions_import_submit_csv($form, $form_state, $lines) {
         break;
 
       case 'true_false':
-        $node->correct_answer = (trim(array_shift($line)) == 'true') ? 1 : 0;
-        $node->feedback = array_shift($line);
+        $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
+        $node->feedback = questions_import_get_next_csv_field($line);
         break;
 
       case 'matching':
         $node->match = array();
         while (!empty($line)) {
           $node->match[] = array(
-            'question' => array_shift($line),
-            'answer' => array_shift($line),
-            'feedback' => array_shift($line),
+            'question' => questions_import_get_next_csv_field($line),
+            'answer' => questions_import_get_next_csv_field($line),
+            'feedback' => questions_import_get_next_csv_field($line),
           );
         }
         break;
+
+      case 'long_answer':
+        $node->maximum_score = questions_import_get_next_csv_field($line);
+        break;
+
+      case 'short_answer':
+        $evaluation = array('case sensitive match', 'case insensitive match', 'regular expression match', 'manually score match');
+        $node->correct_answer = questions_import_get_next_csv_field($line);
+        $node->maximum_score = questions_import_get_next_csv_field($line);
+        $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
+        break;
+
+      case 'quiz_directions':
+        break;
+
     }
     $node->title = $node->body = $node->teaser = $question;
     node_save(questions_import_node_save_static_data($node));
@@ -702,6 +684,10 @@ function questions_import_submit_csv($form, $form_state, $lines) {
    yet to add
   } */
   return $row;
+}
+
+function questions_import_get_next_csv_field(&$row) {
+  return trim(array_shift($row));
 }
 
 /*
