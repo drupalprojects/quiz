@@ -47,15 +47,15 @@ class ShortAnswerQuestion implements QuizQuestion {
       $this->node->feedback = '';
     }
     if ($is_new || $this->node->revision == 1) {
-      $sql = 'INSERT INTO {quiz_short_answer_node_properties}
+      $sql = "INSERT INTO {quiz_short_answer_node_properties}
         (nid, vid, maximum_score, correct_answer, correct_answer_evaluation)
-        VALUES (%d, %d, %d, \'%s\', %d)';
+        VALUES (%d, %d, %d, '%s', %d)";
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation);
     }
     else {
-      $sql = 'UPDATE {quiz_short_answer_node_properties}
-        SET maximum_score = %d, correct_answer = \'%s\', correct_answer_evaluation = %d
-        WHERE nid = %d AND vid = %d';
+      $sql = "UPDATE {quiz_short_answer_node_properties}
+        SET maximum_score = %d, correct_answer = '%s', correct_answer_evaluation = %d
+        WHERE nid = %d AND vid = %d";
       db_query($sql, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid);
     }
   }

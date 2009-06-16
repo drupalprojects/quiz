@@ -10,28 +10,47 @@
 require_once(drupal_get_path('module', 'quiz') .'/includes/moodle_support.php');
 
 
+function questions_import_get_sample_file_link() {
+  $path = drupal_get_path('module', 'quiz');
+  return array(
+    '!csv' => l(t('CSV'), $path . '/Examples/questions_import/csv_example.csv' ),
+    '!aiken' => l(t('AIKEN'), $path . '/Examples/questions_import/aiken_example.txt'),
+    '!gift' => l(t('GIFT'), $path . '/Examples/questions_import/gift_example.txt'),
+    '!learnwise' => l(t('LEARNWISE'), $path . '/Examples/questions_import/learnwise_example.xml'),
+    '!qti' => l(t('QTI'), $path . '/Examples/questions_import/qti_sample.xml'),
+  );
+}
+
 /*
  * Implementation of hook_form
  * form to upload questions
  */
 
 function questions_import_form()  {
+  drupal_set_message(t('We recommand you to take a backup of your database before importing any questions.'), 'warning');
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
-  $form['quiz_node'] = array(
+  $form['quiz_import'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Question Import Instructions'),
+    '#description' => t(''),
+    '#collapse' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['quiz_import']['quiz_node'] = array(
     '#type' => 'select',
     '#title' => t('Quiz Node'),
     '#options' => quiz_get_all_quiz_title(),
     '#description' => t('Select the quiz node under which you want to add questions'),
     '#required' => TRUE,
   );
-  $form['import_type'] = array(
+  $form['quiz_import']['import_type'] = array(
     '#type' => 'select',
     '#title' => t('Import type'),
     '#options' => questions_import_type(),
-    '#description' => t('Select the import type csv, XML'),
+    '#description' => t('Select the import type (sample files !csv, !aiken, !gift, !learnwise, !qti)', questions_import_get_sample_file_link()),
     '#required' => TRUE,
   );
-  $form['field_separator'] = array(
+  $form['quiz_import']['field_separator'] = array(
     '#type' => 'textfield',
     '#title' => t('CSV Field Separator'),
     '#default_value' => t(','),
@@ -40,13 +59,13 @@ function questions_import_form()  {
     //'#required' => TRUE,
   );
   //'upload' index will be used in file_check_upload()
-  $form['upload'] = array(
+  $form['quiz_import']['upload'] = array(
     '#type' => 'file',
     '#title' => t('Upload'),
     '#size' => 30,
     '#description' => t('Upload the file that has quiz questions'),
   );
-  $form['submit'] = array(
+  $form['quiz_import']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
@@ -62,18 +81,19 @@ function questions_import_form()  {
 function questions_import_type() {
   $type = array(
     // native types
-    'native_csv' => t('Comma Separated Values (CSV)'),
-    'native_aiken' => t('Aiken'),
-    'native_qti12' => t('QTI 1.2'),
+    'native_csv' => t('Comma Separated Values (by Drupal)'),
+    'native_aiken' => t('Aiken (by Drupal)'),
+    'native_qti12' => t('QTI 1.2 (by Drupal)'),
     // types implemented using Moodle code
     // TODO would be nice to scan the Moodle 'format' directory for types but they don't have display names
     'moodle_aiken' => t('Aiken (by Moodle)'),
-    'moodle_blackboard' => t('Blackboard 6.x (by Moodle)'),
-    'moodle_examview' => t('ExamView (by Moodle)'),
+    //'moodle_blackboard' => t('Blackboard 6.x (by Moodle)'),
+    //'moodle_examview' => t('ExamView (by Moodle)'),
     'moodle_gift' => t('GIFT (by Moodle)'),
-    'moodle_hotpot' => t('Hotpotatoes 5.0 and 6.0 (by Moodle)'),
+    //'moodle_hotpot' => t('Hotpotatoes 5.0 and 6.0 (by Moodle)'),
     'moodle_learnwise' => t('Learnwise (by Moodle)'),
-    'moodle_webct' => t('WebCT (by Moodle)'),
+    //'moodle_webct' => t('WebCT (by Moodle)'),
+    // HAVE TO FIX WEBCT, HOTPOT, EXAMVIEW, BLACKBOARD
   );
   return $type;
 }
@@ -151,7 +171,8 @@ function questions_import_validate_qti12($file, $field_separator, $question_type
  * This function checks whether the aiken import file is in proper format or not.
  *
  */
-function questions_import_validate_aiken($file, $separator, $question_type) {
+function questions_import_validate_aiken($file, $separator) {
+  /*
   $error_msg = '';
   $row = 0;
   $lines = file($file->filepath);
@@ -180,15 +201,13 @@ function questions_import_validate_aiken($file, $separator, $question_type) {
       }
 
       // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
-    /*  foreach ($line as $l) {
-      // yet to add more validation code
-      } */
       ++$row;
     }
   }
 
   $error_msg .= !empty($error_msg) ? '<p>' . t('Aiken Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
   return $error_msg;
+  */
 }
 
 /*
@@ -540,55 +559,106 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
   $row = 0;
   $output = '';
   $line = $options = array();
-  $question_type = $form_state['values']['question_type'];
 
-  $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
-  if ($question_type == 'multichoice') {
-    while (!empty($lines)) { // while not empty of file
-      while ($current_line = trim(array_shift($lines))) {
-        if (empty($current_line)) {
-          break;
-        }
-        $line[] = check_plain($current_line);
+  //if ($question_type == 'multichoice') {
+  while (!empty($lines)) { // while not empty of file content
+    while ($current_line = questions_import_get_next_aiken_field($lines)) {
+      // get the whole question fields to an array
+      if (empty($current_line)) {
+        // No more question fields. we have reached the end.
+        break;
       }
-
-      // read each question and its choices and correct answer.
-      // now $line[0] has question, $line[1 to n] has choices and $line[last] has correct answer.
-      $question = array_shift($line);
-      $answer = array_pop($line);
-      // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
-      foreach ($line as $l) {
-        $option = explode($l[1], $l);
-       $options[trim($option[0])] = trim($option[1]);
+      if ($current_line[0] === '#') {
+        // ho its a comment line, just ignore it
+        continue;
       }
-      //now $options['A'] => Moodle, $options['B'] => ATutor ...
-      $correct = substr(trim($answer), '-1');
-      $answer = $options[$correct];
-
-      $line = array();
-      $node = new stdClass();
-      $node->type = $form_state['values']['question_type']; // multichoice, true/false
-      $node->quiz_id = $quiz_nid;
-      $node->quiz_vid = $quiz_vid;
-      $node->title = $node->body = $node->teaser = trim($question);
-      $node->num_answers = count($options);
-      $node->answers = array();
-      foreach ($options as $option) {
-        $node->answers[] = array(
-          'correct' => (trim($answer) == trim($option)) ? 1 : 0,
-          'answer' => trim($option),
-          'feedback' => '', //No feedback option as of now
-        );
-      }
-      node_save(questions_import_node_save_static_data($node));
-      ++$row;
+      $line[] = $current_line;
     }
+    if (empty($line)) {
+      continue;
+    }
+    // now $line is an array holding question fields.
+    $type = questions_import_get_next_aiken_field($line);
+    if (!in_array($type, quiz_get_questions_type('enabled'))) {
+      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
+      // oops you have miss spelled question type or you are trying to import question whose module is disabled.
+      // set an error message and read the next question.
+      $line = array();
+      //empty the $line to load the next question
+      continue;
+    }
+    $node = new stdClass();
+    $node->type = $type;
+    $node->quiz_id = $form_state['values']['quiz_node'];
+    $node->quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $node->quiz_id));
+    $node->type = $type;
+    $node->title = $node->body = $node->teaser = questions_import_get_next_aiken_field($line);
+    switch ($node->type) {
+      case 'multichoice':
+        $answer = array_pop($line);
+        // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
+        while (!empty($line)) {
+          $l = questions_import_get_next_aiken_field($line);
+          $option = explode($l[1], $l);
+          $options[trim($option[0])]['choice'] = trim($option[1]);
+          $options[trim($option[0])]['feedback'] = questions_import_get_next_aiken_field($line);
+        }
+        $correct = substr(trim($answer), '-1');
+        $answer = $options[$correct]['choice'];
+        $line = array();
+        // empty the $line and load the next question fields into it.
+        $node->num_answers = count($options);
+        $node->answers = array();
+        foreach ($options as $option) {
+          $node->answers[] = array(
+            'correct' => (trim($answer) == trim($option['choice'])) ? 1 : 0,
+            'answer' => trim($option['choice']),
+            'feedback' => trim($option['feedback']),
+          );
+        }
+        break;
+
+      case 'true_false':
+        $node->correct_answer = (questions_import_get_next_aiken_field($line) == 'true') ? 1 : 0;
+        $feedback = questions_import_get_next_aiken_field($line);
+        $node->feedback = ($feedback === 'nil') ? '' : $feedback;
+        break;
+
+      case 'matching':
+        $node->match = array();
+        while (!empty($line)) {
+          $row = explode(',', questions_import_get_next_aiken_field($line));
+          $node->match[] = array(
+            'question' => $row[0],
+            'answer' => $row[1],
+            'feedback' => $row[2],
+          );
+        }
+        break;
+
+      case 'short_answer':
+        $evaluation_type = array('case sensitive match', 'case insensitive match', 'regular expression match', 'manually score match');
+        $node->correct_answer = questions_import_get_next_aiken_field($line);
+        $node->maximum_score = (int) questions_import_get_next_aiken_field($line);
+        $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_aiken_field($line), $evaluation_type);
+        // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
+        break;
+
+      case 'long_answer':
+        $node->maximum_score = questions_import_get_next_aiken_field($line);
+        break;
+
+      case 'quiz_directions':
+        break;
+    }
+    node_save(questions_import_node_save_static_data($node));
+    ++$row;
   }
-  /* else if ($question_type == 'true/false') {
-   yet to add
-  } */
   return $row;
+}
+
+function questions_import_get_next_aiken_field(&$row) {
+  return trim(array_shift($row));
 }
 
 /* This function imports multichoice questions from CSV file.
@@ -602,10 +672,7 @@ function questions_import_submit_csv($form, $form_state, $lines) {
   global $user;
   $row = 0;
   $output = '';
-  $allowed_question_type = quiz_get_questions_type('enabled');
   $separator = $form_state['values']['field_separator'];
-  $quiz_nid = $form_state['values']['quiz_node'];
-  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid)); //node_load($quiz_nid);
   // iterate through all the lines in the file. Each line corresponds to one quiz question
   foreach ($lines as $line) {
     $line = trim($line);
@@ -614,14 +681,14 @@ function questions_import_submit_csv($form, $form_state, $lines) {
     }
     $node = new stdClass();
     //create node object
-    $node->quiz_id = $quiz_nid;
-    $node->quiz_vid = $quiz_vid;
+    $node->quiz_id = $form_state['values']['quiz_node'];
+    $node->quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $node->quiz_nid));
     $line = explode($separator, $line);
     // The line variable looks something like
     // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
     // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
     $type = questions_import_get_next_csv_field($line);
-    if (!in_array($type, $allowed_question_type)) {
+    if (!in_array($type, quiz_get_questions_type('enabled'))) {
       drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
       continue;
     }
@@ -646,7 +713,8 @@ function questions_import_submit_csv($form, $form_state, $lines) {
 
       case 'true_false':
         $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
-        $node->feedback = questions_import_get_next_csv_field($line);
+        $feedback = questions_import_get_next_csv_field($line);
+        $node->feedback = ( $feedback === 'nil') ? '' : $feedback;
         break;
 
       case 'matching':
@@ -669,6 +737,7 @@ function questions_import_submit_csv($form, $form_state, $lines) {
         $node->correct_answer = questions_import_get_next_csv_field($line);
         $node->maximum_score = questions_import_get_next_csv_field($line);
         $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
+        // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
         break;
 
       case 'quiz_directions':
@@ -679,10 +748,6 @@ function questions_import_submit_csv($form, $form_state, $lines) {
     node_save(questions_import_node_save_static_data($node));
     ++$row;
   }
-
-  /* else if ($question_type == 'true/false') {
-   yet to add
-  } */
   return $row;
 }
 
@@ -697,24 +762,24 @@ function questions_import_get_next_csv_field(&$row) {
  */
 
 function questions_import_node_save_static_data(&$node) {
-    global $user;
-    $node->uid = $user->uid;
-    $node->name = $user->name;
-    $node->promote = 0;
-    $node->sticky = 0;
-    $node->status = 1;
-    $node->comment = 0;
-    $node->moderate = 0;
-    $node->multiple_answers = 0;
-    $node->more = 0;
-    $node->validate = 1;
-    $node->is_new = 1;
-    $node->format = 1;
-    $node->scored_quiz = 1;
-    $node->revision = 1;
-    $node->op = t('Save');
-    $node->preview = t('Preview');
-    return $node;
+  global $user;
+  $node->uid = $user->uid;
+  $node->name = $user->name;
+  $node->promote = 0;
+  $node->sticky = 0;
+  $node->status = 1;
+  $node->comment = 0;
+  $node->moderate = 0;
+  $node->multiple_answers = 0;
+  $node->more = 0;
+  $node->validate = 1;
+  $node->is_new = 1;
+  $node->format = 1;
+  $node->scored_quiz = 1;
+  $node->revision = 1;
+  $node->op = t('Save');
+  $node->preview = t('Preview');
+  return $node;
 }
 
 /*
@@ -728,10 +793,10 @@ function question_import_validate_extensions($file, $extensions) {
   $errors = '';
   // Bypass validation for uid  = 1.
   //if ($user->uid != 1) {
-    $regex = '/\.('. ereg_replace(' +', '|', preg_quote($extensions)) .')$/i';
-    if (!preg_match($regex, $file->filename)) {
-      $errors = '<p>' . t('Only files with the following extensions are allowed: %files-allowed.', array('%files-allowed' => $extensions)) . '</p>';
-    }
+  $regex = '/\.('. ereg_replace(' +', '|', preg_quote($extensions)) .')$/i';
+  if (!preg_match($regex, $file->filename)) {
+    $errors = '<p>' . t('Only files with the following extensions are allowed: %files-allowed.', array('%files-allowed' => $extensions)) . '</p>';
+  }
   //}
   return $errors;
 
@@ -749,13 +814,13 @@ function question_import_validate_size($file, $file_limit = 0, $user_limit = 0) 
   $errors = '';
   // Bypass validation for uid  = 1.
   //if ($user->uid != 1) {
-    if ($file_limit && $file->filesize > $file_limit) {
-      $errors = '<p>' . t('The file is %filesize exceeding the maximum file size of %maxsize.', array('%filesize' => format_size($file->filesize), '%maxsize' => format_size($file_limit))) . '</p>';
-    }
-    $total_size = file_space_used($user->uid) + $file->filesize;
-    if ($user_limit && $total_size > $user_limit) {
-      $errors = '<p>' . t('The file is %filesize which would exceed your disk quota of %quota.', array('%filesize' => format_size($file->filesize), '%quota' => format_size($user_limit))) . '</p>';
-    }
+  if ($file_limit && $file->filesize > $file_limit) {
+    $errors = '<p>' . t('The file is %filesize exceeding the maximum file size of %maxsize.', array('%filesize' => format_size($file->filesize), '%maxsize' => format_size($file_limit))) . '</p>';
+  }
+  $total_size = file_space_used($user->uid) + $file->filesize;
+  if ($user_limit && $total_size > $user_limit) {
+    $errors = '<p>' . t('The file is %filesize which would exceed your disk quota of %quota.', array('%filesize' => format_size($file->filesize), '%quota' => format_size($user_limit))) . '</p>';
+  }
   //}
   return $errors;
 }

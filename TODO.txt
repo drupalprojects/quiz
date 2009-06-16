@@ -5,6 +5,7 @@ For a current TODO list please visit http://groups.drupal.org/quiz
 Items
 ---------
 - Adoptive quiz #413176
+- Drag and Drop matching
 - Allow for attachments (sound, images, etc.) to be integrated into questions
 
 
