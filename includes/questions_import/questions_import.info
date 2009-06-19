@@ -1,5 +1,5 @@
 ; $Id$
-name = Questions Import
+name = Quiz Questions Import
 package = Quiz Addon
 description = This module allows you to import questions to quiz node in CSV format.
 dependencies[] = quiz
