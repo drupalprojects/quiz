@@ -759,26 +759,44 @@ function theme_quiz_admin_quizzes($results) {
  */
 function theme_quiz_admin($results) {
   $output = '';
-  $current = current($results);
-  drupal_set_title(t('@current Results', array('@current' => check_plain($current['title']))));
+  $quiz = current($results);
+  drupal_set_title(t('@current Results', array('@current' => check_plain($quiz['title']))));
+  // generates <img src="foo.bar.png" /> tag
+  $path_to_module_quiz = drupal_get_path('module', 'quiz');
+  $png = array(
+    'view' => theme('image',  $path_to_module_quiz . '/images/view.png', t('View User Answers and Correct Answers'), t('View User Answers and Correct Answers')),
+    'delete' => theme('image', $path_to_module_quiz . '/images/delete.png', t('Delete this Result Record'), t('Delete this Result Record')),
+    'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')),
+    'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')),
+    'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')),
+  );
+  if (module_exists('results_export')) {
+    $export_teaser_view = array(
+      'html_png' => l($png['html'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/html', array('html' => TRUE)),
+      'xml_png' => l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/xml', array('html' => TRUE)),
+      'csv_png' => l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/csv', array('html' => TRUE)),
+    );
+  }
   while (list($key, $result) = each($results)) {
     $action = array(
-      'view_png' => l(theme('image', drupal_get_path('module', 'quiz') . '/images/view.png', t('View')), 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)),
-      'delete_png' => l(theme('image', drupal_get_path('module', 'quiz') . '/images/delete.png', t('View')), 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
+      'view_png' => l($png['view'], 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)),
+      'delete_png' => l($png['delete'], 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
     );
-    $export = array(
-      'html' => l(t('HTML'), 'admin/quiz/results_export/'. $result['result_id'] . '/html'),
-      'xml' => l(t('XML'), 'admin/quiz/results_export/'. $result['result_id'] . '/xml'),
-      'csv' => l(t('CSV'), 'admin/quiz/results_export/'. $result['result_id'] . '/csv'),
-    );
+    if (module_exists('results_export')) {
+      $export_full_view = array(
+        'html_png' => l($png['html'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/html', array('html' => TRUE)),
+        'xml_png' => l($png['xml'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/xml', array('html' => TRUE)),
+        'csv_png' => l($png['csv'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/csv', array('html' => TRUE)),
+      );
+    }
     $rows[] = array(
-      implode('  ', $action),
+      implode(' ', $action),
       check_plain($result['name']),
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
       ($result['time_end']) ? $result['score'] : t('In Progress'),
-      implode(' ', $export),
+      module_exists('results_export') ? implode(' ', $export_full_view) : '',
     );
   }
 
@@ -789,10 +807,11 @@ function theme_quiz_admin($results) {
     t('Time Started'),
     t('Finished?'),
     t('Score'),
-    t('Export'),
+    module_exists('results_export') ? t('Export') : '',
   );
 
   if (!empty($rows)) {
+    $output .= module_exists('results_export') ? '<div id="export-table"><p>' . t('Export this Table') . '</p>'. implode(' ', $export_teaser_view) . '</div>' : '';
     $output .= theme('table', $header, $rows);
   }
   else {
