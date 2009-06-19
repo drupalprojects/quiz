@@ -18,7 +18,6 @@ function quiz_admin($nid) {
   //lets add the Quiz Results to the breadcrumb array
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
   drupal_set_breadcrumb($breadcrumb);
-
   $results = _quiz_get_results($nid);
   return theme('quiz_admin', $results);
 }
@@ -763,27 +762,34 @@ function theme_quiz_admin($results) {
   $current = current($results);
   drupal_set_title(t('@current Results', array('@current' => check_plain($current['title']))));
   while (list($key, $result) = each($results)) {
+    $action = array(
+      'view_png' => l(theme('image', drupal_get_path('module', 'quiz') . '/images/view.png', t('View')), 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)),
+      'delete_png' => l(theme('image', drupal_get_path('module', 'quiz') . '/images/delete.png', t('View')), 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
+    );
+    $export = array(
+      'html' => l(t('HTML'), 'admin/quiz/results_export/'. $result['result_id'] . '/html'),
+      'xml' => l(t('XML'), 'admin/quiz/results_export/'. $result['result_id'] . '/xml'),
+      'csv' => l(t('CSV'), 'admin/quiz/results_export/'. $result['result_id'] . '/csv'),
+    );
     $rows[] = array(
-      l(theme('image', drupal_get_path('module', 'quiz') . '/images/view.png', t('View')), 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)) . ' | ' . l(theme('image', drupal_get_path('module', 'quiz') . '/images/delete.png', t('View')), 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
-      //check_plain($result['title']),
+      implode('  ', $action),
       check_plain($result['name']),
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
-      //($result['time_end'] > 0) ? date('i:s', $result['time_end']) - date('i:s', $result['time_start']) : 0,
       ($result['time_end']) ? $result['score'] : t('In Progress'),
+      implode(' ', $export),
     );
   }
 
   $header = array(
     t('Action'),
-    //t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
     t('Result<br />ID'),
     t('Time Started'),
     t('Finished?'),
-    //t('Time Taken <br /> (in sec)'),
     t('Score'),
+    t('Export'),
   );
 
   if (!empty($rows)) {

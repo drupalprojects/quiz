@@ -1,0 +1,9 @@
+; $Id$
+name = Questions Export
+package = Quiz Addon
+description = This module allows you to export Quiz Results in HTML, XML and CSV format.
+dependencies[] = quiz
+dependencies[] = multichoice
+dependencies[] = querypath
+core = 6.x
+php = 5

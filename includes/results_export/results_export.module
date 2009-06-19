@@ -1,0 +1,47 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Results Export
+ *
+ * This module allows you to export Quiz results to portable formats.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+
+function results_export_help($path, $arg) {
+  if ($path == 'admin/help#results_export') {
+    return '<p>' . t('This module allows you to export Quiz results to portable formats.') . '</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm()
+ * Valid permissions for this module
+ * @return array An array of valid permissions.
+ */
+
+function results_export_perm() {
+  return array('export_results');
+}
+
+/**
+ * Implementation of hook_menu
+ *
+ */
+
+function results_export_menu() {
+  $items = array();
+  $items['admin/quiz/results_export/%/%'] = array(
+    'title' => t('Export Quiz Results'),
+    'file' => 'results_export.admin.inc',
+    'page callback' => 'results_export_process',
+    'page arguments' => array(3,4),
+    'access arguments' => array('export_questions'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
