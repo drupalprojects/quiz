@@ -1170,11 +1170,6 @@ function quiz_take_quiz($quiz) {
       }*/
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
       db_query("UPDATE {quiz_node_results} SET time_left = %d WHERE result_id = %d", $time, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-      if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-        jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
-        drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
-        //window.location.reload() method doesn't works here.
-      }
 
       if ($time == 1) {
         /* Quiz has been timed out, run a loop to mark the remaining questions
@@ -1194,19 +1189,38 @@ function quiz_take_quiz($quiz) {
         }
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
         // empty the quiz questions
+        // We're at the end of the quiz, so set a flag saying so.
+        $quiz_end = TRUE;
+        drupal_set_message(t('You have run out of time.'), 'error');
+      }
+      else {
+        // There is still time left, so let's go ahead and insert the countdown javascript.
+        if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
+          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
+          drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
+          //window.location.reload() method doesn't works here.
+        }
       }
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
     }
-    // Basically, we store the results of what would normally be a node_view() of the question node in
-    // the $content for the quiz node. Since we want to override the default theme, we use the
-    // quiz_node_view() function, which performs the steps in node_view(), but in a way more
-    // specific to our needs.
-    $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
-    drupal_set_title(check_plain($quiz->title));
-    unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    // If we're not yet at the end.
+    if (empty($quiz_end)) {
+      // Basically, we store the results of what would normally be a node_view() of the question node in
+      // the $content for the quiz node. Since we want to override the default theme, we use the
+      // quiz_node_view() function, which performs the steps in node_view(), but in a way more
+      // specific to our needs.
+      $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
+      drupal_set_title(check_plain($quiz->title));
+      unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    }
   }
   // Else we're at the end of quiz.
   else {
+    $quiz_end = TRUE;
+  }
+
+  // If we're at the end of the quiz.
+  if (!empty($quiz_end)) {
     $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     //print_r($score);exit;Array ( [question_count] => 2 [possible_score] => 2 [numeric_score] => 2 [percentage_score] => 100 [is_evaluated] => 1 )
 
@@ -1342,6 +1356,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   //function to send results over email
   if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
+    drupal_set_message(t('Results has been sent to your e-mail ID.'));
   }
 
   //calls userpoints functions to credit user point based on number of correct answers
