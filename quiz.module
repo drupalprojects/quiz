@@ -1373,7 +1373,7 @@ function quiz_mail($key, &$message, $params) {
     '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
-    '!url' => url('user/quiz/' . $rid . '/userresults'),
+    '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
   );
 
   switch ($key) {
