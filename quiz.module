@@ -1197,7 +1197,7 @@ function quiz_take_quiz($quiz) {
         // There is still time left, so let's go ahead and insert the countdown javascript.
         if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
           jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
-          drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
+          drupal_add_js('function finished() { window.location = window.location.href; }', 'inline');
           //window.location.reload() method doesn't works here.
         }
       }
