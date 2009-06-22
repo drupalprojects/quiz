@@ -795,7 +795,8 @@ function theme_quiz_admin($results) {
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
-      ($result['time_end']) ? $result['score'] : t('In Progress'),
+      ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']),
+      ($result['time_end'] > 0) ? $result['score'] : t('--'),
       module_exists('results_export') ? implode(' ', $export_full_view) : '',
     );
   }
@@ -804,8 +805,9 @@ function theme_quiz_admin($results) {
     t('Action'),
     t('Username'),
     t('Result<br />ID'),
-    t('Time Started'),
+    t('Time <br />Started'),
     t('Finished?'),
+    t('Time <br />Taken <br /> (in sec)'),
     t('Score'),
     module_exists('results_export') ? t('Export') : '',
   );

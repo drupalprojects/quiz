@@ -7,6 +7,8 @@ Items
 - Adoptive quiz #413176
 - Drag and Drop matching
 - Allow for attachments (sound, images, etc.) to be integrated into questions
+- #497772
+-
 
 
 ---

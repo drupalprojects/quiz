@@ -241,15 +241,13 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
         $wrong_answer++;
       }
     }
-    $this->score = ($wrong_answer > 0) ? 0 : 1;
+    $this->score = (!empty($user_answers) && !$wrong_answer) ? 1 : 0;
     return $this->score;
   }
 
-
-    public function getResponse() {
-      return $this->answer;
+  public function getResponse() {
+    return $this->answer;
   }
-
 
   public function getUserAnswers() {
     $user_answers = array();

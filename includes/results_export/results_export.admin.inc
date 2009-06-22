@@ -23,7 +23,7 @@ function results_export_as_full_view($rid, $export_type) {
       $output = strip_tags(quiz_admin_results($rid));
       break;
   }
-  $filename = str_replace(' ', '-', "$quiz_title Result ID $rid.html");
+  $filename = str_replace(' ', '-', "$quiz_title Result ID $rid.$export_type");
   results_export_call_file_transfer($filename, $output);
 }
 
@@ -41,16 +41,17 @@ function results_export_call_file_transfer($filename, $output){
 function results_export_as_teaser_view($nid, $export_type) {
   $results = _quiz_get_results($nid);
   $quiz = current($results);
-  $header = array(t('node ID'), t('Quiz Title'), t('Username'), t('Result ID'), t('Score'), t('Quiz Start Time'), t('Quiz End Time'));
+  $header = array(t('node ID'), t('Quiz Title'), t('Username'), t('Result ID'), t('Start Time'), t('End Time'), t('Time Taken'), t('Score'));
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      $result['nid'],
-      $result['title'],
-      check_plain($result['name']),
-      $result['result_id'],
-      format_date($result['time_start'], 'small'),
-      ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
-      ($result['time_end']) ? $result['score'] : t('In Progress'),
+      'nid' => $result['nid'],
+      'title' => $result['title'],
+      'name' => check_plain($result['name']),
+      'result_id' => $result['result_id'],
+      'time_start' => format_date($result['time_start'], 'small'),
+      'time_end' => ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+      'time_taken' => ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']),
+      'score' => ($result['time_end']) ? $result['score'] : t('--'),
     );
   }
   switch ($export_type) {
@@ -67,15 +68,38 @@ function results_export_as_teaser_view($nid, $export_type) {
     break;
 
     case 'xml':
+      $node = node_load($nid);
+      $output = qp('<?xml version="1.0" ?><quiz><quizinfo/><resultSet/></quiz>', 'quizinfo')
+        ->append('<authorName>' . $node->name . '</authorName>')
+        ->append('<authorId>' . $node->uid . '</authorId>')
+        ->append('<title>' . $node->title . '</title>')
+        ->append('<description>' . $node->body . '</description>')
+        ->append('<nodeId>' . $node->nid . '</nodeId>')
+        ->append('<createDate>' . $node->created .'</createDate>')
+        ->append('<lastUpdateDate>' . $node->changed .'</lastUpdateDate>')
+        ->top()
+        ->find('resultSet');
+      foreach ($rows as $row) {
+        $output->branch()
+          ->append('<result/>')
+          ->find('result:last')
+          ->append('<name>' . $row['name'] .'</name>')
+          ->append('<resultId>' . $row['result_id'] . '</resultId>')
+          ->append('<startTime>' .  $row['time_start'] . '</startTime>')
+          ->append('<endTime>'. $row['time_end'] . '</endTime>')
+          ->append('<timeTaken>' . $row['time_taken'] . '</timeTaken>')
+          ->append('<score>' . $row['score'] . '</score>');
+      }
+      $output = $output->top()->xml();
     break;
 
     case 'csv':
-      $output = implode(",", $header);
+      $output = implode(',', $header);
       foreach ($rows as $row) {
-        $output .= "\n" . implode(",", $row);
+        $output .= "\n" . implode(',', $row);
       }
       break;
   }
-  $filename = str_replace(' ', '-', $quiz['title'] . '.csv');
+  $filename = str_replace(' ', '-', $quiz['title'].'.'.$export_type);
   results_export_call_file_transfer($filename, $output);
 }
