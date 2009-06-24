@@ -18,16 +18,12 @@ function results_export_as_full_view($rid, $export_type) {
         ->top()
         ->html();
       break;
-
-    case 'csv':
-      $output = strip_tags(quiz_admin_results($rid));
-      break;
   }
   $filename = str_replace(' ', '-', "$quiz_title Result ID $rid.$export_type");
-  results_export_call_file_transfer($filename, $output);
+  results_export_invoke_file_transfer($filename, $output);
 }
 
-function results_export_call_file_transfer($filename, $output){
+function results_export_invoke_file_transfer($filename, $output){
   $handle = @fopen('sites/default/files/' . $filename, 'w');
   fwrite($handle, $output);
   fclose($handle);
@@ -101,5 +97,5 @@ function results_export_as_teaser_view($nid, $export_type) {
       break;
   }
   $filename = str_replace(' ', '-', $quiz['title'].'.'.$export_type);
-  results_export_call_file_transfer($filename, $output);
+  results_export_invoke_file_transfer($filename, $output);
 }

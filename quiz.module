@@ -1393,6 +1393,7 @@ function quiz_mail($key, &$message, $params) {
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
     '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
+    '!time' => db_result(db_query("SELECT floor((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = '%d' AND time_end", $rid))
   );
 
   switch ($key) {
@@ -1422,7 +1423,7 @@ function quiz_email_results_format($type) {
     return t('Dear !username ') . "\n\n" .
       t('You have attended a !title quiz on !date') . "\n" .
       t('Test Description : !desc') . "\n" .
-      t('You got !correct out of !total. Your percentage is !percentage') . "\n" .
+      t('You got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
       t('You can access your result here !url') . "\n";
   }
 }

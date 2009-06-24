@@ -13,9 +13,13 @@
 # Type
 # Question
 # A. Choice 1
+# feedback
 # B. Choice 2
+# feedback
 # C. Choice 3
+# feedback
 # D. Choice 4
+# feedback
 # Answer: D
 
 # Multichoice Example

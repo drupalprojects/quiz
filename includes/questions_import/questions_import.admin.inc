@@ -11,13 +11,13 @@ require_once(drupal_get_path('module', 'quiz') .'/includes/moodle_support.php');
 
 
 function questions_import_get_sample_file_link() {
-  $path = drupal_get_path('module', 'quiz');
+  $path = drupal_get_path('module', 'quiz') . '/Examples/questions_import/';
   return array(
-    '!csv' => l(t('CSV'), $path . '/Examples/questions_import/csv_example.csv' ),
-    '!aiken' => l(t('AIKEN'), $path . '/Examples/questions_import/aiken_example.txt'),
-    '!gift' => l(t('GIFT'), $path . '/Examples/questions_import/gift_example.txt'),
-    '!learnwise' => l(t('LEARNWISE'), $path . '/Examples/questions_import/learnwise_example.xml'),
-    '!qti' => l(t('QTI'), $path . '/Examples/questions_import/qti_sample.xml'),
+    '!csv' => l(t('CSV'), $path . 'csv_example.csv' ),
+    '!aiken' => l(t('AIKEN'), $path . 'aiken_example.txt'),
+    '!gift' => l(t('GIFT'), $path . 'gift_example.txt'),
+    '!learnwise' => l(t('LEARNWISE'), $path . 'learnwise_example.xml'),
+    '!qti' => l(t('QTI'), $path . 'qti_sample.xml'),
   );
 }
 
@@ -27,7 +27,7 @@ function questions_import_get_sample_file_link() {
  */
 
 function questions_import_form()  {
-  drupal_set_message(t('We recommand you to take a backup of your database before importing any questions.'), 'warning');
+  drupal_set_message(t('We recommend you to take a backup of your database before importing any questions.'), 'warning');
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
@@ -90,10 +90,10 @@ function questions_import_type() {
     //'moodle_blackboard' => t('Blackboard 6.x (by Moodle)'),
     //'moodle_examview' => t('ExamView (by Moodle)'),
     'moodle_gift' => t('GIFT (by Moodle)'),
-    //'moodle_hotpot' => t('Hotpotatoes 5.0 and 6.0 (by Moodle)'),
+    //'moodle_hotpot' => t('Hotpotatoes 6.0 and 6.0 (by Moodle)'),
     'moodle_learnwise' => t('Learnwise (by Moodle)'),
-    //'moodle_webct' => t('WebCT (by Moodle)'),
-    // HAVE TO FIX WEBCT, HOTPOT, EXAMVIEW, BLACKBOARD
+    'moodle_webct' => t('WebCT (by Moodle)'),
+    // TODO fix HotPotatoes, ExamView and Blackboard
   );
   return $type;
 }
@@ -103,7 +103,7 @@ function questions_import_type() {
  * Implementation of hook_validate()
  */
 function questions_import_form_validate($form, &$form_state) {
-  $allowed_extensions = 'csv txt xml jcl';
+  $allowed_extensions = 'csv txt xml jcl jqz';
   // it suppose to be a string which file extensions separated by space not an array
   $allowd_size = file_upload_max_size();
 
@@ -394,7 +394,6 @@ function questions_import_moodle_create_node($mq, $form_state) {
   node_save(questions_import_node_save_static_data($node));
 }
 
-
 /* This function imports questions from Question and Test Interoperability (QTI) format file.
  * @return
  * Return the number of questions successfully imported.
@@ -559,13 +558,12 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
   $row = 0;
   $output = '';
   $line = $options = array();
-
-  //if ($question_type == 'multichoice') {
-  while (!empty($lines)) { // while not empty of file content
+  // while not empty of file content
+  while (!empty($lines)) {
     while ($current_line = questions_import_get_next_aiken_field($lines)) {
       // get the whole question fields to an array
       if (empty($current_line)) {
-        // No more question fields. we have reached the end.
+        // No more question fields. we have reached the end, exit from this loop.
         break;
       }
       if ($current_line[0] === '#') {
@@ -575,6 +573,7 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
       $line[] = $current_line;
     }
     if (empty($line)) {
+      // this line is empty. Get the next line
       continue;
     }
     // now $line is an array holding question fields.
@@ -601,7 +600,8 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
           $l = questions_import_get_next_aiken_field($line);
           $option = explode($l[1], $l);
           $options[trim($option[0])]['choice'] = trim($option[1]);
-          $options[trim($option[0])]['feedback'] = questions_import_get_next_aiken_field($line);
+          $feedback = questions_import_get_next_aiken_field($line);
+          $options[trim($option[0])]['feedback'] = ($feedback == 'nil') ? '' : $feedback
         }
         $correct = substr(trim($answer), '-1');
         $answer = $options[$correct]['choice'];
@@ -631,7 +631,7 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
           $node->match[] = array(
             'question' => $row[0],
             'answer' => $row[1],
-            'feedback' => $row[2],
+            'feedback' => $row[2] == 'nil' ? '' : $row[2],
           );
         }
         break;
@@ -705,7 +705,7 @@ function questions_import_submit_csv($form, $form_state, $lines) {
           $feedback = questions_import_get_next_csv_field($line);
           $node->answers[] = array(
             'answer' => $answer,
-            'feedback' => $feedback,
+            'feedback' => $feedback === 'nil' ? '' : $feedback,
             'correct' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
           );
         }
@@ -714,16 +714,21 @@ function questions_import_submit_csv($form, $form_state, $lines) {
       case 'true_false':
         $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
         $feedback = questions_import_get_next_csv_field($line);
-        $node->feedback = ( $feedback === 'nil') ? '' : $feedback;
+        $node->feedback = $feedback === 'nil' ? '' : $feedback;
         break;
 
       case 'matching':
         $node->match = array();
         while (!empty($line)) {
-          $node->match[] = array(
+          $line = array(
             'question' => questions_import_get_next_csv_field($line),
             'answer' => questions_import_get_next_csv_field($line),
             'feedback' => questions_import_get_next_csv_field($line),
+          );
+          $node->match[] = array(
+            'question' => $line['question'],
+            'answer' => $line['answer'],
+            'feedback' => $line['feedback'] ? '' : $line['feedback'];
           );
         }
         break;
@@ -733,7 +738,12 @@ function questions_import_submit_csv($form, $form_state, $lines) {
         break;
 
       case 'short_answer':
-        $evaluation = array('case sensitive match', 'case insensitive match', 'regular expression match', 'manually score match');
+        $evaluation = array(
+          'case sensitive match',
+          'case insensitive match',
+          'regular expression match',
+          'manually score match'
+        );
         $node->correct_answer = questions_import_get_next_csv_field($line);
         $node->maximum_score = questions_import_get_next_csv_field($line);
         $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
