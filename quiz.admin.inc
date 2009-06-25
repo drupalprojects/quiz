@@ -807,7 +807,7 @@ function theme_quiz_admin($results) {
     t('Result<br />ID'),
     t('Time <br />Started <br /> (m/d/y - h/m)'),
     t('Finished? <br /> (m/d/y - h/m)'),
-    t('Time <br />Taken <br /> (in min)'),
+    t('Time <br />Taken <br /> (min:sec)'),
     t('Score'),
     module_exists('results_export') ? t('Export') : '',
   );
