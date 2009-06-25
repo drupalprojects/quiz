@@ -785,8 +785,8 @@ function theme_quiz_admin($results) {
     if (module_exists('results_export')) {
       $export_full_view = array(
         'html_png' => l($png['html'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/html', array('html' => TRUE)),
-        'xml_png' => l($png['xml'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/xml', array('html' => TRUE)),
-        'csv_png' => l($png['csv'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/csv', array('html' => TRUE)),
+        //'xml_png' => l($png['xml'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/xml', array('html' => TRUE)),
+        //'csv_png' => l($png['csv'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/csv', array('html' => TRUE)),
       );
     }
     $rows[] = array(
@@ -795,7 +795,7 @@ function theme_quiz_admin($results) {
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
-      ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']),
+      ($result['time_end'] > 0) ? quiz_get_time_taken_in_minutes($result['time_end'] - $result['time_start']) : quiz_get_time_taken_in_minutes(time() - $result['time_start']),
       ($result['time_end'] > 0) ? $result['score'] : t('--'),
       module_exists('results_export') ? implode(' ', $export_full_view) : '',
     );
@@ -805,9 +805,9 @@ function theme_quiz_admin($results) {
     t('Action'),
     t('Username'),
     t('Result<br />ID'),
-    t('Time <br />Started'),
-    t('Finished?'),
-    t('Time <br />Taken <br /> (in sec)'),
+    t('Time <br />Started <br /> (m/d/y - h/m)'),
+    t('Finished? <br /> (m/d/y - h/m)'),
+    t('Time <br />Taken <br /> (in min)'),
     t('Score'),
     module_exists('results_export') ? t('Export') : '',
   );
@@ -821,6 +821,19 @@ function theme_quiz_admin($results) {
   }
   return $output;
 }
+
+/*
+ * @param $time_in_sec
+ *  Integers time in seconds
+ * @return
+ *  String time in min : sec format
+ */
+function quiz_get_time_taken_in_minutes($time_in_sec) {
+  $min = intval($time_in_sec / 60);
+  $sec = $time_in_sec % 60;
+  return "$min : $sec";
+}
+
 
 /**
  * Theme the summary page for admins.
