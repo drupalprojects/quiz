@@ -14,9 +14,6 @@ Installation
    **NOTE: The permissions for views are handled seperately, each view must be configured for the
    appropriate level of permission. 
 
-   **NOTE: matching.module at this point is there only for testing purposes and 
-   will not actually do anything. Please ignore it for now.**
-
 
 Configuration
 -------------
@@ -45,9 +42,5 @@ How to create a quiz
 FAQ
 ---
 Q. I'm getting tons of errors when I try and install this module! Why?
-A. Make sure you've installed this module against Drupal 5.x. 
+A. Make sure you've installed this module with PHP 5.x and Drupal 6.x. 
 
-Q. What is matching.module for?
-A. Right now, matching.module is only a placeholder for development, to test 
-   certain functionality that might break when more than one question type is 
-   found. For now, you can safely ignore this file.
