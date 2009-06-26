@@ -969,3 +969,16 @@ function quiz_remove_partial_quiz_record_value() {
     '10368000' => t('120 Days'),
   );
 }
+
+/*
+ * Adds inline js to automatically set the question's node title.
+ */
+function quiz_set_auto_title() {
+  drupal_add_js('
+  $(document).ready(function () {
+    $("#edit-body").keyup(function () {
+      $("#edit-title").val($("#edit-body").val().substring(0, 255));
+    });
+  });
+  ', 'inline');
+}

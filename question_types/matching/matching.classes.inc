@@ -97,6 +97,10 @@ class MatchingQuestion implements QuizQuestion {
         '#options' => $this->customShuffle($select_option),
       );
     }
+    $form = array();
+    //$form = webform_client_form($form_state, node_load(11), array(), TRUE, FALSE);
+    //unset($form['#action']);
+    //return $form;
     return $this->customShuffle($form);
   }
 

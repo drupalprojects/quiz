@@ -151,7 +151,6 @@ function multichoice_admin_settings_form() {
  * Admin for create/update of a multichoice question.
  */
 function multichoice_form(&$node) {
-
   $is_personality = _multichoice_is_personality_question($node);
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
@@ -181,11 +180,20 @@ function multichoice_form(&$node) {
   }
 
 
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Question'),
+    '#default_value' => $node->body,
+    '#required' => TRUE,
+    '#weight' => -15,
+  );
 
   // Display the multichoice form.
 
   // Allow user to set title?
   if (user_access('allow user titles')) {
+    module_load_include('inc', 'quiz', 'quiz.admin');
+    quiz_set_auto_title();
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -200,13 +208,6 @@ function multichoice_form(&$node) {
       '#value' => $node->title,
     );
   }
-
-  $form['body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Question'),
-    '#default_value' => $node->body,
-    '#required' => TRUE,
-  );
 
   $form['body_filter']['format'] = filter_form($node->format);
 
@@ -1235,7 +1236,7 @@ function theme_multichoice_feedback($quiz, $report) {
       $corrects[] = $answer['answer'];
     }
   }
-  
+
   $label_answers = format_plural(count($answers), 'Your answer', 'Your answers');
   $label_correct = format_plural(count($corrects), 'Correct answer', 'Correct answers');
   $output .= '<span class="quiz_summary_header">' .

@@ -133,11 +133,22 @@ function quiz_question_access($op, $node, $account) {
 function quiz_question_form(&$node, $form_state) {
   $form = array();
 
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Question'),
+    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
+    '#default_value' => $node->body,
+    '#required' => TRUE,
+    '#weight' => -15,
+  );
+
   // First we do the basic title and text fields.
   // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
 
   // Allow user to set title?
   if (user_access('allow user titles')) {
+    module_load_include('inc', 'quiz', 'quiz.admin');
+    quiz_set_auto_title();
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -152,14 +163,6 @@ function quiz_question_form(&$node, $form_state) {
       '#value' => $node->title,
     );
   }
-
-  $form['body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Question'),
-    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
-    '#default_value' => $node->body,
-    '#required' => TRUE,
-  );
 
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);

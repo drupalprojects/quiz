@@ -65,7 +65,7 @@ class TrueFalseQuestion implements QuizQuestion {
   }
 
   public function view() {
-    return $this->getQuestionForm($this->node);
+    //return $this->getQuestionForm($this->node);
   }
 
 
