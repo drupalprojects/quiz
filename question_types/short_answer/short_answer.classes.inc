@@ -107,7 +107,6 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
      );
-
      return $form;
   }
   public function getAdminForm($edit = NULL) {

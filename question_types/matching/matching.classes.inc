@@ -98,10 +98,14 @@ class MatchingQuestion implements QuizQuestion {
       );
     }
     $form = array();
-    //$form = webform_client_form($form_state, node_load(11), array(), TRUE, FALSE);
-    //unset($form['#action']);
-    //return $form;
-    return $this->customShuffle($form);
+    $form = webform_client_form($form_state, node_load(11), array(), TRUE, FALSE);
+    $form['tries']  = array(
+      '#type' => 'hidden',
+      '#default_value' => '1',
+    );
+    unset($form['#action']);
+    return $form;
+    //return $this->customShuffle($form);
   }
 
   public function customShuffle($array = array()) {
@@ -223,7 +227,8 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-    $user_answers = $this->answer;
+    $user_answers = isset($this->answer) ? $this->answer : array();
+    // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {
       $score = ($key == $value)? 1 : 0;
       $sql = "INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)";
@@ -240,6 +245,8 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function score() {
     $wrong_answer = 0;
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
+    $user_answers = isset($user_answers) ? $user_answers : array();
+    // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {
       if ($key != $value) {
         $wrong_answer++;
