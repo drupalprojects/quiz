@@ -674,8 +674,10 @@ class qformat_default {
         // iterate through questions
         foreach($questions as $question) {
 
-            print "exporting:";
-            dprint_r($question);
+            if (module_exists('devel')) {
+                print "exporting:";
+                dprint_r($question);
+            }
 
             // do not export hidden questions
             if (!empty($question->hidden)) {
