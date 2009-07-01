@@ -978,7 +978,7 @@ function quiz_set_auto_title() {
   drupal_add_js('
   $(document).ready(function () {
     $("#edit-body").keyup(function () {
-      $("#edit-title").val($("#edit-body").val().substring(0, 255));
+      $("#edit-title").val($("#edit-body").val().substring(0, 128));
     });
   });
   ', 'inline');
