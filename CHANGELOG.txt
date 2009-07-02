@@ -1,9 +1,12 @@
 $Id$
 
------------
-HEAD
------------
-- Preparing for version 3.0
+version 6.x-4.x
+----------------
+- Started
+
+version 6.x-3.0
+---------------
+Released.  Need to merge 3.x branch into this CHANGELOG.txt
 
 version 6.x-2.0-alpha1
 ----------------------

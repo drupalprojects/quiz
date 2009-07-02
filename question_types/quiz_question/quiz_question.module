@@ -133,11 +133,22 @@ function quiz_question_access($op, $node, $account) {
 function quiz_question_form(&$node, $form_state) {
   $form = array();
 
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Question'),
+    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
+    '#default_value' => $node->body,
+    '#required' => TRUE,
+    '#weight' => -15,
+  );
+
   // First we do the basic title and text fields.
   // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
 
   // Allow user to set title?
   if (user_access('allow user titles')) {
+    module_load_include('inc', 'quiz', 'quiz.admin');
+    quiz_set_auto_title();
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -152,14 +163,6 @@ function quiz_question_form(&$node, $form_state) {
       '#value' => $node->title,
     );
   }
-
-  $form['body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Question'),
-    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
-    '#default_value' => $node->body,
-    '#required' => TRUE,
-  );
 
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
@@ -243,18 +246,16 @@ function quiz_question_evaluate_question($question, $rid, $answer = NULL) {
     //$answer = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
   }
   unset($_POST['tries']);
-
   $response = _quiz_question_response_get_instance($rid, $question, $answer);
   $response->score();
 
   // If a rid is set, we are taking a quiz.
-  if ($rid && !empty($answer)) {
+  if ($rid && isset($answer)) {
     // We don't know whether or not the user has gone back a question. However,
     // we do know that deleting a question for this result set should be safe in
     // the case where the user has not gone back (since there will be no entries
     // to delete). So we always run the delete.
     $response->delete();
-
     $response->save();
   }
 
@@ -331,15 +332,13 @@ function quiz_question_render_question($node) {
 function quiz_question_get_report($nid, $vid, $rid) {
   $node = node_load($nid, $vid);
   $result = _quiz_question_response_get_instance($rid, $node)->getReport();
-
   $node->answers[$result['answer_id']] = $result;
-
   // If this has been evaluated, we mark it as correct.
   // FIXME: This needs to be improved substantially.
   //if ($result && $result['is_evaluated'] && $result['score'] > 0) {
   //  $node->correct = TRUE;
   //}
-  $node->correct = $result['is_correct'];
+  $node->correct = $result['score'];//$result['is_correct'];
   return $node;
 }
 

@@ -69,3 +69,8 @@ div.multichoice_answer_incorrect {
   background: transparent url(images/add.png) no-repeat scroll 0% 10%;
   padding: 0 0 1em 2em;
 }
+
+#export-table {
+  text-align: right;
+}
+

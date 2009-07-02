@@ -42,20 +42,20 @@ class ShortAnswerQuestion implements QuizQuestion {
   }
 
   public function save($is_new = FALSE) {
+
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-
     if ($is_new || $this->node->revision == 1) {
-      $sql = 'INSERT INTO {quiz_short_answer_node_properties}
+      $sql = "INSERT INTO {quiz_short_answer_node_properties}
         (nid, vid, maximum_score, correct_answer, correct_answer_evaluation)
-        VALUES (%d, %d, %d, \'%s\', %d)';
+        VALUES (%d, %d, %d, '%s', %d)";
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation);
     }
     else {
-      $sql = 'UPDATE {quiz_short_answer_node_properties}
-        SET maximum_score = %d, correct_answer = \'%s\', correct_answer_evaluation = %d
-        WHERE nid = %d AND vid = %d';
+      $sql = "UPDATE {quiz_short_answer_node_properties}
+        SET maximum_score = %d, correct_answer = '%s', correct_answer_evaluation = %d
+        WHERE nid = %d AND vid = %d";
       db_query($sql, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid);
     }
   }
@@ -96,7 +96,7 @@ class ShortAnswerQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => $node->body
+       '#value' => check_markup($node->body, $node->format),
      );
      $form['tries'] = array(
        '#type' => 'textfield',
@@ -107,7 +107,6 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
      );
-
      return $form;
   }
   public function getAdminForm($edit = NULL) {
@@ -324,7 +323,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
   public function score() {
     // Manual scoring means we go with what is in the DB.
-    if ($question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
+    if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
       $sql = "SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
       $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
     }
@@ -340,9 +339,9 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-
-    return (($actual / $possible) > 0.5);
+    return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;
   }
+
   public function getResponse() {
     return $this->answer;
   }

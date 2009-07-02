@@ -151,7 +151,6 @@ function multichoice_admin_settings_form() {
  * Admin for create/update of a multichoice question.
  */
 function multichoice_form(&$node) {
-
   $is_personality = _multichoice_is_personality_question($node);
   // Quiz ID used here to tie creation of a question to a specific quiz.
   $quiz_id = arg(3);
@@ -181,11 +180,20 @@ function multichoice_form(&$node) {
   }
 
 
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Question'),
+    '#default_value' => $node->body,
+    '#required' => TRUE,
+    '#weight' => -15,
+  );
 
   // Display the multichoice form.
 
   // Allow user to set title?
   if (user_access('allow user titles')) {
+    module_load_include('inc', 'quiz', 'quiz.admin');
+    quiz_set_auto_title();
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -200,13 +208,6 @@ function multichoice_form(&$node) {
       '#value' => $node->title,
     );
   }
-
-  $form['body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Question'),
-    '#default_value' => $node->body,
-    '#required' => TRUE,
-  );
 
   $form['body_filter']['format'] = filter_form($node->format);
 
@@ -675,7 +676,7 @@ function multichoice_load($node) {
  * Implementation of hook_view().
  */
 function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
-  if (!$teaser /*&& user_access('create multichoice')*/) {
+  if (!$teaser && $page) {
     // This is not necessary:
     //$mynode = node_prepare($node, $teaser);
     $node->content['body'] = array('#value' => multichoice_render_question($node));
@@ -997,7 +998,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
     if ($showpoints) $cols[] = (($answer['is_correct'] == 0) ? theme_multichoice_unselected() : theme_multichoice_selected());
     $selected = (array_search($answer['answer_id'], $tried) !== FALSE);
     $cols[] = ($selected ? theme_multichoice_selected() : theme_multichoice_unselected());
-    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '');
+    if ($showfeedback) $cols[] = ($selected ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback']) .'</div>' : '');
 
     $rows[] = $cols;
 
@@ -1011,7 +1012,7 @@ function multichoice_calculate_results($answers, $tried, $showpoints = FALSE, $s
   }
   else {
     $score = 0;
-    }
+  }
   return array('score' => $score, 'resultstable' => $rows);
 }
 
@@ -1193,15 +1194,14 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
   if ($showfeedback) {
     $innerheader[] = '&nbsp;';
   }
-
   foreach ($question->answers as $aid => $answer) {
     $cols = array();
-    $cols[] = $answer['answer'];
+    $cols[] = check_markup($answer['answer'], $answer['format']);
     if ($showpoints) {
       $cols[] = $answer['is_correct'] ? theme_multichoice_selected() : theme_multichoice_unselected();
     }
     $cols[] = $answer['user_answer'] ? theme_multichoice_selected() : theme_multichoice_unselected();
-    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. $answer['feedback'] .'</div>' : '';
+    $cols[] = ($showfeedback && $answer['user_answer']) ? '<div class="quiz_answer_feedback">'. check_markup($answer['feedback'], $answer['format']) .'</div>' : '';
     $rows[] = $cols;
   }
 
@@ -1224,10 +1224,13 @@ function theme_multichoice_report($question, $showpoints, $showfeedback) {
  */
 function theme_multichoice_feedback($quiz, $report) {
   $output = '<span class="quiz_summary_text">'. check_markup($report->body, $quiz->format) .'</span><br />';
+  $answers = array();
+  $feedbacks = array();
+  $corrects = array();
   foreach ($report->answers as $answer) {
     if ($answer['user_answer']) {
-      $answers[] = $answer['answer'];
-      $feedbacks[] = $answer['feedback'];
+      $answers[] = check_markup($answer['answer'], $answer['format']);
+      $feedbacks[] = check_markup($answer['feedback'], $answer['format']);
     }
     if ($answer['is_correct']) {
       $corrects[] = $answer['answer'];

@@ -1,0 +1,9 @@
+; $Id$
+name = Quiz Questions Export
+package = Quiz Addon
+description = This module allows you to export Quiz questions to portable formats.
+dependencies[] = quiz
+dependencies[] = multichoice
+dependencies[] = quiz_question
+core = 6.x
+php = 5

@@ -29,27 +29,19 @@ class MatchingQuestion implements QuizQuestion {
   }
 
   public function save($is_new = FALSE) {
-
-    for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); $i++) {
-      //$foo->{'prop_' . $i};
-      $question = $this->node->{'question_' . $i};
-      $answer = $this->node->{'answer_' . $i};
-      $feedback = $this->node->{'feedback_' . $i};
-
-      if (empty($question) || empty($answer)) {
+    foreach ($this->node->match as $match) {
+      if (empty($match['question']) || empty($match['answer'])) {
         continue;
       }
-      $feedback = (isset($feedback))? $feedback : '';
+      $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
       if ($is_new || $this->node->revision == 1) {
         $sql = "INSERT INTO {quiz_matching_node} (nid, vid, question, answer, feedback) VALUES (%d, %d, '%s', '%s', '%s')";
-        db_query($sql, $this->node->nid, $this->node->vid, $question, $answer, $feedback);
-
+        db_query($sql, $this->node->nid, $this->node->vid, $match['question'], $match['answer'], $match['feedback']);
       }
       else {
-        $match_id = $this->node->{'match_id_' . $i};
+        //$match_id = $this->node->{'match_id_' . $i};
         $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
-        db_query($sql, $question, $answer, $feedback, $match_id);
-
+        db_query($sql, $match['question'], $match['answer'], $match['feedback'], $match['match_id']);
       }
     }
   }
@@ -78,7 +70,12 @@ class MatchingQuestion implements QuizQuestion {
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
-      $rows[] = $result;
+      $rows['answer'][] = array(
+        'match_id' => $result->match_id,
+        'question' => $result->question,
+        'answer' => $result->answer,
+        'feedback' => $result->feedback,
+      );
     }
     return $rows;
   }
@@ -93,16 +90,7 @@ class MatchingQuestion implements QuizQuestion {
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
     list($questions, $select_option) = $this->getQuestion($node);
-     /* $form['tries'] = array(
-      '#type' => 'hidden',
-      '#value' => 1
-    ); */
-
     foreach ($questions as $question) {
-      //srand((float)microtime() * 1000000);
-      //shuffle($select_option);
-      //print_r($select_option);
-      // yes we need this dirty form index to get users answers as as array to $_POST['tries'].
       $form['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $question['question'],
@@ -156,45 +144,38 @@ class MatchingQuestion implements QuizQuestion {
   }
 
   public function getCreationForm($edit) {
-
     $form['match'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Match Question')
+      '#title' => t('Match Question'),
+      '#tree' => TRUE,
     );
-
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
-
-      $match_id = $this->node->{$i - 1}->match_id;
-      $question = $this->node->{$i - 1}->question;
-      $answer = $this->node->{$i - 1}->answer;
-      $feedback = $this->node->{$i - 1}->feedback;
-
-      $form['match']['question_' . $i] = array(
+      $form['match'][$i] = array(
         '#type' => 'fieldset',
         '#title' => t('Question '. $i),
       );
-      $form['match']['question_' . $i]['match_id_' . $i] = array(
+      $form['match'][$i]['match_id'] = array(
         '#type' => 'hidden',
-        '#default_value' => isset($match_id) ? $match_id : ''
+        '#default_value' => isset($this->node->answer[$i-1]['match_id']) ? $this->node->answer[$i-1]['match_id'] : ''
       );
-      $form['match']['question_' . $i]['question_' . $i] = array(
+      $form['match'][$i]['question'] = array(
         '#type' => 'textarea',
         '#title' => t('Question'),
         '#rows' => 2,
-        '#default_value' => isset($question) ? $question : ''
+        '#default_value' => isset($this->node->answer[$i-1]['question']) ? $this->node->answer[$i-1]['question'] : ''
       );
-      $form['match']['question_' . $i]['answer_' . $i] = array(
+      $form['match'][$i]['answer'] = array(
         '#type' => 'textarea',
         '#title' => t('Match'),
         '#rows' => 2,
-        '#default_value' => $answer//isset($answer) ? $answer : ''
+        '#default_value' => isset($this->node->answer[$i-1]['answer']) ? $this->node->answer[$i-1]['answer'] : ''
       );
 
-      $form['match']['question_' . $i]['feedback_' . $i] = array(
+      $form['match'][$i]['feedback'] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback / Reason'),
         '#rows' => 2,
-        '#default_value' => isset($feeback) ? $feeback : ''
+        '#default_value' => isset($this->node->answer[$i-1]['feedback']) ? $this->node->answer[$i-1]['feedback'] : ''
       );
     }
     return $form;
@@ -238,7 +219,8 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-    $user_answers = $this->answer;
+    $user_answers = isset($this->answer) ? $this->answer : array();
+    // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {
       $score = ($key == $value)? 1 : 0;
       $sql = "INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)";
@@ -253,22 +235,22 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function score() {
-    //$MatchingQuestion = new MatchingQuestion($this->question);
-    //$correct_answers = $MatchingQuestion->getCorrectAnswer();
+    $wrong_answer = 0;
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
-    //print_r($correct_answers);
-    //echo "-------------------------\n\n\n";
+    $user_answers = isset($user_answers) ? $user_answers : array();
+    // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {
-      $this->score = ($key == $value) ? 1 : 0;
+      if ($key != $value) {
+        $wrong_answer++;
+      }
     }
+    $this->score = (!empty($user_answers) && !$wrong_answer) ? 1 : 0;
     return $this->score;
   }
 
-  /*
-    public function getResponse() {
-      return $this->answer;
+  public function getResponse() {
+    return $this->answer;
   }
-  */
 
   public function getUserAnswers() {
     $user_answers = array();
@@ -279,7 +261,6 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     }
     return $user_answers;
   }
-
 
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $rows = $innerheader = array();
@@ -292,19 +273,12 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }
-
     //if (empty($this->question->answers)) {
     //  return t('Missing question.');
     //}
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
-
-    //$correct_answers = $this->question
     $user_answers = $this->getUserAnswers();
-
-    //print_r($correct_answers);
-    //print_r($user_answers);
-    //exit;
     foreach ($correct_answers as $correct_answer) {
       $id = $user_answers[$correct_answer['match_id']];
       $theme = ($correct_answer['answer'] == $correct_answers[$id]['answer']) ? 'quiz_score_correct' : 'quiz_score_incorrect';
@@ -315,19 +289,6 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
         'image' => ($showfeedback) ? array('data' => theme($theme), 'class' => 'quiz_summary_qcell') : '',
       );
     }
-
-    //$answer = $this->question->answers[0];
-    //$correct_answer = $answer['is_correct'] ? $answer['answer'] : !$answer['answer'];
-    //$user_answer = $answer['answer'];
-
-    //if ($showpoints) {
-    //  $rows[0][] = ($correct_answer ? t('True') : t('False'));
-   // }
-    //$rows[0][] = ($user_answer ? t('True') : t('False'));
-    //if($showfeedback && !empty($this->question->feedback)) {
-    //  $rows[0][] = $this->question->feedback;
-    //}
-
     // Add the cell with the question and the answers.
     $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body) .'</div>';
     $q_output .= theme('table', $innerheader, $rows) .'<br />';

@@ -160,15 +160,6 @@ function quiz_menu() {
     //'position' => 'right',
     //'menu_name' => 'name of menu',
   );
-  $items['admin/quiz/reports'] = array(
-    'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
-  );
 
   $items['admin/quiz/settings'] = array(
     'title' => t('@quiz configuration', array('@quiz' => QUIZ_NAME)),
@@ -178,6 +169,16 @@ function quiz_menu() {
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
+  );
+
+  $items['admin/quiz/reports'] = array(
+    'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
   );
 
   $items['admin/quiz/reports/results'] = array(
@@ -396,6 +397,10 @@ function quiz_insert($node) {
 
   $tid = (isset($node->tid) ? $node->tid : 0);
 
+  if (!isset($node->has_userpoints)) {
+    $node->has_userporints = 0;
+  }
+
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, shuffle,
       backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints)
@@ -526,7 +531,7 @@ function quiz_load($node) {
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   drupal_alter('quiz_view', $node, $teaser, $page);
-  if (!$teaser) {
+  if (!$teaser && $page) {
     //load the questions in the view page
     //$node->content['body']['#value'] = quiz_take_quiz($node);
     $node->content = quiz_take_quiz($node);
@@ -660,7 +665,7 @@ function quiz_form(&$node) {
       '#title' => t(' Time Limit'),
       '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
       '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
-  );
+    );
   }
   else {
     $form['addons']['time_limit'] = array(
@@ -1153,21 +1158,19 @@ function quiz_take_quiz($quiz) {
 
     if ($_SESSION['quiz_'. $quiz->nid]['question_duration']) {
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
+      /*
       if ($_SESSION['quiz_'. $quiz->nid]['question_duration'] < -10) {
         unset($_SESSION['quiz_'. $quiz->nid]);
         drupal_set_message('You have left this quiz partially complete.');
         return ;
       }
+      */
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
-
-      if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-        jquery_countdown_add(".countdown", array("until" => $time, "onExpiry" => "finished"));
-        drupal_add_js('function finished() { alert("time up!"); window.location = window.location.href; }', 'inline');
-        //window.location.reload() method doesn't works here.
-      }
+      db_query("UPDATE {quiz_node_results} SET time_left = %d WHERE result_id = %d", $time, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
       if ($time == 1) {
-        // Load the last asked question.
+        /* Quiz has been timed out, run a loop to mark the remaining questions
+         * as skipped */
         while (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
           $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
@@ -1182,19 +1185,39 @@ function quiz_take_quiz($quiz) {
           quiz_store_question_result($result, array('set_mesg' => FALSE));
         }
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
+        // empty the quiz questions
+        // We're at the end of the quiz, so set a flag saying so.
+        $quiz_end = TRUE;
+        drupal_set_message(t('You have run out of time.'), 'error');
+      }
+      else {
+        // There is still time left, so let's go ahead and insert the countdown javascript.
+        if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
+          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
+          drupal_add_js('function finished() { window.location = window.location.href; }', 'inline');
+          //window.location.reload() method doesn't works here.
+        }
       }
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
     }
-    // Basically, we store the results of what would normally be a node_view() of the question node in
-    // the $content for the quiz node. Since we want to override the default theme, we use the
-    // quiz_node_view() function, which performs the steps in node_view(), but in a way more
-    // specific to our needs.
-    $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
-    drupal_set_title($quiz->title);
-    unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    // If we're not yet at the end.
+    if (empty($quiz_end)) {
+      // Basically, we store the results of what would normally be a node_view() of the question node in
+      // the $content for the quiz node. Since we want to override the default theme, we use the
+      // quiz_node_view() function, which performs the steps in node_view(), but in a way more
+      // specific to our needs.
+      $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
+      drupal_set_title(check_plain($quiz->title));
+      unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
+    }
   }
   // Else we're at the end of quiz.
   else {
+    $quiz_end = TRUE;
+  }
+
+  // If we're at the end of the quiz.
+  if (!empty($quiz_end)) {
     $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     //print_r($score);exit;Array ( [question_count] => 2 [possible_score] => 2 [numeric_score] => 2 [percentage_score] => 100 [is_evaluated] => 1 )
 
@@ -1330,6 +1353,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   //function to send results over email
   if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
+    drupal_set_message(t('Results has been sent to your e-mail ID.'));
   }
 
   //calls userpoints functions to credit user point based on number of correct answers
@@ -1365,10 +1389,11 @@ function quiz_mail($key, &$message, $params) {
     '!title' => $quiz->title,
     '!date' => date("F j, Y, g:i a"),
     '!desc' => $quiz->body,
-    '!correct' => $score['numeric_score'],
+    '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
-    '!url' => url('user/quiz/' . $rid . '/userresults'),
+    '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
+    '!time' => db_result(db_query("SELECT floor((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = '%d' AND time_end", $rid))
   );
 
   switch ($key) {
@@ -1398,7 +1423,7 @@ function quiz_email_results_format($type) {
     return t('Dear !username ') . "\n\n" .
       t('You have attended a !title quiz on !date') . "\n" .
       t('Test Description : !desc') . "\n" .
-      t('You got !correct out of !total. Your percentage is !percentage') . "\n" .
+      t('You got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
       t('You can access your result here !url') . "\n";
   }
 }
@@ -2486,7 +2511,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
             AND qnrs.nid = qnp.nid
             AND u.uid = qnrs.uid";
   */
-  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
+  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
@@ -2499,7 +2524,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
     $sql .= " AND qnrs.uid = %d";
     $args[] = $uid;
   }
-  $sql .= " ORDER BY qnrs.result_id ASC";
+  $sql .= " ORDER BY qnrs.result_id DESC";
   $dbresult = db_query($sql, $args);
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['result_id']] = $line;
@@ -2692,4 +2717,51 @@ function quiz_cron() {
   if ($rm_time) { // $time = 0 for never
     db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
   }
+}
+
+/*
+ * @return
+ *  This function returns an array of quiz nodes title with nid ndex.
+ */
+function quiz_get_all_quiz_title() {
+  $list = array();
+  $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
+  while ($result = db_fetch_object($results)) {
+    $list[$result->nid] = substr(check_plain($result->title), 0, 30);
+    // truncate the node title if its length is greater than 30 characters
+  }
+  return $list;
+}
+
+
+/*
+ * @return
+ *  This function returns a list of question types based on $op value
+ */
+function quiz_get_questions_type($op = 'enabled') {
+  $quiz_questions_types = array(
+    'matching' => 'matching',
+    'multichoice' => 'multichoice',
+    'quiz_directions' => 'quiz_directions',
+    'quiz_question'  => 'quiz_question',
+    'short_answer' => 'short_answer',
+    'long_answer' => 'long_answer',
+  );
+  switch ($op) {
+    case 'all':
+    $list = $quiz_questions_types;
+    break;
+
+    case 'enabled':
+    $list = array_intersect($quiz_questions_types, module_list());
+    break;
+
+    case 'disabled':
+    $list = array_diff($quiz_questions_types, module_list());
+    break;
+  }
+  if (in_array('quiz_question', $list)) {
+    $list['quiz_question'] = 'true_false';
+  }
+  return $list;
 }

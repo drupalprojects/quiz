@@ -26,7 +26,6 @@ class LongAnswerQuestion implements QuizQuestion {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-
     if ($is_new || $this->node->revision == 1) {
       $sql = 'INSERT INTO {quiz_long_answer_node_properties} (nid, vid, maximum_score) VALUES (%d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score);
@@ -219,7 +218,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
 
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body) .
+      check_markup($this->question->body, $this->question->filter) .
       '</div>';
 
     $result = '<div class="quiz_answer_feedback">';
@@ -235,7 +234,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
 
         // Show feedback, if any.
         if ($showfeedback && !empty($answer->feedback)) {
-          $result .= '</div><div class="quiz_answer_feedback">' . $answer->feedback;
+          $result .= '</div><div class="quiz_answer_feedback">' . check_markup($answer->feedback, $this->question->format);
         }
 
       }

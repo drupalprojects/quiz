@@ -10,7 +10,7 @@ to collect those questions into quizzes.
 Requirements
 ------------
 Drupal 6.x
-PHP 4.3.0 or greater (5 is strongly recommended)
+PHP 5.1 (for OOP code introduced in Quiz 3.0)
 MySQL 5
 
 The module consists of two types of modules: the Quiz module itself 
@@ -49,8 +49,10 @@ Credits
 - Specification:      Robert Douglass
 - Original author:    Károly Négyesi
 - Update to Drupal 5: Wim Mostrey and riverfr0zen
-- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji
+- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji, turadg
 
+Acknowledgements
+----------------
 I'd like to extend a heart-felt thank you to the folks at Google for their 
 Summer of Code program, without which my working on this module would not have 
 been possible. I'd also like to extend my thanks to Robert Douglass as my mentor 

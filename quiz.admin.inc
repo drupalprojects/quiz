@@ -18,7 +18,6 @@ function quiz_admin($nid) {
   //lets add the Quiz Results to the breadcrumb array
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
   drupal_set_breadcrumb($breadcrumb);
-
   $results = _quiz_get_results($nid);
   return theme('quiz_admin', $results);
 }
@@ -138,7 +137,7 @@ function quiz_questions_form($context, $quiz) {
   // Display questions 'always' on this quiz.
   $form['filtered_question_list_always'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Questions always on this quiz"),
+    '#title' => t('Questions always on this quiz'),
  //   '#theme' => 'quiz_filtered_questions',
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
@@ -185,7 +184,7 @@ function quiz_questions_form($context, $quiz) {
   // Display questions 'random' on this quiz.
   $form['filtered_question_list_random'] = array(
     '#type' => 'fieldset',
-    '#title' => t("Pool of questions randomly selected for this quiz"),
+    '#title' => t('Pool of questions randomly selected for this quiz'),
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
@@ -435,7 +434,7 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
   $matches = array();
   while ($node = db_fetch_object($result)) {
     $type = $type_map[$node->type]['name'];
-    $key = sprintf('%s [type:%s, id:%d]', $node->title, $type, $node->nid);
+    $key = sprintf('%s [type:%s, id:%d]', check_plain($node->title), check_plain($type), $node->nid);
     $matches[$key] = $key;
   }
 
@@ -573,6 +572,7 @@ function quiz_admin_settings() {
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
+    '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
   );
 
   $target = array(
@@ -702,12 +702,12 @@ function quiz_admin_result_delete_form() {
 }
 
 function quiz_admin_result_delete_form_submit($form, &$form_state) {
+  $nid = db_result(db_query("SELECT nid FROM {quiz_node_results} WHERE result_id = %d",$form_state['values']['del_rid']));
   db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
   db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
-  drupal_set_message(t('Result.'));
-  //$form_state['redirect'] = 'admin/quiz/results';
-  $form_state['redirect'] = 'admin/quiz/reports/results';
-  $form_state['nid'] = $node->nid;
+  drupal_set_message(t('Result has been Deleted.'));
+  $form_state['redirect'] = 'admin/quiz/'. intval($nid) .'/view';
+  $form_state['nid'] = $nid;
 }
 
 
@@ -760,28 +760,61 @@ function theme_quiz_admin_quizzes($results) {
  */
 function theme_quiz_admin($results) {
   $output = '';
-  $rows = array();
-
+  $quiz = current($results);
+  drupal_set_title(t('@current Results', array('@current' => check_plain($quiz['title']))));
+  // generates <img src="foo.bar.png" /> tag
+  $path_to_module_quiz = drupal_get_path('module', 'quiz');
+  $png = array(
+    'view' => theme('image',  $path_to_module_quiz . '/images/view.png', t('View User Answers and Correct Answers'), t('View User Answers and Correct Answers')),
+    'delete' => theme('image', $path_to_module_quiz . '/images/delete.png', t('Delete this Result Record'), t('Delete this Result Record')),
+    'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')),
+    'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')),
+    'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')),
+  );
+  if (module_exists('results_export')) {
+    $export_teaser_view = array(
+      'html_png' => l($png['html'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/html', array('html' => TRUE)),
+      'xml_png' => l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/xml', array('html' => TRUE)),
+      'csv_png' => l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/csv', array('html' => TRUE)),
+    );
+  }
   while (list($key, $result) = each($results)) {
+    $action = array(
+      'view_png' => l($png['view'], 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)),
+      'delete_png' => l($png['delete'], 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
+    );
+    if (module_exists('results_export')) {
+      $export_full_view = array(
+        'html_png' => l($png['html'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/html', array('html' => TRUE)),
+        //'xml_png' => l($png['xml'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/xml', array('html' => TRUE)),
+        //'csv_png' => l($png['csv'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/csv', array('html' => TRUE)),
+      );
+    }
     $rows[] = array(
-      l(t('View'), 'admin/quiz/reports/' . $result['result_id'] . '/results') . ' | ' . l(t('Delete'), 'admin/quiz/' . $result['result_id'] . '/delete'),
-      check_plain($result['title']),
+      implode(' ', $action),
       check_plain($result['name']),
       $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+      ($result['time_end'] > 0) ? quiz_get_time_taken_in_minutes($result['time_end'] - $result['time_start']) : quiz_get_time_taken_in_minutes(time() - $result['time_start']),
+      ($result['time_end'] > 0) ? $result['score'] : t('--'),
+      module_exists('results_export') ? implode(' ', $export_full_view) : '',
     );
   }
 
   $header = array(
     t('Action'),
-    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
     t('Result<br />ID'),
-    t('Time Started'),
-    t('Finished?'));
+    t('Time <br />Started <br /> (m/d/y - h/m)'),
+    t('Finished? <br /> (m/d/y - h/m)'),
+    t('Time <br />Taken <br /> (min:sec)'),
+    t('Score'),
+    module_exists('results_export') ? t('Export') : '',
+  );
 
   if (!empty($rows)) {
+    $output .= module_exists('results_export') ? '<div id="export-table"><p>' . t('Export this Table') . '</p>'. implode(' ', $export_teaser_view) . '</div>' : '';
     $output .= theme('table', $header, $rows);
   }
   else {
@@ -789,6 +822,19 @@ function theme_quiz_admin($results) {
   }
   return $output;
 }
+
+/*
+ * @param $time_in_sec
+ *  Integers time in seconds
+ * @return
+ *  String time in min : sec format
+ */
+function quiz_get_time_taken_in_minutes($time_in_sec) {
+  $min = intval($time_in_sec / 60);
+  $sec = $time_in_sec % 60;
+  return "$min : $sec";
+}
+
 
 /**
  * Theme the summary page for admins.
@@ -819,7 +865,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. $summary .'</div><br />'."\n";
+  $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
   return $output;
@@ -923,4 +969,17 @@ function quiz_remove_partial_quiz_record_value() {
     '9936000' => t('115 Days'),
     '10368000' => t('120 Days'),
   );
+}
+
+/*
+ * Adds inline js to automatically set the question's node title.
+ */
+function quiz_set_auto_title() {
+  drupal_add_js('
+  $(document).ready(function () {
+    $("#edit-body").keyup(function () {
+      $("#edit-title").val($("#edit-body").val().substring(0, 128));
+    });
+  });
+  ', 'inline');
 }
