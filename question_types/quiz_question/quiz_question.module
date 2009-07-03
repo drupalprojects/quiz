@@ -23,12 +23,12 @@ function quiz_question_help($path, $args) {
  */
 function quiz_question_autoload_info() {
   return array(
-    // Base interfaces and classes:
+  // Base interfaces and classes:
     'QuizQuestion' => array('file' => 'quiz_question.core.inc'),
     'QuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
     'AbstractQuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
 
-    // True/False question type:
+  // True/False question type:
     'TrueFalseQuestion' => array('file' => 'quiz_question.truefalse.inc'),
     'TrueFalseResponse' => array('file' => 'quiz_question.truefalse.inc'),
   );
@@ -59,7 +59,7 @@ function quiz_question_menu() {
  */
 function quiz_question_perm() {
   return array(
-    // Manage questions:
+  // Manage questions:
     'create quiz question', 'edit own quiz question', 'edit any quiz question', 'delete own quiz question', 'delete any quiz question',
     'score quiz question', 'configure quiz question types',
   );
@@ -73,7 +73,7 @@ function quiz_question_theme() {
     'quiz_question_report' => array(
       'arguments' => array('show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
-    ),
+  ),
   );
 }
 
@@ -85,7 +85,7 @@ function quiz_question_node_info() {
   $info = array();
   $defaults = array(
     'module' => 'quiz_question',
-    //'help' => t('Add the question text and set a score for this question.'),
+  //'help' => t('Add the question text and set a score for this question.'),
     'has_body' => TRUE,
     'has_title' => TRUE,
     'body_label' => t('Question'),
@@ -204,30 +204,39 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_question_form($context, $node) {
   $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
-  $quiz = menu_get_object(); // Get the quiz object.
+  $display_object = menu_get_object();
 
-  if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
-    $form['back'] = array(
+  switch ($display_object->type) {
+    case 'quiz':
+      $quiz = $display_object;
+
+      if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
+        $form['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
-    );
-  }
+        );
+      }
 
-  // Add navigation at the bottom:
-  // Submit button
-  $form['submit'] = array(
+      // Add navigation at the bottom:
+      // Submit button
+      $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
-  );
-  /*
-  if (empty($node->no_skip_button)) {
-    $form['op']  = array(
-      '#type' => 'submit',
-      '#value' => t('Skip'),
-    );
+      );
 
+      /* TODO is skipping supporting?
+       if (empty($node->no_skip_button)) {
+       $form['op']  = array(
+       '#type' => 'submit',
+       '#value' => t('Skip'),
+       );
+       }
+       */
+
+      break;
+    default:
+      // nothing
   }
-  */
 
   return $form;
 }
@@ -481,15 +490,15 @@ function quiz_question_quiz_question_info() {
       'question provider' => 'TrueFalseQuestion',
       'response provider' => 'TrueFalseResponse',
       'module' => 'quiz_question',
-    ),
-    /*
-    'long_answer' => array(
-      'name' => 'Long answer question',
-      'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
-      'question provider' => 'LongAnswerQuestion',
-      'response provider' => 'LongAnswerResponse',
-      'module' => 'quiz_question',
-    ),
-    */
+  ),
+  /*
+   'long_answer' => array(
+   'name' => 'Long answer question',
+   'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
+   'question provider' => 'LongAnswerQuestion',
+   'response provider' => 'LongAnswerResponse',
+   'module' => 'quiz_question',
+   ),
+   */
   );
 }
