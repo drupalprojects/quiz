@@ -27,6 +27,8 @@ function questions_import_get_sample_file_link() {
  */
 
 function questions_import_form()  {
+
+
   drupal_set_message(t('We recommend you to take a backup of your database before importing any questions.'), 'warning');
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
   $form['quiz_import'] = array(
@@ -557,7 +559,7 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
   global $user;
   $row = 0;
   $output = '';
-  $line = $options = array();
+  $line = array();
   // while not empty of file content
   while (!empty($lines)) {
     while ($current_line = questions_import_get_next_aiken_field($lines)) {
@@ -592,6 +594,9 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
     $node->quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $node->quiz_id));
     $node->type = $type;
     $node->title = $node->body = $node->teaser = questions_import_get_next_aiken_field($line);
+
+    $options = array(); // clear the options array for a new question
+
     switch ($node->type) {
       case 'multichoice':
         $answer = array_pop($line);
@@ -601,7 +606,7 @@ function questions_import_submit_aiken($form, $form_state, $lines) {
           $option = explode($l[1], $l);
           $options[trim($option[0])]['choice'] = trim($option[1]);
           $feedback = questions_import_get_next_aiken_field($line);
-          $options[trim($option[0])]['feedback'] = ($feedback == 'nil') ? '' : $feedback
+          $options[trim($option[0])]['feedback'] = ($feedback == 'nil') ? '' : $feedback;
         }
         $correct = substr(trim($answer), '-1');
         $answer = $options[$correct]['choice'];
@@ -728,7 +733,7 @@ function questions_import_submit_csv($form, $form_state, $lines) {
           $node->match[] = array(
             'question' => $line['question'],
             'answer' => $line['answer'],
-            'feedback' => $line['feedback'] ? '' : $line['feedback'];
+            'feedback' => $line['feedback'] ? '' : $line['feedback']
           );
         }
         break;
