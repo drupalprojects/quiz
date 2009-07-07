@@ -54,7 +54,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
 JOIN {quiz_node_relationship} qnr ON qnr.child_nid = nr.nid
 JOIN {node} n ON n.nid = nr.nid
 WHERE parent_nid = %d
-ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?
+ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions ordered in a quiz?
     $result = db_query($sql, $quiz_nid);
     while ($question_node = db_fetch_array($result)) {
       $db_questions[] = $question_node;
@@ -98,63 +98,28 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?
     switch ($import_q->type) {
       case 'multichoice':
         $mc = multichoice_load($node_obj);
-        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Checking right number of answers (expected ".count($import_q->answers).", got ".count($mc->answers).") ".print_r($mc, true).print_r($db_q, true));
+        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Matching number of options (expected ".count($import_q->answers).", got ".count($mc->answers).") ".print_r($mc, true).print_r($db_q, true));
+        foreach ($import_q->answers as $index => $import_answer) {
+          $db_answer = $mc->answers[$i]->answer;
+          $this->assertEqual($import_answer, $db_answer,  "[multichoice] Matching option text (expected $import_answer, got $db_answer)");
 
-        //        for ($j = 1; $j < count($answers) && $j <= count($question->answers); $j++) {
-        //          $msg = $answers[$j];
-        //
-        //          $p1 = strpos($msg, 'resizable">') + 11;
-        //          $p2 = strpos($msg, '</textarea>', $p1);
-        //
-        //          $answer = substr($msg, $p1, $p2 - $p1);
-        //
-        //          $this->assertEqual($answer, $question->answers[$j - 1], "[multichoice] Checking that answers line up");
-        //
-        //          $is_answer = (strpos($msg, 'checked="checked"') > 0);
-        //          if ((($j - 1) == $question->answer)) {
-        //            $this->assertTrue($is_answer, "[multichoice] Checking expected correct answer is correct");
-        //          }
-        //          else {
-        //            $this->assertFalse($is_answer, "[multichoice] Checking expected wrong answer is wrong");
-        //          }
-        //        }
+          // TODO check the correct answer too
+          // probably can use $mc->_multichoice_find_correct()
+        }
         break;
       case 'true_false':
         $tf = quiz_question_load($node_obj);
-        $correct = $tf->getCorrectAnswer();
 
+        $correct = ($tf->correct_answer == 0) ? 'false': 'true';
 
-        //        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-1">');
-        //        $p2 = strpos($msg, '<label class="option" for="edit-correct-answer-0">', $p1);
-        //
-        //        $msg = substr($msg, $p1, $p2 - $p1);
-        //
-        //        $is_true = strpos($msg, 'checked="checked"');
-        //
-        //        if ($is_true > 0) {
-        //          $this->assertEqual($question->answer, "true", "[true_false] Checking true false result answer {$question->answer} should be true");
-        //        }
-        //        else {
-        //          $this->assertEqual($question->answer, "false", "[true_false] Checking true false result answer {$question->answer} should be false");
-        //        }
+        $this->assertEqual($import_q->answer, $correct, "[true_false] Matching right answer (expected ".$import_q->answer.", got ".$correct.")");
         break;
       case 'short_answer':
-        //        $this->assertFieldById('edit-body', $question->question, "[short_answer] Checking proper question appears");
-        //        $this->assertFieldById('edit-correct-answer', $question->answer, "[short_answer] Checking proper short_answer answer appears");
-        //        $this->assertFieldById('edit-maximum-score', $question->value, "[short_answer] Checking proper short_answer score appears");
-        //
-        //        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-evaluation-0">');
-        //        $p2 = strpos($msg, '<div class="description">Choose a matching type.</div>', $p1);
-        //
-        //        $msg = $p2 - $p1;
-        //
-        //        $entries = explode('<input type="radio" id="', $msg);
-        //
-        //        for ($i = 1; $i < count($entries); $i++) {
-        //          $is_true = strpos($entries[$i], 'checked="checked"');
-        //          $contains_answer = strpos($entries[$i], $question->shortanswertype);
-        //
-        //          $this->assertEqual($is_true, $contains_answer, "[short_answer] Checking proper short answer type");
+        $sa = quiz_question_load($node_obj);
+
+        $correct = $sa->correct_answer;
+
+        $this->assertEqual($import_q->answer, $correct, "[short_answer] Checking right answer (expected ".$import_q->answer.", got ".$correct.")");
         break;
     }
   }
@@ -387,8 +352,6 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?
     $import_settings['field_separator'] = ',';
     $import_settings['files[upload]'] = $filepath;
 
-    firep($import_settings, "import settings");
-
     $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
 
     $this->assertPattern('/20 questions were imported successfully/', t('Checking import success message'));
@@ -465,25 +428,25 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?
   }
 
 
-  //    function testAikenMedly() {
-  //      $this->medlyHelper('aiken');
-  //    }
+  function testAikenMedly() {
+    $this->medlyHelper('aiken');
+  }
 
   function testAikenMultichoice() {
     $this->multichoiceHelper('aiken');
   }
 
-  //    function testAikenTrueFalse() {
-  //      $this->truefalseHelper('aiken');
-  //    }
-  //
-  //    function testAikenShortAnswer() {
-  //      $this->shortanswerHelper('aiken');
-  //    }
-  //
-  //    function testAikenMultiload() {
-  //      $this->multiloadHelper('aiken');
-  //    }
+  function testAikenTrueFalse() {
+    $this->truefalseHelper('aiken');
+  }
+
+  function testAikenShortAnswer() {
+    $this->shortanswerHelper('aiken');
+  }
+
+  function testAikenMultiload() {
+    $this->multiloadHelper('aiken');
+  }
 
 
   /* csv files do not properly input. these would test them if they did.
