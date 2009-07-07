@@ -89,11 +89,14 @@ class MatchingQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
+    
+    $display_object = menu_get_object();
+        
     list($questions, $select_option) = $this->getQuestion($node);
     foreach ($questions as $question) {
       $form['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
-        '#title' => $question['question'],
+        '#title' => ($display_object->type == 'quiz') ? $question['question'] : $question['question'] . ' (answer is \'' . $question['answer'] . '\')',
         '#options' => $this->customShuffle($select_option),
       );
     }

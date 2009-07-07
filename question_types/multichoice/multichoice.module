@@ -714,8 +714,11 @@ function multichoice_render_question_form($context, $node) {
     $type = 'checkboxes';
   }
 
+  $display_object = menu_get_object();
+
   // Get options.
   $options = array();
+
   $fake_answer_id = 0;
   while (list($key, $answer) = each($node->answers)) {
     if (empty($answer['correct']) && !isset($answer['answer']) && empty($answer['feedback'])) {
@@ -726,7 +729,12 @@ function multichoice_render_question_form($context, $node) {
         // We are probably in a preview. Generate fake answer IDs. Later we will disabled submit, too.
         $answer['answer_id'] = ++$fake_answer_id;
       }
-      $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
+      if ($display_object->type != 'quiz' && $answer['is_correct'] == 1) {
+        $options[$answer['answer_id']] = '<span class="multichoice_answer_correct">'. check_markup($answer['answer'], $node->format, FALSE) .' <strong>(correct:)</strong></span>';
+      }
+      else {
+        $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
+      }
     }
   }
 
@@ -738,9 +746,6 @@ function multichoice_render_question_form($context, $node) {
     '#type' => $type,
     '#options' => $options,
   );
-
-  // branch on view context
-  $display_object = menu_get_object();
 
   switch ($display_object->type) {
     case 'quiz':
@@ -779,6 +784,12 @@ function multichoice_render_question_form($context, $node) {
        */
       break;
     default:
+      if (!user_access('view quiz question solutions')) {
+        $form['tries'] = array('#type' => 'markup', '#value' => '<em>Answers hidden</em>.');
+      }
+      break;
+
+
       // do nothing else
   }
 

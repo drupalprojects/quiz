@@ -94,14 +94,17 @@ class ShortAnswerQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
-    $form['question'] = array(
+    
+  $display_object = menu_get_object();
+
+  $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($node->body, $node->format),
      );
      $form['tries'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
-       '#description' => t('Enter your answer here'),
+       '#description' => ($display_object->type == 'quiz') ? t('Enter your answer here') : t('Correct answer is !answer', array('!answer' => $node->correct_answer)),
        '#default_value' => isset($context['tries']) ? $context['tries'] : '',
        '#size' => 60,
        '#maxlength' => 256,

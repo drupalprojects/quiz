@@ -204,6 +204,7 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_question_form($context, $node) {
   $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
+
   $display_object = menu_get_object();
 
   switch ($display_object->type) {
@@ -235,6 +236,20 @@ function quiz_question_question_form($context, $node) {
 
       break;
     default:
+      if (!user_access('view quiz question solutions')) {
+        $place_holder = $form['question'];
+
+        unset($form);
+
+        $form_question = $place_holder;
+
+        $form['tries'] = array(
+          '#type'  => 'markup',
+          '#value' => '<br /> <em>Answers hidden</em>.'
+        );
+      }
+      break;
+
       // nothing
   }
 

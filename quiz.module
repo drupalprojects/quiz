@@ -90,6 +90,8 @@ function quiz_perm() {
     'view user results', 'view own results',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
+    // Allow someone to see the answers to a quiz question
+    'view quiz question solutions'
   );
 }
 

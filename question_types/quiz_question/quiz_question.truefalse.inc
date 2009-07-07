@@ -74,7 +74,9 @@ class TrueFalseQuestion implements QuizQuestion {
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
 
-    // Question first
+  $display_object = menu_get_object();
+  
+  // Question first
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => $node->body
@@ -85,8 +87,8 @@ class TrueFalseQuestion implements QuizQuestion {
       '#type' => 'radios',
       '#title' => t('Choose one'),
       '#options' => array(
-        1 => t('True'),
-        0 => t('False'),
+        1 => ($display_object->type == 'quiz' || $node->correct_answer == 0) ? t('True') : t('True (correct)'),
+        0 => ($display_object->type == 'quiz' || $node->correct_answer == 1) ? t('False') : t('False (correct)')
       ),
       //'#default_value' => 1,
       '#required' => TRUE,
