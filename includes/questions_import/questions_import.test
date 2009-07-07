@@ -48,7 +48,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
    * @param $quiz_nid_id
    * @return array of question fields: nid, vid, body, type
    */
-  function getQuizQuestionList($quiz_nid_id) {
+  function getQuizQuestionList($quiz_nid) {
     $db_questions = array(); // question nid, question prompt (body), type
     $sql = "SELECT nr.nid, nr.vid, nr.body, n.type FROM {node_revisions} nr
 JOIN {quiz_node_relationship} q ON q.child_nid = nr.nid
@@ -70,34 +70,18 @@ ORDER BY weight";
    * @param $quiz_nid
    *   Node the quiz is located at
    */
-  function quizHelper($questions = array(), $quiz_nid = 1) {
-    $num_answers = array ();
-
-    $msg = $this->drupalGet("node/{$quiz_nid}/admin");
-
-    $msg = substr($msg, strpos($msg, '<h3>Quiz Questions</h3>'));
-    $msg = substr($msg, strpos($msg, '<tbody>'));
-    $msg = substr($msg, 0, strpos($msg, '</tbody>'));
-
-    $msn = str_replace(array('<', '>'), array('(', ')'), $msg);
-
-    $entries = explode('<tr class="', $msg);
-    $html_question_count = count($entries) - 1; // first line is bogus
-
-    $this->assertEqual(count($questions), $html_question_count, "Checking right number of questions in HTML table (expected ".count($questions)." got ".(count($entries) - 1).")");
-
-    $question_count = db_result(db_query("SELECT COUNT(*) FROM {quiz_node_relationship} WHERE parent_nid = %d", $quiz_nid));
-    $this->assertEqual(count($questions), $question_count, "Checking right number of questions in database (expected ".count($questions)." got ".(count($entries) - 1).")");
-
-    if ($html_question_count != count($questions)) return;
-
+  function quizHelper($import_questions = array(), $quiz_nid = 1) {
     $db_questions = $this->getQuizQuestionList($quiz_nid);
+    $this->assertEqual(count($import_questions), count($db_questions), "Checking right number of questions in database 2 (expected ".count($import_questions)." got ".count($db_questions).")");
 
-    foreach ($questions as $index => $q_info) {
-      $this->assertEqual($q_info->question, $db_questions['body'], "Question prompts in database match generated import");
-      $this->assertEqual($q_info->type, $db_questions['type'], "Question node types in database match generated import");
+    if (count($db_questions)!= count($import_questions)) return;
 
-      $this->answersHelper($q_info, $db_questions[$index]);
+    foreach ($import_questions as $index => $import_q) {
+      $db_q = $db_questions[$index];
+      $this->assertEqual($import_q->question, $db_q['body'], "Question prompts in database match generated import (expected '$import_q->question' but got '$db_q[body]')");
+      $this->assertEqual($import_q->type, $db_q['type'], "Question node types in database match generated import (expected '$import_q->type' but got '$db_q[type]')");
+
+      $this->answersHelper($import_q, $db_q);
     }
   }
 
@@ -111,388 +95,388 @@ ORDER BY weight";
 
     switch ($import_q->type) {
       case 'multichoice':
-        $mc = multichoice_load($q_info); // pull 'nid' and 'vid'
+        $mc = multichoice_load($import_q); // pull 'nid' and 'vid'
         $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Checking right number of answers (expected ".count($import_q->answers).", got ".count($mc->answers).")");
 
-//        for ($j = 1; $j < count($answers) && $j <= count($question->answers); $j++) {
-//          $msg = $answers[$j];
-//
-//          $p1 = strpos($msg, 'resizable">') + 11;
-//          $p2 = strpos($msg, '</textarea>', $p1);
-//
-//          $answer = substr($msg, $p1, $p2 - $p1);
-//
-//          $this->assertEqual($answer, $question->answers[$j - 1], "[multichoice] Checking that answers line up");
-//
-//          $is_answer = (strpos($msg, 'checked="checked"') > 0);
-//          if ((($j - 1) == $question->answer)) {
-//            $this->assertTrue($is_answer, "[multichoice] Checking expected correct answer is correct");
-//          }
-//          else {
-//            $this->assertFalse($is_answer, "[multichoice] Checking expected wrong answer is wrong");
-//          }
-//        }
-//        break;
-//      case 'true_false':
-//        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-1">');
-//        $p2 = strpos($msg, '<label class="option" for="edit-correct-answer-0">', $p1);
-//
-//        $msg = substr($msg, $p1, $p2 - $p1);
-//
-//        $is_true = strpos($msg, 'checked="checked"');
-//
-//        if ($is_true > 0) {
-//          $this->assertEqual($question->answer, "true", "[true_false] Checking true false result answer {$question->answer} should be true");
-//        }
-//        else {
-//          $this->assertEqual($question->answer, "false", "[true_false] Checking true false result answer {$question->answer} should be false");
-//        }
-//        break;
-//      case 'short_answer':
-//        $this->assertFieldById('edit-body', $question->question, "[short_answer] Checking proper question appears");
-//        $this->assertFieldById('edit-correct-answer', $question->answer, "[short_answer] Checking proper short_answer answer appears");
-//        $this->assertFieldById('edit-maximum-score', $question->value, "[short_answer] Checking proper short_answer score appears");
-//
-//        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-evaluation-0">');
-//        $p2 = strpos($msg, '<div class="description">Choose a matching type.</div>', $p1);
-//
-//        $msg = $p2 - $p1;
-//
-//        $entries = explode('<input type="radio" id="', $msg);
-//
-//        for ($i = 1; $i < count($entries); $i++) {
-//          $is_true = strpos($entries[$i], 'checked="checked"');
-//          $contains_answer = strpos($entries[$i], $question->shortanswertype);
-//
-//          $this->assertEqual($is_true, $contains_answer, "[short_answer] Checking proper short answer type");
-        }
+        //        for ($j = 1; $j < count($answers) && $j <= count($question->answers); $j++) {
+        //          $msg = $answers[$j];
+        //
+        //          $p1 = strpos($msg, 'resizable">') + 11;
+        //          $p2 = strpos($msg, '</textarea>', $p1);
+        //
+        //          $answer = substr($msg, $p1, $p2 - $p1);
+        //
+        //          $this->assertEqual($answer, $question->answers[$j - 1], "[multichoice] Checking that answers line up");
+        //
+        //          $is_answer = (strpos($msg, 'checked="checked"') > 0);
+        //          if ((($j - 1) == $question->answer)) {
+        //            $this->assertTrue($is_answer, "[multichoice] Checking expected correct answer is correct");
+        //          }
+        //          else {
+        //            $this->assertFalse($is_answer, "[multichoice] Checking expected wrong answer is wrong");
+        //          }
+        //        }
+        //        break;
+        //      case 'true_false':
+        //        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-1">');
+        //        $p2 = strpos($msg, '<label class="option" for="edit-correct-answer-0">', $p1);
+        //
+        //        $msg = substr($msg, $p1, $p2 - $p1);
+        //
+        //        $is_true = strpos($msg, 'checked="checked"');
+        //
+        //        if ($is_true > 0) {
+        //          $this->assertEqual($question->answer, "true", "[true_false] Checking true false result answer {$question->answer} should be true");
+        //        }
+        //        else {
+        //          $this->assertEqual($question->answer, "false", "[true_false] Checking true false result answer {$question->answer} should be false");
+        //        }
+        //        break;
+        //      case 'short_answer':
+        //        $this->assertFieldById('edit-body', $question->question, "[short_answer] Checking proper question appears");
+        //        $this->assertFieldById('edit-correct-answer', $question->answer, "[short_answer] Checking proper short_answer answer appears");
+        //        $this->assertFieldById('edit-maximum-score', $question->value, "[short_answer] Checking proper short_answer score appears");
+        //
+        //        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-evaluation-0">');
+        //        $p2 = strpos($msg, '<div class="description">Choose a matching type.</div>', $p1);
+        //
+        //        $msg = $p2 - $p1;
+        //
+        //        $entries = explode('<input type="radio" id="', $msg);
+        //
+        //        for ($i = 1; $i < count($entries); $i++) {
+        //          $is_true = strpos($entries[$i], 'checked="checked"');
+        //          $contains_answer = strpos($entries[$i], $question->shortanswertype);
+        //
+        //          $this->assertEqual($is_true, $contains_answer, "[short_answer] Checking proper short answer type");
+    }
   }
 
-    function writeImport($input_type, $question) {
-      $char = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
+  function writeImport($input_type, $question) {
+    $char = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J');
 
-      switch ($input_type) {
-        case "aiken":
-          switch ($question->type) {
-            case "multichoice":
-              $write = $question->type."\r\n" .
-              $question->question."\r\n";
-              for ($i = 0; $i < count($question->answers); $i++) {
-                $write .= "{$char[$i]}: {$question->answers[$i]}\r\n nil \r\n";
-              }
-              $write .= "ANSWER: {$char[$question->answer]} \r\n \r\n";
-              break;
-            case "true_false":
-              $write = $question->type."\r\n" .
-              $question->question."\r\n" .
-              $question->answer."\r\n" .
-              $question->feedback."\r\n \r\n";
-              break;
-            case "short_answer":
-              $write = $question->type."\r\n" .
-              $question->question."\r\n" .
-              $question->answer."\r\n" .
-              $question->value."\r\n" .
-              $question->shortanswertype."\r\n \r\n";
-              break;
-          } break;
-        case "csv":
-          switch ($question->type) {
-            case "multichoice";
-            $write = $question->type . ', '.
-            $question->question . ', ';
-            for ($i = 0; $i < count($question->answers); $i++) {
-              $write .= $question->answers[$i] . ', nil, ';
-            }
-            $write .= $question->answers[$question->answer] . "\r\n";
-            break;
-            case "true_false":
-              $write = $question->type . ', ' .
-              $question->question . ', ' .
-              $question->answer . ', ' .
-              $question->feedback . "\r\n";
-              break;
-            case "short_answer":
-              $write = $question->type . ', ' .
-              $question->question . ', ' .
-              $question->answer . ', ' .
-              $question->value . ', ' .
-              $question->shortanswertype . "\r\n";
-              break;
-          } break;
-      }
-      return $write;
-    }
-
-
-    function medlyHelper($import_type) {
-      switch ($import_type) {
-        case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
-        case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
-      }
-
-      $questions = array();
-
-      $filepath = file_create_filename($import_type.'_medly'.$filetype, file_directory_temp());
-
-      $handle = fopen($filepath, "w+");
-      for ($i = 0; $i < 30; $i++) {
-        $question_type = mt_rand(0, 2);
-
-        $question = new stdClass();
-
-        switch ($question_type) {
-          case 0: {
-            $question->num_options = mt_rand(2, 10);
-            $question->answer = mt_rand(0, $question->num_options - 1);
-            $question->question = "Question #{$i}:";
-            $question->type = "multichoice";
-            $question->answers = array ();
+    switch ($input_type) {
+      case "aiken":
+        switch ($question->type) {
+          case "multichoice":
             $write = $question->type."\r\n" .
             $question->question."\r\n";
-            for ($j = 0; $j < $question->num_options; $j++) {
-              $question->answers[$j] = "Option #{$j}";
+            for ($i = 0; $i < count($question->answers); $i++) {
+              $write .= "{$char[$i]}: {$question->answers[$i]}\r\n nil \r\n";
             }
-          } break;
-          case 1: {
-            $question->answer = (mt_rand(0, 1) == 0) ? "true": "false";
-            $question->question = "Question #{$i}:";
-            $question->type = "true_false";
-            $question->feedback = "Feedback on question #{$i}";
-          } break;
-          case 2: {
-            $question->answer = "The answer is {$i}.";
-            $question->question = "Question #{$i}:";
-            $question->type = "short_answer";
-            $question->value = mt_rand(1, 5);
-            switch (mt_rand(1, 4)) {
-              case 1: $question->shortanswertype = "case insensitive match"; break;
-              case 2: $question->shortanswertype = "case sensitive match"; break;
-              case 3: $question->shortanswertype = "regular expression match"; break;
-              case 4: $question->shortanswertype = "manually score match"; break;
-            }
-          } break;
-        }
-        $write = $this->writeImport($import_type, $question);
-        fwrite($handle, $write);
-        $questions[] = $question;
-      }
-
-      $import_settings['quiz_node'] = '1';
-      $import_settings['field_separator'] = ',';
-      $import_settings['files[upload]'] = $filepath;
-
-      $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-
-      $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
-
-      $this->quizHelper($questions);
-    }
-
-    function multichoiceHelper($import_type) {
-
-      $questions = array();
-
-      switch ($import_type) {
-        case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
-        case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
-      }
-
-      $filepath = file_create_filename($import_type.'_multichoice'.$filetype, file_directory_temp());
-
-      $handle = fopen($filepath, "w+");
-      for ($i = 0; $i < 30; $i++) {
-        $question = new stdClass();
-
-        $question->num_options = mt_rand(2, 6);
-        $question->answer = mt_rand(0, $question->num_options - 1);
-        $question->question = "Question #{$i}:";
-        $question->type = "multichoice";
-        $question->answers = array ();
-        for ($j = 0; $j < $question->num_options; $j++) {
-          $question->answers[$j] = "Option #{$j}";
-        }
-        $write = $this->writeImport($import_type, $question);
-        fwrite($handle, $write);
-        $questions[] = $question;
-      }
-      fclose($handle);
-
-      $import_settings['quiz_node'] = '1';
-      $import_settings['field_separator'] = ',';
-      $import_settings['files[upload]'] = $filepath;
-
-      $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-
-      $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
-
-      $this->quizHelper($questions);
-    }
-
-    function truefalseHelper($import_type) {
-      $questions = array();
-
-      switch ($import_type) {
-        case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
-        case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
-      }
-
-      $filepath = file_create_filename($import_type.'_truefalse'.$filetype, file_directory_temp());
-
-      $handle = fopen($filepath, "w+");
-      for ($i = 0; $i < 50; $i++) {
-        $question = new stdClass();
-
-        $question->answer = (mt_rand(0, 1) == 0) ? "true": "false";
-        $question->question = "Question #{$i}:";
-        $question->type = "true_false";
-        $question->feedback = "Feedback on question #{$i}";
-        $write = $this->writeImport($import_type, $question);
-        fwrite($handle, $write);
-        $questions[] = $question;
-      }
-      fclose($handle);
-
-      $import_settings['quiz_node'] = '1';
-      $import_settings['field_separator'] = ',';
-      $import_settings['files[upload]'] = $filepath;
-
-      $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-
-      $this->assertPattern('/50 questions were imported successfully/', t('Checking import success message'));
-
-      $this->quizHelper($questions);
-    }
-
-    function shortanswerHelper($import_type) {
-      $questions = array();
-
-      switch ($import_type) {
-        case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
-        case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
-      }
-
-      $filepath = file_create_filename($import_type.'_shortanswer'.$filetype, file_directory_temp());
-
-      $handle = fopen($filepath, "w+");
-      for ($i = 0; $i < 20; $i++) {
-        $question = new stdClass();
-
-        $question->answer = "The answer is {$i}.";
-        $question->question = "Question #{$i}:";
-        $question->type = "short_answer";
-        $question->value = mt_rand(1, 5);
-        if ($i < 5) $question->shortanswertype = "case insensitive match";
-        elseif ($i < 10) $question->shortanswertype = "case sensitive match";
-        elseif ($i < 15) $question->shortanswertype = "regular expression match";
-        elseif ($i < 20) $question->shortanswertype = "manually score match";
-        $write = $this->writeImport($import_type, $question);
-        fwrite($handle, $write);
-        $questions[] = $question;
-      }
-      fclose($handle);
-
-      $import_settings['quiz_node'] = '1';
-      $import_settings['field_separator'] = ',';
-      $import_settings['files[upload]'] = $filepath;
-
-      firep($import_settings, "import settings");
-
-      $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-
-      $this->assertPattern('/20 questions were imported successfully/', t('Checking import success message'));
-
-      $this->quizHelper($questions);
-    }
-
-    function multiloadHelper($import_type) {
-      $import_settings['quiz_node'] = '1';
-      switch ($import_type) {
-        case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
-        case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
-      }
-      $import_settings['field_separator'] = ',';
-
-      $questions = array();
-
-      for ($i = 0; $i < 6; $i++) {
-        $filepath = file_create_filename($import_type.'_multi_'.$i.$filetype, file_directory_temp());
-
-        $handle = fopen($filepath, "w+");
-        for ($j = $i * 5; $j < ($i + 1) * 5; $j++) {
-          $question = new stdClass();
-          $question->num_options = mt_rand(2, 5);
-          $question->answer = mt_rand(0, $question->num_options - 1);
-          $question->question = "Question #{$j}:";
-          $question->type = "multichoice";
-          $question->answers = array("true", "false");
-          for ($k = 0; $k < $question->num_options; $k++) {
-            $question->answers[$k] = "Option #{$k}";
+            $write .= "ANSWER: {$char[$question->answer]} \r\n \r\n";
+            break;
+          case "true_false":
+            $write = $question->type."\r\n" .
+            $question->question."\r\n" .
+            $question->answer."\r\n" .
+            $question->feedback."\r\n \r\n";
+            break;
+          case "short_answer":
+            $write = $question->type."\r\n" .
+            $question->question."\r\n" .
+            $question->answer."\r\n" .
+            $question->value."\r\n" .
+            $question->shortanswertype."\r\n \r\n";
+            break;
+        } break;
+      case "csv":
+        switch ($question->type) {
+          case "multichoice";
+          $write = $question->type . ', '.
+          $question->question . ', ';
+          for ($i = 0; $i < count($question->answers); $i++) {
+            $write .= $question->answers[$i] . ', nil, ';
           }
-          $write = $this->writeImport($import_type, $question);
-          fwrite($handle, $write);
-          $questions[] = $question;
+          $write .= $question->answers[$question->answer] . "\r\n";
+          break;
+          case "true_false":
+            $write = $question->type . ', ' .
+            $question->question . ', ' .
+            $question->answer . ', ' .
+            $question->feedback . "\r\n";
+            break;
+          case "short_answer":
+            $write = $question->type . ', ' .
+            $question->question . ', ' .
+            $question->answer . ', ' .
+            $question->value . ', ' .
+            $question->shortanswertype . "\r\n";
+            break;
+        } break;
+    }
+    return $write;
+  }
+
+
+  function medlyHelper($import_type) {
+    switch ($import_type) {
+      case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+
+    $import_questions = array();
+
+    $filepath = file_create_filename($import_type.'_medly'.$filetype, file_directory_temp());
+
+    $handle = fopen($filepath, "w+");
+    for ($i = 0; $i < 30; $i++) {
+      $question_type = mt_rand(0, 2);
+
+      $question = new stdClass();
+
+      switch ($question_type) {
+        case 0: {
+          $question->num_options = mt_rand(2, 10);
+          $question->answer = mt_rand(0, $question->num_options - 1);
+          $question->question = "Question #{$i}:";
+          $question->type = "multichoice";
+          $question->answers = array ();
+          $write = $question->type."\r\n" .
+          $question->question."\r\n";
+          for ($j = 0; $j < $question->num_options; $j++) {
+            $question->answers[$j] = "Option #{$j}";
+          }
+        } break;
+        case 1: {
+          $question->answer = (mt_rand(0, 1) == 0) ? "true": "false";
+          $question->question = "Question #{$i}:";
+          $question->type = "true_false";
+          $question->feedback = "Feedback on question #{$i}";
+        } break;
+        case 2: {
+          $question->answer = "The answer is {$i}.";
+          $question->question = "Question #{$i}:";
+          $question->type = "short_answer";
+          $question->value = mt_rand(1, 5);
+          switch (mt_rand(1, 4)) {
+            case 1: $question->shortanswertype = "case insensitive match"; break;
+            case 2: $question->shortanswertype = "case sensitive match"; break;
+            case 3: $question->shortanswertype = "regular expression match"; break;
+            case 4: $question->shortanswertype = "manually score match"; break;
+          }
+        } break;
+      }
+      $write = $this->writeImport($import_type, $question);
+      fwrite($handle, $write);
+      $import_questions[] = $question;
+    }
+
+    $import_settings['quiz_node'] = '1';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = $filepath;
+
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+
+    $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
+
+    $this->quizHelper($import_questions);
+  }
+
+  function multichoiceHelper($import_type) {
+
+    $import_questions = array();
+
+    switch ($import_type) {
+      case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+
+    $filepath = file_create_filename($import_type.'_multichoice'.$filetype, file_directory_temp());
+
+    $handle = fopen($filepath, "w+");
+    for ($i = 0; $i < 30; $i++) {
+      $question = new stdClass();
+
+      $question->num_options = mt_rand(2, 6);
+      $question->answer = mt_rand(0, $question->num_options - 1);
+      $question->question = "Question #{$i}:";
+      $question->type = "multichoice";
+      $question->answers = array ();
+      for ($j = 0; $j < $question->num_options; $j++) {
+        $question->answers[$j] = "Option #{$j}";
+      }
+      $write = $this->writeImport($import_type, $question);
+      fwrite($handle, $write);
+      $import_questions[] = $question;
+    }
+    fclose($handle);
+
+    $import_settings['quiz_node'] = '1';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = $filepath;
+
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+
+    $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
+
+    $this->quizHelper($import_questions);
+  }
+
+  function truefalseHelper($import_type) {
+    $import_questions = array();
+
+    switch ($import_type) {
+      case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+
+    $filepath = file_create_filename($import_type.'_truefalse'.$filetype, file_directory_temp());
+
+    $handle = fopen($filepath, "w+");
+    for ($i = 0; $i < 50; $i++) {
+      $question = new stdClass();
+
+      $question->answer = (mt_rand(0, 1) == 0) ? "true": "false";
+      $question->question = "Question #{$i}:";
+      $question->type = "true_false";
+      $question->feedback = "Feedback on question #{$i}";
+      $write = $this->writeImport($import_type, $question);
+      fwrite($handle, $write);
+      $import_questions[] = $question;
+    }
+    fclose($handle);
+
+    $import_settings['quiz_node'] = '1';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = $filepath;
+
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+
+    $this->assertPattern('/50 questions were imported successfully/', t('Checking import success message'));
+
+    $this->quizHelper($import_questions);
+  }
+
+  function shortanswerHelper($import_type) {
+    $import_questions = array();
+
+    switch ($import_type) {
+      case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+
+    $filepath = file_create_filename($import_type.'_shortanswer'.$filetype, file_directory_temp());
+
+    $handle = fopen($filepath, "w+");
+    for ($i = 0; $i < 20; $i++) {
+      $question = new stdClass();
+
+      $question->answer = "The answer is {$i}.";
+      $question->question = "Question #{$i}:";
+      $question->type = "short_answer";
+      $question->value = mt_rand(1, 5);
+      if ($i < 5) $question->shortanswertype = "case insensitive match";
+      elseif ($i < 10) $question->shortanswertype = "case sensitive match";
+      elseif ($i < 15) $question->shortanswertype = "regular expression match";
+      elseif ($i < 20) $question->shortanswertype = "manually score match";
+      $write = $this->writeImport($import_type, $question);
+      fwrite($handle, $write);
+      $import_questions[] = $question;
+    }
+    fclose($handle);
+
+    $import_settings['quiz_node'] = '1';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = $filepath;
+
+    firep($import_settings, "import settings");
+
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+
+    $this->assertPattern('/20 questions were imported successfully/', t('Checking import success message'));
+
+    $this->quizHelper($import_questions);
+  }
+
+  function multiloadHelper($import_type) {
+    $import_settings['quiz_node'] = '1';
+    switch ($import_type) {
+      case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+    $import_settings['field_separator'] = ',';
+
+    $import_questions = array();
+
+    for ($i = 0; $i < 6; $i++) {
+      $filepath = file_create_filename($import_type.'_multi_'.$i.$filetype, file_directory_temp());
+
+      $handle = fopen($filepath, "w+");
+      for ($j = $i * 5; $j < ($i + 1) * 5; $j++) {
+        $question = new stdClass();
+        $question->num_options = mt_rand(2, 5);
+        $question->answer = mt_rand(0, $question->num_options - 1);
+        $question->question = "Question #{$j}:";
+        $question->type = "multichoice";
+        $question->answers = array("true", "false");
+        for ($k = 0; $k < $question->num_options; $k++) {
+          $question->answers[$k] = "Option #{$k}";
         }
-        fclose($handle);
-
-        $import_settings['files[upload]'] = $filepath;
-        $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-        $this->assertPattern('/5 questions were imported successfully/', t('Checking import success message'));
+        $write = $this->writeImport($import_type, $question);
+        fwrite($handle, $write);
+        $import_questions[] = $question;
       }
+      fclose($handle);
 
-      $this->quizHelper($questions);
+      $import_settings['files[upload]'] = $filepath;
+      $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+      $this->assertPattern('/5 questions were imported successfully/', t('Checking import success message'));
     }
 
+    $this->quizHelper($import_questions);
+  }
 
-    /**
-     * takes a export file for the Drupal Aiken format, imports it then
-     * exports it and checks if they are the same. fails as export doesn't
-     * export a proper import file.
-     * @return void
-     */
-    function disabled_testAikenRoundTrip() {
-      $import_settings['quiz_node'] = '1';
-      $import_settings['import_type'] = 'native_aiken';
-      $import_settings['field_separator'] = ',';
-      $import_settings['files[upload]'] = realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_example.txt');
 
-      $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+  /**
+   * takes a export file for the Drupal Aiken format, imports it then
+   * exports it and checks if they are the same. fails as export doesn't
+   * export a proper import file.
+   * @return void
+   */
+  function disabled_testAikenRoundTrip() {
+    $import_settings['quiz_node'] = '1';
+    $import_settings['import_type'] = 'native_aiken';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_example.txt');
 
-      $export_settings['quiz_node'] = '1';
-      $export_settings['export_format'] = 'native_aiken';
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
 
-      $this->drupalPost('admin/quiz/questions_export', $export_settings, 'Export');
+    $export_settings['quiz_node'] = '1';
+    $export_settings['export_format'] = 'native_aiken';
 
-      $h1 = file(file_directory_path() .'/Quiz.txt');
-      $h2 = file(realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_export.txt'));
+    $this->drupalPost('admin/quiz/questions_export', $export_settings, 'Export');
 
-      $this->assertEqual(count($h1), count($h2), "[Aiken roundtrip] Same number of lines");
+    $h1 = file(file_directory_path() .'/Quiz.txt');
+    $h2 = file(realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_export.txt'));
 
-      for ($i = 0; $i < count($h2) && $i < count($h1); $i++) {
-        $this->assertIdentical($h1[$i], $h2[$i], "[Aiken roundtrip] Checking lines are the same");
-      }
+    $this->assertEqual(count($h1), count($h2), "[Aiken roundtrip] Same number of lines");
+
+    for ($i = 0; $i < count($h2) && $i < count($h1); $i++) {
+      $this->assertIdentical($h1[$i], $h2[$i], "[Aiken roundtrip] Checking lines are the same");
     }
+  }
 
 
-    function testAikenMedly() {
-      $this->medlyHelper('aiken');
-    }
+  //    function testAikenMedly() {
+  //      $this->medlyHelper('aiken');
+  //    }
 
-    function testAikenMultichoice() {
-      $this->multichoiceHelper('aiken');
-    }
+  function testAikenMultichoice() {
+    $this->multichoiceHelper('aiken');
+  }
 
-    function testAikenTrueFalse() {
-      $this->truefalseHelper('aiken');
-    }
-
-    function testAikenShortAnswer() {
-      $this->shortanswerHelper('aiken');
-    }
-
-    function testAikenMultiload() {
-      $this->multiloadHelper('aiken');
-    }
+  //    function testAikenTrueFalse() {
+  //      $this->truefalseHelper('aiken');
+  //    }
+  //
+  //    function testAikenShortAnswer() {
+  //      $this->shortanswerHelper('aiken');
+  //    }
+  //
+  //    function testAikenMultiload() {
+  //      $this->multiloadHelper('aiken');
+  //    }
 
 
     /* csv files do not properly input. these would test them if they did.
