@@ -51,10 +51,10 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
   function getQuizQuestionList($quiz_nid) {
     $db_questions = array(); // question nid, question prompt (body), type
     $sql = "SELECT nr.nid, nr.vid, nr.body, n.type FROM {node_revisions} nr
-JOIN {quiz_node_relationship} q ON q.child_nid = nr.nid
+JOIN {quiz_node_relationship} qnr ON qnr.child_nid = nr.nid
 JOIN {node} n ON n.nid = nr.nid
 WHERE parent_nid = %d
-ORDER BY weight";
+ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?
     $result = db_query($sql, $quiz_nid);
     while ($question_node = db_fetch_array($result)) {
       $db_questions[] = $question_node;
@@ -93,10 +93,12 @@ ORDER BY weight";
    */
   function answersHelper($import_q, $db_q) {
 
+    $node_obj = (object) $db_q;
+
     switch ($import_q->type) {
       case 'multichoice':
-        $mc = multichoice_load($import_q); // pull 'nid' and 'vid'
-        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Checking right number of answers (expected ".count($import_q->answers).", got ".count($mc->answers).")");
+        $mc = multichoice_load($node_obj);
+        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Checking right number of answers (expected ".count($import_q->answers).", got ".count($mc->answers).") ".print_r($mc, true).print_r($db_q, true));
 
         //        for ($j = 1; $j < count($answers) && $j <= count($question->answers); $j++) {
         //          $msg = $answers[$j];
@@ -116,8 +118,12 @@ ORDER BY weight";
         //            $this->assertFalse($is_answer, "[multichoice] Checking expected wrong answer is wrong");
         //          }
         //        }
-        //        break;
-        //      case 'true_false':
+        break;
+      case 'true_false':
+        $tf = quiz_question_load($node_obj);
+        $correct = $tf->getCorrectAnswer();
+
+
         //        $p1 = strpos($msg, '<label class="option" for="edit-correct-answer-1">');
         //        $p2 = strpos($msg, '<label class="option" for="edit-correct-answer-0">', $p1);
         //
@@ -131,8 +137,8 @@ ORDER BY weight";
         //        else {
         //          $this->assertEqual($question->answer, "false", "[true_false] Checking true false result answer {$question->answer} should be false");
         //        }
-        //        break;
-        //      case 'short_answer':
+        break;
+      case 'short_answer':
         //        $this->assertFieldById('edit-body', $question->question, "[short_answer] Checking proper question appears");
         //        $this->assertFieldById('edit-correct-answer', $question->answer, "[short_answer] Checking proper short_answer answer appears");
         //        $this->assertFieldById('edit-maximum-score', $question->value, "[short_answer] Checking proper short_answer score appears");
@@ -149,6 +155,7 @@ ORDER BY weight";
         //          $contains_answer = strpos($entries[$i], $question->shortanswertype);
         //
         //          $this->assertEqual($is_true, $contains_answer, "[short_answer] Checking proper short answer type");
+        break;
     }
   }
 
@@ -479,25 +486,25 @@ ORDER BY weight";
   //    }
 
 
-    /* csv files do not properly input. these would test them if they did.
-     function testCsvMedly() {
-     $this->medlyHelper('csv');
-     }
+  /* csv files do not properly input. these would test them if they did.
+   function testCsvMedly() {
+   $this->medlyHelper('csv');
+   }
 
-     function testCsvMultichoice() {
-     $this->multichoiceHelper('csv');
-     }
+   function testCsvMultichoice() {
+   $this->multichoiceHelper('csv');
+   }
 
-     function testCsvTrueFalse() {
-     $this->truefalseHelper('csv');
-     }
+   function testCsvTrueFalse() {
+   $this->truefalseHelper('csv');
+   }
 
-     function testCsvShortAnswer() {
-     $this->shortanswerHelper('csv');
-     }
+   function testCsvShortAnswer() {
+   $this->shortanswerHelper('csv');
+   }
 
-     function testCsvMultiload() {
-     $this->multiloadHelper('csv');
-     }
-     */
-  }
+   function testCsvMultiload() {
+   $this->multiloadHelper('csv');
+   }
+   */
+}
