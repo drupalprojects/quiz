@@ -738,14 +738,9 @@ function theme_quiz_admin_quizzes($results) {
   $header = array(
     t('@quiz title', array('@quiz' => QUIZ_NAME)),
     t('Created by'),
-    t('Created on'));
-
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No @quizzes found.', array('@quiz' => QUIZ_NAME));
-  }
+    t('Created on')
+  );
+  $output = (!empty($rows)) ? theme('table', $header, $rows) : '<p>' . t('No @quizzes found.', array('@quiz' => QUIZ_NAME)) . '</p>';
   return $output;
 }
 

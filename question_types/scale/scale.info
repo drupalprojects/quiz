@@ -1,0 +1,8 @@
+; $Id$
+name = Scale
+package = Quiz
+description = This provides scale questions for use by the Quiz module.
+core = 6.x
+php = 5
+dependencies[] = quiz
+dependencies[] = quiz_question
