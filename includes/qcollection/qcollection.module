@@ -1,0 +1,224 @@
+<?php
+// $Id$
+
+/**
+ * The main file for qcollection.
+ *
+ * A question item collection organizes quiz questions to make them easier to find
+ * and to collect together for one's personal use.
+ *
+ * An item collection can be turned into a quiz for taking by a student.
+ *
+ * @file
+ */
+
+define('QCOLLECTION_NAME', 'Question item collection');
+
+
+/**
+ * Implementation of hook_help().
+ */
+function qcollection_help($path, $args) {
+  if ($path == 'admin/help#qcollection') {
+    return t('This module provides a question item collection type for Quiz.');
+  }
+}
+
+
+/**
+ * Implementation of hook_node_info().
+ */
+function qcollection_node_info() {
+  return array(
+    'qcollection' => array(
+        'name' => t(QCOLLECTION_NAME),
+        'module' => 'qcollection',
+      	'description' => t('A content type for the quiz module: gathers question items into a collection, separate from quiz-taking.'),
+        'has_title' => TRUE,
+      	'has_body' => TRUE,
+      	'body_label' => t('Notes'),
+  		'lock' => TRUE,
+  )
+  );
+}
+
+/**
+ * Implementation of hook_form().
+ *
+ */
+function qcollection_form(&$node) {
+  $type = node_get_types('type', $node);
+
+  require_once drupal_get_path('module', 'quiz') .'/quiz.admin.inc';
+  // Add JS from quiz admin
+  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
+  drupal_add_js($path, 'module');
+
+  $form = array();
+
+
+  $form['title'] = array(
+    '#type' => 'textfield',
+    '#title' => check_plain($type->title_label),
+    '#default_value' => $node->title,
+  //    '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
+    '#required' => TRUE,
+  );
+
+  $form['body'] = array(
+    '#type' => 'textarea',
+    '#title' => check_plain($type->body_label),
+    '#default_value' => $node->body,
+  //    '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
+    '#required' => FALSE,
+  );
+
+  ////
+  // ripped from quiz.admin.inc
+  ///
+
+  // This is a target for AHAH callbacks. Do not remove.
+  $form['ahah_target'] = array(
+    '#type' => 'markup',
+    '#value' => '<div id="questions-always-target"></div>',
+  );
+
+  // Display links to create other questions.
+  $form['additional_questions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Create additional questions'),
+    '#theme' => 'additional_questions',
+  );
+  $types = _quiz_get_question_types();
+  foreach ($types as $type => $info) {
+    $url_type = str_replace('_', '-', $type);
+    $form['additional_questions'][$type] = array(
+      '#type' => 'markup',
+    // FIXME: This looks broken:
+      '#value' => '<div class="add-questions">' . l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
+    );
+  }
+
+  // Display questions 'always' on this quiz.
+  $form['filtered_question_list_always'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Items in this collection'),
+  //   '#theme' => 'quiz_filtered_questions',
+    '#theme' => 'question_selection_table',
+    '#collapsible' => TRUE,
+    'question_status' => array('#tree' => TRUE),
+  );
+
+  $form['filtered_question_list_always']['always_box'] = array(
+    '#type' => 'fieldset',
+    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
+    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+  t('To add a new question, use the "Create additional questions" section above.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+
+  $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
+    '#type' => 'textfield',
+  //'#title' => t('Find a question'),
+  // '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+  //       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+  //       t('To add a new question, use the "Create additional questions" section above.'),
+    '#default_value' => '',
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => FALSE,
+    '#autocomplete_path' => 'admin/quiz/listquestions',
+  );
+  $form['filtered_question_list_always']['always_box']['add_to_list'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add to quiz'),
+    '#submit' => 'qcollection_form_submit',
+    '#ahah' => array(
+      'path' => 'admin/quiz/newquestion',
+      'wrapper' => 'questions-always-target',
+      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
+  ),
+  );
+  $form['filtered_question_list_always']['remove_from_quiz'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
+
+
+  $form['new_revision'] = array(
+    '#type' => 'checkbox',
+    '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
+    '#title' => t('New revision'),
+    '#description' => t('Allow question status changes to create a new revision of the quiz?'),
+  );
+
+  $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit questions'),
+  );
+
+  return $form;
+}
+
+
+/**
+ * Implementation of hook_form_alter().
+ *
+ * Override settings in some existing forms. For example, we remove the
+ * preview button on a qcolleciton.
+ */
+function qcollection_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'qcollection_node_form') {
+    // Remove preview buttons:
+    unset($form['buttons']['preview']);
+    unset($form['buttons']['preview_changes']); // TODO make preview work
+  }
+}
+
+/**
+ * Submit function for qcollection.
+ *
+ * Updates from the "manage questions" tab.
+ *
+ * @param $form_id
+ *  A string containing the form id.
+ * @param $values
+ *  Array containing the form values.
+ */
+function qcollection_form_submit(&$form, &$form_state) {
+  watchdog('info', 'Qcollection form submit start');
+
+  print "wtf?";exit;
+
+  // This is ugly and should be fixed.
+  $quiz = node_load(arg(1));
+
+  $new_revision = $form_state['values']['new_revision'];
+
+  $removed = explode(',', $form_state['values']['remove_from_quiz']);
+  // Get quiz questions that will always be on the quiz:
+  $questions = array();
+  foreach ($form_state['values']['weights'] as $id => $weight) {
+    if (in_array($id, $removed)) {
+      // Skip items that should be removed.
+      continue;
+    }
+    list($state, $nid) = explode('-', $id, 2);
+    $nid = (int)$nid;
+    $question['nid'] = $nid;
+    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    $question['weight'] = $weight;
+
+    // Add item as an object in the questions array.
+    $questions[] = (object)$question;
+  }
+
+  // Save questions.
+  watchdog('info', 'Qcollection form submit with %quiz and %questions', array('%quiz' => $quiz, '%questions' => $questions));
+
+  quiz_set_questions($quiz, $questions, (bool)$new_revision);
+}

@@ -1,0 +1,10 @@
+;$Id$
+
+name = Question item collection
+package = Quiz Addon
+description = Content type for organizing question items
+core = 6.x
+php = 5.1
+dependencies[] = quiz
+dependencies[] = quiz_question
+dependencies[] = multichoice

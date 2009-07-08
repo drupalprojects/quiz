@@ -1,0 +1,11 @@
+<?php
+// $Id$
+
+/**
+ * The installer file for qcollection.
+ * @file
+ */
+
+
+// as of now, qcollection does not have any database schemas.
+// it uses quiz_node_relationship in which the item_collection node is a parent
