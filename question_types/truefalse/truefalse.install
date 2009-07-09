@@ -11,7 +11,9 @@
  * Implementation of hook_install().
  */
 function truefalse_install() {
-  drupal_install_schema('truefalse');
+  if (!db_table_exists('quiz_truefalse_node') && !db_table_exists('quiz_truefalse_user_answers')) {
+    drupal_install_schema('truefalse');
+  }
 }
 
 /**
