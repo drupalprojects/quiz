@@ -106,8 +106,6 @@ function qcollection_form(&$node) {
 
 
 
-
-
 /**
  * Implementation of hook_form_alter().
  *
@@ -122,46 +120,3 @@ function qcollection_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
-/**
- * Submit function for qcollection.
- *
- * Updates from the "manage questions" tab.
- *
- * @param $form_id
- *  A string containing the form id.
- * @param $values
- *  Array containing the form values.
- */
-function qcollection_form_submit(&$form, &$form_state) {
-  watchdog('info', 'Qcollection form submit start');
-
-  print "wtf?";exit;
-
-  // This is ugly and should be fixed.
-  $quiz = node_load(arg(1));
-
-  $new_revision = $form_state['values']['new_revision'];
-
-  $removed = explode(',', $form_state['values']['remove_from_quiz']);
-  // Get quiz questions that will always be on the quiz:
-  $questions = array();
-  foreach ($form_state['values']['weights'] as $id => $weight) {
-    if (in_array($id, $removed)) {
-      // Skip items that should be removed.
-      continue;
-    }
-    list($state, $nid) = explode('-', $id, 2);
-    $nid = (int)$nid;
-    $question['nid'] = $nid;
-    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
-    $question['weight'] = $weight;
-
-    // Add item as an object in the questions array.
-    $questions[] = (object)$question;
-  }
-
-  // Save questions.
-  watchdog('info', 'Qcollection form submit with %quiz and %questions', array('%quiz' => $quiz, '%questions' => $questions));
-
-  quiz_set_questions($quiz, $questions, (bool)$new_revision);
-}

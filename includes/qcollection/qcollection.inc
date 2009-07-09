@@ -2,7 +2,7 @@
 
 
 // re-use code from quiz.admin.inc
-require_once drupal_get_path('module', 'quiz') . '/quiz.admin.inc';
+module_load_include('inc', 'quiz', 'quiz.admin');
 
 
 /**
