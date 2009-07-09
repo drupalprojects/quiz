@@ -57,6 +57,7 @@ function qcollection_questions_form($context, $quiz) {
     '#title' => t('Add new question'),
     '#theme' => 'additional_questions',
     '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   $types = _quiz_get_question_types();
