@@ -208,6 +208,13 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
 
+    // if no points are possible, then any answer is acceptable
+    if ($possible == 0) return TRUE;
+
+    // possible has to be positive
+    assert($possible > 0);
+
+    // TODO why is 50% the threshold for isCorrect()?
     return (($actual / $possible) * 100 > 50);
   }
 
