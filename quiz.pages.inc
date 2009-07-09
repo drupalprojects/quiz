@@ -489,9 +489,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
     $cols = array();
     // Ask each question to render a themed report of how the user did.
     $module = quiz_module_for_type($question->type);
-
     $report = theme($module .'_report', $question, $showpoints, $showfeedback);
-
     // Only include reports with actual data:
     if (!empty($report) && strlen($report) > 0) {
 
@@ -507,7 +505,6 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
       $rows[] = array('data' => $cols, 'class' => 'quiz_summary_qrow');
     }
   }
-
   return theme('table', $header, $rows);
 }
 

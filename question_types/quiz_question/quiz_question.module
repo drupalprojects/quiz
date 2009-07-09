@@ -29,8 +29,8 @@ function quiz_question_autoload_info() {
     'AbstractQuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
 
   // True/False question type:
-    'TrueFalseQuestion' => array('file' => 'quiz_question.truefalse.inc'),
-    'TrueFalseResponse' => array('file' => 'quiz_question.truefalse.inc'),
+  //  'TrueFalseQuestion' => array('file' => 'quiz_question.truefalse.inc'),
+   // 'TrueFalseResponse' => array('file' => 'quiz_question.truefalse.inc'),
   );
 }
 
@@ -68,14 +68,16 @@ function quiz_question_perm() {
 /**
  * Implementation of hook_theme().
  */
+
 function quiz_question_theme() {
   return array(
     'quiz_question_report' => array(
       'arguments' => array('show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
-  ),
+    ),
   );
 }
+
 
 /**
  * Implementation of hook_node_info().
@@ -498,7 +500,8 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
  * Implementation of hook_quiz_question_info().
  */
 function quiz_question_quiz_question_info() {
-  return array(
+  return array();
+  /*
     'true_false' => array(
       'name' => 'True/false question',
       'description' => 'Quiz questions that allow a user to select true or false (yes/no).',
@@ -515,5 +518,5 @@ function quiz_question_quiz_question_info() {
    'module' => 'quiz_question',
    ),
    */
-  );
+  //);
 }

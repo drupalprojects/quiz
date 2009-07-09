@@ -75,7 +75,7 @@ class TrueFalseQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
 
   $display_object = menu_get_object();
-  
+
   // Question first
     $form['question'] = array(
       '#type' => 'markup',
