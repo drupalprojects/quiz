@@ -344,6 +344,37 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 }
 
+/**
+ * Update a quiz or qcollection set of items with new weights and membership
+ * @param $quiz
+ * @param $weight_map
+ * @param $removed_set
+ * @param $is_new_revision
+ * @return array set of questions after updating
+ */
+function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision) {
+    // Get quiz questions that will always be on the quiz:
+  $questions = array();
+  foreach ($weight_map as $id => $weight) {
+    if (in_array($id, $removed_set)) {
+      // Skip items that should be removed.
+      continue;
+    }
+    list($state, $nid) = explode('-', $id, 2);
+    $nid = (int)$nid;
+    $question['nid'] = $nid;
+    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    $question['weight'] = $weight;
+
+    // Add item as an object in the questions array.
+    $questions[] = (object)$question;
+  }
+
+  // Save questions.
+  quiz_set_questions($quiz, $questions, $new_revision);
+
+  return $questions;
+}
 
  /**
   * Submit function for quiz_questions.
@@ -359,30 +390,15 @@ function quiz_questions_form_submit($form, &$form_state) {
   // This is ugly and should be fixed.
   $quiz = node_load(arg(1));
 
-  $new_revision = $form_state['values']['new_revision'];
-  $num_random = $form_state['values']['number_of_random_questions'];
-  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
+  $is_new_revision = (bool) $form_state['values']['new_revision'];
 
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
-  // Get quiz questions that will always be on the quiz:
-  $questions = array();
-  foreach ($form_state['values']['weights'] as $id => $weight) {
-    if (in_array($id, $removed)) {
-      // Skip items that should be removed.
-      continue;
-    }
-    list($state, $nid) = explode('-', $id, 2);
-    $nid = (int)$nid;
-    $question['nid'] = $nid;
-    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
-    $question['weight'] = $weight;
+  $weight_map = $form_state['values']['weights'];
 
-    // Add item as an object in the questions array.
-    $questions[] = (object)$question;
-  }
+  $questions = _quiz_update_items($quiz, $weight_map, $removed, $is_new_revision);
 
-  // Save questions.
-  quiz_set_questions($quiz, $questions, (bool)$new_revision);
+  $num_random = $form_state['values']['number_of_random_questions'];
+  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
 
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {

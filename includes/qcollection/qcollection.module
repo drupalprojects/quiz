@@ -37,10 +37,44 @@ function qcollection_node_info() {
         'has_title' => TRUE,
       	'has_body' => TRUE,
       	'body_label' => t('Notes'),
-  		'lock' => TRUE,
   )
   );
 }
+
+
+/**
+ * Implementation of qcollection_menu().
+ */
+function qcollection_menu() {
+  // Menu item for managing items in a collection
+  $items['node/%qcollection_type_access/items'] = array(
+  'title' => t('Manage items'),
+    'page callback' => 'qcollection_questions',
+    'page arguments' => array(1),
+  // FIXME: This needs to check to see if the user owns the quiz.
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'qcollection.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Load a qcollection node and validate it.
+ *
+ * @param $arg
+ *  The Node ID
+ * @return
+ *  A qcollection node object or FALSE if a load failed.
+ */
+function qcollection_type_access_load($arg) {
+  // Simple verification/load of the node.
+  return (($node = node_load($arg)) && $node->type == 'qcollection') ? $node : FALSE;
+}
+
 
 /**
  * Implementation of hook_form().
@@ -49,13 +83,7 @@ function qcollection_node_info() {
 function qcollection_form(&$node) {
   $type = node_get_types('type', $node);
 
-  require_once drupal_get_path('module', 'quiz') .'/quiz.admin.inc';
-  // Add JS from quiz admin
-  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
-  drupal_add_js($path, 'module');
-
   $form = array();
-
 
   $form['title'] = array(
     '#type' => 'textfield',
@@ -73,96 +101,11 @@ function qcollection_form(&$node) {
     '#required' => FALSE,
   );
 
-  ////
-  // ripped from quiz.admin.inc
-  ///
-
-  // This is a target for AHAH callbacks. Do not remove.
-  $form['ahah_target'] = array(
-    '#type' => 'markup',
-    '#value' => '<div id="questions-always-target"></div>',
-  );
-
-  // Display links to create other questions.
-  $form['additional_questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Create additional questions'),
-    '#theme' => 'additional_questions',
-  );
-  $types = _quiz_get_question_types();
-  foreach ($types as $type => $info) {
-    $url_type = str_replace('_', '-', $type);
-    $form['additional_questions'][$type] = array(
-      '#type' => 'markup',
-    // FIXME: This looks broken:
-      '#value' => '<div class="add-questions">' . l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
-    );
-  }
-
-  // Display questions 'always' on this quiz.
-  $form['filtered_question_list_always'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Items in this collection'),
-  //   '#theme' => 'quiz_filtered_questions',
-    '#theme' => 'question_selection_table',
-    '#collapsible' => TRUE,
-    'question_status' => array('#tree' => TRUE),
-  );
-
-  $form['filtered_question_list_always']['always_box'] = array(
-    '#type' => 'fieldset',
-    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
-    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-  t('To add a new question, use the "Create additional questions" section above.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-  );
-
-  $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
-    '#type' => 'textfield',
-  //'#title' => t('Find a question'),
-  // '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-  //       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-  //       t('To add a new question, use the "Create additional questions" section above.'),
-    '#default_value' => '',
-    '#size' => 60,
-    '#maxlength' => 256,
-    '#required' => FALSE,
-    '#autocomplete_path' => 'admin/quiz/listquestions',
-  );
-  $form['filtered_question_list_always']['always_box']['add_to_list'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add to quiz'),
-    '#submit' => 'qcollection_form_submit',
-    '#ahah' => array(
-      'path' => 'admin/quiz/newquestion',
-      'wrapper' => 'questions-always-target',
-      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
-  ),
-  );
-  $form['filtered_question_list_always']['remove_from_quiz'] = array(
-    '#type' => 'hidden',
-    '#default_value' => '',
-  );
-
-
-  $form['new_revision'] = array(
-    '#type' => 'checkbox',
-    '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
-    '#title' => t('New revision'),
-    '#description' => t('Allow question status changes to create a new revision of the quiz?'),
-  );
-
-  $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit questions'),
-  );
-
   return $form;
 }
+
+
+
 
 
 /**
