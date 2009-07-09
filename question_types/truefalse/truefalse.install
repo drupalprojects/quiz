@@ -44,7 +44,7 @@ function truefalse_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      // The actual answer the user gave. True or false.
+      // The correct answer for the user to give. 1 for true.
       'correct_answer' => array(
         'type' => 'int',
         'unsigned' => TRUE,
