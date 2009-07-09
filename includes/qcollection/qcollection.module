@@ -51,10 +51,22 @@ function qcollection_menu() {
   'title' => t('Manage items'),
     'page callback' => 'qcollection_questions',
     'page arguments' => array(1),
-  // FIXME: This needs to check to see if the user owns the quiz.
+  // FIXME: This needs to check to see if the user owns the qcollection.
     'access callback' => 'node_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'qcollection.inc',
+  );
+
+  // Menu item for exporting item list into a new quiz
+  $items['node/%qcollection_type_access/export-quiz'] = array(
+  'title' => t('Export as quiz'),
+    'page callback' => 'qcollection_export_quiz',
+    'page arguments' => array(1),
+  // FIXME: This needs to check to see if the user owns the qcollection.
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_CALLBACK,
     'file' => 'qcollection.inc',
   );
 
@@ -75,6 +87,30 @@ function qcollection_type_access_load($arg) {
   return (($node = node_load($arg)) && $node->type == 'qcollection') ? $node : FALSE;
 }
 
+/**
+ * Implemention of hook_view().
+ *
+ */
+function qcollection_view($node, $teaser = FALSE, $page = FALSE) {
+  $node = node_prepare($node, $teaser);
+  $collection_nid = $node->nid;
+
+  $questions = _quiz_get_questions($node->vid);
+
+  $output = theme('quiz_question_table', $questions, $collection_nid);
+
+  $node->content['export-quiz'] = array(
+    '#value' => l(t('Export as quiz'), 'node/'. $collection_nid .'/export-quiz/'),
+    '#weight' => 2,
+  );
+
+  $node->content['questions'] = array(
+    '#value' => $output,
+    '#weight' => 1,
+  );
+
+  return $node;
+}
 
 /**
  * Implementation of hook_form().
@@ -89,7 +125,7 @@ function qcollection_form(&$node) {
     '#type' => 'textfield',
     '#title' => check_plain($type->title_label),
     '#default_value' => $node->title,
-  //    '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
+      '#description' => t('The name of the @item_collection.', array('@item_collection' => QCOLLECTION_NAME)),
     '#required' => TRUE,
   );
 
@@ -110,7 +146,7 @@ function qcollection_form(&$node) {
  * Implementation of hook_form_alter().
  *
  * Override settings in some existing forms. For example, we remove the
- * preview button on a qcolleciton.
+ * preview button on a qcollection.
  */
 function qcollection_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'qcollection_node_form') {
