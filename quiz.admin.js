@@ -15,7 +15,7 @@ Quiz.addQuestion = function (key) {
   var statusCode = (key == 'always' ? 1 : 2); // e.g. QUIZ_ALWAYS, QUIZ_RANDOM
 
   if (!matches || matches.length < 4) {
-    alert('Error: The entered question was not found.')
+    alert('Error: The entered question was not found.');
     return;
   }
 
@@ -44,7 +44,7 @@ Quiz.addQuestion = function (key) {
   }
   $(selector).val(''); // Zero out the value
   Drupal.attachBehaviors();
-}
+};
 
 Drupal.behaviors.attachRemoveAction = function () {
   $('.rem-link').click(function (e) {
@@ -74,7 +74,7 @@ Drupal.behaviors.attachRemoveAction = function () {
 
     e.preventDefault();
     return true;
-  })
+  });
 };
 
 Drupal.theme.prototype.addQuestion = function (nid, type, title, state, weight) {
@@ -92,7 +92,7 @@ Drupal.theme.prototype.addQuestion = function (nid, type, title, state, weight) 
     '<input id="edit-weights-' + fieldID + '" class="form-text question-order-weight question-order-weight-' + stateCode + '" ' +
     'type="text" value="' + weight + '" size="3" name="weights[' + fieldID + ']" maxlength="4"/>' +
     '</div></td></tr>';
-}
+};
 
 
 $(document).ready(function () {
