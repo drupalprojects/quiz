@@ -314,8 +314,15 @@ function quiz_questions_form_validate($form, $form_state) {
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
   $already_checked = array();
-  foreach ($form_state['values']['weights'] as $id => $weight) {
-    if (in_array($id, $removed)) {
+
+  $weight_map = $form_state['values']['weights'];
+  if (empty($weight_map)) {
+    form_set_error('none', 'No questions were included.');
+    return;
+  }
+
+  foreach ($weight_map as $id => $weight) {
+      if (in_array($id, $removed)) {
       // Ignore items that are going to be removed anyway.
       continue;
     }
