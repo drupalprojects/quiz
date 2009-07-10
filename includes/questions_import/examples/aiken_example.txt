@@ -1,11 +1,14 @@
-# This is a sample aiken import file. It allows you to create a bulk of quiz questions from a text file.
+# $Id$
 
+# This is a sample aiken import file. It allows you to create a bulk of quiz questions from a text file.
+#
 # Instructions
 # 1. Lines starts with # symbol are comment. These lines will be ignore.
 # 2. First line of a question must be a question type (multichoice, matching, true_false, long_answer, short_answer or quiz_directions)
 # 3. Use nil, if you have no feedbacks.
 # 4. You must use A. B. C. .... or A) B) C) ... to represent multichoice question options.
 # 5. End of the question is represented by a line space.
+#
 # We encourage you to reports bugs and feature request here http://drupal.org/project/issues/quiz.
 
 # Multichoice Format
