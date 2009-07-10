@@ -7,7 +7,8 @@
  *
  */
 
-require_once(drupal_get_path('module', 'quiz') .'/includes/moodle_support.php');
+
+module_load_include('php', 'quiz', 'includes/moodle_support');
 
 
 function questions_import_get_sample_file_link() {
@@ -27,7 +28,9 @@ function questions_import_get_sample_file_link() {
  */
 
 function questions_import_form()  {
-
+  // Add JS and CSS for show/hide the CVS field input
+  drupal_add_js(drupal_get_path('module', 'questions_import') .'/questions_import.js');
+  drupal_add_css(drupal_get_path('module', 'questions_import') .'/questions_import.css', 'theme');
 
   drupal_set_message(t('We recommend you to take a backup of your database before importing any questions.'), 'warning');
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
