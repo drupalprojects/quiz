@@ -12,13 +12,13 @@ module_load_include('php', 'quiz', 'includes/moodle_support');
 
 
 function questions_import_get_sample_file_link() {
-  $path = drupal_get_path('module', 'quiz') . '/Examples/questions_import/';
+  $path = drupal_get_path('module', 'questions_import') .'/examples/';
   return array(
     '!csv' => l(t('CSV'), $path . 'csv_example.csv' ),
     '!aiken' => l(t('AIKEN'), $path . 'aiken_example.txt'),
     '!gift' => l(t('GIFT'), $path . 'gift_example.txt'),
     '!learnwise' => l(t('LEARNWISE'), $path . 'learnwise_example.xml'),
-    '!qti' => l(t('QTI'), $path . 'qti_sample.xml'),
+    '!qti_v1p2' => l(t('QTI 1.2'), $path . 'qti_v1p2_sample.xml'),
   );
 }
 
@@ -52,7 +52,7 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Import type'),
     '#options' => questions_import_type(),
-    '#description' => t('Select the import type (sample files !csv, !aiken, !gift, !learnwise, !qti)', questions_import_get_sample_file_link()),
+    '#description' => t('Select the import type (sample files !csv, !aiken, !gift, !learnwise, !qti_v1p2)', questions_import_get_sample_file_link()),
     '#required' => TRUE,
   );
   $form['quiz_import']['field_separator'] = array(

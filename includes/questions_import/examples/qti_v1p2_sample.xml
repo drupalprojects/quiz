@@ -1,5 +1,6 @@
 <?xml version="1.0" standalone="no"?>
 <!DOCTYPE questestinterop SYSTEM "ims_qtiasiv1p2.dtd">
+<!--  $Id$ -->
 <questestinterop>
   <item title="IN Percolation and Holding Cap 1" ident="2482726644497260">
     <itemmetadata>
@@ -38,15 +39,6 @@
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
 
 
 
