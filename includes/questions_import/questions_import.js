@@ -5,12 +5,15 @@
  */
 
 $(document).ready(function() {
-	$('#edit-import-type').change(function() {
-		selectionName = $("#edit-import-type option:selected").text();
-		hasSeparator = selectionName.indexOf("Separated") >= 0;
-		if (hasSeparator)
-			$('#edit-field-separator-wrapper').show();
-		else
-			$('#edit-field-separator-wrapper').hide();
-	});
+  // show separator field if the selected value is "native csv"
+  if ($("#edit-import-type option:selected").val() === 'native_csv')
+    $('#edit-field-separator-wrapper').show();
+  // invoke these lines when the list selected item changes
+  $('#edit-import-type').change(function() {
+    // show separator field if the selected value is "native csv"
+    if ($("#edit-import-type option:selected").val() === 'native_csv')
+      $('#edit-field-separator-wrapper').show();
+    else
+      $('#edit-field-separator-wrapper').hide();
+  });
 });
