@@ -1,0 +1,101 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Quiz Dashboard
+ *
+ * Module creates a report to analyse and compare the results of quiz attendees.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+
+function quiz_dashboard_help($path, $arg) {
+  if ($path == 'admin/help#quiz_dashboard') {
+    return '<p>' . t('Module creates a report to analyse and compare the results of quiz attendees. The reports will be displayed visually using goolge chart API.') . '</p>';
+  }
+}
+
+/**
+ * Implementation of hook_perm()
+ * Valid permissions for this module
+ * @return array An array of valid permissions.
+ */
+
+function quiz_dashboard_perm() {
+  return array('view own results only', 'view all results');
+}
+
+/**
+ * Implementation of hook_menu
+ *
+ */
+$items['admin/quiz/reports/results'] = array(
+    'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
+    'description' => 'View results.',
+    'page callback' => 'quiz_admin_quizzes',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'quiz.admin.inc',
+  );
+
+function quiz_dashboard_menu() {
+  $items = array();
+  $items['admin/quiz/reports/dashboard/creator'] = array(
+    'title' => t('Quiz Creators Dashboard'),
+    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'file' => 'quiz_dashboard.admin.inc',
+    'page callback' => 'quiz_dashboard_get_basic_stats',
+    //'page arguments' => array('questions_import_form'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/quiz/reports/dashboard/creator/%/view'] = array(
+    'title' => t('Quiz Creators Dashboard'),
+    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'file' => 'quiz_dashboard.admin.inc',
+    'page callback' => 'quiz_dashboard_get_adv_stats',
+    //'page arguments' => array(6),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  /*
+  $items['admin/quiz/attendee/db'] = array(
+    'title' => t('Quiz Attendees Dashboard'),
+    'description' => t('Generates a report on quiz results for quiz attendees.'),
+    'file' => 'quiz_dashboard.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('questions_import_form'),
+    'access arguments' => array('import_questions'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  */
+  return $items;
+}
+
+
+/**
+ * Implementation of hook_theme().
+ */
+function quiz_dashboard_theme() {
+  return array(
+    'quiz_dashboard_get_basic_stats' => array(
+      'arguments' => array('results' => NULL),
+      'file' => 'quiz_dashboard.admin.inc',
+    ),
+    'date_vs_takeup_count' => array(
+      'arguments' => array('takeup' => NULL),
+      'file' => 'quiz_dashboard.admin.inc',
+    ),
+    'get_quiz_status_chart' => array(
+      'arguments' => array('quiz' => NULL),
+      'file' => 'quiz_dashboard.admin.inc',
+    ),
+    'quiz_top_scorers' => array(
+      'arguments' => array('scorer' => NULL),
+      'file' => 'quiz_dashboard.admin.inc',
+    ),
+  );
+}
