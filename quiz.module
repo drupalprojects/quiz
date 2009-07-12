@@ -1903,7 +1903,7 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
 
   // Loop through all questions and determine whether an update needs to be made.
   // As we go, we store the questions that will need to be updated.
-  $existing_questions = _quiz_get_questions($quiz->vid, TRUE, TRUE);
+  $existing_questions = _quiz_get_questions($quiz->nid, $quiz->vid, TRUE, TRUE);
   $existing_question_nids = array_keys($existing_questions);
   $i_am_different = FALSE;
   $questions = array(); // These are the questions that will be put into the Quiz.
@@ -2382,8 +2382,8 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *  An array of questions.
  */
-function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
-  $quiz         = node_load((int) arg(1));
+function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
+  $quiz         = node_load($quiz_nid);
   $filter_types = '';
   $questions    = array();
   $where_add    = array();

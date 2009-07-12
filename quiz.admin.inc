@@ -250,7 +250,7 @@ function quiz_questions_form($context, $quiz) {
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
-  $questions = _quiz_get_questions($quiz->vid);
+  $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);

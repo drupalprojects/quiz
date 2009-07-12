@@ -203,7 +203,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   // Format quiz questions.
   if (is_numeric(arg(1))) {
     $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
-    $questions = _quiz_get_questions($node->vid);
+    $questions = _quiz_get_questions($node->nid, $node->vid);
     $output .= theme('quiz_question_table', $questions, $node->nid);
   }
   return $output;
@@ -554,4 +554,15 @@ function theme_quiz_no_feedback() {
 
 function theme_quiz_single_question_node($node) {
   return $node->body;
+}
+
+/*
+ * includes css and js for jQuery table sorter
+ *
+ */
+function quiz_add_table_sorter() {
+  $table_sorter_path = drupal_get_path('module', 'quiz') . '/includes/table_sorter/';
+  drupal_add_css($table_sorter_path . 'quiz.table_sorter.css');
+  drupal_add_js($table_sorter_path . 'jquery.tablesorter.min.js');
+  drupal_add_js($table_sorter_path . 'quiz.table_sorter.js');
 }

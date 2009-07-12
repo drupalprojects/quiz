@@ -33,10 +33,10 @@ function qcollection_node_info() {
     'qcollection' => array(
         'name' => t(QCOLLECTION_NAME),
         'module' => 'qcollection',
-      	'description' => t('A content type for the quiz module: gathers question items into a collection, separate from quiz-taking.'),
+        'description' => t('A content type for the quiz module: gathers question items into a collection, separate from quiz-taking.'),
         'has_title' => TRUE,
-      	'has_body' => TRUE,
-      	'body_label' => t('Notes'),
+        'has_body' => TRUE,
+        'body_label' => t('Notes'),
   )
   );
 }
@@ -95,7 +95,7 @@ function qcollection_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
   $collection_nid = $node->nid;
 
-  $questions = _quiz_get_questions($node->vid);
+  $questions = _quiz_get_questions($node->nid, $node->vid);
 
   $output = theme('quiz_question_table', $questions, $collection_nid);
 
