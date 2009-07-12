@@ -24,6 +24,7 @@ function multichoice_update_6300() {
  */
 function multichoice_install() {
   drupal_install_schema('multichoice');
+  variable_set('node_options_multichoice', array('status'));
 }
 
 /**

@@ -5,24 +5,25 @@
  * Long answer questions.
  * @file
  */
- 
+
 /**
  * Implementation of hook_install().
  */
 function long_answer_install() {
   drupal_install_schema('long_answer');
+  variable_set('node_options_long_answer', array('status'));
 }
 
 /**
  * Implementation of hook_uninstall().
  */
 function long_answer_uninstall() {
-  
+
   // Delete tables
   drupal_uninstall_schema('long_answer');
-  
+
   // Delete data from other tables
-  
+
   // Clear the cache.
   cache_clear_all('variables', 'cache');
   drupal_set_message(t('The Long Answer module has been uninstalled and related data has been deleted.'));
@@ -54,7 +55,7 @@ function long_answer_schema() {
     ),
     'primary key' => array('nid', 'vid'),
   );
-  
+
   // User answers go in here.
   $schema['quiz_long_answer_user_answers'] = array(
     'fields' => array(
@@ -100,6 +101,6 @@ function long_answer_schema() {
       'ids' => array('result_id', 'question_nid', 'question_vid'),
     ),
   );
-  
+
   return $schema;
 }

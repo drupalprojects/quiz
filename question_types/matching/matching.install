@@ -12,6 +12,7 @@
  */
 function matching_install() {
   drupal_install_schema('matching');
+  variable_set('node_options_matching', array('status'));
 }
 
 /**

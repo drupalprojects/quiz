@@ -16,13 +16,15 @@ function scale_install() {
   _scale_insert_collection(array('Excellent', 'Very good', 'Good', 'Ok', 'Poor', 'Very poor'));
   _scale_insert_collection(array('Totally agree', 'Agree', 'Not sure', 'Disagree', 'Totally disagree'));
   _scale_insert_collection(array('Very important', 'Important', 'Moderately important', 'Less important' , 'unimportant'));
+  variable_set('node_options_scale', array('status'));
+
 }
 
 /**
  * Implementation of hook_schema().
  */
 function scale_schema() {
-  // what answers a node has. 
+  // what answers a node has.
   $schema['quiz_scale_node_properties'] = array(
     'fields' => array(
       'nid' => array(
@@ -51,22 +53,22 @@ function scale_schema() {
       'answer_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,  
+        'not null' => TRUE,
       ),
       'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
-      ), 
+        'not null' => TRUE,
+      ),
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
+        'not null' => TRUE,
       ),
       'question_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
+        'not null' => TRUE,
       ),
     ),
     'primary key' => array(
@@ -137,13 +139,13 @@ function scale_uninstall() {
 
 function _scale_insert_collection($answers) {
   $sql = 'INSERT INTO {quiz_scale_answer_collection}
-         (preset) VALUES(1)'; 
+         (preset) VALUES(1)';
   db_query($sql);
   $collection_id = db_last_insert_id('{quiz_scale_answer_collection}', 'id');
   for ($i = 0; $i < count($answers); $i++) {
      $sql = 'INSERT INTO {quiz_scale_answer}
-     		(answer_collection_id, answer)
-     		VALUES(%d, \'%s\')';
+        (answer_collection_id, answer)
+        VALUES(%d, \'%s\')';
      db_query($sql, $collection_id, $answers[$i]);
   }
 }

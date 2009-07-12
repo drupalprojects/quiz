@@ -14,6 +14,7 @@ function truefalse_install() {
   if (!db_table_exists('quiz_truefalse_node') && !db_table_exists('quiz_truefalse_user_answers')) {
     drupal_install_schema('truefalse');
   }
+  variable_set('node_options_truefalse', array('status'));
 }
 
 /**
