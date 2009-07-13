@@ -1,16 +1,12 @@
 <?php
 // $Id$
 /**
- * quiz_directions.classes
+ * matching.classes
  *
- * This module uses the question interface to define something which is actually not a question.
+ * This module uses the question interface to define the Matching question type.
  *
- * A Quiz Directions node is a placeholder for adding directions to a quiz. It can be inserted any number
- * of times into a quiz. Example uses may include:
- *
- * - Initial quiz-wide directions
- * - Section directions, e.g. "The next five questions are multiple choice, please..."
- * - Final confirmation, e.g. "You have answered all questions. Click submit to submit this quiz."
+ * A Matching node defines a series of questions and answers and requires the user
+ * to associate each answer with a question.
  *
  * @file
  */
@@ -19,12 +15,14 @@
  * Implementation of Matching.
  */
 class MatchingQuestion implements QuizQuestion {
+
   /**
    * The current node for this question.
    */
   protected $node = NULL;
 
   public function __construct($node) {
+    if (empty($node->match)) $node->match = array();
     $this->node = $node;
   }
 
