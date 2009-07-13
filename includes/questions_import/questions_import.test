@@ -22,7 +22,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
     'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
-    'short_answer', 'long_answer', 'questions_export');
+    'short_answer', 'truefalse', 'long_answer',  'matching', 'questions_export');
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
@@ -100,11 +100,15 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
         $mc = multichoice_load($node_obj);
         $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Matching number of options (expected ".count($import_q->answers).", got ".count($mc->answers).") ".print_r($mc, true).print_r($db_q, true));
         foreach ($import_q->answers as $index => $import_answer) {
-          $db_answer = $mc->answers[$i]->answer;
+          $db_answer = $mc->answers[$index]['answer'];
           $this->assertEqual($import_answer, $db_answer,  "[multichoice] Matching option text (expected $import_answer, got $db_answer)");
-
-          // TODO check the correct answer too
-          // probably can use $mc->_multichoice_find_correct()
+          
+          if ($import_q->answer == $index) {
+            $this->assertEqual($mc->answers[$index]['is_correct'], 1, "[multichoice] Matching correct answer(s) (expected question answer to be correct)");
+          }
+          else {
+            $this->assertEqual($mc->answers[$index]['is_correct'], 0, "[multichoice] Matching incorrect answer(s) (expected question answer to be incorrect)");
+          }          
         }
         break;
       case 'true_false':
@@ -119,7 +123,18 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
 
         $correct = $sa->correct_answer;
 
-        $this->assertEqual($import_q->answer, $correct, "[short_answer] Checking right answer (expected ".$import_q->answer.", got ".$correct.")");
+        $this->assertEqual($import_q->answer, $correct, "[short_answer] Checking right answer (expected ".$import_q->answer.", got ".$correct.")".print_r($sa, true));
+        $this->assertEqual($import_q->value, $sa->maximum_score, "[short_answer] Checking right score (expected ".$import_q->value.", got ".$sa->maximum_score.")");
+        $this->assertEqual($import_q->sat, $sa->correct_answer_evaluation, "[short_answer] Checking short answer evaluation type (expected ".$import_q->sat." (i.e.".$import_q->shortanswertype."), got ".$sa->correct_answer_evaluation.")");
+        break;
+      case 'matching':
+        $ma = quiz_question_load($node_obj);
+        $ma = $ma['answer'];
+        
+        foreach ($import_q->matches as $index => $i_match) {
+            $this->assertEqual($i_match, $ma[$index]['question'], "[matching] Checking corresponding matches {$i_match}, {$ma[$index]['question']}");
+            $this->assertEqual($import_q->answers[$index], $ma[$index]['answer'], "[matching] Checking corresponding answers {$import_q->answers[$index]}, {$ma[$index]['answer']}");
+        }
         break;
     }
   }
@@ -151,10 +166,15 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
             $question->value."\r\n" .
             $question->shortanswertype."\r\n \r\n";
             break;
+          case "long_answer":
+            $write = $question->type."\r\n" .
+            $question->question."\r\n" .
+            $question->value."\r\n \r\n";
+            break;
         } break;
       case "csv":
         switch ($question->type) {
-          case "multichoice";
+          case "multichoice":
           $write = $question->type . ', '.
           $question->question . ', ';
           for ($i = 0; $i < count($question->answers); $i++) {
@@ -174,6 +194,20 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
             $question->answer . ', ' .
             $question->value . ', ' .
             $question->shortanswertype . "\r\n";
+            break;
+          case "matching":
+            $write = $question->type . ', ' .
+            $question->question . ', ';
+            for ($i = 0; $i < count($question->matches); $i++) {
+              $write .= $question->matches[$i] . ', ';
+              $write .= $question->answers[$i] . ', nil, ';
+            }
+            $write .= "\r\n";
+            break;
+          case "long_answer":
+            $write = $question->type . ', '.
+            $question->question. ', ' .
+            $question->value . "\r\n";            
             break;
         } break;
     }
@@ -198,8 +232,8 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       $question = new stdClass();
 
       switch ($question_type) {
-        case 0: {
-          $question->num_options = mt_rand(2, 10);
+        case 0:
+          $question->num_options = mt_rand(1, 10);
           $question->answer = mt_rand(0, $question->num_options - 1);
           $question->question = "Question #{$i}:";
           $question->type = "multichoice";
@@ -209,25 +243,26 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
           for ($j = 0; $j < $question->num_options; $j++) {
             $question->answers[$j] = "Option #{$j}";
           }
-        } break;
-        case 1: {
+          break;
+        case 1:
           $question->answer = (mt_rand(0, 1) == 0) ? "true": "false";
           $question->question = "Question #{$i}:";
           $question->type = "true_false";
           $question->feedback = "Feedback on question #{$i}";
-        } break;
-        case 2: {
+          break;
+        case 2:
           $question->answer = "The answer is {$i}.";
           $question->question = "Question #{$i}:";
           $question->type = "short_answer";
           $question->value = mt_rand(1, 5);
-          switch (mt_rand(1, 4)) {
+          $question->sat = mt_rand(0, 3);
+          switch ($question->sat) {
+            case 0: $question->shortanswertype = "case sensitive match"; break;
             case 1: $question->shortanswertype = "case insensitive match"; break;
-            case 2: $question->shortanswertype = "case sensitive match"; break;
-            case 3: $question->shortanswertype = "regular expression match"; break;
-            case 4: $question->shortanswertype = "manually score match"; break;
+            case 2: $question->shortanswertype = "regular expression match"; break;
+            case 3: $question->shortanswertype = "manually score match"; break;
           }
-        } break;
+          break;
       }
       $write = $this->writeImport($import_type, $question);
       fwrite($handle, $write);
@@ -285,6 +320,47 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $this->quizHelper($import_questions);
   }
 
+  function matchingHelper($import_type) {
+
+    $import_questions = array();
+
+    switch ($import_type) {
+      case 'aiken': $this->assertEqual(0, 1, "Aiken does not support matching import questions"); return; break;
+      case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
+    }
+
+    $filepath = file_create_filename($import_type.'_matching'.$filetype, "sites/default/files");
+
+    $handle = fopen($filepath, "w+");
+    for ($i = 0; $i < 30; $i++) {
+      $question = new stdClass();
+
+      $question->num_options = mt_rand(1, 10);
+      $question->question = "Question #{$i}:";
+      $question->type = "matching";
+      $question->matches = array ();
+      $question->answers = array ();
+      for ($j = 0; $j < $question->num_options; $j++) {
+        $question->matches[] = "Match #{$j}";
+        $question->answers[] = "Answer #{$j}";
+      }
+      $write = $this->writeImport($import_type, $question);
+      fwrite($handle, $write);
+      $import_questions[] = $question;
+    }
+    fclose($handle);
+
+    $import_settings['quiz_node'] = '1';
+    $import_settings['field_separator'] = ',';
+    $import_settings['files[upload]'] = $filepath;
+
+    $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+
+    $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
+
+    $this->quizHelper($import_questions);
+  }  
+  
   function truefalseHelper($import_type) {
     $import_questions = array();
 
@@ -314,6 +390,8 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $import_settings['files[upload]'] = $filepath;
 
     $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
+    
+    $this->assertEqual(0, 1, $msg);
 
     $this->assertPattern('/50 questions were imported successfully/', t('Checking import success message'));
 
@@ -338,10 +416,13 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       $question->question = "Question #{$i}:";
       $question->type = "short_answer";
       $question->value = mt_rand(1, 5);
-      if ($i < 5) $question->shortanswertype = "case insensitive match";
-      elseif ($i < 10) $question->shortanswertype = "case sensitive match";
-      elseif ($i < 15) $question->shortanswertype = "regular expression match";
-      elseif ($i < 20) $question->shortanswertype = "manually score match";
+      $question->sat = mt_rand(0, 3);
+      switch ($question->sat) {
+        case 0: $question->shortanswertype = "case sensitive match"; break;
+        case 1: $question->shortanswertype = "case insensitive match"; break;
+        case 2: $question->shortanswertype = "regular expression match"; break;
+        case 3: $question->shortanswertype = "manually score match"; break;
+      }
       $write = $this->writeImport($import_type, $question);
       fwrite($handle, $write);
       $import_questions[] = $question;
@@ -427,7 +508,6 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     }
   }
 
-
   function testAikenMedly() {
     $this->medlyHelper('aiken');
   }
@@ -435,11 +515,9 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
   function testAikenMultichoice() {
     $this->multichoiceHelper('aiken');
   }
-
   function testAikenTrueFalse() {
     $this->truefalseHelper('aiken');
   }
-
   function testAikenShortAnswer() {
     $this->shortanswerHelper('aiken');
   }
@@ -448,26 +526,27 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $this->multiloadHelper('aiken');
   }
 
-
-  /* csv files do not properly input. these would test them if they did.
    function testCsvMedly() {
-   $this->medlyHelper('csv');
+     $this->medlyHelper('csv');
    }
 
    function testCsvMultichoice() {
-   $this->multichoiceHelper('csv');
+     $this->multichoiceHelper('csv');
    }
 
+   function testCsvMatching() {
+     $this->matchingHelper('csv');
+   }   
+   
    function testCsvTrueFalse() {
-   $this->truefalseHelper('csv');
+     $this->truefalseHelper('csv');
    }
 
    function testCsvShortAnswer() {
-   $this->shortanswerHelper('csv');
+     $this->shortanswerHelper('csv');
    }
-
+   
    function testCsvMultiload() {
-   $this->multiloadHelper('csv');
+     $this->multiloadHelper('csv');
    }
-   */
 }
