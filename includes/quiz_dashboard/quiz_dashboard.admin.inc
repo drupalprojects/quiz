@@ -19,11 +19,11 @@ function quiz_dashboard_get_adv_stats() {
   $output .= _get_quiz_status_chart($uid);
   // 3D pie chart showing percentage of pass, fail, incomplete quiz status
   $output .= '<div style="margin-bottom:26px;"></div>';
-  $output .= _get_quiz_top_scorers();
+  $output .= _get_quiz_top_scorers_chart();
   return $output;
 }
 
-function _get_quiz_top_scorers() {
+function _get_quiz_top_scorers_chart() {
   $top_scorers = array();
   $nid = arg(5);
   $sql = 'SELECT name, score FROM {quiz_node_results} qnr
@@ -37,26 +37,7 @@ function _get_quiz_top_scorers() {
   return theme('quiz_top_scorers', $top_scorers);
 }
 
-function theme_quiz_top_scorers($attendees) {
-  $chart = array(
-    '#chart_id' => 'quiz_top_scorers',
-    '#title' => t('Quiz Top Scorers'),
-    '#type' => CHART_TYPE_BAR_V_GROUPED,
-    '#size' => chart_size(500, 500),
-    '#grid_lines' => chart_grid_lines(10, 10),
-    //'#bar_size' => chart_bar_size(15, 5),
-    '#adjust_resolution' => TRUE,
-  );
-  foreach ($attendees as $attendee) {
-    $chart['#data'][][] = $attendee['score'];
-    $chart['#data_colors'][] = chart_unique_color($attendee['score']);
-    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
-    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'];
-  }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
-  return chart_render($chart);
-}
+
 
 function _get_quiz_status_chart($uid) {
   $nid = arg(5);
@@ -67,11 +48,15 @@ function _get_quiz_status_chart($uid) {
 }
 
 function _get_date_vs_takeup_count_chart($uid = 0) {
+  $start = 0;
+  $end = 10;
   $takeup = array();
   $sql = "SELECT COUNT(result_id) AS count,
             DATE(FROM_UNIXTIME(time_start)) AS date
-            FROM {quiz_node_results} GROUP BY date";
-  $results = db_query($sql);
+            FROM {quiz_node_results}
+            GROUP BY date
+            ORDER BY date DESC";
+  $results = db_query_range($sql, $start, $end);
   while ($result = db_fetch_array($results)) {
     $takeup[] = $result;
   }
@@ -92,6 +77,27 @@ function _quiz_get_attempt_count($nid, $uid = 0) {
 
 // Theme functions
 
+function theme_quiz_top_scorers($attendees) {
+  $chart = array(
+    '#chart_id' => 'quiz_top_scorers',
+    '#title' => t('Quiz Top Scorers'),
+    '#type' => CHART_TYPE_BAR_V_GROUPED,
+    '#size' => chart_size(600, 400),
+    '#grid_lines' => chart_grid_lines(10, 10),
+    '#bar_size' => chart_bar_size(20, 15),
+    '#adjust_resolution' => TRUE,
+  );
+  foreach ($attendees as $attendee) {
+    $chart['#data'][][] = $attendee['score'];
+    $chart['#data_colors'][] = chart_unique_color($attendee['score']);
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
+    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'];
+  }
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
+  return chart_render($chart);
+}
+
 function theme_get_quiz_status_chart($quiz) {
   $quiz['total'] = $quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete'];
   $chart = array();
@@ -99,7 +105,7 @@ function theme_get_quiz_status_chart($quiz) {
     '#chart_id' => 'quiz_status_chart',
     '#title' => t('Quiz Status Chart'),
     '#type' => CHART_TYPE_PIE_3D,
-    '#size' => chart_size(600, 300),
+    '#size' => chart_size(500, 200),
     '#adjust_resolution' => TRUE,
   );
   $chart['#data'] = array(
@@ -114,39 +120,34 @@ function theme_get_quiz_status_chart($quiz) {
   );
   ini_set('precision', '3');
   $chart['#legends'] = array(
-    'pass' => ($quiz['no_pass'] / $quiz['total']) * 100.00 . '%',
-    'fail' => ($quiz['no_fail'] / $quiz['total']) * 100 . '%',
-    'incomplete' => ($quiz['no_incomplete'] / $quiz['total']) * 100 . '%',
+    'pass' => ($quiz['no_pass'] / $quiz['total']) * 100.00 . t('% pass'),
+    'fail' => ($quiz['no_fail'] / $quiz['total']) * 100 . t('% fail'),
+    'incomplete' => ($quiz['no_incomplete'] / $quiz['total']) * 100 . t('% incomplete'),
   );
   return chart_render($chart);
 }
 
 
 function theme_date_vs_takeup_count($takeup) {
-  $chart = array();
+  $max_count = 0;
   $chart = array(
     '#chart_id' => 'test_chart',
-    '#title' => chart_title(t('Date vs Quiz Takeup'), 'cc0000', 15),
+    '#title' => t('Date vs Quiz Takeup'),
     '#type' => CHART_TYPE_LINE,
     '#size' => chart_size(600, 400),
-    '#chart_fill' => chart_fill('c', 'eeeeee'),
-    '#grid_lines' => chart_grid_lines(20, 20, 1, 5),
+    //'#chart_fill' => chart_fill('c', 'eeeeee'),
+    '#grid_lines' => chart_grid_lines(10, 10, 1, 5),
     '#adjust_resolution' => TRUE,
   );
-
-  foreach ($takeup as $t) {
+  while (!empty($takeup)) {
+    $t = array_pop($takeup);
     $chart['#data'][] = $t['count'];
-    $chart['#labels'][] = format_date(strtotime($t['date']), 'custom', 'd M');
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(format_date(strtotime($t['date']), 'custom', 'd M'));
+    $max_count = ($max_count > $t['count']) ? $max_count : $t['count'];
+    $test[] = array($t['count'], chart_mixed_axis_label(format_date(strtotime($t['date']), 'custom', 'd M')));
   }
-
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 10);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Count'), 95);
-
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(t('Mon'));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(t('Tue'));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(t('Wed'));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(t('Thu'));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(t('Fri'));
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_count);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Count'), 90);
   $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Days of the week'), 50);
   return chart_render($chart);
 }
