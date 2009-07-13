@@ -89,9 +89,9 @@ class MatchingQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
-    
+
     $display_object = menu_get_object();
-        
+
     list($questions, $select_option) = $this->getQuestion($node);
     foreach ($questions as $question) {
       $form['tries[' . $question['match_id'] . ']'] = array(
@@ -134,16 +134,16 @@ class MatchingQuestion implements QuizQuestion {
       '#type' => 'fieldset',
       '#title' => t('Matching Settings'),
       '#description' => t('Matching Questions Settings and Configuration'),
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
     );
     $form['matching']['quiz_matching_form_size'] = array(
       '#type' => 'textfield',
       '#title' => t('Match Question Size'),
       '#description' => t('Number of question allowed to wrap under a match type question.'),
-      '#default_value' => 5
+      '#default_value' => variable_get('quiz_matching_form_size', 5),
     );
-    return $form;
+    return system_settings_form($form);
   }
 
   public function getCreationForm($edit) {
