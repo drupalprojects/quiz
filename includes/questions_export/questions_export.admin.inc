@@ -131,15 +131,15 @@ function questions_export_submit_drupal($quiz_nid, $export_format) {
         array_push($line, $question->maximum_score);
         break;
     }
-    $output .= (count($line) > 2) ? implode($glue, $line) . "\n\n" : '';
+    $output .= (count($line) > 2) ? implode($glue, $line) . "\r\n" : '';
     $line = array();
   }
   $filename = str_replace(' ', '_', $quiz_title) . '.txt';
-  $handle = @fopen('sites/default/files/' . $filename, 'w');
+  $filepath = file_directory_temp() . $filename;
+  $handle = @fopen($filepath, 'w');
   fwrite($handle, $output);
   fclose($handle);
   $headers = array('Content-Type: text/plain', 'Content-Disposition: attachment; filename='. $filename);
-  $filepath = 'sites/default/files/' . $filename;
   ob_clean();
   file_transfer($filepath, $headers);
   ob_end_clean();
@@ -203,7 +203,6 @@ function _as_moodle_questions($drupal_questions) {
           $matches[] = (object) compact('questiontext', 'answertext');
         }
         $mq->options->subquestions = $matches;
-        // print_r($mq); exit;
         break;
       case 'multichoice':
         $mq->singlequestion = ($dq->multiple_answers) ? 0 : 1;
