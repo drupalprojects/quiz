@@ -5,6 +5,22 @@
  */
 
 $(document).ready(function() {
+	
+  var updateDestination = function() {
+    if ($('#edit-destination-type option:selected').val() === 'existing_quiz') {
+      $('#edit-destination-title-wrapper').hide();
+      $('#edit-quiz-node-wrapper').show();
+    } else {
+      $('#edit-destination-title-wrapper').show();
+      $('#edit-quiz-node-wrapper').hide();
+    }
+  }
+
+  // show the appropriate inputs depending on destination type
+  updateDestination();
+  $('#edit-destination-type').change(updateDestination);
+  
+	
   // show separator field if the selected value is "native csv"
   if ($("#edit-import-type option:selected").val() === 'native_csv')
     $('#edit-field-separator-wrapper').show();
