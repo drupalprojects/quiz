@@ -566,7 +566,7 @@ function quiz_form(&$node) {
     '#title' => t('Description'),
     '#default_value' => $node->body,
     '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
-    '#required' => TRUE,
+    '#required' => FALSE,
   );
   $form['body_filter']['format'] = filter_form($node->format);
 
