@@ -20,8 +20,26 @@ function quiz_dashboard_get_adv_stats() {
   // 3D pie chart showing percentage of pass, fail, incomplete quiz status
   $output .= '<div style="margin-bottom:26px;"></div>';
   $output .= _get_quiz_top_scorers_chart();
+  // Bar chart displaying top scorers
+  $output .= '<div style="margin-bottom:26px;"></div>';
+  $output .= _get_quiz_grade_range_chart();
   return $output;
 }
+
+function _get_quiz_grade_range_chart() {
+  $nid = arg(5);
+  $sql = "SELECT SUM(score >= 0 && score <= 20) AS zero_to_twenty,
+    SUM(score >= 20 && score <= 40) AS twenty_to_fourty,
+    SUM(score >= 40 && score <= 60) AS fourty_to_sixty,
+    SUM(score >= 60 && score <= 80) AS sixty_to_eighty,
+    SUM(score >= 80 && score <= 100) AS eighty_to_hundred
+    FROM {quiz_node_results}
+    WHERE nid = %d";
+  $range = db_fetch_object(db_query($sql, $nid));
+  return theme('quiz_grade_range', $range);
+}
+
+
 
 function _get_quiz_top_scorers_chart() {
   $top_scorers = array();
@@ -76,6 +94,42 @@ function _quiz_get_attempt_count($nid, $uid = 0) {
 }
 
 // Theme functions
+
+function theme_quiz_grade_range($range) {
+  $chart = array(
+    '#chart_id' => 'quiz_grade_range',
+    '#title' => t('Quiz Grade Range'),
+    '#type' => CHART_TYPE_BAR_V_GROUPED,
+    '#size' => chart_size(600, 400),
+    '#grid_lines' => chart_grid_lines(10, 10),
+    '#bar_size' => chart_bar_size(20, 15),
+    '#adjust_resolution' => TRUE,
+  );
+  // chart data
+  $chart['#data'][][] = $range->zero_to_twenty;
+  $chart['#data'][][] = $range->twenty_to_fourty;
+  $chart['#data'][][] = $range->fourty_to_sixty;
+  $chart['#data'][][] = $range->sixty_to_eighty;
+  $chart['#data'][][] = $range->eighty_to_hundred;
+  // chart color
+  $chart['#data_colors'][] = chart_unique_color($range->zero_to_twenty);
+  $chart['#data_colors'][] = chart_unique_color($range->twenty_to_fourty);
+  $chart['#data_colors'][] = chart_unique_color($range->fourty_to_sixty);
+  $chart['#data_colors'][] = chart_unique_color($range->sixty_to_eighty);
+  $chart['#data_colors'][] = chart_unique_color($range->eighty_to_hundred);
+  // chart x-axis label
+  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Grade Range'), 50);
+  // chart y-axis label and data
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 10);
+  // chart description on the right side
+  $chart['#legends'][] = t('0 to 20 % - ') . $range->zero_to_twenty;
+  $chart['#legends'][] = t('20 to 40 % - ') . $range->twenty_to_fourty;
+  $chart['#legends'][] = t('40 to 60 % - ') . $range->fourty_to_sixty;
+  $chart['#legends'][] = t('60 to 80 % - ') . $range->sixty_to_eighty;
+  $chart['#legends'][] = t('80 to 100 % - ') . $range->eighty_to_hundred;
+  return chart_render($chart);
+}
 
 function theme_quiz_top_scorers($attendees) {
   $chart = array(
@@ -160,7 +214,7 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
   $header = array(
     'nid' => t('Quiz Nid <br/> <h6> Link to Quiz </h6>'),
     'title' => t('Title <br/> <h6> Link to Report </h6>'),
-    'creator' => t('Creator Name <h6> Link to Profile </h6>'),
+    'creator' => t('Author Name <h6> Link to Profile </h6>'),
     'created' => t('Create Date'),
     'questions_count' => t('Questions Count'),
     'attempt_count' => t('Attempt Count'),

@@ -61,6 +61,15 @@ function quiz_dashboard_menu() {
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/quiz/reports/dashboard/creator/%/view/all'] = array(
+    'title' => t('Quiz Creators Dashboard'),
+    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'file' => 'quiz_dashboard.admin.inc',
+    'page callback' => 'quiz_dashboard_get_adv_stats',
+    //'page arguments' => array(6),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
   /*
   $items['admin/quiz/attendee/db'] = array(
     'title' => t('Quiz Attendees Dashboard'),
@@ -95,6 +104,10 @@ function quiz_dashboard_theme() {
     ),
     'quiz_top_scorers' => array(
       'arguments' => array('scorer' => NULL),
+      'file' => 'quiz_dashboard.admin.inc',
+    ),
+    'quiz_grade_range' => array(
+      'arguments' => array('range' => NULL),
       'file' => 'quiz_dashboard.admin.inc',
     ),
   );
