@@ -144,6 +144,9 @@ function quiz_question_form(&$node, $form_state) {
     '#weight' => -15,
   );
 
+  // process up the filter format
+  $form['format'] = filter_form($node->format);
+
   // First we do the basic title and text fields.
   // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
 

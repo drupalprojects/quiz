@@ -188,6 +188,9 @@ function multichoice_form(&$node) {
     '#weight' => -15,
   );
 
+
+  $form['format'] = filter_form($node->format);
+
   // Display the multichoice form.
 
   // Allow user to set title?
@@ -209,7 +212,7 @@ function multichoice_form(&$node) {
     );
   }
 
-  $form['body_filter']['format'] = filter_form($node->format);
+//  $form['body_filter']['format'] = filter_form($node->format);
 
   if (user_access('allow multiple correct answers')) {
     $form['multiple_answers'] = array(
