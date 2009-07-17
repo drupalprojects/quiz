@@ -391,7 +391,9 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid, 
  * Get the admin settings form for a question type.
  */
 function quiz_question_type_settings_form($context, $type) {
-  return _quiz_question_get_instance($type)->getAdminForm();
+  $node = new stdClass();
+  $node->type = $type;
+  return _quiz_question_get_instance($node)->getAdminForm();
 }
 
 // NODE API
