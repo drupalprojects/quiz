@@ -49,9 +49,9 @@ function truefalse_menu() {
  */
 function truefalse_quiz_question_info() {
   return array(
-    'truefalse' => array(
-      'name' => 'TrueFalse',
-      'description' => 'TrueFalse question type for quiz module. A question type for the quiz module.',
+    'true_false' => array(
+      'name' => 'True/false question',
+      'description' => 'Quiz questions that allow a user to select true or false (yes/no).',
       'question provider' => 'TrueFalseQuestion',
       'response provider' => 'TrueFalseResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
