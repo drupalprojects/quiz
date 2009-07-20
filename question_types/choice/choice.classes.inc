@@ -24,15 +24,15 @@
  * @todo: Fix the javascript disappearing bug...
  * @todo: Check if it works when making new revisions...
  * @todo: Alot more javascripting on the creation form. For instance when the users clicks the multi checkbox.
- * @todo: The report.
+ * TODO: The report.
  * @todo: Admin setting to get back the old table view of the alternatives in the creation form?
  * @todo: Ajax to add more alternatives?
- * @todo: Wysiwyg support
+ * TODO: Wysiwyg support
  * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
  * TODO: TESTING, TESTING, TESTING.
  * @todo: Validation doesn't mark the correct error field...
  * @todo: Add forgiveness setting in admin settings?
- * @todo: Consider the user might tamper with the hidden alternative id field.
+ * TODO: Consider the user might tamper with the hidden alternative id field.
  */
 
 /**
@@ -527,7 +527,31 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       check_markup($this->question->body).
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
-    $result .= t('The report section isn\'t finished yet :/');
+    for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
+      $short = $this->question->alternatives["alternative$i"];
+      if (strlen(strip_tags($short['answer'])) > 0) {
+        $result .= '<H3>'. t('Alternative !i', array('!i' => ($i + 1))). ':</H3>'; 
+        $result .= '<P>'. $short['answer']. '</P>';
+        $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
+        if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
+          if (in_array($short['id'], $this->user_answer_ids)) {
+            $result .= t('You chose !the correct answer!', array('!the' => $the));
+          }
+          else {
+            $result .= t('This is !the correct answer, but you didn\'t choose it.', array('!the' => $the));
+          }
+        }
+        else {
+          if (in_array($short['id'], $this->user_answer_ids)) {
+            $result .= t('You chose !the wrong answer!', array('!the' => $the));
+          }
+          else {
+            $result .= t('This is a wrong answer, and you didn\'t choose it.');
+          }
+        }
+      }
+      //$result .= '<p>'.
+    }
     $result .= '</div>';
 
     return $slug . $result;
