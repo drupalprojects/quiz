@@ -1017,14 +1017,14 @@ function quiz_take_quiz($quiz) {
       $questions = quiz_build_question_list($quiz);
 
       if ($questions === FALSE) {
-        drupal_set_message(t('Not enough random questions were found. Please !add more questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME, '!add more questions' => l('add more questions', 'node/'. arg(1) .'/questions'))), 'error');
+        drupal_set_message(t('Not enough random questions were found. Please !add_more_questions before trying to take this @quiz.',
+          array('@quiz' => QUIZ_NAME, '!add_more_questions' => l(t('add more questions'), 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
 
       if (count($questions) == 0) {
-        drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+        drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.',
+          array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
 
