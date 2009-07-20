@@ -1,0 +1,153 @@
+<?php
+// $Id$
+
+/**
+ * Sponsored by: Norwegian Centre for Telemedicine
+ * Code: falcon
+ * 
+ * @file
+ * Choice Install (a quiz question type)
+ */
+
+
+/**
+ * Implementation of hook_install()
+ */
+function choice_install() {
+  drupal_install_schema('choice');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function choice_schema() {
+  // Stores the users answers to a question.
+  $schema['quiz_choice_user_answers'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'result_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE, 
+      ), 
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE, 
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE, 
+      ),
+    ),
+    'primary key' => array(
+      'id'
+    ),
+  );
+  /*
+   * Stores answer collection id.
+   * Pos = 0 means the collection won't be available as a predefined collection set.
+   * Pos > 0 is the collections position in the predefined collection list.
+   */
+  $schema['quiz_choice_user_answer_multi'] = array(
+    'fields' => array(
+      'user_answer_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'answer_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'user_answer_id', 'answer_id'
+    ),
+  );
+  
+  $schema['quiz_choice_properties'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'multi' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),      
+    ),
+    'primary key' => array(
+      'nid', 'vid'
+    ),
+  );
+  /*
+   * Holds each answer in the answer_collections.
+   */
+  $schema['quiz_choice_answer'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'answer' => array(
+        'type' => 'text',
+      ),
+      'feedback_if_chosen' => array(
+        'type' => 'text',
+      ),
+      'feedback_if_not_chosen' => array(
+        'type' => 'text',
+      ),
+      'score_if_chosen' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'score_if_not_chosen' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'question_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'question_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      
+    ),
+    'primary key' => array(
+      'id',
+    ),
+  );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function choice_uninstall() {
+  drupal_uninstall_schema('choice');
+  cache_clear_all('variables', 'cache');
+  drupal_set_message(t("The Choice module has been uninstalled. Choice nodes may still exist, but they will not function properly."));
+}

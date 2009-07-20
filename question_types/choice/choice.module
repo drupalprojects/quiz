@@ -1,0 +1,44 @@
+<?php
+// $Id$
+
+/**
+ * The main file for choice.
+ * 
+ * Sponsored by: Norwegian Centre for Telemedicine
+ * Code: falcon
+ *
+ * @file
+ * Multiplechoice question type for the Quiz module.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function choice_help($path, $args) {
+  if ($path == 'admin/help#choice') {
+    return t('This module provides a multiple choice question type for Quiz.');
+  }
+}
+/**
+ * Implementation of hook_quiz_question_info().
+ */
+function choice_quiz_question_info() { 
+  return array(
+    'choice' => array(
+      'name' => 'Choice question',
+      'description' => 'Under development. Do not use on production servers.',
+      'question provider' => 'ChoiceQuestion',
+      'response provider' => 'ChoiceResponse',
+      'module' => 'quiz_question', // All wrapper functions are in that module.
+    ),
+  );
+}
+/**
+ * Implementation of hook_autoload_info().
+ */
+function choice_autoload_info() {
+  return array(
+    'ChoiceQuestion' => array('file' => 'choice.classes.inc'),
+    'ChoiceResponse' => array('file' => 'choice.classes.inc'),
+  );
+}
