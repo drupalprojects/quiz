@@ -108,11 +108,20 @@ function choice_schema() {
       'answer' => array(
         'type' => 'text',
       ),
+      'answer_format' => array(
+        'type' => 'int',
+      ),
       'feedback_if_chosen' => array(
         'type' => 'text',
       ),
+      'feedback_if_chosen_format' => array(
+        'type' => 'int',
+      ),
       'feedback_if_not_chosen' => array(
         'type' => 'text',
+      ),
+      'feedback_if_not_chosen_format' => array(
+        'type' => 'int',
       ),
       'score_if_chosen' => array(
         'type' => 'int',
