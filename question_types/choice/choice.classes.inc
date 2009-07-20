@@ -31,8 +31,7 @@
  * TODO: TESTING, TESTING, TESTING.
  * @todo: Validation doesn't mark the correct error field...
  * @todo: Add forgiveness setting in admin settings?
- * TODO: Consider the user might tamper with the hidden alternative id field.
- * TODO: Use ajax to replace checkboxes with radiobuttons in creation form?
+ * @todo: Use ajax to replace checkboxes with radiobuttons in creation form?
  */
 
 /**
@@ -98,16 +97,7 @@ class ChoiceQuestion implements QuizQuestion {
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->alternatives['multi']);
       for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
         if (strlen(strip_tags($this->node->alternatives["alternative$i"]['answer'])) > 0) {
-          $sql = 'INSERT INTO {quiz_choice_answer}
-                  (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
-                  feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, 
-                  score_if_not_chosen, question_nid, question_vid)
-                  VALUES(\'%s\', %d, \'%s\', %d, \'%s\', %d, %d, %d, %d, %d)';
-          $short = $this->node->alternatives["alternative$i"];
-          db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
-          $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
-          $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
-          $short['score_if_not_chosen'], $this->node->nid, $this->node->vid);
+          $this->insertAlternative($i);
         }
       }
     } 
@@ -116,23 +106,57 @@ class ChoiceQuestion implements QuizQuestion {
         SET multi = %d
         WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->alternatives['multi'], $this->node->nid, $this->node->vid);
+      $sql = 'SELECT id FROM {quiz_choice_answer}
+              WHERE question_nid = %d AND question_vid = %d';
+      $res = db_query($sql, $this->node->nid, $this->node->vid);
+      $ids_to_delete = array();
+      while($res_o = db_fetch_object($res)) {
+        $ids_to_delete[] = $res_o->id;
+      }
       for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        if (strlen(strip_tags($this->node->alternatives["alternative$i"]['answer'])) > 0) {
-          $sql = 'UPDATE {quiz_choice_answer}
-                  SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\', 
-                  feedback_if_chosen_format = %d, feedback_if_not_chosen = \'%s\',
-                  feedback_if_not_chosen_format = %d, score_if_chosen = %d, score_if_not_chosen = %d
-                  WHERE id = %d';
-          $short = $this->node->alternatives["alternative$i"];
-          db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
-          $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
-          $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
-          $short['score_if_not_chosen'], $short['id']);
+        $short = $this->node->alternatives["alternative$i"];
+        if (strlen(strip_tags($short['answer'])) > 0) {
+          if (!is_numeric($short['id'])) $this->insertAlternative($i);
+          else {
+            $this->updateAlternative($i);
+            $key = array_search($short['id'], $ids_to_delete);
+            $ids_to_delete[$key] = FALSE; 
+          }
+        }
+      }
+      foreach($ids_to_delete as $id_to_delete) {
+        if ($id_to_delete) {
+          db_query('DELETE FROM {quiz_choice_answer} WHERE id = %d', $id_to_delete);
         }
       }
     }
   }
   
+  private function insertAlternative($i) {
+    $sql = 'INSERT INTO {quiz_choice_answer}
+            (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
+            feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, 
+            score_if_not_chosen, question_nid, question_vid)
+            VALUES(\'%s\', %d, \'%s\', %d, \'%s\', %d, %d, %d, %d, %d)';
+    $short = $this->node->alternatives["alternative$i"];
+    db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
+    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
+    $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
+    $short['score_if_not_chosen'], $this->node->nid, $this->node->vid);
+  }
+  
+  private function updateAlternative($i) {
+    $sql = 'UPDATE {quiz_choice_answer}
+            SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\', 
+            feedback_if_chosen_format = %d, feedback_if_not_chosen = \'%s\',
+            feedback_if_not_chosen_format = %d, score_if_chosen = %d, score_if_not_chosen = %d
+            WHERE id = %d AND question_nid = %d AND question_vid = %d';
+    $short = $this->node->alternatives["alternative$i"];
+    db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
+    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
+    $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
+    $short['score_if_not_chosen'], $short['id'], $this->node->nid, $this->node->vid);
+  }
   /**
    * Implementation of validate
    * 
@@ -319,6 +343,14 @@ class ChoiceQuestion implements QuizQuestion {
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
       );
+      
+      $form['alternatives']["alternative$i"]['correct'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Correct'),
+        '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
+        '#attributes' => array('onchange' => 'refreshScores(this)'),
+      );
+      
       $form['alternatives']["alternative$i"]['id'] = array(
         '#type' => 'hidden',
         '#value' => $short['id'],
@@ -330,13 +362,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#required' => $i < 2,
       );
       $form['alternatives']["alternative$i"]['format'] = filter_form($short['answer_format'], NULL, array('alternatives',"alternative$i",'answer_format'));
-      $form['alternatives']["alternative$i"]['correct'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Correct'),
-        '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
-        '#attributes' => array('onchange' => 'refreshScores(this)'),
-      );
-      
+            
       $form['alternatives']["alternative$i"]['advanced'] = array(
         '#type' => 'fieldset',
         '#title' => t('Advanced options'),
