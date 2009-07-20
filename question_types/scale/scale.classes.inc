@@ -23,6 +23,7 @@
  * 
  * In the quiz framework:
  * TODO: Adjust the report. We don't want it to say that we are wrong...
+ * TODO: Make it possible to generate links to a survey taking page.
  */
 
 /**
