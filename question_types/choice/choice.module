@@ -42,3 +42,14 @@ function choice_autoload_info() {
     'ChoiceResponse' => array('file' => 'choice.classes.inc'),
   );
 }
+
+function choice_theme($existing, $type, $theme, $path) {
+  return array(
+    'choice_creation_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'file' => 'choice.theme.inc',
+    ),
+  );
+}

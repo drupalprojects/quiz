@@ -21,17 +21,17 @@
  
 /*
  * 
- * @todo: Fix the javascript disappearing bug...
- * @todo: Check if it works when making new revisions...
- * @todo: Alot more javascripting on the creation form. For instance when the users clicks the multi checkbox.
+ * TODO: Fix the javascript disappearing bug...
+ * TODO: Make autonaming work when using wysiwyg.
  * @todo: Add themes.
- * @todo: Admin setting to get back the old table view of the alternatives in the creation form?
  * @todo: Ajax to add more alternatives?
  * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
- * TODO: TESTING, TESTING, TESTING.
- * @todo: Validation doesn't mark the correct error field...
- * @todo: Add forgiveness setting in admin settings?
- * @todo: Use ajax to replace checkboxes with radiobuttons in creation form?
+ * WHEN: This module is good enough to take over
+ * REMEMBER: Also move all user answers 
+ * 
+ * TODO: Validation doesn't mark the correct error field...
+ * TODO: Add forgiveness setting in admin settings?
+ * TODO: Mark questions as correct in the report using is_correct.
  */
 
 /**
@@ -314,14 +314,12 @@ class ChoiceQuestion implements QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
   public function getCreationForm($edit) {
-    // Add JS
-    $path = drupal_get_path('module', 'choice') .'/choice.js';
-    drupal_add_js($path, 'module');
-    
     $form = array();
     /*
      * Getting presets from the database
      */
+    $form['#theme'][] = 'choice_creation_form';
+    
     $form['alternatives'] = array(
       '#type' => 'fieldset',
       '#title' => t('Alternatives'),
@@ -335,6 +333,7 @@ class ChoiceQuestion implements QuizQuestion {
       '#description' => t('I this box is checked any number of answers are allowed. If not, one, and only one answer is allowed.'),
       '#default_value' => $this->node->alternatives['multi'],
     );
+    $form['alternatives']['#theme'][] = 'choice_creation_form';
     for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
       $short = $this->node->alternatives["alternative$i"];
       $form['alternatives']["alternative$i"] = array(

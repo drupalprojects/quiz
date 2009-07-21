@@ -3,7 +3,6 @@
  * @file
  * Javascript functions for the choice question type.
  */
-
 /**
  * Refreshes scores when the checkbox named correct is toggled.
  * 
