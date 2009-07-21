@@ -23,3 +23,8 @@ function theme_quiz_question_report($question, $show_points, $show_feedback) {
 
   return $result->formatReport();
 }
+
+function theme_quiz_question_creation_form($form) {
+  module_load_include('inc', 'quiz', 'quiz.admin');
+  quiz_set_auto_title();
+}

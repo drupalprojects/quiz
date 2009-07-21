@@ -6,7 +6,7 @@
  * @file
  */
 
-
-
-
-
+function quiz_question_update_6400() {
+  drupal_rebuild_theme_registry();
+  return array();
+}

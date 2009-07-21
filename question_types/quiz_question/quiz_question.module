@@ -75,6 +75,10 @@ function quiz_question_theme() {
       'arguments' => array('show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
     ),
+    'quiz_question_creation_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'quiz_question.theme.inc',
+    ),
   );
 }
 
@@ -152,8 +156,7 @@ function quiz_question_form(&$node, $form_state) {
 
   // Allow user to set title?
   if (user_access('allow user titles')) {
-    module_load_include('inc', 'quiz', 'quiz.admin');
-    quiz_set_auto_title();
+    $form['helper']['#theme'] = 'quiz_question_creation_form';
     $form['title'] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
