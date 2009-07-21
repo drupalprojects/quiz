@@ -1,5 +1,5 @@
 <?php 
-// $id$
+// $Id$
 
 /**
  * The theme file for choice.
