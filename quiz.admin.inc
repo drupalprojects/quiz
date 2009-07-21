@@ -995,9 +995,17 @@ function quiz_remove_partial_quiz_record_value() {
 function quiz_set_auto_title() {
   drupal_add_js('
   $(document).ready(function () {
-    $("#edit-body").keyup(function () {
+    function quizUpdateTitle() {
       $("#edit-title").val($("#edit-body").val().substring(0, 128));
+    }
+    $("#edit-body").keyup(quizUpdateTitle);
+    if($("#edit-title").val().length > 0){ 
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
+    }
+    $("#edit-title").keyup(function() {
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
     });
   });
   ', 'inline');
+  
 }
