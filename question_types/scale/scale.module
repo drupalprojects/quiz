@@ -37,6 +37,24 @@ function scale_menu() {
   return $items;
 }
 /**
+ * Implementation of hook_theme
+ * 
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function scale_theme($existing, $type, $theme, $path) {
+  return array(
+    'scale_creation_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+    ),
+  );
+}
+/**
  * Implementation of hook_perm()
  */
 function scale_perm() {
@@ -313,4 +331,9 @@ function _scale_set_for_all($new_col_id, $for_all) {
           SET for_all = %d
           WHERE id = %d';
   db_query($sql, $for_all, $new_col_id);
+}
+
+function theme_scale_creation_form($form) {
+  $path = drupal_get_path('module', 'scale') .'/scale.js';
+  drupal_add_js($path, 'module');
 }

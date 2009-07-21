@@ -334,9 +334,6 @@ class ScaleQuestion implements QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
   public function getCreationForm($edit) {
-    // Add JS
-    $path = drupal_get_path('module', 'scale') .'/scale.js';
-    drupal_add_js($path, 'module');
     $form = array();
     /*
      * Getting presets from the database
@@ -353,6 +350,7 @@ class ScaleQuestion implements QuizQuestion {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
+    $form['answer']['#theme'][] = 'scale_creation_form';
     $form['answer']['presets'] = array(
       '#type' => 'select',
       '#title' => t('Presets'),
