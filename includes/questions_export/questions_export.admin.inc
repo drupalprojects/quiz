@@ -9,6 +9,7 @@
 
 require_once(drupal_get_path('module', 'quiz') .'/includes/moodle_support.php');
 
+
 /**
  * Implementation of hook_form
  * form to upload questions
@@ -63,8 +64,6 @@ function questions_export_formats() {
  *
  */
 function questions_export_form_submit(&$form, &$form_state) {
-  $time = 0;
-  $op = '';
   $quiz_nid = $form_state['values']['quiz_node'];
   $export_format_info = explode('_', $form_state['values']['export_format']);
   $export_engine = $export_format_info[0];
@@ -106,7 +105,6 @@ function questions_export_submit_drupal($quiz_nid, $export_format) {
           // use 'nil' when there is no feedback
           array_push($line, $answer['answer'], $feedback);
           $correct_answer = $answer['is_correct'] ? $answer['answer'] : '';
-          print_r($correct_answer);
         }
         array_push($line, $correct_answer);
         break;
@@ -131,11 +129,11 @@ function questions_export_submit_drupal($quiz_nid, $export_format) {
         array_push($line, $question->maximum_score);
         break;
     }
-    $output .= (count($line) > 2) ? implode($glue, $line) . "\r\n" : '';
+    $output .= (count($line) > 2) ? implode($glue, $line) . "\n\n" : '';
     $line = array();
   }
   $filename = str_replace(' ', '_', $quiz_title) . '.txt';
-  $filepath = file_directory_temp() . $filename;
+  $filepath = file_directory_temp() . '/' . $filename;
   $handle = @fopen($filepath, 'w');
   fwrite($handle, $output);
   fclose($handle);
