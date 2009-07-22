@@ -1309,6 +1309,7 @@ function quiz_store_question_result($result, $options) {
  * Actions to take at the end of a quiz.
  */
 function quiz_end_actions($quiz, $rid) {
+  global $user;
   $score = quiz_calculate_score($quiz, $rid);
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
@@ -1316,6 +1317,7 @@ function quiz_end_actions($quiz, $rid) {
 
   // Why is this using the $_SESSION's RID?
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d", time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
 
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
   // We will verify that there is an associated action with this quiz and then perform that action.
@@ -1534,7 +1536,6 @@ function quiz_is_passed($uid, $nid, $vid) {
     WHERE qnrs.vid = %d AND qnrs.nid = %d AND qnrs.uid =%d AND score >= pass_rate",
     $vid, $nid, $uid
   ));
-
   // Force into boolean context
   return ($passed !== FALSE && $passed > 0);
 }

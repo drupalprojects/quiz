@@ -42,7 +42,7 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-  	'#options' => array('new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz'), 'new_qcollection' => t('New item collection')),
+    '#options' => array('new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz'), 'new_qcollection' => t('New item collection')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -287,7 +287,9 @@ function _get_destination_node($form_state) {
   if ($destination_type == 'existing_quiz') {
     $quiz_nid = $form_state['values']['quiz_node'];
     return node_load($quiz_nid);
-  } else {
+  }
+
+  else {
     // make a new node
     $title = $form_state['values']['destination_title'];
     list($tmp, $new_type) = explode('_', $destination_type);
