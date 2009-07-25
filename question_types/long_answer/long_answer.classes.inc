@@ -208,7 +208,8 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-
+    // To prevent Division by zero warning
+    $possible = ($possible == 0) ? 1 : $possible;
     return (($actual / $possible) * 100 > 50);
   }
 
@@ -217,7 +218,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    
+
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body, $this->question->filter) .
       '</div>';

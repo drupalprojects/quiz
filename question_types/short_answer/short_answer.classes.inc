@@ -337,12 +337,15 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     $this->score = $score;
     return $score;
   }
+
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
-
+    // To prevent Division by zero warning
+    $possible = ($possible == 0) ? 1 : $possible;
     return (($actual / $possible) > 0.5);
   }
+
   public function getResponse() {
     return $this->answer;
   }
