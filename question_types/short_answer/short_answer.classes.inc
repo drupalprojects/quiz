@@ -94,7 +94,7 @@ class ShortAnswerQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
-    
+
   $display_object = menu_get_object();
 
   $form['question'] = array(
@@ -342,6 +342,8 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
+    // To prevent Division by zero warning
+    $possible = ($possible == 0) ? 1 : $possible;
     return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;
   }
 
