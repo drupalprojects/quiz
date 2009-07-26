@@ -326,7 +326,7 @@ function questions_import_form_submit(&$form, &$form_state) {
 
   $status = array();
 
-  // TODO make this a TIMESTAMP field so it's automatic -- can that be done db-generically?
+  // would be nice to make this a TIMESTAMP field so it's automatic, but that would bind it to MySQL
   $date = date('YmdHis');
   $fid = $form_state['values']['validated_file']->fid;
 
@@ -357,9 +357,7 @@ function questions_import_form_submit(&$form, &$form_state) {
 function questions_import_submit_moodle_format($destination_node, $format, $form, $form_state, $import_id) {
   $file = $form_state['values']['validated_file'];
 
-  // TODO autoloader?
-  global $CFG;
-  require_once(drupal_get_path('module', 'quiz') ."/includes/moodle/question/format/$format/format.php");
+  module_load_include('php', 'quiz', "includes/moodle/question/format/$format/format");
 
   // e.g. qformat_webct
   $classname = "qformat_$format";
@@ -384,7 +382,7 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
 function questions_import_moodle_create_node($destination_node, $mq, $form_state, $row, $import_id) {
 
   $qmap_drupal_to_moodle = array(
-  // Drupal to Moodle
+    // Drupal => Moodle
     'long_answer' => 'essay',
     'short_answer' => 'shortanswer',
     'multichoice' => 'multichoice',
@@ -410,25 +408,14 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
   // already set the type of the node, this is for specialized processing
   switch (strtolower($mq->qtype)) {
     case 'match':
-      // FIXME implement matching using new qtype
-      /* match [answer] to [subanswer] ?
+      $node->match = array();
+      foreach ($mq->subquestions as $index => $sub_question) {
+        $sub_answer = $mq->subanswers[$index];
 
-      [answer] => Array
-      (
-      [1] => R<SUB>1</SUB>
-      [2] => R<SUB>2</SUB>
-      [3] => R<SUB>3</SUB>
-      [4] => R<SUB>4</SUB>
-      )
-
-      [subanswers] => Array
-      (
-      [1] => P<SUB>4</SUB>
-      [2] => P<SUB>3</SUB>
-      [3] => P<SUB>1</SUB>
-      [4] => P<SUB>2</SUB>
-      )
-      */
+        // TODO what about 'feedback' ?
+        $matching_pair = array('question'=>$sub_question, 'answer' => $sub_answer);
+        $node->match[] = $matching_pair;
+      }
       break;
 
     case 'shortanswer':
