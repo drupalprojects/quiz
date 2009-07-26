@@ -11,8 +11,7 @@ $CFG->dataroot = file_directory_path();
 $CFG->directorypermissions = 0777;
 $CFG->zip = '/usr/bin/zip'; // FIXME doesn't work on Windows
 
-// require_once 'moodle/lib/questionlib.php';
-require_once(drupal_get_path('module', 'quiz') .'/includes/moodle/question/format.php');
+
 
 /** Converts the text format from the value to the 'internal'
  *  name or vice versa. $key can either be the value or the name
@@ -100,7 +99,7 @@ function get_string($identifier, $module='', $a=NULL, $extralocations=NULL) {
       return $resultstring;
     }
   }
-  
+
   // last resort
   return '[['. $identifier .']]';
 }
@@ -380,11 +379,11 @@ function clean_text($text, $format=FORMAT_MOODLE) {
 // from moodle/lib/weblib.php, and gutted
 function print_error($errorcode, $module='error', $link='', $a=NULL, $extralocations=NULL) {
   // use Drupal's stuff, good enough
-  
+
   $message = get_string($errorcode, $module, $a, $extralocations);
-  
+
   print "<h1>$message</h1>";
-  
+
   drupal_set_message("$errorcode $a", $type = 'error', $repeat = TRUE);
 }
 
@@ -406,6 +405,31 @@ function current_language() {
   return 'en_utf8';
 }
 
+// from moodle/lib/moodlelib.php
+/**
+ * fix up the optional data in get_string()/print_string() etc
+ * ensure possible sprintf() format characters are escaped correctly
+ * needs to handle arbitrary strings and objects
+ * @param mixed $a An object, string or number that can be used
+ * @return mixed the supplied parameter 'cleaned'
+ */
+function clean_getstring_data( $a ) {
+    if (is_string($a)) {
+        return str_replace( '%','%%',$a );
+    }
+    elseif (is_object($a)) {
+        $a_vars = get_object_vars( $a );
+        $new_a_vars = array();
+        foreach ($a_vars as $fname => $a_var) {
+            $new_a_vars[$fname] = clean_getstring_data( $a_var );
+        }
+        return (object)$new_a_vars;
+    }
+    else {
+        return $a;
+    }
+}
+
 
 // from moodle/lib/moodlelib.php
 /**
@@ -414,11 +438,11 @@ function current_language() {
  */
 function zip_files ($originalfiles, $destination) {
   global $CFG;
-  
+
   print "zipping files! originalfiles: ";
   dprint_r($originalfiles);
   print "destination: $destination\n";
-  
+
   //Extract everything from destination
   $path_parts = pathinfo(cleardoubleslashes($destination));
   $destpath = $path_parts["dirname"];       //The path of the zip file
@@ -536,3 +560,33 @@ function remove_dir($dir, $content_only=false) {
     }
     return rmdir($dir); // if anything left the result will be false, noo need for && $result
 }
+
+
+/*******************************************
+ *  Here down is fake questionlib.php
+ *
+ */
+
+// fake the questionlib because loading that whole thing won't work
+//  module_load_include('php', 'quiz', "includes/moodle/lib/questionlib");
+global $QTYPES;
+module_load_include('php', 'quiz', "includes/moodle/question/format");
+
+/**#@+
+ * The core question types.
+ */
+define("SHORTANSWER",   "shortanswer");
+define("TRUEFALSE",     "truefalse");
+define("MULTICHOICE",   "multichoice");
+define("RANDOM",        "random");
+define("MATCH",         "match");
+define("RANDOMSAMATCH", "randomsamatch");
+define("DESCRIPTION",   "description");
+define("NUMERICAL",     "numerical");
+define("MULTIANSWER",   "multianswer");
+define("CALCULATED",    "calculated");
+define("ESSAY",         "essay");
+/**#@-*/
+
+$QTYPES[CALCULATED] = new stdClass();
+
