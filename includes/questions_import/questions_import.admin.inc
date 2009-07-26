@@ -42,7 +42,8 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-    '#options' => array('new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz'), 'new_qcollection' => t('New item collection')),
+    // TODO option for existing item collection
+  	'#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -87,7 +88,31 @@ function questions_import_form()  {
     '#size' => 30,
     '#description' => t('Upload the file that has quiz questions'),
   );
-  $form['quiz_import']['submit'] = array(
+
+  $form['advanced'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Advanced'),
+    '#collapsible' => TRUE,
+  	'#collapsed' => TRUE,
+  );
+  $formats = filter_formats();
+  foreach ($formats as $info) {
+    $format_options[$info->format] = $info->name;
+  }
+  $form['advanced']['input_format'] = array(
+    '#type' => 'select',
+    '#title' => t('Input format'),
+    '#options' => $format_options,
+    '#required' => TRUE,
+  );
+  $form['advanced']['ignore_filename_extensions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Ignore filename extension'),
+    '#default_value' => FALSE,
+    '#description' => t('Normally this form checks that the suffix of the uploaded file.  This allows you to skip that.'),
+  );
+
+  $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Import'),
   );
@@ -125,7 +150,9 @@ function questions_import_type() {
  * Implementation of hook_validate()
  */
 function questions_import_form_validate($form, &$form_state) {
+  // TODO make the allowed extensions depend on the import type
   $allowed_extensions = 'csv txt xml jcl jqz';
+
   // it suppose to be a string which file extensions separated by space not an array
   $allowed_size = file_upload_max_size();
 
@@ -152,7 +179,9 @@ function questions_import_form_validate($form, &$form_state) {
 
   else {
 
-    $error_msg = question_import_validate_extensions($file, $allowed_extensions);
+    $validate_extensions = !($form_state['values']['ignore_filename_extensions']);
+    if ($validate_extensions)
+      $error_msg = question_import_validate_extensions($file, $allowed_extensions);
     if ($error_msg != '') {
       form_set_error('upload', $error_msg);
     }
@@ -298,6 +327,7 @@ function _get_destination_node($form_state) {
     $node->type = $new_type;
     $node->title = $title;
     $node->uid = $user->uid;
+    $node->format = $form_state['values']['input_format'];
     $node->status = 1;
     $node->log = 'Created by Quiz questions importer.';
     node_save($node);
@@ -399,7 +429,7 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
   $node->title = $mq->name;
   $node->teaser = $node->body = stripslashes_safe($mq->questiontext);  // a la Moodle
   $node->uid = $user->uid;
-  $node->status = 1;
+  $node->format = $form_state['values']['input_format'];
   $node->log = 'Imported with Moodle importer.';
 
   $node->quiz_id = $destination_node->nid;
@@ -473,6 +503,7 @@ function questions_import_qti_create_node($destination_node, $item, $form_state,
   $node->title = $item->title;
   $node->teaser = $node->body = $item->content;
   $node->uid = $user->uid;
+  $node->format = $form_state['values']['input_format'];
   $node->status = 1;
   $node->log = 'Imported from QTI importer.';
 
@@ -640,6 +671,7 @@ function questions_import_submit_aiken($destination_node, $form, $form_state, $i
     }
     $node = new stdClass();
     $node->type = $type;
+    $node->format = $form_state['values']['input_format'];
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $node->type = $type;
@@ -745,6 +777,7 @@ function questions_import_submit_csv($destination_node, $form, $form_state, $imp
 
     $node = new stdClass();
     //create node object
+    $node->format = $form_state['values']['input_format'];
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $line = explode($separator, $line);
@@ -850,7 +883,6 @@ function questions_import_node_save_static_data(&$node) {
   $node->more = 0;
   $node->validate = 1;
   $node->is_new = 1;
-  $node->format = 1;
   $node->scored_quiz = 1;
   $node->revision = 1;
   $node->op = t('Save');
