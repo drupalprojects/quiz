@@ -20,18 +20,17 @@
  */
  
 /*
- * 
- * TODO: Fix the javascript disappearing bug...
- * TODO: Make autonaming work when using wysiwyg.
- * @todo: Add themes.
  * @todo: Ajax to add more alternatives?
  * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
  * WHEN: This module is good enough to take over
  * REMEMBER: Also move all user answers 
- * 
+ *
+ * TODO: Make autonaming work when using wysiwyg.
  * TODO: Validation doesn't mark the correct error field...
  * TODO: Add forgiveness setting in admin settings?
  * TODO: Mark questions as correct in the report using is_correct.
+ * @todo: Add setting: Extra text to explain report...
+ * @todo: Add hover over symbol.
  */
 
 /**
@@ -56,13 +55,14 @@ class ChoiceQuestion implements QuizQuestion {
   private function forgive() {
     if ($this->node->alternatives['multi'] == 1) {
       for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = $this->node->alternatives["alternative$i"];
+        $short = &$this->node->alternatives["alternative$i"];
         if ($short['score_if_chosen'] == $short['score_if_not_chosen'] ||
         !is_numeric($short['score_if_chosen'] || !is_numeric($short['score_if_not_chosen']))) {
           if ($short['correct'] == 1) {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
           } else {
+            
             $short['score_if_chosen'] = 0;
             $short['score_if_not_chosen'] = 1;
           }
@@ -275,13 +275,14 @@ class ChoiceQuestion implements QuizQuestion {
     }
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($node->body),
+      '#value' => check_markup($node->body, $node->format),
     );
     if ($node->alternatives['multi'] == 0) {
       $form['tries'] = array(
         '#type' => 'radios',
         '#title' => t('Choose one'),
         '#options' => $options,
+        '#theme' => 'choice_alternative',
       );
     }
     else {
@@ -289,6 +290,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#type' => 'checkboxes',
         '#title' => t('Choose'),
         '#options' => $options,
+        '#theme' => 'choice_alternative',
       );
     }
     return $form;
@@ -340,9 +342,9 @@ class ChoiceQuestion implements QuizQuestion {
         '#type' => 'fieldset',
         '#title' => t('Alternative !i',array('!i' => ($i+1))),
         '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
+        '#collapsed' => !($i < 2 || isset($short['answer'])),
       );
-      
+      $form['alternatives']["alternative$i"]['#theme'][] = 'choice_alternative_creation';
       $form['alternatives']["alternative$i"]['correct'] = array(
         '#type' => 'checkbox',
         '#title' => t('Correct'),
@@ -457,6 +459,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
   public function __construct($rid, $question, $user_answer_ids = NULL) {
     $this->rid = $rid;
     $this->question = $question;
+    $this->user_answer_ids = array();
     if (is_array($user_answer_ids)) {
       foreach ($user_answer_ids as $answer_id) $this->user_answer_ids[] = $answer_id;
     }
@@ -510,7 +513,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
   public function score() {
     $score = 0;
     foreach ($this->question->alternatives as $key => $alt) {
-      if(!ereg("^alternative", $key)) continue;
+      if (!ereg("^alternative", $key)) continue;
       if (in_array($alt['id'], $this->user_answer_ids)) {
         $score += $alt['score_if_chosen'];
       }
@@ -558,34 +561,39 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    */
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body).
+      check_markup($this->question->body, $this->question->filter).
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
+    $result .= '<H4>'. t('Alternatives'). ':</H4>';
     for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
       $short = $this->question->alternatives["alternative$i"];
       if (strlen(strip_tags($short['answer'])) > 0) {
-        $result .= '<H3>'. t('Alternative !i', array('!i' => ($i + 1))). ':</H3>'; 
-        $result .= '<P>'. $short['answer']. '</P>';
+        $row = array();         
         $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
+        $p = drupal_get_path('module', 'choice');
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            $result .= t('You chose !the correct answer!', array('!the' => $the));
+            $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35);
           }
           else {
-            $result .= t('This is !the correct answer, but you didn\'t choose it.', array('!the' => $the));
+            $row[] = array('data' => theme('image', "$p./theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35);
           }
         }
         else {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            $result .= t('You chose !the wrong answer!', array('!the' => $the));
+            $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35);
           }
           else {
-            $result .= t('This is a wrong answer, and you didn\'t choose it.');
+            $row[] = array('data' => '', 'width' => 35);
           }
         }
+        $row[] = check_markup($short['answer']);
+        $rows[] = $row;
       }
       //$result .= '<p>'.
     }
+    $result .= theme('table', NULL, $rows);
+    
     $result .= '</div>';
 
     return $slug . $result;

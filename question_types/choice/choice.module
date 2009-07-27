@@ -51,5 +51,20 @@ function choice_theme($existing, $type, $theme, $path) {
       ),
       'file' => 'choice.theme.inc',
     ),
+    'choice_alternative_creation' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'choice') .'/theme',
+      'template' => 'choice-alternative-creation',
+    ),
+    'choice_alternative' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'choice') .'/theme',
+      'template' => 'choice-alternative',
+    ),
   );
+  
 }

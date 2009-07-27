@@ -156,6 +156,10 @@ function choice_update_6400() {
   drupal_rebuild_theme_registry();
   return array();
 }
+function choice_update_6401() {
+  drupal_rebuild_theme_registry();
+  return array();
+}
 
 /**
  * Implementation of hook_uninstall()
