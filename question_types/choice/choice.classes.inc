@@ -26,11 +26,9 @@
  * REMEMBER: Also move all user answers 
  *
  * TODO: Make autonaming work when using wysiwyg.
- * TODO: Validation doesn't mark the correct error field...
- * TODO: Add forgiveness setting in admin settings?
  * TODO: Mark questions as correct in the report using is_correct.
+ * TODO: Validation doesn't mark the correct error field...
  * @todo: Add setting: Extra text to explain report...
- * @todo: Add hover over symbol.
  */
 
 /**
@@ -524,26 +522,6 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     $this->score = $score;
     return $this->score;
   }
-  
-  public function getScore() {
-    return $this->score;
-  }
-  /**
-   * Implementation of isCorrect
-   * 
-   * @return 0 - this question type is never scored
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/AbstractQuizQuestionResponse#isCorrect()
-   *
-   *TODO: isCorrect isn't beeing used by my current version of the quiz framework. Check in newer version...
-  public function isCorrect() {
-    dpm('isCorrect');
-    $q = new ChoiceQuestion($this->question);
-    dpm('this score: '.$this->score(). ' q->getMaximumScore(): '. $q->getMaximumScore());
-    $toReturn = ($this->score() >= $q->getMaximumScore());
-    dpm("Is correct: $toReturn");
-    return $toReturn;
-  }*/
   /**
    * Implementation of getResponse
    * 

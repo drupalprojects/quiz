@@ -308,7 +308,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-
+    if (!isset($this->score)) $this->score();
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since
     // score() is called before save()), so we have to set the param here.
@@ -340,6 +340,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     return $score;
   }
   public function isCorrect() {
+    if (!isset($this->score)) $this->score();
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
     // To prevent Division by zero warning

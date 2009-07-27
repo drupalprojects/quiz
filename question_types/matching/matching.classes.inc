@@ -220,6 +220,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
+    if (!isset($this->score)) $this->score();
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {

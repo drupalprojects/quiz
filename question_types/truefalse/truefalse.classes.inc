@@ -168,6 +168,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
+    if (!isset($this->score)) $this->score();
     $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->score);
   }

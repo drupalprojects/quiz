@@ -214,7 +214,7 @@ abstract class AbstractQuizQuestionResponse {
   // These are only public until we can
   // adjust all of Quiz. DO NOT EXPECT THESE
   // TO BE ACCESSIBLE!
-  public $score = 0;
+  public $score;
   public $rid = 0;
   public $is_correct = FALSE;
 
@@ -227,6 +227,7 @@ abstract class AbstractQuizQuestionResponse {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
+    $this->score();
   }
   */
 
@@ -240,6 +241,7 @@ abstract class AbstractQuizQuestionResponse {
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
+    if (!$this->scored) $this->score();
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
 
@@ -247,10 +249,12 @@ abstract class AbstractQuizQuestionResponse {
   }
 
   function getScore() {
+    if (!isset($this->score)) $this->score();
     return $this->score;
   }
 
   function toBareObject() {
+    if (!isset($this->score)) $this->score();
     $obj = new stdClass();
     $obj->score = $this->score; // This can be 0 for unscored.
     $obj->nid = $this->question->nid;

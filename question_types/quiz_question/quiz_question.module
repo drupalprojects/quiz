@@ -370,7 +370,7 @@ function quiz_question_get_report($nid, $vid, $rid) {
   //if ($result && $result['is_evaluated'] && $result['score'] > 0) {
   //  $node->correct = TRUE;
   //}
-  $node->correct = $result['score'];//$result['is_correct'];
+  $node->correct = $result['is_correct'];
   return $node;
 }
 

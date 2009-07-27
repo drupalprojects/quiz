@@ -205,6 +205,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function isCorrect() {
+    if (!isset($this->score)) $this->score();
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->score;
     // To prevent Division by zero warning
@@ -217,7 +218,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-
+    if (!isset($this->score)) $this->score();
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body, $this->question->filter) .
       '</div>';
