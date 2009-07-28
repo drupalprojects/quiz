@@ -183,7 +183,7 @@ class MatchingQuestion implements QuizQuestion {
   }
 
   public function getMaximumScore() {
-    return 1;
+    return count($this->node->answer);
   }
 
   public function getCorrectAnswer() {
@@ -216,11 +216,10 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
-    $this->is_correct = $this->score();
+    $this->is_correct = $this->isCorrect();
   }
 
   public function save() {
-    if (!isset($this->score)) $this->score();
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()
     foreach ($user_answers as $key => $value) {
@@ -238,6 +237,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
 
   public function score() {
     $wrong_answer = 0;
+    $correct_answer = 0;
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
     $user_answers = isset($user_answers) ? $user_answers : array();
     // to prevent warning : Invalid argument supplied for foreach()
@@ -245,9 +245,10 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       if ($key != $value) {
         $wrong_answer++;
       }
+      else $correct_answer++;
     }
-    $this->score = (!empty($user_answers) && !$wrong_answer) ? 1 : 0;
-    return $this->score;
+    $score = $correct_answer - $wrong_answer;
+    return $score < 0 ? 0 : $score;
   }
 
   public function getResponse() {

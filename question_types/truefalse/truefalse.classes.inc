@@ -168,9 +168,8 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-    if (!isset($this->score)) $this->score();
     $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
-    db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->score);
+    db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->getScore());
   }
 
   public function delete() {
@@ -180,8 +179,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
 
   public function score() {
     $tfQuestion = new TrueFalseQuestion($this->question);
-    $this->score = ($this->getResponse() == $tfQuestion->getCorrectAnswer()) ? 1 : 0;
-    return $this->score;
+    return ($this->getResponse() == $tfQuestion->getCorrectAnswer()) ? 1 : 0;
   }
 
   public function getResponse() {

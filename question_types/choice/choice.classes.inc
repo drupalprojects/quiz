@@ -519,8 +519,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
         $score += $alt['score_if_not_chosen'];
       }
     }
-    $this->score = $score;
-    return $this->score;
+    return $score;
   }
   /**
    * Implementation of getResponse

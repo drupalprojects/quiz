@@ -308,7 +308,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-    if (!isset($this->score)) $this->score();
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since
     // score() is called before save()), so we have to set the param here.
@@ -317,7 +316,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     $sql = "INSERT INTO {quiz_short_answer_user_answers}
       (answer, question_nid, question_vid, result_id, score, is_evaluated)
       VALUES ('%s', %d, %d, %d, %d, %d)";
-    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->score, $this->is_evaluated);
+    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->getScore(), $this->is_evaluated);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
   public function delete() {
@@ -336,13 +335,11 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       $score = $shortAnswer->evaluateAnswer($this->getResponse());
     }
 
-    $this->score = $score;
     return $score;
   }
   public function isCorrect() {
-    if (!isset($this->score)) $this->score();
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->score;
+    $actual = $this->getScore();
     // To prevent Division by zero warning
     $possible = ($possible == 0) ? 1 : $possible;
     return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;

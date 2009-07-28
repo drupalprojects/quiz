@@ -538,7 +538,6 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @return 0 - this question type is never scored.
    */
   public function score() {
-    $this->score = 0;
     return 0;
   }
   /**
