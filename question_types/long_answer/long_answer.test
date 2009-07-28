@@ -18,7 +18,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     return array(
       'name' => t('Long answer unit tests.'),
       'description' => t('Suite of unit tests for verifying functionality for essay question functions.'),
-      'group' => t('Quiz'),
+      'group' => t('Quiz Question'),
     );
   }
 

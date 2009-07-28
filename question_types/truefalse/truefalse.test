@@ -1,0 +1,138 @@
+<?php
+// $Id$
+
+/*
+ * @file
+ * Unit tests for the truefalse Module.
+ */
+
+class TrueFalseUnitTest extends DrupalWebTestCase {
+  // initialing variables
+  var $question_node_type = 'true_false';
+  var $title = ''; //$this->randomName(32);
+  var $body = ''; //$this->randomName(64);
+  var $node_id = NULL;
+
+  /*
+   * In order for the test to be run, the getInfo() method needs to be
+   * implemented.
+   * The getInfo() method provides information about the test.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('TrueFalse'),
+      'description' => t('Unit test for true or false question type.'),
+      'group' => t('Quiz Question'),
+    );
+  }
+
+  /*
+   * Implementing setUp() to enable truefalse module testing
+   */
+  public function setUp() {
+    parent::setUp('truefalse');
+  }
+
+  /*
+   * checks whether hook_quiz_question for true/false questions type has been
+   * defined or not.
+   */
+  public function testTrueFalseQuizQuestionInfo() {
+    $info = truefalse_quiz_question_info();
+    $this->assertEqual(count($info), 1, t('Check that info was returned.'));
+    $this->assertTrue(isset($info['true_false']), t('Check that true/false question type exists.'));
+  }
+
+  /*
+   * function to create true false type question node for testing.
+   */
+  public function createTrueFalseQuestion() {
+    $this->title = $this->randomName(32);
+    $this->body = $this->randomName(64);
+    $this->tries = rand(0, 1);
+    $settings = array(
+      'type' => $this->question_node_type,
+      'title' => $this->title,
+      'body' => $this->body,
+      'tries' => $this->tries,
+      'revisions' => TRUE,
+    );
+    return $this->drupalCreateNode($settings);
+  }
+
+  /**
+   * Create and then update a node.
+   */
+  public function unitTestCreateTrueFalseQuestionNode() {
+    $node = $this->createTrueFalseQuestion();
+
+    if (!$node) {
+      throw new Exception('Expected to have a node to work with.');
+    }
+    $this->node_id = $node->nid;
+
+    $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
+    $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
+    $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be true_false'));
+  }
+
+  /**
+   * Test updating of a question.
+   */
+  public function unitTestUpdateTrueFalseQuestionNode() {
+    $node = node_load($this->node_id);
+    $new_correct_answer = !$this->correct_answer;
+    $node->title = $this->randomName(100);
+    $node->correct_answer = $new_correct_answer;
+    node_save($node);
+    $nodeCopy = node_load($node->nid, $node->vid);
+    $this->assertEqual($nodeCopy->correct_answer, $newScore, t('Check that stored score is the same as newly assigned score.'));
+
+  }
+
+  /**
+   * Test deleting of true false question node.
+   */
+
+  public function unitTestDeleteTrueFalseQuestionNode() {
+  /*  $node = node_load($this->node_id);
+    if ($node === FALSE) {
+      throw new Exception("Expected fixture to have valid node_id");
+    }
+    unset($node);
+    node_delete($this->node_id);
+    $node = node_load($this->nid);
+    $this->assertFalse($node, t('Test that node was deleted'));
+    * */
+  }
+
+
+  /**
+   * Run a bundle of Node API tests.
+   *
+   * This tests CRUD and revision functionality on a single node.
+   */
+  public function testTrueFalseNodeCURD() {
+    $this->createTrueFalseQuestion();
+    $this->unitTestDeleteTrueFalseQuestionNode();
+    $this->unitTestCreateTrueFalseQuestionNode();
+    $this->unitTestCreateTrueFalseQuestionRevision();
+    $this->unitTestUpdateTrueFalseQuestionNode();
+  }
+
+
+
+  /**
+   * Test creation of node revision.
+   */
+  public function unitTestCreateTrueFalseQuestionRevision() {
+    $node = node_load($this->node_id);
+    $oldVid = $node->vid;
+    $node->revision = 1;
+    node_save($node);
+    $nodeCopy = node_load($node->nid, $node->vid);
+    $this->assertNotEqual($nodeCopy->vid, $oldVid, t('Check that VID of new version is not the same as old VID.'));
+    $this->assertEqual($oldMax, $nodeCopy->maximum_score, t('Check that new VID has an entry in node properties.'));
+  }
+
+}
