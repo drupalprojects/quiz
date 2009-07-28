@@ -112,6 +112,7 @@ class ShortAnswerQuestion implements QuizQuestion {
      );
      return $form;
   }
+
   public function getAdminForm($edit = NULL) {
     /*
     $form['short_answer_allow_regex'] = array(
@@ -126,8 +127,9 @@ class ShortAnswerQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => t('There are currently no available configuration options.'),
     );
-
   }
+
+
   public function getCreationForm($edit) {
      $form['answer'] = array(
        '#type' => 'fieldset',

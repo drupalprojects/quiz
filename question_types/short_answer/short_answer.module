@@ -194,3 +194,20 @@ function short_answer_perm() {
     'score short answer',
   );
 }
+
+/*
+ * @function
+ * To generate a list of short answer questions node
+ * @return
+ * array containing nid as key and title as value
+ */
+function short_answer_questions_list() {
+  $questions = array();
+  $type = 'short_answer';
+  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
+  $results = db_query($sql, $type);
+  while ($result = db_fetch_object($results)) {
+    $questions[$result->nid] = check_plain($result->title);
+  }
+  return $questions;
+}

@@ -49,12 +49,12 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   public function createTrueFalseQuestion() {
     $this->title = $this->randomName(32);
     $this->body = $this->randomName(64);
-    $this->tries = rand(0, 1);
+    $this->correct_answer = rand(0, 1);
     $settings = array(
       'type' => $this->question_node_type,
       'title' => $this->title,
       'body' => $this->body,
-      'tries' => $this->tries,
+      'correct_answer' => $this->correct_answer,
       'revisions' => TRUE,
     );
     return $this->drupalCreateNode($settings);
@@ -112,7 +112,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
    *
    * This tests CRUD and revision functionality on a single node.
    */
-  public function testTrueFalseNodeCURD() {
+  public function testTrueFalseNodeOperations() {
     $this->createTrueFalseQuestion();
     $this->unitTestDeleteTrueFalseQuestionNode();
     $this->unitTestCreateTrueFalseQuestionNode();
