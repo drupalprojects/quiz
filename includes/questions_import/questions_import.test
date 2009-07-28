@@ -21,7 +21,11 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
     );
   }
 
-
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
     'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
@@ -40,8 +44,8 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
 
     // create one quiz, which will be the default in the import form
     $quiz_settings = array();
-    $quiz_settings['title'] = "Quiz for testing import";
-    $quiz_settings['comment'] = "Auto-generated for testing import";
+    $quiz_settings['title'] = $this->randomName(128);
+    $quiz_settings['comment'] = $this->randomName(256);
     $quiz_settings['type'] = 'quiz';
     $this->drupalCreateNode($quiz_settings);
   }

@@ -8,6 +8,11 @@
 
 class QuestionsExportTestCase extends DrupalWebTestCase {
 
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
   public static function getInfo() {
     return array (
       'name' => t('Question Exporting'),
@@ -16,6 +21,9 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
     );
   }
 
+  /*
+   * Implementing setUp() to enable truefalse module testing
+   */
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
     'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
