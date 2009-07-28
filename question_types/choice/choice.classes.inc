@@ -26,9 +26,10 @@
  * REMEMBER: Also move all user answers 
  *
  * TODO: Make autonaming work when using wysiwyg.
- * TODO: Mark questions as correct in the report using is_correct.
  * TODO: Validation doesn't mark the correct error field...
  * @todo: Add setting: Extra text to explain report...
+ * @todo: Be able to have max score in quizes.
+ * TODO: The feedback needs to be added to the report.
  */
 
 /**

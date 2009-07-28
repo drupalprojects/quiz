@@ -203,7 +203,6 @@ function quiz_question_validate($node, &$form) {
   if (empty($node->body)) {
     form_set_error('body', t('Question text is empty.'));
   }
-
   _quiz_question_get_instance($node)->validate($node, $form);
 }
 
@@ -405,6 +404,16 @@ function quiz_question_type_settings_form($context, $type) {
 function quiz_question_nodeapi(&$node, $op) {
   if ($op == 'delete revision') {
     _quiz_question_get_instance($node)->delete();
+  }
+  elseif ($op == 'presave') {
+    $q_types = _quiz_question_get_implementations();
+    foreach ($q_types as $q_type => $info) {
+      if ($node->type == $q_type) {
+        if (strlen($node->title == 0)) {
+          $node->title = substr(strip_tags($node->body), 0, variable_get('quiz_autotitle_length', 50));
+        }
+      }
+    }
   }
 }
 

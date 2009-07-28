@@ -597,6 +597,15 @@ function quiz_admin_settings() {
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
     '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
   );
+  
+  $form['quiz_global_settings']['quiz_autotitle_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Length of automatically set question titles'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
+    '#default_value' => variable_get('quiz_autotitle_length', 50),
+  );
 
   $target = array(
     'attributes' => array(
@@ -674,7 +683,7 @@ function quiz_admin_settings() {
     '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
-
+  $form['#validate'][] = 'quiz_settings_form_validate';
   return system_settings_form($form);
 }
 
@@ -684,20 +693,26 @@ function quiz_admin_settings() {
   * Checks the values for the form administration form for quiz settings.
   */
 function quiz_settings_form_validate($form, &$form_state) {
-  if (!is_numeric($form_state['values']['number_of_random_questions']) || $form_state['values']['number_of_random_questions'] <0 ) {
-    form_set_error('number_of_random_questions', t('The number of random questions must be at least 0.'));
-  }
   if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
   }
   if (!is_numeric($form_state['values']['quiz_default_pass_rate'])) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
   }
+  if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
+  }
   if ($form_state['values']['quiz_default_pass_rate'] > 100) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
   }
   if ($form_state['values']['quiz_default_pass_rate'] < 0) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] > 128) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] < 0) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be smaller than 0.'));
   }
 }
 
@@ -996,7 +1011,7 @@ function quiz_set_auto_title() {
   drupal_add_js('
   $(document).ready(function () {
     function quizUpdateTitle() {
-      $("#edit-title").val($("#edit-body").val().substring(0, 128));
+      $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
     }
     $("#edit-body").keyup(quizUpdateTitle);
     if($("#edit-title").val().length > 0){ 

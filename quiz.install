@@ -483,6 +483,7 @@ function quiz_uninstall() {
     'quiz_max_result_options',
     'quiz_remove_partial_quiz_record',
     'quiz_show_allowed_times',
+    'quiz_autotitle_length'
   );
   foreach ($var as $v) {
     variable_del($v);
