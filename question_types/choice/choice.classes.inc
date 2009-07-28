@@ -25,11 +25,8 @@
  * WHEN: This module is good enough to take over
  * REMEMBER: Also move all user answers 
  *
- * TODO: Make autonaming work when using wysiwyg.
- * TODO: Validation doesn't mark the correct error field...
  * @todo: Add setting: Extra text to explain report...
  * @todo: Be able to have max score in quizes.
- * TODO: The feedback needs to be added to the report.
  */
 
 /**
@@ -170,7 +167,7 @@ class ChoiceQuestion implements QuizQuestion {
         if (strlen(strip_tags($short['answer'])) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
-            form_set_error("[alternatives][multi]", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
+            form_set_error("alternatives][multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
           } 
           else {
             $found_one_correct = TRUE;
@@ -178,7 +175,7 @@ class ChoiceQuestion implements QuizQuestion {
         }
       }
       if (!$found_one_correct) {
-        form_set_error('multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
+        form_set_error('alternatives][multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
       }
     }
     else {
@@ -186,10 +183,10 @@ class ChoiceQuestion implements QuizQuestion {
         $short = $this->node->alternatives["alternative$i"];
         if (strlen(strip_tags($short['answer'])) < 1) continue;
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
-          form_set_error("alternatives][alternative$i][correct", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
+          form_set_error("alternatives][alternative$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
         }
         elseif ($short['score_if_chosen'] > $short['score_if_not_chosen'] && !$short['correct']) {
-          form_set_error("alternatives][alternative$i][correct", t('The alternative is not marked as correct, but gives more points if you select it.'));
+          form_set_error("alternatives][alternative$i][score_if_chosen", t('The alternative is not marked as correct, but gives more points if you select it.'));
         }
       }
     }
@@ -549,26 +546,45 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
         $row = array();         
         $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'choice');
+        $rowspan = 1;
+        $not = '';
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35);
+            if (strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+              $rowspan = 2;
+            }
+            $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            $row[] = array('data' => theme('image', "$p./theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35);
+            if (strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+              $rowspan = 2;
+              $not = '_not';
+            }
+            $row[] = array('data' => theme('image', "$p./theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
         }
         else {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35);
+            if (strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+              $rowspan = 2;
+            }
+            $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            $row[] = array('data' => '', 'width' => 35);
+            if (strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+              $rowspan = 2;
+              $not = '_not';
+            }
+            $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
           }
         }
-        $row[] = check_markup($short['answer']);
+        $row[] = check_markup($short['answer'], $short['answer_format']);
         $rows[] = $row;
+        if ($rowspan > 1) {
+          $feedback = check_markup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format']);
+          $rows[] = array("<H5>Feedback:</H5>$feedback");
+        }
       }
-      //$result .= '<p>'.
     }
     $result .= theme('table', NULL, $rows);
     
