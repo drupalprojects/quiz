@@ -9,27 +9,29 @@
  */
 
 class ShortAnswerUnitTest extends DrupalWebTestCase {
-  // initialing variables
+  // initialing attributes
   var $question_node_type = 'short_answer';
   var $title = '';
   var $body = '';
   var $node_id = NULL;
 
+  // member functions definition starts here
+
   /*
-   * In order for the test to be run, the getInfo() method needs to be
-   * implemented.
    * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
    */
   public static function getInfo() {
     return array(
       'name' => t('Short Answer'),
       'description' => t('Unit test for Short answers question type.'),
-      'group' => t('Quiz Question'),
+      'group' => t('Quiz'),
     );
   }
 
   /*
-   * Implementing setUp() to enable truefalse module testing
+   * Implementing setUp() to enable short_answer module testing
    */
   public function setUp() {
     parent::setUp('short_answer');

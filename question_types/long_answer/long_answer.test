@@ -8,17 +8,20 @@
 
 class LongAnswerUnitTest extends DrupalWebTestCase {
 
+  // intializing attributes
   var $question_node_type = 'long_answer';
   var $nid1 = NULL;
   var $max_score = 1234; // Impossible value, given max limit of 3 digits.
   var $title = '';
   var $body = '';
 
+  // member functions definition starts here
+
   public function getInfo() {
     return array(
       'name' => t('Long answer unit tests.'),
       'description' => t('Suite of unit tests for verifying functionality for essay question functions.'),
-      'group' => t('Quiz Question'),
+      'group' => t('Quiz'),
     );
   }
 

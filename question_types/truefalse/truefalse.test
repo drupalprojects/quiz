@@ -7,22 +7,25 @@
  */
 
 class TrueFalseUnitTest extends DrupalWebTestCase {
-  // initialing variables
+
+  // initialing attributes
   var $question_node_type = 'true_false';
   var $title = ''; //$this->randomName(32);
   var $body = ''; //$this->randomName(64);
   var $node_id = NULL;
 
+  // member functions definition starts here
+
   /*
-   * In order for the test to be run, the getInfo() method needs to be
-   * implemented.
    * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
    */
   public static function getInfo() {
     return array(
       'name' => t('TrueFalse'),
       'description' => t('Unit test for true or false question type.'),
-      'group' => t('Quiz Question'),
+      'group' => t('Quiz'),
     );
   }
 

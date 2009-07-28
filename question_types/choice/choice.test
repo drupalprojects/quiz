@@ -1,0 +1,24 @@
+<?php
+
+// $Id$
+
+/*
+ * @file
+ * Test suite for choice Questions type module.
+ *
+ */
+
+class QuestionsImportTestCase extends DrupalWebTestCase {
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
+  public static function getInfo() {
+    return array (
+      'name' => t('Choice'),
+      'description' => t('Unit test for true or false question type.'),
+      'group' => t('Quiz'),
+    );
+  }
+}

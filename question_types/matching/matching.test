@@ -1,0 +1,37 @@
+<?php
+
+// $Id$
+
+
+/**
+ * @file
+ * Unit tests for the matching Module.
+ *
+ */
+
+class LongAnswerUnitTest extends DrupalWebTestCase {
+  // initializing attributes
+  var $question_node_type = 'matching';
+  var $node_id = NULL;
+  var $title = '';
+  var $body = '';
+
+  // member functions definition starts here
+
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Matching Questions'),
+      'description' => t('Unit test for matching question type.'),
+      'group' => t('Quiz'),
+    );
+  }
+
+
+
+
+}
