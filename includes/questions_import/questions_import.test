@@ -8,16 +8,19 @@
  */
 
 class QuestionsImportTestCase extends DrupalWebTestCase {
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
   public static function getInfo() {
     return array (
-
-    'name' => t('Question importing'),
-
+    'name' => t('Question importing unit test'),
     'description' => t('Test importing of questions in various formats.'),
-
     'group' => t('Quiz'),
     );
   }
+
 
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
@@ -102,13 +105,13 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
         foreach ($import_q->answers as $index => $import_answer) {
           $db_answer = $mc->answers[$index]['answer'];
           $this->assertEqual($import_answer, $db_answer,  "[multichoice] Matching option text (expected $import_answer, got $db_answer)");
-          
+
           if ($import_q->answer == $index) {
             $this->assertEqual($mc->answers[$index]['is_correct'], 1, "[multichoice] Matching correct answer(s) (expected question answer to be correct)");
           }
           else {
             $this->assertEqual($mc->answers[$index]['is_correct'], 0, "[multichoice] Matching incorrect answer(s) (expected question answer to be incorrect)");
-          }          
+          }
         }
         break;
       case 'true_false':
@@ -130,7 +133,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case 'matching':
         $ma = quiz_question_load($node_obj);
         $ma = $ma['answer'];
-        
+
         foreach ($import_q->matches as $index => $i_match) {
             $this->assertEqual($i_match, $ma[$index]['question'], "[matching] Checking corresponding matches {$i_match}, {$ma[$index]['question']}");
             $this->assertEqual($import_q->answers[$index], $ma[$index]['answer'], "[matching] Checking corresponding answers {$import_q->answers[$index]}, {$ma[$index]['answer']}");
@@ -207,7 +210,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
           case "long_answer":
             $write = $question->type . ', '.
             $question->question. ', ' .
-            $question->value . "\r\n";            
+            $question->value . "\r\n";
             break;
         } break;
     }
@@ -359,8 +362,8 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $this->assertPattern('/30 questions were imported successfully/', t('Checking import success message'));
 
     $this->quizHelper($import_questions);
-  }  
-  
+  }
+
   function truefalseHelper($import_type) {
     $import_questions = array();
 
@@ -390,7 +393,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $import_settings['files[upload]'] = $filepath;
 
     $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-    
+
     $this->assertEqual(0, 1, $msg);
 
     $this->assertPattern('/50 questions were imported successfully/', t('Checking import success message'));
@@ -536,8 +539,8 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
 
    function testCsvMatching() {
      $this->matchingHelper('csv');
-   }   
-   
+   }
+
    function testCsvTrueFalse() {
      $this->truefalseHelper('csv');
    }
@@ -545,7 +548,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
    function testCsvShortAnswer() {
      $this->shortanswerHelper('csv');
    }
-   
+
    function testCsvMultiload() {
      $this->multiloadHelper('csv');
    }

@@ -24,7 +24,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Short Answer'),
+      'name' => t('Short Answer unit test'),
       'description' => t('Unit test for Short answers question type.'),
       'group' => t('Quiz'),
     );

@@ -23,7 +23,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('TrueFalse'),
+      'name' => t('TrueFalse unit test'),
       'description' => t('Unit test for true or false question type.'),
       'group' => t('Quiz'),
     );

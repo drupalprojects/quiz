@@ -9,7 +9,7 @@
  *
  */
 
-class LongAnswerUnitTest extends DrupalWebTestCase {
+class MatchingUnitTest extends DrupalWebTestCase {
   // initializing attributes
   var $question_node_type = 'matching';
   var $node_id = NULL;
@@ -25,7 +25,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Matching Questions'),
+      'name' => t('Matching Questions unit test'),
       'description' => t('Unit test for matching question type.'),
       'group' => t('Quiz'),
     );

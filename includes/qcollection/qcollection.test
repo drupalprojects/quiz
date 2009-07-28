@@ -6,3 +6,18 @@
  * @file
  * Unit tests for the questions collection Module.
  */
+
+class QCollectionUnitTest extends DrupalWebTestCase {
+  /*
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
+  public static function getInfo() {
+    return array (
+    'name' => t('Question importing unit test'),
+    'description' => t('Test importing of questions in various formats.'),
+    'group' => t('Quiz'),
+    );
+  }
+}

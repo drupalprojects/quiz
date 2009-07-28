@@ -7,14 +7,12 @@
  */
 
 class QuestionsExportTestCase extends DrupalWebTestCase {
+
   public static function getInfo() {
     return array (
-
-    'name' => t('Question Exporting'),
-
-    'description' => t('Test exporting of questions in various formats.'),
-
-    'group' => t('Quiz'),
+      'name' => t('Question Exporting'),
+      'description' => t('Test exporting of questions in various formats.'),
+      'group' => t('Quiz'),
     );
   }
 
@@ -42,9 +40,9 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
      $this->drupalCreateNode($quiz_settings); */
 
      $quiz_settings = array();
-     $quiz_settings['title'] = "Quiz";
-     $quiz_settings['body'] = "Auto-generated for testing export";
-     $msg = $this->drupalPost('node/add/quiz', $quiz_settings, 'Save');          
+     $quiz_settings['title'] = $this->randomName(64);
+     $quiz_settings['body'] = $this->randomName(255);
+     $msg = $this->drupalPost('node/add/quiz', $quiz_settings, 'Save');
   }
 
   function writeImport($input_type, $question) {
@@ -115,7 +113,7 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
           case "long_answer":
             $write = $question->type . ', '.
             $question->question. ', ' .
-            $question->value . "\r\n";            
+            $question->value . "\r\n";
             break;
         } break;
     }
@@ -126,14 +124,14 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
   function writeExport($export_type, $qid = 1) {
     $export_settings['export_format'] = $export_type;
     $export_settings['quiz_node'] = $qid;
-    
+
     $this->drupalPost('admin/quiz/questions_export', $export_settings, 'Export');
-    
+
     $file = file(file_directory_path() .'/Quiz.txt');
-    
+
     $this->assertNotEqual(0, count($file), '[Export] Checking at least something was put into export file');
   }
-  
+
   function medlyHelper($import_type) {
     switch ($import_type) {
       case 'aiken': $import_settings['import_type'] = 'native_aiken'; $filetype = '.txt'; break;
@@ -270,10 +268,10 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
     $import_settings['files[upload]'] = $filepath;
 
     $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
-    
+
     $this->assertPattern('/30 questions were imported successfully/', t('[Matching] Checking import success message'));
-  }  
-  
+  }
+
   function truefalseHelper($import_type) {
     $import_questions = array();
 
@@ -416,8 +414,8 @@ class QuestionsExportTestCase extends DrupalWebTestCase {
    function testCsvMatching() {
      $this->matchingHelper('csv');
      $this->writeExport('native_csv');
-   }   
-   
+   }
+
    function testCsvTrueFalse() {
      $this->truefalseHelper('csv');
      $this->writeExport('native_csv');

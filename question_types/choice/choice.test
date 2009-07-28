@@ -8,7 +8,7 @@
  *
  */
 
-class QuestionsImportTestCase extends DrupalWebTestCase {
+class ChoiceTestCase extends DrupalWebTestCase {
   /*
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
@@ -16,7 +16,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
    */
   public static function getInfo() {
     return array (
-      'name' => t('Choice'),
+      'name' => t('Choice unit test'),
       'description' => t('Unit test for true or false question type.'),
       'group' => t('Quiz'),
     );
