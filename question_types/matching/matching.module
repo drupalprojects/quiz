@@ -113,3 +113,20 @@ function matching_admin_settings_form() {
   );
   return system_settings_form($form);
 }
+
+/*
+ * @function
+ * To generate a list of short answer questions node
+ * @return
+ * array containing nid as key and title as value
+ */
+function matching_questions_list() {
+  $questions = array();
+  $type = 'matching';
+  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
+  $results = db_query($sql, $type);
+  while ($result = db_fetch_object($results)) {
+    $questions[$result->nid] = check_plain($result->title);
+  }
+  return $questions;
+}

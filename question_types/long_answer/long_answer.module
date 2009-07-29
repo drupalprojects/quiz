@@ -276,7 +276,7 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
  */
 function long_answer_questions_list() {
   $questions = array();
-  $type = 'log_answer';
+  $type = 'long_answer';
   $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
   $results = db_query($sql, $type);
   while ($result = db_fetch_object($results)) {
@@ -284,3 +284,4 @@ function long_answer_questions_list() {
   }
   return $questions;
 }
+
