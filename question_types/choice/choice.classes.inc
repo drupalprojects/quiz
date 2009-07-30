@@ -25,7 +25,6 @@
  * WHEN: This module is good enough to take over
  * REMEMBER: Also move all user answers 
  *
- * @todo: Add setting: Extra text to explain report...
  * @todo: Be able to have max score in quizes.
  */
 
@@ -536,7 +535,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    */
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body, $this->question->filter).
+      check_markup($this->question->body, $this->question->filter, FALSE).
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
     $result .= '<H4>'. t('Alternatives'). ':</H4>';
@@ -578,10 +577,10 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
             $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
           }
         }
-        $row[] = check_markup($short['answer'], $short['answer_format']);
+        $row[] = check_markup($short['answer'], $short['answer_format'], FALSE);
         $rows[] = $row;
         if ($rowspan > 1) {
-          $feedback = check_markup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format']);
+          $feedback = check_markup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
           $rows[] = array("<H5>Feedback:</H5>$feedback");
         }
       }

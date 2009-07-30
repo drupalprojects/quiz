@@ -300,7 +300,7 @@ class ScaleQuestion implements QuizQuestion {
     }
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($node->body),
+      '#value' => check_markup($node->body, $node->format, FALSE),
     );
     $form['tries'] = array(
       '#type' => 'radios',
@@ -567,7 +567,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    */
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body) .
+      check_markup($this->question->body, $this->question->format, FALSE) .
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
     $result .= t('You answered:');
