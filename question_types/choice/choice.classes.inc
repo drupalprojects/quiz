@@ -263,9 +263,14 @@ class ChoiceQuestion implements QuizQuestion {
   
   public function getQuestionForm($node, $context = NULL) {
     $options = array();
+    
+    $display_object = menu_get_object();
+    
     for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
-      if (drupal_strlen(strip_tags($node->alternatives["alternative$i"]['answer'])) > 0) {
-        $options[$node->alternatives["alternative$i"]['id']] = check_markup($node->alternatives["alternative$i"]['answer'], $node->alternatives["alternative$i"]['answer_format']);
+      $short = $node->alternatives["alternative$i"];
+      $add = ($display_object->type != 'quiz' && $short['score_if_chosen'] > $short['score_if_not_chosen']) ? ' ('. t('This answer is correct') .')' : '';
+      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
+        $options[$short['id']] = check_markup($short['answer'].$add, $short['answer_format']);
       }
     }
     $form['question'] = array(
