@@ -264,13 +264,13 @@ class ChoiceQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
     $options = array();
     for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
-      if (strlen(strip_tags($node->alternatives["alternative$i"]['answer'])) > 0) {
+      if (drupal_strlen(strip_tags($node->alternatives["alternative$i"]['answer'])) > 0) {
         $options[$node->alternatives["alternative$i"]['id']] = check_markup($node->alternatives["alternative$i"]['answer'], $node->alternatives["alternative$i"]['answer_format']);
       }
     }
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($node->body, $node->format),
+      '#value' => check_markup($node->body, $node->format, FALSE),
     );
     if ($node->alternatives['multi'] == 0) {
       $form['tries'] = array(
@@ -541,7 +541,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     $result .= '<H4>'. t('Alternatives'). ':</H4>';
     for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
       $short = $this->question->alternatives["alternative$i"];
-      if (strlen(strip_tags($short['answer'])) > 0) {
+      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
         $row = array();         
         $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'choice');
@@ -549,13 +549,13 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
         $not = '';
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+            if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+            if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
@@ -564,13 +564,13 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
         }
         else {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+            if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+            if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }

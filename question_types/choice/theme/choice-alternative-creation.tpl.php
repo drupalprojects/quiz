@@ -11,10 +11,10 @@
 
 ?>
 <?php 
-$title_correct = $form['correct']['#title'];
+$title_correct = check_plain($form['correct']['#title']);
 unset($form['correct']['#title']);
 $suf = $form['answer']['#required'] ? '<SPAN CLASS="form-required"> *</SPAN>' : '';
-$title_answer = $form['answer']['#title'].$suf;
+$title_answer = check_plain($form['answer']['#title']).$suf;
 $form['answer']['#title'] = '';
 $row[] = drupal_render($form['correct']);
 $row[] = drupal_render($form['answer']);

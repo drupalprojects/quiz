@@ -22,7 +22,6 @@
 /*
  * 
  * In the quiz framework:
- * TODO: Adjust the report. We don't want it to say that we are wrong...
  * TODO: Make it possible to generate links to a survey taking page.
  */
 
@@ -326,7 +325,7 @@ class ScaleQuestion implements QuizQuestion {
       '#default_value' => variable_get('scale_max_num_of_alts', 10),
     );
     return system_settings_form($form);
-  }
+  }//TODO: Add validation
   /**
    * Implementation of getCreation form
    * 
@@ -463,7 +462,7 @@ class ScaleQuestion implements QuizQuestion {
       if (is_array($collections[$col_id]->alternatives)) {
       $jsArray .= "scaleCollections[$col_id] = new Array();";
         foreach ($collections[$col_id]->alternatives as $alt_id => $text) {
-          $jsArray .= "scaleCollections[$col_id][$alt_id] = '$text';";
+          $jsArray .= "scaleCollections[$col_id][$alt_id] = '".check_plain($text)."';";
         }
       }
     }
@@ -572,7 +571,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
     $result = '<div class="quiz_answer_feedback">';
     $result .= t('You answered:');
     $result .= '<BR/>';
-    $result .= $this->answer;
+    $result .= check_plain($this->answer);
     $result .= '</div>';
 
     return $slug . $result;
