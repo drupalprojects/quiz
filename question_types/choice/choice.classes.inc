@@ -348,7 +348,7 @@ class ChoiceQuestion implements QuizQuestion {
       );
       
       $form['alternatives']["alternative$i"]['id'] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#value' => $short['id'],
       );
       $form['alternatives']["alternative$i"]["answer"] = array(

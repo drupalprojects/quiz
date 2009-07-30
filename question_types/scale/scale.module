@@ -196,11 +196,11 @@ function scale_manage_collection_form(&$form_state) {
     } 
     else {
       $form["collection$col_id"]["to-do"] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#value' => 3,
       );
       $form["collection$col_id"]["for_all"] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#value' => 1,
       );
     }
