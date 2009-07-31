@@ -24,6 +24,42 @@ function qcollection_help($path, $args) {
   }
 }
 
+/**
+ * Implementation of hook_perm().
+ */
+function qcollection_perm() {
+  return array(
+    // Managing qcollections:
+    'access qcollection', 'create qcollection', 'edit own qcollection', 'edit any qcollection', 'delete any qcollection', 'delete own qcollection',
+  );
+}
+
+/**
+ * Implementation of hook_access().
+ */
+function qcollection_access($op, $node, $account) {
+
+  // Admin can do all of this.
+  if (user_access('administer quiz', $account)) {
+    return TRUE;
+  }
+
+  if (!user_access('access qcollection')) {
+    // If you can't access, you get NOTHING!
+    // Otherwise, we allow further permission checking.
+    return FALSE;
+  }
+
+  switch ($op) {
+    case 'create':
+      return user_access('create qcollection', $account);
+    case 'update':
+      return (user_access('edit any qcollection', $account)  || (user_access('edit own qcollection', $account) && $account->uid == $node->uid));
+    case 'delete':
+      return (user_access('delete any qcollection', $account)  || (user_access('delete own qcollection', $account) && $account->uid == $node->uid));
+  }
+}
+
 
 /**
  * Implementation of hook_node_info().
@@ -73,6 +109,17 @@ function qcollection_menu() {
   return $items;
 }
 
+/**
+ * Implementation of hook_theme().
+ */
+function qcollection_theme() {
+  return array(
+    'qcollection_question_table' => array(
+      'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
+      'file' => 'qcollection.pages.inc',
+    ),
+  );
+}
 
 /**
  * Load a qcollection node and validate it.
@@ -87,30 +134,48 @@ function qcollection_type_access_load($arg) {
   return (($node = node_load($arg)) && $node->type == 'qcollection') ? $node : FALSE;
 }
 
+function _qcollection_get_info($node) {
+  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
+  // Get count of child questions (ignoring question_status)
+  $sql = 'SELECT COUNT(child_nid)
+    FROM {quiz_node_relationship}
+    WHERE parent_vid = %d
+      AND parent_nid = %d';
+  $questions_count = db_result(db_query($sql, $node->vid, $node->nid));
+  return compact('questions_count');
+}
+
 /**
  * Implemention of hook_view().
  *
  */
-function qcollection_view($node, $teaser = FALSE, $page = FALSE) {
+function qcollection_view($node, $teaser = FALSE, $page = FALSE, $links = TRUE) {
   $node = node_prepare($node, $teaser);
   $collection_nid = $node->nid;
 
-  $questions = _quiz_get_questions($node->nid, $node->vid);
-
-  $output = theme('quiz_question_table', $questions, $collection_nid);
+  if ($teaser) {
+    // TODO include more info
+    $info = _qcollection_get_info($node);
+    $node->content['info'] = array(
+      '#value' => "$info[questions_count] questions<br/>",
+      '#weight' => 1);
+  } else {
+    $questions = _quiz_get_questions($node->nid, $node->vid);
+    $output = theme('qcollection_question_table', $questions, $collection_nid);
+    $node->content['questions'] = array(
+    '#value' => $output,
+    '#weight' => 1,
+    );
+  }
 
   $node->content['export-quiz'] = array(
     '#value' => l(t('Export as quiz'), 'node/'. $collection_nid .'/export-quiz/'),
     '#weight' => 2,
   );
 
-  $node->content['questions'] = array(
-    '#value' => $output,
-    '#weight' => 1,
-  );
-
   return $node;
 }
+
 
 /**
  * Implementation of hook_form().
@@ -129,17 +194,17 @@ function qcollection_form(&$node) {
     '#required' => TRUE,
   );
 
-  $form['body'] = array(
+  $form['body_field']['body'] = array(
     '#type' => 'textarea',
     '#title' => check_plain($type->body_label),
     '#default_value' => $node->body,
-  //    '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('Notes on the contents and origin of the @qcollection entails', array('@qcollection' => QCOLLECTION_NAME)),
     '#required' => FALSE,
   );
+  $form['body_field']['format'] = filter_form($node->format);
 
   return $form;
 }
-
 
 
 /**
@@ -156,3 +221,22 @@ function qcollection_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
+
+/**
+ * Implementation of hook_update().
+ */
+function qcollection_update($node) {
+  // QCollection node vid (revision) was updated.
+  if ($node->revision) {
+    // Create new qcollection-question relation entries in the quiz_node_relationship table.
+    quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
+  }
+}
+
+
+/**
+ * Implementation of hook_delete().
+ */
+function qcollection_delete($node) {
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
+}
