@@ -12,20 +12,20 @@
  *
  * Based on:
  * Other question types in the quiz framework.
- * 
- * 
+ *
+ *
  *
  * @file
  * Question type, enabling the creation of multiple choice and multiple answer questions.
  */
- 
+
 /*
  * @todo: Ajax to add more alternatives?
  * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
  * WHEN: This module is good enough to take over
- * REMEMBER: Also move all user answers 
+ * REMEMBER: Also move all user answers
  *
- * @todo: Be able to have max score in quizes.
+ * @todo: Be able to have max score in quizzes.
  */
 
 /**
@@ -37,16 +37,16 @@ class ChoiceQuestion implements QuizQuestion {
    * The current node for this question.
    */
   protected $node = NULL;
-  
+
   /**
    * Constructor
-   * 
+   *
    * @param $node - the node object
    */
   public function __construct($node) {
     $this->node = $node;
   }
-  
+
   private function forgive() {
     if ($this->node->alternatives['multi'] == 1) {
       for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
@@ -57,7 +57,7 @@ class ChoiceQuestion implements QuizQuestion {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
           } else {
-            
+
             $short['score_if_chosen'] = 0;
             $short['score_if_not_chosen'] = 1;
           }
@@ -72,12 +72,12 @@ class ChoiceQuestion implements QuizQuestion {
       }
     }
   }
-  
+
   /**
    * Implementation of save
-   * 
+   *
    * Stores the question in the database.
-   * 
+   *
    * @param is_new if - if the node is a new node...
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
@@ -95,7 +95,7 @@ class ChoiceQuestion implements QuizQuestion {
           $this->insertAlternative($i);
         }
       }
-    } 
+    }
     else {
       $sql = 'UPDATE {quiz_choice_properties}
         SET multi = %d
@@ -115,7 +115,7 @@ class ChoiceQuestion implements QuizQuestion {
           else {
             $this->updateAlternative($i);
             $key = array_search($short['id'], $ids_to_delete);
-            $ids_to_delete[$key] = FALSE; 
+            $ids_to_delete[$key] = FALSE;
           }
         }
       }
@@ -126,39 +126,40 @@ class ChoiceQuestion implements QuizQuestion {
       }
     }
   }
-  
+
   private function insertAlternative($i) {
     $sql = 'INSERT INTO {quiz_choice_answer}
-            (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
-            feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, 
+            (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
+            feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen,
             score_if_not_chosen, question_nid, question_vid)
             VALUES(\'%s\', %d, \'%s\', %d, \'%s\', %d, %d, %d, %d, %d)';
     $short = $this->node->alternatives["alternative$i"];
     db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
-    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
+    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'],
     $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
     $short['score_if_not_chosen'], $this->node->nid, $this->node->vid);
   }
-  
+
   private function updateAlternative($i) {
     $sql = 'UPDATE {quiz_choice_answer}
-            SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\', 
+            SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\',
             feedback_if_chosen_format = %d, feedback_if_not_chosen = \'%s\',
             feedback_if_not_chosen_format = %d, score_if_chosen = %d, score_if_not_chosen = %d
             WHERE id = %d AND question_nid = %d AND question_vid = %d';
     $short = $this->node->alternatives["alternative$i"];
     db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
-    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'], 
+    $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'],
     $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
     $short['score_if_not_chosen'], $short['id'], $this->node->nid, $this->node->vid);
   }
+
   /**
    * Implementation of validate
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate($node, &$form) { 
+  public function validate($node, &$form) {
     if ($node->alternatives['multi'] == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
@@ -167,7 +168,7 @@ class ChoiceQuestion implements QuizQuestion {
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
             form_set_error("alternatives][multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
-          } 
+          }
           else {
             $found_one_correct = TRUE;
           }
@@ -192,27 +193,27 @@ class ChoiceQuestion implements QuizQuestion {
   }
   /**
    * Implementation of delete
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_choice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-      $sql = 'DELETE FROM {quiz_choice_user_answers} 
+      $sql = 'DELETE FROM {quiz_choice_user_answers}
       		  WHERE result_id IN(
-      		  	SELECT result_id 
-      		  	FROM {quiz_node_results} 
+      		  	SELECT result_id
+      		  	FROM {quiz_node_results}
       		  	WHERE nid = %d AND vid = %d
       		  )';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     else {
       db_query('DELETE FROM {quiz_choice_properties} WHERE nid = %d', $this->node->nid);
-      $sql = 'DELETE FROM {quiz_choice_user_answers} 
+      $sql = 'DELETE FROM {quiz_choice_user_answers}
       		  WHERE result_id IN(
-      		  	SELECT result_id 
-      		  	FROM {quiz_node_results} 
+      		  	SELECT result_id
+      		  	FROM {quiz_node_results}
       		  	WHERE nid = %d
       		  )';
       db_query($sql, $this->node->nid);
@@ -221,32 +222,32 @@ class ChoiceQuestion implements QuizQuestion {
 
   /**
    * Implementation of load
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function load() {
     $to_return = array();
     $sql = 'SELECT multi
-            FROM {quiz_choice_properties} 
+            FROM {quiz_choice_properties}
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $to_return['alternatives']['multi'] = db_fetch_object($res)->multi;
-    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
+    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
-            FROM {quiz_choice_answer} 
+            FROM {quiz_choice_answer}
             WHERE question_nid = %d AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $counter = 0;
     while($res_arr = db_fetch_array($res)){
       $to_return['alternatives']["alternative$counter"] = $res_arr;
-      $counter++; 
+      $counter++;
     }
     return $to_return;
   }
   /**
    * Implementation of view
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
@@ -256,48 +257,62 @@ class ChoiceQuestion implements QuizQuestion {
 
   /**
    * Generates the question form.
-   * 
+   *
    * This is called whenever a question is rendered, either
    * to an administrator or to a quiz taker.
    */
-  
+
   public function getQuestionForm($node, $context = NULL) {
     $options = array();
-    
+
+    drupal_add_css(drupal_get_path('module', 'choice') .'/theme/choice.css', 'module', 'all');
+
     $display_object = menu_get_object();
-    
+
+    $taking_quiz = $display_object->type == 'quiz';
+
     for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
       $short = $node->alternatives["alternative$i"];
-      $add = ($display_object->type != 'quiz' && $short['score_if_chosen'] > $short['score_if_not_chosen']) ? ' ('. t('This answer is correct') .')' : '';
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $options[$short['id']] = check_markup($short['answer'].$add, $short['answer_format']);
+        $markup = check_markup($short['answer'].$add, $short['answer_format']);
+        if (! $taking_quiz) {
+          // displaying outside a quiz-taking context
+          $is_correct = $short['score_if_chosen'] > $short['score_if_not_chosen'];
+          if ($is_correct)
+            $markup = '<div class="quiz_choice_answer_correct">'.$markup.'</span>';
+        }
+        $options[$short['id']] = $markup;
       }
     }
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($node->body, $node->format, FALSE),
     );
-    if ($node->alternatives['multi'] == 0) {
-      $form['tries'] = array(
-        '#type' => 'radios',
-        '#title' => t('Choose one'),
+
+    $form['tries'] = array(
         '#options' => $options,
         '#theme' => 'choice_alternative',
-      );
+    );
+
+    if ($node->alternatives['multi']) {
+      $form['tries']['#type'] = 'checkboxes';
+      $form['tries']['#title'] = t('Choose');
+    } else {
+      $form['tries']['#type'] = 'radios';
+      $form['tries']['#title'] = t('Choose one');
     }
-    else {
-      $form['tries'] = array(
-        '#type' => 'checkboxes',
-        '#title' => t('Choose'),
-        '#options' => $options,
-        '#theme' => 'choice_alternative',
-      );
+
+    if (!$taking_quiz) {
+      unset($form['tries']['#title']);
+      $form['tries']['#disabled'] = TRUE;
     }
+
     return $form;
   }
+
   /**
    * Implementation of getAdminForm
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
    */
@@ -309,9 +324,10 @@ class ChoiceQuestion implements QuizQuestion {
     );
     return system_settings_form($form);
   }
+
   /**
    * Implementation of getCreation form
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
@@ -321,7 +337,7 @@ class ChoiceQuestion implements QuizQuestion {
      * Getting presets from the database
      */
     $form['#theme'][] = 'choice_creation_form';
-    
+
     $form['alternatives'] = array(
       '#type' => 'fieldset',
       '#title' => t('Alternatives'),
@@ -351,7 +367,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
         '#attributes' => array('onchange' => 'refreshScores(this)'),
       );
-      
+
       $form['alternatives']["alternative$i"]['id'] = array(
         '#type' => 'value',
         '#value' => $short['id'],
@@ -363,7 +379,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#required' => $i < 2,
       );
       $form['alternatives']["alternative$i"]['format'] = filter_form($short['answer_format'], NULL, array('alternatives',"alternative$i",'answer_format'));
-            
+
       $form['alternatives']["alternative$i"]['advanced'] = array(
         '#type' => 'fieldset',
         '#title' => t('Advanced options'),
@@ -396,8 +412,8 @@ class ChoiceQuestion implements QuizQuestion {
         '#default_value' => $default_value,
         '#description' => t('This score is added to the users total score if the user chooses this alternative. Only used if multiple answers are allowed.'),
         '#attributes' => array(
-          'onkeypress' => 'refreshCorrect(this)', 
-          'onkeyup' => 'refreshCorrect(this)', 
+          'onkeypress' => 'refreshCorrect(this)',
+          'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
         ),
         '#parents' => array('alternatives', "alternative$i", 'score_if_chosen')
@@ -412,8 +428,8 @@ class ChoiceQuestion implements QuizQuestion {
         '#default_value' => $default_value,
         '#description' => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
         '#attributes' => array(
-          'onkeypress' => 'refreshCorrect(this)', 
-          'onkeyup' => 'refreshCorrect(this)', 
+          'onkeypress' => 'refreshCorrect(this)',
+          'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
         ),
         '#parents' => array('alternatives', "alternative$i", 'score_if_not_chosen')
@@ -421,9 +437,10 @@ class ChoiceQuestion implements QuizQuestion {
     }
     return $form;
   }
+
   /**
    * Implementation of getMaximumScore.
-   * 
+   *
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-DRUPAL-6--4/question_types/quiz_question/QuizQuestion#getMaximumScore()
    */
@@ -448,10 +465,10 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * ID of the answers.
    */
   protected $user_answer_ids;
-  
+
   /**
    * Constructor
-   * 
+   *
    * @param $rid - response_id
    * @param $question - as an object
    * @param $answer - answer_id
@@ -475,10 +492,11 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       }
     }
   }
+
   /**
    * Implementation of save
    */
-  public function save() {    
+  public function save() {
     $sql = "INSERT INTO {quiz_choice_user_answers}
             (result_id, vid, nid)
             VALUES (%d, %d, %d)";
@@ -491,6 +509,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       db_query($sql, $user_answer_id, $this->user_answer_ids[$i]);
     }
   }
+
   /**
    * Implementation of delete
    */
@@ -501,13 +520,14 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
               WHERE nid = %d AND vid = %d AND result_id = %d
             )';
     db_query($sql, $this->nid, $this->question->vid, $this->question->rid);
-    $sql = 'DELETE FROM {quiz_choice_user_answers} 
+    $sql = 'DELETE FROM {quiz_choice_user_answers}
     		WHERE result_id = %d AND nid = %d AND vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
   }
+
   /**
    * Implementation of score
-   * 
+   *
    * @return uint
    */
   public function score() {
@@ -523,17 +543,19 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     }
     return $score;
   }
+
   /**
    * Implementation of getResponse
-   * 
+   *
    * @return answer
    */
   public function getResponse() {
     return $this->user_answer_ids;
   }
+
   /**
    * Implementation of format report.
-   * 
+   *
    * @param $showpoints
    * @param $showfeedback
    * @return report as html
@@ -547,7 +569,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
       $short = $this->question->alternatives["alternative$i"];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $row = array();         
+        $row = array();
         $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'choice');
         $rowspan = 1;
@@ -591,7 +613,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       }
     }
     $result .= theme('table', NULL, $rows);
-    
+
     $result .= '</div>';
 
     return $slug . $result;
