@@ -5,6 +5,7 @@
 module_load_include('inc', 'quiz', 'quiz.admin');
 
 
+
 /**
  * Creates a form for quiz questions.
  *
@@ -113,7 +114,6 @@ function qcollection_questions_form($context, $quiz) {
   );
 
 
-
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
@@ -159,7 +159,7 @@ function qcollection_questions_form($context, $quiz) {
     '#type' => 'checkbox',
     '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
     '#title' => t('New revision'),
-    '#description' => t('Allow question status changes to create a new revision of the quiz?'),
+    '#description' => t('Allow question status changes to create a new revision of the collection?'),
   );
 
   $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
