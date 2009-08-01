@@ -43,7 +43,7 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Import destination'),
     // TODO option for existing item collection
-  	'#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz')),
+    '#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -63,7 +63,7 @@ function questions_import_form()  {
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
     '#title' => t('Question source'),
-    '#description' => t(''),
+    '#description' => t('Questions import module allows the user with role "quiz author" to create a bulk of questions from portable text file (like CSV, XML etc) where questions are defined in some predefined format.'),
     '#collapse' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -93,7 +93,7 @@ function questions_import_form()  {
     '#type' => 'fieldset',
     '#title' => t('Advanced'),
     '#collapsible' => TRUE,
-  	'#collapsed' => TRUE,
+    '#collapsed' => TRUE,
   );
   $formats = filter_formats();
   foreach ($formats as $info) {
