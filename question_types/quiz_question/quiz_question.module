@@ -23,14 +23,10 @@ function quiz_question_help($path, $args) {
  */
 function quiz_question_autoload_info() {
   return array(
-  // Base interfaces and classes:
+    // Base interfaces and classes:
     'QuizQuestion' => array('file' => 'quiz_question.core.inc'),
     'QuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
     'AbstractQuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
-
-  // True/False question type:
-  //  'TrueFalseQuestion' => array('file' => 'quiz_question.truefalse.inc'),
-   // 'TrueFalseResponse' => array('file' => 'quiz_question.truefalse.inc'),
   );
 }
 
@@ -39,6 +35,18 @@ function quiz_question_autoload_info() {
  */
 function quiz_question_menu() {
 
+  // Menu item for seeing references to a question.
+  $items['node/%quiz_question_type_access/references'] = array(
+    'title' => t('References'),
+    'page callback' => 'quiz_question_references',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'quiz_question.pages.inc',
+  );
+
+  // Menu items for admin view of each question type.
   $types = _quiz_question_get_implementations();
   foreach ($types as $type => $definition) {
     $items['admin/quiz/' . str_replace('_', '-', $type)] = array(
@@ -74,11 +82,11 @@ function quiz_question_theme() {
     'quiz_question_report' => array(
       'arguments' => array('show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
-    ),
+  ),
     'quiz_question_creation_form' => array(
       'arguments' => array('form' => NULL),
       'file' => 'quiz_question.theme.inc',
-    ),
+  ),
   );
 }
 
@@ -243,26 +251,51 @@ function quiz_question_question_form($context, $node) {
 
       break;
     default:
-      if (!user_access('view quiz question solutions')) {
-        $place_holder = $form['question'];
+      // reconstruct form so type is first (at top)
+      // TODO is there a better way?  like unshift an assoc tuple?
+      $type = node_get_types('type', $node);
+      $newform['question_type'] = array(
+        '#type'  => 'markup',
+        '#value' => '<div class="question_type_name">'.$type->name.'</div>'
+        );
+        $newform += $form;
+        $form = $newform;
 
-        unset($form);
-
-        $form_question = $place_holder;
-
-        $form['tries'] = array(
+        if (!user_access('view quiz question solutions')) {
+          $form['tries'] = array(
           '#type'  => 'markup',
           '#value' => '<br /> <em>Answers hidden</em>.'
-        );
-      }
-      break;
+          );
+        }
+        break;
 
-      // nothing
+        // nothing
   }
 
   return $form;
 }
 
+/**
+ * Form for teaser display
+ */
+function quiz_question_teaser_form($context, $node) {
+  $form['question'] = array(
+       '#type' => 'markup',
+       '#value' => check_markup($node->body, $node->format, FALSE),
+  );
+
+  // reconstruct form so type is first (at top)
+  // TODO is there a better way?  like unshift an assoc tuple?
+  $type = node_get_types('type', $node);
+  $newform['question_type'] = array(
+        '#type'  => 'markup',
+        '#value' => '<div class="question_type_name">'.$type->name.'</div>',
+  );
+  $newform += $form;
+  $form = $newform;
+
+  return $form;
+}
 
 /**
  * Implementation of Quiz's hook_evaluate_question().
@@ -434,7 +467,12 @@ function quiz_question_insert($node) {
  * Implementation of hook_view()
  */
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
-  $node->content['body']['#value'] = drupal_get_form('quiz_question_question_form', $node);
+  if ($teaser) {
+    $form_markup = drupal_get_form('quiz_question_teaser_form', $node);
+  } else {
+    $form_markup = drupal_get_form('quiz_question_question_form', $node);
+  }
+  $node->content['body']['#value'] = $form_markup;
   return $node;
 }
 
@@ -512,26 +550,21 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
 }
 
 /**
- * Implementation of hook_quiz_question_info().
+ * Load a quiz question node and validate it.
+ *
+ * @param $arg
+ *  The Node ID
+ * @return
+ *  A quiz question node object or FALSE if a load failed.
  */
-function quiz_question_quiz_question_info() {
-  return array();
-  /*
-    'true_false' => array(
-      'name' => 'True/false question',
-      'description' => 'Quiz questions that allow a user to select true or false (yes/no).',
-      'question provider' => 'TrueFalseQuestion',
-      'response provider' => 'TrueFalseResponse',
-      'module' => 'quiz_question',
-  ),
-  /*
-   'long_answer' => array(
-   'name' => 'Long answer question',
-   'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
-   'question provider' => 'LongAnswerQuestion',
-   'response provider' => 'LongAnswerResponse',
-   'module' => 'quiz_question',
-   ),
-   */
-  //);
+function quiz_question_type_access_load($arg) {
+  $node = node_load($arg);
+  if (!$node) return false;
+
+  $qtypes = module_invoke_all('quiz_question_info');
+  $qtypes_key = array_keys($qtypes);
+
+  if (!in_array($node->type, $qtypes_key)) return false;
+
+  return $node;
 }
