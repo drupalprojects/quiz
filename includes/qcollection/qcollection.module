@@ -253,3 +253,84 @@ function qcollection_delete($node) {
   db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
 }
 
+
+
+/**
+ * Implementation of hook_action_info()
+ *
+ * @return array of action info
+ */
+function qcollection_action_info() {
+  return array(
+    'qcollection_add_question_action' => array(
+      'type' => 'node', // FIXME restrict to quiz question nodes
+      'description' => t('Add to an item collection'),
+      'configurable' => TRUE,
+      'hooks' => array('any' => TRUE),
+    ),
+  );
+}
+
+/**
+* Return a form for selecting collections and quizzes to which a node should be copied
+*/
+function qcollection_add_question_action_form($context) {
+  global $user;
+
+  $form = array();
+
+  // user's collections
+  $sql = "SELECT nid, title
+ FROM {node}
+ WHERE (type in ('qcollection')) AND (uid = %d)";
+
+  $result = db_query($sql, $user->uid);
+  while ($row = db_fetch_array($result)) {
+    $options[$row['nid']] = $row['title'];
+  }
+
+  // checkboxes for the qcollections the user has permission to add to
+  $form['my_collections'] = array(
+  	'#type' => 'checkboxes',
+  	'#title' => t('My Collections'),
+  	'#options' => $options,
+  	'#description' => t('Collections to which you can add question items.'),
+  );
+
+  return $form;
+}
+
+function qcollection_add_question_action_validate($form, $form_state) {
+  // validation code here ...
+  // FIXME validate that the input nodes are all questions
+}
+
+function qcollection_add_question_action_submit($form, $form_state) {
+  return array(
+    'targets' => $form_state['values']['my_collections'],
+  );
+}
+
+/**
+ * Callback function to copy a question node to one or more collections
+ */
+function qcollection_add_question_action(&$node, $context) {
+  _qcollection_add_question_to_collection($node, $context['targets']);
+}
+
+/**
+ * Add a question node to a qcollection
+ */
+function _qcollection_add_question_to_collection($question, $collections) {
+  $weight = 0;
+
+  // Now we add the question node to each collection
+  // (Note that we are using a subselect to get the most recent vid of the qcollection.)
+  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+      VALUES (%d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d, %d)";
+
+  foreach (array_filter($collections) as $collection_nid) {
+      db_query($sql, $collection_nid, $collection_nid, $question->nid, $question->vid, QUESTION_ALWAYS, $weight);
+  }
+}
+
