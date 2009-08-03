@@ -225,7 +225,7 @@ function qcollection_export_quiz($collection_node) {
   // save it, giving it nid and vid
   node_save($quiz_node);
 
-  // TODO test whether this works in MySQL 4.1 (the minimum for D6)
+  // TODO test whether this works in PostgreSQL and in MySQL 4.1 (the minimum for D6)
   // copy all the question relationships from the collection to the new quiz
   $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
 SELECT %d as parent_nid, %d AS parent_vid, child_nid, child_vid, question_status, weight FROM {quiz_node_relationship} qnr
@@ -236,5 +236,53 @@ WHERE qnr.parent_nid = %d and qnr.parent_vid = %d';
   // take them to edit the quiz that was just automatically made, e.g. node/1434/edit
   $new_nid = $quiz_node->nid;
   drupal_goto('node/'. $new_nid .'/edit');
+}
+
+
+/**
+ * Callback for menu which returns a form for downloading.
+ *
+ * Handles the "Download" tab.
+ *
+ * @param $node
+ *   Node of collection to download
+ * @return
+ *   String containing the form.
+ */
+function qcollection_download($node) {
+  return drupal_get_form('qcollection_download_form', $node);
+}
+
+
+/**
+ * Return a form for selecting the export settings
+ */
+function qcollection_download_form() {
+  module_load_include('inc', 'questions_export', 'questions_export.admin');
+
+  $form['exporter'] = array(
+    '#type' => 'select',
+    '#title' => t('Export format'),
+    '#options' => _questions_exporters(),
+    '#description' => t('Select the data format to export into.'),
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download'),
+  );
+
+  return $form;
+}
+
+/**
+ * This generic submit handler calls specific export functions
+ *
+ */
+function qcollection_download_form_submit(&$form, &$form_state) {
+  $collection_node = $form['#parameters'][2]; // TODO must be a better way to get this
+  $exporter = $form_state['values']['exporter'];
+  _questions_export_download($collection_node, $exporter);
 }
 

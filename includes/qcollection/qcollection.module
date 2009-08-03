@@ -106,6 +106,18 @@ function qcollection_menu() {
     'file' => 'qcollection.inc',
   );
 
+  // Menu item for download item collection in a portable format
+  $items['node/%qcollection_type_access/download'] = array(
+  'title' => t('Download'),
+    'page callback' => 'qcollection_download',
+    'page arguments' => array(1),
+  // FIXME: This needs to check to see if the user owns the qcollection.
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'qcollection.inc',
+  );
+
   return $items;
 }
 
@@ -240,3 +252,4 @@ function qcollection_update($node) {
 function qcollection_delete($node) {
   db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
 }
+
