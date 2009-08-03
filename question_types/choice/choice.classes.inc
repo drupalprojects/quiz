@@ -25,7 +25,14 @@
  * WHEN: This module is good enough to take over
  * REMEMBER: Also move all user answers
  *
+ * @todo: Be able to have max score in quizes.
+ * TODO: Make the entire alternative clickable in student view.
+ * TODO: Ajax answer removal
+ * TODO: Fjerne input formatene.
+ * TODO: Må slutte å bruke forløkka for å lagre ting...
+ * TODO: Remove error messages from ahah.
  * @todo: Be able to have max score in quizzes.
+>>>>>>> 1.1.2.15
  */
 
 /**
@@ -48,9 +55,9 @@ class ChoiceQuestion implements QuizQuestion {
   }
 
   private function forgive() {
-    if ($this->node->alternatives['multi'] == 1) {
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = &$this->node->alternatives["alternative$i"];
+    if ($this->node->choice_multi == 1) {
+      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+        $short = &$this->node->alternatives[$i];
         if ($short['score_if_chosen'] == $short['score_if_not_chosen'] ||
         !is_numeric($short['score_if_chosen'] || !is_numeric($short['score_if_not_chosen']))) {
           if ($short['correct'] == 1) {
@@ -65,8 +72,8 @@ class ChoiceQuestion implements QuizQuestion {
       }
     }
     else {
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = $this->node->alternatives["alternative$i"];
+      for ($i = 0;is_array($this->node->alternatives[$i]); $i++) {
+        $short = $this->node->alternatives[$i];
         $short['score_if_chosen'] = $short['correct'];
         $short['score_if_not_chosen'] = 0;
       }
@@ -87,20 +94,20 @@ class ChoiceQuestion implements QuizQuestion {
     $this->forgive();
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_choice_properties}
-        (nid, vid, multi)
+        (nid, vid, choice_multi)
         VALUES (%d, %d, %d)';
-      db_query($sql, $this->node->nid, $this->node->vid, $this->node->alternatives['multi']);
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        if (strlen(strip_tags($this->node->alternatives["alternative$i"]['answer'])) > 0) {
+      db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi);
+      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+        if (strlen(strip_tags($this->node->alternatives[$i]['answer'])) > 0) {
           $this->insertAlternative($i);
         }
       }
     }
     else {
       $sql = 'UPDATE {quiz_choice_properties}
-        SET multi = %d
+        SET choice_multi = %d
         WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->node->alternatives['multi'], $this->node->nid, $this->node->vid);
+      db_query($sql, $this->node->choice_multi, $this->node->nid, $this->node->vid);
       $sql = 'SELECT id FROM {quiz_choice_answer}
               WHERE question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
@@ -108,8 +115,8 @@ class ChoiceQuestion implements QuizQuestion {
       while($res_o = db_fetch_object($res)) {
         $ids_to_delete[] = $res_o->id;
       }
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = $this->node->alternatives["alternative$i"];
+      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+        $short = $this->node->alternatives[$i];
         if (strlen(strip_tags($short['answer'])) > 0) {
           if (!is_numeric($short['id'])) $this->insertAlternative($i);
           else {
@@ -133,7 +140,7 @@ class ChoiceQuestion implements QuizQuestion {
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen,
             score_if_not_chosen, question_nid, question_vid)
             VALUES(\'%s\', %d, \'%s\', %d, \'%s\', %d, %d, %d, %d, %d)';
-    $short = $this->node->alternatives["alternative$i"];
+    $short = $this->node->alternatives[$i];
     db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
     $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'],
     $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
@@ -146,7 +153,7 @@ class ChoiceQuestion implements QuizQuestion {
             feedback_if_chosen_format = %d, feedback_if_not_chosen = \'%s\',
             feedback_if_not_chosen_format = %d, score_if_chosen = %d, score_if_not_chosen = %d
             WHERE id = %d AND question_nid = %d AND question_vid = %d';
-    $short = $this->node->alternatives["alternative$i"];
+    $short = $this->node->alternatives[$i];
     db_query($sql, $short['answer'], $short['answer_format'], $short['feedback_if_chosen'],
     $short['feedback_if_chosen_format'], $short['feedback_if_not_chosen'],
     $short['feedback_if_not_chosen_format'], $short['score_if_chosen'],
@@ -159,34 +166,34 @@ class ChoiceQuestion implements QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate($node, &$form) {
-    if ($node->alternatives['multi'] == 0) {
+  public function validate($node, &$form) { 
+    if ($node->choice_multi == 0) {
       $found_one_correct = FALSE;
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = $this->node->alternatives["alternative$i"];
+      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+        $short = $this->node->alternatives[$i];
         if (strlen(strip_tags($short['answer'])) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
-            form_set_error("alternatives][multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
-          }
+            form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
+          } 
           else {
             $found_one_correct = TRUE;
           }
         }
       }
       if (!$found_one_correct) {
-        form_set_error('alternatives][multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
+        form_set_error('choice_multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
       }
     }
     else {
-      for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-        $short = $this->node->alternatives["alternative$i"];
+      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+        $short = $this->node->alternatives[$i];
         if (strlen(strip_tags($short['answer'])) < 1) continue;
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
-          form_set_error("alternatives][alternative$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
+          form_set_error("alternatives][$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
         }
         elseif ($short['score_if_chosen'] > $short['score_if_not_chosen'] && !$short['correct']) {
-          form_set_error("alternatives][alternative$i][score_if_chosen", t('The alternative is not marked as correct, but gives more points if you select it.'));
+          form_set_error("alternatives][$i][score_if_chosen", t('The alternative is not marked as correct, but gives more points if you select it.'));
         }
       }
     }
@@ -228,20 +235,21 @@ class ChoiceQuestion implements QuizQuestion {
    */
   public function load() {
     $to_return = array();
-    $sql = 'SELECT multi
-            FROM {quiz_choice_properties}
+    $sql = 'SELECT choice_multi
+            FROM {quiz_choice_properties} 
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $to_return['alternatives']['multi'] = db_fetch_object($res)->multi;
-    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
+    $to_return['choice_multi'] = db_fetch_object($res)->choice_multi;
+    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_choice_answer}
             WHERE question_nid = %d AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $counter = 0;
     while($res_arr = db_fetch_array($res)){
-      $to_return['alternatives']["alternative$counter"] = $res_arr;
-      $counter++;
+      $to_return['alternatives'][$counter] = $res_arr;
+      $counter++; 
+
     }
     return $to_return;
   }
@@ -266,13 +274,10 @@ class ChoiceQuestion implements QuizQuestion {
     $options = array();
 
     drupal_add_css(drupal_get_path('module', 'choice') .'/theme/choice.css', 'module', 'all');
-
     $display_object = menu_get_object();
-
     $taking_quiz = $display_object->type == 'quiz';
-
-    for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
-      $short = $node->alternatives["alternative$i"];
+    for ($i = 0; is_array($node->alternatives[$i]); $i++) {
+      $short = $node->alternatives[$i];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
         $markup = check_markup($short['answer'].$add, $short['answer_format']);
         if (! $taking_quiz) {
@@ -288,13 +293,13 @@ class ChoiceQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => check_markup($node->body, $node->format, FALSE),
     );
-
     $form['tries'] = array(
-        '#options' => $options,
-        '#theme' => 'choice_alternative',
+      '#type' => $type,
+      '#options' => $options,
+      '#theme' => 'choice_alternative',
     );
 
-    if ($node->alternatives['multi']) {
+    if ($node->choice_multi) {
       $form['tries']['#type'] = 'checkboxes';
       $form['tries']['#title'] = t('Choose');
     } else {
@@ -320,7 +325,7 @@ class ChoiceQuestion implements QuizQuestion {
     $form['choice_max_num_of_alts'] = array(
       '#type' => 'textfield',
       '#title' => t('Maximum number of alternatives allowed'),
-      '#default_value' => variable_get('choice_max_num_of_alts', 6),
+      '#default_value' => variable_get('choice_max_num_of_alts', 2),
     );
     return system_settings_form($form);
   }
@@ -331,7 +336,7 @@ class ChoiceQuestion implements QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
-  public function getCreationForm($edit) {
+  public function getCreationForm($form_state) {
     $form = array();
     /*
      * Getting presets from the database
@@ -345,66 +350,74 @@ class ChoiceQuestion implements QuizQuestion {
       '#collapsed' => FALSE,
       '#tree' => TRUE,
     );
-    $form['alternatives']['multi'] = array(
+    $form['alternatives']['choice_multi'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow multiple answers'),
       '#description' => t('I this box is checked any number of answers are allowed. If not, one, and only one answer is allowed.'),
-      '#default_value' => $this->node->alternatives['multi'],
+      '#default_value' => $this->node->choice_multi,
+      '#parents' => array('choice_multi'),
     );
     $form['alternatives']['#theme'][] = 'choice_creation_form';
-    for ($i = 0; $i < variable_get('choice_max_num_of_alts', 6); $i++) {
-      $short = $this->node->alternatives["alternative$i"];
-      $form['alternatives']["alternative$i"] = array(
+    $i = 0;
+    if (isset($form_state['choice_count'])) {
+      $choice_count = $form_state['choice_count'];
+    }
+    else {
+      $choice_count = max(variable_get('choice_max_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
+    }
+    for (; $i < $choice_count; $i++) {
+      $short = $this->node->alternatives[$i];
+      $form['alternatives'][$i] = array(
         '#type' => 'fieldset',
         '#title' => t('Alternative !i',array('!i' => ($i+1))),
         '#collapsible' => TRUE,
         '#collapsed' => !($i < 2 || isset($short['answer'])),
       );
-      $form['alternatives']["alternative$i"]['#theme'][] = 'choice_alternative_creation';
-      $form['alternatives']["alternative$i"]['correct'] = array(
+      $form['alternatives'][$i]['#theme'][] = 'choice_alternative_creation';
+      $form['alternatives'][$i]['correct'] = array(
         '#type' => 'checkbox',
         '#title' => t('Correct'),
         '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
         '#attributes' => array('onchange' => 'refreshScores(this)'),
       );
-
-      $form['alternatives']["alternative$i"]['id'] = array(
+      
+      $form['alternatives'][$i]['id'] = array(
         '#type' => 'value',
         '#value' => $short['id'],
       );
-      $form['alternatives']["alternative$i"]["answer"] = array(
+      $form['alternatives'][$i]["answer"] = array(
         '#type' => 'textarea',
         '#title' => t('Alternative !i', array('!i' => ($i+1))),
         '#default_value' => $short['answer'],
         '#required' => $i < 2,
       );
-      $form['alternatives']["alternative$i"]['format'] = filter_form($short['answer_format'], NULL, array('alternatives',"alternative$i",'answer_format'));
 
-      $form['alternatives']["alternative$i"]['advanced'] = array(
+      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i,'answer_format'));      
+      $form['alternatives'][$i]['advanced'] = array(
         '#type' => 'fieldset',
         '#title' => t('Advanced options'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
-      $form['alternatives']["alternative$i"]['advanced']['feedback_if_chosen'] = array(
+      $form['alternatives'][$i]['advanced']['feedback_if_chosen'] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback if chosen'),
         '#description' => t('This feedback is given to users who chooses this alternative.'),
-        '#parents' => array('alternatives', "alternative$i", 'feedback_if_chosen'),
+        '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen'],
       );
-      $form['alternatives']["alternative$i"]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives',"alternative$i",'feedback_if_chosen_format'));
-      $form['alternatives']["alternative$i"]['advanced']['helper']['feedback_if_not_chosen'] = array(
+      $form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i,'feedback_if_chosen_format'));
+      $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback if not chosen'),
         '#description' => t('This feedback is given to users who doesn\'t choose this alternative.'),
-        '#parents' => array('alternatives', "alternative$i", 'feedback_if_not_chosen'),
+        '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen'],
       );
-      $form['alternatives']["alternative$i"]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives',"alternative$i",'feedback_if_not_chosen_format'));
-      $default_value = $this->node->alternatives["alternative$i"]['score_if_chosen'];
+      $form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives',$i,'feedback_if_not_chosen_format'));
+      $default_value = $this->node->alternatives[$i]['score_if_chosen'];
       if (!isset($default_value)) $default_value = '0';
-      $form['alternatives']["alternative$i"]['advanced']['score_if_chosen'] = array(
+      $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
         '#type' => 'textfield',
         '#title' => t('Score if chosen'),
         '#size' => 4,
@@ -416,11 +429,11 @@ class ChoiceQuestion implements QuizQuestion {
           'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
         ),
-        '#parents' => array('alternatives', "alternative$i", 'score_if_chosen')
+        '#parents' => array('alternatives', $i, 'score_if_chosen')
       );
       $default_value = $short['score_if_not_chosen'];
       if (!isset($default_value)) $default_value = '0';
-      $form['alternatives']["alternative$i"]['advanced']['score_if_not_chosen'] = array(
+      $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
       	'#type' => 'textfield',
         '#title' => t('Score if not chosen'),
       	'#size' => 4,
@@ -432,9 +445,24 @@ class ChoiceQuestion implements QuizQuestion {
           'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
         ),
-        '#parents' => array('alternatives', "alternative$i", 'score_if_not_chosen')
+        '#parents' => array('alternatives', $i, 'score_if_not_chosen')
       );
     }
+    $form['alternatives']["placeholder"] = array(
+      '#type' => 'markup',
+      '#value' => '<DIV id=\'placeholder\'></DIV>',
+    );
+    $form['alternatives']['choice_add_alternative'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add more alternatives'),
+      '#submit' => array('choice_more_choices_submit'), // If no javascript action.
+      '#ahah' => array(
+        'path' => "choice/add_alternative_js",
+        'wrapper' => 'placeholder',
+        'effect' => 'slide',
+        'method' => 'before',
+      ),
+    );
     return $form;
   }
 
@@ -533,7 +561,6 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
   public function score() {
     $score = 0;
     foreach ($this->question->alternatives as $key => $alt) {
-      if (!ereg("^alternative", $key)) continue;
       if (in_array($alt['id'], $this->user_answer_ids)) {
         $score += $alt['score_if_chosen'];
       }
@@ -566,11 +593,12 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
     $result .= '<H4>'. t('Alternatives'). ':</H4>';
-    for ($i = 0; $i < variable_get('choice_max_num_of_alts' ,6); $i++) {
-      $short = $this->question->alternatives["alternative$i"];
+    $i = 0;
+    while (is_array($this->question->alternatives[$i])) {
+      $short = $this->question->alternatives[$i];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $row = array();
-        $the = ($this->question->alternatives['multi'] == 1) ? t('a') : t('the');
+        $row = array();         
+        $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'choice');
         $rowspan = 1;
         $not = '';
@@ -611,6 +639,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
           $rows[] = array("<H5>Feedback:</H5>$feedback");
         }
       }
+      $i++;
     }
     $result .= theme('table', NULL, $rows);
 

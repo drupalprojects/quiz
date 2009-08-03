@@ -84,7 +84,7 @@ function choice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'multi' => array(
+      'choice_multi' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -159,6 +159,10 @@ function choice_update_6400() {
 function choice_update_6401() {
   drupal_rebuild_theme_registry();
   return array();
+}
+function choice_update_6402() {
+  $status = array();
+  db_change_column($status, 'quiz_choice_properties', 'multi', 'choice_multi');
 }
 
 /**

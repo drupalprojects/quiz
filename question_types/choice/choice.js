@@ -16,7 +16,7 @@ function refreshScores(checkbox) {
   }
   else {
 	$(prefix + 'score-if-chosen').val('0');
-	if ($('#edit-alternatives-multi').attr('checked')) {
+	if ($('#edit-choice-multi').attr('checked')) {
 	  $(prefix + 'score-if-not-chosen').val('1');
 	} 
 	else {
@@ -46,7 +46,7 @@ function refreshCorrect(textfield) {
   }
 }
 function getCorrectIdPrefix(string) {
-  var pattern = new RegExp("^(edit-alternatives-alternative[0-9]{1,2}-)(?:correct|score-if-(?:not-|)chosen)$");
+  var pattern = new RegExp("^(edit-alternatives-[0-9]{1,2}-)(?:correct|score-if-(?:not-|)chosen)$");
   pattern.exec(string);
   return RegExp.lastParen;
 }
