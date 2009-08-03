@@ -165,13 +165,14 @@ function qcollection_view($node, $teaser = FALSE, $page = FALSE, $links = TRUE) 
   $node = node_prepare($node, $teaser);
   $collection_nid = $node->nid;
 
-  if ($teaser) {
-    // TODO include more info
-    $info = _qcollection_get_info($node);
-    $node->content['info'] = array(
-      '#value' => "$info[questions_count] questions<br/>",
-      '#weight' => 1);
-  } else {
+  $info = _qcollection_get_info($node);
+  $node->content['info'] = array(
+      // TODO theme the info block
+      '#value' => "<em>$info[questions_count] questions</em><br/>",
+      '#weight' => 0
+  );
+
+  if (!$teaser) {
     $questions = _quiz_get_questions($node->nid, $node->vid);
     $output = theme('qcollection_question_table', $questions, $collection_nid);
     $node->content['questions'] = array(
