@@ -95,22 +95,34 @@ class ShortAnswerQuestion implements QuizQuestion {
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
 
-  $display_object = menu_get_object();
+    $display_object = menu_get_object();
 
-  $form['question'] = array(
+    $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format),
-     );
-     $form['tries'] = array(
+       '#value' => check_markup($node->body, $node->format, FALSE),
+    );
+
+    switch ($display_object->type) {
+      case 'quiz':
+        $form['tries'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
-       '#description' => ($display_object->type == 'quiz') ? t('Enter your answer here') : t('Correct answer is !answer', array('!answer' => $node->correct_answer)),
+       '#description' => t('Enter your answer here'),
        '#default_value' => isset($context['tries']) ? $context['tries'] : '',
        '#size' => 60,
        '#maxlength' => 256,
        '#required' => FALSE,
-     );
-     return $form;
+        );
+        break;
+      default:
+        if (user_access('view quiz question solutions')) {
+          $form['tries'] = array('#type' => 'markup',
+          	'#value' => t('Correct answer is !answer', array('!answer' => $node->correct_answer)),
+          );
+        } // else case handled in quiz_question.module
+        break;
+    }
+    return $form;
   }
 
   public function getAdminForm($edit = NULL) {
