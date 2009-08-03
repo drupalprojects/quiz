@@ -51,7 +51,7 @@ function questions_import_form()  {
     '#title' => t('Name of new node'),
     '#default_value' => t('<unnamed>'),
     '#description' => t('Name for the new quiz or item collection'),
-    '#size' => 15,
+    '#size' => 30,
     '#required' => TRUE,
   );
   $form['quiz_destination']['quiz_node'] = array(
@@ -328,7 +328,8 @@ function _get_destination_node($form_state) {
     $node->title = $title;
     $node->uid = $user->uid;
     $node->format = $form_state['values']['input_format'];
-    $node->status = 1;
+    $node->status = 1; // published by default
+    $node->comment = 0; // comments disabled by default
     $node->log = 'Created by Quiz questions importer.';
     node_save($node);
 
@@ -415,7 +416,7 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
     // Drupal => Moodle
     'long_answer' => 'essay',
     'short_answer' => 'shortanswer',
-    'multichoice' => 'multichoice',
+    'choice' => 'multichoice',
     'true_false' => 'truefalse',
     'quiz_directions' => 'description',
     'matching' => 'match',
@@ -435,7 +436,7 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
   $node->quiz_id = $destination_node->nid;
   $node->quiz_vid = $destination_node->vid;
 
-  // already set the type of the node, this is for specialized processing
+  // Already set the type of the node, this is for specialized processing
   switch (strtolower($mq->qtype)) {
     case 'match':
       $node->match = array();
@@ -449,23 +450,38 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
       break;
 
     case 'shortanswer':
-    case 'multichoice':
-      $node->number_of_answers = count($mq->answer);
+      // Drupal short_answer node fields: maximum_score, correct_answer, correct_answer_evaluation
+      $node->correct_answer = $mq->answer[1];
+      $node->correct_answer_evaluation = ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH;
+      $node->maximum_score = $mq->defaultgrade;
+      break;
 
-      // Add answers:
-      $node->answers = array();
+    case 'multichoice':
+      $node->alternatives = array();
+
+      // whether user can make multiple selections
+      $node->alternatives['multi'] = ! $mq->single;
+
+      // Add answer alternatives
       foreach ($mq->answer as $index => $answer) {
-        $node->answers[] = array(
-        // FIXME image tags are being filter, e.g. in StrongestAcid1
+        // choice module has weird keys for array
+        $node->alternatives["alternative$index"] = array(
+          // answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
+          // feedback_if_not_chosen, feedback_if_not_chosen_format,
+          // score_if_chosen, score_if_not_chosen
           'answer' => $answer,
-          'feedback' => $mq->feedback[$index],
-          'correct' => ($mq->fraction[$index] == 1), // TODO support fractional credit
-          'result_option' => '0', // No support for personality.
+          'answer_format' => $form_state['values']['input_format'],
+          'feedback_if_chosen' => $mq->feedback[$index],
+          'feedback_if_chosen_format' => $mq->feedback[$index],
+          'feedback_if_not_chosen' => '',
+          'feedback_if_not_chosen_format' => $mq->feedback[$index],
+          'score_if_chosen' => $mq->fraction[$index],
+          'score_if_not_chosen' => 0,
         );
       }
       break;
   }
-  //node_save($node);
+
   node_save(questions_import_node_save_static_data($node));
 
   db_query("INSERT INTO {quiz_questions_import_items} VALUES (%d, %d, %d)", $import_id, $node->nid, $row);
