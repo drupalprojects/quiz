@@ -684,13 +684,9 @@ function multichoice_view($node, $teaser = FALSE, $page = FALSE) {
     //$mynode = node_prepare($node, $teaser);
     $node->content['body'] = array('#value' => multichoice_render_question($node));
     return $node;
-  }
-  elseif ($teaser) {
+  } else {
     $node = node_prepare($node, $teaser);
     return $node;
-  }
-  else {
-    drupal_access_denied();
   }
 }
 
