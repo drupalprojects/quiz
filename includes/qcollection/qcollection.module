@@ -99,10 +99,9 @@ function qcollection_menu() {
   'title' => t('Export as quiz'),
     'page callback' => 'qcollection_export_quiz',
     'page arguments' => array(1),
-  // FIXME: This needs to check to see if the user owns the qcollection.
-    'access callback' => 'node_access',
-    'access arguments' => array('update', 1),
-    'type' => MENU_CALLBACK,
+    'access callback' => 'user_access',
+    'access arguments' => array('create quiz'),
+    'type' => MENU_LOCAL_TASK,
     'file' => 'qcollection.inc',
   );
 
@@ -143,6 +142,7 @@ function qcollection_theme() {
  */
 function qcollection_type_access_load($arg) {
   // Simple verification/load of the node.
+//  ddebug_backtrace();
   return (($node = node_load($arg)) && $node->type == 'qcollection') ? $node : FALSE;
 }
 
@@ -180,10 +180,12 @@ function qcollection_view($node, $teaser = FALSE, $page = FALSE, $links = TRUE) 
     );
   }
 
-  $node->content['export-quiz'] = array(
-    '#value' => l(t('Export as quiz'), 'node/'. $collection_nid .'/export-quiz/'),
-    '#weight' => 2,
-  );
+  if (user_access('create quiz')) {
+    $node->content['export-quiz'] = array(
+      '#value' => l(t('Export as quiz'), 'node/'. $collection_nid .'/export-quiz'),
+      '#weight' => 2,
+    );
+  }
 
   return $node;
 }
