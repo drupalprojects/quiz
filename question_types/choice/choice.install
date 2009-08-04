@@ -162,7 +162,8 @@ function choice_update_6401() {
 }
 function choice_update_6402() {
   $status = array();
-  db_change_column($status, 'quiz_choice_properties', 'multi', 'choice_multi');
+  db_change_field($status, 'quiz_choice_properties', 'multi', 'choice_multi');
+  return $status;
 }
 
 /**
