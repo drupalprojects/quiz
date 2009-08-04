@@ -20,7 +20,6 @@
  */
 
 /*
- * @todo: Ajax to add more alternatives?
  * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
  * WHEN: This module is good enough to take over
  * REMEMBER: Also move all user answers
@@ -29,10 +28,6 @@
  * TODO: Make the entire alternative clickable in student view.
  * TODO: Ajax answer removal
  * TODO: Fjerne input formatene.
- * TODO: Må slutte å bruke forløkka for å lagre ting...
- * TODO: Remove error messages from ahah.
- * @todo: Be able to have max score in quizzes.
->>>>>>> 1.1.2.15
  */
 
 /**
