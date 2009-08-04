@@ -268,7 +268,6 @@ class ChoiceQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
     $options = array();
 
-    drupal_add_css(drupal_get_path('module', 'choice') .'/theme/choice.css', 'module', 'all');
     $display_object = menu_get_object();
     $taking_quiz = $display_object->type == 'quiz';
     for ($i = 0; is_array($node->alternatives[$i]); $i++) {

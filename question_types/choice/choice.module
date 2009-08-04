@@ -60,6 +60,7 @@ function choice_theme($existing, $type, $theme, $path) {
       'arguments' => array(
         'form' => NULL,
       ),
+      'path' => drupal_get_path('module', 'choice') .'/theme',
       'file' => 'choice.theme.inc',
     ),
     'choice_alternative_creation' => array(

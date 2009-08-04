@@ -11,6 +11,7 @@
 
 ?>
 <?php 
+drupal_add_css(drupal_get_path('module', 'choice') .'/theme/choice.css', 'module', 'all');
 $options = $form['#options'];
 $fullOptions = array();
 $titles = array();
