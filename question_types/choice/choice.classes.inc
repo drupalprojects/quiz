@@ -25,6 +25,9 @@
  * REMEMBER: Also move all user answers
  *
  * @todo: Be able to have max score in quizes.
+ * 
+ * @todo: Make a simplified alternative way to view the creation form?
+ * 
  * TODO: Make the entire alternative clickable in student view.
  * TODO: Ajax answer removal
  * TODO: Fjerne input formatene.
@@ -266,33 +269,29 @@ class ChoiceQuestion implements QuizQuestion {
    */
 
   public function getQuestionForm($node, $context = NULL) {
-    $options = array();
-
-    $display_object = menu_get_object();
-    $taking_quiz = $display_object->type == 'quiz';
-    for ($i = 0; is_array($node->alternatives[$i]); $i++) {
-      $short = $node->alternatives[$i];
-      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $markup = check_markup($short['answer'].$add, $short['answer_format']);
-        if (! $taking_quiz) {
-          // displaying outside a quiz-taking context
-          $is_correct = $short['score_if_chosen'] > $short['score_if_not_chosen'];
-          if ($is_correct)
-            $markup = '<div class="quiz_choice_answer_correct">'.$markup.'</span>';
-        }
-        $options[$short['id']] = $markup;
-      }
-    }
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($node->body, $node->format, FALSE),
     );
     $form['tries'] = array(
-      '#type' => $type,
-      '#options' => $options,
+      '#options' => array(),
       '#theme' => 'choice_alternative',
     );
-
+    $display_object = menu_get_object();
+    $form['tries']['#taking_quiz'] = ($display_object->type == 'quiz');
+    $form['tries']['#correct_choice'] = array();
+    for ($i = 0; is_array($node->alternatives[$i]); $i++) {
+      $short = $node->alternatives[$i];
+      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
+        $markup = check_markup($short['answer'], $short['answer_format']);
+        if (! $form['taking_quiz']) {
+          // displaying outside a quiz-taking context
+          $is_correct = $short['score_if_chosen'] > $short['score_if_not_chosen'];
+          $form['tries']['#correct_choice'][$short['id']] = $is_correct;
+        }
+        $form['tries']['#options'][$short['id']] = $markup;
+      }
+    }
     if ($node->choice_multi) {
       $form['tries']['#type'] = 'checkboxes';
       $form['tries']['#title'] = t('Choose');
@@ -301,7 +300,7 @@ class ChoiceQuestion implements QuizQuestion {
       $form['tries']['#title'] = t('Choose one');
     }
 
-    if (!$taking_quiz) {
+    if (!$form['tries']['#taking_quiz']) {
       unset($form['tries']['#title']);
       $form['tries']['#disabled'] = TRUE;
     }
