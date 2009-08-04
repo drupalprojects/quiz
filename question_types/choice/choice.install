@@ -162,7 +162,13 @@ function choice_update_6401() {
 }
 function choice_update_6402() {
   $status = array();
-  db_change_field($status, 'quiz_choice_properties', 'multi', 'choice_multi');
+  $definition = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_change_field($status, 'quiz_choice_properties', 'multi', 'choice_multi', $definition);
   return $status;
 }
 
