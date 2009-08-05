@@ -98,7 +98,7 @@ class MatchingQuestion implements QuizQuestion {
         '#options' => $this->customShuffle($select_option),
       );
     }
-    return $this->customShuffle($form);
+    return variable_get('quiz_matching_shuffle_options', TRUE) ? $this->customShuffle($form) : $form;
   }
 
   public function customShuffle($array = array()) {
@@ -140,6 +140,12 @@ class MatchingQuestion implements QuizQuestion {
       '#title' => t('Match Question Size'),
       '#description' => t('Number of question allowed to wrap under a match type question.'),
       '#default_value' => variable_get('quiz_matching_form_size', 5),
+    );
+    $form['matching']['quiz_matching_shuffle_options'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Shuffle Matching Options'),
+      '#default_value' => variable_get('quiz_matching_shuffle_options', TRUE),
+      '#description' => t('If checked matching options will be shuffled'),
     );
     return system_settings_form($form);
   }
