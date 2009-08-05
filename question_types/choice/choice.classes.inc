@@ -28,9 +28,9 @@
  * 
  * @todo: Make a simplified alternative way to view the creation form?
  * 
- * @todo: Experiment with wysiwyg toggling...
- * 
- * TODO: Fjerne input formatene.
+ * TODO: Show alternatives in random order(and make it optional)
+ * TODO: Make it possible to have old scoring model enabled
+ * TODO: Convert to multichoice
  */
 
 /**

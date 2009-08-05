@@ -1,4 +1,9 @@
-$(document).ready(function() {
+// $Id$
+/**
+ * @file
+ * JS enabling the quiz taker to click anywhere in a table row to mark a checkbox/radio button.
+ */
+Drupal.behaviors.choiceAlternativeBehavior = function(context) {
   $('.choice_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
@@ -12,9 +17,8 @@ $(document).ready(function() {
       $(':radio', this).attr('checked', true);
       if ($(':radio', this).html() != null) {
         $('.choice_row').removeClass('selected');
-    	$(this).addClass('selected');
+    	  $(this).addClass('selected');
       }
     }
   });
-});
-
+};
