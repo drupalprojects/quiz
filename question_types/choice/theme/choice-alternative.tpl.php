@@ -13,7 +13,7 @@
 <?php 
 $p = drupal_get_path('module', 'choice');
 drupal_add_css($p .'/theme/choice.css', 'module', 'all');
-if ($form['#taking_quiz']) drupal_add_js($p .'/theme/choice_taking.js', 'module');
+if ($form['#taking_quiz']) drupal_add_js($p .'/theme/choice-alternative.js', 'module');
 $options = $form['#options'];
 $fullOptions = array();
 $titles = array();
