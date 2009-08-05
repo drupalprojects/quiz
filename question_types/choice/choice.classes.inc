@@ -28,8 +28,8 @@
  * 
  * @todo: Make a simplified alternative way to view the creation form?
  * 
- * TODO: Make the entire alternative clickable in student view.
- * TODO: Ajax answer removal
+ * @todo: Experiment with wysiwyg toggling...
+ * 
  * TODO: Fjerne input formatene.
  */
 
