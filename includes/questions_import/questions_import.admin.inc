@@ -36,7 +36,7 @@ function questions_import_form()  {
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
   $form['quiz_destination'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Question destination'),
+    '#title' => t('Questions destination'),
     '#collapse' => FALSE,
   );
   $form['quiz_destination']['destination_type'] = array(
@@ -54,15 +54,17 @@ function questions_import_form()  {
     '#size' => 30,
     '#required' => TRUE,
   );
+  $options = quiz_get_all_quiz_title();
+  // $options is an array with nid as index and quiz node's title as value
   $form['quiz_destination']['quiz_node'] = array(
     '#type' => 'select',
     '#title' => t('Existing quiz'),
-    '#options' => quiz_get_all_quiz_title(),
-    '#description' => t('Select the quiz node under which you want to add questions'),
+    '#options' => $options,
+    '#description' => count($options) ? t('Select the quiz node under which you want to add questions') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Question source'),
+    '#title' => t('Questions source'),
     '#description' => t('Questions import module allows the user with role "quiz author" to create a bulk of questions from portable text file (like CSV, XML etc) where questions are defined in some predefined format.'),
     '#collapse' => TRUE,
     '#collapsed' => FALSE,
@@ -150,6 +152,7 @@ function questions_import_type() {
  * Implementation of hook_validate()
  */
 function questions_import_form_validate($form, &$form_state) {
+
   // TODO make the allowed extensions depend on the import type
   $allowed_extensions = 'csv txt xml jcl jqz';
 
