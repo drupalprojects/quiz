@@ -95,15 +95,12 @@ class ShortAnswerQuestion implements QuizQuestion {
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
 
-    $display_object = menu_get_object();
-
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($node->body, $node->format, FALSE),
     );
 
-    switch ($display_object->type) {
-      case 'quiz':
+    if (_quiz_is_taking_context()) {
         $form['tries'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
@@ -113,15 +110,13 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
         );
-        break;
-      default:
-        if (user_access('view quiz question solutions')) {
-          $form['tries'] = array('#type' => 'markup',
-            // FIXME hack should use CSS instead, maybe across all quiz_question.module
-          	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $node->correct_answer)),
-          );
-        } // else case handled in quiz_question.module
-        break;
+    } else {
+      if (user_access('view quiz question solutions')) {
+        $form['tries'] = array('#type' => 'markup',
+          // FIXME hack should use CSS instead, maybe across all quiz_question.module
+      	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $node->correct_answer)),
+        );
+      } // else case handled in quiz_question.module
     }
     return $form;
   }

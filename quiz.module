@@ -2720,7 +2720,7 @@ function quiz_cron() {
   }
 }
 
-/*
+/**
  * @return
  *  This function returns an array of quiz nodes title with nid ndex.
  */
@@ -2735,7 +2735,7 @@ function quiz_get_all_quiz_title() {
 }
 
 
-/*
+/**
  * @return
  *  This function returns a list of question types based on $op value
  */
@@ -2765,4 +2765,13 @@ function quiz_get_questions_type($op = 'enabled') {
     $list['quiz_question'] = 'true_false';
   }
   return $list;
+}
+
+function _quiz_is_taking_context() {
+  $display_object = menu_get_object();
+  // in the AJAX Quiz there is no display object
+  if (empty($display_object)) return true;
+  if ($display_object->type == 'quiz') return true;
+  // otherwise not quiz-taking
+  return false;
 }

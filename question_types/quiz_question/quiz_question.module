@@ -222,56 +222,49 @@ function quiz_question_validate($node, &$form) {
 function quiz_question_question_form($context, $node) {
   $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
 
-  $display_object = menu_get_object();
+  if (_quiz_is_taking_context()) {
+    $quiz = menu_get_object();
 
-  switch ($display_object->type) {
-    case 'quiz':
-      $quiz = $display_object;
-
-      if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
-        $form['back'] = array(
+    if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
+      $form['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
-        );
-      }
+      );
+    }
 
-      // Add navigation at the bottom:
-      // Submit button
-      $form['submit'] = array(
+    // Add navigation at the bottom:
+    // Submit button
+    $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
-      );
+    );
 
-      /* TODO is skipping supporting?
-       if (empty($node->no_skip_button)) {
-       $form['op']  = array(
-       '#type' => 'submit',
-       '#value' => t('Skip'),
-       );
-       }
-       */
+    /* TODO is skipping supporting?
+     if (empty($node->no_skip_button)) {
+     $form['op']  = array(
+     '#type' => 'submit',
+     '#value' => t('Skip'),
+     );
+     }
+     */
 
-      break;
-    default:
-      // reconstruct form so type is first (at top)
-      // TODO is there a better way?  like unshift an assoc tuple?
-      $type = node_get_types('type', $node);
-      $newform['question_type'] = array(
+  } else {
+    // reconstruct form so type is first (at top)
+    // TODO is there a better way?  like unshift an assoc tuple?
+    $type = node_get_types('type', $node);
+    $newform['question_type'] = array(
         '#type'  => 'markup',
-        '#value' => '<div class="question_type_name">'.$type->name.'</div>'
-        );
-        $newform += $form;
-        $form = $newform;
+        '#value' => '<div class="question_type_name">'.$type->name.'</div>',
+    );
+    $newform += $form;
+    $form = $newform;
 
-        if (!user_access('view quiz question solutions')) {
-          $form['tries'] = array(
+    if (!user_access('view quiz question solutions')) {
+      $form['tries'] = array(
           '#type'  => 'markup',
           '#value' => '<br /> <em>Answers hidden</em>.'
           );
-        }
-        break;
-
-        // nothing
+    }
   }
 
   return $form;

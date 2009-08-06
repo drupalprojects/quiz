@@ -713,7 +713,7 @@ function multichoice_render_question_form($context, $node) {
     $type = 'checkboxes';
   }
 
-  $display_object = menu_get_object();
+  $taking_quiz = _quiz_is_taking_context();
 
   // Get options.
   $options = array();
@@ -728,7 +728,7 @@ function multichoice_render_question_form($context, $node) {
         // We are probably in a preview. Generate fake answer IDs. Later we will disabled submit, too.
         $answer['answer_id'] = ++$fake_answer_id;
       }
-      if ($display_object->type != 'quiz' && $answer['is_correct'] == 1) {
+      if (!$taking_quiz && $answer['is_correct'] == 1) {
         $options[$answer['answer_id']] = '<span class="multichoice_answer_correct">'. check_markup($answer['answer'], $node->format, FALSE) .' <strong>(correct)</strong></span>';
       }
       else {
@@ -747,34 +747,33 @@ function multichoice_render_question_form($context, $node) {
   );
 
 
-  switch ($display_object->type) {
-    case 'quiz':
-      // Find out if there is already an answer (e.g. if Back has been clicked).
-      // If there is an answer or answers, then put this into the $form['tries']
-      // field.
-      $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
-      $answers = _multichoice_get_response_answers($node, $rid);
-      if (count($answers) > 0) {
-        if ($type == 'radios') { // Only one for radio
-          $form['tries']['#default_value'] = $answers[0];
-        }
-        elseif ($type == 'checkboxes') { // Array for checkboxes
-          $form['tries']['#default_value'] = $answers;
-        }
+  if ($taking_quiz) {
+    // Find out if there is already an answer (e.g. if Back has been clicked).
+    // If there is an answer or answers, then put this into the $form['tries']
+    // field.
+    $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
+    $answers = _multichoice_get_response_answers($node, $rid);
+    if (count($answers) > 0) {
+      if ($type == 'radios') { // Only one for radio
+        $form['tries']['#default_value'] = $answers[0];
       }
+      elseif ($type == 'checkboxes') { // Array for checkboxes
+        $form['tries']['#default_value'] = $answers;
+      }
+    }
 
-      // Print a back button if necessary.
-      if ($quiz->backwards_navigation == 1 && $node->question_number) {
-        $form['back'] = array(
+    // Print a back button if necessary.
+    if ($quiz->backwards_navigation == 1 && $node->question_number) {
+      $form['back'] = array(
         '#type' => 'submit',
         '#value' => t('Back'),
-        );
-      }
+      );
+    }
 
-      $form['submit'] = array(
+    $form['submit'] = array(
         '#type' => 'submit',
         '#value' => t('Next'),
-      );
+    );
 
       /* TODO should this be deleted?
        $form['op'] = array(
@@ -782,24 +781,23 @@ function multichoice_render_question_form($context, $node) {
        '#value' => t('Skip'),
        );
        */
-      break;
-    default:
-      // reconstruct form so type is first (at top)
-      // TODO is there a better way?  like unshift an assoc tuple?
-      $type = node_get_types('type', $node);
-      $newform['question_type'] = array(
+  } else {
+    // reconstruct form so type is first (at top)
+    // TODO is there a better way?  like unshift an assoc tuple?
+    $type = node_get_types('type', $node);
+    $newform['question_type'] = array(
         '#type'  => 'markup',
-        '#value' => '<div class="question_type_name">'.$type->name.'</div>'
-      );
-      $newform += $form;
-      $form = $newform;
+        '#value' => '<div class="question_type_name">'.$type->name.'</div>',
+    );
+    $newform += $form;
+    $form = $newform;
 
-      if (user_access('view quiz question solutions')) {
-        // not in quiz context so no ability to process answer
-        $form['tries']['#disabled'] = TRUE;
-      } else {
-        $form['tries'] = array('#type' => 'markup', '#value' => '<em>Answers hidden</em>.');
-      }
+    if (user_access('view quiz question solutions')) {
+      // not in quiz context so no ability to process answer
+      $form['tries']['#disabled'] = TRUE;
+    } else {
+      $form['tries'] = array('#type' => 'markup', '#value' => '<em>Answers hidden</em>.');
+    }
   }
 
   if ($fake_answer_id > 0) {

@@ -25,9 +25,9 @@
  * REMEMBER: Also move all user answers
  *
  * @todo: Be able to have max score in quizes.
- * 
+ *
  * @todo: Make a simplified alternative way to view the creation form?
- * 
+ *
  * TODO: Show alternatives in random order(and make it optional)
  * TODO: Make it possible to have old scoring model enabled
  * TODO: Convert to multichoice
@@ -164,7 +164,7 @@ class ChoiceQuestion implements QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate($node, &$form) { 
+  public function validate($node, &$form) {
     if ($node->choice_multi == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
@@ -173,7 +173,7 @@ class ChoiceQuestion implements QuizQuestion {
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
             form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
-          } 
+          }
           else {
             $found_one_correct = TRUE;
           }
@@ -233,11 +233,11 @@ class ChoiceQuestion implements QuizQuestion {
    */
   public function load() {
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
-            FROM {quiz_choice_properties} 
+            FROM {quiz_choice_properties}
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $to_return = db_fetch_array($res);
-    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
+    $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_choice_answer}
             WHERE question_nid = %d AND question_vid = %d';
@@ -245,7 +245,7 @@ class ChoiceQuestion implements QuizQuestion {
     $counter = 0;
     while($res_arr = db_fetch_array($res)){
       $to_return['alternatives'][$counter] = $res_arr;
-      $counter++; 
+      $counter++;
 
     }
     return $to_return;
@@ -276,8 +276,7 @@ class ChoiceQuestion implements QuizQuestion {
       '#options' => array(),
       '#theme' => 'choice_alternative',
     );
-    $display_object = menu_get_object();
-    $form['tries[answer]']['#taking_quiz'] = ($display_object->type == 'quiz');
+    $form['tries[answer]']['#taking_quiz'] = _quiz_is_taking_context();
     $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($node->alternatives[$i]); $i++) {
       $short = $node->alternatives[$i];
@@ -311,7 +310,7 @@ class ChoiceQuestion implements QuizQuestion {
     }
     return $form;
   }
-  
+
   private function shuffle(&$array) {
     $newArray = array();
     $toReturn = array_keys($array);
@@ -384,7 +383,7 @@ class ChoiceQuestion implements QuizQuestion {
       '#default_value' => $this->node->choice_boolean,
       '#parents' => array('choice_boolean'),
     );
-    
+
     $form['alternatives']['#theme'][] = 'choice_creation_form';
     $i = 0;
     if (isset($form_state['choice_count'])) {
@@ -408,7 +407,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
         '#attributes' => array('onchange' => 'refreshScores(this)'),
       );
-      
+
       $form['alternatives'][$i]['id'] = array(
         '#type' => 'value',
         '#value' => $short['id'],
@@ -420,7 +419,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#required' => $i < 2,
       );
 
-      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i,'answer_format'));      
+      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i,'answer_format'));
       $form['alternatives'][$i]['advanced'] = array(
         '#type' => 'fieldset',
         '#title' => t('Advanced options'),
@@ -629,7 +628,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $row = array();         
+        $row = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'choice');
         $rowspan = 1;
@@ -681,7 +680,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
   }
   private function orderAlternatives(&$alternatives) {
     if (!$this->question->choice_random) return;
-    $sql = "SELECT choice_order 
+    $sql = "SELECT choice_order
             FROM {quiz_choice_user_answers}
             WHERE result_id = %d AND nid = %d AND vid = %d";
     $res = db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
