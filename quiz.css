@@ -83,11 +83,6 @@ div.multichoice_answer_incorrect {
   text-align: right;
 }
 
-
 .multichoice_answer_correct {
-	background-color: green;
-}
-
-.multichoice_answer_text {
-	background-color: pink;
+	background-color: lightgreen;
 }
