@@ -11,7 +11,10 @@ define('QUIZ_QUESTIONS_UPLOAD_ARCHIVE_PATH', 'quiz_questions_import_archive');
 
 module_load_include('php', 'quiz', 'includes/moodle_support');
 
-
+/*
+ * @function
+ * Generates link to view sample import files.
+ */
 function questions_import_get_sample_file_link() {
   $path = drupal_get_path('module', 'questions_import') .'/examples/';
   return array(
@@ -346,6 +349,7 @@ function _get_destination_node($form_state) {
  *
  */
 function questions_import_form_submit(&$form, &$form_state) {
+
   $time = 0;
   $op = '';
 
@@ -383,7 +387,14 @@ function questions_import_form_submit(&$form, &$form_state) {
   $time =  substr($end - $start, 0, 6);
   if ($count) {
     drupal_set_message(t('@count questions were imported successfully in @time seconds.', array('@count' => $count, '@time' => $time)));
-    drupal_goto('node/' . $destination_node->nid);
+    /*
+     * when the questions destination is "new_quiz" questions importer will
+     * create a quiz node by itself whose properties were not defined properly.
+     * so redirecting the quiz author to quiz node/$nid/edit page
+     * where he/she can set the quiz node properties.
+     */
+    $url = ($form_state['values']['destination_type'] == 'new_quiz') ? "node/$destination_node->nid/edit" : "node/$destination_node->nid";
+    drupal_goto($url);
   }
   return $count;
 }
