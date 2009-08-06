@@ -476,16 +476,16 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
       $node->maximum_score = $mq->defaultgrade;
       break;
 
-    case 'multichoice':
+    case 'multichoice': // Moodle name for our 'choice'
       $node->alternatives = array();
 
       // whether user can make multiple selections
-      $node->alternatives['multi'] = ! $mq->single;
+      $node->choice_multi = ! $mq->single;
 
       // Add answer alternatives
       foreach ($mq->answer as $index => $answer) {
         // choice module has weird keys for array
-        $node->alternatives["alternative$index"] = array(
+        $node->alternatives[] = array(
           // answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
           // feedback_if_not_chosen, feedback_if_not_chosen_format,
           // score_if_chosen, score_if_not_chosen
