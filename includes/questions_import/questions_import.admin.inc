@@ -1,7 +1,7 @@
 <?php
 // $Id$
 
-/*
+/**
  * @file
  * Administration file for Questions Import module
  *
@@ -11,7 +11,7 @@ define('QUIZ_QUESTIONS_UPLOAD_ARCHIVE_PATH', 'quiz_questions_import_archive');
 
 module_load_include('php', 'quiz', 'includes/moodle_support');
 
-/*
+/**
  * @function
  * Generates link to view sample import files.
  */
@@ -26,16 +26,16 @@ function questions_import_get_sample_file_link() {
   );
 }
 
-/*
+/**
+ * @function
  * Implementation of hook_form
  * form to upload questions
+ * @return
+ * FAPI form array
  */
 
 function questions_import_form()  {
-  // Add JS and CSS for show/hide the CVS field input
-  drupal_add_js(drupal_get_path('module', 'questions_import') .'/questions_import.js');
-  drupal_add_css(drupal_get_path('module', 'questions_import') .'/questions_import.css', 'theme');
-
+  // hook_init() includes the CSS and JS to create hide/show effect in form.
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
   $form['quiz_destination'] = array(
     '#type' => 'fieldset',
@@ -93,7 +93,6 @@ function questions_import_form()  {
     '#size' => 30,
     '#description' => t('Upload the file that has quiz questions'),
   );
-
   $form['advanced'] = array(
     '#type' => 'fieldset',
     '#title' => t('Advanced'),
@@ -126,7 +125,7 @@ function questions_import_form()  {
   return $form;
 }
 
-/*
+/**
  * @return
  * This function is intended to return a list of supported formats for import
  */
@@ -150,8 +149,7 @@ function questions_import_type() {
   return $type;
 }
 
-/*
- *
+/**
  * Implementation of hook_validate()
  */
 function questions_import_form_validate($form, &$form_state) {
@@ -221,7 +219,7 @@ function questions_import_form_validate($form, &$form_state) {
   }
 }
 
-/*
+/**
  * @function
  * This function checks whether the Question and Test Interoperability (QTI) XML
  * file is in proper format or not.
@@ -237,7 +235,7 @@ function questions_import_validate_qti12($file, $field_separator, $question_type
 }
 
 
-/*
+/**
  * @function
  * This function checks whether the aiken import file is in proper format or not.
  *
@@ -281,7 +279,7 @@ function questions_import_validate_aiken($file, $separator) {
    */
 }
 
-/*
+/**
  * @function
  * This function checks whether the csv import file is in proper format or not.
  */
@@ -314,6 +312,12 @@ function questions_import_validate_csv($file, $separator) {
   return $error_msg;
 }
 
+/**
+ * @function
+ * gets the destination node to import quiz questions.
+ * @return
+ * quiz node object to which questions has to be imported.
+ */
 function _get_destination_node($form_state) {
   global $user;
 
@@ -325,7 +329,7 @@ function _get_destination_node($form_state) {
   }
 
   else {
-    // make a new node
+    // create a new node
     $title = $form_state['values']['destination_title'];
     list($tmp, $new_type) = explode('_', $destination_type);
 
@@ -344,9 +348,11 @@ function _get_destination_node($form_state) {
 }
 
 /**
+ * @function
  * This is a generic questions import submit calls specific import function like
  * questions_import_submit_csv, questions_import_submit_multichoice_aiken
- *
+ * @return
+ * integer number of questions imported to a quiz node.
  */
 function questions_import_form_submit(&$form, &$form_state) {
 
@@ -389,7 +395,7 @@ function questions_import_form_submit(&$form, &$form_state) {
     drupal_set_message(t('@count questions were imported successfully in @time seconds.', array('@count' => $count, '@time' => $time)));
     /*
      * when the questions destination is "new_quiz" questions importer will
-     * create a quiz node by itself whose properties were not defined properly.
+     * create a quiz node by itself, whose properties were not defined properly.
      * so redirecting the quiz author to quiz node/$nid/edit page
      * where he/she can set the quiz node properties.
      */
@@ -658,6 +664,7 @@ function questions_import_qti_extract_info($file) {
 }
 
 /**
+ * @function
  * This function imports questions from Moodle Aiken format file.
  * @return
  * Return the number of questions successfully imported.
@@ -783,6 +790,7 @@ function questions_import_get_next_aiken_field(&$row) {
 }
 
 /**
+ * @function
  * This function imports multichoice questions from CSV file.
  * @param $lines
  *  It contains the whole csv file content.
@@ -896,9 +904,10 @@ function questions_import_get_next_csv_field(&$row) {
 }
 
 /**
- * This function sets the static data pertaining to $node object
+ * @function
+ * This function sets the static data pertaining to node object
  * @return
- * Return a node object
+ * a quiz node object
  */
 function questions_import_node_save_static_data(&$node) {
   global $user;
@@ -921,6 +930,7 @@ function questions_import_node_save_static_data(&$node) {
 }
 
 /**
+ * @function
  * Checks the extension of import file.
  * @return
  * Return error message if the import file extension is not in $extensions array.
@@ -940,7 +950,8 @@ function question_import_validate_extensions($file, $extensions) {
 }
 
 
-/*
+/**
+ * @function
  * Checks the size of import file.
  * @return
  * Return error message if file size exceed maximum file size or disk quota of user.
