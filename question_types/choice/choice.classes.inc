@@ -92,9 +92,9 @@ class ChoiceQuestion implements QuizQuestion {
     $this->forgive();
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_choice_properties}
-        (nid, vid, choice_multi)
-        VALUES (%d, %d, %d)';
-      db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi);
+        (nid, vid, choice_multi, choice_random, choice_boolean)
+        VALUES (%d, %d, %d, %d, %d)';
+      db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         if (strlen(strip_tags($this->node->alternatives[$i]['answer'])) > 0) {
           $this->insertAlternative($i);
@@ -103,9 +103,9 @@ class ChoiceQuestion implements QuizQuestion {
     }
     else {
       $sql = 'UPDATE {quiz_choice_properties}
-        SET choice_multi = %d
+        SET choice_multi = %d, choice_random = %d, choice_boolean = %d
         WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->node->choice_multi, $this->node->nid, $this->node->vid);
+      db_query($sql, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean, $this->node->nid, $this->node->vid);
       $sql = 'SELECT id FROM {quiz_choice_answer}
               WHERE question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
@@ -232,12 +232,11 @@ class ChoiceQuestion implements QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function load() {
-    $to_return = array();
-    $sql = 'SELECT choice_multi
+    $sql = 'SELECT choice_multi, choice_random, choice_boolean
             FROM {quiz_choice_properties} 
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $to_return['choice_multi'] = db_fetch_object($res)->choice_multi;
+    $to_return = db_fetch_array($res);
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format, 
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_choice_answer}
@@ -273,41 +272,56 @@ class ChoiceQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => check_markup($node->body, $node->format, FALSE),
     );
-    $form['tries'] = array(
+    $form['tries[answer]'] = array(
       '#options' => array(),
       '#theme' => 'choice_alternative',
     );
     $display_object = menu_get_object();
-    $form['tries']['#taking_quiz'] = ($display_object->type == 'quiz');
-    $form['tries']['#correct_choice'] = array();
+    $form['tries[answer]']['#taking_quiz'] = ($display_object->type == 'quiz');
+    $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($node->alternatives[$i]); $i++) {
       $short = $node->alternatives[$i];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
         $markup = check_markup($short['answer'], $short['answer_format']);
-        if (! $form['taking_quiz']) {
+        if (! $form['tries[answer]']['#taking_quiz']) {
           // displaying outside a quiz-taking context
           $is_correct = $short['score_if_chosen'] > $short['score_if_not_chosen'];
-          $form['tries']['#correct_choice'][$short['id']] = $is_correct;
+          $form['tries[answer]']['#correct_choice'][$short['id']] = $is_correct;
         }
-        $form['tries']['#options'][$short['id']] = $markup;
+        $form['tries[answer]']['#options'][$short['id']] = $markup;
       }
     }
+    if ($node->choice_random) {
+      $form['tries[choice_order]'] = array(
+        '#type' => 'hidden',
+        '#value' => implode(',',$this->shuffle($form['tries[answer]']['#options'])),
+      );
+    }
     if ($node->choice_multi) {
-      $form['tries']['#type'] = 'checkboxes';
-      $form['tries']['#title'] = t('Choose');
+      $form['tries[answer]']['#type'] = 'checkboxes';
+      $form['tries[answer]']['#title'] = t('Choose');
     } else {
-      $form['tries']['#type'] = 'radios';
-      $form['tries']['#title'] = t('Choose one');
+      $form['tries[answer]']['#type'] = 'radios';
+      $form['tries[answer]']['#title'] = t('Choose one');
     }
 
-    if (!$form['tries']['#taking_quiz']) {
-      unset($form['tries']['#title']);
-      $form['tries']['#disabled'] = TRUE;
+    if (!$form['tries[answer]']['#taking_quiz']) {
+      unset($form['tries[answer]']['#title']);
+      $form['tries[answer]']['#disabled'] = TRUE;
     }
-
     return $form;
   }
-
+  
+  private function shuffle(&$array) {
+    $newArray = array();
+    $toReturn = array_keys($array);
+    shuffle($toReturn);
+    foreach($toReturn as $key) {
+      $newArray[$key] = $array[$key];
+    }
+    $array = $newArray;
+    return $toReturn;
+  }
   /**
    * Implementation of getAdminForm
    *
@@ -343,13 +357,34 @@ class ChoiceQuestion implements QuizQuestion {
       '#collapsed' => FALSE,
       '#tree' => TRUE,
     );
-    $form['alternatives']['choice_multi'] = array(
+    $form['alternatives']['settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['alternatives']['settings']['choice_multi'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Allow multiple answers'),
-      '#description' => t('I this box is checked any number of answers are allowed. If not, one, and only one answer is allowed.'),
+      '#title' => t('Multiple answers'),
+      '#description' => t('Allow any number of answers. If this box is not checked, one, and only one answer is allowed.'),
       '#default_value' => $this->node->choice_multi,
       '#parents' => array('choice_multi'),
     );
+    $form['alternatives']['settings']['choice_random'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Random order'),
+      '#description' => t('Present alternatives in random order when quiz is beeing taken.'),
+      '#default_value' => $this->node->choice_random,
+      '#parents' => array('choice_random'),
+    );
+    $form['alternatives']['settings']['choice_boolean'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Simple scoring'),
+      '#description' => t('Give one point if everything is correct. Zero points otherwise.'),
+      '#default_value' => $this->node->choice_boolean,
+      '#parents' => array('choice_boolean'),
+    );
+    
     $form['alternatives']['#theme'][] = 'choice_creation_form';
     $i = 0;
     if (isset($form_state['choice_count'])) {
@@ -486,6 +521,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * ID of the answers.
    */
   protected $user_answer_ids;
+  protected $choice_order;
 
   /**
    * Constructor
@@ -494,14 +530,16 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * @param $question - as an object
    * @param $answer - answer_id
    */
-  public function __construct($rid, $question, $user_answer_ids = NULL) {
+  public function __construct($rid, $question, $tries = NULL) {
     $this->rid = $rid;
     $this->question = $question;
     $this->user_answer_ids = array();
-    if (is_array($user_answer_ids)) {
-      foreach ($user_answer_ids as $answer_id) $this->user_answer_ids[] = $answer_id;
+    if (is_array($tries)) {
+      $this->choice_order = $tries['choice_order'];
+      unset($tries['choice_order']);
+      foreach (explode(',', $tries['answer']) as $answer_id) $this->user_answer_ids[] = $answer_id;
     }
-    elseif (isset($user_answer_ids)) $this->user_answer_ids[] = $user_answer_ids;
+    elseif (isset($tries['answer'])) $this->user_answer_ids[] = $tries;
     else {
       $sql = 'SELECT answer_id
               FROM {quiz_choice_user_answer_multi} uam
@@ -519,9 +557,9 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    */
   public function save() {
     $sql = "INSERT INTO {quiz_choice_user_answers}
-            (result_id, vid, nid)
-            VALUES (%d, %d, %d)";
-    db_query($sql, $this->rid, $this->question->vid, $this->question->nid);
+            (result_id, vid, nid, choice_order)
+            VALUES (%d, %d, %d, '%s')";
+    db_query($sql, $this->rid, $this->question->vid, $this->question->nid, $this->choice_order);
     $user_answer_id = db_last_insert_id('{quiz_choice_user_answers}', 'id');
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
       $sql = 'INSERT INTO {quiz_choice_user_answer_multi}
@@ -587,6 +625,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     $result = '<div class="quiz_answer_feedback">';
     $result .= '<H4>'. t('Alternatives'). ':</H4>';
     $i = 0;
+    $this->orderAlternatives($this->question->alternatives);
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
@@ -639,5 +678,24 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     $result .= '</div>';
 
     return $slug . $result;
+  }
+  private function orderAlternatives(&$alternatives) {
+    if (!$this->question->choice_random) return;
+    $sql = "SELECT choice_order 
+            FROM {quiz_choice_user_answers}
+            WHERE result_id = %d AND nid = %d AND vid = %d";
+    $res = db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
+    $order = explode(',', db_result($res));
+    $newAlternatives = array();
+    foreach ($order as $value) {
+      foreach ($alternatives as $alternative) {
+        if ($alternative['id'] == $value) {
+          $newAlternatives[] = $alternative;
+          break;
+        }
+      }
+    }
+    dpm($alternatives);
+    $alternatives = $newAlternatives;
   }
 }

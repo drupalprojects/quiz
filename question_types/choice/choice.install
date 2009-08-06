@@ -44,6 +44,9 @@ function choice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE, 
       ),
+      'choice_order' => array(
+        'type' => 'text',
+      ),
     ),
     'primary key' => array(
       'id'
@@ -89,7 +92,19 @@ function choice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
-      ),      
+      ),
+      'choice_random' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'choice_boolean' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array(
       'nid', 'vid'
@@ -169,6 +184,19 @@ function choice_update_6402() {
     'default' => 0,
   );
   db_change_field($status, 'quiz_choice_properties', 'multi', 'choice_multi', $definition);
+  return $status;
+}
+function choice_update_6403() {
+  $status = array();
+  $definition = array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field($status, 'quiz_choice_properties', 'choice_random', $definition);
+  db_add_field($status, 'quiz_choice_properties', 'choice_boolean', $definition);
+  db_add_field($status, 'quiz_choice_user_answers', 'choice_order', array('type' => 'text'));
   return $status;
 }
 
