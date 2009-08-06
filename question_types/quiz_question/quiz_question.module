@@ -40,8 +40,8 @@ function quiz_question_menu() {
     'title' => t('References'),
     'page callback' => 'quiz_question_references',
     'page arguments' => array(1),
-    'access callback' => 'node_access',
-    'access arguments' => array('update', 1),
+    // FIXME give this a sensible callback
+    'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz_question.pages.inc',
   );
@@ -198,7 +198,9 @@ function quiz_question_form(&$node, $form_state) {
 
   // If coming from quiz view, go back there on submit.
   if (!empty($quiz_id)) {
-    $form['#redirect'] = 'node/'. $quiz_id .'/questions';
+    // FIXME ask the form where to go back on submit
+    // FIXME this breaks quiz authoring (was /questions)
+    $form['#redirect'] = 'node/'. $quiz_id .'/items';
   }
   return $form;
 }
