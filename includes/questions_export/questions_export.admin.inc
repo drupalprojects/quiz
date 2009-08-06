@@ -213,9 +213,16 @@ function _as_moodle_questions($drupal_questions) {
         }
         $mq->options->subquestions = $matches;
         break;
-      case 'choice':
-        // FIXME implement 'choice'
-        break;
+	  case 'choice':
+		$mq->singlequestion = ! $question->choice_multi;
+	    foreach ($question->alternatives as $alternative) {
+	      $moodle_answer = new stdClass();
+	      $moodle_answer->answer = $alternative['answer'];
+	      $moodle_answer->feedback = $alternative['feedback_if_chosen'];
+	      $moodle_answer->fraction = $alternative['score_if_chosen'];
+	      $mq->options->answers[] = $moodle_answer;
+	    }
+	    break;
       case 'multichoice':
         $mq->singlequestion = ($dq->multiple_answers) ? 0 : 1;
         foreach ($dq->answers as $drupal_answer) {
