@@ -729,7 +729,7 @@ function multichoice_render_question_form($context, $node) {
         $answer['answer_id'] = ++$fake_answer_id;
       }
       if ($display_object->type != 'quiz' && $answer['is_correct'] == 1) {
-        $options[$answer['answer_id']] = '<span class="multichoice_answer_correct">'. check_markup($answer['answer'], $node->format, FALSE) .' <strong>(correct:)</strong></span>';
+        $options[$answer['answer_id']] = '<span class="multichoice_answer_correct">'. check_markup($answer['answer'], $node->format, FALSE) .' <strong>(correct)</strong></span>';
       }
       else {
         $options[$answer['answer_id']] = '<span class="multichoice_answer_text">'. check_markup($answer['answer'], $node->format, FALSE) .'</span>';
