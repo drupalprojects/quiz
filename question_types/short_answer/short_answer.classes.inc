@@ -117,7 +117,8 @@ class ShortAnswerQuestion implements QuizQuestion {
       default:
         if (user_access('view quiz question solutions')) {
           $form['tries'] = array('#type' => 'markup',
-          	'#value' => t('Correct answer is !answer', array('!answer' => $node->correct_answer)),
+            // FIXME hack should use CSS instead, maybe across all quiz_question.module
+          	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $node->correct_answer)),
           );
         } // else case handled in quiz_question.module
         break;
