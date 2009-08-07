@@ -13,7 +13,30 @@
 <?php 
 $p = drupal_get_path('module', 'choice');
 drupal_add_css($p .'/theme/choice.css', 'module', 'all');
-if ($form['#taking_quiz']) drupal_add_js($p .'/theme/choice-alternative.js', 'module');
+if ($form['#taking_quiz']) {
+  print "
+<script type=text/javascript>Drupal.behaviors.choiceAlternativeBehavior = function(context) {
+  $('.choice_row')
+  .filter(':has(:checkbox:checked)')
+  .addClass('selected')
+  .end()
+  .click(function(event) {
+    $(this).toggleClass('selected');
+    if (event.target.type !== 'checkbox') {
+      $(':checkbox', this).attr('checked', function() {
+        return !this.checked;
+      });
+      $(':radio', this).attr('checked', true);
+      if ($(':radio', this).html() != null) {
+        $('.choice_row').removeClass('selected');
+    	  $(this).addClass('selected');
+      }
+    }
+  });
+};</SCRIPT>";
+  //drupal_add_js can't be used with ajax quiz :/
+  //drupal_add_js($p .'/theme/choice-alternative.js', 'module');
+}
 $options = $form['#options'];
 $fullOptions = array();
 $titles = array();
