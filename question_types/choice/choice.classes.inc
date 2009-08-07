@@ -28,9 +28,11 @@
  *
  * @todo: Make a simplified alternative way to view the creation form?
  *
- * TODO: Show alternatives in random order(and make it optional)
- * TODO: Make it possible to have old scoring model enabled
  * TODO: Convert to multichoice
+ * TODO: Get settings from last question?
+ * TODO: Vise settings form ved validation error
+ * TODO: Ved validation error må ikke aktive fieldsets bli lukket!
+ * TODO: Redirect må aldri sende meg til js siden!
  */
 
 /**
@@ -500,13 +502,11 @@ class ChoiceQuestion implements QuizQuestion {
    * @see sites/all/modules/quiz-DRUPAL-6--4/question_types/quiz_question/QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
-    $sql = 'SELECT score_if_chosen, score_if_not_chosen
-            FROM {quiz_choice_answer}
-            WHERE question_nid = %d AND question_vid = %d';
-    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    if ($this->node->choice_boolean) return 1;
     $max = 0;
-    while ($res_o = db_fetch_object($res)){
-      $max += max($res_o->score_if_chosen, $res_o->score_if_not_chosen);
+    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      $short = $this->node->alternatives[$i];
+      $max += max($short['score_if_chosen'], $short['score_if_not_chosen']);
     }
     return $max;
   }
@@ -536,7 +536,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     if (is_array($tries)) {
       $this->choice_order = $tries['choice_order'];
       unset($tries['choice_order']);
-      foreach (explode(',', $tries['answer']) as $answer_id) $this->user_answer_ids[] = $answer_id;
+      foreach ($tries['answer'] as $answer_id) $this->user_answer_ids[] = $answer_id;
     }
     elseif (isset($tries['answer'])) $this->user_answer_ids[] = $tries;
     else {
@@ -589,13 +589,26 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * @return uint
    */
   public function score() {
-    $score = 0;
-    foreach ($this->question->alternatives as $key => $alt) {
-      if (in_array($alt['id'], $this->user_answer_ids)) {
-        $score += $alt['score_if_chosen'];
+    if ($this->question->choice_boolean) {
+      $score = 1;
+      foreach ($this->question->alternatives as $key => $alt) {
+        if (in_array($alt['id'], $this->user_answer_ids)) {
+          if ($alt['score_if_chosen'] < $alt['score_if_not_chosen']) $score = 0;
+        }
+        else {
+          if ($alt['score_if_chosen'] > $alt['score_if_not_chosen']) $score = 0;
+        }
       }
-      else {
-        $score += $alt['score_if_not_chosen'];
+    }
+    else {
+      $score = 0;
+      foreach ($this->question->alternatives as $key => $alt) {
+        if (in_array($alt['id'], $this->user_answer_ids)) {
+          $score += $alt['score_if_chosen'];
+        }
+        else {
+          $score += $alt['score_if_not_chosen'];
+        }
       }
     }
     return $score;
@@ -694,7 +707,6 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
         }
       }
     }
-    dpm($alternatives);
     $alternatives = $newAlternatives;
   }
 }
