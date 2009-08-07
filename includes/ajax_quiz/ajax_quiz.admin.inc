@@ -18,8 +18,11 @@ function ajax_quiz_instruction($node) {
     _ajax_quiz_get_questions($node);
   }
   else {
-    $output = $node->body;
-    $output .= '<br/><br/><div>' . l(t('Start'), $_GET['q'], array('attributes' => array('class' => 'ajax-load-example'))) . '</div>';
+    drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
+    $output = '<div class="ajax-quiz-wrapper">';
+    $output .= '<div class="ajax-quiz-description">' . $node->body .'</div>';
+    $output .= '<div class="ajax-quiz-start">' . l(t('Start'), $_GET['q'], array('attributes' => array('class' => 'ajax-load-example'))) . '</div>';
+    $output .= '</div>';
     return $output;
   }
 }

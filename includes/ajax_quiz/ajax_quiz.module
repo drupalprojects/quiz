@@ -49,6 +49,6 @@ function ajax_quiz_menu() {
  * includes the necessary js file(s).
  */
 function ajax_quiz_init() {
-  drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
+  //drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
 }
 

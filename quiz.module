@@ -1041,7 +1041,6 @@ function quiz_take_quiz($quiz) {
     }
   }
 
-
   if (!isset($_POST['op'])) {
     // Starting new quiz... Do we need to show instructions here?
   }

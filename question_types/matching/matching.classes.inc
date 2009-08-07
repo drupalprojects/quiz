@@ -228,7 +228,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function save() {
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()
-    foreach ($user_answers as $key => $value) {
+    foreach ((array)$user_answers as $key => $value) {
       $score = ($key == $value)? 1 : 0;
       $sql = "INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)";
         // This is expensive need to be changed
@@ -247,7 +247,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
     $user_answers = isset($user_answers) ? $user_answers : array();
     // to prevent warning : Invalid argument supplied for foreach()
-    foreach ($user_answers as $key => $value) {
+    foreach ((array)$user_answers as $key => $value) {
       if ($key != $value) {
         $wrong_answer++;
       }
