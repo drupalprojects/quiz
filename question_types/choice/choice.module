@@ -142,3 +142,16 @@ function _choice_skip_validation(&$elements) {
     _choice_skip_validation($elements[$key]);
   }
 }
+
+/**
+ * Implementation of hook user.
+ */
+function choice_user($op, &$edit, &$account, $category = NULL) {
+  switch ($op) {
+    case 'delete': 
+      $sql = 'DELETE FROM {quiz_choice_user_settings}
+      		WHERE uid = %d';
+      db_query($sql, $account->uid);
+    break;
+  }
+}

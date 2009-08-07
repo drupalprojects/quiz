@@ -132,6 +132,7 @@ class ChoiceQuestion implements QuizQuestion {
         }
       }
     }
+    $this->saveUserSettings();
   }
 
   private function insertAlternative($i) {
@@ -364,26 +365,32 @@ class ChoiceQuestion implements QuizQuestion {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
+    $default_settings = $this->getDefaultAltSettings();
     $form['alternatives']['settings']['choice_multi'] = array(
       '#type' => 'checkbox',
       '#title' => t('Multiple answers'),
       '#description' => t('Allow any number of answers. If this box is not checked, one, and only one answer is allowed.'),
-      '#default_value' => $this->node->choice_multi,
+      '#default_value' => $default_settings['choice_multi'],
       '#parents' => array('choice_multi'),
     );
     $form['alternatives']['settings']['choice_random'] = array(
       '#type' => 'checkbox',
       '#title' => t('Random order'),
       '#description' => t('Present alternatives in random order when quiz is beeing taken.'),
-      '#default_value' => $this->node->choice_random,
+      '#default_value' => $default_settings['choice_random'],
       '#parents' => array('choice_random'),
     );
     $form['alternatives']['settings']['choice_boolean'] = array(
       '#type' => 'checkbox',
       '#title' => t('Simple scoring'),
       '#description' => t('Give one point if everything is correct. Zero points otherwise.'),
-      '#default_value' => $this->node->choice_boolean,
+      '#default_value' => $default_settings['choice_boolean'],
       '#parents' => array('choice_boolean'),
+    );
+    
+    $form['alternatives']['settings']['desc'] = array(
+      '#type' => 'markup',
+      '#value' => t('Your settings will be remembered.'),
     );
 
     $form['alternatives']['#theme'][] = 'choice_creation_form';
@@ -494,7 +501,47 @@ class ChoiceQuestion implements QuizQuestion {
     );
     return $form;
   }
-
+  private function getDefaultAltSettings() {
+    $to_return = array();
+    if (isset($this->node->nid)) {
+      $to_return['choice_multi'] = $this->node->choice_multi;
+      $to_return['choice_random'] = $this->node->choice_random;
+      $to_return['choice_boolean'] = $this->node->choice_boolean;
+    } 
+    elseif ($to_return = $this->getUserSettings()) {
+    }
+    else {
+      $to_return['choice_multi'] = 0;
+      $to_return['choice_random'] = 0;
+      $to_return['choice_boolean'] = 0;
+    }
+    return $to_return;
+  }
+  private function getUserSettings() {
+    global $user;
+    $sql = 'SELECT last_nid, last_vid
+            FROM {quiz_choice_user_settings}
+            WHERE uid = %d';
+    $res = db_query($sql, $user->uid);
+    if ($obj = db_fetch_object($res)) {
+      $sql = 'SELECT choice_multi, choice_random, choice_boolean
+              FROM {quiz_choice_properties}
+              WHERE nid = %d AND vid = %d';
+      $res = db_query($sql, $obj->last_nid, $obj->last_vid);
+      if ($arr = db_fetch_array($res)) {
+        return $arr;
+      }
+      else return false; 
+    }
+    else return false;
+  }
+  private function saveUserSettings() {
+    global $user;
+    $sql = 'INSERT IGNORE INTO {quiz_choice_user_settings} 
+            (uid, last_nid, last_vid) 
+            VALUES (%d, %d, %d)';
+    db_query($sql, $user->uid, $this->node->nid, $this->node->vid);
+  }
   /**
    * Implementation of getMaximumScore.
    *

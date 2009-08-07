@@ -164,6 +164,28 @@ function choice_schema() {
       'id',
     ),
   );
+  $schema['quiz_choice_user_settings'] = array(
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'last_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'last_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'uid'
+    ),
+  );
   return $schema;
 }
 
@@ -197,6 +219,33 @@ function choice_update_6403() {
   db_add_field($status, 'quiz_choice_properties', 'choice_random', $definition);
   db_add_field($status, 'quiz_choice_properties', 'choice_boolean', $definition);
   db_add_field($status, 'quiz_choice_user_answers', 'choice_order', array('type' => 'text'));
+  return $status;
+}
+function choice_update_6404() {
+  $status = array();
+  $table = array(
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'last_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'last_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'uid'
+    ),
+  ); 
+  db_create_table($status, 'quiz_choice_user_settings', $table);
   return $status;
 }
 
