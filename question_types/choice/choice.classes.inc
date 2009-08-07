@@ -20,19 +20,11 @@
  */
 
 /*
- * @todo: A page for importing questions from the old multichoice module, and uninstall it afterwards.
- * WHEN: This module is good enough to take over
- * REMEMBER: Also move all user answers
- *
  * @todo: Be able to have max score in quizes.
  *
  * @todo: Make a simplified alternative way to view the creation form?
  *
  * TODO: Convert to multichoice
- * TODO: Get settings from last question?
- * TODO: Vise settings form ved validation error
- * TODO: Ved validation error må ikke aktive fieldsets bli lukket!
- * TODO: Redirect må aldri sende meg til js siden!
  */
 
 /**
@@ -347,6 +339,14 @@ class ChoiceQuestion implements QuizQuestion {
    */
   public function getCreationForm($form_state) {
     $form = array();
+    $type = node_get_types('type', $this->node);
+
+    $action = '/node/add/'. $type->type;
+
+    if ($node->nid) {
+      $action = '/node/'. $this->node->nid. '/edit';
+    }
+    $form['#action'] = "?q=$action";
     /*
      * Getting presets from the database
      */
@@ -537,7 +537,7 @@ class ChoiceQuestion implements QuizQuestion {
   }
   private function saveUserSettings() {
     global $user;
-    $sql = 'INSERT IGNORE INTO {quiz_choice_user_settings} 
+    $sql = 'REPLACE INTO {quiz_choice_user_settings} 
             (uid, last_nid, last_vid) 
             VALUES (%d, %d, %d)';
     db_query($sql, $user->uid, $this->node->nid, $this->node->vid);

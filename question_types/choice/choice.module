@@ -99,9 +99,9 @@ function choice_add_alternative_js() {
   _choice_skip_validation($form);
   drupal_process_form($form_id, $form, $form_state);
   
-  if(form_get_errors()) {
+  /*if(form_get_errors()) {
     form_execute_handlers('submit', $form, $form_state);
-  }
+  }*/
   // This call recreates the form relying solely on the form_state that the
   // drupal_process_form set up.
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
