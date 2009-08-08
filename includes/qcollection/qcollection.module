@@ -294,10 +294,10 @@ function qcollection_add_question_action_form($context) {
 
   // checkboxes for the qcollections the user has permission to add to
   $form['my_collections'] = array(
-  	'#type' => 'checkboxes',
-  	'#title' => t('My Collections'),
-  	'#options' => $options,
-  	'#description' => t('Collections to which you can add question items.'),
+    '#type' => 'checkboxes',
+    '#title' => t('My Collections'),
+    '#options' => $options,
+    '#description' => t('Collections to which you can add question items.'),
   );
 
   return $form;

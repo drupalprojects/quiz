@@ -39,7 +39,7 @@ function results_export_menu() {
     'title' => t('Export Quiz Results (Teaser View)'),
     'file' => 'results_export.admin.inc',
     'page callback' => 'results_export_as_teaser_view',
-    'page arguments' => array(3,4),
+    'page arguments' => array(3, 4),
     'access arguments' => array('export results'),
     'type' => MENU_CALLBACK,
   );
@@ -47,7 +47,7 @@ function results_export_menu() {
     'title' => t('Export Quiz Results (Full view)'),
     'file' => 'results_export.admin.inc',
     'page callback' => 'results_export_as_full_view',
-    'page arguments' => array(3,4),
+    'page arguments' => array(3, 4),
     'access arguments' => array('export results'),
     'type' => MENU_CALLBACK,
   );

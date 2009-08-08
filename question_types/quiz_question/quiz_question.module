@@ -248,22 +248,23 @@ function quiz_question_question_form($context, $node) {
      }
      */
 
-  } else {
+  }
+  else {
     // reconstruct form so type is first (at top)
     // TODO is there a better way?  like unshift an assoc tuple?
     $type = node_get_types('type', $node);
     $newform['question_type'] = array(
-        '#type'  => 'markup',
-        '#value' => '<div class="question_type_name">'.$type->name.'</div>',
+      '#type'  => 'markup',
+      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
     );
     $newform += $form;
     $form = $newform;
 
     if (!user_access('view quiz question solutions')) {
       $form['tries'] = array(
-          '#type'  => 'markup',
-          '#value' => '<br /> <em>Answers hidden</em>.'
-          );
+        '#type'  => 'markup',
+        '#value' => '<br /> <em>Answers hidden</em>.'
+      );
     }
   }
 
@@ -275,16 +276,16 @@ function quiz_question_question_form($context, $node) {
  */
 function quiz_question_teaser_form($context, $node) {
   $form['question'] = array(
-       '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format, FALSE),
+    '#type' => 'markup',
+    '#value' => check_markup($node->body, $node->format, FALSE),
   );
 
   // reconstruct form so type is first (at top)
   // TODO is there a better way?  like unshift an assoc tuple?
   $type = node_get_types('type', $node);
   $newform['question_type'] = array(
-        '#type'  => 'markup',
-        '#value' => '<div class="question_type_name">'.$type->name.'</div>',
+    '#type'  => 'markup',
+    '#value' => '<div class="question_type_name">' . $type->name . '</div>',
   );
   $newform += $form;
   $form = $newform;
@@ -464,7 +465,8 @@ function quiz_question_insert($node) {
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if ($teaser) {
     $form_markup = drupal_get_form('quiz_question_teaser_form', $node);
-  } else {
+  }
+  else {
     $form_markup = drupal_get_form('quiz_question_question_form', $node);
   }
   $node->content['body']['#value'] = $form_markup;
@@ -554,12 +556,16 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
  */
 function quiz_question_type_access_load($arg) {
   $node = node_load($arg);
-  if (!$node) return false;
+  if (!$node) {
+    return FALSE;
+  }
 
   $qtypes = module_invoke_all('quiz_question_info');
   $qtypes_key = array_keys($qtypes);
 
-  if (!in_array($node->type, $qtypes_key)) return false;
+  if (!in_array($node->type, $qtypes_key)) {
+    return FALSE;
+  }
 
   return $node;
 }

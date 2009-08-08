@@ -2769,8 +2769,12 @@ function quiz_get_questions_type($op = 'enabled') {
 function _quiz_is_taking_context() {
   $display_object = menu_get_object();
   // in the AJAX Quiz there is no display object
-  if (empty($display_object)) return true;
-  if ($display_object->type == 'quiz') return true;
+  if (empty($display_object)) {
+    return TRUE;
+  }
+  if ($display_object->type == 'quiz') {
+    return TRUE;
+  }
   // otherwise not quiz-taking
-  return false;
+  return FALSE;
 }

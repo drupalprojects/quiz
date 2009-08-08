@@ -3,13 +3,13 @@
 
 /**
  * The main file for choice.
- * 
+ *
  * Sponsored by: Norwegian Centre for Telemedicine
  * Code: falcon
  *
  * @file
  * Multiplechoice question type for the Quiz module.
- * 
+ *
  */
 
 /**
@@ -23,11 +23,11 @@ function choice_help($path, $args) {
 /**
  * Implementation of hook_quiz_question_info().
  */
-function choice_quiz_question_info() { 
+function choice_quiz_question_info() {
   return array(
     'choice' => array(
       'name' => 'Choice question',
-      'description' => 'Under development. Do not use on production servers.',
+      'description' => 'This provides multiple choice questions for use by the Quiz module. Under development. Do not use on production servers.',
       'question provider' => 'ChoiceQuestion',
       'response provider' => 'ChoiceResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
@@ -77,7 +77,7 @@ function choice_theme($existing, $type, $theme, $path) {
       'path' => drupal_get_path('module', 'choice') .'/theme',
       'template' => 'choice-alternative',
     ),
-  ); 
+  );
 }
 
 function choice_add_alternative_js() {
@@ -98,7 +98,7 @@ function choice_add_alternative_js() {
   // Build, validate and if possible, submit the form.
   _choice_skip_validation($form);
   drupal_process_form($form_id, $form, $form_state);
-  
+
   /*if(form_get_errors()) {
     form_execute_handlers('submit', $form, $form_state);
   }*/
@@ -121,7 +121,7 @@ function choice_more_choices_submit($form, &$form_state) {
   // Set the form to rebuild and run submit handlers.
   node_form_submit_build_node($form, $form_state);
   $exists = 0;
-  while(isset($form['alternatives'][$exists])) {
+  while (isset($form['alternatives'][$exists])) {
     $exists++;
   }
   // Make the changes we want to the form state.
@@ -148,9 +148,9 @@ function _choice_skip_validation(&$elements) {
  */
 function choice_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
-    case 'delete': 
+    case 'delete':
       $sql = 'DELETE FROM {quiz_choice_user_settings}
-      		WHERE uid = %d';
+          WHERE uid = %d';
       db_query($sql, $account->uid);
     break;
   }
