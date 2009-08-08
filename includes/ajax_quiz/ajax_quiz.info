@@ -1,3 +1,4 @@
+
 name = AJAX Quiz
 description = AJAX version of quiz. Successive quiz questions will be loaded in the same page without page reload.
 dependencies[] = quiz
