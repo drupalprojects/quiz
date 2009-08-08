@@ -34,6 +34,10 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     );
   }
 
+  public function getRandSize() {
+    return rand($this->min, $this->max);
+  }
+
   /*
    * Implementing setUp() to enable truefalse module testing
    */
@@ -46,19 +50,23 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     // was wrong with permissions and I basically kept adding potentially
     // useful ones until it worked.
 
-    $user = $this->drupalCreateUser(array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import_questions', 'create quiz',
+    $permission = array('administer site configuration', 'access administration pages',
+    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz',
     'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
     'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export_questions'));
+    'allow any number of answers', 'export questions');
+
+    // create user with a set of permission
+    $user = $this->drupalCreateUser($permission);
+    $this->assertTrue(is_object, t('Check that user has been created with specified permission.'));
     $this->drupalLogin($user);
 
     // create one quiz, which will be the default in the import form
     $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName(rand($this->rand_min, $this->rand_max));
-    $quiz_settings['comment'] = $this->randomName(rand($this->rand_min, $this->rand_max));
+    $quiz_settings['title'] = $this->randomName($this->getRandSize());
+    $quiz_settings['comment'] = $this->randomName($this->getRandSize());
     $quiz_settings['type'] = 'quiz';
-    $this->drupalCreateNode($quiz_settings);
+    //$this->drupalCreateNode($quiz_settings);
   }
 
   //public function testModuleIsEnabled() {
@@ -78,9 +86,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    * Utility function for creating a new test question.
    */
   public function createLongAnswerQuestion() {
-    $this->title = $this->randomName(rand($this->rand_min, $this->rand_max));
-    $this->body = $this->randomName(rand($this->rand_min, $this->rand_max));
-    $this->max_score = rand($this->rand_min, $this->rand_max);
+    $this->title = $this->randomName($this->getRandSize());
+    $this->body = $this->randomName($this->getRandSize());
+    $this->max_score = $this->getRandSize();
 
     // array of node attributes
     $settings = array(
@@ -140,6 +148,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
       throw new Exception('Expected to have a node to work with.');
     }
     $this->nid1 = $node->nid;
+    $this->assertTrue(!empty($node->title), t('check that node title is not empty @title', array('@title' => $node->title)));
+    $this->assertTrue(!empty($this->title), t('check that original title is not empty @title', array('@title' => $this->title)));
+    $this->assertEqual(strlen($node->title), strlen($this->title), t('check that length of original title and stored title are same.'));
 
     $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
     $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
