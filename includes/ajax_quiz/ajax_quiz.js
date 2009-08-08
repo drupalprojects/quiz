@@ -4,6 +4,7 @@ Drupal.AjaxLoadExample = Drupal.AjaxLoadExample || {};
  * Ajax load example behavior.
  */
 Drupal.behaviors.AjaxLoadExample = function (context) {
+  // to proceed with the quiz
   $('.form-submit:not(.form-submit-clicked)', context)
     .each(function () {
       // The target should not be e.g. a node that will itself be
@@ -15,20 +16,22 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
         .click(function () {
           if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-radio') {
             var post_tries = $('[name=tries]:checked:not(.form-submitted)').val();
-            $('[name=tries]:not(.form-submitted)').addClass('form-submitted');
+            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
           }
           else if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-text') {
             var post_tries = $('.form-text:not(.form-submitted)').val();
-            $('[name=tries]:not(.form-submitted)').addClass('form-submitted');
+            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
           }
           else if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-textarea resizable textarea-processed') {
             var post_tries = $('.form-textarea:not(.form-submitted)').val();
-            $('[name=tries]:not(.form-submitted)').addClass('form-submitted');
+            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
           }
           else {
             // unkonwn form type, unable to get value
             post_tries = 'error';
           }
+          $('[name=tries]:not(.form-submitted)').addClass('form-submitted');
+          $(this).attr('disabled', true);
           $.ajax({
             // Either GET or POST will work.
             type: 'POST',
@@ -37,6 +40,7 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
             dataType: 'json',
             url: $(this).attr('href'),
             success: function(response) {
+              $(this).prepend('answer saved');
               // Call all callbacks.
               //alert('sucess');
               if (response.__callbacks) {
@@ -58,6 +62,7 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
           return false;
         });
     });
+  // to start the quiz
   $('a.ajax-load-example:not(.ajax-load-example-processed)', context)
     .each(function () {
       // The target should not be e.g. a node that will itself be
@@ -76,7 +81,6 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
             url: $(this).attr('href'),
             success: function(response){
               // Call all callbacks.
-
               if (response.__callbacks) {
                 $.each(response.__callbacks, function(i, callback) {
                   // The first argument is a target element, the second

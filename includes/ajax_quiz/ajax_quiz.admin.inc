@@ -28,9 +28,15 @@ function ajax_quiz_instruction($node) {
 }
 
 function _ajax_quiz_get_questions($node) {
-  //$output = '<div>'.$take_quiz['progress']['#value'].'</div><div>'.$take_quiz['body']['#value'].'</div>';
+  $output = '';
+  foreach (drupal_get_messages() as $type) {
+    foreach ($type as $message) {
+      $output .= '<script type="text/javascript"> alert("' . "$type : $message" . '"); </script>';
+    }
+  }
+  $output .= node_view($node, FALSE, TRUE);
   $result = array(
-    'content' => node_view($node, FALSE, TRUE),
+    'content' => $output,
     // Put the Javascript callback you will use here.
     // You can if you wish leave out this line and instead
     // call your callback directly in your Javascript. See
