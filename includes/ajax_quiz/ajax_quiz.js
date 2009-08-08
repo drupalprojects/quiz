@@ -1,3 +1,5 @@
+//$Id$
+
 Drupal.AjaxLoadExample = Drupal.AjaxLoadExample || {};
 
 /**
