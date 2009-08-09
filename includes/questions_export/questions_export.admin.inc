@@ -15,31 +15,34 @@ module_load_include('php', 'quiz', 'includes/moodle_support');
  * form to upload questions
  */
 function questions_export_form()  {
+  $form = array();
   $form['#attributes'] = array('enctype' => 'multipart/form-data');
-
-  $form['quiz_node'] = array(
+  $form['quiz_questions_export'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Export Questions'),
+    '#description' => t('Quiz questions import allows to export question and save it out-side of drupal in a portable text file format. Export file can be used as backback or source to generate question in other drupal site.'),
+  );
+  $option = quiz_get_all_quiz_title();
+  // $options is an array with nid as index and quiz node's title as value
+  $form['quiz_questions_export']['quiz_node_title'] = array(
     '#type' => 'select',
     '#title' => t('Quiz'),
-    '#options' => quiz_get_all_quiz_title(),
-    '#description' => t('Select the quiz node to export.'),
+    '#options' => $option,
+    '#description' => count($options) ? t('Select the quiz to export its question(s).') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
     '#required' => TRUE,
   );
-
-  $form['exporter'] = array(
+  $form['quiz_questions_export']['exporter'] = array(
     '#type' => 'select',
     '#title' => t('Export format'),
     '#options' => _questions_exporters(),
     '#description' => t('Select the data format to export into.'),
     '#required' => TRUE,
   );
-
-  $form['submit'] = array(
+  $form['quiz_questions_export']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Export'),
   );
-
-  $form['#submit'][] = 'questions_export_form_submit';
-
+  $form['quiz_questions_export']['#submit'][] = 'questions_export_form_submit';
   return $form;
 }
 
@@ -63,7 +66,7 @@ function _questions_exporters() {
  *
  */
 function questions_export_form_submit(&$form, &$form_state) {
-  $collection_node = node_load($form_state['values']['quiz_node']);
+  $collection_node = node_load($form_state['values']['quiz_node_title']);
   $exporter = $form_state['values']['exporter'];
   _questions_export_download($collection_node, $exporter);
 }
@@ -213,16 +216,16 @@ function _as_moodle_questions($drupal_questions) {
         }
         $mq->options->subquestions = $matches;
         break;
-	  case 'choice':
-		$mq->singlequestion = ! $question->choice_multi;
-	    foreach ($question->alternatives as $alternative) {
-	      $moodle_answer = new stdClass();
-	      $moodle_answer->answer = $alternative['answer'];
-	      $moodle_answer->feedback = $alternative['feedback_if_chosen'];
-	      $moodle_answer->fraction = $alternative['score_if_chosen'];
-	      $mq->options->answers[] = $moodle_answer;
-	    }
-	    break;
+    case 'choice':
+    $mq->singlequestion = ! $question->choice_multi;
+      foreach ($question->alternatives as $alternative) {
+        $moodle_answer = new stdClass();
+        $moodle_answer->answer = $alternative['answer'];
+        $moodle_answer->feedback = $alternative['feedback_if_chosen'];
+        $moodle_answer->fraction = $alternative['score_if_chosen'];
+        $mq->options->answers[] = $moodle_answer;
+      }
+      break;
       case 'multichoice':
         $mq->singlequestion = ($dq->multiple_answers) ? 0 : 1;
         foreach ($dq->answers as $drupal_answer) {
