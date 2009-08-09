@@ -246,7 +246,6 @@ function quiz_menu() {
     'title' => t('Manage questions'),
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
-    // FIXME: This needs to check to see if the user owns the quiz.
     'access callback' => 'node_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,

@@ -85,16 +85,15 @@ function qcollection_menu() {
   // Menu item for managing items in a collection
   $items['node/%qcollection_type_access/items'] = array(
   'title' => t('Manage items'),
-    'page callback' => 'qcollection_questions',
+    'page callback' => 'qcollection_items',
     'page arguments' => array(1),
-  // FIXME: This needs to check to see if the user owns the qcollection.
     'access callback' => 'node_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
     'file' => 'qcollection.inc',
   );
 
-  // Menu item for exporting item list into a new quiz
+  // Menu item to export item list into a new quiz
   $items['node/%qcollection_type_access/export-quiz'] = array(
   'title' => t('Export as quiz'),
     'page callback' => 'qcollection_export_quiz',
@@ -105,7 +104,7 @@ function qcollection_menu() {
     'file' => 'qcollection.inc',
   );
 
-  // Menu item for download item collection in a portable format
+  // Menu item to download item collection in a portable format
   $items['node/%qcollection_type_access/download'] = array(
   'title' => t('Download'),
     'page callback' => 'qcollection_download',

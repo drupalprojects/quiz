@@ -180,28 +180,35 @@ function quiz_question_form(&$node, $form_state) {
     );
   }
 
-  // Quiz ID used here to tie creation of a question to a specific quiz.
-  $quiz_id = arg(3);
-  if (!empty($quiz_id)) {
-    $quiz = node_load((int)$quiz_id);
-    $form['quiz_id'] = array(
+  // Collection ID used here to tie creation of a question to a specific quiz or qcollection
+  $collection_id = arg(3);
+  if (!empty($collection_id)) {
+    $collection = node_load((int)$collection_id);
+    $form['collection_nid'] = array(
       '#type' => 'value',
-      '#value' => $quiz_id,
+      '#value' => $collection->nid,
     );
-    $form['quiz_vid'] = array(
+    $form['collection_vid'] = array(
       '#type' => 'value',
-      '#value' => $quiz->vid,
+      '#value' => $collection->vid,
     );
+
+    // If coming from collection view, go back there on submit.
+
+    // TODO ask the node itself where to go after authoring a question
+    switch ($collection->type) {
+      case 'quiz':
+        $form['#redirect'] = 'node/'. $collection->nid .'/questions';
+        break;
+      case 'qcollection':
+        $form['#redirect'] = 'node/'. $collection->nid .'/items';
+        break;
+    }
   }
+
   $question = _quiz_question_get_instance($node);
   $form = array_merge($form, $question->getCreationForm($form_state));
 
-  // If coming from quiz view, go back there on submit.
-  if (!empty($quiz_id)) {
-    // FIXME ask the form where to go back on submit
-    // FIXME this breaks quiz authoring (was /questions)
-    $form['#redirect'] = 'node/'. $quiz_id .'/items';
-  }
   return $form;
 }
 

@@ -16,15 +16,12 @@ module_load_include('inc', 'quiz', 'quiz.admin');
  * @return
  *   String containing the form.
  */
-function qcollection_questions($node) {
-  // Set page title.
-  drupal_set_title(check_plain($node->title));
-
+function qcollection_items($node) {
   // Add JS
   $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
   drupal_add_js($path, 'module');
 
-  return drupal_get_form('qcollection_questions_form', $node);
+  return drupal_get_form('qcollection_items_form', $node);
 }
 
 
@@ -40,7 +37,7 @@ function qcollection_questions($node) {
  * @return
  *  HTML output to create page.
  */
-function qcollection_questions_form($context, $quiz) {
+function qcollection_items_form($context, $quiz) {
   ////
   // ripped from quiz.admin.inc
   ///
@@ -112,7 +109,6 @@ function qcollection_questions_form($context, $quiz) {
       'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
   ),
   );
-
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
