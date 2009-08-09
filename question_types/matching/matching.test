@@ -22,6 +22,17 @@ class MatchingUnitTest extends DrupalWebTestCase {
   // member functions definition starts here
 
   /*
+   * @function
+   *   generates a rand integer between the specified range
+   *
+   * @return
+   *   random Integer value
+   */
+  public function getRandSize() {
+    return mt_rand($this->min, $this->max);
+  }
+
+  /*
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
@@ -46,20 +57,24 @@ class MatchingUnitTest extends DrupalWebTestCase {
     // was wrong with permissions and I basically kept adding potentially
     // useful ones until it worked.
 
-    $user = $this->drupalCreateUser(array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import_questions', 'create quiz',
+    // array of drupal permission
+    $permission = array('administer site configuration', 'access administration pages',
+    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz',
     'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
     'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export_questions'));
+    'allow any number of answers', 'export questions');
+
+    // create a drupal test user with specified permissions
+    $user = $this->drupalCreateUser($permission);
     $this->drupalLogin($user);
 
     // create one quiz, which will be the default in the import form
     $quiz_settings = array(
-      'title' => $this->randomName(mt_rand($this->min, $this->max)),
-      'comment' => $this->randomName(mt_rand($this->min, $this->max)),
+      'title' => $this->randomName($this->getRandSize()),
+      'comment' => $this->randomName($this->getRandSize()),
       'type' => 'quiz',
     );
-    $this->drupalCreateNode($quiz_settings);
+    // $this->drupalCreateNode($quiz_settings);
   }
 
   /*
@@ -78,7 +93,7 @@ class MatchingUnitTest extends DrupalWebTestCase {
   public function createMatchingQuestion() {
     // matching question node attributes
     $this->title = $this->randomName(mt_rand($this->min, $this->max));
-    $this->body = $this->randomName(mt_rand($this->min, $this->max));
+    $this->body = $this->randomName($this->getRandSize());
 
     // array of node attributes to create a test node
     $settings = array(
@@ -92,9 +107,9 @@ class MatchingUnitTest extends DrupalWebTestCase {
     $form_size = variable_get('quiz_matching_form_size', 5);
     // generate rand match question, answer and feedback
     for ($i = 1; $i < $form_size; $i++) {
-      $settings['match'][$i]['question'] = $this->match[$i]['question'] = $this->randomName(mt_rand($this->min, $this->max));
-      $setting['match'][$i]['answer'] = $this->match[$i]['answer'] = $this->randomName(mt_rand($this->min, $this->max));
-      $settings['match'][$i]['feedback'] = $this->match[$i]['feedback'] = $this->randomName(mt_rand($this->min, $this->max));
+      $settings['match'][$i]['question'] = $this->match[$i]['question'] = $this->randomName($this->getRandSize());
+      $setting['match'][$i]['answer'] = $this->match[$i]['answer'] = $this->randomName($this->getRandSize());
+      $settings['match'][$i]['feedback'] = $this->match[$i]['feedback'] = $this->randomName($this->getRandSize());
     }
 
     // create drupal node

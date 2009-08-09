@@ -23,6 +23,17 @@ class ChoiceTestCase extends DrupalWebTestCase {
   }
 
   /*
+   * @function
+   *   generates a rand integer between the specified range
+   *
+   * @return
+   *   random Integer value
+   */
+  public function getRandSize() {
+    return mt_rand($this->min, $this->max);
+  }
+
+  /*
    * Implementing setUp() to enable truefalse module testing
    */
   function setUp() {
@@ -34,18 +45,23 @@ class ChoiceTestCase extends DrupalWebTestCase {
     // was wrong with permissions and I basically kept adding potentially
     // useful ones until it worked.
 
-    $user = $this->drupalCreateUser(array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import_questions', 'create quiz',
+    // array of drupal permission
+    $permission = array('administer site configuration', 'access administration pages',
+    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz',
     'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
     'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export_questions'));
+    'allow any number of answers', 'export questions');
+
+    // create a drupal test user with specified permissions
+    $user = $this->drupalCreateUser($permission);
     $this->drupalLogin($user);
 
     // create one quiz, which will be the default in the import form
     $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName(128);
-    $quiz_settings['comment'] = $this->randomName(256);
+    $quiz_settings['title'] = $this->randomName($this->getRandSize());
+    $quiz_settings['comment'] = $this->randomName($this->getRandSize());
     $quiz_settings['type'] = 'quiz';
-    $this->drupalCreateNode($quiz_settings);
+    // $this->drupalCreateNode($quiz_settings);
+    // don't' create a questions node here.
   }
 }

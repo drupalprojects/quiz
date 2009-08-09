@@ -34,6 +34,13 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     );
   }
 
+  /*
+   * @function
+   *   generates a rand integer between the specified range
+   *
+   * @return
+   *   random Integer value
+   */
   public function getRandSize() {
     return rand($this->min, $this->max);
   }
