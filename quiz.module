@@ -1349,12 +1349,25 @@ function quiz_end_actions($quiz, $rid) {
 
 function quiz_quiz_finished($quiz, $score, $rid) {
   global $user;
-  // function to export results to grade book will be added later
-  // function to export result in pdf, XML, CVS format
-  // function to display results visually
 
-  //function to send results over email
-  if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
+  //function to send results over e-mail
+
+  /*
+   * For personality kind of quizzes
+   * if the user is an anonymous and configured to send user result to author
+   * send mail to author's e-mail id
+   */
+
+  if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 1)) {
+    drupal_mail('quiz', 'notice', $quiz->mail, NULL, array($quiz, $score, $rid));
+  }
+
+  /*
+   * For e-Learning kind of quizzes
+   * if quiz has pass/fail, configured to send results to attendee and attendee is
+   * NOT an anonymous send result to his/her e-mail ID.
+   */
+  if (variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1) && $user->uid != 0) {
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
     drupal_set_message(t('Results has been sent to your e-mail ID.'));
   }
@@ -1387,8 +1400,12 @@ function quiz_mail($key, &$message, $params) {
   list($quiz, $score, $rid) = $params;
   $substitutions = array(
     '!title' => $quiz->title,
-    '!sitename' => variable_get('site_name', 'Test Center'),
-    '!username' => $user->name,
+    '!sitename' => variable_get('site_name', 'Quiz'),
+    '!username' => ($user->uid) ? $user->name : $quiz->name,
+    /* if the user is anonymous user use quiz author's name
+    else use quiz attendee's name.
+    */
+    '!user' => ($user->uid) ? 'You have' : 'Anonymous user has',
     '!title' => $quiz->title,
     '!date' => date("F j, Y, g:i a"),
     '!desc' => $quiz->body,
@@ -1419,14 +1436,15 @@ function quiz_mail($key, &$message, $params) {
  */
 
 function quiz_email_results_format($type) {
+  global $user;
   if ($type == 'subject') {
     return t('!title Results Notice from !sitename');
   }
   if ($type == 'body') {
-    return t('Dear !username ') . "\n\n" .
-      t('You have attended a !title quiz on !date') . "\n" .
+    return t('Dear !username') . "\n\n" .
+      t('!user attended a !title quiz on !date') . "\n" .
       t('Test Description : !desc') . "\n" .
-      t('You got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
+      t('!user got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
       t('You can access your result here !url') . "\n";
   }
 }

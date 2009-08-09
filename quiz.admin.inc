@@ -562,15 +562,6 @@ function quiz_admin_settings() {
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['quiz_global_settings']['quiz_email_results'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable Sending Quiz Results to User Email ID', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_email_results', 1),
-    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
-  );
-
-
-
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
@@ -597,7 +588,7 @@ function quiz_admin_settings() {
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
     '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
   );
-  
+
   $form['quiz_global_settings']['quiz_autotitle_length'] = array(
     '#type' => 'textfield',
     '#title' => t('Length of automatically set question titles'),
@@ -670,19 +661,39 @@ function quiz_admin_settings() {
 
   );
 
-  $form['quiz_look_feel']['quiz_email_results_subject'] = array(
+  $form['quiz_email_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email Settings'),
+    '#description' => t('Allows to send results to quiz author/ attendee via e-mail and configuration e-mail subject and body.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['quiz_email_settings']['quiz_email_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Sending Quiz Results to Attendees', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_email_results', 1),
+    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
+  );
+  $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Sending Quiz Results Author', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_results_to_quiz_author', 1),
+    '#description' => t('Check this to send users quiz results over email to quiz author (<em>when the attendee is an anonymous user</em>).'),
+  );
+  $form['quiz_email_settings']['quiz_email_results_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Configure Email subject'),
     '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
     '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
   );
 
-  $form['quiz_look_feel']['quiz_email_results_body'] = array(
+  $form['quiz_email_settings']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure Email format'),
     '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
+
   $form['#validate'][] = 'quiz_settings_form_validate';
   return system_settings_form($form);
 }
@@ -1014,7 +1025,7 @@ function quiz_set_auto_title() {
       $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
     }
     $("#edit-body").keyup(quizUpdateTitle);
-    if($("#edit-title").val().length > 0){ 
+    if($("#edit-title").val().length > 0){
       $("#edit-body").unbind("keyup", quizUpdateTitle);
     }
     $("#edit-title").keyup(function() {
@@ -1022,5 +1033,5 @@ function quiz_set_auto_title() {
     });
   });
   ', 'inline');
-  
+
 }
