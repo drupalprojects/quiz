@@ -42,14 +42,17 @@ function quiz_dashboard_get_basic_stats($uid = 0) {
  *   HTML page with charts/graphs
  */
 function quiz_dashboard_get_adv_stats($nid = 0, $uid = 0) {
-  $output = '';
-  $output = _get_date_vs_takeup_count_chart($nid, $uid);
+  $output = '<div class="quiz-dashboard-chart-wrapper">';
+  $output .= _get_date_vs_takeup_count_chart($nid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
   $output .= _get_quiz_status_chart($nid, $uid);
   // 3D pie chart showing percentage of pass, fail, incomplete quiz status
   $output .= _get_quiz_top_scorers_chart($nid, $uid);
   // Bar chart displaying top scorers
   $output .= _get_quiz_grade_range_chart($nid, $uid);
+  if (!strlen($outout)) {
+    drupal_set_message(t('Insufficient data, unable to generate chart'), 'warning');
+  }
   return $output;
 }
 
@@ -83,6 +86,10 @@ function _get_quiz_grade_range_chart($nid = 0, $uid = 0) {
     $sql .= " AND uid = %d";
   }
   $range = db_fetch_object(db_query($sql, $nid, $uid));
+  $count = $range->zero_to_twenty + $range->twenty_to_fourty + $range->fourty_to_sixty + $range->sixty_to_eighty + $range->eighty_to_hundred;
+  if ($count < 2) {
+    return;
+  }
   $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
   $output .= theme('quiz_grade_range', $range);
   $output .= '</div>';
@@ -141,6 +148,9 @@ function _get_quiz_status_chart($nid = 0, $uid = 0) {
   // get the count value of results row above and below pass rate
   $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE nid = %d";
   $quiz = db_fetch_array(db_query($sql, intval($nid)));
+  if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 3) {
+    return; // no sufficient data
+  }
   // generates quiz status chart 3D pie chart
   $output = '<div id="get_quiz_status_chart" class="quiz-dashboard-chart-space">';
   $output .= theme('get_quiz_status_chart', $quiz);
@@ -175,6 +185,9 @@ function _get_date_vs_takeup_count_chart($nid = 0, $uid = 0) {
   $results = db_query_range($sql, $uid, $start, $end);
   while ($result = db_fetch_array($results)) {
     $takeup[] = $result;
+  }
+  if (count($takeup) < 3) {
+    return; //t('insufficient data to generate graph');
   }
   $output = '<div id="date_vs_takeup_count" class="quiz-dashboard-chart-space">';
   // wrapping the chart output with div for custom theming.
