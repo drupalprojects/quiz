@@ -50,7 +50,7 @@ function quiz_dashboard_get_adv_stats($nid = 0, $uid = 0) {
   $output .= _get_quiz_top_scorers_chart($nid, $uid);
   // Bar chart displaying top scorers
   $output .= _get_quiz_grade_range_chart($nid, $uid);
-  if (!strlen($outout)) {
+  if (!strlen($output)) {
     drupal_set_message(t('Insufficient data, unable to generate chart'), 'warning');
   }
   return $output;
