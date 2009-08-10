@@ -91,7 +91,9 @@ class MatchingQuestion implements QuizQuestion {
     list($questions, $select_option) = $this->getQuestion($node);
     foreach ($questions as $question) {
       $title = $question['question'];
-      if (_quiz_is_taking_context()) $title .= " (answer is '$question[answer]')";
+      if (!_quiz_is_taking_context()) {
+        $title .= " (answer is '$question[answer]')";
+      }
       $form['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $title,
