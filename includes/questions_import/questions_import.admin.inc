@@ -28,8 +28,9 @@ function questions_import_get_sample_file_link() {
 
 /**
  * @function
- * Implementation of hook_form
- * form to upload questions
+ * Implementation of hook_form()
+ * provides form to upload questions
+ *
  * @return
  * FAPI form array
  */
@@ -63,7 +64,7 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Existing quiz'),
     '#options' => $options,
-    '#description' => count($options) ? t('Select the quiz node under which you want to add questions') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#description' => count($options) ? t('Select the quiz node for which you want to add questions') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
@@ -225,7 +226,7 @@ function questions_import_form_validate($form, &$form_state) {
  * file is in proper format or not.
  */
 
-function questions_import_validate_qti12($file, $field_separator, $question_type) {
+function questions_import_validate_qti12($file, $field_separator) {
   $error_msg = '';
   $row = 0;
   $lines = file($file->filepath);
@@ -349,8 +350,9 @@ function _get_destination_node($form_state) {
 
 /**
  * @function
- * This is a generic questions import submit calls specific import function like
- * questions_import_submit_csv, questions_import_submit_multichoice_aiken
+ * This is a generic questions import submit function calls specific import
+ * function like questions_import_submit_csv, questions_import_submit_multichoice_aiken
+ *
  * @return
  * integer number of questions imported to a quiz node.
  */
@@ -512,14 +514,14 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
  * @return
  * Return the number of questions successfully imported.
  */
-function questions_import_submit_qti($form, $form_state, $import_id) {
+function questions_import_submit_qti12($destination_node, $form, $form_state, $import_id) {
   $file = $form_state['values']['validated_file'];
   $row = 0;
   $qti_items = questions_import_qti_extract_info($file->filepath);
 
   // Loop through each question and import it into Drupal
   foreach ($qti_items as $item) {
-    questions_import_qti_create_node($item, $form_state, $row, $import_id);
+    questions_import_qti_create_node($destination_node, $item, $form_state, $row, $import_id);
     ++$row;
   }
   return $row;
@@ -532,9 +534,7 @@ function questions_import_submit_qti($form, $form_state, $import_id) {
  */
 function questions_import_qti_create_node($destination_node, $item, $form_state, $row, $import_id) {
   global $user;
-
   $item = (object)$item;
-
   $node = new stdClass();
   $node->title = $item->title;
   $node->teaser = $node->body = $item->content;
@@ -542,7 +542,6 @@ function questions_import_qti_create_node($destination_node, $item, $form_state,
   $node->format = $form_state['values']['input_format'];
   $node->status = 1;
   $node->log = 'Imported from QTI importer.';
-
   $node->quiz_id = $destination_node->nid;
   $node->quiz_vid = $destination_node->vid;
 
@@ -558,7 +557,6 @@ function questions_import_qti_create_node($destination_node, $item, $form_state,
       $node->type = 'multichoice';
       $answers = $item->answers;
       $node->number_of_answers = count($answers);
-
       // Add answers:
       $node->answers = array();
       foreach ($answers as $answer) {
@@ -571,9 +569,7 @@ function questions_import_qti_create_node($destination_node, $item, $form_state,
       }
       break;
   }
-  //node_save($node);
   node_save(questions_import_node_save_static_data($node));
-
   db_query("INSERT INTO {quiz_questions_import_items} VALUES (%d, %d, %d)", $import_id, $node->nid, $row);
 }
 
