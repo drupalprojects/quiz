@@ -55,10 +55,10 @@ foreach ($titles as $key => $value) {
     $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
   } else {
     if ($form['#correct_choice'][$key]) {
-      $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('This alternative is correct')), 'width' => 35);
+      $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('This alternative is correct')), 'width' => 35);
     }
     else {
-      $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('This alternative is wrong')), 'width' => 35);
+      $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('This alternative is wrong')), 'width' => 35);
     }
   }
   $row[] = $value;
