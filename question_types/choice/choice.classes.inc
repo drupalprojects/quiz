@@ -698,14 +698,14 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
             if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
               $rowspan = 2;
             }
-            $row[] = array('data' => theme('image', "$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the)), NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
+            $row[] = array('data' => theme_image("$p./theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the)), NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
             if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
-            $row[] = array('data' => theme('image', "$p./theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the)),NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
+            $row[] = array('data' => theme_image("$p./theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the)),NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
           }
         }
         else {
@@ -713,7 +713,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
             if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
               $rowspan = 2;
             }
-            $row[] = array('data' => theme('image', "$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the)),NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
+            $row[] = array('data' => theme_image("$p./theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the)),NULL, FALSE), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
             if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
