@@ -1358,7 +1358,9 @@ function quiz_quiz_finished($quiz, $score, $rid) {
    */
 
   if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 1)) {
-    drupal_mail('quiz', 'notice', $quiz->mail, NULL, array($quiz, $score, $rid));
+    $author = user_load($quiz->uid);
+    drupal_mail('quiz', 'notice', $author->mail, NULL, array($quiz, 
+$score, $rid));
   }
 
   /*
@@ -1443,7 +1445,7 @@ function quiz_email_results_format($type) {
     return t('Dear !username') . "\n\n" .
       t('!user attended a !title quiz on !date') . "\n" .
       t('Test Description : !desc') . "\n" .
-      t('!user got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
+      t('!user got !correct out of !total in !time min percentage is !percentage') . "\n" .
       t('You can access your result here !url') . "\n";
   }
 }
