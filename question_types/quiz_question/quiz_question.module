@@ -439,7 +439,7 @@ function quiz_question_type_settings_form($context, $type) {
  */
 function quiz_question_nodeapi(&$node, $op) {
   if ($op == 'delete revision') {
-    _quiz_question_get_instance($node)->delete();
+    _quiz_delete_question($node, TRUE); // true for only this version
   }
   elseif ($op == 'presave') {
     $q_types = _quiz_question_get_implementations();
@@ -491,7 +491,27 @@ function quiz_question_update($node) {
  * Implementation of hook_delete().
  */
 function quiz_question_delete(&$node) {
-  _quiz_question_get_instance($node)->delete();
+  _quiz_delete_question($node, FALSE);
+}
+
+/**
+ * Delete the question node from the db, and mark its identifiers in the quiz
+ * and qcollection linking table as "NEVER".  This is safer than deleting them
+ * and allows for same tracing of what's happened if a question was deleted unintentionally.
+ *
+ * @param $node the question node
+ * @param $only_this_version whether to delete only the specific revision of the question
+ */
+function _quiz_delete_question(&$node, $only_this_version) {
+  // let each question class delete its own stuff
+  _quiz_question_get_instance($node)->delete($only_this_version);
+  // then remove it from {quiz_node_relationship} linking table
+  $base_sql = "UPDATE {quiz_node_relationship} SET question_status = ". QUESTION_NEVER;
+  if ($only_this_version) {
+    db_query($base_sql .' WHERE child_nid = %d AND child_vid = %d', $node->nid, $node->vid);
+  } else {
+    db_query($base_sql .' WHERE child_nid = %d', $node->nid);
+  }
 }
 
 /**
