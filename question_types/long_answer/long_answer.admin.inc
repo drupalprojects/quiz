@@ -93,12 +93,12 @@ function long_answer_score_form($context, $node, $answer) {
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#value' => check_markup($node->body, $node->format),
+    '#value' => check_markup($node->body, $node->format, FALSE),
   );
   $form['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
+    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',

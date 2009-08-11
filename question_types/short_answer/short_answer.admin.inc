@@ -76,7 +76,7 @@ function short_answer_score_form($context, $node, $answer) {
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#value' => check_markup($node->body, $node->format),
+    '#value' => check_markup($node->body, $node->format, FALSE),
   );
   $form['answer'] = array(
     '#type' => 'item',

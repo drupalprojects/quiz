@@ -373,7 +373,7 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
 
   $questions = array();
   while ($question = db_fetch_object($result)) {
-    $question->question = check_markup($question->body, $question->format);
+    $question->question = check_markup($question->body, $question->format, FALSE);
     $questions[] = $question;
   }
   return $questions;

@@ -49,7 +49,7 @@ class QuizDirectionsQuestion implements QuizQuestion {
   public function getQuestionForm($node, $context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format),
+       '#value' => check_markup($node->body, $node->format, FALSE),
      );
      $form['tries'] = array(
        '#type' => 'hidden',
