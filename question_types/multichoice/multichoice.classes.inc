@@ -237,14 +237,13 @@ class MultichoiceQuestion implements QuizQuestion {
             FROM {quiz_multichoice_answers}
             WHERE question_nid = %d AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $counter = 0;
-    while($res_arr = db_fetch_array($res)){
-      $to_return['alternatives'][$counter] = $res_arr;
-      $counter++;
-
+    $to_return['alternatives'] = array(); // init array so it can be iterated even if empty
+    while ($res_arr = db_fetch_array($res)) {
+      $to_return['alternatives'][] = $res_arr;
     }
     return $to_return;
   }
+
   /**
    * Implementation of view
    *
@@ -387,7 +386,7 @@ class MultichoiceQuestion implements QuizQuestion {
       '#default_value' => $default_settings['choice_boolean'],
       '#parents' => array('choice_boolean'),
     );
-    
+
     $form['alternatives']['settings']['desc'] = array(
       '#type' => 'markup',
       '#value' => t('Your settings will be remembered.'),
@@ -507,7 +506,7 @@ class MultichoiceQuestion implements QuizQuestion {
       $to_return['choice_multi'] = $this->node->choice_multi;
       $to_return['choice_random'] = $this->node->choice_random;
       $to_return['choice_boolean'] = $this->node->choice_boolean;
-    } 
+    }
     elseif ($to_return = $this->getUserSettings()) {
     }
     else {
@@ -531,14 +530,14 @@ class MultichoiceQuestion implements QuizQuestion {
       if ($arr = db_fetch_array($res)) {
         return $arr;
       }
-      else return false; 
+      else return false;
     }
     else return false;
   }
   private function saveUserSettings() {
     global $user;
-    $sql = 'REPLACE INTO {quiz_multichoice_user_settings} 
-            (uid, last_nid, last_vid) 
+    $sql = 'REPLACE INTO {quiz_multichoice_user_settings}
+            (uid, last_nid, last_vid)
             VALUES (%d, %d, %d)';
     db_query($sql, $user->uid, $this->node->nid, $this->node->vid);
   }
