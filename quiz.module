@@ -654,7 +654,7 @@ function quiz_form(&$node) {
   $form['addons'] = array(
     '#type' => 'fieldset',
     '#title' => t('Quiz Addons Properties'),
-    '#description' => t('Configure Quiz  !url and their Properties', array('!url' => l(t('Addons'), 'admin/quiz/settings'))),
+    '#description' => t('Configure Quiz  !url and their Properties', array('!url' => l(t('Addons'), 'admin/quiz/settings', array('query' => array('destination' => $_GET['q']))))),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -1359,7 +1359,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
 
   if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 1)) {
     $author = user_load($quiz->uid);
-    drupal_mail('quiz', 'notice', $author->mail, NULL, array($quiz, 
+    drupal_mail('quiz', 'notice', $author->mail, NULL, array($quiz,
 $score, $rid));
   }
 
