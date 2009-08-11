@@ -64,7 +64,7 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Existing quiz'),
     '#options' => $options,
-    '#description' => count($options) ? t('Select the quiz node for which you want to add questions') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#description' => count($options) ? t('Select the quiz to which you want to add questions.') : t('No quiz contents were found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
