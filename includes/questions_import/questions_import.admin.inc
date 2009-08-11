@@ -438,7 +438,7 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
     // Drupal => Moodle
     'long_answer' => 'essay',
     'short_answer' => 'shortanswer',
-    'choice' => 'multichoice',
+    'multichoice' => 'multichoice',
     'true_false' => 'truefalse',
     'quiz_directions' => 'description',
     'matching' => 'match',
@@ -478,7 +478,7 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
       $node->maximum_score = $mq->defaultgrade;
       break;
 
-    case 'multichoice': // Moodle name for our 'choice'
+    case 'multichoice':
       $node->alternatives = array();
 
       // whether user can make multiple selections
@@ -486,7 +486,6 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
 
       // Add answer alternatives
       foreach ($mq->answer as $index => $answer) {
-        // choice module has weird keys for array
         $node->alternatives[] = array(
           // answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
           // feedback_if_not_chosen, feedback_if_not_chosen_format,

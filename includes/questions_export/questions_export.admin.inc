@@ -110,18 +110,16 @@ function _questions_export_native($collection_node, $export_format) {
         }
         break;
 
-      case 'choice':
-        // FIXME implement 'choice'
-        break;
-
       case 'multichoice':
-        foreach ($question->answers as $answer) {
-          $feedback = $answer['feedback'] ? $answer['feedback'] : t('nil');
-          // use 'nil' when there is no feedback
-          array_push($line, $answer['answer'], $feedback);
-          $correct_answer = $answer['is_correct'] ? $answer['answer'] : '';
-        }
-        array_push($line, $correct_answer);
+        // FIXME re-implement for new 'multichoice'
+        array_push($line, "NOT IMPLEMENTED");
+//        foreach ($question->answers as $answer) {
+//          $feedback = $answer['feedback'] ? $answer['feedback'] : t('nil');
+//          // use 'nil' when there is no feedback
+//          array_push($line, $answer['answer'], $feedback);
+//          $correct_answer = $answer['is_correct'] ? $answer['answer'] : '';
+//        }
+//        array_push($line, $correct_answer);
         break;
 
       case 'true_false':
@@ -196,7 +194,6 @@ function _as_moodle_questions($drupal_questions) {
       'long_answer' => 'essay',
       'short_answer' => 'shortanswer',
       'multichoice' => 'multichoice',
-      'choice' => 'multichoice',
       'true_false' => 'truefalse',
       'quiz_directions' => 'description',
       'matching' => 'match',
@@ -205,7 +202,7 @@ function _as_moodle_questions($drupal_questions) {
 
     $mq->options = new stdClass();
     $mq->options->answers = array();
-    switch($dq->type) { // TODO refactor this into the questiontype classes
+    switch ($dq->type) { // TODO refactor this into the questiontype classes
       case 'matching':
         // TODO why doesn't matching have an ->answers property?
         for ($i = 0; !empty($dq->$i); $i += 1) {
@@ -216,23 +213,13 @@ function _as_moodle_questions($drupal_questions) {
         }
         $mq->options->subquestions = $matches;
         break;
-    case 'choice':
-    $mq->singlequestion = ! $question->choice_multi;
-      foreach ($question->alternatives as $alternative) {
-        $moodle_answer = new stdClass();
-        $moodle_answer->answer = $alternative['answer'];
-        $moodle_answer->feedback = $alternative['feedback_if_chosen'];
-        $moodle_answer->fraction = $alternative['score_if_chosen'];
-        $mq->options->answers[] = $moodle_answer;
-      }
-      break;
       case 'multichoice':
-        $mq->singlequestion = ($dq->multiple_answers) ? 0 : 1;
-        foreach ($dq->answers as $drupal_answer) {
+        $mq->singlequestion = ! $dq->choice_multi;
+        foreach ($dq->alternatives as $alternative) {
           $moodle_answer = new stdClass();
-          $moodle_answer->answer = $drupal_answer['answer'];
-          $moodle_answer->feedback = $drupal_answer['feedback'];
-          $moodle_answer->fraction = ($drupal_answer['is_correct']) ? 1 : 0;
+          $moodle_answer->answer = $alternative['answer'];
+          $moodle_answer->feedback = $alternative['feedback_if_chosen'];
+          $moodle_answer->fraction = $alternative['score_if_chosen'];
           $mq->options->answers[] = $moodle_answer;
         }
         break;
