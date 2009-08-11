@@ -439,8 +439,9 @@ function clean_getstring_data( $a ) {
 function zip_files ($originalfiles, $destination) {
   global $CFG;
 
+  // FIXME remove debugging once this is working well
   print "zipping files! originalfiles: ";
-  dprint_r($originalfiles);
+  print_r($originalfiles);
   print "destination: $destination\n";
 
   //Extract everything from destination
