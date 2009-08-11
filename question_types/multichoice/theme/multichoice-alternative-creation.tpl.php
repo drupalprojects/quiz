@@ -11,9 +11,9 @@
 
 ?>
 <?php
-if (!function_exists('_choice_format_mod')) {
-  function _choice_format_mod(&$format) {
-    $format['#attributes']['class'] = 'choice_filter';
+if (!function_exists('_multichoice_format_mod')) {
+  function _multichoice_format_mod(&$format) {
+    $format['#attributes']['class'] = 'multichoice_filter';
     if (isset($format['format'])) {
       $format['format']['guidelines']['#value'] = ' ';
       foreach ($format as $key => $value) {
@@ -24,8 +24,8 @@ if (!function_exists('_choice_format_mod')) {
     }
   }
 }
-$p = drupal_get_path('module', 'choice');
-drupal_add_js($p .'/theme/choice-alternative-creation.js', 'module');
+$p = drupal_get_path('module', 'multichoice');
+drupal_add_js($p .'/theme/multichoice-alternative-creation.js', 'module');
 $title_correct = check_plain($form['correct']['#title']);
 unset($form['correct']['#title']);
 $suf = $form['answer']['#required'] ? '<SPAN CLASS="form-required"> *</SPAN>' : '';
@@ -39,9 +39,9 @@ $header[] = array('data' => $title_answer);
 print theme('table', $header, $rows);
 
 //These lines make things look alot beter if user only has one input format available:
-_choice_format_mod($form['format']);
-_choice_format_mod($form['advanced']['format']);
-_choice_format_mod($form['advanced']['helper']['format']);
+_multichoice_format_mod($form['format']);
+_multichoice_format_mod($form['advanced']['format']);
+_multichoice_format_mod($form['advanced']['helper']['format']);
 
 print drupal_render($form['format']);
 print drupal_render($form['advanced']);

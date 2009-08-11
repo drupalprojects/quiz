@@ -11,12 +11,12 @@
 
 ?>
 <?php 
-$p = drupal_get_path('module', 'choice');
-drupal_add_css($p .'/theme/choice.css', 'module', 'all');
+$p = drupal_get_path('module', 'multichoice');
+drupal_add_css($p .'/theme/multichoice.css', 'module', 'all');
 if ($form['#taking_quiz']) {
   print "
-<script type=text/javascript>Drupal.behaviors.choiceAlternativeBehavior = function(context) {
-  $('.choice_row')
+<script type=text/javascript>Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
+  $('.multichoice_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
   .end()
@@ -28,14 +28,14 @@ if ($form['#taking_quiz']) {
       });
       $(':radio', this).attr('checked', true);
       if ($(':radio', this).html() != null) {
-        $('.choice_row').removeClass('selected');
+        $('.multichoice_row').removeClass('selected');
     	  $(this).addClass('selected');
       }
     }
   });
 };</SCRIPT>";
   //drupal_add_js can't be used with ajax quiz :/
-  //drupal_add_js($p .'/theme/choice-alternative.js', 'module');
+  //drupal_add_js($p .'/theme/multichoice-alternative.js', 'module');
 }
 $options = $form['#options'];
 $fullOptions = array();
@@ -62,7 +62,7 @@ foreach ($titles as $key => $value) {
     }
   }
   $row[] = $value;
-  $rows[] = array('data' => $row, 'class' => 'choice_row');
+  $rows[] = array('data' => $row, 'class' => 'multichoice_row');
 }
 print theme('table', NULL, $rows);
 ?>

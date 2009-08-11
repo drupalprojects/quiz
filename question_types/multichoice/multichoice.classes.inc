@@ -3,7 +3,7 @@
 // $Id$
 
 /**
- * The main classes for the choice question type.
+ * The main classes for the multichoice question type.
  *
  * These inherit or implement code found in quiz_question.classes.inc.
  *
@@ -30,7 +30,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class ChoiceQuestion implements QuizQuestion {
+class MultichoiceQuestion implements QuizQuestion {
 
   /**
    * The current node for this question.
@@ -85,7 +85,7 @@ class ChoiceQuestion implements QuizQuestion {
     $is_new_node = $is_new || $this->node->revision == 1;
     $this->forgive();
     if ($is_new_node) {
-      $sql = 'INSERT INTO {quiz_choice_properties}
+      $sql = 'INSERT INTO {quiz_multichoice_properties}
         (nid, vid, choice_multi, choice_random, choice_boolean)
         VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
@@ -96,11 +96,11 @@ class ChoiceQuestion implements QuizQuestion {
       }
     }
     else {
-      $sql = 'UPDATE {quiz_choice_properties}
+      $sql = 'UPDATE {quiz_multichoice_properties}
         SET choice_multi = %d, choice_random = %d, choice_boolean = %d
         WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean, $this->node->nid, $this->node->vid);
-      $sql = 'SELECT id FROM {quiz_choice_answer}
+      $sql = 'SELECT id FROM {quiz_multichoice_answers}
               WHERE question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
       $ids_to_delete = array();
@@ -120,7 +120,7 @@ class ChoiceQuestion implements QuizQuestion {
       }
       foreach($ids_to_delete as $id_to_delete) {
         if ($id_to_delete) {
-          db_query('DELETE FROM {quiz_choice_answer} WHERE id = %d', $id_to_delete);
+          db_query('DELETE FROM {quiz_multichoice_answers} WHERE id = %d', $id_to_delete);
         }
       }
     }
@@ -128,7 +128,7 @@ class ChoiceQuestion implements QuizQuestion {
   }
 
   private function insertAlternative($i) {
-    $sql = 'INSERT INTO {quiz_choice_answer}
+    $sql = 'INSERT INTO {quiz_multichoice_answers}
             (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen,
             score_if_not_chosen, question_nid, question_vid)
@@ -141,7 +141,7 @@ class ChoiceQuestion implements QuizQuestion {
   }
 
   private function updateAlternative($i) {
-    $sql = 'UPDATE {quiz_choice_answer}
+    $sql = 'UPDATE {quiz_multichoice_answers}
             SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\',
             feedback_if_chosen_format = %d, feedback_if_not_chosen = \'%s\',
             feedback_if_not_chosen_format = %d, score_if_chosen = %d, score_if_not_chosen = %d
@@ -199,22 +199,22 @@ class ChoiceQuestion implements QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     if ($only_this_version) {
-      db_query('DELETE FROM {quiz_choice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-      $sql = 'DELETE FROM {quiz_choice_user_answers}
+      db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
+      $sql = 'DELETE FROM {quiz_multichoice_user_answers}
       		  WHERE result_id IN(
       		  	SELECT result_id
       		  	FROM {quiz_node_results}
-      		  	WHERE nid = %d AND vid = %d
+      		  	WHERE question_nid = %d AND question_vid = %d
       		  )';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     else {
-      db_query('DELETE FROM {quiz_choice_properties} WHERE nid = %d', $this->node->nid);
-      $sql = 'DELETE FROM {quiz_choice_user_answers}
+      db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d', $this->node->nid);
+      $sql = 'DELETE FROM {quiz_multichoice_user_answers}
       		  WHERE result_id IN(
       		  	SELECT result_id
       		  	FROM {quiz_node_results}
-      		  	WHERE nid = %d
+      		  	WHERE question_nid = %d
       		  )';
       db_query($sql, $this->node->nid);
     }
@@ -228,13 +228,13 @@ class ChoiceQuestion implements QuizQuestion {
    */
   public function load() {
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
-            FROM {quiz_choice_properties}
+            FROM {quiz_multichoice_properties}
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $to_return = db_fetch_array($res);
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
-            FROM {quiz_choice_answer}
+            FROM {quiz_multichoice_answers}
             WHERE question_nid = %d AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $counter = 0;
@@ -269,7 +269,7 @@ class ChoiceQuestion implements QuizQuestion {
     );
     $form['tries[answer]'] = array(
       '#options' => array(),
-      '#theme' => 'choice_alternative',
+      '#theme' => 'multichoice_alternative',
     );
     $form['tries[answer]']['#taking_quiz'] = _quiz_is_taking_context();
     $form['tries[answer]']['#correct_choice'] = array();
@@ -323,10 +323,10 @@ class ChoiceQuestion implements QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
    */
   public function getAdminForm($edit = NULL) {
-    $form['choice_max_num_of_alts'] = array(
+    $form['multichoice_max_num_of_alts'] = array(
       '#type' => 'textfield',
       '#title' => t('Maximum number of alternatives allowed'),
-      '#default_value' => variable_get('choice_max_num_of_alts', 2),
+      '#default_value' => variable_get('multichoice_max_num_of_alts', 2),
     );
     return system_settings_form($form);
   }
@@ -350,7 +350,7 @@ class ChoiceQuestion implements QuizQuestion {
     /*
      * Getting presets from the database
      */
-    $form['#theme'][] = 'choice_creation_form';
+    $form['#theme'][] = 'multichoice_creation_form';
 
     $form['alternatives'] = array(
       '#type' => 'fieldset',
@@ -393,13 +393,13 @@ class ChoiceQuestion implements QuizQuestion {
       '#value' => t('Your settings will be remembered.'),
     );
 
-    $form['alternatives']['#theme'][] = 'choice_creation_form';
+    $form['alternatives']['#theme'][] = 'multichoice_creation_form';
     $i = 0;
     if (isset($form_state['choice_count'])) {
       $choice_count = $form_state['choice_count'];
     }
     else {
-      $choice_count = max(variable_get('choice_max_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
+      $choice_count = max(variable_get('multichoice_max_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
     }
     for (; $i < $choice_count; $i++) {
       $short = $this->node->alternatives[$i];
@@ -409,7 +409,7 @@ class ChoiceQuestion implements QuizQuestion {
         '#collapsible' => TRUE,
         '#collapsed' => !($i < 2 || isset($short['answer'])),
       );
-      $form['alternatives'][$i]['#theme'][] = 'choice_alternative_creation';
+      $form['alternatives'][$i]['#theme'][] = 'multichoice_alternative_creation';
       $form['alternatives'][$i]['correct'] = array(
         '#type' => 'checkbox',
         '#title' => t('Correct'),
@@ -488,12 +488,12 @@ class ChoiceQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => '<DIV id=\'placeholder\'></DIV>',
     );
-    $form['alternatives']['choice_add_alternative'] = array(
+    $form['alternatives']['multichoice_add_alternative'] = array(
       '#type' => 'submit',
       '#value' => t('Add more alternatives'),
-      '#submit' => array('choice_more_choices_submit'), // If no javascript action.
+      '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
       '#ahah' => array(
-        'path' => "choice/add_alternative_js",
+        'path' => "multichoice/add_alternative_js",
         'wrapper' => 'placeholder',
         'effect' => 'slide',
         'method' => 'before',
@@ -520,12 +520,12 @@ class ChoiceQuestion implements QuizQuestion {
   private function getUserSettings() {
     global $user;
     $sql = 'SELECT last_nid, last_vid
-            FROM {quiz_choice_user_settings}
+            FROM {quiz_multichoice_user_settings}
             WHERE uid = %d';
     $res = db_query($sql, $user->uid);
     if ($obj = db_fetch_object($res)) {
       $sql = 'SELECT choice_multi, choice_random, choice_boolean
-              FROM {quiz_choice_properties}
+              FROM {quiz_multichoice_properties}
               WHERE nid = %d AND vid = %d';
       $res = db_query($sql, $obj->last_nid, $obj->last_vid);
       if ($arr = db_fetch_array($res)) {
@@ -537,7 +537,7 @@ class ChoiceQuestion implements QuizQuestion {
   }
   private function saveUserSettings() {
     global $user;
-    $sql = 'REPLACE INTO {quiz_choice_user_settings} 
+    $sql = 'REPLACE INTO {quiz_multichoice_user_settings} 
             (uid, last_nid, last_vid) 
             VALUES (%d, %d, %d)';
     db_query($sql, $user->uid, $this->node->nid, $this->node->vid);
@@ -562,7 +562,7 @@ class ChoiceQuestion implements QuizQuestion {
 /**
  * The short answer question response class.
  */
-class ChoiceResponse extends AbstractQuizQuestionResponse {
+class MultichoiceResponse extends AbstractQuizQuestionResponse {
   /**
    * ID of the answers.
    */
@@ -588,9 +588,9 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
     elseif (isset($tries['answer'])) $this->user_answer_ids[] = $tries['answer'];
     else {
       $sql = 'SELECT answer_id
-              FROM {quiz_choice_user_answer_multi} uam
-              JOIN {quiz_choice_user_answers} ua ON(uam.user_answer_id = ua.id)
-              WHERE ua.result_id = %d AND ua.nid = %d AND ua.vid = %d';
+              FROM {quiz_multichoice_user_answer_multi} uam
+              JOIN {quiz_multichoice_user_answers} ua ON(uam.user_answer_id = ua.id)
+              WHERE ua.result_id = %d AND ua.question_nid = %d AND ua.question_vid = %d';
       $res = db_query($sql, $rid, $this->question->nid, $this->question->vid);
       while ($res_o = db_fetch_object($res)) {
         $this->user_answer_ids[] = $res_o->answer_id;
@@ -602,13 +602,13 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * Implementation of save
    */
   public function save() {
-    $sql = "INSERT INTO {quiz_choice_user_answers}
-            (result_id, vid, nid, choice_order)
+    $sql = "INSERT INTO {quiz_multichoice_user_answers}
+            (result_id, question_vid, question_nid, choice_order)
             VALUES (%d, %d, %d, '%s')";
     db_query($sql, $this->rid, $this->question->vid, $this->question->nid, $this->choice_order);
-    $user_answer_id = db_last_insert_id('{quiz_choice_user_answers}', 'id');
+    $user_answer_id = db_last_insert_id('{quiz_multichoice_user_answers}', 'id');
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
-      $sql = 'INSERT INTO {quiz_choice_user_answer_multi}
+      $sql = 'INSERT INTO {quiz_multichoice_user_answer_multi}
               (user_answer_id, answer_id)
               VALUES(%d, %d)';
       db_query($sql, $user_answer_id, $this->user_answer_ids[$i]);
@@ -619,14 +619,14 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
    * Implementation of delete
    */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_choice_user_answer_multi}
+    $sql = 'DELETE FROM {quiz_multichoice_user_answer_multi}
             WHERE user_answer_id IN(
-              SELECT id FROM {quiz_choice_user_answers}
-              WHERE nid = %d AND vid = %d AND result_id = %d
+              SELECT id FROM {quiz_multichoice_user_answers}
+              WHERE question_nid = %d AND question_vid = %d AND result_id = %d
             )';
     db_query($sql, $this->nid, $this->question->vid, $this->question->rid);
-    $sql = 'DELETE FROM {quiz_choice_user_answers}
-    		WHERE result_id = %d AND nid = %d AND vid = %d';
+    $sql = 'DELETE FROM {quiz_multichoice_user_answers}
+    		WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
   }
 
@@ -690,7 +690,7 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
       if (drupal_strlen(strip_tags($short['answer'])) > 0) {
         $row = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
-        $p = drupal_get_path('module', 'choice');
+        $p = drupal_get_path('module', 'multichoice');
         $rowspan = 1;
         $not = '';
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
@@ -741,8 +741,8 @@ class ChoiceResponse extends AbstractQuizQuestionResponse {
   private function orderAlternatives(&$alternatives) {
     if (!$this->question->choice_random) return;
     $sql = "SELECT choice_order
-            FROM {quiz_choice_user_answers}
-            WHERE result_id = %d AND nid = %d AND vid = %d";
+            FROM {quiz_multichoice_user_answers}
+            WHERE result_id = %d AND question_nid = %d AND question_vid = %d";
     $res = db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
     $order = explode(',', db_result($res));
     $newAlternatives = array();

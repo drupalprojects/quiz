@@ -3,8 +3,8 @@
  * @file
  * JS enabling the quiz taker to click anywhere in a table row to mark a checkbox/radio button.
  */
-Drupal.behaviors.choiceAlternativeBehavior = function(context) {
-  $('.choice_row')
+Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
+  $('.multichoice_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
   .end()
@@ -16,7 +16,7 @@ Drupal.behaviors.choiceAlternativeBehavior = function(context) {
       });
       $(':radio', this).attr('checked', true);
       if ($(':radio', this).html() != null) {
-        $('.choice_row').removeClass('selected');
+        $('.multichoice_row').removeClass('selected');
     	  $(this).addClass('selected');
       }
     }
