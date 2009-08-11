@@ -262,7 +262,9 @@ function _questions_export_moodle($collection_node, $format) {
   $qformat = new $classname();
   $qformat->set_can_access_backupdata(false); // not available here
 
-  $qformat->filename = $quiz->title;
+  if (!$qformat->provide_export()) throw new Exception("export not provided by $format format");
+
+  $qformat->filename = $collection_node->title;
 
   // process using Moodle
   $qformat->setQuestions($moodle_questions);
