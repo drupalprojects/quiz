@@ -76,38 +76,48 @@ function _multichoice_alter_user_answers1(&$to_return) {
 }
 
 function _multichoice_move_old_answers(&$to_return, &$sandbox = NULL) {
-  if (!isset($sandbox['progress'])) {
-    $sandbox['progress'] = 0;
-    $sandbox['last_rid'] = 0;
-    $sandbox['max'] = db_result(db_query('SELECT COUNT(DISTINCT id) FROM {quiz_multichoice_user_answers}'));
+  if (!isset($sandbox['step_progress'])) {
+    $sandbox['step_progress'] = 0;
+    $sandbox['last_rid'] = -1;
+    $sandbox['last_nid'] = -1;
+    $sandbox['last_vid'] = -1;
+    $sandbox['last_id'] = -1;
+    $sandbox['step_max'] = db_result(db_query('SELECT COUNT(DISTINCT id) FROM {quiz_multichoice_user_answers}'));
   }
   $sql = 'SELECT id, answer_id, question_nid, question_vid, result_id
           FROM {quiz_multichoice_user_answers}
-          WHERE result_id > %d
-          ORDER BY result_id, question_nid, question_vid';
-  $res = db_query_range($sql, $sandbox['last_rid'], 0, 100);
-  $prog_to_add = 0;
+          WHERE result_id >= %d
+          ORDER BY result_id, question_nid, question_vid, answer_id';
+  $res = db_query_range($sql, $sandbox['last_rid'], 0, 50);
+  $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
-    $sql = 'INSERT IGNORE INTO {quiz_multichoice_user_answer_multi}
-            (user_answer_id, answer_id)
-            VALUES(%d, %d)';
-    db_query($sql, $res_o->id, $res_o->answer_id);
     if($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']
     && $res_o->result_id    == $sandbox['last_rid']) {
-      $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-              WHERE id = %d';
-      db_query($sql, $res_o->id);
+      if($res_o->id > $sandbox['last_id']){
+        $sql2 = 'DELETE FROM {quiz_multichoice_user_answers}
+                 WHERE id = %d';
+        db_query($sql2, $res_o->id);
+        if ($progress_to_add + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
+          $sandbox['step_progress'] = $sandbox['step_max'];
+        }
+      }
     }
     else {
       $sandbox['last_nid'] = $res_o->question_nid;
       $sandbox['last_vid'] = $res_o->question_vid;
       $sandbox['last_rid'] = $res_o->result_id;
+      $sandbox['last_id'] = $res_o->id;
+      $sandbox['step_progress'] += $progress_to_add;
+      $progress_to_add = 0;
     }
-    $prog_to_add++;
+    $sql = 'INSERT IGNORE INTO {quiz_multichoice_user_answer_multi}
+            (user_answer_id, answer_id)
+            VALUES(%d, %d)';
+    db_query($sql, $sandbox['last_id'], $res_o->answer_id);
+    $progress_to_add++;
   }
-  $sandbox['progress'] += $prog_to_add;
-  if ($sandbox['progress'] >= $sandbox['max']) $sandbox['multichoice1'] = TRUE; 
+  if ($sandbox['step_progress'] >= $sandbox['step_max']) $sandbox['multichoice1'] = TRUE; 
 }
 function _multichoice_alter_user_answers2(&$to_return) {
   db_drop_field($to_return, 'quiz_multichoice_user_answers', 'answer_id');
@@ -208,21 +218,18 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
           FROM {quiz_multichoice_answers}
           WHERE question_nid >= %d AND question_vid >= %d
           ORDER BY question_nid, question_vid';
-  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 4);
-  $prog_to_add = 0;
-  $prog_to_add_temp = 0;
+  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 50);
+  $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
     if($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']) {
-      //TODO: Fix this uglynes...
-      if ($prog_to_add + $prog_to_add_temp + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
-        $prog_to_add += $prog_to_add_temp + 1;
-        $prog_to_add_temp = -1;
+      if ($progress_to_add + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
+        $sandbox['step_progress'] = $sandbox['step_max'];
       }
     }
     else {
-      $prog_to_add += $prog_to_add_temp;
-      $prog_to_add_temp = 0;
+      $sandbox['step_progress'] += $progress_to_add;
+      $progress_to_add = 0;
       $sandbox['last_nid'] = $res_o->question_nid;
       $sandbox['last_vid'] = $res_o->question_vid;
       $sandbox['num_corrects'] = 0;
@@ -250,10 +257,9 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
             WHERE question_nid = %d AND question_vid = %d';
     $lf = $sandbox['last_format'];
     db_query($sql, $lf, $lf, $lf, $res_o->question_nid, $res_o->question_vid);
-    $prog_to_add_temp++;
+    $progress_to_add++;
   }
-  $sandbox['step_progress'] += $prog_to_add;
-  dpm($sandbox);
+  $sandbox['step_progress'] += $progress_to_add;
   if ($sandbox['step_progress'] >= $sandbox['step_max']) $sandbox['multichoice4'] = TRUE; 
 }
 function _multichoice_create_user_settings(&$to_return) {
