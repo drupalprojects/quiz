@@ -73,6 +73,17 @@ class MultichoiceQuestion implements QuizQuestion {
   }
 
   /**
+   * Run check_markup() on the field of the specified choice alternative
+   * @param $alternativeIndex
+   * @param $field
+   * @return HTML markup
+   */
+  private function check_alternative_markup($alternativeIndex, $field, $check_user_access = TRUE) {
+    $alternative = $this->node->alternatives[$alternativeIndex];
+    return check_markup($alternative[$field], $alternative[$field.'_format'], $check_user_access);
+  }
+
+  /**
    * Implementation of save
    *
    * Stores the question in the database.
@@ -90,7 +101,7 @@ class MultichoiceQuestion implements QuizQuestion {
         VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
-        if (strlen(strip_tags($this->node->alternatives[$i]['answer'])) > 0) {
+        if (strlen($this->check_alternative_markup($i, 'answer')) > 0) {
           $this->insertAlternative($i);
         }
       }
@@ -109,7 +120,7 @@ class MultichoiceQuestion implements QuizQuestion {
       }
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen(strip_tags($short['answer'])) > 0) {
+        if (strlen($this->check_alternative_markup($i, 'answer')) > 0) {
           if (!is_numeric($short['id'])) $this->insertAlternative($i);
           else {
             $this->updateAlternative($i);
@@ -164,7 +175,7 @@ class MultichoiceQuestion implements QuizQuestion {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen(strip_tags($short['answer'])) < 1) continue;
+        if (strlen($this->check_alternative_markup($i,'answer')) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
             form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
@@ -181,7 +192,7 @@ class MultichoiceQuestion implements QuizQuestion {
     else {
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen(strip_tags($short['answer'])) < 1) continue;
+        if (strlen($this->check_alternative_markup($i, 'answer')) < 1) continue;
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
           form_set_error("alternatives][$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
         }
@@ -274,14 +285,14 @@ class MultichoiceQuestion implements QuizQuestion {
     $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($node->alternatives[$i]); $i++) {
       $short = $node->alternatives[$i];
-      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
-        $markup = check_markup($short['answer'], $short['answer_format']);
+      $answer_markup = $this->check_alternative_markup($i, 'answer', FALSE);
+      if (drupal_strlen($answer_markup) > 0) {
         if (! $form['tries[answer]']['#taking_quiz']) {
           // displaying outside a quiz-taking context
-          $is_correct = $short['score_if_chosen'] > $short['score_if_not_chosen'];
+          $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
           $form['tries[answer]']['#correct_choice'][$short['id']] = $is_correct;
         }
-        $form['tries[answer]']['#options'][$short['id']] = $markup;
+        $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
       }
     }
     if ($node->choice_random) {
@@ -686,7 +697,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     $this->orderAlternatives($this->question->alternatives);
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
-      if (drupal_strlen(strip_tags($short['answer'])) > 0) {
+      if (drupal_strlen($this->check_alternative_markup($i, 'answer')) > 0) {
         $row = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'multichoice');
@@ -694,13 +705,13 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
         $not = '';
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+            if (drupal_strlen($this->check_alternative_markup($i, 'feedback_if_chosen')) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+            if (drupal_strlen($this->check_alternative_markup($i, 'feedback_if_not_chosen')) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
@@ -709,13 +720,13 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
         }
         else {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen(strip_tags($short['feedback_if_chosen'])) > 0) {
+            if (drupal_strlen($this->check_alternative_markup($i, 'feedback_if_chosen')) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (drupal_strlen(strip_tags($short['feedback_if_not_chosen'])) > 0) {
+            if (drupal_strlen($this->check_alternative_markup($i, 'feedback_if_not_chosen')) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
@@ -737,6 +748,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
 
     return $slug . $result;
   }
+
   private function orderAlternatives(&$alternatives) {
     if (!$this->question->choice_random) return;
     $sql = "SELECT choice_order
