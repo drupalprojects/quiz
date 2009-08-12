@@ -199,22 +199,30 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
   if (!isset($sandbox['multichoice_check_answers'])) {
     $sandbox['step_progress'] = 0;
     $sandbox['multichoice_check_answers'] = TRUE;
-    $sandbox['last_id'] = 0;
     $sandbox['last_nid'] = 0;
     $sandbox['last_vid'] = 0;
-    $sandbox['num_corrects'] = 0;
     $sandbox['step_max'] = db_result(db_query('SELECT COUNT(DISTINCT id) FROM {quiz_multichoice_answers}'));
   }
+  $sandbox['num_corrects'] = 0;
   $sql = 'SELECT id, question_nid, question_vid, score_if_chosen, score_if_not_chosen
           FROM {quiz_multichoice_answers}
-          WHERE id > %d
+          WHERE question_nid >= %d AND question_vid >= %d
           ORDER BY question_nid, question_vid';
-  $res = db_query_range($sql, $sandbox['last_id'], 0, 2);
+  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 4);
+  $prog_to_add = 0;
+  $prog_to_add_temp = 0;
   while ($res_o = db_fetch_object($res)) {
     if($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']) {
+      //TODO: Fix this uglynes...
+      if ($prog_to_add + $prog_to_add_temp + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
+        $prog_to_add += $prog_to_add_temp + 1;
+        $prog_to_add_temp = -1;
+      }
     }
     else {
+      $prog_to_add += $prog_to_add_temp;
+      $prog_to_add_temp = 0;
       $sandbox['last_nid'] = $res_o->question_nid;
       $sandbox['last_vid'] = $res_o->question_vid;
       $sandbox['num_corrects'] = 0;
@@ -242,9 +250,10 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
             WHERE question_nid = %d AND question_vid = %d';
     $lf = $sandbox['last_format'];
     db_query($sql, $lf, $lf, $lf, $res_o->question_nid, $res_o->question_vid);
-    $sandbox['last_id'] = $res_o->id;
-    $sandbox['step_progress']++;
+    $prog_to_add_temp++;
   }
+  $sandbox['step_progress'] += $prog_to_add;
+  dpm($sandbox);
   if ($sandbox['step_progress'] >= $sandbox['step_max']) $sandbox['multichoice4'] = TRUE; 
 }
 function _multichoice_create_user_settings(&$to_return) {
