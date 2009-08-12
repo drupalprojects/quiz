@@ -340,6 +340,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0
       ),
+      'time_left' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0
+      ),
     ),
     'primary key' => array('result_id'),
     'indexes' => array(
