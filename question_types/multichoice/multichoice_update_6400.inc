@@ -1,4 +1,5 @@
 <?php 
+// $Id$
 function _multichoice_update_6400(&$sandbox = NULL) {
   $to_return = array();
   $sandbox['current_step'] = isset($sandbox['current_step']) ? $sandbox['current_step'] : 0;
