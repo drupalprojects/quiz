@@ -1,51 +1,51 @@
 <?php 
 //TODO: Test with enormous amount of content... (test with endless amount of content, make loop insert and delete...)
-//TODO: Try to make progress bar work.
 //TODO: Drop unused quiz tables
 //TODO: Don't let quiz.install make unused quiz tables.
 function _multichoice_update_6400(&$sandbox = NULL) {
   $to_return = array();
   if (!$sandbox['multichoice0']) {
-    $sandbox['progess'] = 1;
+    $sandbox['progress'] = 1;
     $sandbox['max'] = 6;
     $sandbox['finished'] = $sandbox['progress']/$sandbox['max'];
     _multichoice_alter_user_answers1($to_return);
     $sandbox['multichoice0'] = TRUE; 
   }
-  if (!$sandbox['multichoice1']) {
+  elseif (!$sandbox['multichoice1']) {
     _multichoice_move_old_answers($to_return, $sandbox);
-    $sandbox['progess'] = 2;
+    $sandbox['progress'] = 2;
     $sandbox['max'] = 6;
     $sandbox['finished'] = $sandbox['progress']/$sandbox['max'];
   }
-  if (!$sandbox['multichoice2']) {
+  elseif (!$sandbox['multichoice2']) {
     _multichoice_alter_user_answers2($to_return);
-    $sandbox['progess'] = 3;
+    $sandbox['progress'] = 3;
     $sandbox['max'] = 6;
     $sandbox['finished'] = $sandbox['progress']/$sandbox['max'];
     $sandbox['multichoice2'] = TRUE; 
   }
-  if (!$sandbox['multichoice3']) {
+  elseif (!$sandbox['multichoice3']) {
     _multichoice_create_properties($to_return);
     _multichoice_alter_answers1($to_return);
     $sandbox['multichoice3'] = TRUE;
-    $sandbox['progess'] = 4;
+    $sandbox['progress'] = 4;
     $sandbox['max'] = 6;
     $sandbox['finished'] = $sandbox['progress']/$sandbox['max'];
   }
-  if (!$sandbox['multichoice4']) {
+  elseif (!$sandbox['multichoice4']) {
     _multichoice_check_answers($to_return, $sandbox);
-    $sandbox['progess'] = 5;
+    $sandbox['progress'] = 5;
     $sandbox['max'] = 6;
     $sandbox['finished'] = $sandbox['progress']/$sandbox['max'];
   }
-  if (!$sandbox['multichoice5']) {
+  elseif (!$sandbox['multichoice5']) {
     _multichoice_create_user_settings($to_return);
     $sandbox['multichoice5'] = TRUE;
-    $sandbox['progess'] = 6;
+    $sandbox['progress'] = 6;
     $sandbox['max'] = 6;
-    $sandbox['#finished'] = 1;
+    $sandbox['finished'] = 1;
   }
+  $to_return['#finished'] = $sandbox['finished'];
   return $to_return;
 }
 function _multichoice_alter_user_answers1(&$to_return) {
@@ -197,19 +197,19 @@ function _multichoice_alter_answers1(&$to_return) {
 }
 function _multichoice_check_answers(&$to_return, &$sandbox) {
   if (!isset($sandbox['multichoice_check_answers'])) {
-    $sandbox['progress'] = 0;
+    $sandbox['step_progress'] = 0;
     $sandbox['multichoice_check_answers'] = TRUE;
+    $sandbox['last_id'] = 0;
     $sandbox['last_nid'] = 0;
     $sandbox['last_vid'] = 0;
-    $sandbox['max'] = db_result(db_query('SELECT COUNT(DISTINCT id) FROM {quiz_multichoice_answers}'));
+    $sandbox['num_corrects'] = 0;
+    $sandbox['step_max'] = db_result(db_query('SELECT COUNT(DISTINCT id) FROM {quiz_multichoice_answers}'));
   }
-  $sandbox['num_corrects'] = 0;
   $sql = 'SELECT id, question_nid, question_vid, score_if_chosen, score_if_not_chosen
           FROM {quiz_multichoice_answers}
-          WHERE question_nid > %d AND question_vid > %d
+          WHERE id > %d
           ORDER BY question_nid, question_vid';
-  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 100);
-  $prog_to_add = 0;
+  $res = db_query_range($sql, $sandbox['last_id'], 0, 2);
   while ($res_o = db_fetch_object($res)) {
     if($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']) {
@@ -242,13 +242,12 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
             WHERE question_nid = %d AND question_vid = %d';
     $lf = $sandbox['last_format'];
     db_query($sql, $lf, $lf, $lf, $res_o->question_nid, $res_o->question_vid);
-    $prog_to_add++;
+    $sandbox['last_id'] = $res_o->id;
+    $sandbox['step_progress']++;
   }
-  $sandbox['progress'] += $prog_to_add;
-  if ($sandbox['progress'] >= $sandbox['max']) $sandbox['multichoice4'] = TRUE; 
+  if ($sandbox['step_progress'] >= $sandbox['step_max']) $sandbox['multichoice4'] = TRUE; 
 }
 function _multichoice_create_user_settings(&$to_return) {
-  //TODO: Remove this
   db_create_table($to_return, 'quiz_multichoice_user_settings', array(
     'fields' => array(
       'uid' => array(
