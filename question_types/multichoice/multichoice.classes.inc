@@ -639,7 +639,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       $score = 1;
       foreach ($this->question->alternatives as $key => $alt) {
         if (in_array($alt['id'], $this->user_answer_ids)) {
-          if ($alt['score_if_chosen'] < $alt['score_if_not_chosen']) $score = 0;
+          if ($alt['score_if_chosen'] <= $alt['score_if_not_chosen']) $score = 0;
         }
         else {
           if ($alt['score_if_chosen'] > $alt['score_if_not_chosen']) $score = 0;
