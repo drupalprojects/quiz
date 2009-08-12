@@ -491,11 +491,11 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
           // feedback_if_not_chosen, feedback_if_not_chosen_format,
           // score_if_chosen, score_if_not_chosen
           'answer' => $answer,
-          'answer_format' => $form_state['values']['input_format'],
+          'answer_format' => $node->format,
           'feedback_if_chosen' => $mq->feedback[$index],
-          'feedback_if_chosen_format' => $mq->feedback[$index],
+          'feedback_if_chosen_format' => $node->format,
           'feedback_if_not_chosen' => '',
-          'feedback_if_not_chosen_format' => $mq->feedback[$index],
+          'feedback_if_not_chosen_format' => $node->format,
           'score_if_chosen' => $mq->fraction[$index],
           'score_if_not_chosen' => 0,
         );
