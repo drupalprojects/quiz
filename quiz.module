@@ -702,7 +702,7 @@ function quiz_form(&$node) {
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
       '#default_value' => $node->pass_rate,
-      '#description' => t('Pass rate for the @quiz as a percentage score. (For personality quiz enter 0, and use result options.)', array('@quiz' => QUIZ_NAME)),
+      '#description' => t('Pass rate for the @quiz as a percentage score.', array('@quiz' => QUIZ_NAME)),
       '#required' => FALSE,
     );
     $form['summaryoptions']['summary_pass'] = array(
@@ -757,7 +757,6 @@ function quiz_form(&$node) {
     $form['resultoptions'][$i]['option_name'] = array(
       '#type' => 'textfield',
       '#title' => t('The name of the result'),
-      '#description' => t('Not displayed on personality !quiz.', array('!quiz' => QUIZ_NAME)),
       '#default_value' => $option['option_name'],
       '#maxlength' => 40,
       '#size' => 40,
@@ -765,14 +764,14 @@ function quiz_form(&$node) {
     $form['resultoptions'][$i]['option_start'] = array(
       '#type' => 'textfield',
       '#title' => t('Percentage Start Range'),
-      '#description' => t('Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes.'),
+      '#description' => t('Show this result for scored quizzes in this range (0-100).'),
       '#default_value' => $option['option_start'],
       '#size' => 5,
     );
     $form['resultoptions'][$i]['option_end'] = array(
       '#type' => 'textfield',
       '#title' => t('Percentage End Range'),
-      '#description' => t('Show this result for scored quizzes in this range (0-100). Leave blank for personality quizzes.'),
+      '#description' => t('Show this result for scored quizzes in this range (0-100).'),
       '#default_value' => $option['option_end'],
       '#size' => 5,
     );
@@ -1660,11 +1659,6 @@ function quiz_start_actions($quiz) {
  *  Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $rid) {
-  // Handle personality-style quiz scoring separately:
-  if ($quiz->pass_rate == 0) {
-    return quiz_calculate_personality_score($quiz, $rid);
-  }
-
   // 1. Get each question for the quiz.
   /*
   $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type
@@ -1731,46 +1725,6 @@ function quiz_calculate_score($quiz, $rid) {
 function quiz_module_for_type($type) {
   $types = _quiz_get_question_types();
   return $types[$type]['module'];
-}
-
-/**
- * Calculates score for a personality quiz.
- */
-function quiz_calculate_personality_score($quiz, $rid) {
-  $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type
-    FROM {quiz_node_relationship} qnr
-    INNER JOIN {node} n ON n.nid = qnr.child_nid
-    WHERE qnr.parent_nid = %d';
-  $results = db_query($sql, $quiz->nid);
-
-  $count = 0;
-  $scores = array();
-  $options = array();
-  while ($question = db_fetch_object($results)) {
-    $function = $question->type . '_quiz_personality_question_score';
-    if (function_exists($function)) {
-      $option_id = $function($quiz, $question->child_nid, $question->child_vid, $rid);
-      $options[$option_id] = isset($options[$option_id]) ? $options[$option_id] + 1 : 1;
-    }
-    ++$count;
-  }
-
-  // Figure out the most popular option:
-  $best = new stdClass();
-  $best->id = NULL;
-  $best->count = 0;
-  foreach ($options as $id => $number) {
-    if ($number >= $best->count) {
-      $best->id = $id;
-      $best->count = $number;
-    }
-  }
-
-  // Return total number of questions and the option_summary for the best option.
-  return array(
-    'question_count' => $count,
-    'result_option' => $best->id,
-  );
 }
 
 /**

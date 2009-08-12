@@ -1,6 +1,4 @@
 <?php 
-//TODO: Drop unused quiz tables
-//TODO: Don't let quiz.install make unused quiz tables.
 function _multichoice_update_6400(&$sandbox = NULL) {
   $to_return = array();
   $sandbox['current_step'] = isset($sandbox['current_step']) ? $sandbox['current_step'] : 0;
