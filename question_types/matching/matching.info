@@ -1,6 +1,6 @@
 ;$Id$
 
-name = Matching
+name = Matching question
 package = Quiz Question
 description = Provide a way to create matching type of questions.
 core = 6.x
