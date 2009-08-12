@@ -9,6 +9,17 @@
 
 /**
  * Implementation of hook_update_N().
+ * quiz_node_question_properties has been considered deprecated. With the new multichoice module
+ * it is not beeing used at all, and therefore we remove it.
+ */
+function quiz_update_6400() {
+  $result = array();
+  db_drop_table($result, 'quiz_node_question_properties');
+  return $result;
+}
+
+/**
+ * Implementation of hook_update_N().
  * Adding a new field to save timer status for a timed quiz.
  */
 function quiz_update_6306() {
@@ -272,34 +283,6 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
-  );
-
-  /*
-   * This connects all the quiz question specific properties to the correct version of a quiz question.
-   */
-  // Create the quiz node question properties table
-  // XXX: This should be considered deprecated, as it is highly specific to multichoice.
-  $schema['quiz_node_question_properties'] = array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'vid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'number_of_answers' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 1,
-      ),
-      //'multianswer' => array('type' => 'int', 'size' =>'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-    ),
   );
 
   /**
