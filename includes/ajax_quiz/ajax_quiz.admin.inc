@@ -2,15 +2,20 @@
 
 // $Id$
 
-/* @file
+/**
+ * @file
  * ajax quiz admin page
  */
 
-/*
+/**
  * @function
- * callback for ajax quiz menu
+ *   callback for ajax quiz menu
+ *
+ * @param $node
+ *   quiz node object
+ *
  * @return
- * HTML quiz description
+ *   HTML quiz description
  */
 function ajax_quiz_instruction($node) {
   // If this is an AJAX request, return the AJAX result.
@@ -19,24 +24,24 @@ function ajax_quiz_instruction($node) {
   }
   else {
     drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
-    $output = '<div class="ajax-quiz-wrapper">';
-    $output .= '<div class="ajax-quiz-description">' . $node->body .'</div>';
-    $output .= '<div class="ajax-quiz-start">' . l(t('Start'), $_GET['q'], array('attributes' => array('class' => 'ajax-load-example'))) . '</div>';
-    $output .= '</div>';
-    return $output;
+    $start = l(t('Start'), $_GET['q'], array('attributes' => array('class' => 'ajax-load-example')));
+    return theme('ajax_quiz_instruction', $node->body, $start);
   }
 }
 
+
+/**
+ * function that responds to AJAX call
+ *
+ * @param @node
+ *   quiz node object
+ *
+ */
 function _ajax_quiz_get_questions($node) {
-  $output = '';
-  foreach (drupal_get_messages() as $type) {
-    foreach ($type as $message) {
-      $output .= '<script type="text/javascript"> alert("' . "$type : $message" . '"); </script>';
-    }
-  }
-  $output .= node_view($node, FALSE, TRUE);
+  $data = theme('status_messages');
+  $data .= node_view($node, FALSE, TRUE);
   $result = array(
-    'content' => $output,
+    'content' => $data,
     // Put the Javascript callback you will use here.
     // You can if you wish leave out this line and instead
     // call your callback directly in your Javascript. See
@@ -53,3 +58,24 @@ function _ajax_quiz_get_questions($node) {
   drupal_json($result);
 }
 
+// Theme functions
+
+/**
+ * theme function displays quiz instruction and start quiz link.
+ *
+ * @param $instruction
+ *   quiz node body
+ *
+ * @param start
+ *   link to start the quiz
+ *
+ * @return
+ *   HTML containing quiz instruction and start quiz link.
+ */
+function theme_ajax_quiz_instruction($instruction, $start) {
+  $output = '<div class="ajax-quiz-wrapper">';
+  $output .= '<div class="ajax-quiz-description">' . $instruction .'</div>';
+  $output .= '<div class="ajax-quiz-start">' . $start . '</div>';
+  $output .= '</div>';
+  return $output;
+}

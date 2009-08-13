@@ -2,7 +2,7 @@
 
 // $Id$
 
-/*
+/**
  * @file
  * module file for ajax_quiz quiz module
  */
@@ -33,8 +33,8 @@ function ajax_quiz_perm() {
  */
 function ajax_quiz_menu() {
   $items = array();
-  $items['node/%quiz/ajax-quiz'] = array(
-    'title' => t('Take quiz'),
+  $items['node/%quiz_type_access/ajax-quiz'] = array(
+    'title' => t('AJAX quiz'),
     'file' => 'ajax_quiz.admin.inc',
     'page callback' => 'ajax_quiz_instruction',
     'page arguments' => array(1),
@@ -44,8 +44,8 @@ function ajax_quiz_menu() {
   return $items;
 }
 
-/*
- * @function
+/**
+ *
  * Implementation of hook_init
  * includes the necessary js file(s).
  */
@@ -53,3 +53,15 @@ function ajax_quiz_init() {
   //drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
 }
 
+
+/**
+ * Implementation of hook_theme().
+ */
+function ajax_quiz_theme() {
+  return array(
+    'ajax_quiz_instruction' => array(
+      'arguments' => array('instruction' => NULL, 'start' => NULL),
+      'file' => 'ajax_quiz.admin.inc',
+    ),
+  );
+}
