@@ -1,0 +1,15 @@
+; $Id$
+name = Quiz Dashboard
+description = "Creates a report to compare and analyse the results of quiz attendees."
+core = 6.x
+php = 5
+package = Quiz Addon
+dependencies[] = quiz
+dependencies[] = chart
+
+; Information added by drupal.org packaging script on 2009-08-12
+version = "6.x-4.0-alpha2"
+core = "6.x"
+project = "quiz"
+datestamp = "1250101321"
+
