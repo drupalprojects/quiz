@@ -1,16 +1,12 @@
 <?php
 // $Id$
 /**
- * quiz_directions.classes
+ * matching.classes
  *
- * This module uses the question interface to define something which is actually not a question.
+ * This module uses the question interface to define the Matching question type.
  *
- * A Quiz Directions node is a placeholder for adding directions to a quiz. It can be inserted any number
- * of times into a quiz. Example uses may include:
- *
- * - Initial quiz-wide directions
- * - Section directions, e.g. "The next five questions are multiple choice, please..."
- * - Final confirmation, e.g. "You have answered all questions. Click submit to submit this quiz."
+ * A Matching node defines a series of questions and answers and requires the user
+ * to associate each answer with a question.
  *
  * @file
  */
@@ -19,12 +15,14 @@
  * Implementation of Matching.
  */
 class MatchingQuestion implements QuizQuestion {
+
   /**
    * The current node for this question.
    */
   protected $node = NULL;
 
   public function __construct($node) {
+    if (empty($node->match)) $node->match = array();
     $this->node = $node;
   }
 
@@ -89,15 +87,20 @@ class MatchingQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
+
     list($questions, $select_option) = $this->getQuestion($node);
     foreach ($questions as $question) {
+      $title = $question['question'];
+      if (!_quiz_is_taking_context()) {
+        $title .= " (answer is '$question[answer]')";
+      }
       $form['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
-        '#title' => $question['question'],
+        '#title' => $title,
         '#options' => $this->customShuffle($select_option),
       );
     }
-    return $this->customShuffle($form);
+    return variable_get('quiz_matching_shuffle_options', TRUE) ? $this->customShuffle($form) : $form;
   }
 
   public function customShuffle($array = array()) {
@@ -131,16 +134,22 @@ class MatchingQuestion implements QuizQuestion {
       '#type' => 'fieldset',
       '#title' => t('Matching Settings'),
       '#description' => t('Matching Questions Settings and Configuration'),
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
     );
     $form['matching']['quiz_matching_form_size'] = array(
       '#type' => 'textfield',
       '#title' => t('Match Question Size'),
       '#description' => t('Number of question allowed to wrap under a match type question.'),
-      '#default_value' => 5
+      '#default_value' => variable_get('quiz_matching_form_size', 5),
     );
-    return $form;
+    $form['matching']['quiz_matching_shuffle_options'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Shuffle Matching Options'),
+      '#default_value' => variable_get('quiz_matching_shuffle_options', TRUE),
+      '#description' => t('If checked matching options will be shuffled'),
+    );
+    return system_settings_form($form);
   }
 
   public function getCreationForm($edit) {
@@ -182,7 +191,7 @@ class MatchingQuestion implements QuizQuestion {
   }
 
   public function getMaximumScore() {
-    return 1;
+    return count($this->node->answer);
   }
 
   public function getCorrectAnswer() {
@@ -215,13 +224,13 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
-    $this->is_correct = $this->score();
+    $this->is_correct = $this->isCorrect();
   }
 
   public function save() {
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()
-    foreach ($user_answers as $key => $value) {
+    foreach ((array)$user_answers as $key => $value) {
       $score = ($key == $value)? 1 : 0;
       $sql = "INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)";
         // This is expensive need to be changed
@@ -236,16 +245,18 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
 
   public function score() {
     $wrong_answer = 0;
+    $correct_answer = 0;
     $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
     $user_answers = isset($user_answers) ? $user_answers : array();
     // to prevent warning : Invalid argument supplied for foreach()
-    foreach ($user_answers as $key => $value) {
+    foreach ((array)$user_answers as $key => $value) {
       if ($key != $value) {
         $wrong_answer++;
       }
+      else $correct_answer++;
     }
-    $this->score = (!empty($user_answers) && !$wrong_answer) ? 1 : 0;
-    return $this->score;
+    $score = $correct_answer - $wrong_answer;
+    return $score < 0 ? 0 : $score;
   }
 
   public function getResponse() {

@@ -149,7 +149,6 @@ interface QuizQuestionResponse {
   public function delete();
   /**
    * Calculate the score for the response.
-   * This MUST set the $score instance variable.
    */
   public function score();
   /**
@@ -214,19 +213,20 @@ abstract class AbstractQuizQuestionResponse {
   // These are only public until we can
   // adjust all of Quiz. DO NOT EXPECT THESE
   // TO BE ACCESSIBLE!
-  public $score = 0;
   public $rid = 0;
   public $is_correct = FALSE;
 
   protected $evaluated = TRUE;
   protected $question = NULL;
   protected $answer = NULL;
+  protected $score;
 
   /*
   public function __construct($rid, $question, $answer) {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
+    $this->score();
   }
   */
 
@@ -241,18 +241,19 @@ abstract class AbstractQuizQuestionResponse {
    */
   function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->score;
+    $actual = $this->getScore();
 
     return ($possible == $actual);
   }
 
   function getScore() {
+    if (!isset($this->score)) $this->score = $this->score();
     return $this->score;
   }
 
   function toBareObject() {
     $obj = new stdClass();
-    $obj->score = $this->score; // This can be 0 for unscored.
+    $obj->score = $this->getScore(); // This can be 0 for unscored.
     $obj->nid = $this->question->nid;
     $obj->vid = $this->question->vid;
     $obj->rid = $this->rid;
@@ -270,7 +271,7 @@ abstract class AbstractQuizQuestionResponse {
       'answer' => $this->answer,
       'is_evaluated' => $this->isEvaluated(),
       'is_correct' => $this->isCorrect(),
-      'score' => $this->score,
+      'score' => $this->getScore(),
       'question_vid' => $this->question->vid,
       'question_nid' => $this->question->nid,
       'result_id' => $this->rid,

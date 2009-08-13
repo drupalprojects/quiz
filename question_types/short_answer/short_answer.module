@@ -4,7 +4,7 @@
 /**
  * The main file for short_answer.
  *
- * Short answer is structurally similar to long answer. However, the module 
+ * Short answer is structurally similar to long answer. However, the module
  * mechanism makes it very difficult for these two modules (either one of
  * which may be disabled) to effectively share code.
  * @file
@@ -42,14 +42,14 @@ function short_answer_menu() {
     'access arguments' => array('score short answer'),
     'file' => 'short_answer.admin.inc'
   );
-  
+
   return $items;
 }
 
 /**
  * Implementation of hook_quiz_question_info().
  */
-function short_answer_quiz_question_info() { 
+function short_answer_quiz_question_info() {
   return array(
     'short_answer' => array(
       'name' => 'Short answer question',
@@ -77,11 +77,18 @@ function short_answer_autoload_info() {
 function short_answer_theme() {
   return array(
     'short_answer_report' => array(
-      'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
+      'arguments' => array(
+        'question' => NULL,
+        'show_points' => NULL,
+        'show_feedback' => NULL
+      ),
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_feedback' => array(
-      'arguments' => array('quiz' => NULL, 'report' => NULL),
+      'arguments' => array(
+        'quiz' => NULL,
+        'report' => NULL
+      ),
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_view_unscored' => array(
@@ -108,16 +115,16 @@ function short_answer_theme() {
  *  Result ID for the quiz results.
  * @param $score
  *  The numeric score to assign the result.
- * 
+ *
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
 function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
   // See long_answer.module for details on how this works.
-  
+
   db_query("UPDATE {quiz_short_answer_user_answers} SET score = %d, is_evaluated = 1 WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $score, $nid, $vid, $rid);
   $changed = db_affected_rows();
-  
+
   if ($changed > 0) {
     // What do we do about the quiz_node_results_answers table? It assumes strict
     // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
@@ -130,16 +137,16 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
       $is_correct = ($score / $max > 0.5) ? 1 : 0;
       $points_awarded = $score;
     }
-    
-    $sql = 'UPDATE {quiz_node_results_answers} 
-      SET points_awarded = %d, is_correct = %d 
+
+    $sql = 'UPDATE {quiz_node_results_answers}
+      SET points_awarded = %d, is_correct = %d
       WHERE question_vid = %d AND result_id = %d';
     db_query($sql, $points_awarded, $is_correct, $vid, $rid);
 
     // Third, we update the main quiz results table
     quiz_update_total_score($quiz, $rid);
   }
-  
+
   return $changed;
 }
 
@@ -153,7 +160,7 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
  *  Version ID of question.
  * @param $rid
  *  Result ID for the quiz results.
- * 
+ *
  * @return Assoc array
  *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
  *  <code>
@@ -167,15 +174,15 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id 
-    FROM {quiz_short_answer_user_answers} 
+  $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+    FROM {quiz_short_answer_user_answers}
     WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
   $results = db_query($sql, $question_nid, $question_vid, $result_id);
-  
+
   if (!$results) {
     return FALSE;
   }
-  
+
   return db_fetch_array($results);
 }
 
@@ -186,4 +193,21 @@ function short_answer_perm() {
   return array(
     'score short answer',
   );
+}
+
+/*
+ * @function
+ * To generate a list of short answer questions node
+ * @return
+ * array containing nid as key and title as value
+ */
+function short_answer_questions_list() {
+  $questions = array();
+  $type = 'short_answer';
+  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
+  $results = db_query($sql, $type);
+  while ($result = db_fetch_object($results)) {
+    $questions[$result->nid] = check_plain($result->title);
+  }
+  return $questions;
 }

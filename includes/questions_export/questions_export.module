@@ -25,7 +25,7 @@ function questions_export_help($path, $arg) {
  */
 
 function questions_export_perm() {
-  return array('export_questions');
+  return array('export questions');
 }
 
 /**

@@ -23,12 +23,13 @@ function results_export_as_full_view($rid, $export_type) {
   results_export_invoke_file_transfer($filename, $output);
 }
 
-function results_export_invoke_file_transfer($filename, $output){
-  $handle = @fopen('sites/default/files/' . $filename, 'w');
+function results_export_invoke_file_transfer($filename, $output) {
+  ob_start();
+  $filepath = file_directory_temp() . '/' . $filename;
+  $handle = @fopen($filepath, 'w');
   fwrite($handle, $output);
   fclose($handle);
   $headers = array('Content-Type: text/html', 'Content-Disposition: attachment; filename='. $filename);
-  $filepath = 'sites/default/files/' . $filename;
   ob_clean();
   file_transfer($filepath, $headers);
   ob_end_clean();

@@ -143,6 +143,11 @@ function scale_schema() {
   return $schema;
 }
 
+function scale_update_6400() {
+  drupal_rebuild_theme_registry();
+  return array();
+}
+
 /**
  * Implementation of hook_uninstall()
  */

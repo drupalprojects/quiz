@@ -99,17 +99,19 @@ function matching_list_questions() {
 }
 */
 
-/**
- * Admin settings form.
+/*
+ * @function
+ * To generate a list of short answer questions node
+ * @return
+ * array containing nid as key and title as value
  */
-
-function matching_admin_settings_form() {
-  $form['quiz_matching_form_size'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default Number of Answers'),
-    '#default_value' => variable_get('quiz_matching_form_size', 5),
-    '#description' => t('The default number of answers to display when creating a question. CHOOSING A LESSER VALUE WILL BREAK ALREADY CREATED QUESTIONS.'),
-    '#required' => TRUE,
-  );
-  return system_settings_form($form);
+function matching_questions_list() {
+  $questions = array();
+  $type = 'matching';
+  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
+  $results = db_query($sql, $type);
+  while ($result = db_fetch_object($results)) {
+    $questions[$result->nid] = check_plain($result->title);
+  }
+  return $questions;
 }

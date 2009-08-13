@@ -94,11 +94,14 @@ class ShortAnswerQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
+
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format),
-     );
-     $form['tries'] = array(
+       '#value' => check_markup($node->body, $node->format, FALSE),
+    );
+
+    if (_quiz_is_taking_context()) {
+        $form['tries'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
        '#description' => t('Enter your answer here'),
@@ -106,9 +109,18 @@ class ShortAnswerQuestion implements QuizQuestion {
        '#size' => 60,
        '#maxlength' => 256,
        '#required' => FALSE,
-     );
-     return $form;
+        );
+    } else {
+      if (user_access('view quiz question solutions')) {
+        $form['tries'] = array('#type' => 'markup',
+          // FIXME hack should use CSS instead, maybe across all quiz_question.module
+      	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $node->correct_answer)),
+        );
+      } // else case handled in quiz_question.module
+    }
+    return $form;
   }
+
   public function getAdminForm($edit = NULL) {
     /*
     $form['short_answer_allow_regex'] = array(
@@ -123,8 +135,9 @@ class ShortAnswerQuestion implements QuizQuestion {
       '#type' => 'markup',
       '#value' => t('There are currently no available configuration options.'),
     );
-
   }
+
+
   public function getCreationForm($edit) {
      $form['answer'] = array(
        '#type' => 'fieldset',
@@ -305,7 +318,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function save() {
-
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since
     // score() is called before save()), so we have to set the param here.
@@ -314,7 +326,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     $sql = "INSERT INTO {quiz_short_answer_user_answers}
       (answer, question_nid, question_vid, result_id, score, is_evaluated)
       VALUES ('%s', %d, %d, %d, %d, %d)";
-    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->score, $this->is_evaluated);
+    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->getScore(), $this->is_evaluated);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
   public function delete() {
@@ -333,12 +345,13 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       $score = $shortAnswer->evaluateAnswer($this->getResponse());
     }
 
-    $this->score = $score;
     return $score;
   }
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->score;
+    $actual = $this->getScore();
+    // To prevent Division by zero warning
+    $possible = ($possible == 0) ? 1 : $possible;
     return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;
   }
 

@@ -278,7 +278,7 @@ class qformat_webct extends qformat_default {
                        $QuestionOK = FALSE;
                     }
                     else {
-                        // Create empty feedback array                      
+                        // Create empty feedback array
                         foreach ($question->answer as $key => $dataanswer) {
                             if(!isset( $question->feedback[$key])){
                                 $question->feedback[$key] = '';
@@ -289,15 +289,15 @@ class qformat_webct extends qformat_default {
                         if (isset($question->tempgeneralfeedback)){
                             if (isset($question->generalfeedback)) {
                                 $question->generalfeedback = $question->tempgeneralfeedback;
-                            } else {  
+                            } else {
                                 foreach ($question->answer as $key => $dataanswer) {
                                     if ($question->tempgeneralfeedback !=''){
                                         $question->feedback[$key] = $question->tempgeneralfeedback.'<br/>'.$question->feedback[$key];
                                     }
                                 }
                             }
-                            unset($question->tempgeneralfeedback);   
-                        }   
+                            unset($question->tempgeneralfeedback);
+                        }
                         $maxfraction = -1;
                         $totalfraction = 0;
                         foreach($question->fraction as $fraction) {
@@ -326,7 +326,7 @@ class qformat_webct extends qformat_default {
                                     }
                                 } else {
                                     $totalfraction = round($totalfraction,2);
-                                    if ($totalfraction != 1) {                               
+                                    if ($totalfraction != 1) {
                                         $totalfraction = $totalfraction * 100;
                                         $errors[] = "'$question->name': ".get_string("wronggrade", "quiz", $nLineCounter).' '.get_string("fractionsaddwrong", "quiz", $totalfraction);
                                         $QuestionOK = FALSE;
@@ -353,24 +353,24 @@ class qformat_webct extends qformat_default {
                                 foreach ($question->subquestions as $id=>$subquestion) {
                                     $temp = $question->subquestions[$id];
                                     $question->subquestions[$id] = $question->subanswers[$id];
-                                    $question->subanswers[$id] = $temp; 
+                                    $question->subanswers[$id] = $temp;
                                 }
                                 if (count($question->answer) < 3){
                                     // add a dummy missing question
                                     $question->name = 'Dummy question added '.$question->name ;
                                     $question->answer[] = 'dummy';
                                     $question->subanswers[] = 'dummy';
-                                    $question->subquestions[] = 'dummy';                                    
+                                    $question->subquestions[] = 'dummy';
                                     $question->fraction[] = '0.0';
                                     $question->feedback[] = '';
-                                 }   
-                                 break;   
+                                 }
+                                 break;
                             default:
                                 // No problemo
                         }
                     }
 
-                    if ($QuestionOK) {                        
+                    if ($QuestionOK) {
                        // echo "<pre>"; print_r ($question);
                         $questions[] = $question;    // store it
                         unset($question);            // and prepare a new one
@@ -485,7 +485,7 @@ class qformat_webct extends qformat_default {
             // if question isn't defined yet there is nothing to do here (avoid notices)
             if (!isset($question)) {
                 continue;
-            } 
+            }
             if (isset($question->qtype ) && CALCULATED == $question->qtype && ereg(
                     "^:([[:lower:]].*|::.*)-(MIN|MAX|DEC|VAL([0-9]+))::?:?($webctnumberregex)", $line, $webct_options)) {
                 $datasetname = ereg_replace('^::', '', $webct_options[1]);
@@ -533,6 +533,9 @@ class qformat_webct extends qformat_default {
             }
 
             if (eregi('^:FORMULA:(.*)', $line, $webct_options)) {
+                //TODO HACK FIXME skip these until Drupal support formulas
+                continue;
+
                 // Answer for a CALCULATED question
                 ++$currentchoice;
                 $question->answers[$currentchoice] =
@@ -549,8 +552,8 @@ class qformat_webct extends qformat_default {
                 foreach ($datasetnames as $datasetname) {
                     $question->dataset[$datasetname] = new stdClass();
                     $question->dataset[$datasetname]->datasetitem = array();
-                    $question->dataset[$datasetname]->name = $datasetname ; 
-                    $question->dataset[$datasetname]->distribution = 'uniform'; 
+                    $question->dataset[$datasetname]->name = $datasetname ;
+                    $question->dataset[$datasetname]->distribution = 'uniform';
                     $question->dataset[$datasetname]->status ='private';
                 }
                 continue;
@@ -559,7 +562,7 @@ class qformat_webct extends qformat_default {
             if (eregi("^:L([0-9]+)",$line,$webct_options)) {
                 $answertext="";                 // Start gathering next lines
                 $currentchoice=$webct_options[1];
-                $question->fraction[$currentchoice]=1; 
+                $question->fraction[$currentchoice]=1;
                 continue;
             }
 
@@ -584,7 +587,7 @@ class qformat_webct extends qformat_default {
                 continue;
             }
             if (eregi('^:LAYOUT:(.*)',$line,$webct_options)) {
-            //    ignore  since layout in question_multichoice  is no more used in moodle       
+            //    ignore  since layout in question_multichoice  is no more used in moodle
             //    $webct_options[1] contains either vertical or horizontal ;
                 continue;
             }
@@ -647,6 +650,9 @@ class qformat_webct extends qformat_default {
             }
         }
 
+        // FIXME hacked Moodle to not quit on these errors
+        // TODO think of a way to get the errors without changing Moodle code
+        /*
         if (sizeof($errors) > 0) {
             echo "<p>".get_string("errorsdetected", "quiz", sizeof($errors))."</p><ul>";
             foreach($errors as $error) {
@@ -663,6 +669,7 @@ class qformat_webct extends qformat_default {
             }
             echo "</ul>";
         }
+        */
         return $questions;
     }
 }

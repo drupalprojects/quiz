@@ -200,14 +200,14 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   public function score() {
     $sql = "SELECT score FROM {quiz_long_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
     $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
-    $this->score = $score;
     return $score;
   }
 
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->score;
-
+    $actual = $this->getScore();
+    // To prevent Division by zero warning
+    $possible = ($possible == 0) ? 1 : $possible;
     return (($actual / $possible) * 100 > 50);
   }
 
@@ -216,7 +216,6 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   }
 
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body, $this->question->filter) .
       '</div>';

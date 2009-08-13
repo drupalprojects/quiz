@@ -3,7 +3,7 @@
 
 /**
  * The main file for scale.
- * 
+ *
  * Sponsored by: Norwegian Centre for Telemedicine
  * Code: falcon
  *
@@ -25,7 +25,7 @@ function scale_help($path, $args) {
 /**
  * Implementation of hook_menu().
  */
-function scale_menu() {  
+function scale_menu() {
   $items['scale/collection/manage'] = array(
     'title' => t('Manage your preset collections'),
     'access callback' => 'user_access',
@@ -37,6 +37,24 @@ function scale_menu() {
   return $items;
 }
 /**
+ * Implementation of hook_theme
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function scale_theme($existing, $type, $theme, $path) {
+  return array(
+    'scale_creation_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+    ),
+  );
+}
+/**
  * Implementation of hook_perm()
  */
 function scale_perm() {
@@ -45,7 +63,7 @@ function scale_perm() {
 /**
  * Implementation of hook_quiz_question_info().
  */
-function scale_quiz_question_info() { 
+function scale_quiz_question_info() {
   return array(
     'scale' => array(
       'name' => 'Scale question',
@@ -70,15 +88,15 @@ function scale_autoload_info() {
  * Implementation of hook_get_answer()
  */
 function scale_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, question_vid, question_nid, result_id 
-    FROM {quiz_scale_user_answers} 
+  $sql = "SELECT answer_id, question_vid, question_nid, result_id
+    FROM {quiz_scale_user_answers}
     WHERE result_id = %d AND question_nid = %d AND question_vid = %d";
   $results = db_query($sql, $result_id);
-  
+
   if (!$results) {
     return FALSE;
   }
-  
+
   return db_fetch_array($results);
 }
 /**
@@ -87,28 +105,28 @@ function scale_get_answer($question_nid, $question_vid, $result_id) {
 function scale_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'delete': //Remove the users presets if they aren't in use.
-      $sql = 'SELECT id 
+      $sql = 'SELECT id
               FROM {quiz_scale_answer_collection} ac
               JOIN {quiz_scale_user} u ON(ac.id = u.answer_collection_id)
               WHERE uid = %d
-              AND ac.for_all = 0 
+              AND ac.for_all = 0
               AND ac.id NOT IN
-                (SELECT answer_collection_id 
+                (SELECT answer_collection_id
                  FROM {quiz_scale_node_properties})
               AND ac.id NOT IN
-                (SELECT answer_collection_id 
+                (SELECT answer_collection_id
                  FROM {quiz_scale_user}
                  WHERE NOT uid = %d)';
       $res = db_query($sql, $account->uid, $account->uid);
       while ($res_o = db_fetch_object($res)) {
         $sql = 'DELETE FROM {quiz_scale_answer}
-        		WHERE answer_collection_id = %d';
+            WHERE answer_collection_id = %d';
         db_query($sql, $res_o->id);
         $sql = 'DELETE FROM {quiz_scale_answer_collection}
-        		WHERE id = %d';
+            WHERE id = %d';
         db_query($sql, $res_o->id);
         $sql = 'DELETE FROM {quiz_scale_user}
-        		WHERE uid = %d';
+            WHERE uid = %d';
         db_query($sql, $account->uid);
       }
     break;
@@ -116,10 +134,10 @@ function scale_user($op, &$edit, &$account, $category = NULL) {
 }
 /**
  * Form for changing and deleting the current users question types.
- * 
+ *
  * Users with the Edit global presets permissions can also add new global
  * presets here.
- * 
+ *
  * @param $form_state
  * @return form
  */
@@ -155,7 +173,7 @@ function scale_manage_collection_form(&$form_state) {
         '#maxlength' => 256,
         '#type' => 'textfield',
         '#default_value' => $alternatives[$i],
-        '#required' => (($i < 2) && $col_id != 'new'),  
+        '#required' => (($i < 2) && $col_id != 'new'),
       );
     }
     if ($col_id != 'new') {
@@ -175,14 +193,14 @@ function scale_manage_collection_form(&$form_state) {
           t('Save changes, and change your own questions who uses this preset'),
           t('Delete this preset(This will not affect existing questions)')),
       );
-    } 
+    }
     else {
       $form["collection$col_id"]["to-do"] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#value' => 3,
       );
       $form["collection$col_id"]["for_all"] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#value' => 1,
       );
     }
@@ -199,7 +217,7 @@ function scale_manage_collection_form(&$form_state) {
 
 /**
  * Handles the scale collection form.
- * 
+ *
  * @param $form
  * @param $form_state
  */
@@ -222,7 +240,7 @@ function scale_collection_form_submit($form, &$form_state) {
             _scale_unpreset_collection($col_id, $user->uid);
             $s_q->deleteCollectionIfNotUsed($col_id);
             if (isset($alternatives['for_all'])) _scale_set_for_all($new_col_id, $alternatives['for_all']);
-          } 
+          }
           elseif ($alternatives['to-do'] == 1) {
             $sql = 'UPDATE {quiz_scale_node_properties}
                     SET answer_collection_id = %d
@@ -251,8 +269,8 @@ function scale_collection_form_submit($form, &$form_state) {
             drupal_set_message(t('New preset has been added'));
           }
         break;
-      }   
-    } 
+      }
+    }
   }
   if ($changed > 0) {
     drupal_set_message(t('!changed presets has been changed.', array('!changed' => $changed)));
@@ -263,7 +281,7 @@ function scale_collection_form_submit($form, &$form_state) {
 }
 /**
  * Validates the scale collection form
- * 
+ *
  * @param $form
  * @param $form_state
  * @return unknown_type
@@ -277,7 +295,7 @@ function scale_collection_form_validate($form, &$form_state) {
 }
 /**
  * searches a string for the answer collection id
- * 
+ *
  * @param $string
  * @return answer collection id
  */
@@ -288,7 +306,7 @@ function _scale_get_col_id($string) {
 }
 /**
  * Makes sure an answer collection isn't a preset for a given user.
- * 
+ *
  * @param $col_id - answer_collection_id
  * @param $user_id
  */
@@ -296,7 +314,7 @@ function _scale_unpreset_collection($col_id, $user_id) {
   $sql = 'DELETE FROM {quiz_scale_user}
           WHERE answer_collection_id = %d AND uid = %d';
   db_query($sql, $col_id, $user_id);
-  if(user_access('Edit global presets')){
+  if (user_access('Edit global presets')) {
     $sql = 'UPDATE {quiz_scale_answer_collection}
             SET for_all = 0';
     db_query($sql);
@@ -304,7 +322,7 @@ function _scale_unpreset_collection($col_id, $user_id) {
 }
 /**
  * Sets if a answer collection should be available for all question creators.
- * 
+ *
  * @param $new_col_id - answer collection id
  * @param $for_all - 0 if not for all, 1 if for all
  */
@@ -313,4 +331,9 @@ function _scale_set_for_all($new_col_id, $for_all) {
           SET for_all = %d
           WHERE id = %d';
   db_query($sql, $for_all, $new_col_id);
+}
+
+function theme_scale_creation_form($form) {
+  $path = drupal_get_path('module', 'scale') .'/scale.js';
+  drupal_add_js($path, 'module');
 }
