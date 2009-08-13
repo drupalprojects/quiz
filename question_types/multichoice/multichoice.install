@@ -34,12 +34,12 @@ function multichoice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE, 
       ), 
-      'nid' => array(
+      'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE, 
       ),
-      'vid' => array(
+      'question_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE, 
