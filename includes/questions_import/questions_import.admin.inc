@@ -64,7 +64,7 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Existing quiz'),
     '#options' => $options,
-    '#description' => count($options) ? t('Select the quiz node for which you want to add questions') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#description' => count($options) ? t('Select the quiz node to which you want to add questions') : t('No quiz contents were found. To !create_a_quiz go to <em>Content Management -> Create Content -> Quiz</em>. or choose "New Quiz" option as "quiz destination".', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
@@ -401,7 +401,13 @@ function questions_import_form_submit(&$form, &$form_state) {
      * so redirecting the quiz author to quiz node/$nid/edit page
      * where he/she can set the quiz node properties.
      */
-    $url = ($form_state['values']['destination_type'] == 'new_quiz') ? "node/$destination_node->nid/edit" : "node/$destination_node->nid";
+    if ($form_state['values']['destination_type'] == 'new_quiz') {
+      $url = "node/$destination_node->nid/edit";
+      drupal_set_message('Update the date, time, description and other quiz properties');
+    }
+    else {
+      $url = "node/$destination_node->nid";
+    }
     drupal_goto($url);
   }
   return $count;
