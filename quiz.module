@@ -90,6 +90,8 @@ function quiz_perm() {
     'view user results', 'view own results',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
+    // Allow someone to see the answers to a quiz question
+    'view quiz question solutions'
   );
 }
 
@@ -244,7 +246,6 @@ function quiz_menu() {
     'title' => t('Manage questions'),
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
-    // FIXME: This needs to check to see if the user owns the quiz.
     'access callback' => 'node_access',
     'access arguments' => array('update', 1),
     'type' => MENU_LOCAL_TASK,
@@ -559,14 +560,14 @@ function quiz_form(&$node) {
     '#required' => TRUE,
   );
 
-  $form['body'] = array(
+  $form['body_field']['body'] = array(
     '#type' => 'textarea',
     '#title' => t('Description'),
     '#default_value' => $node->body,
     '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
-    '#required' => TRUE,
-  );
-  $form['body_filter']['format'] = filter_form($node->format);
+    '#required' => FALSE,
+    );
+  $form['body_field']['format'] = filter_form($node->format);
 
   $form['shuffle'] = array(
     '#type' => 'checkbox',
@@ -1015,14 +1016,14 @@ function quiz_take_quiz($quiz) {
       $questions = quiz_build_question_list($quiz);
 
       if ($questions === FALSE) {
-        drupal_set_message(t('Not enough random questions were found. Please !add more questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME, '!add more questions' => l('add more questions', 'node/'. arg(1) .'/questions'))), 'error');
+        drupal_set_message(t('Not enough random questions were found. Please !add_more_questions before trying to take this @quiz.',
+          array('@quiz' => QUIZ_NAME, '!add_more_questions' => l(t('add more questions'), 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
 
       if (count($questions) == 0) {
-        drupal_set_message(t('No questions were found. Please !assign questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME, '!assign questions' => l('assign questions', 'node/'. arg(1) .'/questions'))), 'error');
+        drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.',
+          array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/'. arg(1) .'/questions'))), 'error');
         return array('body' => array('#value' => ''));
       }
 
@@ -1038,7 +1039,6 @@ function quiz_take_quiz($quiz) {
       return array('body' => array('#value' => ''));
     }
   }
-
 
   if (!isset($_POST['op'])) {
     // Starting new quiz... Do we need to show instructions here?
@@ -1307,6 +1307,7 @@ function quiz_store_question_result($result, $options) {
  * Actions to take at the end of a quiz.
  */
 function quiz_end_actions($quiz, $rid) {
+  global $user;
   $score = quiz_calculate_score($quiz, $rid);
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
@@ -1314,6 +1315,7 @@ function quiz_end_actions($quiz, $rid) {
 
   // Why is this using the $_SESSION's RID?
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d", time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
 
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
   // We will verify that there is an associated action with this quiz and then perform that action.
@@ -1346,12 +1348,27 @@ function quiz_end_actions($quiz, $rid) {
 
 function quiz_quiz_finished($quiz, $score, $rid) {
   global $user;
-  // function to export results to grade book will be added later
-  // function to export result in pdf, XML, CVS format
-  // function to display results visually
 
-  //function to send results over email
-  if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
+  //function to send results over e-mail
+
+  /*
+   * For personality kind of quizzes
+   * if the user is an anonymous and configured to send user result to author
+   * send mail to author's e-mail id
+   */
+
+  if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 1)) {
+    $author = user_load($quiz->uid);
+    drupal_mail('quiz', 'notice', $author->mail, NULL, array($quiz, 
+$score, $rid));
+  }
+
+  /*
+   * For e-Learning kind of quizzes
+   * if quiz has pass/fail, configured to send results to attendee and attendee is
+   * NOT an anonymous send result to his/her e-mail ID.
+   */
+  if (variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1) && $user->uid != 0) {
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
     drupal_set_message(t('Results has been sent to your e-mail ID.'));
   }
@@ -1384,8 +1401,12 @@ function quiz_mail($key, &$message, $params) {
   list($quiz, $score, $rid) = $params;
   $substitutions = array(
     '!title' => $quiz->title,
-    '!sitename' => variable_get('site_name', 'Test Center'),
-    '!username' => $user->name,
+    '!sitename' => variable_get('site_name', 'Quiz'),
+    '!username' => ($user->uid) ? $user->name : $quiz->name,
+    /* if the user is anonymous user use quiz author's name
+    else use quiz attendee's name.
+    */
+    '!user' => ($user->uid) ? 'You have' : 'Anonymous user has',
     '!title' => $quiz->title,
     '!date' => date("F j, Y, g:i a"),
     '!desc' => $quiz->body,
@@ -1416,14 +1437,15 @@ function quiz_mail($key, &$message, $params) {
  */
 
 function quiz_email_results_format($type) {
+  global $user;
   if ($type == 'subject') {
     return t('!title Results Notice from !sitename');
   }
   if ($type == 'body') {
-    return t('Dear !username ') . "\n\n" .
-      t('You have attended a !title quiz on !date') . "\n" .
+    return t('Dear !username') . "\n\n" .
+      t('!user attended a !title quiz on !date') . "\n" .
       t('Test Description : !desc') . "\n" .
-      t('You got !correct out of !total in !time min. Your percentage is !percentage') . "\n" .
+      t('!user got !correct out of !total in !time min percentage is !percentage') . "\n" .
       t('You can access your result here !url') . "\n";
   }
 }
@@ -1532,7 +1554,6 @@ function quiz_is_passed($uid, $nid, $vid) {
     WHERE qnrs.vid = %d AND qnrs.nid = %d AND qnrs.uid =%d AND score >= pass_rate",
     $vid, $nid, $uid
   ));
-
   // Force into boolean context
   return ($passed !== FALSE && $passed > 0);
 }
@@ -1816,7 +1837,7 @@ function quiz_get_num_questions($nid, $vid, $type) {
  */
 function quiz_node_map($node) {
   $new_question = new stdClass();
-  $new_question->question = check_markup($node->body, $node->format);
+  $new_question->question = check_markup($node->body, $node->format, FALSE);
   $new_question->title = check_plain($node->title);
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
@@ -1901,7 +1922,7 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
 
   // Loop through all questions and determine whether an update needs to be made.
   // As we go, we store the questions that will need to be updated.
-  $existing_questions = _quiz_get_questions($quiz->vid, TRUE, TRUE);
+  $existing_questions = _quiz_get_questions($quiz->nid, $quiz->vid, TRUE, TRUE);
   $existing_question_nids = array_keys($existing_questions);
   $i_am_different = FALSE;
   $questions = array(); // These are the questions that will be put into the Quiz.
@@ -2380,8 +2401,8 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *  An array of questions.
  */
-function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
-  $quiz         = node_load((int) arg(1));
+function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
+  $quiz         = node_load($quiz_nid);
   $filter_types = '';
   $questions    = array();
   $where_add    = array();
@@ -2413,7 +2434,7 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
     $where_sql = trim( $where_sql, ' AND ');
   }
 
-  $result = db_query('SELECT DISTINCT question.nid, question.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight
+  $result = db_query('SELECT question.nid, question.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight
     FROM {node} question
     INNER JOIN {node_revisions} nr ON question.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr ON nr.vid = qnr.child_vid
@@ -2437,8 +2458,6 @@ function _quiz_get_questions($quiz_vid = NULL, $include_all_types = TRUE, $nid_k
   return $questions;
 }
 
-// quiz_questions_form
-
 
 /**
  * Retrieve list of published questions not assigned to quiz.
@@ -2458,7 +2477,7 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
     $where_sql = "AND question.type IN ('". implode("','", $types) ."')";
   }
 
-  $result = db_query('SELECT DISTINCT question.nid, question.vid, question.type, nr.body, nr.format
+  $result = db_query('SELECT question.nid, question.vid, question.type, nr.body, nr.format
     FROM {node} question
     LEFT JOIN {node_revisions} nr ON (question.nid = nr.nid)
     WHERE question.status = 1
@@ -2553,7 +2572,7 @@ function _quiz_get_quizzes($uid = 0) {
             AND n.nid = qnp.nid
             AND u.uid = n.uid";
   */
-  $sql = "SELECT n.nid, n.title, u.name, n.created
+  $sql = "SELECT n.nid, n.title, n.uid, u.name, n.created
           FROM {node} n
           INNER JOIN {users} u
           ON u.uid = n.uid
@@ -2719,7 +2738,7 @@ function quiz_cron() {
   }
 }
 
-/*
+/**
  * @return
  *  This function returns an array of quiz nodes title with nid ndex.
  */
@@ -2734,7 +2753,7 @@ function quiz_get_all_quiz_title() {
 }
 
 
-/*
+/**
  * @return
  *  This function returns a list of question types based on $op value
  */
@@ -2764,4 +2783,17 @@ function quiz_get_questions_type($op = 'enabled') {
     $list['quiz_question'] = 'true_false';
   }
   return $list;
+}
+
+function _quiz_is_taking_context() {
+  $display_object = menu_get_object();
+  // in the AJAX Quiz there is no display object
+  if (empty($display_object)) {
+    return TRUE;
+  }
+  if ($display_object->type == 'quiz') {
+    return TRUE;
+  }
+  // otherwise not quiz-taking
+  return FALSE;
 }

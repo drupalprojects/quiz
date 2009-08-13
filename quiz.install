@@ -99,6 +99,7 @@ function quiz_install() {
   $temp_array = variable_get('theme_settings', array());
   $temp_array['toggle_node_info_quiz'] = 0;
   variable_set('theme_settings', $temp_array);
+  drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
 }
 
 /**
@@ -356,12 +357,6 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0
       ),
-      'time_left' => array(
-        'type' => 'int',
-        'size' => 'small',
-        'not null' => TRUE,
-        'default' => 0
-      ),
     ),
     'primary key' => array('result_id'),
     'indexes' => array(
@@ -473,8 +468,24 @@ function quiz_schema() {
  */
 function quiz_uninstall() {
   drupal_uninstall_schema('quiz');
-  variable_del('quiz_name');
-  variable_del('quiz_default_close');
-  variable_del('quiz_use_passfail');
-  variable_del('quiz_default_pass_rate');
+  $var = array(
+    'quiz_name',
+    'quiz_default_close',
+    'quiz_use_passfail',
+    'quiz_default_pass_rate',
+    'quiz_action_type',
+    'quiz_action_type',
+    'quiz_email_results',
+    'quiz_email_results_body',
+    'quiz_email_results_subject',
+    'quiz_has_timer',
+    'quiz_has_userpoints',
+    'quiz_max_result_options',
+    'quiz_remove_partial_quiz_record',
+    'quiz_show_allowed_times',
+    'quiz_autotitle_length'
+  );
+  foreach ($var as $v) {
+    variable_del($v);
+  }
 }

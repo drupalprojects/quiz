@@ -203,7 +203,7 @@ function theme_quiz_view($node, $teaser = FALSE, $page = FALSE) {
   // Format quiz questions.
   if (is_numeric(arg(1))) {
     $output .= '<h3>'. t('@quiz Questions', array('@quiz' => QUIZ_NAME)) .'</h3>';
-    $questions = _quiz_get_questions($node->vid);
+    $questions = _quiz_get_questions($node->nid, $node->vid);
     $output .= theme('quiz_question_table', $questions, $node->nid);
   }
   return $output;
@@ -353,7 +353,7 @@ function theme_quiz_progress($question_number, $num_of_question) {
 
   $output  = '';
   $output .= '<div id="quiz_progress">';
-  $output .= t('Page %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
+  $output .= t('Question %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
   $output .= '</div><br />'."\n";
   $output .= '<div class="countdown"></div>';
   return $output;
@@ -489,9 +489,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
     $cols = array();
     // Ask each question to render a themed report of how the user did.
     $module = quiz_module_for_type($question->type);
-
     $report = theme($module .'_report', $question, $showpoints, $showfeedback);
-
     // Only include reports with actual data:
     if (!empty($report) && strlen($report) > 0) {
 
@@ -507,7 +505,6 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
       $rows[] = array('data' => $cols, 'class' => 'quiz_summary_qrow');
     }
   }
-
   return theme('table', $header, $rows);
 }
 
@@ -557,4 +554,15 @@ function theme_quiz_no_feedback() {
 
 function theme_quiz_single_question_node($node) {
   return $node->body;
+}
+
+/*
+ * includes css and js for jQuery table sorter
+ *
+ */
+function quiz_add_table_sorter() {
+  $table_sorter_path = drupal_get_path('module', 'quiz') . '/includes/table_sorter/';
+  drupal_add_css($table_sorter_path . 'quiz.table_sorter.css');
+  drupal_add_js($table_sorter_path . 'jquery.tablesorter.min.js');
+  drupal_add_js($table_sorter_path . 'quiz.table_sorter.js');
 }

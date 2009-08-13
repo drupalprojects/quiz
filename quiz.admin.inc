@@ -250,7 +250,7 @@ function quiz_questions_form($context, $quiz) {
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
-  $questions = _quiz_get_questions($quiz->vid);
+  $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
@@ -314,8 +314,15 @@ function quiz_questions_form_validate($form, $form_state) {
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
   $already_checked = array();
-  foreach ($form_state['values']['weights'] as $id => $weight) {
-    if (in_array($id, $removed)) {
+
+  $weight_map = $form_state['values']['weights'];
+  if (empty($weight_map)) {
+    form_set_error('none', 'No questions were included.');
+    return;
+  }
+
+  foreach ($weight_map as $id => $weight) {
+      if (in_array($id, $removed)) {
       // Ignore items that are going to be removed anyway.
       continue;
     }
@@ -337,6 +344,37 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 }
 
+/**
+ * Update a quiz or qcollection set of items with new weights and membership
+ * @param $quiz
+ * @param $weight_map
+ * @param $removed_set
+ * @param $is_new_revision
+ * @return array set of questions after updating
+ */
+function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision) {
+    // Get quiz questions that will always be on the quiz:
+  $questions = array();
+  foreach ($weight_map as $id => $weight) {
+    if (in_array($id, $removed_set)) {
+      // Skip items that should be removed.
+      continue;
+    }
+    list($state, $nid) = explode('-', $id, 2);
+    $nid = (int)$nid;
+    $question['nid'] = $nid;
+    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    $question['weight'] = $weight;
+
+    // Add item as an object in the questions array.
+    $questions[] = (object)$question;
+  }
+
+  // Save questions.
+  quiz_set_questions($quiz, $questions, $new_revision);
+
+  return $questions;
+}
 
  /**
   * Submit function for quiz_questions.
@@ -352,30 +390,15 @@ function quiz_questions_form_submit($form, &$form_state) {
   // This is ugly and should be fixed.
   $quiz = node_load(arg(1));
 
-  $new_revision = $form_state['values']['new_revision'];
-  $num_random = $form_state['values']['number_of_random_questions'];
-  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
+  $is_new_revision = (bool) $form_state['values']['new_revision'];
 
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
-  // Get quiz questions that will always be on the quiz:
-  $questions = array();
-  foreach ($form_state['values']['weights'] as $id => $weight) {
-    if (in_array($id, $removed)) {
-      // Skip items that should be removed.
-      continue;
-    }
-    list($state, $nid) = explode('-', $id, 2);
-    $nid = (int)$nid;
-    $question['nid'] = $nid;
-    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
-    $question['weight'] = $weight;
+  $weight_map = $form_state['values']['weights'];
 
-    // Add item as an object in the questions array.
-    $questions[] = (object)$question;
-  }
+  $questions = _quiz_update_items($quiz, $weight_map, $removed, $is_new_revision);
 
-  // Save questions.
-  quiz_set_questions($quiz, $questions, (bool)$new_revision);
+  $num_random = $form_state['values']['number_of_random_questions'];
+  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
 
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {
@@ -539,15 +562,6 @@ function quiz_admin_settings() {
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['quiz_global_settings']['quiz_email_results'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable Sending Quiz Results to User Email ID', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_email_results', 1),
-    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
-  );
-
-
-
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
@@ -573,6 +587,15 @@ function quiz_admin_settings() {
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
     '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
+  );
+
+  $form['quiz_global_settings']['quiz_autotitle_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Length of automatically set question titles'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
+    '#default_value' => variable_get('quiz_autotitle_length', 50),
   );
 
   $target = array(
@@ -638,20 +661,40 @@ function quiz_admin_settings() {
 
   );
 
-  $form['quiz_look_feel']['quiz_email_results_subject'] = array(
+  $form['quiz_email_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email Settings'),
+    '#description' => t('Allows to send results to quiz author/ attendee via e-mail and configuration e-mail subject and body.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['quiz_email_settings']['quiz_email_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Sending Quiz Results to Attendees', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_email_results', 1),
+    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
+  );
+  $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Sending Quiz Results Author', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_results_to_quiz_author', 1),
+    '#description' => t('Check this to send users quiz results over email to quiz author (<em>when the attendee is an anonymous user</em>).'),
+  );
+  $form['quiz_email_settings']['quiz_email_results_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Configure Email subject'),
     '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
     '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
   );
 
-  $form['quiz_look_feel']['quiz_email_results_body'] = array(
+  $form['quiz_email_settings']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure Email format'),
     '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
 
+  $form['#validate'][] = 'quiz_settings_form_validate';
   return system_settings_form($form);
 }
 
@@ -661,20 +704,26 @@ function quiz_admin_settings() {
   * Checks the values for the form administration form for quiz settings.
   */
 function quiz_settings_form_validate($form, &$form_state) {
-  if (!is_numeric($form_state['values']['number_of_random_questions']) || $form_state['values']['number_of_random_questions'] <0 ) {
-    form_set_error('number_of_random_questions', t('The number of random questions must be at least 0.'));
-  }
   if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
   }
   if (!is_numeric($form_state['values']['quiz_default_pass_rate'])) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
   }
+  if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
+  }
   if ($form_state['values']['quiz_default_pass_rate'] > 100) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
   }
   if ($form_state['values']['quiz_default_pass_rate'] < 0) {
     form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] > 128) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] < 0) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be smaller than 0.'));
   }
 }
 
@@ -738,14 +787,9 @@ function theme_quiz_admin_quizzes($results) {
   $header = array(
     t('@quiz title', array('@quiz' => QUIZ_NAME)),
     t('Created by'),
-    t('Created on'));
-
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No @quizzes found.', array('@quiz' => QUIZ_NAME));
-  }
+    t('Created on')
+  );
+  $output = (!empty($rows)) ? theme('table', $header, $rows) : '<p>' . t('No @quizzes found.', array('@quiz' => QUIZ_NAME)) . '</p>';
   return $output;
 }
 
@@ -977,9 +1021,17 @@ function quiz_remove_partial_quiz_record_value() {
 function quiz_set_auto_title() {
   drupal_add_js('
   $(document).ready(function () {
-    $("#edit-body").keyup(function () {
-      $("#edit-title").val($("#edit-body").val().substring(0, 128));
+    function quizUpdateTitle() {
+      $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
+    }
+    $("#edit-body").keyup(quizUpdateTitle);
+    if($("#edit-title").val().length > 0){
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
+    }
+    $("#edit-title").keyup(function() {
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
     });
   });
   ', 'inline');
+
 }

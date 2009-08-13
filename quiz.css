@@ -1,4 +1,13 @@
+/* @override http://qcommons-staging.local.funq.org:8888/sites/all/modules/quiz/quiz.css?R */
+
 /* $Id$ */
+
+/*
+ * Definitions that apply while viewing questions
+ */
+.question_type_name {
+  font-style: italic;
+}
 
 /*
  * Definitions that apply while taking the quiz.
@@ -74,3 +83,6 @@ div.multichoice_answer_incorrect {
   text-align: right;
 }
 
+.multichoice_answer_correct {
+	background-color: lightgreen;
+}
