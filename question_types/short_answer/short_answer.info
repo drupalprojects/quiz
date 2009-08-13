@@ -1,7 +1,7 @@
 ;$Id$
 
 name = Short Answer
-package = Quiz
+package = Quiz Question
 description = Short answer question type for Quiz.
 core = 6.x
 php = 5.1

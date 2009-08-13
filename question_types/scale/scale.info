@@ -1,4 +1,5 @@
 ; $Id$
+
 name = Scale
 package = Quiz Question
 description = This provides scale questions for use by the Quiz module.

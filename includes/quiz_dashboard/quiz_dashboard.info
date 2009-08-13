@@ -6,10 +6,3 @@ php = 5
 package = Quiz Addon
 dependencies[] = quiz
 dependencies[] = chart
-
-; Information added by drupal.org packaging script on 2009-08-12
-version = "6.x-4.0-alpha2"
-core = "6.x"
-project = "quiz"
-datestamp = "1250101321"
-

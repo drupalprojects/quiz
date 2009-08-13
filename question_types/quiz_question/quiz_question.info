@@ -1,7 +1,7 @@
 ; $Id$
 
 name = Quiz Question
-package = Quiz
+package = Quiz Core
 description = Provides support for base-level question types.
 core = 6.x
 php = 5.2
