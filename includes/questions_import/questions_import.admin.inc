@@ -116,6 +116,18 @@ function questions_import_form()  {
     '#default_value' => FALSE,
     '#description' => t('Normally this form checks that the suffix of the uploaded file.  This allows you to skip that.'),
   );
+  $form['advanced']['category_vid'] = array(
+    '#type' => 'select',
+    '#title' => t('Vocabulary to update by question category'),
+    '#options' => _questions_import_vocabulary_options(FALSE),
+    '#default_value' => 'NONE',
+  );
+  $form['advanced']['keyword_vid'] = array(
+    '#type' => 'select',
+    '#title' => t('Vocabulary to update by question keywords'),
+    '#options' => _questions_import_vocabulary_options(TRUE),
+    '#default_value' => 'NONE',
+  );
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -124,6 +136,19 @@ function questions_import_form()  {
   $form['#validate'][] = 'questions_import_form_validate';
   $form['#submit'][] = 'questions_import_form_submit';
   return $form;
+}
+
+function _questions_import_vocabulary_options($tags_only) {
+  $vocabularies = taxonomy_get_vocabularies();
+
+  $options['NONE'] = t('None');
+
+  foreach ($vocabularies as $vid => $vocabulary) {
+    if ($tags_only && !$vocabulary->tags) continue;
+    $options[$vid] = $vocabulary->name;
+  }
+
+  return $options;
 }
 
 /**
@@ -449,6 +474,11 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
 
   $node = new stdClass();
   $node->type = $qmap_moodle_to_drupal[$mq->qtype];
+  if (empty($node->type)) {
+    drupal_set_message(t('Skipped importation of unsupported question type "qtype"', array('qtype' => $mq-qtype)), 'warning', FALSE);
+    watchdog('quiz', 'Skipped importation of Moodle question qtype', array('qtype' => $mq->qtype, 'mq' => print_r('mq', TRUE)));
+    return;
+  }
   $node->title = $mq->name;
   $node->teaser = $node->body = stripslashes_safe($mq->questiontext);  // a la Moodle
   $node->uid = $user->uid;
@@ -457,6 +487,18 @@ function questions_import_moodle_create_node($destination_node, $mq, $form_state
 
   $node->quiz_id = $destination_node->nid;
   $node->quiz_vid = $destination_node->vid;
+
+  // set taxonomy, if specified
+  $keyword_vid = $form_state['values']['keyword_vid'];
+  if (is_int($keyword_vid)) {
+    // FIXME wrap each term in quotes in case terms have commas
+    $node->taxonomy['tags'][$keyword_vid] = implode(",", $mq->keywords);
+  }
+  $category_vid = $form_state['values']['category_vid'];
+  if (is_int($category_vid)) {
+    // treat category as 'tags' too so taxonomy_node_save will create missing terms
+    $node->taxonomy['tags'][$category_vid] = $mq->category;
+  }
 
   // Already set the type of the node, this is for specialized processing
   switch (strtolower($mq->qtype)) {
