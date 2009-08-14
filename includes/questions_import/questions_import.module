@@ -43,6 +43,17 @@ function questions_import_menu() {
     'access arguments' => array('import_questions'),
     'type' => MENU_NORMAL_ITEM,
   );
+  
+  $items['admin/quiz/questions_reimport'] = array(
+    'title' => t('Reimport Quiz Questions'),
+    'description' => t('Reimport Questions is an addon for quiz module. It allows to reload a previous import file.'),
+    'file' => 'questions_reimport.admin.inc',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('questions_reimport_form'),
+    'access arguments' => array('import_questions'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  
   return $items;
 }
 
