@@ -445,7 +445,7 @@ function quiz_question_nodeapi(&$node, $op) {
     $q_types = _quiz_question_get_implementations();
     foreach ($q_types as $q_type => $info) {
       if ($node->type == $q_type) {
-        if (drupal_strlen($node->title == 0)) {
+        if (drupal_strlen($node->title) == 0) {
           $node->title = drupal_substr(strip_tags($node->body), 0, variable_get('quiz_autotitle_length', 50));
         }
       }
