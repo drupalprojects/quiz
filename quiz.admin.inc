@@ -246,18 +246,22 @@ function quiz_questions_form($context, $quiz) {
     );
   }
 
-
-
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
+
+  $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
+  $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
+
   foreach ($questions as $question) {
     $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
     $fieldset = 'filtered_question_list_' . $id_mod;
-    $id = $id_mod . '-' . $question->nid;
+    $id = $id_mod . '-' . $question->nid . '-' . $question->vid;
+
+    $latest = node_load($question->nid);
 
     $form[$fieldset]['weights'][$id] = array(
       //'#type' => 'weight',
@@ -268,7 +272,6 @@ function quiz_questions_form($context, $quiz) {
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-      // '#value' => $question->question, // Question is too long for drag and drop.
       '#value' => $question->title,
     );
     $form[$fieldset]['types'][$id] = array(
@@ -282,6 +285,19 @@ function quiz_questions_form($context, $quiz) {
       //'#value' => l('Remove', 'node/' . $question->nid .'/questions/remove', array('attributes' => array('class' => 'rem-link'))),
       '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
+    if ($question->vid == $latest->vid) {
+      $update_cell = array(
+        '#type' => 'markup',
+        '#value' => '<em>Up to date</em>',
+      );
+    } else {
+      $update_cell = array (
+      '#type' => 'checkbox',
+      '#title' => (l(t('Current'), 'node/' . $question->nid . '/revisions/' . $question->vid . '/view') . ' | ' .
+                     l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')),
+      );
+    }
+    $form[$fieldset]['revision'][$id] = $update_cell;
   }
 
   // Show the number of 'always' questions in the 'always' table header.
@@ -301,6 +317,8 @@ function quiz_questions_form($context, $quiz) {
     '#type' => 'submit',
     '#value' => t('Submit questions'),
   );
+
+  $form['#submit'][] = 'quiz_questions_form_submit';
 
   return $form;
 }
@@ -352,7 +370,7 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision) {
+function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision, $refreshes) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
@@ -360,11 +378,15 @@ function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision) 
       // Skip items that should be removed.
       continue;
     }
-    list($state, $nid) = explode('-', $id, 2);
+    list($state, $nid, $vid) = explode('-', $id, 3);
+    $nid = (int)$nid;
     $nid = (int)$nid;
     $question['nid'] = $nid;
+    $question['vid'] = $vid;
     $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
     $question['weight'] = $weight;
+
+    $question['refresh'] = (isset($refreshes[$id]) && $refreshes[$id] == 1);
 
     // Add item as an object in the questions array.
     $questions[] = (object)$question;
@@ -394,8 +416,9 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $weight_map = $form_state['values']['weights'];
+  $refreshes = $form_state['values']['revision'];
 
-  $questions = _quiz_update_items($quiz, $weight_map, $removed, $is_new_revision);
+  $questions = _quiz_update_items($quiz, $weight_map, $removed, $is_new_revision, $refreshes);
 
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
@@ -928,7 +951,7 @@ function theme_question_selection_table($form) {
   //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
   drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
 
-  $headers = array(t('Question'), t('Type'), t('Actions'), t('Weight'));
+  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Weight'));
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $nid) {
@@ -941,6 +964,7 @@ function theme_question_selection_table($form) {
           drupal_render($form['titles'][$nid]),
           $question_types[$type]['name'],
           $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
+          isset($form['revision'][$nid]) ? drupal_render($form['revision'][$nid]) : "Up to date",
           drupal_render($form['weights'][$nid]),
         ),
       );

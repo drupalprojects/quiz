@@ -1819,6 +1819,8 @@ function quiz_node_map($node) {
  *   Boolean TRUE if update was successful, FALSE otherwise.
  */
 function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
+  $old_vid = $quiz->vid;
+  
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
@@ -1833,20 +1835,29 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   // updates/inserts/deletes, but that method has already proven error prone as the module
   // has gained complexity (See 5.x-2.0-RC2).
   // So we go with the brute force method:
-  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $quiz->vid);
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $old_vid);
 
   if (empty($questions)) {
     return TRUE; // This is not an error condition.
   }
 
   // Now we do an insert of everything in the quiz. (Note that we are using a subselect to get the most recent vid.)
-  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+  
+  $refresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
       VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d)";
+  
+  $norefresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+      VALUES (%d, %d, %d, %d, %d, %d)";
 
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
-      //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
-      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);
+      if ($question->refresh) {
+        //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
+        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);                
+      }
+      else {
+        $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight);                
+      }
     }
   }
 
@@ -2388,7 +2399,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
     $where_sql = trim( $where_sql, ' AND ');
   }
 
-  $result = db_query('SELECT question.nid, question.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight
+  $result = db_query('SELECT question.nid, nr.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight
     FROM {node} question
     INNER JOIN {node_revisions} nr ON question.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr ON nr.vid = qnr.child_vid

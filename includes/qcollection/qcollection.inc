@@ -116,10 +116,14 @@ function qcollection_items_form($context, $quiz) {
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
+  $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
+  $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
   foreach ($questions as $question) {
     $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
     $fieldset = 'filtered_question_list_' . $id_mod;
-    $id = $id_mod . '-' . $question->nid;
+    $id = $id_mod . '-' . $question->nid . '-' . $question->vid;
+
+    $latest = node_load($question->nid);
 
     $form[$fieldset]['weights'][$id] = array(
     //'#type' => 'weight',
@@ -130,7 +134,6 @@ function qcollection_items_form($context, $quiz) {
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-    // '#value' => $question->question, // Question is too long for drag and drop.
       '#value' => $question->title,
     );
     $form[$fieldset]['types'][$id] = array(
@@ -144,6 +147,19 @@ function qcollection_items_form($context, $quiz) {
     //'#value' => l('Remove', 'node/' . $question->nid .'/questions/remove', array('attributes' => array('class' => 'rem-link'))),
       '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
+    if ($question->vid == $latest->vid) {
+      $update_cell = array(
+        '#type' => 'markup',
+        '#value' => '<em>Up to date</em>',
+      );
+    } else {
+      $update_cell = array (
+      '#type' => 'checkbox',
+      '#title' => (l(t('Current'), 'node/' . $question->nid . '/revisions/' . $question->vid . '/view') . ' | ' .
+                     l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')),
+      );
+    }
+    $form[$fieldset]['revision'][$id] = $update_cell;
   }
 
   // Show the number of 'always' questions in the 'always' table header.
@@ -164,6 +180,8 @@ function qcollection_items_form($context, $quiz) {
     '#type' => 'submit',
     '#value' => t('Submit questions'),
   );
+
+  $form['#submit'][] = 'qcollection_form_submit';
 
   return $form;
 }
@@ -280,5 +298,61 @@ function qcollection_download_form_submit(&$form, &$form_state) {
   $collection_node = $form['#parameters'][2]; // TODO must be a better way to get this
   $exporter = $form_state['values']['exporter'];
   _questions_export_download($collection_node, $exporter);
+}
+
+function qcollection_form_submit($form, &$form_state) {
+  // This is ugly and should be fixed.
+  $quiz = node_load(arg(1));
+
+  $is_new_revision = (bool) $form_state['values']['new_revision'];
+
+  $removed = explode(',', $form_state['values']['remove_from_quiz']);
+
+  $weight_map = $form_state['values']['weights'];
+
+  $old_vid = $quiz->vid;
+
+  if ($set_new_revision) {
+    // Create a new Quiz VID, even if nothing changed.
+    $quiz->revision = 1;
+    node_save($quiz);
+  }
+
+  foreach ($weight_map as $id => $weight) {
+    list($state, $nid, $vid) = explode('-', $id, 3);
+    $nid = (int) $nid;
+    $vid = (int) $vid;
+
+    $sql = 'DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
+    $result = db_query($sql, $quiz->nid, $old_vid, $nid);
+
+    if (in_array($id, $removed))
+    {
+      continue;
+    }
+    else {
+      $question = new stdClass;
+
+      $question->nid = $nid;
+      $question->vid = $vid;
+      $question->state = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+      $question->weight = $weight;
+
+      if (isset($form_state['values']['revision'][$id]) && $form_state['values']['revision'][$id] == 1) {
+        $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+                VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d)";
+        if ($question->state != QUESTION_NEVER) {
+          $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);
+        }
+      }
+      else {
+        $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+                VALUES (%d, %d, %d, %d, %d, %d)";
+        if ($question->state != QUESTION_NEVER) {
+          $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid,$question->vid, $question->state, $question->weight);
+        }
+      }
+    }
+  }
 }
 
