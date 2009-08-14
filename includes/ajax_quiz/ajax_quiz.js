@@ -16,28 +16,26 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
       $(this)
         .addClass('form-submit-clicked')
         .click(function () {
-          if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-radio') {
-            var post_tries = $('[name=tries]:checked:not(.form-submitted)').val();
-            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
-          }
-          else if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-text') {
-            var post_tries = $('.form-text:not(.form-submitted)').val();
-            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
-          }
-          else if ($('[name=tries]:not(.form-submitted)').attr('class') == 'form-textarea resizable textarea-processed') {
-            var post_tries = $('.form-textarea:not(.form-submitted)').val();
-            //$('[name=tries]:not(.form-submitted)').addClass('form-submitted');
-          }
-          else {
-            // unkonwn form type, unable to get value
-            post_tries = 'error';
-          }
-          $('[name=tries]:not(.form-submitted)').addClass('form-submitted');
+          var tries = '';
+          $('[name^="tries"]:not(.form-submit-clicked)').each(function (i) {
+            switch(this.type) {
+            case 'radio':
+            case 'checkbox':
+            	if (this.checked) {
+            		tries += '&' + this.name + '=' + this.value;
+            	}
+            	break;
+            default:
+            	tries += '&' + this.name + '=' + this.value;
+            	break;
+            }
+            $(this).addClass('form-submit-clicked');
+          });
           $(this).attr('disabled', true);
           $.ajax({
             // Either GET or POST will work.
             type: 'POST',
-            data: 'ajax_load_example=1&op=Next&tries='+post_tries,
+            data: 'ajax_load_example=1&op=Next'+tries,
             // Need to specify JSON data.
             dataType: 'json',
             url: $(this).attr('href'),
@@ -57,8 +55,10 @@ Drupal.behaviors.AjaxLoadExample = function (context) {
                 // Drupal.AjaxLoadExample.formCallback(target, response);
               }
             },
-            error: function() {
-              alert('error');
+            error: function(xhr, opt, err) {
+              alert(xhr.statusText);
+              alert(opt);
+              alert(err);
             },
           });
           return false;
