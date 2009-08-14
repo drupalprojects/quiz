@@ -15,7 +15,7 @@ $p = drupal_get_path('module', 'multichoice');
 drupal_add_css($p .'/theme/multichoice.css', 'module', 'all');
 if ($form['#taking_quiz']) {
   print "
-<script type=text/javascript>Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
+<SCRIPT type='text/javascript'>Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
   $('.multichoice_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')

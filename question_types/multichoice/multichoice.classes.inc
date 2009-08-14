@@ -590,12 +590,16 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     $this->rid = $rid;
     $this->question = $question;
     $this->user_answer_ids = array();
-    $this->choice_order = $tries['choice_order'];
-    unset($tries['choice_order']);
-    if (is_array($tries['answer'])) {
-      foreach ($tries['answer'] as $answer_id) $this->user_answer_ids[] = $answer_id;
-    }
-    elseif (isset($tries['answer'])) $this->user_answer_ids[] = $tries['answer'];
+    if (is_array($tries)) {
+      $this->choice_order = $tries['choice_order'];
+      unset($tries['choice_order']);
+      if (is_array($tries['answer'])) {
+        foreach ($tries['answer'] as $answer_id) $this->user_answer_ids[] = $answer_id;
+      }
+      elseif (isset($tries['answer'])) {
+        $this->user_answer_ids[] = $tries['answer'];
+      }
+    } 
     else {
       $sql = 'SELECT answer_id
               FROM {quiz_multichoice_user_answer_multi} uam
