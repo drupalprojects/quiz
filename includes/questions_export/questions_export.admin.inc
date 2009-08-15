@@ -185,8 +185,8 @@ function _as_moodle_questions($drupal_questions) {
   // TODO turn them into Moodle model
 
   foreach ($drupal_questions as $dq) {
-    $mq = new stdClass();
-    $mq->id = "drupal_nid:$dq->nid, drupal_vid:$dq->vid, author:$dq->name";
+    $moodle_questions[] = $mq = new stdClass();
+    $mq->id = "drupal_node:$dq->nid,$dq->vid";
     $mq->name = $dq->title;
     $mq->questiontext = $dq->body;
     $mq->questiontextformat = FORMAT_HTML; // FIXME where does Drupal Quiz store this?
@@ -202,46 +202,58 @@ function _as_moodle_questions($drupal_questions) {
     );
     $mq->qtype = $qtypeMap[$dq->type];
 
-    $mq->options = new stdClass();
-    $mq->options->answers = array();
-    switch ($dq->type) { // TODO refactor this into the questiontype classes
-      case 'matching':
-        // TODO why doesn't matching have an ->answers property?
-        for ($i = 0; !empty($dq->$i); $i += 1) {
-          $match_answer = $dq->$i;
-          $questiontext = $match_answer->question;
-          $answertext = $match_answer->answer;
-          $matches[] = (object) compact('questiontext', 'answertext');
-        }
-        $mq->options->subquestions = $matches;
-        break;
-      case 'multichoice':
-        $mq->singlequestion = ! $dq->choice_multi;
-        foreach ($dq->alternatives as $alternative) {
-          $moodle_answer = new stdClass();
-          $moodle_answer->answer = $alternative['answer'];
-          $moodle_answer->feedback = $alternative['feedback_if_chosen'];
-          $moodle_answer->fraction = $alternative['score_if_chosen'];
-          $mq->options->answers[] = $moodle_answer;
-        }
-        break;
-      case 'true_false':
-        $moodle_true_answer = new stdClass();
-        $moodle_true_answer->fraction = ($dq->correct_answer) ? 1 : 0;
-        $mq->options->answers[] = $moodle_true_answer;
-
-        $moodle_false_answer = new stdClass();
-        $moodle_false_answer->fraction = ($dq->correct_answer) ? 0 : 1;
-        $mq->options->answers[] = $moodle_false_answer;
-
-        $mq->options->trueanswer = 0; // indices above
-        $mq->options->falseanswer = 1;
-        break;
+    if (user_access('view quiz question solutions')) {
+      _fill_moodle_item_answers($dq, $mq);
     }
-    $moodle_questions[] = $mq;
   }
 
   return $moodle_questions;
+}
+
+
+/**
+ * Fill the Moodle question object with answers from the Drupal question object
+ *
+ * @param $dq Drupal question object
+ * @param $mq Moodle question object
+ */
+function _fill_moodle_item_answers($dq, &$mq) {
+  $mq->options = new stdClass();
+  $mq->options->answers = array();
+  switch ($dq->type) { // TODO refactor this into the questiontype classes
+    case 'matching':
+      // TODO why doesn't matching have an ->answers property?
+      for ($i = 0; !empty($dq->$i); $i += 1) {
+        $match_answer = $dq->$i;
+        $questiontext = $match_answer->question;
+        $answertext = $match_answer->answer;
+        $matches[] = (object) compact('questiontext', 'answertext');
+      }
+      $mq->options->subquestions = $matches;
+      break;
+    case 'multichoice':
+      $mq->singlequestion = ! $dq->choice_multi;
+      foreach ($dq->alternatives as $alternative) {
+        $moodle_answer = new stdClass();
+        $moodle_answer->answer = $alternative['answer'];
+        $moodle_answer->feedback = $alternative['feedback_if_chosen'];
+        $moodle_answer->fraction = $alternative['score_if_chosen'];
+        $mq->options->answers[] = $moodle_answer;
+      }
+      break;
+    case 'true_false':
+      $moodle_true_answer = new stdClass();
+      $moodle_true_answer->fraction = ($dq->correct_answer) ? 1 : 0;
+      $mq->options->answers[] = $moodle_true_answer;
+
+      $moodle_false_answer = new stdClass();
+      $moodle_false_answer->fraction = ($dq->correct_answer) ? 0 : 1;
+      $mq->options->answers[] = $moodle_false_answer;
+
+      $mq->options->trueanswer = 0; // indices above
+      $mq->options->falseanswer = 1;
+      break;
+  }
 }
 
 /**
