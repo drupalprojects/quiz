@@ -104,18 +104,6 @@ function qcollection_menu() {
     'file' => 'qcollection.inc',
   );
 
-  // Menu item to download item collection in a portable format
-  $items['node/%qcollection_type_access/download'] = array(
-  'title' => t('Download'),
-    'page callback' => 'qcollection_download',
-    'page arguments' => array(1),
-  // FIXME: This needs to check to see if the user owns the qcollection.
-    'access callback' => 'node_access',
-    'access arguments' => array('update', 1),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'qcollection.inc',
-  );
-
   return $items;
 }
 
@@ -129,20 +117,6 @@ function qcollection_theme() {
       'file' => 'qcollection.pages.inc',
     ),
   );
-}
-
-/**
- * Load a qcollection node and validate it.
- *
- * @param $arg
- *  The Node ID
- * @return
- *  A qcollection node object or FALSE if a load failed.
- */
-function qcollection_type_access_load($arg) {
-  // Simple verification/load of the node.
-//  ddebug_backtrace();
-  return (($node = node_load($arg)) && $node->type == 'qcollection') ? $node : FALSE;
 }
 
 function _qcollection_get_info($node) {

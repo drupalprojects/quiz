@@ -11,38 +11,99 @@
 /**
  * Implementation of hook_help().
  */
-
 function questions_export_help($path, $arg) {
   if ($path == 'admin/help#questions_export') {
     return '<p>' . t('This module allows you to export Quiz questions to portable formats.') . '</p>';
   }
 }
 
+
 /**
  * Implementation of hook_perm()
  * Valid permissions for this module
  * @return array An array of valid permissions.
  */
-
 function questions_export_perm() {
   return array('export questions');
 }
+
 
 /**
  * Implementation of hook_menu
  *
  */
-
 function questions_export_menu() {
-  $items = array();
+
   $items['admin/quiz/questions_export'] = array(
     'title' => t('Export Quiz Questions'),
     'description' => t('Export Questions is an addon for the Quiz module to export its questions into portable formats.'),
     'file' => 'questions_export.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_export_form'),
-    'access arguments' => array('export_questions'),
+    'access arguments' => array('export questions'),
     'type' => MENU_NORMAL_ITEM,
   );
+
+  // Menu item to download item collection in a portable format
+  $items['node/%questions_export_collection_type_access/download'] = array(
+    'title' => t('Download'),
+    'description' => t('Download this collection of questions into a portable format.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('questions_export_download_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('export questions'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
   return $items;
+}
+
+
+/**
+ * Load a qcollection or quiz node and validate it.
+ *
+ * @param $arg
+ *  The Node ID
+ * @return
+ *  A qcollection or quiz node object or FALSE if a load failed.
+ */
+function questions_export_collection_type_access_load($arg) {
+  // Simple verification/load of the node.
+  $valid_types = array('qcollection', 'quiz');
+  return (($node = node_load($arg)) && in_array($node->type, $valid_types)) ? $node : FALSE;
+}
+
+
+/**
+ * Return a form for selecting the export settings
+ */
+function questions_export_download_form() {
+  module_load_include('inc', 'questions_export', 'questions_export.admin');
+
+  $form['exporter'] = array(
+    '#type' => 'select',
+    '#title' => t('Export format'),
+    '#options' => _questions_exporters(),
+    '#description' => t('Select the data format to export into.'),
+    '#required' => TRUE,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Download'),
+  );
+
+  return $form;
+}
+
+
+/**
+ * Handle submission of download form
+ *
+ */
+function questions_export_download_form_submit(&$form, &$form_state) {
+  // FIXME hacky way to get the node
+  $collection_node = node_load(arg(1));
+  $exporter = $form_state['values']['exporter'];
+  _questions_export_download($collection_node, $exporter);
 }

@@ -164,6 +164,7 @@ function _questions_export_native($collection_node, $export_format) {
  * a list of question node objects in the given quiz node object
  */
 function _questions_in_quiz($collection_node) {
+  if (empty($collection_node)) throw new Exception("empty collection node");
   $questions = array();
   // Get all the questions (ignore `question_status`)
   $sql = "SELECT child_nid as question_nid, child_vid as question_vid

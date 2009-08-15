@@ -253,53 +253,6 @@ WHERE qnr.parent_nid = %d and qnr.parent_vid = %d';
 }
 
 
-/**
- * Callback for menu which returns a form for downloading.
- *
- * Handles the "Download" tab.
- *
- * @param $node
- *   Node of collection to download
- * @return
- *   String containing the form.
- */
-function qcollection_download($node) {
-  return drupal_get_form('qcollection_download_form', $node);
-}
-
-
-/**
- * Return a form for selecting the export settings
- */
-function qcollection_download_form() {
-  module_load_include('inc', 'questions_export', 'questions_export.admin');
-
-  $form['exporter'] = array(
-    '#type' => 'select',
-    '#title' => t('Export format'),
-    '#options' => _questions_exporters(),
-    '#description' => t('Select the data format to export into.'),
-    '#required' => TRUE,
-  );
-
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Download'),
-  );
-
-  return $form;
-}
-
-/**
- * This generic submit handler calls specific export functions
- *
- */
-function qcollection_download_form_submit(&$form, &$form_state) {
-  $collection_node = $form['#parameters'][2]; // TODO must be a better way to get this
-  $exporter = $form_state['values']['exporter'];
-  _questions_export_download($collection_node, $exporter);
-}
-
 function qcollection_form_submit($form, &$form_state) {
   // This is ugly and should be fixed.
   $quiz = node_load(arg(1));
