@@ -51,11 +51,12 @@ function questions_export_form()  {
  */
 function _questions_exporters() {
   $type = array(
-    'native_csv' => t('Comma Separated Values (by Drupal)'),
-    'native_aiken' => t('Aiken (by Drupal)'),
-    'moodle_gift' => t('Moodle GIFT (by Moodle)'),
-    'moodle_qti2' => t('QTI 2.0 (by Moodle)'),
-    'moodle_xml' => t('Moodle XML (by Moodle)'),
+    'native_csv' => t('Comma Separated Values (CSV)'),
+    'native_aiken' => t('Aiken'),
+    'moodle_gift' => t('GIFT'),
+    'moodle_xml' => t('Moodle XML'),
+    'moodle_qti2' => t('QTI 2.0'),
+    'moodle_xhtml' => t('XHTML'),
   );
   return $type;
 }
