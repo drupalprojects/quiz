@@ -30,21 +30,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class MultichoiceQuestion implements QuizQuestion {
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
-
-  /**
-   * Constructor
-   *
-   * @param $node - the node object
-   */
-  public function __construct($node) {
-    $this->node = $node;
-  }
+class MultichoiceQuestion extends AbstractQuizQuestion {
 
   private function forgive() {
     if ($this->node->choice_multi == 1) {
@@ -170,8 +156,8 @@ class MultichoiceQuestion implements QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate($node, &$form) {
-    if ($node->choice_multi == 0) {
+  public function validate(&$form) {
+    if ($this->node->choice_multi == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
@@ -261,8 +247,8 @@ class MultichoiceQuestion implements QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
-  public function view() {
-    return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    return $this->getAnsweringForm();
   }
 
   /**
@@ -272,10 +258,10 @@ class MultichoiceQuestion implements QuizQuestion {
    * to an administrator or to a quiz taker.
    */
 
-  public function getQuestionForm($node, $context = NULL) {
+  public function getAnsweringForm($context = NULL) {
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($node->body, $node->format, FALSE),
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );
     $form['tries[answer]'] = array(
       '#options' => array(),
@@ -283,8 +269,8 @@ class MultichoiceQuestion implements QuizQuestion {
     );
     $form['tries[answer]']['#taking_quiz'] = _quiz_is_taking_context();
     $form['tries[answer]']['#correct_choice'] = array();
-    for ($i = 0; is_array($node->alternatives[$i]); $i++) {
-      $short = $node->alternatives[$i];
+    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      $short = $this->node->alternatives[$i];
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
       if (drupal_strlen($answer_markup) > 0) {
         if (! $form['tries[answer]']['#taking_quiz']) {
@@ -295,13 +281,13 @@ class MultichoiceQuestion implements QuizQuestion {
         $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
       }
     }
-    if ($node->choice_random) {
+    if ($this->node->choice_random) {
       $form['tries[choice_order]'] = array(
         '#type' => 'hidden',
         '#value' => implode(',',$this->shuffle($form['tries[answer]']['#options'])),
       );
     }
-    if ($node->choice_multi) {
+    if ($this->node->choice_multi) {
       $form['tries[answer]']['#type'] = 'checkboxes';
       $form['tries[answer]']['#title'] = t('Choose');
     } else {
@@ -353,7 +339,7 @@ class MultichoiceQuestion implements QuizQuestion {
 
     $action = '/node/add/'. $type->type;
 
-    if ($node->nid) {
+    if ($this->node->nid) {
       $action = '/node/'. $this->node->nid. '/edit';
     }
     $form['#action'] = "?q=$action";
@@ -599,7 +585,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       elseif (isset($tries['answer'])) {
         $this->user_answer_ids[] = $tries['answer'];
       }
-    } 
+    }
     else {
       $sql = 'SELECT answer_id
               FROM {quiz_multichoice_user_answer_multi} uam

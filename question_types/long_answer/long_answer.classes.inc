@@ -11,16 +11,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class LongAnswerQuestion implements QuizQuestion {
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
-
-  public function __construct($node) {
-    $this->node = $node;
-  }
+class LongAnswerQuestion extends AbstractQuizQuestion {
 
   public function save($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
@@ -36,9 +27,9 @@ class LongAnswerQuestion implements QuizQuestion {
     }
   }
 
-  public function validate($node, &$form) {
+  public function validate(&$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
-    $maximum_score = $node->maximum_score;
+    $maximum_score = $this->node->maximum_score;
     if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
       form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
     }
@@ -58,17 +49,16 @@ class LongAnswerQuestion implements QuizQuestion {
     return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
   }
 
-  public function view() {
-    return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    return $this->getAnsweringForm();
   }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getQuestionForm($node, $context = NULL) {
-    //print_r($node);exit;
+  public function getAnsweringForm($context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => $node->body
+       '#value' => $this->node->body
      );
      $form['tries'] = array(
        '#type' => 'textarea',

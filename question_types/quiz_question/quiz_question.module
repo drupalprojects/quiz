@@ -25,6 +25,7 @@ function quiz_question_autoload_info() {
   return array(
     // Base interfaces and classes:
     'QuizQuestion' => array('file' => 'quiz_question.core.inc'),
+    'AbstractQuizQuestion' => array('file' => 'quiz_question.core.inc'),
     'QuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
     'AbstractQuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
   );
@@ -220,63 +221,64 @@ function quiz_question_validate($node, &$form) {
   if (empty($node->body)) {
     form_set_error('body', t('Question text is empty.'));
   }
-  _quiz_question_get_instance($node)->validate($node, $form);
+  _quiz_question_get_instance($node)->validate($form);
 }
 
 /**
- * Get the form to show to the user.
+ * Get the form to show to the quiz taker.
  */
-function quiz_question_question_form($context, $node) {
-  $form = _quiz_question_get_instance($node)->getQuestionForm($node, $context);
+function quiz_question_answering_form($context, $node) {
+  $question = _quiz_question_get_instance($node);
 
-  if (_quiz_is_taking_context()) {
-    $quiz = menu_get_object();
+  $form = $question->getAnsweringForm($context);
+  $quiz = menu_get_object();
 
-    if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
-      $form['back'] = array(
+  if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
+    $form['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
-      );
-    }
+    );
+  }
 
-    // Add navigation at the bottom:
-    // Submit button
-    $form['submit'] = array(
+  // Add navigation at the bottom:
+  // Submit button
+  $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
-    );
+  );
 
-    /* TODO is skipping supporting?
-     if (empty($node->no_skip_button)) {
-     $form['op']  = array(
-     '#type' => 'submit',
-     '#value' => t('Skip'),
-     );
-     }
-     */
-
-  }
-  else {
-    // reconstruct form so type is first (at top)
-    // TODO is there a better way?  like unshift an assoc tuple?
-    $type = node_get_types('type', $node);
-    $newform['question_type'] = array(
-      '#type'  => 'markup',
-      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
-    );
-    $newform += $form;
-    $form = $newform;
-
-    if (!user_access('view quiz question solutions')) {
-      $form['tries'] = array(
-        '#type'  => 'markup',
-        '#value' => '<br /> <em>Answers hidden</em>.'
-      );
-    }
-  }
-
+  /* TODO is skipping supporting?
+   if (empty($node->no_skip_button)) {
+   $form['op']  = array(
+   '#type' => 'submit',
+   '#value' => t('Skip'),
+   );
+   }
+   */
   return $form;
 }
+
+// TODO eliminate this function somehow, with a theme?
+function quiz_question_info_form($context, $node) {
+  $question = _quiz_question_get_instance($node);
+
+  // TODO make this a method of QuizQuestion
+  $type = node_get_types('type', $node);
+  $content['question_type'] = array(
+    '#type'  => 'markup',
+    '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+  );
+  $content += $question->getNodeView();
+
+  if (!user_access('view quiz question solutions')) {
+    $content['tries'] = array(
+      '#type'  => 'markup',
+      '#value' => '<br /> <em>Answers hidden</em>.'
+      );
+  }
+  return $content;
+}
+
 
 /**
  * Form for teaser display
@@ -380,16 +382,6 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
 }
 
 /**
- * Implementation of hook_render_question().
- *
- * @param $node
- *  The question node.
- */
-function quiz_question_render_question($node) {
-  return drupal_get_form('quiz_question_question_form', $node);
-}
-
-/**
  * Imlementation of hook_get_report().
  *
  * @return
@@ -472,9 +464,11 @@ function quiz_question_insert($node) {
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if ($teaser) {
     $form_markup = drupal_get_form('quiz_question_teaser_form', $node);
-  }
-  else {
-    $form_markup = drupal_get_form('quiz_question_question_form', $node);
+  } else if (_quiz_is_taking_context()) {
+    $form_markup = drupal_get_form('quiz_question_answering_form', $node);
+  } else {
+    // normal node view
+    $form_markup = drupal_get_form('quiz_question_info_form', $node);
   }
   $node->content['body']['#value'] = $form_markup;
   return $node;

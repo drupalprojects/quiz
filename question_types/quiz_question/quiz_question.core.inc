@@ -37,6 +37,9 @@ interface QuizQuestion {
 
   /**
    * Construct a new quiz question.
+   *
+   * @param $node
+   *   the node object
    */
   public function __construct($node);
 
@@ -65,12 +68,10 @@ interface QuizQuestion {
    * When a new question is created and initially submited, this is
    * called to validate that the settings are acceptible.
    *
-   * @param $node
-   *  The node storing the question.
    * @param $form
    *  The processed form.
    */
-  public function validate($node, &$form);
+  public function validate(&$form);
   /**
    * Deletes a question from the database.
    *
@@ -83,40 +84,62 @@ interface QuizQuestion {
   /**
    * Retrieve information relevant for viewing the node.
    * This data is generally added to the node's extra field.
+   * @return
+   *  Content array
    */
-  public function view();
+  public function getNodeView();
   /**
    * Retrieve information about the question and add it to the node.
    */
   public function load();
   /**
-   * Get the form that will be displayed to the test-taking user.
+   * Get the form through which the user will answer the question.
    *
-   * @param $node
-   *  The question node.
    * @param $context
    *  The form context.
    * @return
    *  Must return a FAPI array.
    */
-  public function getQuestionForm($node, $context = NULL);
+  public function getAnsweringForm($context = NULL);
   /**
    * Get the form that contains admin settings for this question type.
    *
+   * @param
+   *  FAPI form state
    * @return
    *  Must return a FAPI array.
    */
-  public function getAdminForm($edit = NULL);
+  public function getAdminForm($form_state = NULL);
   /**
    * Get the form used to create a new question.
+   * @param
+   *  FAPI form state
    * @return
    *  Must return a FAPI array.
    */
-  public function getCreationForm($edit);
+  public function getCreationForm($form_state);
   /**
    * Get the maximum possible score for this question.
    */
   public function getMaximumScore();
+
+}
+
+/**
+ * A base implementation of QuizQuestion.
+ *
+ * Question type implementations may choose to extend this.
+ */
+abstract class AbstractQuizQuestion implements QuizQuestion {
+
+  /**
+   * The current node for this question.
+   */
+  protected $node = NULL;
+
+  public function __construct($node) {
+    $this->node = $node;
+  }
 
 }
 
@@ -137,7 +160,7 @@ interface QuizQuestionResponse {
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($rid, $question, $answer);
+  public function __construct($rid, $question, $answer = NULL);
 
   /**
    * Save the current response.
@@ -222,7 +245,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   protected $score;
 
   /*
-  public function __construct($rid, $question, $answer) {
+  public function __construct($rid, $question, $answer = NULL) {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;

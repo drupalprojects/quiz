@@ -11,16 +11,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class TrueFalseQuestion implements QuizQuestion {
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
-
-  public function __construct($node) {
-    $this->node = $node;
-  }
+class TrueFalseQuestion extends AbstractQuizQuestion {
 
   public function save($is_new = FALSE) {
 
@@ -41,7 +32,7 @@ class TrueFalseQuestion implements QuizQuestion {
     }
   }
 
-  public function validate($node, &$form) {
+  public function validate(&$form) {
     // This space intentionally left blank. :)
   }
 
@@ -64,22 +55,21 @@ class TrueFalseQuestion implements QuizQuestion {
     return $result;
   }
 
-  public function view() {
-    //return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    // FIXME make an appropriate content array
+    // FIXME mark correct answers
+    return $this->getAnsweringForm();
   }
-
 
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getQuestionForm($node, $context = NULL) {
+  public function getAnsweringForm($context = NULL) {
 
-  $taking_quiz = _quiz_is_taking_context();
-
-  // Question first
+    // Question first
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => $node->body
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE)
     );
 
     // 'tries' is unfortunately required by quiz.module
@@ -87,17 +77,17 @@ class TrueFalseQuestion implements QuizQuestion {
       '#type' => 'radios',
       '#title' => t('Choose one'),
       '#options' => array(
-        1 => ($taking_quiz || $node->correct_answer == 0) ? t('True') : t('True (correct)'),
-        0 => ($taking_quiz || $node->correct_answer == 1) ? t('False') : t('False (correct)')
+        1 => t('True'),
+        0 => t('False')
       ),
       //'#default_value' => 1,
       '#required' => TRUE,
     );
 
-
-
     return $form;
   }
+
+
   public function getAdminForm($edit = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',

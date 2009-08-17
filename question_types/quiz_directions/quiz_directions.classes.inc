@@ -19,37 +19,32 @@
 /**
  * Implementation of QuizQuestion.
  */
-class QuizDirectionsQuestion implements QuizQuestion {
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
+class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
   public function __construct($node) {
-    $this->node = $node;
+    parent::__construct($node);
     $this->node->no_skip_button = TRUE; // No skip button
     $this->node->not_a_question = TRUE;
   }
 
   public function save($is_new = FALSE) {}
 
-  public function validate($node, &$form) {}
+  public function validate(&$form) {}
 
   public function delete($only_this_version = FALSE) {}
 
   public function load() {}
 
-  public function view() {
-    return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    return $this->getAnsweringForm();
   }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getQuestionForm($node, $context = NULL) {
+  public function getAnsweringForm($context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format, FALSE),
+       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
      );
      $form['tries'] = array(
        '#type' => 'hidden',

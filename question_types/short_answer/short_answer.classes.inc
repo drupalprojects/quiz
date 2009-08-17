@@ -20,7 +20,7 @@
  * This could have extended long answer, except that that would have entailed
  * adding long answer as a dependency.
  */
-class ShortAnswerQuestion implements QuizQuestion {
+class ShortAnswerQuestion extends AbstractQuizQuestion {
 
   // Answer matching algorithms.
   const ANSWER_MATCH = 0;
@@ -31,15 +31,6 @@ class ShortAnswerQuestion implements QuizQuestion {
   // Field display types.
   const TEXT_ENTRY_TEXTFIELD = 0;
   const TEXT_ENTRY_TEXTAREA = 1;
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
-
-  public function __construct($node) {
-    $this->node = $node;
-  }
 
   public function save($is_new = FALSE) {
 
@@ -60,13 +51,13 @@ class ShortAnswerQuestion implements QuizQuestion {
     }
   }
 
-  public function validate($node, &$form) {
-    $maximum_score = $node->maximum_score;
+  public function validate(&$form) {
+    $maximum_score = $this->node->maximum_score;
     if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
       form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
     }
 
-    if ($node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($node->correct_answer)) {
+    if ($this->node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($this->node->correct_answer)) {
       form_set_error('correct_answer_evaluation', t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
   }
@@ -87,17 +78,17 @@ class ShortAnswerQuestion implements QuizQuestion {
     return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
   }
 
-  public function view() {
-    return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    return $this->getAnsweringForm();
   }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getQuestionForm($node, $context = NULL) {
+  public function getAnsweringForm($context = NULL) {
 
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($node->body, $node->format, FALSE),
+       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );
 
     if (_quiz_is_taking_context()) {
@@ -114,7 +105,7 @@ class ShortAnswerQuestion implements QuizQuestion {
       if (user_access('view quiz question solutions')) {
         $form['tries'] = array('#type' => 'markup',
           // FIXME hack should use CSS instead, maybe across all quiz_question.module
-      	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $node->correct_answer)),
+      	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $this->node->correct_answer)),
         );
       } // else case handled in quiz_question.module
     }

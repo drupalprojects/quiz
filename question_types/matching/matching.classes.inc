@@ -14,16 +14,11 @@
 /**
  * Implementation of Matching.
  */
-class MatchingQuestion implements QuizQuestion {
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
+class MatchingQuestion extends AbstractQuizQuestion {
 
   public function __construct($node) {
-    if (empty($node->match)) $node->match = array();
-    $this->node = $node;
+    parent::__construct($node);
+    if (empty($this->node->match)) $this->node->match = array();
   }
 
   public function save($is_new = FALSE) {
@@ -45,7 +40,7 @@ class MatchingQuestion implements QuizQuestion {
   }
 
 
-  public function validate($node, &$form) {
+  public function validate(&$form) {
     // This space intentionally left blank. :)
   }
 
@@ -78,17 +73,14 @@ class MatchingQuestion implements QuizQuestion {
     return $rows;
   }
 
-
-
-  public function view() {
-    return $this->getQuestionForm($this->node);
+  public function getNodeView() {
+    return $this->getAnsweringForm();
   }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getQuestionForm($node, $context = NULL) {
-
-    list($questions, $select_option) = $this->getQuestion($node);
+  public function getAnsweringForm($context = NULL) {
+    list($questions, $select_option) = $this->getSubquestions();
     foreach ($questions as $question) {
       $title = $question['question'];
       if (!_quiz_is_taking_context()) {
@@ -103,7 +95,7 @@ class MatchingQuestion implements QuizQuestion {
     return variable_get('quiz_matching_shuffle_options', TRUE) ? $this->customShuffle($form) : $form;
   }
 
-  public function customShuffle($array = array()) {
+  private function customShuffle($array = array()) {
     $new_array = array();
     while (count($array)) {
       $element = array_rand($array);
@@ -113,10 +105,10 @@ class MatchingQuestion implements QuizQuestion {
     return $new_array;
   }
 
-  public function getQuestion($node) {
+  private function getSubquestions() {
     $questions = $select_option = array();
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
-    $results = db_query($sql, $node->nid, $node->vid);
+    $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
       $questions[] = array(
         'match_id' => $result->match_id,
@@ -220,7 +212,7 @@ class MatchingQuestion implements QuizQuestion {
 
 class MatchingResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($rid, $question, $answer) {
+  public function __construct($rid, $question, $answer = NULL) {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;
