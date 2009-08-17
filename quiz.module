@@ -1074,7 +1074,6 @@ function quiz_take_quiz($quiz) {
         $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
         // Report that the question was skipped:
-        //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
         quiz_store_question_result($result, array('set_msg' => TRUE));
       }
       else {
@@ -1094,10 +1093,8 @@ function quiz_take_quiz($quiz) {
       // Call hook_evaluate_question().
       $types = _quiz_get_question_types();
       $module = $types[$former_question->type]['module'];
-      //drupal_set_message($module . ' evaluate_question called');
       $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
-      //$result stdClass Object ( [score] => 0 [nid] => 3 [vid] => 3 [rid] => 27 [is_correct] => [is_evaluated] => 1 [is_skipped] => )
       quiz_store_question_result($result, array('set_msg' => TRUE));
 
       // Stash feedback in the session, since the $_POST gets cleared.
@@ -1257,19 +1254,11 @@ function quiz_node_view($question_node) {
 /**
  * Store a quiz question result.
  *
- * @param $released
+ * @param $result
  *  stdClass object with the following attributes:
  *  - nid, vid, rid, is_correct, score (default: 1 if correct, 0 otherwise), is_skipped (default: FALSE)
  */
-//function quiz_store_question_result($nid, $vid, $rid, $is_correct, $is_skipped = FALSE) {}
 function quiz_store_question_result($result, $options) {
-  /*
-  if (!is_object($result) || !$result->nid || !$result->vid || !$result->rid) {
-    // FIXME: This error is for debugging only. Remove before 3.0 is released.
-    drupal_set_message("No answer could be saved. If you see this message, file a bug report.", 'error');
-    return;
-  }
-  */
 
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
@@ -1820,7 +1809,7 @@ function quiz_node_map($node) {
  */
 function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   $old_vid = $quiz->vid;
-  
+
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
@@ -1842,10 +1831,10 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
 
   // Now we do an insert of everything in the quiz. (Note that we are using a subselect to get the most recent vid.)
-  
+
   $refresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
       VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d)";
-  
+
   $norefresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
       VALUES (%d, %d, %d, %d, %d, %d)";
 
@@ -1853,10 +1842,10 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
     if ($question->state != QUESTION_NEVER) {
       if ($question->refresh) {
         //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
-        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);                
+        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);
       }
       else {
-        $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight);                
+        $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight);
       }
     }
   }
