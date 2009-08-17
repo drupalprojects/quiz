@@ -212,10 +212,8 @@ class MatchingQuestion extends AbstractQuizQuestion {
 
 class MatchingResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
-    $this->answer = $answer;
+  public function __construct($result_id, $question_node, $answer = NULL) {
+    parent::__construct($result_id, $question_node);
     $this->is_correct = $this->isCorrect();
   }
 

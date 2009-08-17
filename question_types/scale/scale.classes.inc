@@ -484,9 +484,9 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @param $question - as an object
    * @param $answer - answer_id
    */
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
+  public function __construct($result_id, $question_node, $answer = NULL) {
+    parent::__construct($result_id, $question_node, $answer);
+
     if (isset($answer)) $this->answer_id = $answer;
     else {
       $sql = 'SELECT answer_id
@@ -503,6 +503,8 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
     $res_o = db_fetch_object($res);
     $this->answer = check_plain($res_o->answer);
   }
+
+
   /**
    * Implementation of save
    */
@@ -512,6 +514,8 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
       VALUES (%d, %d, %d, %d)";
     db_query($sql, $this->answer_id, $this->rid, $this->question->vid, $this->question->nid);
   }
+
+
   /**
    * Implementation of delete
    */
@@ -520,6 +524,8 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
     		WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
   }
+
+
   /**
    * Implementation of score
    *

@@ -82,12 +82,6 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
  */
 class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->answer = $answer;
-    $this->question = $question;
-    $this->rid = $rid;
-  }
-
   public function save() {}
   public function delete() {}
   public function score() {

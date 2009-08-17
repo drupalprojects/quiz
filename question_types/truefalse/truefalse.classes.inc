@@ -142,9 +142,8 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
 
 class TrueFalseResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
+  public function __construct($result_id, $question_node, $answer = NULL) {
+    parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
       $r = $this->getCorrectAnswer();
       if (!empty($r)) {

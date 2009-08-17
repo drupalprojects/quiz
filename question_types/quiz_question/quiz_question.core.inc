@@ -152,15 +152,15 @@ interface QuizQuestionResponse {
   /**
    * Create a new user response.
    *
-   * @param $rid
+   * @param $result_id
    *  The result ID for the user's result set. There is one result ID per time
    *  the user takes a quiz.
-   * @param $question
+   * @param $question_node
    *  The question node.
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($rid, $question, $answer = NULL);
+  public function __construct($result_id, $question_node, $answer = NULL);
 
   /**
    * Save the current response.
@@ -244,14 +244,11 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   protected $answer = NULL;
   protected $score;
 
-  /*
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
+  public function __construct($result_id, $question_node, $answer = NULL) {
+    $this->rid = $result_id;
+    $this->question = $question_node;
     $this->answer = $answer;
-    $this->score();
   }
-  */
 
   public function isEvaluated() {
     return $this->evaluated;
@@ -265,6 +262,8 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->getScore();
+
+    assert($action <= $possible);
 
     return ($possible == $actual);
   }

@@ -565,16 +565,8 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   protected $user_answer_ids;
   protected $choice_order;
 
-  /**
-   * Constructor
-   *
-   * @param $rid - response_id
-   * @param $question - as an object
-   * @param $answer - answer_id
-   */
-  public function __construct($rid, $question, $tries = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
+  public function __construct($result_id, $question_node, $tries = NULL) {
+    parent::__construct($result_id, $question_node);
     $this->user_answer_ids = array();
     if (is_array($tries)) {
       $this->choice_order = $tries['choice_order'];
@@ -591,7 +583,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
               FROM {quiz_multichoice_user_answer_multi} uam
               JOIN {quiz_multichoice_user_answers} ua ON(uam.user_answer_id = ua.id)
               WHERE ua.result_id = %d AND ua.question_nid = %d AND ua.question_vid = %d';
-      $res = db_query($sql, $rid, $this->question->nid, $this->question->vid);
+      $res = db_query($sql, $result_id, $this->question->nid, $this->question->vid);
       while ($res_o = db_fetch_object($res)) {
         $this->user_answer_ids[] = $res_o->answer_id;
       }

@@ -154,9 +154,8 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
    */
   protected $answer_id = 0;
 
-  public function __construct($rid, $question, $answer = NULL) {
-    $this->rid = $rid;
-    $this->question = $question;
+  public function __construct($result_id, $question_node, $answer = NULL) {
+    parent::__construct($result_id, $question_node, $answer);
 
     if (!isset($answer)) {
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
