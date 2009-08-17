@@ -229,6 +229,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function delete() {
+    // FIXME implement delete in MatchingResponse
     //$sql = 'DELETE FROM {quiz_matching_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
     //db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
