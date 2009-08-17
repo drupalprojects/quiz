@@ -49,16 +49,12 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
     return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
   }
 
-  public function getNodeView() {
-    return $this->getAnsweringForm();
-  }
-
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getAnsweringForm($context = NULL) {
-    $form['question'] = array(
+    $form['prompt'] = array(
        '#type' => 'markup',
-       '#value' => $this->node->body
+       '#value' => check_markup($this->question->body, $this->question->format, FALSE),
      );
      $form['tries'] = array(
        '#type' => 'textarea',
@@ -70,6 +66,8 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
      );
      return $form;
   }
+
+
   public function getAdminForm($edit = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',
@@ -77,6 +75,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
     );
     return $form;
   }
+
   public function getCreationForm($edit) {
     $form['maximum_score'] = array(
       '#type' => 'textfield',
@@ -89,6 +88,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
     );
     return $form;
   }
+
   public function getMaximumScore() {
     return $this->node->maximum_score;
   }
