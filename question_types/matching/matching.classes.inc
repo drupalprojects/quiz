@@ -74,7 +74,21 @@ class MatchingQuestion extends AbstractQuizQuestion {
   }
 
   public function getNodeView() {
-    return $this->getAnsweringForm();
+    $content = parent::getNodeView();
+
+    $content['answers'] = array();
+
+    $header = array(t('Subquestion'), t('Correct match'));
+    list($questions, $select_option) = $this->getSubquestions();
+    foreach ($questions as $question) {
+      $rows[] = array($question['question'], $question['answer']);
+    }
+
+    $content['answers'] = array(
+       '#value' => theme('table', $header, $rows),
+       '#weight' => 2,
+    );
+    return $content;
   }
 
   // This is called whenever a question is rendered, either

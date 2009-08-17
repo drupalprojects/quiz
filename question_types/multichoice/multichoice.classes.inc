@@ -248,7 +248,10 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
   public function getNodeView() {
-    return $this->getAnsweringForm();
+    $content = parent::getNodeView();
+    $extracontent = $this->getAnsweringForm();
+    $content['answers'] = $extracontent['tries[answer]'];
+    return $content;
   }
 
   /**
@@ -259,7 +262,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    */
 
   public function getAnsweringForm($context = NULL) {
-    $form['question'] = array(
+    $form['prompt'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );

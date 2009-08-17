@@ -103,7 +103,7 @@ function quiz_question_node_info() {
   //'help' => t('Add the question text and set a score for this question.'),
     'has_body' => TRUE,
     'has_title' => TRUE,
-    'body_label' => t('Question'),
+    'body_label' => t('Prompt'),
   );
   foreach ($types as $type => $definition) {
     $node_info = array(
@@ -150,8 +150,8 @@ function quiz_question_form(&$node, $form_state) {
 
   $form['body'] = array(
     '#type' => 'textarea',
-    '#title' => t('Question'),
-    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
+    '#title' => t('Prompt'),
+    '#description' => t('Enter the full text of the prompt that will be shown to the user. Include any special instructions on how to answer.'),
     '#default_value' => $node->body,
     '#required' => TRUE,
     '#weight' => -15,
@@ -262,20 +262,15 @@ function quiz_question_answering_form($context, $node) {
 function quiz_question_info_form($context, $node) {
   $question = _quiz_question_get_instance($node);
 
-  // TODO make this a method of QuizQuestion
-  $type = node_get_types('type', $node);
-  $content['question_type'] = array(
-    '#type'  => 'markup',
-    '#value' => '<div class="question_type_name">' . $type->name . '</div>',
-  );
-  $content += $question->getNodeView();
+  $content = $question->getNodeView();
 
   if (!user_access('view quiz question solutions')) {
-    $content['tries'] = array(
+    $content['answers'] = array(
       '#type'  => 'markup',
       '#value' => '<br /> <em>Answers hidden</em>.'
       );
   }
+
   return $content;
 }
 
@@ -284,20 +279,17 @@ function quiz_question_info_form($context, $node) {
  * Form for teaser display
  */
 function quiz_question_teaser_form($context, $node) {
-  $form['question'] = array(
+  $form['prompt'] = array(
     '#type' => 'markup',
     '#value' => check_markup($node->body, $node->format, FALSE),
   );
 
-  // reconstruct form so type is first (at top)
-  // TODO is there a better way?  like unshift an assoc tuple?
   $type = node_get_types('type', $node);
-  $newform['question_type'] = array(
+  $form['question_type'] = array(
     '#type'  => 'markup',
     '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+    '#weight' => -1,
   );
-  $newform += $form;
-  $form = $newform;
 
   return $form;
 }
@@ -530,6 +522,7 @@ function _quiz_question_get_instance($node) {
     $name = $node['type'];
   }
   else {
+    // TODO why is this condition permitted?  name is passed as arg to constructor?
     $name = $node;
   }
   $info = _quiz_question_get_implementations();

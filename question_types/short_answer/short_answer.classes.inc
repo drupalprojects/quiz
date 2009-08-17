@@ -79,20 +79,22 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
   }
 
   public function getNodeView() {
-    return $this->getAnsweringForm();
+    $content = parent::getNodeView();
+    $content['answers'] = array('#type' => 'markup',
+      // FIXME hack should use CSS instead, maybe across all quiz_question.module
+      '#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $this->node->correct_answer)),
+      '#weight' => 1,
+    );
+    return $content;
   }
 
-  // This is called whenever a question is rendered, either
-  // to an administrator or to a quiz taker.
   public function getAnsweringForm($context = NULL) {
-
-    $form['question'] = array(
+    $form['prompt'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );
 
-    if (_quiz_is_taking_context()) {
-        $form['tries'] = array(
+    $form['tries'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
        '#description' => t('Enter your answer here'),
@@ -100,15 +102,8 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
        '#size' => 60,
        '#maxlength' => 256,
        '#required' => FALSE,
-        );
-    } else {
-      if (user_access('view quiz question solutions')) {
-        $form['tries'] = array('#type' => 'markup',
-          // FIXME hack should use CSS instead, maybe across all quiz_question.module
-      	'#value' => t('Correct answer is <span style="background-color: lightgreen">!answer</span>', array('!answer' => $this->node->correct_answer)),
-        );
-      } // else case handled in quiz_question.module
-    }
+    );
+
     return $form;
   }
 

@@ -141,6 +141,22 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     $this->node = $node;
   }
 
+  public function getNodeView() {
+    // TODO make this a method of QuizQuestion
+    $type = node_get_types('type', $this->node);
+    $content['question_type'] = array(
+      '#type'  => 'markup',
+      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+      '#weight' => -1,
+    );
+    $content['prompt'] = array(
+      '#type'  => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#weight' => 0,
+    );
+    return $content;
+  }
+
 }
 
 /**

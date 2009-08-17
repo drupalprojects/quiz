@@ -15,8 +15,6 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
 
   public function save($is_new = FALSE) {
 
-    //drupal_set_message('Save called', 'status');
-
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
@@ -56,9 +54,13 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   }
 
   public function getNodeView() {
-    // FIXME make an appropriate content array
-    // FIXME mark correct answers
-    return $this->getAnsweringForm();
+    $content = parent::getNodeView();
+    $answer = ($this->node->correct_answer) ? t('True') : t('False');
+    $content['answers'] = array(
+      '#type' => 'markup',
+      '#value' => '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>',
+    );
+    return $content;
   }
 
 
@@ -67,7 +69,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   public function getAnsweringForm($context = NULL) {
 
     // Question first
-    $form['question'] = array(
+    $form['prompt'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE)
     );
@@ -95,6 +97,8 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
     );
     return $form;
   }
+
+
   public function getCreationForm($edit) {
     $form['correct_answer'] = array(
       '#type' => 'radios',
@@ -125,9 +129,12 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
 
     return $form;
   }
+
+
   public function getMaximumScore() {
     return 1;
   }
+
 
   /**
    * Get the answer to this question.
