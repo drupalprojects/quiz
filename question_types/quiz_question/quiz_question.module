@@ -308,7 +308,7 @@ function quiz_question_teaser_form($context, $node) {
  * @return
  *  Object with nid, vid, rid, score, is_correct flags set.
  */
-function quiz_question_evaluate_question($question, result_id, $answer = NULL) {
+function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
   if (empty($answer)) {
     // FIXME this use of POST array is hacky
     $answer = $_POST['tries'];
