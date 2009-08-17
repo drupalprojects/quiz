@@ -233,11 +233,8 @@ interface QuizQuestionResponse {
  *
  */
 abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
-  // These are only public until we can
-  // adjust all of Quiz. DO NOT EXPECT THESE
-  // TO BE ACCESSIBLE!
-  public $rid = 0;
-  public $is_correct = FALSE;
+  protected $rid = 0;
+  protected $is_correct = FALSE;
 
   protected $evaluated = TRUE;
   protected $question = NULL;
