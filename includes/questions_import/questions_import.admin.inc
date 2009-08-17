@@ -464,6 +464,19 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
 
     node_save(questions_import_node_save_static_data($node));
     _questions_import_record_item($import_id, $node->nid, $import_count);
+
+    // give cc:attributionName to the source, if available
+    if (!empty($mq->source) &&
+    module_exists('creativecommons') &&
+    creativecommons_node_type_is_enabled($node->type)) {
+      $licenseUri = ''; // empty license for All Rights Reserved, for now
+      $metadata['attributionName'] = $mq->source;
+      $metadata['type'] = 'InteractiveResource';
+
+      $cc = new creativecommons_license($licenseUri, NULL, $metadata);
+      $cc->save($node->nid, 'update');
+    }
+
     ++$import_count;
   }
 
