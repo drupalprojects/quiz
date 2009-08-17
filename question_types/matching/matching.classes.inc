@@ -220,7 +220,7 @@ class MatchingQuestion implements QuizQuestion {
 
 class MatchingResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($rid, $question, $answer = NULL) {
+  public function __construct($rid, $question, $answer) {
     $this->rid = $rid;
     $this->question = $question;
     $this->answer = $answer;

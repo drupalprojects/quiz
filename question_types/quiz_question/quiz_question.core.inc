@@ -185,7 +185,7 @@ interface QuizQuestionResponse {
    * @return
    *  An HTML string.
    */
-  public function formatReport($showPoints, $showFeedback);
+  public function formatReport($showpoints = TRUE, $showfeedback = TRUE);
 
   /**
    * Get the integer score.
