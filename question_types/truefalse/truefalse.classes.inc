@@ -211,7 +211,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     }
 
     $answer = $this->question->answers[0];
-    $correct_answer = $answer['is_correct'] ;//? $answer['answer'] : !$answer['answer'];
+    $correct_answer = $answer['is_correct'] ? $answer['answer'] : !$answer['answer'];
     $user_answer = $answer['answer'];
 
     if ($showpoints) {
