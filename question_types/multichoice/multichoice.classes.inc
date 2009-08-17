@@ -616,7 +616,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
               SELECT id FROM {quiz_multichoice_user_answers}
               WHERE question_nid = %d AND question_vid = %d AND result_id = %d
             )';
-    db_query($sql, $this->nid, $this->question->vid, $this->question->rid);
+    db_query($sql, $this->nid, $this->question->vid, $this->rid);
     $sql = 'DELETE FROM {quiz_multichoice_user_answers}
     		WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
