@@ -87,6 +87,9 @@ Drupal.theme.prototype.addQuestion = function (nid, type, title, state, weight) 
 
   return '<tr class="draggable">' +
     '<td>' + title + '<span class="warning tabledrag-changed">*</span></td><td>' + type + '</td><td>' + actions +
+    '</td><td>' +
+    '<input id="edit-max-score-' + fieldID + '" class="form-text" ' +
+    'type="text" value="0" size="2" name="max-score[' + fieldID + ']" maxlength="2"/>' +
     '</td><td style="display:none">' +
     '<div id="edit-weights-' + fieldID + '-wrapper" class="form-item">' +
     '<input id="edit-weights-' + fieldID + '" class="form-text question-order-weight question-order-weight-' + stateCode + '" ' +

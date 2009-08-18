@@ -21,10 +21,15 @@
 
 /*
  * @todo: Be able to have max score in quizes.
+ * TODO: max_score needs to be updated everywhere
+ * TODO: View link on question title
+ * TODO: Actions changes to Edit | Remove
+ * TODO: Scoring system needs to change
+ * TODO: Consider changing the way the user settings are remembered. If a question is deleted
+ * the current way might result in serious errors.
+ * 
  *
  * @todo: Make a simplified alternative way to view the creation form?
- *
- * TODO: Convert to multichoice
  */
 
 /**

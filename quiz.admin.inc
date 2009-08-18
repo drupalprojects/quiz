@@ -271,6 +271,13 @@ function quiz_questions_form($context, $quiz) {
       '#maxlength' => 4,
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
+    $form[$fieldset]['max_scores'][$id] = array(
+      '#type' => 'textfield',
+      '#size' => 2,
+      '#maxlength' => 2,
+      //TODO: The default value:
+      '#default_value' => 0,
+    );
     $form[$fieldset]['titles'][$id] = array(
       '#value' => $question->title,
     );
@@ -951,7 +958,8 @@ function theme_question_selection_table($form) {
   //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
   drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
 
-  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Weight'));
+  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Weight'));
+
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $nid) {
@@ -964,6 +972,7 @@ function theme_question_selection_table($form) {
           drupal_render($form['titles'][$nid]),
           $question_types[$type]['name'],
           $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
+          drupal_render($form['max_scores'][$nid]),
           isset($form['revision'][$nid]) ? drupal_render($form['revision'][$nid]) : "Up to date",
           drupal_render($form['weights'][$nid]),
         ),

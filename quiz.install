@@ -8,6 +8,80 @@
  */
 
 /**
+ * Implementation of hook_update_N()
+ * Add a field to store max score for each question in a quiz.
+ */
+function quiz_update_6401(&$sandbox = NULL) {  
+  $result = array();
+  if (!isset($sandbox['tables_changed'])) {
+    db_add_field($result, 'quiz_node_relationship', 'max_score', array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+    db_add_field($result, 'quiz_node_properties', 'max_score', array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+    $sandbox['tables_changed'] = TRUE;
+  }
+  if (!isset($sandbox['step1'])) {
+    if (!isset($sandbox['q_max'])) {
+      $sql = 'SELECT COUNT(*) FROM {quiz_node_relationship}';
+      $sandbox['q_max'] = db_result(db_query($sql));
+      $sandbox['q_progress'] = 0;
+      $sql = 'SELECT COUNT(*) FROM {quiz_node_relationship} GROUP BY parent_nid, parent_vid';
+      $sandbox['p_max'] = db_result(db_query($sql));
+      $sandbox['p_progress'] = 0;
+      $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
+    }
+    $sql = 'SELECT DISTINCT child_nid, child_vid 
+            FROM {quiz_node_relationship}
+            WHERE child_nid >= %d AND child_vid >= %d
+            ORDER BY child_nid, child_vid';
+    $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
+    spl_autoload_register('autoload_class');
+    while ($res_o = db_fetch_object($res)) {
+      // It is possible to do this with ALOT better performance, but since the quiz system is under
+      // constant development we do this slowly but safely.
+      $max_score = quiz_question_quiz_question_score(NULL, $res_o->child_nid, $res_o->child_vid)->possible;
+      $sql = 'UPDATE {quiz_node_relationship} SET max_score = %d WHERE child_nid = %d AND child_vid = %d';
+      db_query($sql, $max_score, $res_o->child_nid, $res_o->child_vid);
+      $sandbox['q_progress']++;
+    }
+    $sandbox['last_nid'] = $res_o->child_nid;
+    $sandbox['last_vid'] = $res_o->child_vid;
+    if ($sandbox['q_progress'] >= $sandbox['q_max']) {
+      $sandbox['step1'] = TRUE;
+      $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
+    }
+  }
+  elseif (!isset($sandbox['step2'])) {
+    $sql = 'SELECT parent_nid, parent_vid, SUM(max_score) AS max_score
+            FROM {quiz_node_relationship}
+            WHERE parent_nid >= %d AND parent_vid >= %d
+            GROUP BY parent_nid, parent_vid';
+    $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 30);
+    while ($res_o = db_fetch_object($res)) {
+      $sql = 'UPDATE {quiz_node_properties}
+              SET max_score = %d
+              WHERE nid = %d AND vid = %d';
+      db_query($sql, $res_o->max_score, $res_o->parent_nid, $res_o->parent_vid);
+      $sandbox['p_progress']++;
+    }
+    $sandbox['last_nid'] = $res_o->parent_nid;
+    $sandbox['last_vid'] = $res_o->parent_vid;
+  }
+  if (($sandbox['q_max'] + $sandbox['p_max']) > 0) {
+    $result['#finished'] = $sandbox['q_progress'] + $sandbox['p_progress'];
+    $result['#finished'] /= $sandbox['q_max'] + $sandbox['p_max'];
+  }
+  else $result['#finished'] = 1;
+  return $result;
+}
+
+/**
  * Implementation of hook_update_N().
  * quiz_node_question_properties has been considered deprecated. With the new multichoice module
  * it is not beeing used at all, and therefore we remove it.
@@ -230,6 +304,11 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0
       ),
+      'max_score' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('property_id'),
     // 'unique keys' => array('vid'),
@@ -279,7 +358,12 @@ function quiz_schema() {
       'weight' => array(
         'type' => 'int',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+      ),
+      'max_score' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
@@ -296,7 +380,7 @@ function quiz_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -329,7 +413,6 @@ function quiz_schema() {
       ),
       'score' => array(
         'type' => 'int',
-        'size' => 'tiny',
         'not null' => TRUE,
         'default' => 0,
       ),
@@ -414,7 +497,7 @@ function quiz_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,

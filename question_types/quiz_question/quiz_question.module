@@ -395,15 +395,19 @@ function quiz_question_get_report($nid, $vid, $rid) {
 /**
  * Implementation of hook_quiz_question_score().
  */
-function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid, $rid) {
+function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid, $rid = NULL) {
   $node = node_load($question_nid, $question_vid);
-  $response = _quiz_question_response_get_instance($rid, $node);
   $question = _quiz_question_get_instance($node);
 
   $score = new stdClass();
   $score->possible = $question->getMaximumScore();
-  $score->attained = $response->getScore();
-  $score->is_evaluated = $response->isEvaluated();
+  
+  if (isset($rid)) {
+    $response = _quiz_question_response_get_instance($rid, $node);
+    $score->attained = $response->getScore();
+    $score->is_evaluated = $response->isEvaluated();
+  }
+  
   return $score;
 }
 
