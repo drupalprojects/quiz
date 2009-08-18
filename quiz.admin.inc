@@ -255,7 +255,7 @@ function quiz_questions_form($context, $quiz) {
 
   $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
-
+  $my_dest = $_GET['q'];
   foreach ($questions as $question) {
     $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
     $fieldset = 'filtered_question_list_' . $id_mod;
@@ -279,13 +279,13 @@ function quiz_questions_form($context, $quiz) {
       '#default_value' => 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-      '#value' => $question->title,
+      '#value' => l($question->title, 'node/'. $question->nid),
     );
     $form[$fieldset]['types'][$id] = array(
       '#value' => $question->type,
     );
     $form[$fieldset]['view_links'][$id] = array(
-      '#value' => l('View', 'node/' . $question->nid),
+      '#value' => l('Edit', 'node/'. $question->nid .'/edit', array('query' => array('destination' => $my_dest))),
     );
     $form[$fieldset]['remove_links'][$id] = array(
       // FIXME: This does not degrade for non-JS browsers.
@@ -972,8 +972,8 @@ function theme_question_selection_table($form) {
           drupal_render($form['titles'][$nid]),
           $question_types[$type]['name'],
           $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
+          isset($form['revision'][$nid]) ? drupal_render($form['revision'][$nid]) : t("Up to date"),
           drupal_render($form['max_scores'][$nid]),
-          isset($form['revision'][$nid]) ? drupal_render($form['revision'][$nid]) : "Up to date",
           drupal_render($form['weights'][$nid]),
         ),
       );
