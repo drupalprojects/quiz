@@ -1833,24 +1833,26 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
 
   // Now we do an insert of everything in the quiz. (Note that we are using a subselect to get the most recent vid.)
 
-  $refresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
-      VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d)";
+  $refresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
+      VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d)";
 
-  $norefresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
-      VALUES (%d, %d, %d, %d, %d, %d)";
-
+  $norefresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
+      VALUES (%d, %d, %d, %d, %d, %d, %d)";
+  $total_max_score = 0;
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
       if ($question->refresh) {
         //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
-        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight);
+        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight, $question->max_score);
       }
       else {
-        $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight);
+        $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight, $question->max_score);
       }
     }
+    $total_max_score += $question->max_score;
   }
-
+  $sql = 'UPDATE {quiz_node_properties} SET max_score = %d WHERE nid = %d AND vid = %d';
+  db_query($sql, $total_max_score, $quiz->nid, $quiz->vid);
   return TRUE;
 }
 

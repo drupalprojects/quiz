@@ -252,6 +252,9 @@ function quiz_questions_form($context, $quiz) {
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
+  
+  $form['filtered_question_list_random']['max_scores'] = array('#tree' => TRUE);
+  $form['filtered_question_list_always']['max_scores'] = array('#tree' => TRUE);
 
   $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
@@ -366,6 +369,17 @@ function quiz_questions_form_validate($form, $form_state) {
       $already_checked[] = $nid;
     }
   }
+  $max_scores = $form_state['values']['max_scores'];
+  foreach ($max_scores as $id => $max_score) {
+    if (in_array($id, $removed)) {
+      // Ignore items that are going to be removed anyway.
+      continue;
+    }
+    if (!is_numeric($max_score)) {
+      form_set_error("max_scores][$id", t('Max score needs to be numeric'));
+    }
+    elseif ($max_score < 0) form_set_error("max_scores][$id", t('Max score needs to be positive or zero'));
+  }
 }
 
 /**
@@ -376,7 +390,7 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision, $refreshes) {
+function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_new_revision, $refreshes) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
@@ -391,7 +405,7 @@ function _quiz_update_items($quiz, $weight_map, $removed_set, $is_new_revision, 
     $question['vid'] = $vid;
     $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
     $question['weight'] = $weight;
-
+    $question['max_score'] = $max_scores[$id];
     $question['refresh'] = (isset($refreshes[$id]) && $refreshes[$id] == 1);
 
     // Add item as an object in the questions array.
@@ -422,9 +436,10 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $weight_map = $form_state['values']['weights'];
+  $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
-
-  $questions = _quiz_update_items($quiz, $weight_map, $removed, $is_new_revision, $refreshes);
+  
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $removed, $is_new_revision, $refreshes);
 
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
