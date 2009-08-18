@@ -22,7 +22,6 @@
 /*
  * @todo: Be able to have max score in quizes.
  * TODO: max_score needs to be updated everywhere
- * TODO: Max score needs to be validated
  * TODO: Scoring system needs to change
  * TODO: Consider changing the way the user settings are remembered. If a question is deleted
  * the current way might result in serious errors.

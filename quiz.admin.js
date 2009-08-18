@@ -51,13 +51,12 @@ Drupal.behaviors.attachRemoveAction = function () {
     var $this = $(this);
     var remID = $this.parents('tr').find('.question-order-weight').attr('id');
 
-    var matches = remID.match(/edit-weights-([a-zA-Z]+)-([0-9]+)/);
-    if (!matches || matches.length < 3) {
+    var matches = remID.match(/edit-weights-([a-zA-Z]+)-([0-9]+)-([0-9]+)/);
+    if (!matches || matches.length < 4) {
       return false;
     }
 
-    var remItem = matches[1] + '-' + matches[2];
-
+    var remItem = matches[1] + '-' + matches[2] + '-' + matches[3];
     var statusCode = (matches[1] == 'always') ? 1 : 0;
 
     var remList = $('#edit-remove-from-quiz');
