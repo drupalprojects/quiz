@@ -275,8 +275,7 @@ function quiz_questions_form($context, $quiz) {
       '#type' => 'textfield',
       '#size' => 2,
       '#maxlength' => 2,
-      //TODO: The default value:
-      '#default_value' => 0,
+      '#default_value' => isset($question->max_score) ? $question->max_score : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l($question->title, 'node/'. $question->nid),
