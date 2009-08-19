@@ -11,7 +11,7 @@
  * Implementation of hook_update_N()
  * Add a field to store max score for each question in a quiz.
  */
-function quiz_update_6401(&$sandbox = NULL) {  
+function quiz_update_6401(&$sandbox = NULL) {
   $result = array();
   if (!isset($sandbox['tables_changed'])) {
     db_add_field($result, 'quiz_node_relationship', 'max_score', array(
@@ -36,18 +36,23 @@ function quiz_update_6401(&$sandbox = NULL) {
       $sandbox['p_progress'] = 0;
       $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
     }
-    $sql = 'SELECT DISTINCT child_nid, child_vid 
+    $sql = 'SELECT DISTINCT child_nid, child_vid
             FROM {quiz_node_relationship}
             WHERE child_nid >= %d AND child_vid >= %d
             ORDER BY child_nid, child_vid';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
     spl_autoload_register('autoload_class');
     while ($res_o = db_fetch_object($res)) {
-      // It is possible to do this with ALOT better performance, but since the quiz system is under
-      // constant development we do this slowly but safely.
-      $max_score = quiz_question_quiz_question_score(NULL, $res_o->child_nid, $res_o->child_vid)->possible;
-      $sql = 'UPDATE {quiz_node_relationship} SET max_score = %d WHERE child_nid = %d AND child_vid = %d';
-      db_query($sql, $max_score, $res_o->child_nid, $res_o->child_vid);
+      // wrap in try since not all question ids are loadable
+      try {
+        // It is possible to do this with ALOT better performance, but since the quiz system is under
+        // constant development we do this slowly but safely.
+        $max_score = quiz_question_quiz_question_score(NULL, $res_o->child_nid, $res_o->child_vid)->possible;
+        $sql = 'UPDATE {quiz_node_relationship} SET max_score = %d WHERE child_nid = %d AND child_vid = %d';
+        db_query($sql, $max_score, $res_o->child_nid, $res_o->child_vid);
+      } catch (Exception $e) {
+        drupal_set_message("failed to look up max_score in quiz update", "error", FALSE);
+      }
       $sandbox['q_progress']++;
     }
     $sandbox['last_nid'] = $res_o->child_nid;
