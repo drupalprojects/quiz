@@ -37,9 +37,11 @@ function quiz_update_6401(&$sandbox = NULL) {
       $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
     }
     $sql = 'SELECT DISTINCT child_nid, child_vid
-            FROM {quiz_node_relationship}
-            WHERE child_nid >= %d AND child_vid >= %d
-            ORDER BY child_nid, child_vid';
+		FROM {quiz_node_relationship} qnr
+		JOIN {node} n ON n.nid = qnr.parent_nid
+		WHERE n.type = "quiz"
+		ORDER BY child_nid, child_vid
+    ';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
     spl_autoload_register('autoload_class');
     while ($res_o = db_fetch_object($res)) {
@@ -64,7 +66,8 @@ function quiz_update_6401(&$sandbox = NULL) {
   }
   elseif (!isset($sandbox['step2'])) {
     $sql = 'SELECT parent_nid, parent_vid, SUM(max_score) AS max_score
-            FROM {quiz_node_relationship}
+            FROM {quiz_node_relationship} qnr
+            JOIN {node} n ON n.nid = qnr.parent_nid
             WHERE parent_nid >= %d AND parent_vid >= %d
             GROUP BY parent_nid, parent_vid';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 30);
