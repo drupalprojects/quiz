@@ -53,3 +53,44 @@ Here are the steps:
 4. Define classes that implement QuizQuestion and QuizQuestionResponse.
   (Hint: You may want to extend the Abstract classes where available.)
   For a complete example, see quiz_question.truefalse.inc.
+  
+  
+  
+  
+==================================================
+How to clean up the database during development
+==================================================
+
+# see what questions are deleted but still in collections
+SELECT qnr.* FROM quiz_node_relationship qnr
+LEFT JOIN node n ON qnr.child_nid = n.nid 
+WHERE n.nid IS NULL
+
+# delete questions that are deleted but still in collections
+DELETE qnr
+FROM quiz_node_relationship qnr
+LEFT JOIN node n ON qnr.child_nid = n.nid 
+WHERE n.nid IS NULL
+
+# see what collections are deleted but still have questions
+SELECT qnr.* FROM quiz_node_relationship qnr
+LEFT JOIN node n ON qnr.parent_nid = n.nid 
+WHERE n.nid IS NULL
+
+# delete collections that are deleted but still have questions
+DELETE qnr
+FROM quiz_node_relationship qnr
+LEFT JOIN node n ON qnr.parent_nid = n.nid 
+WHERE n.nid IS NULL
+
+# see what revisions are stored for nodes that are deleted
+SELECT nr.* FROM node_revisions nr
+LEFT JOIN node n ON nr.nid = n.nid 
+WHERE n.nid IS NULL
+
+# delete orphaned revisions
+DELETE nr
+FROM node_revisions nr
+LEFT JOIN node n ON nr.nid = n.nid 
+WHERE n.nid IS NULL
+
