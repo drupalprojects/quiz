@@ -403,13 +403,13 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   $score->possible = $question->getMaximumScore();
   $score->question_nid = $node->nid;
   $score->question_vid = $node->vid;
-  
+
   if (isset($rid)) {
     $response = _quiz_question_response_get_instance($rid, $node);
     $score->attained = $response->getScore();
     $score->is_evaluated = $response->isEvaluated();
   }
-  
+
   return $score;
 }
 
@@ -533,6 +533,7 @@ function _quiz_question_get_instance($node) {
   }
   $info = _quiz_question_get_implementations();
   $constructor = $info[$name]['question provider'];
+  if (empty($constructor)) throw new Exception("no constructor available for '$name' question type");
   return new $constructor($node);
 }
 
