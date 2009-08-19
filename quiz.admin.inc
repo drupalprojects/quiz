@@ -104,20 +104,19 @@ function quiz_questions($node) {
  *
  * Displays form which allows questions to be assigned to the given quiz.
  *
- * @param $context
- *  The form context
+ * @param $form_state
+ *  The form state variable
  * @param $quiz
  *  The quiz node.
  * @return
  *  HTML output to create page.
  */
-function quiz_questions_form($context, $quiz) {
+function quiz_questions_form($form_state, $quiz) {
   // This is a target for AHAH callbacks. Do not remove.
   $form['ahah_target'] = array(
     '#type' => 'markup',
     '#value' => '<div id="questions-always-target"></div>',
   );
-
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
@@ -169,7 +168,7 @@ function quiz_questions_form($context, $quiz) {
   $form['filtered_question_list_always']['always_box']['add_to_list'] = array(
     '#type' => 'submit',
     '#value' => t('Add to quiz'),
-    '#submit' => 'quiz_questions_form_submit',
+    '#submit' => array('quiz_add_question_submit'),
     '#ahah' => array(
       'path' => 'admin/quiz/newquestion',
       'wrapper' => 'questions-always-target',
@@ -223,7 +222,7 @@ function quiz_questions_form($context, $quiz) {
   $form['filtered_question_list_random']['random_box']['add_to_random'] = array(
     '#type' => 'submit',
     '#value' => t('Add to quiz'),
-    '#submit' => 'quiz_questions_form_submit',
+    '#submit' => array('quiz_add_question_submit'),
     '#weight' => -1,
     '#ahah' => array(
       'path' => 'admin/quiz/newquestion',
@@ -248,7 +247,38 @@ function quiz_questions_form($context, $quiz) {
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
-  $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
+  
+  if (isset($form_state['post']['weights'])) { 
+    foreach ($form_state['post']['weights'] as $id => $weight) {
+      $matches = array();
+      preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+      $nid = $matches[1];
+      $vid = $matches[2];
+      $node = node_load($nid, $vid);
+      $node->max_score = $form_state['post']['max_scores'][$id];
+      $node->weight = $weight;
+      $questions[] = quiz_node_map($node);
+    }
+  }//TODO: Make question_status out of id...
+  else {
+    $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
+  }
+  if (is_array($form_state['new_questions'])) {
+    foreach ($form_state['new_questions'] as $quest) {
+      $matches = array();
+      preg_match('/id:([0-9]+)/', $quest, $matches);
+      $nid = $matches[1];
+      $node = node_load($nid);
+      $max_score = quiz_question_quiz_question_score(NULL, $node->nid, $node->vid)->possible;
+      $node->max_score = $max_score;
+      $node->weight = 0;
+      foreach ($questions as $question) {
+        $node->weight = max($node->weight, ($question->weight +1));
+      }
+      $questions[] = quiz_node_map($node);
+    }
+  }
+  
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
@@ -325,9 +355,10 @@ function quiz_questions_form($context, $quiz) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit questions'),
+    '#submit' => array('quiz_questions_form_submit'),
   );
 
-  $form['#submit'][] = 'quiz_questions_form_submit';
+  //$form['#submit'][] = 'quiz_questions_form_submit';
 
   return $form;
 }
@@ -417,7 +448,27 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
 
   return $questions;
 }
-
+/**
+ * 
+ * @param $form
+ * @param $form_state
+ * @return unknown_type
+ */
+function quiz_add_question_submit($form, &$form_state) {
+  // Set the form to rebuild and run submit handlers.
+  
+  if (!empty($form_state['post']['always_autocomplete'])) {
+    $new_question = $form_state['post']['always_autocomplete'];
+    $frequency = 'always';
+  }
+  elseif (!empty($form_state['post']['random_autocomplete'])) {
+    drupal_set_message('Adding random question', 'status');
+    $new_question = $form_state['post']['random_autocomplete'];
+    $frequency = 'random';
+  }
+  $form_state['new_questions'][] = $new_question;
+  $form_state['rebuild'] = TRUE;
+}
  /**
   * Submit function for quiz_questions.
   *
@@ -438,7 +489,6 @@ function quiz_questions_form_submit($form, &$form_state) {
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
-  
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $removed, $is_new_revision, $refreshes);
 
   $num_random = $form_state['values']['number_of_random_questions'];
@@ -512,27 +562,32 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
  * AHAH form completion for adding new questions.
  */
 function quiz_admin_add_question_ahah() {
-  $cached_form_state = array();
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
   $form_id = $_POST['form_build_id'];
-
   // Make sure the form exists
-  if (!($cached_form = form_get_cache($form_id, $cached_form_state))) {
-    form_set_error('form_token', t('Validation error, please try again. If this error persists, please contact the site administrator.'));
+  if (!($form = form_get_cache($form_id, $form_state))) {
+    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator. $form_id"));
     $output = theme('status_messages');
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
-
-  // Just remember that $form_state is not checked, here. It's raw POST.
-  $form_state = array('values' => $_POST);
-
-  if (!empty($form_state['values']['always_autocomplete'])) {
-    $new_question = $form_state['values']['always_autocomplete'];
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+  // We will run some of the submit handlers so we need to disable redirecting.
+  $form['#redirect'] = FALSE;
+  // We need to process the form, prepare for that by setting a few internals
+  // variables.
+  $form['#post'] = $_POST;
+  $form['#programmed'] = FALSE;
+  $form_state['post'] = $_POST;
+  // Build, validate and if possible, submit the form.
+  if (!empty($form_state['post']['always_autocomplete'])) {
+    $new_question = $form_state['post']['always_autocomplete'];
     $frequency = 'always';
   }
-  elseif (!empty($form_state['values']['random_autocomplete'])) {
+  elseif (!empty($form_state['post']['random_autocomplete'])) {
     drupal_set_message('Adding random question', 'status');
-    $new_question = $form_state['values']['random_autocomplete'];
+    $new_question = $form_state['post']['random_autocomplete'];
     $frequency = 'random';
   }
   else {
@@ -541,30 +596,15 @@ function quiz_admin_add_question_ahah() {
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
-
-  $matches = array();
-  $reg = '/id:([0-9]+)\]$/';
-  preg_match($reg, $new_question, $matches);
-
-  // Modify the form to add a new entry to weights.
-  if (!empty($matches[1]) && empty($cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]])) {
-    $cached_form['filtered_question_list_' . $frequency]['weights'][$frequency . '-' . $matches[1]] = array(
-      '#type' => 'textfield',
-      '#size' => 3,
-      '#maxlength' => 4,
-      '#default_value' => 0,
-    );
-  }
-
-  // Re-save the cache.
-  form_set_cache($form_id, $cached_form, $cached_form_state);
-
-  // Because rendering a new table row is not possible from the server side, we
-  // need to launch a one-time JavaScript to add the item to the table.
-  $output = theme('status_messages') . '<script>Quiz.addQuestion("' . $frequency . '");</script>';
-
-  print drupal_to_js(array('status' => TRUE, 'data' => $output));
-  exit;
+  
+  $id = _quiz_get_question_id($new_question, $frequency);
+  _quiz_skip_validation($form);
+  drupal_process_form($form_id, $form, $form_state);
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
+  $q_row_html = _quiz_get_last_table_row($sub_form_html);
+  $output = theme('status_messages') . '<script>var newBuildId = '.drupal_to_js($form['#build_id']).';var qRowTotal = '.drupal_to_js($q_row_html).'; Quiz.addQuestion("' . $frequency . '", qRowTotal);</script>';
+  drupal_json(array('status' => TRUE, 'data' => $output));
 }
 
 // Quiz Admin Settings
@@ -967,8 +1007,6 @@ function theme_question_selection_table($form) {
   static $table_counter = 0;
   ++$table_counter;
 
-  $question_types = _quiz_get_question_types();
-
   //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
   drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
 
@@ -976,24 +1014,13 @@ function theme_question_selection_table($form) {
 
   $rows = array();
   if (!empty($form['titles'])) {
-    foreach (element_children($form['titles']) as $nid) {
-      $form['weights'][$nid]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
-      $type = $form['types'][$nid]['#value'];
+    foreach (element_children($form['titles']) as $id) {
+      $form['weights'][$id]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
 
-      $rows[] = array(
-        'class' => 'draggable',
-        'data' => array(
-          drupal_render($form['titles'][$nid]),
-          $question_types[$type]['name'],
-          $form['view_links'][$nid]['#value'] . ' | ' . $form['remove_links'][$nid]['#value'],
-          isset($form['revision'][$nid]) ? drupal_render($form['revision'][$nid]) : t("Up to date"),
-          drupal_render($form['max_scores'][$nid]),
-          drupal_render($form['weights'][$nid]),
-        ),
-      );
-      unset($form['types'][$nid], $form['view_links'][$nid], $form['remove_links'][$nid]);
+      $rows[] = _quiz_get_question_row($form, $id, $question_types[$type]['name']);
+      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id]);
+      unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id]);
     }
-
   }
   $table = theme('table', $headers, $rows, array('id' => 'questions-order-' . $table_counter));
   return $table . drupal_render($form);
@@ -1081,4 +1108,45 @@ function quiz_set_auto_title() {
   });
   ', 'inline');
 
+}
+/**
+ * Recursive helper function to set the validated property. (Taken from the skip validation module.)
+ *
+ * @param &$elements
+ *   The elements that are currently being processed.
+ */
+function _quiz_skip_validation(&$elements) {
+  $elements['#validated'] = TRUE;
+  foreach (element_children($elements) as $key) {
+    _quiz_skip_validation($elements[$key]);
+  }
+}
+
+function _quiz_get_question_row($sub_form, $id) {
+  $question_types = _quiz_get_question_types();
+  $type = $sub_form['types'][$id]['#value'];
+  return array(
+    'class' => 'draggable',
+    'data' => array(
+      drupal_render($sub_form['titles'][$id]),
+      $type,
+      $sub_form['view_links'][$id]['#value'] . ' | ' . $sub_form['remove_links'][$id]['#value'],
+      isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
+      drupal_render($sub_form['max_scores'][$id]),
+      drupal_render($sub_form['weights'][$id]),
+    ),
+  );
+}
+function _quiz_get_question_id($new_question, $frequency) {
+  $matches = array();
+  preg_match('/id:([0-9]+)/', $new_question, $matches);
+  $nid = $matches[1];
+  $sql = 'SELECT vid FROM {node} n where n.nid = %d';
+  $vid = db_result(db_query($sql, $nid));
+  return $frequency .'-'. $nid .'-'. $vid;
+}
+function _quiz_get_last_table_row($table) {
+  $matches = array();
+  $n_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
+  return $matches[0][$n_matches - 1];
 }

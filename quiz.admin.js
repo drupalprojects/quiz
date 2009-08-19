@@ -8,7 +8,7 @@ var Quiz = Quiz || {};
 Quiz.reg = /^([^\[]*)\[type:([\w -_]+), id:([0-9]+)\]$/;
 
 // Key should be either always or random.
-Quiz.addQuestion = function (key) {
+Quiz.addQuestion = function (key, rowHtml) {
   var selector = '#edit-' + key + '-autocomplete';
   var selectedItem = $(selector).val();
   var matches = selectedItem.match(Quiz.reg);
@@ -18,24 +18,9 @@ Quiz.addQuestion = function (key) {
     alert('Error: The entered question was not found.');
     return;
   }
-
-  var title = Drupal.checkPlain(matches[1]);
-  var type = Drupal.checkPlain(matches[2]);
-  var nid = parseInt(matches[3]);
-  var weight = 0;
-  $('.question-order-weight-' + statusCode).each(function () {
-    var thisVal = parseInt($(this).val());
-    if (thisVal > weight) {
-      weight = thisVal;
-    }
-  });
-  ++weight;
-
-  var out = Drupal.theme('addQuestion', nid, type, title, key, weight);
-  $('#questions-order-' + statusCode + ' tr:last').after(out);
-
+  $('#questions-order-' + statusCode + ' tr:last').after(rowHtml);
   var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
-
+  $('td:last',newRow).css('display', 'none');
   var table = Drupal.tableDrag['questions-order-' + statusCode];
   table.makeDraggable(newRow);
   if (table.changed == false) {
@@ -43,6 +28,7 @@ Quiz.addQuestion = function (key) {
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
   $(selector).val(''); // Zero out the value
+  $('[name="form_build_id"]').val(newBuildId);
   Drupal.attachBehaviors();
 };
 
@@ -75,27 +61,6 @@ Drupal.behaviors.attachRemoveAction = function () {
     return true;
   });
 };
-
-Drupal.theme.prototype.addQuestion = function (nid, type, title, state, weight) {
-  var fieldID = state + '-' + nid;
-  var pre = (location.search.indexOf('?q=') == 0 ? '?q=' : Drupal.settings.basePath);
-  var nodeLink = pre + Drupal.encodeURIComponent('node/' + nid);
-  var remLink = pre + Drupal.encodeURIComponent('node/' + nid + '/questions/remove');
-  var stateCode = (state == 'always') ? 1: 2;
-  var actions = 'View'.link(nodeLink) + ' | ' + $('Remove'.link('#')).addClass('rem-link').parent().html();
-
-  return '<tr class="draggable">' +
-    '<td>' + title + '<span class="warning tabledrag-changed">*</span></td><td>' + type + '</td><td>' + actions +
-    '</td><td>' +
-    '<input id="edit-max-score-' + fieldID + '" class="form-text" ' +
-    'type="text" value="0" size="2" name="max-score[' + fieldID + ']" maxlength="2"/>' +
-    '</td><td style="display:none">' +
-    '<div id="edit-weights-' + fieldID + '-wrapper" class="form-item">' +
-    '<input id="edit-weights-' + fieldID + '" class="form-text question-order-weight question-order-weight-' + stateCode + '" ' +
-    'type="text" value="' + weight + '" size="3" name="weights[' + fieldID + ']" maxlength="4"/>' +
-    '</div></td></tr>';
-};
-
 
 $(document).ready(function () {
 
