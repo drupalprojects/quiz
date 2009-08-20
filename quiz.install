@@ -39,7 +39,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     $sql = 'SELECT DISTINCT child_nid, child_vid
 		FROM {quiz_node_relationship} qnr
 		JOIN {node} n ON n.nid = qnr.parent_nid
-		WHERE n.type = "quiz"
+		WHERE n.type = "quiz" AND child_nid >= %d AND child_vid >= %d
 		ORDER BY child_nid, child_vid
     ';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
