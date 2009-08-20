@@ -1107,8 +1107,8 @@ function quiz_set_auto_title() {
     });
   });
   ', 'inline');
-
 }
+
 /**
  * Recursive helper function to set the validated property. (Taken from the skip validation module.)
  *
@@ -1122,6 +1122,19 @@ function _quiz_skip_validation(&$elements) {
   }
 }
 
+/**
+ * 
+ * 
+ * @see quiz_questions_form()
+ * @see theme_question_selection_table()
+ * 
+ * @param $sub_form
+ *   Form definition array for a filtered questions list
+ * @param $id
+ *   Identifier used in $sub_form
+ * @return table row
+ *   Array defining a table row 
+ */
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
@@ -1137,6 +1150,17 @@ function _quiz_get_question_row($sub_form, $id) {
     ),
   );
 }
+
+/**
+ * Converts question description(from autocomplete field) into question id(used in form definition)
+ * 
+ * @param $new_question
+ *   Question description from autocomplete field
+ * @param $frequency
+ *   Random or always.
+ * @return question id
+ *   String used as identifier in quiz_questions_form
+ */
 function _quiz_get_question_id($new_question, $frequency) {
   $matches = array();
   preg_match('/id:([0-9]+)/', $new_question, $matches);
@@ -1145,6 +1169,14 @@ function _quiz_get_question_id($new_question, $frequency) {
   $vid = db_result(db_query($sql, $nid));
   return $frequency .'-'. $nid .'-'. $vid;
 }
+
+/**
+ * Finds and returns the last table row(HTML) in a table(HTML) 
+ * 
+ * @param $table
+ *   HTML string with a table
+ * @return last table row in the table
+ */
 function _quiz_get_last_table_row($table) {
   $matches = array();
   $n_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
