@@ -43,7 +43,9 @@ function quiz_update_6401(&$sandbox = NULL) {
       $sandbox['q_max'] = db_result(db_query($sql));
       $sandbox['q_progress'] = 0;
       $sql = 'SELECT COUNT(*) 
-              FROM {quiz_node_relationship} 
+              FROM {quiz_node_relationship} qnr
+              JOIN {node} n ON n.nid = qnr.parent_nid
+              WHERE n.type = "quiz" 
               GROUP BY parent_nid, parent_vid';
       $sandbox['p_max'] = db_result(db_query($sql));
       $sandbox['p_progress'] = 0;
@@ -85,7 +87,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     $sql = 'SELECT parent_nid, parent_vid, SUM(max_score) AS max_score
             FROM {quiz_node_relationship} qnr
             JOIN {node} n ON n.nid = qnr.parent_nid
-            WHERE parent_nid >= %d AND parent_vid >= %d
+            WHERE n.type = "quiz" AND parent_nid >= %d AND parent_vid >= %d
             GROUP BY parent_nid, parent_vid';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 30);
     while ($res_o = db_fetch_object($res)) {
