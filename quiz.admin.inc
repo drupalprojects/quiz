@@ -94,7 +94,9 @@ function quiz_questions($node) {
   $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
   drupal_add_js($path, 'module');
 
-  return drupal_get_form('quiz_questions_form', $node);
+  $options['random_pool']['enabled'] = TRUE;
+
+  return drupal_get_form('quiz_questions_form', $node, $options);
 }
 
 // EDIT QUIZ
@@ -107,11 +109,12 @@ function quiz_questions($node) {
  * @param $form_state
  *  The form state variable
  * @param $quiz
- *  The quiz node.
+ *  The quiz or qcollection node.
  * @return
  *  HTML output to create page.
  */
-function quiz_questions_form($form_state, $quiz) {
+//TODO rename $quiz to $qcollection
+function quiz_questions_form($form_state, $quiz, $options) {
   // This is a target for AHAH callbacks. Do not remove.
   $form['ahah_target'] = array(
     '#type' => 'markup',
@@ -120,9 +123,12 @@ function quiz_questions_form($form_state, $quiz) {
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Create additional questions'),
+    '#title' => t('Add new question'),
     '#theme' => 'additional_questions',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
   );
+
   $types = _quiz_get_question_types();
   foreach ($types as $type => $info) {
     $url_type = str_replace('_', '-', $type);
@@ -136,10 +142,10 @@ function quiz_questions_form($form_state, $quiz) {
   // Display questions 'always' on this quiz.
   $form['filtered_question_list_always'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Questions always on this quiz'),
+    '#title' => (isset($options['fieldset_always']['title'])) ? $options['fieldset_always']['title'] : t('Questions always on this quiz'),
  //   '#theme' => 'quiz_filtered_questions',
     '#theme' => 'question_selection_table',
-    '#collapsible' => TRUE,
+    '#collapsible' => (isset($options['fieldset_always']['collapsible'])) ? $options['fieldset_always']['collapsible'] : TRUE,
     'question_status' => array('#tree' => TRUE),
   );
 
@@ -148,7 +154,7 @@ function quiz_questions_form($form_state, $quiz) {
     '#title' => '<strong>' . t('Find and add a question') . '</strong>',
     '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
        '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-       t('To add a new question, use the "Create additional questions" section above.'),
+  t('To add a new question, expand the "Add new question" section at top.'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
   );
@@ -180,76 +186,16 @@ function quiz_questions_form($form_state, $quiz) {
     '#default_value' => '',
   );
 
-  // Display questions 'random' on this quiz.
-  $form['filtered_question_list_random'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Pool of questions randomly selected for this quiz'),
-    '#theme' => 'question_selection_table',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
-    'question_status' => array('#tree' => TRUE),
-  );
-
-  $form['filtered_question_list_random']['number_of_random_questions'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of questions to randomize'),
-    '#size' => 3,
-    '#default_value' => $quiz->number_of_random_questions,
-    '#description' => t('The number of randomly selected questions that should be assigned to this quiz.'),
-    '#weight' => 1,
-  );
-
-  $form['filtered_question_list_random']['random_box'] = array(
-    '#type' => 'fieldset',
-    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
-    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-       t('To add a new question, use the "Create additional questions" section above.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#weight' => -1,
-  );
-
-  $form['filtered_question_list_random']['random_box']['random_autocomplete'] = array(
-    '#type' => 'textfield',
-    '#default_value' => '',
-    '#size' => 60,
-    '#maxlength' => 256,
-    '#required' => FALSE,
-    '#weight' => -2,
-    '#autocomplete_path' => 'admin/quiz/listquestions',
-  );
-  $form['filtered_question_list_random']['random_box']['add_to_random'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add to quiz'),
-    '#submit' => array('quiz_add_question_submit'),
-    '#weight' => -1,
-    '#ahah' => array(
-      'path' => 'admin/quiz/newquestion',
-      'wrapper' => 'questions-always-target',
-      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
-    ),
-  );
-
-
-  $terms =  _quiz_taxonomy_select($quiz->tid);
-  if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
-    $form['filtered_question_list_random']['random_term_id'] = array(
-      '#type' => 'select',
-      '#title' => t('Terms'),
-      '#size' => 1,
-      '#options' => _quiz_taxonomy_select($quiz->tid),
-      '#default_value' => $quiz->tid,
-      '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
-      '#weight' => 2,
-    );
+  // Display questions used 'randomly' on this quiz.
+  if ($options['random_pool']['enabled']) {
+    $form += _quiz_form_fields_random_pool($quiz);
   }
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
-  
-  // We use $form_state[post] to avoid validation failures when questions are added using ajax
-  if (isset($form_state['post']['weights'])) { 
+
+  // We use $form_state[post] to avoid validation failures when questions are added using AJAX
+  if (isset($form_state['post']['weights'])) {
     foreach ($form_state['post']['weights'] as $id => $weight) {
       $matches = array();
       preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
@@ -264,8 +210,8 @@ function quiz_questions_form($form_state, $quiz) {
   else {
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
-  
-  // IF new questions have been added using ajax
+
+  // IF new questions have been added using AJAX
   if (is_array($form_state['new_questions'])) {
     foreach ($form_state['new_questions'] as $quest) {
       $matches = array();
@@ -281,11 +227,11 @@ function quiz_questions_form($form_state, $quiz) {
       $questions[] = quiz_node_map($node);
     }
   }
-  
+
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
-  
+
   $form['filtered_question_list_random']['max_scores'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['max_scores'] = array('#tree' => TRUE);
 
@@ -367,6 +313,79 @@ function quiz_questions_form($form_state, $quiz) {
 }
 
 /**
+ *
+ * @param $quiz
+ * @return array
+ *   form fields for the section of the form handling random questions
+ */
+function _quiz_form_fields_random_pool($quiz) {
+  $form['filtered_question_list_random'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pool of questions randomly selected for this quiz'),
+    '#theme' => 'question_selection_table',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
+    'question_status' => array('#tree' => TRUE),
+  );
+
+  $form['filtered_question_list_random']['number_of_random_questions'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of questions to randomize'),
+    '#size' => 3,
+    '#default_value' => $quiz->number_of_random_questions,
+    '#description' => t('The number of randomly selected questions that should be assigned to this quiz.'),
+    '#weight' => 1,
+  );
+
+  $form['filtered_question_list_random']['random_box'] = array(
+    '#type' => 'fieldset',
+    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
+    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
+       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
+       t('To add a new question, use the "Create additional questions" section above.'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#weight' => -1,
+  );
+
+  $form['filtered_question_list_random']['random_box']['random_autocomplete'] = array(
+    '#type' => 'textfield',
+    '#default_value' => '',
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => FALSE,
+    '#weight' => -2,
+    '#autocomplete_path' => 'admin/quiz/listquestions',
+  );
+  $form['filtered_question_list_random']['random_box']['add_to_random'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add to quiz'),
+    '#submit' => array('quiz_add_question_submit'),
+    '#weight' => -1,
+    '#ahah' => array(
+      'path' => 'admin/quiz/newquestion',
+      'wrapper' => 'questions-always-target',
+      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
+    ),
+  );
+
+  $terms =  _quiz_taxonomy_select($quiz->tid);
+  if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
+    $form['filtered_question_list_random']['random_term_id'] = array(
+      '#type' => 'select',
+      '#title' => t('Terms'),
+      '#size' => 1,
+      '#options' => _quiz_taxonomy_select($quiz->tid),
+      '#default_value' => $quiz->tid,
+      '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
+      '#weight' => 2,
+    );
+  }
+
+  return $form;
+}
+
+/**
  * Validate that the supplied questions are real.
  */
 function quiz_questions_form_validate($form, $form_state) {
@@ -403,7 +422,7 @@ function quiz_questions_form_validate($form, $form_state) {
       $already_checked[] = $nid;
     }
   }
-  
+
   $max_scores = $form_state['values']['max_scores'];
   foreach ($max_scores as $id => $max_score) {
     if (in_array($id, $removed)) {
@@ -454,7 +473,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
 }
 /**
  * Adds questions to the quiz_questions_form using ahah.
- * 
+ *
  * @param $form
  *   Standard form definition array
  * @param $form_state
@@ -483,7 +502,7 @@ function quiz_add_question_submit($form, &$form_state) {
   *  Array containing the form values.
   */
 function quiz_questions_form_submit($form, &$form_state) {
-  // This is ugly and should be fixed.
+  // FIXME This is ugly and should be fixed.
   $quiz = node_load(arg(1));
 
   $is_new_revision = (bool) $form_state['values']['new_revision'];
@@ -522,13 +541,18 @@ function quiz_questions_form_submit($form, &$form_state) {
     }
   }
 
-  // Update the quiz properties.
-  $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d";
-  if (db_query($sql, $num_random, $term_id, $quiz->vid, $quiz->nid) == FALSE) {
-    drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
+  $success = true; // since we got this far
+  if ($quiz->type == 'quiz') {
+    // Update the quiz node properties.
+    $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d";
+    $success = db_query($sql, $num_random, $term_id, $quiz->vid, $quiz->nid);
   }
-  else {
+
+  if ($success) {
     drupal_set_message(t('Questions updated successfully.'));
+  } else {
+    // FIXME output the right type name for quiz OR qcollection
+    drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
 }
 
@@ -576,16 +600,16 @@ function quiz_admin_add_question_ahah() {
   }
   $args = $form['#parameters'];
   $form_id = array_shift($args);
-  
+
   // We will run some of the submit handlers so we need to disable redirecting.
   $form['#redirect'] = FALSE;
-  
+
   // We need to process the form, prepare for that by setting a few internals
   // variables.
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-  
+
   // Find the new question:
   if (!empty($form_state['post']['always_autocomplete'])) {
     $new_question = $form_state['post']['always_autocomplete'];
@@ -603,23 +627,23 @@ function quiz_admin_add_question_ahah() {
     exit();
   }
   $id = _quiz_get_question_id($new_question, $frequency);
-  
+
   _quiz_skip_validation($form);
-  
+
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
-  
+
   // Get a new form with the new question attached
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  
+
   // Get the filtered question list with the new question.
   $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
-  
+
   // The new question is the last row in the table...
   $q_row_html = _quiz_get_last_table_row($sub_form_html);
-  
+
   // Send status messages, new build id for the form and the new question row to the javascript:
-  $output = theme('status_messages'); 
+  $output = theme('status_messages');
   $output .= '<script>var newBuildId = '.drupal_to_js($form['#build_id']).';';
   $output .= ' var qRowTotal = '.drupal_to_js($q_row_html).';';
   $output .= ' Quiz.addQuestion("' . $frequency . '", qRowTotal);</script>';
@@ -1142,17 +1166,17 @@ function _quiz_skip_validation(&$elements) {
 }
 
 /**
- * 
- * 
+ *
+ *
  * @see quiz_questions_form()
  * @see theme_question_selection_table()
- * 
+ *
  * @param $sub_form
  *   Form definition array for a filtered questions list
  * @param $id
  *   Identifier used in $sub_form
  * @return table row
- *   Array defining a table row 
+ *   Array defining a table row
  */
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
@@ -1172,7 +1196,7 @@ function _quiz_get_question_row($sub_form, $id) {
 
 /**
  * Converts question description(from autocomplete field) into question id(used in form definition)
- * 
+ *
  * @param $new_question
  *   Question description from autocomplete field
  * @param $frequency
@@ -1190,8 +1214,8 @@ function _quiz_get_question_id($new_question, $frequency) {
 }
 
 /**
- * Finds and returns the last table row(HTML) in a table(HTML) 
- * 
+ * Finds and returns the last table row(HTML) in a table(HTML)
+ *
  * @param $table
  *   HTML string with a table
  * @return last table row in the table
