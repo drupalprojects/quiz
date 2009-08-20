@@ -248,6 +248,7 @@ function quiz_questions_form($form_state, $quiz) {
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   
+  // We use $form_state[post] to avoid validation failures when questions are added using ajax
   if (isset($form_state['post']['weights'])) { 
     foreach ($form_state['post']['weights'] as $id => $weight) {
       $matches = array();
@@ -263,6 +264,8 @@ function quiz_questions_form($form_state, $quiz) {
   else {
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
+  
+  // IF new questions have been added using ajax
   if (is_array($form_state['new_questions'])) {
     foreach ($form_state['new_questions'] as $quest) {
       $matches = array();
@@ -400,6 +403,7 @@ function quiz_questions_form_validate($form, $form_state) {
       $already_checked[] = $nid;
     }
   }
+  
   $max_scores = $form_state['values']['max_scores'];
   foreach ($max_scores as $id => $max_score) {
     if (in_array($id, $removed)) {
@@ -449,20 +453,19 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
   return $questions;
 }
 /**
+ * Adds questions to the quiz_questions_form using ahah.
  * 
  * @param $form
+ *   Standard form definition array
  * @param $form_state
- * @return unknown_type
+ *   Standard form state...
  */
 function quiz_add_question_submit($form, &$form_state) {
-  // Set the form to rebuild and run submit handlers.
-  
   if (!empty($form_state['post']['always_autocomplete'])) {
     $new_question = $form_state['post']['always_autocomplete'];
     $frequency = 'always';
   }
   elseif (!empty($form_state['post']['random_autocomplete'])) {
-    drupal_set_message('Adding random question', 'status');
     $new_question = $form_state['post']['random_autocomplete'];
     $frequency = 'random';
   }
@@ -573,14 +576,17 @@ function quiz_admin_add_question_ahah() {
   }
   $args = $form['#parameters'];
   $form_id = array_shift($args);
+  
   // We will run some of the submit handlers so we need to disable redirecting.
   $form['#redirect'] = FALSE;
+  
   // We need to process the form, prepare for that by setting a few internals
   // variables.
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-  // Build, validate and if possible, submit the form.
+  
+  // Find the new question:
   if (!empty($form_state['post']['always_autocomplete'])) {
     $new_question = $form_state['post']['always_autocomplete'];
     $frequency = 'always';
@@ -596,14 +602,27 @@ function quiz_admin_add_question_ahah() {
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
-  
   $id = _quiz_get_question_id($new_question, $frequency);
+  
   _quiz_skip_validation($form);
+  
+  // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
+  
+  // Get a new form with the new question attached
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  
+  // Get the filtered question list with the new question.
   $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
+  
+  // The new question is the last row in the table...
   $q_row_html = _quiz_get_last_table_row($sub_form_html);
-  $output = theme('status_messages') . '<script>var newBuildId = '.drupal_to_js($form['#build_id']).';var qRowTotal = '.drupal_to_js($q_row_html).'; Quiz.addQuestion("' . $frequency . '", qRowTotal);</script>';
+  
+  // Send status messages, new build id for the form and the new question row to the javascript:
+  $output = theme('status_messages'); 
+  $output .= '<script>var newBuildId = '.drupal_to_js($form['#build_id']).';';
+  $output .= ' var qRowTotal = '.drupal_to_js($q_row_html).';';
+  $output .= ' Quiz.addQuestion("' . $frequency . '", qRowTotal);</script>';
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 
