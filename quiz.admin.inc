@@ -281,8 +281,10 @@ function quiz_questions_form($form_state, $quiz, $options) {
     } else {
       $update_cell = array (
       '#type' => 'checkbox',
-      '#title' => (l(t('Current'), 'node/' . $question->nid . '/revisions/' . $question->vid . '/view') . ' | ' .
-                     l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')),
+      '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')
+                  .' of '.
+                  l(t('revisions'), 'node/' . $question->nid . '/revisions')
+                  ),
       );
     }
     $form[$fieldset]['revision'][$id] = $update_cell;
