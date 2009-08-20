@@ -18,17 +18,27 @@ Quiz.addQuestion = function (key, rowHtml) {
     alert('Error: The entered question was not found.');
     return;
   }
+  
+  //Add the new row:
   $('#questions-order-' + statusCode + ' tr:last').after(rowHtml);
+  
   var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
+  
+  //Hide weight column:
   $('td:last',newRow).css('display', 'none');
+  
   var table = Drupal.tableDrag['questions-order-' + statusCode];
   table.makeDraggable(newRow);
+  
   if (table.changed == false) {
     table.changed = true;
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
   $(selector).val(''); // Zero out the value
+  
+  // Change build id to the new id provided by the server:
   $('[name="form_build_id"]').val(newBuildId);
+  
   Drupal.attachBehaviors();
 };
 
