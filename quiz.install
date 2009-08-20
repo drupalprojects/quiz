@@ -28,10 +28,15 @@ function quiz_update_6401(&$sandbox = NULL) {
   }
   if (!isset($sandbox['step1'])) {
     if (!isset($sandbox['q_max'])) {
-      $sql = 'SELECT COUNT(*) FROM {quiz_node_relationship}';
+      $sql = 'SELECT COUNT(DISTINCT child_nid, child_vid) 
+              FROM {quiz_node_relationship} qnr
+              JOIN {node} n ON n.nid = qnr.parent_nid
+		      WHERE n.type = "quiz"';
       $sandbox['q_max'] = db_result(db_query($sql));
       $sandbox['q_progress'] = 0;
-      $sql = 'SELECT COUNT(*) FROM {quiz_node_relationship} GROUP BY parent_nid, parent_vid';
+      $sql = 'SELECT COUNT(*) 
+              FROM {quiz_node_relationship} 
+              GROUP BY parent_nid, parent_vid';
       $sandbox['p_max'] = db_result(db_query($sql));
       $sandbox['p_progress'] = 0;
       $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
