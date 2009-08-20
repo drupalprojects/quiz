@@ -9,10 +9,14 @@
 
 /**
  * Implementation of hook_update_N()
+ * 
  * Add a field to store max score for each question in a quiz.
+ * Also store the total max score in the quiz_node_properties table 
  */
 function quiz_update_6401(&$sandbox = NULL) {
   $result = array();
+  
+  // Altering tables:
   if (!isset($sandbox['tables_changed'])) {
     db_add_field($result, 'quiz_node_relationship', 'max_score', array(
       'type' => 'int',
@@ -26,7 +30,11 @@ function quiz_update_6401(&$sandbox = NULL) {
     ));
     $sandbox['tables_changed'] = TRUE;
   }
+  
+  // Updating max score for the questions in existing quizzes:
   if (!isset($sandbox['step1'])) {
+    
+    // Making initial settings for batch processing:
     if (!isset($sandbox['q_max'])) {
       $sql = 'SELECT COUNT(DISTINCT child_nid, child_vid) 
               FROM {quiz_node_relationship} qnr
@@ -41,6 +49,7 @@ function quiz_update_6401(&$sandbox = NULL) {
       $sandbox['p_progress'] = 0;
       $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
     }
+    
     $sql = 'SELECT DISTINCT child_nid, child_vid
 		FROM {quiz_node_relationship} qnr
 		JOIN {node} n ON n.nid = qnr.parent_nid
@@ -64,11 +73,14 @@ function quiz_update_6401(&$sandbox = NULL) {
     }
     $sandbox['last_nid'] = $res_o->child_nid;
     $sandbox['last_vid'] = $res_o->child_vid;
+    
+    // If the step is finished prepare for the next step:
     if ($sandbox['q_progress'] >= $sandbox['q_max']) {
       $sandbox['step1'] = TRUE;
       $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
     }
   }
+  // Calculate and store total score for a quiz:
   elseif (!isset($sandbox['step2'])) {
     $sql = 'SELECT parent_nid, parent_vid, SUM(max_score) AS max_score
             FROM {quiz_node_relationship} qnr
@@ -86,6 +98,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     $sandbox['last_nid'] = $res_o->parent_nid;
     $sandbox['last_vid'] = $res_o->parent_vid;
   }
+  // Update progress status for the batch system
   if (($sandbox['q_max'] + $sandbox['p_max']) > 0) {
     $result['#finished'] = $sandbox['q_progress'] + $sandbox['p_progress'];
     $result['#finished'] /= $sandbox['q_max'] + $sandbox['p_max'];
