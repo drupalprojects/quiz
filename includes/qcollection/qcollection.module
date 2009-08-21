@@ -137,14 +137,13 @@ function qcollection_type_access_load($arg) {
 
 
 function _qcollection_get_info($node) {
-  $quiz_vid = db_result(db_query("SELECT vid FROM {node} WHERE nid = %d", $quiz_nid));
   // Get count of child questions (ignoring question_status)
   $sql = 'SELECT COUNT(child_nid)
     FROM {quiz_node_relationship}
     WHERE parent_vid = %d
       AND parent_nid = %d';
-  $questions_count = db_result(db_query($sql, $node->vid, $node->nid));
-  return compact('questions_count');
+  $info['questions_count'] = db_result(db_query($sql, $node->vid, $node->nid));
+  return $info;
 }
 
 /**
