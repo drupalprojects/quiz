@@ -190,7 +190,10 @@ function _as_moodle_questions($drupal_questions) {
     $mq->name = $dq->title;
     $mq->questiontext = $dq->body;
     $mq->questiontextformat = FORMAT_HTML; // FIXME where does Drupal Quiz store this?
+    $mq->options = new stdClass();
+    $mq->options->answers = array();
 
+    // set the Moodle qtype
     $qtypeMap = array(
     // Drupal to Moodle
       'long_answer' => 'essay',
@@ -202,7 +205,10 @@ function _as_moodle_questions($drupal_questions) {
     );
     $mq->qtype = $qtypeMap[$dq->type];
 
-    if (user_access('view quiz question solutions')) {
+    // include answers, if allowed
+    $results = module_invoke_all('answers_access', $dq);
+    $may_view_answers = in_array(true, $results);
+    if ($may_view_answers) {
       _fill_moodle_item_answers($dq, $mq);
     }
   }
@@ -218,8 +224,6 @@ function _as_moodle_questions($drupal_questions) {
  * @param $mq Moodle question object
  */
 function _fill_moodle_item_answers($dq, &$mq) {
-  $mq->options = new stdClass();
-  $mq->options->answers = array();
   switch ($dq->type) { // TODO refactor this into the questiontype classes
     case 'matching':
       // TODO why doesn't matching have an ->answers property?

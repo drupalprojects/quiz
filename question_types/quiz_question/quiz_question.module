@@ -23,7 +23,7 @@ function quiz_question_help($path, $args) {
  */
 function quiz_question_autoload_info() {
   return array(
-    // Base interfaces and classes:
+  // Base interfaces and classes:
     'QuizQuestion' => array('file' => 'quiz_question.core.inc'),
     'AbstractQuizQuestion' => array('file' => 'quiz_question.core.inc'),
     'QuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
@@ -41,7 +41,7 @@ function quiz_question_menu() {
     'title' => t('References'),
     'page callback' => 'quiz_question_references',
     'page arguments' => array(1),
-    // FIXME give this a sensible callback
+  // FIXME give this a sensible callback
     'access callback' => TRUE,
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz_question.pages.inc',
@@ -259,16 +259,20 @@ function quiz_question_answering_form($context, $node) {
 }
 
 // TODO eliminate this function somehow, with a theme?
-function quiz_question_info_form($context, $node) {
+function _quiz_question_info($node) {
   $question = _quiz_question_get_instance($node);
 
   $content = $question->getNodeView();
 
-  if (!user_access('view quiz question solutions')) {
+  $results = module_invoke_all('answers_access', $node);
+  $may_view_answers = in_array(true, $results);
+
+  if (!$may_view_answers) {
     $content['answers'] = array(
-      '#type'  => 'markup',
-      '#value' => '<br /> <em>Answers hidden</em>.'
-      );
+      '#type' => 'markup',
+      '#value' => '<br /> <em>Answers hidden</em>.',
+      '#weight' => 2,
+    );
   }
 
   return $content;
@@ -278,20 +282,20 @@ function quiz_question_info_form($context, $node) {
 /**
  * Form for teaser display
  */
-function quiz_question_teaser_form($context, $node) {
-  $form['prompt'] = array(
+function _quiz_question_teaser_content($node) {
+  $content['prompt'] = array(
     '#type' => 'markup',
     '#value' => check_markup($node->body, $node->format, FALSE),
   );
 
   $type = node_get_types('type', $node);
-  $form['question_type'] = array(
+  $content['question_type'] = array(
     '#type'  => 'markup',
     '#value' => '<div class="question_type_name">' . $type->name . '</div>',
     '#weight' => -1,
   );
 
-  return $form;
+  return $content;
 }
 
 /**
@@ -461,14 +465,26 @@ function quiz_question_insert($node) {
  */
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if ($teaser) {
-    $form_markup = drupal_get_form('quiz_question_teaser_form', $node);
+    $content = _quiz_question_teaser_content($node);
   } else if (_quiz_is_taking_context()) {
     $form_markup = drupal_get_form('quiz_question_answering_form', $node);
   } else {
     // normal node view
-    $form_markup = drupal_get_form('quiz_question_info_form', $node);
+    $content = _quiz_question_info($node);
   }
-  $node->content['body']['#value'] = $form_markup;
+
+  // put it into the node->content
+  if (!empty($content)) {
+    if ($node->content) {
+      $node->content += $content;
+    } else {
+      $node->content = $content;
+    }
+  }
+  if (!empty($form_markup)) {
+    $node->content['body']['#value'] = $form_markup;
+  }
+
   return $node;
 }
 

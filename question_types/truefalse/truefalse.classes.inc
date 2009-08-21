@@ -56,10 +56,10 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
     $answer = ($this->node->correct_answer) ? t('True') : t('False');
-    $content['answers'] = array(
-      '#type' => 'markup',
-      '#value' => '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>',
-    );
+    // leave other values of 'answers' element from parent
+    $content['answers']['#type'] = 'markup';
+    $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
+
     return $content;
   }
 
@@ -79,10 +79,10 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
       '#type' => 'radios',
       '#title' => t('Choose one'),
       '#options' => array(
-        1 => t('True'),
-        0 => t('False')
-      ),
-      //'#default_value' => 1,
+    1 => t('True'),
+    0 => t('False')
+    ),
+    //'#default_value' => 1,
       '#required' => TRUE,
     );
 
@@ -104,9 +104,9 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
       '#type' => 'radios',
       '#title' => t('Correct answer'),
       '#options' => array(
-        1 => t('True'),
-        0 => t('False'),
-      ),
+    1 => t('True'),
+    0 => t('False'),
+    ),
       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
       '#required' => TRUE,
     );

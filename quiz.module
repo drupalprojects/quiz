@@ -90,8 +90,8 @@ function quiz_perm() {
     'view user results', 'view own results',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
-    // Allow someone to see the answers to a quiz question
-    'view quiz question solutions'
+     // Allow user someone to see the answers to any quiz question
+    'view answers for any quiz item'
   );
 }
 
@@ -1070,7 +1070,7 @@ function quiz_take_quiz($quiz) {
         $former_question = node_load(array('nid' => $former_question_array['nid']));
 
         // Call hook_skip_question().
-        $module = quiz_module_for_type($former_question->type);
+        $module = quiz_question_module_for_type($former_question->type);
         $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
         // Report that the question was skipped:
@@ -1123,7 +1123,7 @@ function quiz_take_quiz($quiz) {
     $former_question = node_load(array('nid' => $former_question_array['nid']));
 
     // Call hook_skip_question().
-    $module = quiz_module_for_type($former_question->type);
+    $module = quiz_question_module_for_type($former_question->type);
     $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
     // Report that the question was skipped:
@@ -1173,7 +1173,7 @@ function quiz_take_quiz($quiz) {
           $former_question = node_load(array('nid' => $former_question_array['nid']));
 
           // Call hook_skip_question().
-          $module = quiz_module_for_type($former_question->type);
+          $module = quiz_question_module_for_type($former_question->type);
           $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
          // Report that the question was skipped:
@@ -1670,7 +1670,7 @@ function quiz_calculate_score($quiz, $rid) {
     // Invoke hook_quiz_question_score().
     // We don't use module_invoke() because (1) we don't necessarily want to wed quiz type to
     // module, and (2) this is more efficient -- no NULL checks.
-    $mod = quiz_module_for_type($question->type);
+    $mod = quiz_question_module_for_type($question->type);
     $function = $mod . '_quiz_question_score';
 
     if (function_exists($function)) {
@@ -1711,7 +1711,13 @@ function quiz_calculate_score($quiz, $rid) {
 
 }
 
-function quiz_module_for_type($type) {
+/**
+ *
+ * @param $type
+ * @return string
+ *   name of module matching the question type, as given by quiz_question_info hook
+ */
+function quiz_question_module_for_type($type) {
   $types = _quiz_get_question_types();
   return $types[$type]['module'];
 }
@@ -2310,11 +2316,6 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
 function _quiz_get_question_types() {
   return module_invoke_all('quiz_question_info');
 }
-/*
-function _quiz_get_question_types() {
-  return module_implements('list_questions');
-}
-*/
 
 
 
@@ -2556,7 +2557,7 @@ function _quiz_get_answers($rid) {
     ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     //watchdog('quiz','_quiz_get_answers: looping through question');
-    $module = quiz_module_for_type($line->type);
+    $module = quiz_question_module_for_type($line->type);
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
   }
@@ -2727,3 +2728,19 @@ function _quiz_is_taking_context() {
   // otherwise not quiz-taking
   return FALSE;
 }
+
+/**
+ * Implementation of hook_answers_access
+ *
+ * @param $node
+ * @param $account
+ * @return boolean
+ *   true if user has permission
+ */
+function quiz_answers_access($node, $account=NULL) {
+  // FIXME rename to 'view answers to any quiz question'
+  if (user_access('view answers for any quiz item', $account)) {
+    return TRUE;
+  }
+}
+

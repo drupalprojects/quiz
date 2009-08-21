@@ -154,6 +154,10 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
       '#weight' => 0,
     );
+    $content['answers'] = array(
+      '#weight' => 2,
+    );
+
     return $content;
   }
 

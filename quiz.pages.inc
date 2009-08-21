@@ -488,7 +488,7 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
   foreach ($questions as $question) {
     $cols = array();
     // Ask each question to render a themed report of how the user did.
-    $module = quiz_module_for_type($question->type);
+    $module = quiz_question_module_for_type($question->type);
     $report = theme($module .'_report', $question, $showpoints, $showfeedback);
     // Only include reports with actual data:
     if (!empty($report) && strlen($report) > 0) {

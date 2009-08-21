@@ -25,7 +25,7 @@
  * TODO: Scoring system needs to change
  * TODO: Consider changing the way the user settings are remembered. If a question is deleted
  * the current way might result in serious errors.
- * 
+ *
  *
  * @todo: Make a simplified alternative way to view the creation form?
  */
@@ -247,13 +247,26 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
   /**
    * Implementation of view
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
   public function getNodeView() {
     $content = parent::getNodeView();
-    $extracontent = $this->getAnsweringForm();
-    $content['answers'] = $extracontent['tries[answer]'];
+
+    $content['answers'] = array();
+
+    $header = array(t('Alternative'), t('Score if chosen'), t('Score if not chosen'));
+
+    foreach ($this->node->alternatives as $i => $short) {
+      $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
+      $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
+      // TODO color row as right, wrong or in between.  probably using theme.
+      $rows[] = array($answer_markup, $short['score_if_chosen'], $short['score_if_not_chosen']);
+    }
+
+    $content['answers'] = array(
+       '#value' => theme('table', $header, $rows),
+       '#weight' => 2,
+    );
+
     return $content;
   }
 
@@ -466,12 +479,12 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
           'onkeypress' => 'refreshCorrect(this)',
           'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
-        ),
+          ),
         '#parents' => array('alternatives', $i, 'score_if_chosen')
-      );
-      $default_value = $short['score_if_not_chosen'];
-      if (!isset($default_value)) $default_value = '0';
-      $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
+          );
+          $default_value = $short['score_if_not_chosen'];
+          if (!isset($default_value)) $default_value = '0';
+          $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
       	'#type' => 'textfield',
         '#title' => t('Score if not chosen'),
       	'#size' => 4,
@@ -482,9 +495,9 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
           'onkeypress' => 'refreshCorrect(this)',
           'onkeyup' => 'refreshCorrect(this)',
           'onchange' => 'refreshCorrect(this)'
-        ),
+          ),
         '#parents' => array('alternatives', $i, 'score_if_not_chosen')
-      );
+          );
     }
     $form['alternatives']["placeholder"] = array(
       '#type' => 'markup',
@@ -499,7 +512,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
         'wrapper' => 'placeholder',
         'effect' => 'slide',
         'method' => 'before',
-      ),
+    ),
     );
     return $form;
   }
@@ -677,7 +690,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
    */
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body, $this->question->filter, FALSE).
+    check_markup($this->question->body, $this->question->filter, FALSE).
       '</div>';
     $result = '<div class="quiz_answer_feedback">';
     $result .= '<H4>'. t('Alternatives'). ':</H4>';
