@@ -711,7 +711,7 @@ function questions_import_qti_extract_info($file) {
 function questions_import_read_node_aiken($line, &$node) {
   // now $line is an array holding question fields.
   $type = questions_import_get_next_aiken_field($line);
-  if (!in_array($type, quiz_get_questions_type('enabled'))) {
+  if (!in_array($type, array_keys(_quiz_get_question_types()))) {
     drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
     // oops you have miss spelled question type or you are trying to import question whose module is disabled.
     // set an error message and read the next question.
@@ -804,11 +804,22 @@ function questions_import_submit_aiken($destination_node, $form, $form_state, $i
   // while not empty of file content
   while (!empty($lines)) {
     $line = questions_import_get_next_aiken_question($lines);
-
     if (empty($line)) {
       // this line is empty. Get the next line
       continue;
     }
+
+    // now $line is an array holding question fields.
+    //$type = questions_import_get_next_aiken_field($line);
+    if (!in_array($line[0], array_keys(_quiz_get_question_types()))) {
+      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
+      // oops you have miss spelled question type or you are trying to import question whose module is disabled.
+      // set an error message and read the next question.
+      $line = array();
+      //empty the $line to load the next question
+      continue;
+    }
+
     $node = new stdClass();
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
@@ -859,7 +870,7 @@ function questions_import_read_node_csv($line, &$node, $separator) {
     // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
     // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
     $type = questions_import_get_next_csv_field($line);
-    if (!in_array($type, quiz_get_questions_type('enabled'))) {
+    if (!in_array($type, array_keys(_quiz_get_question_types()))) {
       drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
       continue;
     }

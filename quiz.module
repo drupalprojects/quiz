@@ -2609,6 +2609,7 @@ function _quiz_status_access($node) {
   return FALSE;
 }
 */
+
 /**
  * Get an array of feedback options.
  *
@@ -2709,39 +2710,11 @@ function quiz_get_all_quiz_title() {
   return $list;
 }
 
-
 /**
+ * Tells whether a question node is being viewed inside/outside of quiz.
  * @return
- *  This function returns a list of question types based on $op value
+ *   boolean
  */
-function quiz_get_questions_type($op = 'enabled') {
-  $quiz_questions_types = array(
-    'matching' => 'matching',
-    'multichoice' => 'multichoice',
-    'quiz_directions' => 'quiz_directions',
-    'quiz_question'  => 'quiz_question',
-    'short_answer' => 'short_answer',
-    'long_answer' => 'long_answer',
-  );
-  switch ($op) {
-    case 'all':
-    $list = $quiz_questions_types;
-    break;
-
-    case 'enabled':
-    $list = array_intersect($quiz_questions_types, module_list());
-    break;
-
-    case 'disabled':
-    $list = array_diff($quiz_questions_types, module_list());
-    break;
-  }
-  if (in_array('quiz_question', $list)) {
-    $list['quiz_question'] = 'true_false';
-  }
-  return $list;
-}
-
 function _quiz_is_taking_context() {
   $display_object = menu_get_object();
   // in the AJAX Quiz there is no display object
