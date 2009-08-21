@@ -29,7 +29,7 @@ function qcollection_help($path, $args) {
  */
 function qcollection_perm() {
   return array(
-    // Managing qcollections:
+  // Managing qcollections:
     'access qcollection', 'create qcollection', 'edit own qcollection', 'edit any qcollection', 'delete any qcollection', 'delete own qcollection',
   );
 }
@@ -115,7 +115,7 @@ function qcollection_theme() {
     'qcollection_question_table' => array(
       'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
       'file' => 'qcollection.pages.inc',
-    ),
+  ),
   );
 }
 
@@ -155,19 +155,22 @@ function qcollection_view($node, $teaser = FALSE, $page = FALSE, $links = TRUE) 
   $collection_nid = $node->nid;
 
   $info = _qcollection_get_info($node);
-  $node->content['info'] = array(
-      // TODO theme the info block
+  if ($teaser) {
+    $node->content['info'] = array(
+    // TODO theme the info block
       '#value' => "<em>$info[questions_count] questions</em><br/>",
       '#weight' => 0
-  );
-
-  if (!$teaser) {
+    );
+  } else {
     $questions = _quiz_get_questions($node->nid, $node->vid);
-    $output = theme('qcollection_question_table', $questions, $collection_nid);
+    $table_markup = theme('qcollection_question_table', $questions, $collection_nid);
     $node->content['questions'] = array(
-    '#value' => $output,
+    '#type' => 'fieldset',
+    '#title' => 'Items ('.count($questions).')',
+    '#collapsible' => TRUE,
     '#weight' => 1,
     );
+    $node->content['questions']['table']['#value'] = $table_markup;
   }
 
   if (user_access('create quiz')) {
@@ -259,13 +262,13 @@ function qcollection_action_info() {
       'description' => t('Add to an item collection'),
       'configurable' => TRUE,
       'hooks' => array('any' => TRUE),
-    ),
+  ),
   );
 }
 
 /**
-* Return a form for selecting collections and quizzes to which a node should be copied
-*/
+ * Return a form for selecting collections and quizzes to which a node should be copied
+ */
 function qcollection_add_question_action_form($context) {
   global $user;
 
@@ -322,7 +325,7 @@ function _qcollection_add_question_to_collection($question, $collections) {
       VALUES (%d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d, %d)";
 
   foreach (array_filter($collections) as $collection_nid) {
-      db_query($sql, $collection_nid, $collection_nid, $question->nid, $question->vid, QUESTION_ALWAYS, $weight);
+    db_query($sql, $collection_nid, $collection_nid, $question->nid, $question->vid, QUESTION_ALWAYS, $weight);
   }
 }
 
