@@ -7,7 +7,7 @@
 $(document).ready(function() {
 	
   var updateDestination = function() {
-    if ($('#edit-destination-type option:selected').val() === 'existing_quiz') {
+    if ($('#edit-destination-type option:selected').val() === 'existing_collection') {
       $('#edit-destination-title-wrapper').hide();
       $('#edit-quiz-node-wrapper').show();
     } else {

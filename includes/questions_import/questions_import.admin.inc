@@ -46,8 +46,7 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-    // TODO option for existing item collection
-    '#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz')),
+    '#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz or item collection')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -58,13 +57,13 @@ function questions_import_form()  {
     '#size' => 30,
     '#required' => TRUE,
   );
-  $options = quiz_get_all_quiz_title();
+  $options = quiz_get_collection_options();
   // $options is an array with nid as index and quiz node's title as value
-  $form['quiz_destination']['quiz_node'] = array(
+  $form['quiz_destination']['collection_node'] = array(
     '#type' => 'select',
-    '#title' => t('Existing quiz'),
+    '#title' => t('Existing collection'),
     '#options' => $options,
-    '#description' => count($options) ? t('Select the quiz to which you want to add questions.') : t('No quiz contents were found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#description' => count($options) ? t('Select the collection to which you want to add questions.') : t('No quiz contents were found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
@@ -349,11 +348,10 @@ function _get_destination_node($form_state) {
 
   $destination_type = $form_state['values']['destination_type'];
 
-  if ($destination_type == 'existing_quiz') {
-    $quiz_nid = $form_state['values']['quiz_node'];
+  if ($destination_type == 'existing_collection') {
+    $quiz_nid = $form_state['values']['collection_node'];
     return node_load($quiz_nid);
   }
-
   else {
     // create a new node
     $title = $form_state['values']['destination_title'];
@@ -419,10 +417,16 @@ function questions_import_form_submit(&$form, &$form_state) {
      * so redirecting the quiz author to quiz node/$nid/edit page
      * where he/she can set the quiz node properties.
      */
-    $url = ($form_state['values']['destination_type'] == 'new_quiz') ? "node/$destination_node->nid/edit" : "node/$destination_node->nid";
-    drupal_goto($url);
+    switch ($form_state['values']['destination_type']) {
+      case 'new_quiz':
+         drupal_goto("node/$destination_node->nid/edit");
+         break;
+      default:
+        drupal_goto("node/$destination_node->nid");
+    }
+  } else {
+    drupal_set_message("No questions were imported.");
   }
-  return $count;
 }
 
 function questions_import_submit_moodle_format($destination_node, $format, $form, $form_state, $import_id) {
@@ -444,6 +448,7 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
   // iterate over Moodle questions to make Drupal Quiz questions
   foreach ($moodle_questions as $mq) {
     $node = new stdClass();
+    $node->weight = $import_count;
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
@@ -567,6 +572,7 @@ function questions_import_submit_qti12($destination_node, $form, $form_state, $i
   // Loop through each question and import it into Drupal
   foreach ($qti_items as $item) {
     $node = new stdClass();
+    $node->weight = $row;
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
@@ -821,6 +827,7 @@ function questions_import_submit_aiken($destination_node, $form, $form_state, $i
     }
 
     $node = new stdClass();
+    $node->weight = $row;
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
@@ -959,6 +966,7 @@ function questions_import_submit_csv($destination_node, $form, $form_state, $imp
   $lines = file($file->filepath);
   foreach ($lines as $line) {
     $node = new stdClass();
+    $node->weight = $row;
     $node->quiz_id = $destination_node->nid;
     $node->quiz_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];

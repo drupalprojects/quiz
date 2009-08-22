@@ -454,9 +454,9 @@ function quiz_question_insert($node) {
   _quiz_question_get_instance($node)->save(TRUE);
   // If the form says this should be attached to a quiz, attach it.
   if (isset($node->quiz_id) && $node->quiz_id > 0) {
-    $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status)
-        VALUES (%d, %d, %d, %d, %d)';
-    db_query($sql, $node->quiz_id, $node->quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS);
+    $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
+        VALUES (%d, %d, %d, %d, %d, %d)';
+    db_query($sql, $node->quiz_id, $node->quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
   }
 }
 

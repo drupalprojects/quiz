@@ -20,15 +20,15 @@ function questions_export_form()  {
   $form['quiz_questions_export'] = array(
     '#type' => 'fieldset',
     '#title' => t('Export Questions'),
-    '#description' => t('Quiz questions import allows to export question and save it out-side of drupal in a portable text file format. Export file can be used as backback or source to generate question in other drupal site.'),
+    '#description' => t('You can download questions into portable formats for use outside of Drupal, or on another Drupal site with the Quiz module.'),
   );
-  $option = quiz_get_all_quiz_title();
+  $options = quiz_get_collection_options();
   // $options is an array with nid as index and quiz node's title as value
   $form['quiz_questions_export']['quiz_node_title'] = array(
     '#type' => 'select',
-    '#title' => t('Quiz'),
-    '#options' => $option,
-    '#description' => count($options) ? t('Select the quiz to export its question(s).') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#title' => t('Collection'),
+    '#options' => $options,
+    '#description' => !empty($options) ? t('Select the resource to export its question(s).') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
     '#required' => TRUE,
   );
   $form['quiz_questions_export']['exporter'] = array(

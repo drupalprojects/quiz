@@ -2711,17 +2711,23 @@ function quiz_cron() {
 }
 
 /**
- * @return
- *  This function returns an array of quiz nodes title with nid ndex.
+ * @return array
+ *  options suitable for a form, in which the value is nid
  */
-function quiz_get_all_quiz_title() {
-  $list = array();
+function quiz_get_collection_options() {
+  $options = array();
+  // FIXME use the names set by the user config
   $results = db_query("SELECT nid, title FROM {node} WHERE type = 'quiz'");
   while ($result = db_fetch_object($results)) {
-    $list[$result->nid] = substr(check_plain($result->title), 0, 30);
+    $options[t('Quiz')][$result->nid] = substr(check_plain($result->title), 0, 30);
     // truncate the node title if its length is greater than 30 characters
   }
-  return $list;
+  $results = db_query("SELECT nid, title FROM {node} WHERE type = 'qcollection'");
+  while ($result = db_fetch_object($results)) {
+    $options[t('Item collection')][$result->nid] = substr(check_plain($result->title), 0, 30);
+    // truncate the node title if its length is greater than 30 characters
+  }
+  return $options;
 }
 
 /**

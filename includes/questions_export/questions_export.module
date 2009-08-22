@@ -35,7 +35,7 @@ function questions_export_perm() {
 function questions_export_menu() {
 
   $items['admin/quiz/questions_export'] = array(
-    'title' => t('Export Quiz Questions'),
+    'title' => t('Export Questions'),
     'description' => t('Export Questions is an addon for the Quiz module to export its questions into portable formats.'),
     'file' => 'questions_export.admin.inc',
     'page callback' => 'drupal_get_form',
