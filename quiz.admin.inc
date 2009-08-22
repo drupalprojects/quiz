@@ -260,13 +260,13 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-      '#value' => l($question->title, 'node/'. $question->nid),
+      '#value' => l($question->title, 'node/'. $question->nid, array('html' => FALSE)),
     );
     $form[$fieldset]['types'][$id] = array(
       '#value' => $question->type,
     );
     $form[$fieldset]['view_links'][$id] = array(
-      '#value' => l('Edit', 'node/'. $question->nid .'/edit', array('query' => array('destination' => $my_dest))),
+      '#value' => l(t('Edit'), 'node/'. $question->nid .'/edit', array('query' => array('destination' => $my_dest))),
     );
     $form[$fieldset]['remove_links'][$id] = array(
       // FIXME: This does not degrade for non-JS browsers.
@@ -276,7 +276,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     if ($question->vid == $latest->vid) {
       $update_cell = array(
         '#type' => 'markup',
-        '#value' => '<em>Up to date</em>',
+        '#value' => t('<em>Up to date</em>'),
       );
     } else {
       $update_cell = array (
