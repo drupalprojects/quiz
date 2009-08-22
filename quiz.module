@@ -2434,6 +2434,9 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
  * @return array
  *  Array of questions objects.
  */
+// FIXME this isn't called anywhere.  do we need it?
+// (it's also horribly inefficient)
+/*
 function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
   $quiz       = menu_get_object();
   $types      = array_keys(_quiz_get_question_types());
@@ -2470,6 +2473,7 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
   }
   return $questions;
 }
+*/
 
 
 
