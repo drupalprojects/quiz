@@ -10,6 +10,17 @@
 /**
  * Implementation of hook_update_N()
  *
+ * Adding a field to turn on/off questions skipping in quiz.
+ */
+function quiz_update_6402() {
+  $result = array();
+  db_add_field($result, 'quiz_node_properties', 'allow_skipping', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
+  return $result;
+}
+
+/**
+ * Implementation of hook_update_N()
+ *
  * Add a field to store max score for each question in a quiz.
  * Also store the total max score in the quiz_node_properties table
  */
@@ -39,7 +50,7 @@ function quiz_update_6401(&$sandbox = NULL) {
       $sql = 'SELECT COUNT(DISTINCT child_nid, child_vid)
               FROM {quiz_node_relationship} qnr
               JOIN {node} n ON n.nid = qnr.parent_nid
-		      WHERE n.type = "quiz"';
+          WHERE n.type = "quiz"';
       $sandbox['q_max'] = db_result(db_query($sql));
       $sandbox['q_progress'] = 0;
       $sql = 'SELECT COUNT(*)
@@ -53,9 +64,9 @@ function quiz_update_6401(&$sandbox = NULL) {
     }
 
     $sql = 'SELECT DISTINCT child_nid, child_vid
-		FROM {quiz_node_relationship}
-		WHERE child_nid >= %d AND child_vid >= %d
-		ORDER BY child_nid, child_vid
+    FROM {quiz_node_relationship}
+    WHERE child_nid >= %d AND child_vid >= %d
+    ORDER BY child_nid, child_vid
     ';
     $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
     spl_autoload_register('autoload_class');
@@ -134,9 +145,7 @@ function quiz_update_6306() {
  */
 function quiz_update_6305() {
   $result = array();
-
   db_add_field($result, 'quiz_node_properties', 'has_userpoints', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-
   return $result;
 }
 
@@ -148,7 +157,6 @@ function quiz_update_6305() {
 function quiz_update_6304() {
   $result = array();
   db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
-
   return $result;
 }
 
@@ -158,10 +166,8 @@ function quiz_update_6304() {
  */
 function quiz_update_6303() {
   $result = array();
-
   // Add a field that allows an admin to mark a quiz as invalid.
   db_add_field($result, 'quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-
   return $result;
 }
 
@@ -183,7 +189,6 @@ function quiz_update_6302() {
  */
 function quiz_update_6301() {
   $result = array();
-
   // Do this:
   //'is_skipped' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
   db_add_field($result, 'quiz_node_results_answers', 'is_skipped', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
@@ -335,12 +340,17 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'allow_skipping' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('property_id'),
     // 'unique keys' => array('vid'),
     'indexes' => array('quiz_id' => array('vid', 'nid')),
   );
-
   /*
    * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
    * making the quiz question the child.

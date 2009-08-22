@@ -404,9 +404,9 @@ function quiz_insert($node) {
 
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, shuffle,
-      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints)
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d)";
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid);
+      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
 }
 
@@ -444,12 +444,13 @@ function quiz_update($node) {
         quiz_always = %d,
         feedback_time = %d,
         number_of_random_questions = %d,
-        has_userpoints = %d
+        has_userpoints = %d,
+        allow_skipping = %d
       WHERE vid = %d
         AND nid = %d";
     $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
-      $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints,
+      $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
 
     // if (db_affected_rows($resource) == 0) {
@@ -488,6 +489,7 @@ function _quiz_get_node_defaults() {
     'quiz_always' => 0,
     'tid' => 0,
     'has_userpoints' => 0,
+    'allow_skipping' => 0,
   );
 }
 
@@ -569,10 +571,17 @@ function quiz_form(&$node) {
     );
   $form['body_field']['format'] = filter_form($node->format);
 
+  $form['allow_skipping'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow Skipping questions'),
+    '#default_value' => isset($node->allow_skipping) ? $node->allow_skipping : 0,
+    '#description' => t('Whether to allow users to skip questions on the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+
   $form['shuffle'] = array(
     '#type' => 'checkbox',
     '#title' => t('Shuffle questions'),
-    '#default_value' => (isset($node->shuffle) ? $node->shuffle : 1),
+    '#default_value' => isset($node->shuffle) ? $node->shuffle : 0,
     '#description' => t('Whether to shuffle/randomize the questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
 
@@ -985,7 +994,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  */
 function quiz_take_quiz($quiz) {
   global $user;
-  $allow_skipping = TRUE;
+  $allow_skipping = $quiz->allow_skipping;
 
   // If no access, fail.
   if (!user_access('access quiz')) {
