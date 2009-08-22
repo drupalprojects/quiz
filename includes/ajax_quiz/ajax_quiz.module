@@ -34,7 +34,7 @@ function ajax_quiz_perm() {
 function ajax_quiz_menu() {
   $items = array();
   $items['node/%quiz_type_access/ajax-quiz'] = array(
-    'title' => t('AJAX quiz'),
+    'title' => t('Take quiz'),
     'file' => 'ajax_quiz.admin.inc',
     'page callback' => 'ajax_quiz_instruction',
     'page arguments' => array(1),
