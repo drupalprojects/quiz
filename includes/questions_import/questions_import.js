@@ -9,10 +9,10 @@ $(document).ready(function() {
   var updateDestination = function() {
     if ($('#edit-destination-type option:selected').val() === 'existing_collection') {
       $('#edit-destination-title-wrapper').hide();
-      $('#edit-quiz-node-wrapper').show();
+      $('#edit-collection-node-wrapper').show();
     } else {
       $('#edit-destination-title-wrapper').show();
-      $('#edit-quiz-node-wrapper').hide();
+      $('#edit-collection-node-wrapper').hide();
     }
   }
 
