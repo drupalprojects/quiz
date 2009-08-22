@@ -260,7 +260,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-      '#value' => l($question->title, 'node/'. $question->nid, array('html' => FALSE)),
+      '#value' => l($question->title, 'node/'. $question->nid, array('html' => TRUE)),
     );
     $form[$fieldset]['types'][$id] = array(
       '#value' => $question->type,
