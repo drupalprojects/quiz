@@ -28,7 +28,7 @@
 // Views support is included in includes/views/quiz.views.inc
 define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 
-include(drupal_get_path('module', 'quiz') .'/quiz_datetime.inc');
+module_load_include('inc', 'quiz', 'quiz_datetime');
 
 /*
  * Define question statuses...
