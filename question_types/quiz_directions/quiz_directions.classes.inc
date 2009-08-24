@@ -103,7 +103,7 @@ class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
     return TRUE;
   }
   public function getResponse() {
-    return $answer;
+    return $this->answer;
   }
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     return '';
