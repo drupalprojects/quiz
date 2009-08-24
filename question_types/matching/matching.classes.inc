@@ -194,7 +194,7 @@ class MatchingQuestion implements QuizQuestion {
         '#type' => 'textarea',
         '#title' => t('Feedback / Reason'),
         '#rows' => 2,
-        '#default_value' => isset($feeback) ? $feeback : ''
+        '#default_value' => isset($feedback) ? $feedback : ''
       );
     }
     return $form;
