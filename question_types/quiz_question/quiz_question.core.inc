@@ -210,7 +210,7 @@ interface QuizQuestionResponse {
  * A base implementation of QuizQuestionResponse.
  *
  */
-abstract class AbstractQuizQuestionResponse {
+abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse{
   // These are only public until we can
   // adjust all of Quiz. DO NOT EXPECT THESE
   // TO BE ACCESSIBLE!
