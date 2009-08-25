@@ -229,8 +229,9 @@ class MatchingQuestion extends AbstractQuizQuestion {
 class MatchingResponse extends AbstractQuizQuestionResponse {
 
   public function __construct($result_id, $question_node, $answer = NULL) {
-    parent::__construct($result_id, $question_node);
+    parent::__construct($result_id, $question_node, $answer);
     $this->is_correct = $this->isCorrect();
+    
   }
 
   public function save() {

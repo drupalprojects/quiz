@@ -77,6 +77,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
       WHERE nid = %d AND vid = %d';
     $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
     parent::superLoad($to_return);
+    
     return $to_return;
   }
 
@@ -165,7 +166,6 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
          '</p>',
      );
 
-
      $form['answer']['correct_answer'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
@@ -197,6 +197,10 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
    */
   public function evaluateAnswer($user_answer) {
     $score = 0;
+    /*dpm('node:');
+    dpm($this->node);
+    dpm('user_answer;');
+    dpm($user_answer);*/
     switch ($this->node->correct_answer_evaluation) {
       case self::ANSWER_MATCH:
         if ($user_answer == $this->node->correct_answer) {
@@ -285,13 +289,12 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
 
   public function __construct($result_id, $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
-
     if (!isset($answer)) {
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_short_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-      $r = db_fetch_object(db_query($sql, $question->nid, $question->vid, $rid));
-
+      $r = db_fetch_object(db_query($sql, $question_node->nid, $question_node->vid, $result_id));
+      
       if (!empty($r)) {
         $this->answer = $r->answer;
         $this->score = $r->score;
@@ -331,7 +334,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       $shortAnswer = new ShortAnswerQuestion($this->question);
       $score = $shortAnswer->evaluateAnswer($this->getResponse());
     }
-
     return $score;
   }
   public function isCorrect() {
@@ -355,7 +357,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     $result = '<div class="quiz_answer_feedback">';
     if ($this->question && !empty($this->question->answers)) {
       $answer = (object) current($this->question->answers);
-
       if ($answer->is_evaluated == 1) {
         // Show score:
         if ($showpoints) {

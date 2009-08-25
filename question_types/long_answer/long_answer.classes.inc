@@ -155,7 +155,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_long_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-      $r = db_fetch_object(db_query($sql, $question->nid, $question->vid, $rid));
+      $r = db_fetch_object(db_query($sql, $question_node->nid, $question_node->vid, $result_id));
 
       if (!empty($r)) {
         $this->answer = $r->answer;
