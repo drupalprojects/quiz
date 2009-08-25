@@ -27,13 +27,19 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
     $this->node->not_a_question = TRUE;
   }
 
-  public function save($is_new = FALSE) {}
+  public function save($is_new = FALSE) {
+    parent::save($is_new);
+  }
 
   public function validate(&$form) {}
 
   public function delete($only_this_version = FALSE) {}
 
-  public function load() {}
+  public function load() {
+    $to_return = new stdClass();
+    parent::superLoad($to_return);
+    return $to_return;
+  }
 
   public function getNodeView() {
     return $this->getAnsweringForm();

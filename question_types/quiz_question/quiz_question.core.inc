@@ -16,7 +16,7 @@
  *
  * The case for Quiz question types is that question types all share common
  * structure and logic. Using the standard hook-only Drupal metaphor, we are
- * forced to copy and past large amounts of repetitive code from question
+ * forced to copy and paste large amounts of repetitive code from question
  * type to question type. By using OO principles and construction, we can
  * easily encapsulate much of that logic, while still making it easy to
  * extend the existing content.
@@ -160,7 +160,34 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
 
     return $content;
   }
-
+  
+  public function superLoad(&$to_return) {
+    $sql = 'SELECT max_score
+            FROM {quiz_question_properties}
+            WHERE nid = %d AND vid = %d';
+    $max_score = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    if (is_array($to_return)) {
+      $to_return['max_score'] = $max_score;
+    } 
+    elseif (is_object($to_return)) {
+      $to_return->max_score = $max_score;
+    }
+  }
+  
+  public function save($is_new = FALSE) {
+    $is_new_node = $is_new || $this->node->revision == 1;
+    if ($is_new_node) {
+      $sql = 'INSERT INTO {quiz_question_properties}
+              (nid, vid, max_score)
+              VALUES(%d, %d, %d)';
+      db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore());
+    } else {
+      $sql = 'UPDATE {quiz_question_properties}
+              SET max_score = %d
+              WHERE nid = %d AND vid = %d';
+      db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
+    }
+  }
 }
 
 /**

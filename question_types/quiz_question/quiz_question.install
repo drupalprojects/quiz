@@ -6,7 +6,42 @@
  * @file
  */
 
+function quiz_question_install() {
+  drupal_install_schema('quiz_question');
+}
+
+function quiz_question_schema() {
+  $schema = array();
+  $schema['quiz_question_properties'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE, 
+      ), 
+      'max_score' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'default' => 0, 
+      ),
+    ),
+    'primary key' => array(
+      'nid' , 'vid'
+    ),
+  );
+  return $schema;
+}
+
 function quiz_question_update_6400() {
   drupal_rebuild_theme_registry();
   return array();
+}
+
+function quiz_question_uninstall() {
+  drupal_uninstall_schema('quiz_question');
 }

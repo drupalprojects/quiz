@@ -38,12 +38,12 @@ function short_answer_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'maximum_score' => array(
+      /*'maximum_score' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 1,
-      ),
+      ),*/
       // One of (0) textfield and (1) textare
       'text_entry_type' => array(
         'type' => 'int',

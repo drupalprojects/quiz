@@ -14,24 +14,17 @@
 class LongAnswerQuestion extends AbstractQuizQuestion {
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
-    }
-    if ($is_new || $this->node->revision == 1) {
-      $sql = 'INSERT INTO {quiz_long_answer_node_properties} (nid, vid, maximum_score) VALUES (%d, %d, %d)';
-      db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score);
-    }
-    else {
-      $sql = 'UPDATE {quiz_long_answer_node_properties} SET maximum_score = %d WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->node->maximum_score, $this->node->nid, $this->node->vid);
     }
   }
 
   public function validate(&$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
-    $maximum_score = $this->node->maximum_score;
-    if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
-      form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
+    $max_score = $this->node->max_score;
+    if (!ctype_digit($max_score) || intval($max_score) < 0) {
+      form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
     }
   }
 
@@ -45,8 +38,9 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
   }
 
   public function load() {
-    $sql = 'SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d';
-    return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
+    $to_return = new stdClass();
+    parent::superLoad($to_return);
+    return $to_return;
   }
 
   // This is called whenever a question is rendered, either
@@ -77,11 +71,11 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
   }
 
   public function getCreationForm($edit) {
-    $form['maximum_score'] = array(
+    $form['max_score'] = array(
       '#type' => 'textfield',
       '#title' => t('Maximum Possible Score'),
       '#description' => t('Long answer questions are scored manually. This field indicates to the person scoring what the maximum number of points per essay is. Multichoice questions have a score of 1.'),
-      '#default_value' => isset($this->node->maximum_score) ? $this->node->maximum_score : variable_get('long_answer_default_maximum_score', 1),
+      '#default_value' => isset($this->node->max_score) ? $this->node->max_score : variable_get('long_answer_default_maximum_score', 1),
       '#size' => 3,
       '#maxlength' => 3,
       '#required' => TRUE,
@@ -90,7 +84,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
   }
 
   public function getMaximumScore() {
-    return $this->node->maximum_score;
+    return $this->node->max_score;
   }
 
 }
@@ -216,7 +210,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       if ($answer->is_evaluated == 1) {
         // Show score:
         if ($showpoints) {
-          $args = array('@yours' => $answer->score, '@total' => $this->question->maximum_score);
+          $args = array('@yours' => $answer->score, '@total' => $this->question->max_score);
           $result .= t('Score: @yours of @total possible points', $args);
         }
 

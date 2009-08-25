@@ -1268,7 +1268,6 @@ function quiz_node_view($question_node) {
  *  - nid, vid, rid, is_correct, score (default: 1 if correct, 0 otherwise), is_skipped (default: FALSE)
  */
 function quiz_store_question_result($result, $options) {
-
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
       drupal_set_message('Last question skipped.', 'status');
@@ -1657,6 +1656,7 @@ function quiz_start_actions($quiz) {
  *  Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $rid) {
+  //TODO: Consider removing total score and use database value instead... 
   // 1. Get each question for the quiz.
   /*
   $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type

@@ -22,6 +22,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
   }
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
     foreach ($this->node->match as $match) {
       if (empty($match['question']) || empty($match['answer'])) {
         continue;
@@ -70,6 +71,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
         'feedback' => $result->feedback,
       );
     }
+    parent::superLoad($rows);
     return $rows;
   }
 

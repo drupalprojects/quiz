@@ -483,7 +483,6 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
 function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
   $header = array(format_plural(count($questions), t('Question Result'), t('Question Results')));
   $rows = array();
-
   // Go through each of the questions.
   foreach ($questions as $question) {
     $cols = array();

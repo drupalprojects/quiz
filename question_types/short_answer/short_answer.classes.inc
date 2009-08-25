@@ -33,28 +33,28 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
   const TEXT_ENTRY_TEXTAREA = 1;
 
   public function save($is_new = FALSE) {
-
+    parent::save($is_new);
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
     if ($is_new || $this->node->revision == 1) {
       $sql = "INSERT INTO {quiz_short_answer_node_properties}
-        (nid, vid, maximum_score, correct_answer, correct_answer_evaluation)
-        VALUES (%d, %d, %d, '%s', %d)";
-      db_query($sql, $this->node->nid, $this->node->vid, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation);
+        (nid, vid, correct_answer, correct_answer_evaluation)
+        VALUES (%d, %d, '%s', %d)";
+      db_query($sql, $this->node->nid, $this->node->vid, $this->node->correct_answer, $this->node->correct_answer_evaluation);
     }
     else {
       $sql = "UPDATE {quiz_short_answer_node_properties}
-        SET maximum_score = %d, correct_answer = '%s', correct_answer_evaluation = %d
+        SET correct_answer = '%s', correct_answer_evaluation = %d
         WHERE nid = %d AND vid = %d";
-      db_query($sql, $this->node->maximum_score, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid);
+      db_query($sql, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid);
     }
   }
 
   public function validate(&$form) {
-    $maximum_score = $this->node->maximum_score;
-    if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
-      form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
+    $max_score = $this->node->max_score;
+    if (!ctype_digit($max_score) || intval($max_score) < 0) {
+      form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
     }
 
     if ($this->node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($this->node->correct_answer)) {
@@ -72,10 +72,12 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
   }
 
   public function load() {
-    $sql = 'SELECT maximum_score, correct_answer, correct_answer_evaluation
+    $sql = 'SELECT correct_answer, correct_answer_evaluation
       FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
-    return db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
+    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
+    parent::superLoad($to_return);
+    return $to_return;
   }
 
   public function getNodeView() {
@@ -173,11 +175,11 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
      );
-     $form['answer']['maximum_score'] = array(
+     $form['answer']['max_score'] = array(
        '#type' => 'textfield',
        '#title' => t('Maximum score'),
        '#description' => t('If this is automatically graded, this will be treated as an "all or nothing" score. Manual grading may assign any whole number value between 0 and this number.'),
-       '#default_value' => isset($this->node->maximum_score) ? $this->node->maximum_score : 1,
+       '#default_value' => isset($this->node->max_score) ? $this->node->max_score : 1,
        '#size' => 3,
        '#maxlength' => 3,
        '#required' => FALSE,
@@ -187,7 +189,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
 
   }
   public function getMaximumScore() {
-    return $this->node->maximum_score;
+    return $this->node->max_score;
   }
 
   /**
@@ -198,18 +200,18 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
     switch ($this->node->correct_answer_evaluation) {
       case self::ANSWER_MATCH:
         if ($user_answer == $this->node->correct_answer) {
-          $score = $this->node->maximum_score;
+          $score = $this->node->max_score;
         }
         break;
       case self::ANSWER_INSENSITIVE_MATCH:
         if (drupal_strtolower($user_answer) == drupal_strtolower($this->node->correct_answer)) {
-          $score = $this->node->maximum_score;
+          $score = $this->node->max_score;
         }
         break;
       case self::ANSWER_REGEX:
         //drupal_set_message('Regex is: ' . $this->node->correct_answer, 'status');
         if (preg_match($this->node->correct_answer, $user_answer) > 0) {
-          $score = $this->node->maximum_score;
+          $score = $this->node->max_score;
         }
         break;
     }
@@ -357,7 +359,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       if ($answer->is_evaluated == 1) {
         // Show score:
         if ($showpoints) {
-          $args = array('@yours' => $answer->score, '@total' => $this->question->maximum_score);
+          $args = array('@yours' => $answer->score, '@total' => $this->question->max_score);
           $result .= t('Score: @yours of @total possible points', $args);
         }
 

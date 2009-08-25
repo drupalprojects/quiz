@@ -311,7 +311,7 @@ function quiz_question_evaluate_question($question, $result_id, $answer = NULL) 
     //$answer = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
   }
   unset($_POST['tries']);
-  $response = _quiz_question_response_get_instance(result_id, $question, $answer);
+  $response = _quiz_question_response_get_instance($result_id, $question, $answer);
 
   // If a result_id is set, we are taking a quiz.
   if ($result_id && isset($answer)) {
@@ -409,8 +409,15 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   $score->question_vid = $node->vid;
 
   if (isset($rid)) {
+    $sql = 'SELECT max_score 
+            FROM {quiz_node_relationship}
+            WHERE parent_vid = %d AND child_vid = %d';
+    $max_score = db_result(db_query($sql, $quiz->vid, $node->vid));
     $response = _quiz_question_response_get_instance($rid, $node);
-    $score->attained = $response->getScore();
+    
+    $score->attained = $score->possible > 0 ? round($response->getScore() * $max_score / $score->possible) : 0;
+    $score->possible = $max_score;
+    
     $score->is_evaluated = $response->isEvaluated();
   }
 

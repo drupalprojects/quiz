@@ -103,12 +103,12 @@ function long_answer_score_form($context, $node, $answer) {
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
-    '#value' => (int) $node->maximum_score,
+    '#value' => (int) $node->max_score,
   );
   $form['score'] = array(
     '#type' => 'textfield',
     '#title' => t('Score'),
-    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $node->maximum_score)) ,
+    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $node->max_score)) ,
     '#size' => 6,
     '#maxlength' => 6,
     '#default_value' => (int) $answer->score,
@@ -120,9 +120,9 @@ function long_answer_score_form($context, $node, $answer) {
   );
 
   // Save some work by keeping these.
-  $form['maximum_score'] = array(
+  $form['max_score'] = array(
     '#type' => 'value',
-    '#value' => $node->maximum_score,
+    '#value' => $node->max_score,
   );
   $form['question_nid'] = array(
     '#type' => 'value',
@@ -142,7 +142,7 @@ function long_answer_score_form($context, $node, $answer) {
 
 function long_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
-  $max = (int)$form_state['values']['maximum_score'];
+  $max = (int)$form_state['values']['max_score'];
   $given = (int)$form_state['values']['score'];
 
   if ($given > $max || $given < 0) {

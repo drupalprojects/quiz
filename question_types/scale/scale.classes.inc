@@ -53,6 +53,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function save($is_new = FALSE) {
+    parent::save($is_new);
     global $user;
     $is_new_node = $is_new || $this->node->revision == 1;
     $answer_collection_id = $this->saveAnswerCollection($is_new_node);
@@ -259,6 +260,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
     while ($res_o = db_fetch_object($res)) {
       $to_return[] = $res_o;
     }
+    parent::superLoad($to_return);
     return $to_return;
   }
   /**

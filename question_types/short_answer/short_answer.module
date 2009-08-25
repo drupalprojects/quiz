@@ -128,7 +128,7 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
   if ($changed > 0) {
     // What do we do about the quiz_node_results_answers table? It assumes strict
     // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
-    $max = db_result(db_query('SELECT maximum_score FROM {quiz_short_answer_node_properties} WHERE vid = %d', $vid));
+    $max = db_result(db_query('SELECT max_score FROM {quiz_question_properties} WHERE vid = %d', $vid));
     if ($max <= 0) {
       $is_correct = 0;
       $points_awarded = 0;

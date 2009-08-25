@@ -20,7 +20,7 @@ function theme_quiz_question_report($question, $show_points, $show_feedback) {
   $types = _quiz_get_question_types();
   $constructor = $types[$question->type]['response provider'];
   $result = new $constructor($answer['result_id'], $question);
-
+  
   return $result->formatReport();
 }
 

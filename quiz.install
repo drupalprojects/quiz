@@ -100,7 +100,7 @@ function quiz_update_6401(&$sandbox = NULL) {
                 SELECT t.nid, t.vid, t.maximum_score
                 FROM {quiz_long_answer_node_properties} t';
         $result[] = update_sql($sql);
-        //db_drop_table($result, 'quiz_long_answer_node_properties');
+        db_drop_table($result, 'quiz_long_answer_node_properties');
         break;
       case 'matching':
         $sql = 'INSERT INTO {quiz_question_properties}
@@ -152,7 +152,7 @@ function quiz_update_6401(&$sandbox = NULL) {
                 SELECT t.nid, t.vid, t.maximum_score
                 FROM {quiz_short_answer_node_properties} t';
         $result[] = update_sql($sql);
-        //db_drop_field($result, 'quiz_short_answer_node_properties', 'maximum_score');
+        db_drop_field($result, 'quiz_short_answer_node_properties', 'maximum_score');
         break;
       case 'truefalse':
         $sql = 'INSERT INTO {quiz_question_properties}
