@@ -545,9 +545,9 @@ function quiz_admin_settings() {
 
   $form['quiz_global_settings']['quiz_email_results'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable Sending Quiz Results to User Email ID', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_email_results', 1),
-    '#description' => t('Check this to send users quiz results over email at the end of quiz.')
+    '#description' => t('Check this to send users quiz results over email at the end of a quiz.')
   );
 
 
