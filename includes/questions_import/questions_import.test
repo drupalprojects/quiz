@@ -56,7 +56,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
    * @return array of question fields: nid, vid, body, type
    */
   function getQuizQuestionList($quiz_nid) {
-    $db_questions = array(); // question nid, question prompt (body), type
+    $db_questions = array(); // question nid, question (body), type
     $sql = "SELECT nr.nid, nr.vid, nr.body, n.type FROM {node_revisions} nr
 JOIN {quiz_node_relationship} qnr ON qnr.child_nid = nr.nid
 JOIN {node} n ON n.nid = nr.nid
@@ -85,7 +85,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
 
     foreach ($import_questions as $index => $import_q) {
       $db_q = $db_questions[$index];
-      $this->assertEqual($import_q->question, $db_q['body'], "Question prompts in database match generated import (expected '$import_q->question' but got '$db_q[body]')");
+      $this->assertEqual($import_q->question, $db_q['body'], "Question(body) in database match generated import (expected '$import_q->question' but got '$db_q[body]')");
       $this->assertEqual($import_q->type, $db_q['type'], "Question node types in database match generated import (expected '$import_q->type' but got '$db_q[type]')");
 
       $this->answersHelper($import_q, $db_q);

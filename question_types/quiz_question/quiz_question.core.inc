@@ -149,7 +149,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
       '#value' => '<div class="question_type_name">' . $type->name . '</div>',
       '#weight' => -1,
     );
-    $content['prompt'] = array(
+    $content['question'] = array(
       '#type'  => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
       '#weight' => 0,

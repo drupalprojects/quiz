@@ -70,7 +70,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   public function getAnsweringForm($context = NULL) {
 
     // Question first
-    $form['prompt'] = array(
+    $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE)
     );

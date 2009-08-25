@@ -30,7 +30,7 @@ function theme_qcollection_question_table($questions, $quiz_id = NULL) {
     $rows[] = array($question->question, $info);
   }
 
-  $header = array(t('Question prompt'), t('Info'));
+  $header = array(t('Question'), t('Info'));
 
   if (!empty($rows)) {
     $output .= theme('table', $header, $rows);

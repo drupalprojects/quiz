@@ -114,7 +114,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
       }
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen($this->checkMarkup($i, 'answer')) > 0) {
+        if (drupal_strlen($this->checkMarkup($i, 'answer')) > 0) {
           if (!is_numeric($short['id'])) $this->insertAlternative($i);
           else {
             $this->updateAlternative($i);
@@ -133,6 +133,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
   }
 
   private function insertAlternative($i) {
+    dpm($this->node);
     $sql = 'INSERT INTO {quiz_multichoice_answers}
             (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen,
@@ -284,7 +285,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    */
 
   public function getAnsweringForm($context = NULL) {
-    $form['prompt'] = array(
+    $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );

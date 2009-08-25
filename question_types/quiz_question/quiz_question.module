@@ -103,7 +103,7 @@ function quiz_question_node_info() {
   //'help' => t('Add the question text and set a score for this question.'),
     'has_body' => TRUE,
     'has_title' => TRUE,
-    'body_label' => t('Prompt'),
+    'body_label' => t('Question'),
   );
   foreach ($types as $type => $definition) {
     $node_info = array(
@@ -150,8 +150,8 @@ function quiz_question_form(&$node, $form_state) {
 
   $form['body'] = array(
     '#type' => 'textarea',
-    '#title' => t('Prompt'),
-    '#description' => t('Enter the full text of the prompt that will be shown to the user. Include any special instructions on how to answer.'),
+    '#title' => t('Question'),
+    '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
     '#default_value' => $node->body,
     '#required' => TRUE,
     '#weight' => -15,
@@ -283,7 +283,7 @@ function _quiz_question_info($node) {
  * Form for teaser display
  */
 function _quiz_question_teaser_content($node) {
-  $content['prompt'] = array(
+  $content['question'] = array(
     '#type' => 'markup',
     '#value' => check_markup($node->body, $node->format, FALSE),
   );

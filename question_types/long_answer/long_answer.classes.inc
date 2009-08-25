@@ -46,7 +46,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getAnsweringForm($context = NULL) {
-    $form['prompt'] = array(
+    $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->question->body, $this->question->format, FALSE),
      );
