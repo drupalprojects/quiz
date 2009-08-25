@@ -65,9 +65,9 @@ ANSWER: A
 # True or False Example
 
 true_false
-is Moodle better than Drupal for blogging site ?
+Moodle is better than Drupal for blogging site
 false
-moodle is a LMS not suitable for blogging
+moodle is a LMS, not suitable for blogging
 
 # Short Answer Format
 
