@@ -12,6 +12,7 @@
  */
 function matching_install() {
   drupal_install_schema('matching');
+  cache_clear_all('autoload:', 'cache');
 }
 
 /**
