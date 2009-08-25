@@ -268,7 +268,14 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
       $image = $is_correct ? 'correct' : 'wrong';
       $rows[] = array(
         array(
-          'data' => theme('image', "$p/theme/images/$image.png", t('Correct'), t('This answer is correct')), 
+          'data' => theme('image', 
+            "$p/theme/images/$image.png", 
+            t($image), 
+            t('Score if chosen: @sc Score if not chosen: @nc', array(
+              '@sc' => $short['score_if_chosen'],
+              '@nc' => $short['score_if_not_chosen'])
+            )
+          ), 
           'width' => 35
         ),
         $answer_markup
