@@ -270,7 +270,15 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
   public function getNodeView() {
-    return $this->getAnsweringForm();
+    //TODO: Consider changing this to something prettier...
+    $form = $this->getAnsweringForm();
+    $to_return = drupal_render($form['question']);
+    $to_return .= drupal_render($form['tries']);
+    foreach ($form['tries']['#options'] as $val) {
+      $radio = array('#type' => 'radio', '#title' => $val, '#value' => 0);
+      $to_return .= drupal_render($radio);
+    }
+    return array('#type' => 'markup', '#value' => $to_return);
   }
 
   /**
@@ -281,10 +289,9 @@ class ScaleQuestion extends AbstractQuizQuestion {
    */
 
   public function getAnsweringForm($context = NULL) {
-
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (strlen($this->node->{$i}->answer)>0) {
+      if (drupal_strlen($this->node->{$i}->answer)>0) {
         $options[$this->node->{$i}->id] = check_plain($this->node->{$i}->answer);
       }
     }

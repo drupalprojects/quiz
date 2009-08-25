@@ -20,7 +20,6 @@
  */
 
 /*
- * TODO: Scale isn't previewed nicely anymore...
  * TODO: Test with upgrades from 3.x to 4.x
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
