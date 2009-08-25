@@ -20,10 +20,6 @@
  */
 
 /*
- * @todo: Be able to have max score in quizes.
- * TODO: Scoring system needs to change
- *   TODO: Make use of max_score in quiz_question_quiz_question_score
- *   TODO: Make use of max_score in quiz_calculate_score
  * TODO: Scores from multichoice aren't saved.
  * TODO: Scale isn't previewed nicely anymore...
  * TODO: Test with upgrades from 3.x to 4.x

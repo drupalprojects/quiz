@@ -231,7 +231,18 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function __construct($result_id, $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     $this->is_correct = $this->isCorrect();
-    
+    if (!isset($answer)) {
+      $sql = 'SELECT ua.answer, score
+              FROM {quiz_matching_user_answers} ua
+              JOIN {quiz_matching_node} n
+              ON n.match_id = ua.match_id
+              WHERE n.vid = %d';
+      $res = db_query($sql, $question_node->vid);
+      $this->answer = array();
+      while ($obj = db_fetch_object($res)) {
+        $this->answer[$obj->answer] = $obj->answer;
+      }
+    }
   }
 
   public function save() {
