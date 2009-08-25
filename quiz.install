@@ -102,7 +102,14 @@ function quiz_update_6401(&$sandbox = NULL) {
         $result[] = update_sql($sql);
         //db_drop_table($result, 'quiz_long_answer_node_properties');
         break;
-      // TODO: ADD MATCHING
+      case 'matching':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid, max_score)
+                SELECT t.nid, t.vid, COUNT(*)
+                FROM {quiz_matching_node} t
+                GROUP BY t.nid, t.vid';
+        $result[] = update_sql($sql);
+        break;
       case 'multichoice':
         $sql = 'INSERT INTO {quiz_question_properties}
                 (nid, vid, max_score)
@@ -231,7 +238,6 @@ function quiz_update_6305() {
  * Implementation of hook_update_N().
  *
  */
-
 function quiz_update_6304() {
   $result = array();
   db_add_field($result, 'quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
