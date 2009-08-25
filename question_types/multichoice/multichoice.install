@@ -15,6 +15,7 @@
  */
 function multichoice_install() {
   drupal_install_schema('multichoice');
+  cache_clear_all('autoload:', 'cache');
 }
 
 /**

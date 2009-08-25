@@ -19,6 +19,7 @@ function scale_install() {
   _scale_insert_collection(array('Excellent', 'Very good', 'Good', 'Ok', 'Poor', 'Very poor'));
   _scale_insert_collection(array('Totally agree', 'Agree', 'Not sure', 'Disagree', 'Totally disagree'));
   _scale_insert_collection(array('Very important', 'Important', 'Moderately important', 'Less important' , 'unimportant'));
+  cache_clear_all('autoload:', 'cache');
 }
 
 /**

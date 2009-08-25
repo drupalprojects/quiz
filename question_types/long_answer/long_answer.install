@@ -12,6 +12,7 @@
 function long_answer_install() {
   drupal_install_schema('long_answer');
   variable_set('node_options_long_answer', array('status'));
+  cache_clear_all('autoload:', 'cache');
 }
 
 /**

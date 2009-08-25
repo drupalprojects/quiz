@@ -15,6 +15,7 @@ function truefalse_install() {
     drupal_install_schema('truefalse');
   }
   variable_set('node_options_truefalse', array('status'));
+  cache_clear_all('autoload:', 'cache');
 }
 
 /**
