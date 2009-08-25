@@ -7,6 +7,22 @@
  *
  */
 
+
+/**
+ * Implementation of hook_update_N().
+ * Adding a new field to save timer status for a timed quiz.
+ */
+function quiz_update_6403() {
+  $result = array();
+  if (!db_column_exists('quiz_node_results', 'time_left')) {
+    db_add_field($result, 'quiz_node_results', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
+  }
+  if (!db_column_exists('quiz_node_properties', 'time_left')) {
+    db_add_field($result, 'quiz_node_properties', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
+  }
+  return $result;
+}
+
 /**
  * Implementation of hook_update_N()
  *
