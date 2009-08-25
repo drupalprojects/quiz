@@ -39,82 +39,160 @@ function quiz_update_6401(&$sandbox = NULL) {
       'not null' => TRUE,
       'default' => 0,
     ));
+    // THIS IS UGLY! But it needs to be installed here because we don't know in what order the updater
+    // Will execute the update hooks...
+    db_create_table($result, 'quiz_question_properties', array(
+      'fields' => array(
+        'nid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'vid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'max_score' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'default' => 0,
+        ),
+      ),
+      'primary key' => array(
+        'nid' , 'vid'
+      ),
+    ));
     $sandbox['tables_changed'] = TRUE;
-  }
-
-  // Updating max score for the questions in existing quizzes:
-  if (!isset($sandbox['step1'])) {
-
-    // Making initial settings for batch processing:
-    if (!isset($sandbox['q_max'])) {
-      $sql = 'SELECT COUNT(DISTINCT child_nid, child_vid)
-              FROM {quiz_node_relationship} qnr
-              JOIN {node} n ON n.nid = qnr.parent_nid
-          WHERE n.type = "quiz"';
-      $sandbox['q_max'] = db_result(db_query($sql));
-      $sandbox['q_progress'] = 0;
-      $sql = 'SELECT COUNT(*)
-              FROM {quiz_node_relationship} qnr
-              JOIN {node} n ON n.nid = qnr.parent_nid
-              WHERE n.type = "quiz"
-              GROUP BY parent_nid, parent_vid';
-      $sandbox['p_max'] = db_result(db_query($sql));
-      $sandbox['p_progress'] = 0;
-      $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
-    }
-
-    $sql = 'SELECT DISTINCT child_nid, child_vid
-    FROM {quiz_node_relationship}
-    WHERE child_nid >= %d AND child_vid >= %d
-    ORDER BY child_nid, child_vid
-    ';
-    $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 15);
-    spl_autoload_register('autoload_class');
-    while ($res_o = db_fetch_object($res)) {
-      // wrap in try since not all question ids are loadable
-      try {
-        // It is possible to do this with ALOT better performance, but since the quiz system is under
-        // constant development we do this slowly but safely.
-        $max_score = quiz_question_quiz_question_score(NULL, $res_o->child_nid, $res_o->child_vid)->possible;
-        $sql = 'UPDATE {quiz_node_relationship} SET max_score = %d WHERE child_nid = %d AND child_vid = %d';
-        db_query($sql, $max_score, $res_o->child_nid, $res_o->child_vid);
-      } catch (Exception $e) {
-        drupal_set_message("failed to look up max_score in quiz update", "error", FALSE);
+    $sandbox['progress'] = 0;
+  
+  
+    // Updating max_score for all question types
+    
+    // Creating array with all question types and relevant tables
+    $sandbox['question_types'] = array(
+      'long_answer' => array('node_properties'),
+      'multichoice' => array('properties', 'answers'),
+      'scale' => array('node_properties'),
+      'short_answer' => array('node_properties'),
+      'truefalse' => array('node'),
+    );
+    // Removing questiontypes that aren't in use 
+    foreach ($sandbox['question_types'] as $type => $tables) {
+      $tables_exists = TRUE;
+      $pre = 'quiz_'. $type .'_';
+      foreach ($tables as $table) {
+        if (!db_table_exists($pre . $table)) $tables_exists = FALSE;
       }
-      $sandbox['q_progress']++;
-    }
-    $sandbox['last_nid'] = $res_o->child_nid;
-    $sandbox['last_vid'] = $res_o->child_vid;
-
-    // If the step is finished prepare for the next step:
-    if ($sandbox['q_progress'] >= $sandbox['q_max']) {
-      $sandbox['step1'] = TRUE;
-      $sandbox['last_nid'] = $sandbox['last_vid'] = 0;
+      if (!$tables_exists) {
+        unset($sandbox['question_types'][$type]);
+      }
     }
   }
-  // Calculate and store total score for a quiz:
-  elseif (!isset($sandbox['step2'])) {
-    $sql = 'SELECT parent_nid, parent_vid, SUM(max_score) AS max_score
-            FROM {quiz_node_relationship}
-            WHERE parent_nid >= %d AND parent_vid >= %d
-            GROUP BY parent_nid, parent_vid';
-    $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 30);
-    while ($res_o = db_fetch_object($res)) {
-      $sql = 'UPDATE {quiz_node_properties}
-              SET max_score = %d
-              WHERE nid = %d AND vid = %d';
-      db_query($sql, $res_o->max_score, $res_o->parent_nid, $res_o->parent_vid);
-      $sandbox['p_progress']++;
+  // Doing convertion for one questiontype at a time...
+  $current_type = array_pop(array_keys($sandbox['question_types']));
+  $tables = array_pop($sandbox['question_types']);
+  if (count($sandbox['question_types']) > 0) {
+    switch ($current_type) {
+      case 'long_answer':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid, max_score)
+                SELECT t.nid, t.vid, t.maximum_score
+                FROM {quiz_long_answer_node_properties} t';
+        $result[] = update_sql($sql);
+        //db_drop_table($result, 'quiz_long_answer_node_properties');
+        break;
+      // TODO: ADD MATCHING
+      case 'multichoice':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid, max_score)
+                SELECT t.nid, t.vid, 1
+                FROM {quiz_multichoice_properties} t
+                WHERE t.choice_boolean = 1';
+        $result[] = update_sql($sql);
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid)
+                SELECT t.nid, t.vid
+                FROM {quiz_multichoice_properties} t
+                WHERE t.choice_boolean = 0';
+        $result[] = update_sql($sql);
+        $sql = 'UPDATE {quiz_question_properties} p
+                JOIN {quiz_multichoice_properties} mp
+                ON p.nid = mp.nid AND p.vid = mp.vid
+                SET max_score = (
+                  SELECT COUNT(max_score)
+                  FROM (
+                    SELECT if(a.score_if_chosen > a.score_if_not_chosen, a.score_if_chosen, 
+                    a.score_if_not_chosen) AS max_score, question_nid, question_vid
+                    FROM {quiz_multichoice_answers} a
+                  ) AS ma
+                  WHERE ma.question_nid = p.nid AND ma.question_vid = p.vid
+                  GROUP BY ma.question_nid, ma.question_vid
+                )
+                WHERE mp.choice_boolean = 0';
+        $result[] = update_sql($sql);
+        break;
+      case 'scale':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid)
+                SELECT t.nid, t.vid
+                FROM {quiz_scale_node_properties} t';
+        $result[] = update_sql($sql);
+        break;
+      case 'short_answer':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid, max_score)
+                SELECT t.nid, t.vid, t.maximum_score
+                FROM {quiz_short_answer_node_properties} t';
+        $result[] = update_sql($sql);
+        //db_drop_field($result, 'quiz_short_answer_node_properties', 'maximum_score');
+        break;
+      case 'truefalse':
+        $sql = 'INSERT INTO {quiz_question_properties}
+                (nid, vid, max_score)
+                SELECT t.nid, t.vid, 1
+                FROM {quiz_truefalse_node} t';
+        $result[] = update_sql($sql);
+        break;
     }
-    $sandbox['last_nid'] = $res_o->parent_nid;
-    $sandbox['last_vid'] = $res_o->parent_vid;
+    $sandbox['progress']++;
   }
-  // Update progress status for the batch system
-  if (($sandbox['q_max'] + $sandbox['p_max']) > 0) {
-    $result['#finished'] = $sandbox['q_progress'] + $sandbox['p_progress'];
-    $result['#finished'] /= $sandbox['q_max'] + $sandbox['p_max'];
+  else {
+    if (!isset($sandbox['quiz_directions_done'])) {
+      $sql = 'INSERT INTO {quiz_question_properties}
+              (nid, vid, max_score)
+              SELECT n.nid, n.vid, 0
+              FROM {node} n
+              WHERE type = "quiz_directions"';
+      $result[] = update_sql($sql);
+      $sandbox['quiz_directions_done'] = TRUE;
+    }
+    // Store default max score in node relationship table
+    elseif (!isset($sandbox['quiz_relationships_done'])) {
+      $sql = 'UPDATE {quiz_node_relationship} r
+              JOIN {quiz_question_properties} p
+              ON r.child_nid = p.nid AND r.child_vid = p.vid
+              SET r.max_score = p.max_score';
+      $result[] = update_sql($sql);
+      $sandbox['quiz_relationships_done'] = TRUE;
+    }
+    elseif (!isset($sandbox['quiz_properties_done'])) {
+      $sql = 'UPDATE {quiz_node_properties} p
+              SET p.max_score = 
+                (SELECT SUM(r.max_score)
+                FROM {quiz_node_relationship} r
+                WHERE r.parent_nid = p.nid AND r.parent_vid = p.vid
+                GROUP BY r.parent_nid, r.parent_vid)';
+      $result[] = update_sql($sql);
+      $sandbox['quiz_properties_done'] = TRUE;
+    }
+    $sandbox['progress']++;
+  } 
+  if (!isset($sandbox['max'])) {
+    $sandbox['max'] = count($sandbox['question_types']) + 3;
   }
-  else $result['#finished'] = 1;
+  
+  $result['#finished'] = $sandbox['progress'] / $sandbox['max'];
   return $result;
 }
 
@@ -233,7 +311,7 @@ function quiz_schema() {
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
