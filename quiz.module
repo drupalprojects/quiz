@@ -1283,7 +1283,6 @@ function quiz_store_question_result($result, $options) {
     $result->score = $result->is_correct ? 1 : 0;
   }
 
-  //watchdog('quiz', 'quiz_store_question_result: storing.');
   $rid_count = db_result(db_query("SELECT COUNT('result_id') AS count FROM {quiz_node_results_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $result->nid, $result->vid, $result->rid));
   if ($rid_count > 0) {
     db_query("UPDATE {quiz_node_results_answers}
@@ -2569,7 +2568,6 @@ function _quiz_get_answers($rid) {
     WHERE result_id = %d
     ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
-    //watchdog('quiz','_quiz_get_answers: looping through question');
     $module = quiz_question_module_for_type($line->type);
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);

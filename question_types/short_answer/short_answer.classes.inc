@@ -197,10 +197,6 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
    */
   public function evaluateAnswer($user_answer) {
     $score = 0;
-    /*dpm('node:');
-    dpm($this->node);
-    dpm('user_answer;');
-    dpm($user_answer);*/
     switch ($this->node->correct_answer_evaluation) {
       case self::ANSWER_MATCH:
         if ($user_answer == $this->node->correct_answer) {
