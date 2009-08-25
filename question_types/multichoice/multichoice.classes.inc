@@ -43,8 +43,9 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
     if ($this->node->choice_multi == 1) {
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
-        if ($short['score_if_chosen'] == $short['score_if_not_chosen'] ||
-        !is_numeric($short['score_if_chosen'] || !is_numeric($short['score_if_not_chosen']))) {
+        if ($short['score_if_chosen'] == $short['score_if_not_chosen'] 
+        || !is_numeric($short['score_if_chosen']) 
+        || !is_numeric($short['score_if_not_chosen'])) {
           if ($short['correct'] == 1) {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
@@ -133,7 +134,6 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
   }
 
   private function insertAlternative($i) {
-    dpm($this->node);
     $sql = 'INSERT INTO {quiz_multichoice_answers}
             (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen,
