@@ -20,7 +20,6 @@
  */
 
 /*
- * TODO: Scores from multichoice aren't saved.
  * TODO: Scale isn't previewed nicely anymore...
  * TODO: Test with upgrades from 3.x to 4.x
  * TODO: Make it easier to add questions to a quiz
@@ -260,13 +259,20 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
 
     $content['answers'] = array();
 
-    $header = array(t('Alternative'), t('Score if chosen'), t('Score if not chosen'));
+    $header = array('','');
 
     foreach ($this->node->alternatives as $i => $short) {
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
       $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
-      // TODO color row as right, wrong or in between.  probably using theme.
-      $rows[] = array($answer_markup, $short['score_if_chosen'], $short['score_if_not_chosen']);
+      $p = drupal_get_path('module', 'multichoice');
+      $image = $is_correct ? 'correct' : 'wrong';
+      $rows[] = array(
+        array(
+          'data' => theme('image', "$p/theme/images/$image.png", t('Correct'), t('This answer is correct')), 
+          'width' => 35
+        ),
+        $answer_markup
+      );
     }
 
     $content['answers'] = array(
