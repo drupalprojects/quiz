@@ -19,7 +19,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class QuizDirectionsQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
+class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
   public function __construct($node) {
     parent::__construct($node);

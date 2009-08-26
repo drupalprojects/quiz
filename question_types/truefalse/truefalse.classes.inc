@@ -11,7 +11,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class TrueFalseQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
+class TrueFalseQuestion extends AbstractQuizQuestion {
 
   public function save($is_new = FALSE) {
     if (!isset($this->node->feedback)) {

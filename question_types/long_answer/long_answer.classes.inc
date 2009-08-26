@@ -11,7 +11,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class LongAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
+class LongAnswerQuestion extends AbstractQuizQuestion{
 
   public function save($is_new = FALSE) {
     if (!isset($this->node->feedback)) {

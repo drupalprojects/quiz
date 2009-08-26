@@ -215,20 +215,13 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     db_query($sql, $this->node->nid, $this->node->vid);
     $this->delete();
   }
-}
-
-/**
- * Questions extending AbstractQuizQuestion must provide certain setter and getter functions
- * for the abstract class to use.
- */
-interface QuizQuestionAbstract {
   
   /**
    * Getter function returning properties to be loaded when the node is loaded. 
    * 
    * @return array or object
    */
-  public function getNodeProperties();
+  abstract public function getNodeProperties();
   
   /**
    * Save data about the question to the database.
@@ -236,7 +229,7 @@ interface QuizQuestionAbstract {
    * @param $is_new
    *   If this is a new node or not.
    */
-  public function save($is_new = FALSE);
+  abstract public function save($is_new = FALSE);
   
   /**
    * Delete question data from the database
@@ -244,7 +237,7 @@ interface QuizQuestionAbstract {
    * @param $only_this_version
    *   If only this version(vid) should be deleted, or all versions.
    */
-  public function delete($only_this_version = FALSE);
+  abstract public function delete($only_this_version = FALSE);
   
   /**
    * Retrieve information relevant for viewing the node.
@@ -254,7 +247,7 @@ interface QuizQuestionAbstract {
    * @return
    *  Content array
    */
-  public function getNodeView();
+  abstract public function getNodeView();
 }
 
 /**

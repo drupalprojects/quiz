@@ -28,7 +28,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class ScaleQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
+class ScaleQuestion extends AbstractQuizQuestion {
 
   protected $util = FALSE; //The class is used only as a utility.
   protected $col_id = NULL;
