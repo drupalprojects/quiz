@@ -28,12 +28,6 @@ class LongAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAbs
   }
 
   public function delete($only_this_version = FALSE) {
-    if ($only_this_version) {
-      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-    }
-    else {
-      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->node->nid);
-    }
   }
 
   public function getNodeProperties() {

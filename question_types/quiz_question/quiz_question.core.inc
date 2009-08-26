@@ -80,7 +80,7 @@ interface QuizQuestion {
    *  nid/vid combo should be deleted. Otherwise, all questions with the
    *  current nid can be deleted.
    */
-  public function delete($only_this_version = FALSE);
+  public function deleteNode($only_this_version = FALSE);
   /**
    * Retrieve information relevant for viewing the node.
    * This data is generally added to the node's extra field.
@@ -192,6 +192,14 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     }
     $this->save($is_new);
   }
+  
+  public function deleteNode($only_this_version = FALSE) {
+    $sql = 'DELETE FROM {quiz_question_properties}
+            WHERE nid = %d';
+    if ($only_this_version) $sql .= ' AND vid = %d';
+    db_query($sql, $this->node->nid, $this->node->vid);
+    $this->delete();
+  }
 }
 
 /**
@@ -214,6 +222,14 @@ interface QuizQuestionAbstract {
    *   If this is a new node or not.
    */
   public function save($is_new = FALSE);
+  
+  /**
+   * Delete question data from the database
+   * 
+   * @param $only_this_version
+   *   If only this version(vid) should be deleted, or all versions.
+   */
+  public function delete($only_this_version = FALSE);
 }
 
 /**

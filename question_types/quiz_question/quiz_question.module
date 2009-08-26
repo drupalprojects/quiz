@@ -519,7 +519,7 @@ function quiz_question_delete(&$node) {
  */
 function _quiz_delete_question(&$node, $only_this_version) {
   // let each question class delete its own stuff
-  _quiz_question_get_instance($node)->delete($only_this_version);
+  _quiz_question_get_instance($node)->deleteNode($only_this_version);
   // then remove it from {quiz_node_relationship} linking table
   $base_sql = "UPDATE {quiz_node_relationship} SET question_status = ". QUESTION_NEVER;
   if ($only_this_version) {
