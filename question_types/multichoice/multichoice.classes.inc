@@ -20,8 +20,6 @@
  */
 
 /**
- * TODO: Fix long answer question problem...
- * TODO: Add message to enable truefalse if needed, or do it automatically...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
  *   TODO: Fix how you can add newly created questions directly via manage questions page

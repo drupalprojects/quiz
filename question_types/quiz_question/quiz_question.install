@@ -37,8 +37,23 @@ function quiz_question_schema() {
   return $schema;
 }
 
+/**
+ * Implementation of hook_update_N()
+ */
 function quiz_question_update_6400() {
   drupal_rebuild_theme_registry();
+  return array();
+}
+
+/**
+ * Implementation of hook_update_N()
+ * 
+ * In 6.x-3.x truefalse was a part of quiz question. In 4.x it has been separated out into
+ * its own module. We automatically installs this module to avoid issues with truefalse questions
+ * that aren't working anymore because the module haven't been installed.
+ */
+function quiz_question_update_6401() {
+  if (!module_exists('truefalse') && db_table_exists('quiz_truefalse_node')) drupal_install_modules(array('truefalse'));
   return array();
 }
 
