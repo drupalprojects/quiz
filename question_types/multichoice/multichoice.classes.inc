@@ -253,8 +253,6 @@ class MultichoiceQuestion extends AbstractQuizQuestion implements QuizQuestionAb
    *
    */
   public function getNodeView() {
-    $content = parent::getNodeView();
-
     $content['answers'] = array();
 
     $header = array('','');

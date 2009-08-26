@@ -39,7 +39,7 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion implements QuizQuestio
   }
 
   public function getNodeView() {
-    return $this->getAnsweringForm();
+    //return $this->getAnsweringForm();
   }
 
   // This is called whenever a question is rendered, either

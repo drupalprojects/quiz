@@ -30,7 +30,7 @@
 
 /**
  * A Quiz Question.
- * There should be an implementation of this interface for every question type support
+ * There should be an implementation of this interface for every question type supported
  * by Quiz.
  */
 interface QuizQuestion {
@@ -87,7 +87,7 @@ interface QuizQuestion {
    * @return
    *  Content array
    */
-  public function getNodeView();
+  public function viewNode();
   /**
    * Retrieve information about the question and add it to the node.
    */
@@ -126,9 +126,10 @@ interface QuizQuestion {
 }
 
 /**
- * A base implementation of QuizQuestion.
+ * A base implementation of QuizQuestion, adding a layer of abstraction between the
+ * node API, quiz API and the question types.
  *
- * Question type implementations may choose to extend this.
+ * It is recommended that Question type implementations extend this.
  */
 abstract class AbstractQuizQuestion implements QuizQuestion {
 
@@ -136,31 +137,45 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
    * The current node for this question.
    */
   protected $node = NULL;
-
+  
+  /**
+   * QuizQuestion constructor stores the node object.
+   * 
+   * @param $node
+   *   The node object
+   */
   public function __construct($node) {
     $this->node = $node;
   }
 
-  public function getNodeView() {
+  /**
+   * Getter function returning the node view to the node API.
+   * 
+   * @return array
+   */
+  public function viewNode() {
     // TODO make this a method of QuizQuestion
     $type = node_get_types('type', $this->node);
     $content['question_type'] = array(
       '#type'  => 'markup',
       '#value' => '<div class="question_type_name">' . $type->name . '</div>',
-      '#weight' => -1,
+      '#weight' => -2,
     );
     $content['question'] = array(
       '#type'  => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-      '#weight' => 0,
+      '#weight' => -1,
     );
-    $content['answers'] = array(
-      '#weight' => 2,
-    );
-
+    $question_specific = $this->getNodeView();
+    if (is_array($question_specific)) $content = array_merge($content, $question_specific);
     return $content;
   }
   
+  /**
+   * Getter function returning the node properties to the node API
+   * 
+   * @return array or object
+   */
   public function loadNode() {
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
@@ -230,6 +245,16 @@ interface QuizQuestionAbstract {
    *   If only this version(vid) should be deleted, or all versions.
    */
   public function delete($only_this_version = FALSE);
+  
+  /**
+   * Retrieve information relevant for viewing the node.
+   * 
+   * This data is generally added to the node's extra field.
+   * 
+   * @return
+   *  Content array
+   */
+  public function getNodeView();
 }
 
 /**

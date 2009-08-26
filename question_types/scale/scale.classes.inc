@@ -270,13 +270,14 @@ class ScaleQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract
   public function getNodeView() {
     //TODO: Consider changing this to something prettier...
     $form = $this->getAnsweringForm();
-    $to_return = drupal_render($form['question']);
+    //$to_return = drupal_render($form['question']);
     $to_return .= drupal_render($form['tries']);
     foreach ($form['tries']['#options'] as $val) {
       $radio = array('#type' => 'radio', '#title' => $val, '#value' => 0);
       $to_return .= drupal_render($radio);
     }
-    return array('#type' => 'markup', '#value' => $to_return);
+    $content['answer'] = array('#type' => 'markup', '#value' => $to_return);
+    return $content;
   }
 
   /**

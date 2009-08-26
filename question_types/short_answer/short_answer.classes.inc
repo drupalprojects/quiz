@@ -79,7 +79,6 @@ class ShortAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAb
   }
 
   public function getNodeView() {
-    $content = parent::getNodeView();
     $content['answers'] = array('#type' => 'markup',
       // FIXME hack should use CSS instead, maybe across all quiz_question.module
       '#value' => '<div style="background-color: lightgreen">'. $this->node->correct_answer .'</div>',

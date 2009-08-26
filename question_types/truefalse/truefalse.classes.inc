@@ -53,7 +53,6 @@ class TrueFalseQuestion extends AbstractQuizQuestion implements QuizQuestionAbst
   }
 
   public function getNodeView() {
-    $content = parent::getNodeView();
     $answer = ($this->node->correct_answer) ? t('True') : t('False');
     // leave other values of 'answers' element from parent
     $content['answers']['#type'] = 'markup';

@@ -74,8 +74,6 @@ class MatchingQuestion extends AbstractQuizQuestion implements QuizQuestionAbstr
   }
 
   public function getNodeView() {
-    $content = parent::getNodeView();
-
     $content['answers'] = array();
 
     $header = array(t('Subquestion'), t('Correct match'));

@@ -262,7 +262,7 @@ function quiz_question_answering_form($context, $node) {
 function _quiz_question_info($node) {
   $question = _quiz_question_get_instance($node);
 
-  $content = $question->getNodeView();
+  $content = $question->viewNode();
 
   $results = module_invoke_all('answers_access', $node);
   $may_view_answers = in_array(true, $results);
