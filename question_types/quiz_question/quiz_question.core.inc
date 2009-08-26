@@ -62,6 +62,7 @@ interface QuizQuestion {
    *  TRUE when the node is initially created.
    */
   public function saveNode($is_new = FALSE);
+  
   /**
    * Provides validation for question before it is created.
    *
@@ -72,6 +73,7 @@ interface QuizQuestion {
    *  The processed form.
    */
   public function validateNode(&$form);
+  
   /**
    * Deletes a question from the database.
    *
@@ -81,6 +83,7 @@ interface QuizQuestion {
    *  current nid can be deleted.
    */
   public function deleteNode($only_this_version = FALSE);
+  
   /**
    * Retrieve information relevant for viewing the node.
    * This data is generally added to the node's extra field.
@@ -88,10 +91,12 @@ interface QuizQuestion {
    *  Content array
    */
   public function viewNode();
+  
   /**
    * Retrieve information about the question and add it to the node.
    */
   public function loadNode();
+  
   /**
    * Get the form through which the user will answer the question.
    *
@@ -101,6 +106,7 @@ interface QuizQuestion {
    *  Must return a FAPI array.
    */
   public function getAnsweringForm($context = NULL);
+  
   /**
    * Get the form that contains admin settings for this question type.
    *
@@ -110,6 +116,7 @@ interface QuizQuestion {
    *  Must return a FAPI array.
    */
   public function getAdminForm($form_state = NULL);
+  
   /**
    * Get the form used to create a new question.
    * @param
@@ -118,6 +125,7 @@ interface QuizQuestion {
    *  Must return a FAPI array.
    */
   public function getCreationForm($form_state);
+  
   /**
    * Get the maximum possible score for this question.
    */
@@ -192,6 +200,9 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     return $to_return;
   }
   
+  /**
+   * Saves quiz question data to the database.
+   */
   public function saveNode($is_new = FALSE) {
     $is_new_node = $is_new || $this->node->revision == 1;
     if ($is_new_node) {
@@ -208,6 +219,9 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     $this->save($is_new);
   }
   
+  /**
+   * Deletes quiz question data from the database
+   */
   public function deleteNode($only_this_version = FALSE) {
     $sql = 'DELETE FROM {quiz_question_properties}
             WHERE nid = %d';
@@ -277,24 +291,29 @@ interface QuizQuestionResponse {
    * Delete the response.
    */
   public function delete();
+  
   /**
    * Calculate the score for the response.
    */
   public function score();
+  
   /**
    * Determine whether the score is a passing score.
    */
   public function isCorrect();
+  
   /**
    * Indicate whether the response has been evaluated (scored) yet.
    * Questions that require human scoring (e.g. essays) may need to manually
    * toggle this.
    */
   public function isEvaluated();
+  
   /**
    * Get the user's response.
    */
   public function getResponse();
+  
   /**
    * Get data suitable for reporting a user's score on the question.
    * This expects an object with the following attributes:
