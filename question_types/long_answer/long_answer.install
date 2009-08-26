@@ -65,7 +65,7 @@ function long_answer_schema() {
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
