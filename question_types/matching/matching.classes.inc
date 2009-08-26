@@ -59,7 +59,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function load() {
+  public function getNodeProperties() {
     $rows = $result = array();
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
@@ -71,7 +71,6 @@ class MatchingQuestion extends AbstractQuizQuestion {
         'feedback' => $result->feedback,
       );
     }
-    parent::superLoad($rows);
     return $rows;
   }
 

@@ -91,7 +91,7 @@ interface QuizQuestion {
   /**
    * Retrieve information about the question and add it to the node.
    */
-  public function load();
+  public function loadNode();
   /**
    * Get the form through which the user will answer the question.
    *
@@ -161,17 +161,20 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     return $content;
   }
   
-  public function superLoad(&$to_return) {
+  public function loadNode() {
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
     $max_score = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    $to_return = $this->getNodeProperties();
+    if (empty($to_return)) $to_return = array();
     if (is_array($to_return)) {
       $to_return['max_score'] = $max_score;
     } 
     elseif (is_object($to_return)) {
       $to_return->max_score = $max_score;
     }
+    return $to_return;
   }
   
   public function save($is_new = FALSE) {

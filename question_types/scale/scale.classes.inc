@@ -250,7 +250,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
-  public function load() {
+  public function getNodeProperties() {
     $to_return = array();
     $sql = 'SELECT id, answer, a.answer_collection_id
             FROM {quiz_scale_node_properties} p
@@ -260,7 +260,6 @@ class ScaleQuestion extends AbstractQuizQuestion {
     while ($res_o = db_fetch_object($res)) {
       $to_return[] = $res_o;
     }
-    parent::superLoad($to_return);
     return $to_return;
   }
   /**

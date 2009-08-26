@@ -47,10 +47,9 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function load() {
+  public function getNodeProperties() {
     $sql = 'SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
     $result = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
-    parent::superLoad($result);
     return $result;
   }
 

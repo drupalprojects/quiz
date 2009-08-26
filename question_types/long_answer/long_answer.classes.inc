@@ -37,10 +37,8 @@ class LongAnswerQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function load() {
-    $to_return = new stdClass();
-    parent::superLoad($to_return);
-    return $to_return;
+  public function getNodeProperties() {
+    //Nothing to return...
   }
 
   // This is called whenever a question is rendered, either

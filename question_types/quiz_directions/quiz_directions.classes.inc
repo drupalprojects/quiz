@@ -35,10 +35,8 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
   public function delete($only_this_version = FALSE) {}
 
-  public function load() {
-    $to_return = new stdClass();
-    parent::superLoad($to_return);
-    return $to_return;
+  public function getNodeProperties() {
+    // Nothing to return
   }
 
   public function getNodeView() {

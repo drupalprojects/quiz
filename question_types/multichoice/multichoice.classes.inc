@@ -19,8 +19,8 @@
  * Question type, enabling the creation of multiple choice and multiple answer questions.
  */
 
-/*
- * TODO: Feedback is shown in multichoice when it isn't supposed to...
+/**
+ * TODO: Refactor superLoad
  * TODO: Add message to enable truefalse if needed, or do it automatically...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
@@ -231,7 +231,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
-  public function load() {
+  public function getNodeProperties() {
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
             FROM {quiz_multichoice_properties}
             WHERE nid = %d AND vid = %d';
@@ -246,7 +246,6 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
     while ($res_arr = db_fetch_array($res)) {
       $to_return['alternatives'][] = $res_arr;
     }
-    parent::superLoad($to_return);
     return $to_return;
   }
 

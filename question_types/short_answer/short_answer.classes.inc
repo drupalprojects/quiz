@@ -71,13 +71,11 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function load() {
+  public function getNodeProperties() {
     $sql = 'SELECT correct_answer, correct_answer_evaluation
       FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
-    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
-    parent::superLoad($to_return);
-    
+    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));    
     return $to_return;
   }
 
