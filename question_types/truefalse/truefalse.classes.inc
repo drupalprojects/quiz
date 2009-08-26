@@ -14,7 +14,6 @@
 class TrueFalseQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
 
   public function save($is_new = FALSE) {
-    parent::save($is_new);
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }

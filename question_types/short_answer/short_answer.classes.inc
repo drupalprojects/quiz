@@ -33,7 +33,6 @@ class ShortAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAb
   const TEXT_ENTRY_TEXTAREA = 1;
 
   public function save($is_new = FALSE) {
-    parent::save($is_new);
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }

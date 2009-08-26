@@ -458,7 +458,7 @@ function quiz_question_nodeapi(&$node, $op) {
  * Implementation of hook_insert()
  */
 function quiz_question_insert($node) {
-  _quiz_question_get_instance($node)->save(TRUE);
+  _quiz_question_get_instance($node)->saveNode(TRUE);
   // If the form says this should be attached to a quiz, attach it.
   if (isset($node->quiz_id) && $node->quiz_id > 0) {
     $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
@@ -499,7 +499,7 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
  * Implementation of hook_update().
  */
 function quiz_question_update($node) {
-  _quiz_question_get_instance($node)->save();
+  _quiz_question_get_instance($node)->saveNode();
 }
 
 /**

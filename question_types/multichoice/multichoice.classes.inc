@@ -86,7 +86,6 @@ class MultichoiceQuestion extends AbstractQuizQuestion implements QuizQuestionAb
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function save($is_new = FALSE) {
-    parent::save($is_new);
     $is_new_node = $is_new || $this->node->revision == 1;
     $this->forgive();
     if ($is_new_node) {

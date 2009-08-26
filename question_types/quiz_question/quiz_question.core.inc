@@ -61,7 +61,7 @@ interface QuizQuestion {
    * @param $is_new
    *  TRUE when the node is initially created.
    */
-  public function save($is_new = FALSE);
+  public function saveNode($is_new = FALSE);
   /**
    * Provides validation for question before it is created.
    *
@@ -177,7 +177,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     return $to_return;
   }
   
-  public function save($is_new = FALSE) {
+  public function saveNode($is_new = FALSE) {
     $is_new_node = $is_new || $this->node->revision == 1;
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_question_properties}
@@ -190,6 +190,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
     }
+    $this->save($is_new);
   }
 }
 
@@ -198,7 +199,21 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
  * for the abstract class to use.
  */
 interface QuizQuestionAbstract {
+  
+  /**
+   * Getter function returning properties to be loaded when the node is loaded. 
+   * 
+   * @return array or object
+   */
   public function getNodeProperties();
+  
+  /**
+   * Save data about the question to the database.
+   * 
+   * @param $is_new
+   *   If this is a new node or not.
+   */
+  public function save($is_new = FALSE);
 }
 
 /**

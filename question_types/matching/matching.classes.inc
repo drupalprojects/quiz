@@ -22,7 +22,6 @@ class MatchingQuestion extends AbstractQuizQuestion implements QuizQuestionAbstr
   }
 
   public function save($is_new = FALSE) {
-    parent::save($is_new);
     foreach ($this->node->match as $match) {
       if (empty($match['question']) || empty($match['answer'])) {
         continue;
