@@ -212,7 +212,7 @@ class ScaleQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate(&$form) {
+  public function validateNode(&$form) {
   }
   /**
    * Implementation of delete

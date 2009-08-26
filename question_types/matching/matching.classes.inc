@@ -41,7 +41,7 @@ class MatchingQuestion extends AbstractQuizQuestion implements QuizQuestionAbstr
   }
 
 
-  public function validate(&$form) {
+  public function validateNode(&$form) {
     // This space intentionally left blank. :)
   }
 

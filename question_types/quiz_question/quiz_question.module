@@ -221,7 +221,7 @@ function quiz_question_validate($node, &$form) {
   if (empty($node->body)) {
     form_set_error('body', t('Question text is empty.'));
   }
-  _quiz_question_get_instance($node)->validate($form);
+  _quiz_question_get_instance($node)->validateNode($form);
 }
 
 /**

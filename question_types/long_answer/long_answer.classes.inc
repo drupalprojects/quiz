@@ -20,7 +20,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAbs
     }
   }
 
-  public function validate(&$form) {
+  public function validateNode(&$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
     $max_score = $this->node->max_score;
     if (!ctype_digit($max_score) || intval($max_score) < 0) {

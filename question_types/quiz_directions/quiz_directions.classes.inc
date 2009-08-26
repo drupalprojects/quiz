@@ -31,7 +31,7 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion implements QuizQuestio
     parent::save($is_new);
   }
 
-  public function validate(&$form) {}
+  public function validateNode(&$form) {}
 
   public function delete($only_this_version = FALSE) {}
 

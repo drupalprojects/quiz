@@ -164,7 +164,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion implements QuizQuestionAb
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validate(&$form) {
+  public function validateNode(&$form) {
     if ($this->node->choice_multi == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {

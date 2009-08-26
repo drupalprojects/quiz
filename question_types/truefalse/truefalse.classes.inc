@@ -30,7 +30,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion implements QuizQuestionAbst
     }
   }
 
-  public function validate(&$form) {
+  public function validateNode(&$form) {
     // This space intentionally left blank. :)
   }
 

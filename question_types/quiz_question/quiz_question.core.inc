@@ -71,7 +71,7 @@ interface QuizQuestion {
    * @param $form
    *  The processed form.
    */
-  public function validate(&$form);
+  public function validateNode(&$form);
   /**
    * Deletes a question from the database.
    *

@@ -51,7 +51,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAb
     }
   }
 
-  public function validate(&$form) {
+  public function validateNode(&$form) {
     $max_score = $this->node->max_score;
     if (!ctype_digit($max_score) || intval($max_score) < 0) {
       form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
