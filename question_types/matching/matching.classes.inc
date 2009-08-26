@@ -264,11 +264,11 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     return $this->score;
   }
 
-  /*
-    public function getResponse() {
-      return $this->answer;
+  
+  public function getResponse() {
+    return $this->answer;
   }
-  */
+  
 
   public function getUserAnswers() {
     $user_answers = array();

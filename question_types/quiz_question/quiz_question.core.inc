@@ -137,7 +137,7 @@ interface QuizQuestionResponse {
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($rid, $question, $answer);
+  public function __construct($rid, $question, $answer = NULL);
 
   /**
    * Save the current response.
@@ -186,7 +186,7 @@ interface QuizQuestionResponse {
    * @return
    *  An HTML string.
    */
-  public function formatReport($showPoints, $showFeedback);
+  public function formatReport($showPoints = TRUE, $showFeedback = TRUE);
 
   /**
    * Get the integer score.
