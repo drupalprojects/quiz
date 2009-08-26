@@ -41,7 +41,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion{
   public function getAnsweringForm($context = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
-       '#value' => check_markup($this->question->body, $this->question->format, FALSE),
+       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
      );
      $form['tries'] = array(
        '#type' => 'textarea',
