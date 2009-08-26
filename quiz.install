@@ -88,6 +88,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     // Creating array with all question types and relevant tables
     $sandbox['question_types'] = array(
       'long_answer' => array('node_properties'),
+      'matching' => array('node'),
       'multichoice' => array('properties', 'answers'),
       'scale' => array('node_properties'),
       'short_answer' => array('node_properties'),
@@ -104,11 +105,11 @@ function quiz_update_6401(&$sandbox = NULL) {
         unset($sandbox['question_types'][$type]);
       }
     }
+    $sandbox['max'] = count($sandbox['question_types']) + 4;
   }
   // Doing convertion for one questiontype at a time...
-  $current_type = array_pop(array_keys($sandbox['question_types']));
-  $tables = array_pop($sandbox['question_types']);
-  if (count($sandbox['question_types']) > 0) {
+  if ($current_type = array_pop(array_keys($sandbox['question_types']))) {
+    $tables = array_pop($sandbox['question_types']);
     switch ($current_type) {
       case 'long_answer':
         $sql = 'INSERT INTO {quiz_question_properties}
@@ -199,6 +200,16 @@ function quiz_update_6401(&$sandbox = NULL) {
       $result[] = update_sql($sql);
       $sandbox['quiz_relationships_done'] = TRUE;
     }
+    // In quiz 3.x mathing questions only gave 1 point...
+    elseif (!isset($sandbox['matching_relationship_done'])) {
+      $sql = 'UPDATE {quiz_node_relationship} r
+              JOIN {node} n
+              ON r.child_nid = n.nid AND r.child_vid = n.vid
+              SET r.max_score = 1
+              WHERE n.type = "matching"';
+      $result[] = update_sql($sql);
+      $sandbox['matching_relationship_done'] = TRUE;
+    }
     elseif (!isset($sandbox['quiz_properties_done'])) {
       $sql = 'UPDATE {quiz_node_properties} p
               SET p.max_score = 
@@ -211,9 +222,6 @@ function quiz_update_6401(&$sandbox = NULL) {
     }
     $sandbox['progress']++;
   } 
-  if (!isset($sandbox['max'])) {
-    $sandbox['max'] = count($sandbox['question_types']) + 3;
-  }
   
   $result['#finished'] = $sandbox['progress'] / $sandbox['max'];
   return $result;
