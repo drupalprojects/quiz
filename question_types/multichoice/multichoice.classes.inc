@@ -20,7 +20,8 @@
  */
 
 /*
- * TODO: Test with upgrades from 3.x to 4.x
+ * TODO: Feedback is shown in multichoice when it isn't supposed to...
+ * TODO: Add message to enable truefalse if needed, or do it automatically...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
  *   TODO: Fix how you can add newly created questions directly via manage questions page
@@ -28,7 +29,7 @@
  *   TODO: Make it possible to add questions to multiple quizzes from the question creation form 
  * TODO: Consider changing the way the user settings are remembered. If a question is deleted
  * the current way might result in serious errors.
- *
+ * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form?
  */
 
@@ -717,7 +718,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     $this->orderAlternatives($this->question->alternatives);
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
-      if (drupal_strlen($this->checkMarkup($short->answer, $short->answer_format)) > 0) {
+      if (drupal_strlen($this->checkMarkup($short['answer'], $short->answer_format)) > 0) {
         $row = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         $p = drupal_get_path('module', 'multichoice');
@@ -725,13 +726,13 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
         $not = '';
         if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen($this->checkMarkup($short->feedback_if_chosen, $short->feedback_if_chosen_format)) > 0) {
+            if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (drupal_strlen($this->checkMarkup($short->feedback_if_not_chosen, $short->feedback_if_not_chosen_format)) > 0) {
+            if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
@@ -740,23 +741,23 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
         }
         else {
           if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen($this->checkMarkup($short->feedback_if_chosen, $short->feedback_if_chosen_format)) > 0) {
+            if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
               $rowspan = 2;
             }
             $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
-            if (drupal_strlen($this->checkMarkup($short->feedback_if_not_chosen, $short->feedback_if_not_chosen_format)) > 0) {
+            if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
             $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
           }
         }
-        $row[] = check_markup($short['answer'], $short['answer_format'], FALSE);
+        $row[] = $this->checkMarkup($short['answer'], $short['answer_format'], FALSE);
         $rows[] = $row;
         if ($rowspan > 1) {
-          $feedback = check_markup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
+          $feedback = $this->checkMarkup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
           $rows[] = array("<H5>Feedback:</H5>$feedback");
         }
       }
@@ -793,7 +794,8 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
    * @param $field
    * @return HTML markup
    */
-  private function checkMarkup($alternative, $format, $check_user_access = TRUE) {
+  private function checkMarkup($alternative, $format, $check_user_access = FALSE) {
+    if(drupal_strlen($alternative) == 0) return '';
     return check_markup($alternative, $format, $check_user_access);
   }
 }
