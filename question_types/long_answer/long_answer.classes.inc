@@ -11,7 +11,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class LongAnswerQuestion extends AbstractQuizQuestion {
+class LongAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
 
   public function save($is_new = FALSE) {
     parent::save($is_new);

@@ -20,7 +20,7 @@
  * This could have extended long answer, except that that would have entailed
  * adding long answer as a dependency.
  */
-class ShortAnswerQuestion extends AbstractQuizQuestion {
+class ShortAnswerQuestion extends AbstractQuizQuestion implements QuizQuestionAbstract {
 
   // Answer matching algorithms.
   const ANSWER_MATCH = 0;

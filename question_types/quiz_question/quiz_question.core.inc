@@ -194,6 +194,14 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
 }
 
 /**
+ * Questions extending AbstractQuizQuestion must provide certain setter and getter functions
+ * for the abstract class to use.
+ */
+interface QuizQuestionAbstract {
+  public function getNodeProperties();
+}
+
+/**
  * Each question type must store its own response data and be able to calculate a score for
  * that data.
  */
