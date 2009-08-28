@@ -146,6 +146,7 @@ function quiz_question_access($op, $node, $account) {
  * Implementation of hook_form().
  */
 function quiz_question_form(&$node, $form_state) {
+  global $user;
   $form = array();
 
   $form['body'] = array(
@@ -211,14 +212,27 @@ function quiz_question_form(&$node, $form_state) {
   $question = _quiz_question_get_instance($node);
   $form = array_merge($form, $question->getCreationForm($form_state));
   
+  // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
+  $options = array();
+  $sql = 'SELECT quiz_nid, title
+          FROM {quiz_question_latest_quizzes} lq
+          JOIN {node} n
+          ON n.nid = lq.quiz_nid
+          WHERE lq.uid = %d
+          ORDER BY lq.order';
+  $res = db_query($sql, $user->uid);
+  while ($res_o = db_fetch_object($res)) {
+    $options[$res_o->quiz_nid] = $res_o->title;
+  }
+  
   $form['add_directly'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Add to quiz(under development...)'),
+    '#title' => t('Add to quiz'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#tree' => TRUE,
   );
-  $form['add_directly']['excisting'] = array(
+  $form['add_directly']['existing'] = array(
     '#type' => 'select',
     '#multiple' => TRUE,
     '#title' => t('Your last used quizzes'),
