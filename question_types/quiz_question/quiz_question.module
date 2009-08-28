@@ -183,8 +183,9 @@ function quiz_question_form(&$node, $form_state) {
 
   // Collection ID used here to tie creation of a question to a specific quiz or qcollection
   $collection_id = arg(3);
-  if (!empty($collection_id)) {
-    $collection = node_load((int)$collection_id);
+  if (is_numeric($collection_id)) {
+    $vid = (is_numeric(arg(4) && arg(4) > 0)) ? arg(4) : NULL;
+    $collection = node_load((int)$collection_id, $vid);
     $form['collection_nid'] = array(
       '#type' => 'value',
       '#value' => $collection->nid,
@@ -460,10 +461,10 @@ function quiz_question_nodeapi(&$node, $op) {
 function quiz_question_insert($node) {
   _quiz_question_get_instance($node)->saveNode(TRUE);
   // If the form says this should be attached to a quiz, attach it.
-  if (isset($node->quiz_id) && $node->quiz_id > 0) {
+  if (isset($node->collection_nid) && $node->collection_nid > 0) {
     $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
         VALUES (%d, %d, %d, %d, %d, %d)';
-    db_query($sql, $node->quiz_id, $node->quiz_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
+    db_query($sql, $node->collection_nid, $node->collection_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
   }
 }
 

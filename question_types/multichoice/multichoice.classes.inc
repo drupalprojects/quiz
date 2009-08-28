@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make it easier to add questions to a quiz
- *   TODO: Fix how you can add newly created questions directly via manage questions page
  *   TODO: Make it possible to add questions to multiple quizzes from the question creation form 
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
