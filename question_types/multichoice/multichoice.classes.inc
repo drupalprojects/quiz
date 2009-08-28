@@ -21,14 +21,12 @@
 
 /**
  * TODO: Make it easier to add questions to a quiz
- *   TODO: Make a question browser
  *   TODO: Fix how you can add newly created questions directly via manage questions page
- *   TODO: List the users newest questions in manage questions somehow
  *   TODO: Make it possible to add questions to multiple quizzes from the question creation form 
- * TODO: Consider changing the way the user settings are remembered. If a question is deleted
- * the current way might result in serious errors.
+ *   TODO: Make a question browser
+ *   TODO: List the users newest questions in manage questions somehow
  * TODO: There were error messages when updating from 3.x to 4.x.
- * @todo: Make a simplified alternative way to view the creation form?
+ * @todo: Make a simplified alternative way to view the creation form for multichoice question?
  */
 
 /**
@@ -548,28 +546,21 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
   }
   private function getUserSettings() {
     global $user;
-    $sql = 'SELECT last_nid, last_vid
+    $sql = 'SELECT choice_multi, choice_boolean, choice_random
             FROM {quiz_multichoice_user_settings}
             WHERE uid = %d';
     $res = db_query($sql, $user->uid);
-    if ($obj = db_fetch_object($res)) {
-      $sql = 'SELECT choice_multi, choice_random, choice_boolean
-              FROM {quiz_multichoice_properties}
-              WHERE nid = %d AND vid = %d';
-      $res = db_query($sql, $obj->last_nid, $obj->last_vid);
-      if ($arr = db_fetch_array($res)) {
-        return $arr;
-      }
-      else return false;
+    if ($arr = db_fetch_array($res)) {
+      return $arr;
     }
     else return false;
   }
   private function saveUserSettings() {
     global $user;
     $sql = 'REPLACE INTO {quiz_multichoice_user_settings}
-            (uid, last_nid, last_vid)
-            VALUES (%d, %d, %d)';
-    db_query($sql, $user->uid, $this->node->nid, $this->node->vid);
+            (uid, choice_random, choice_multi, choice_boolean)
+            VALUES (%d, %d, %d, %d)';
+    db_query($sql, $user->uid, $this->node->choice_random, $this->node->choice_multi, $this->node->choice_boolean);
   }
   /**
    * Implementation of getMaximumScore.

@@ -178,7 +178,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
       '#weight' => -1,
     );
-    $question_specific = $this->getView();
+    $question_specific = $this->getNodeView();
     if (is_array($question_specific)) $content = array_merge($content, $question_specific);
     return $content;
   }

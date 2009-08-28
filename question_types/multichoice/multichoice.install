@@ -174,15 +174,23 @@ function multichoice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'last_nid' => array(
+      'choice_multi' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
       ),
-      'last_vid' => array(
+      'choice_random' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
+      ),
+      'choice_boolean' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array(
@@ -208,6 +216,31 @@ function multichoice_update_6400(&$sandbox = NULL) {
   $path = drupal_get_path('module', 'multichoice');
   require_once("$path/multichoice_update_6400.inc");
   return _multichoice_update_6400($sandbox);
+}
+
+function multichoice_update_6401(&$sandbox = NULL) {
+  $results = array();
+  db_drop_field($results, 'quiz_multichoice_user_settings', 'last_nid');
+  db_drop_field($results, 'quiz_multichoice_user_settings', 'last_vid');
+  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_boolean', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_random', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_multi', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  return $results;
 }
 
 /**
