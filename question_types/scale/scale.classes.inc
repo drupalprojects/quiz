@@ -92,7 +92,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @param $preset - 1 | 0 = preset | not preset
    * @return unknown_type
    */
-  public function saveAnswerCollection($is_new_node, $alt_input = NULL, $preset = NULL) {
+  public function saveAnswerCollection($is_new_node, array $alt_input = NULL, $preset = NULL) {
     global $user;
     if (!isset($alt_input)) $alt_input = get_object_vars($this->node);
     if (!isset($preset)) $preset = $this->node->save;
@@ -183,7 +183,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @param $last_id - The id of the last alternative we compared with.
    * @return unknown_type
    */
-  private function excistingCollection($alternatives, $answer_collection_id = NULL, $last_id = NULL) {
+  private function excistingCollection(array $alternatives, $answer_collection_id = NULL, $last_id = NULL) {
     $my_alts = isset($answer_collection_id) ? $alternatives : array_reverse($alternatives);
     $sql = 'SELECT id, answer_collection_id
     		FROM {quiz_scale_answer}
@@ -211,7 +211,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
   }
   /**
    * Implementation of delete
@@ -287,7 +287,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * to an administrator or to a quiz taker.
    */
 
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       if (drupal_strlen($this->node->{$i}->answer)>0) {
@@ -311,7 +311,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
    */
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['manage'] = array(
       '#type' => 'markup',
       '#value' => l(t('Manage presets'), 'scale/collection/manage'),
@@ -329,7 +329,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
     $form = array();
     /*
      * Getting presets from the database
@@ -440,7 +440,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @param $collections - collections array, from getPresetCollections() for instance...
    * @return options array.
    */
-  private function makeOptions($collections) {
+  private function makeOptions(array $collections = NULL) {
     $options = array();
     foreach ($collections as $col_id => $obj) {
       $options[$col_id] = $obj->name;
@@ -453,7 +453,7 @@ class ScaleQuestion extends AbstractQuizQuestion {
    * @param $collections - collections array, from getPresetCollections() for instance...
    * @return javascript(string)
    */
-  private function makeJSArray($collections) {
+  private function makeJSArray(array $collections = NULL) {
     $jsArray = 'scaleCollections = new Array();';
     foreach ($collections as $col_id => $obj) {
       if (is_array($collections[$col_id]->alternatives)) {
@@ -492,7 +492,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @param $question - as an object
    * @param $answer - answer_id
    */
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
 
     if (isset($answer)) $this->answer_id = $answer;

@@ -19,7 +19,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion{
     }
   }
 
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
     $max_score = $this->node->max_score;
     if (!ctype_digit($max_score) || intval($max_score) < 0) {
@@ -38,7 +38,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion{
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -55,7 +55,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion{
   }
 
 
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',
       '#value' => t('There are no settings for this question type.'),
@@ -63,7 +63,7 @@ class LongAnswerQuestion extends AbstractQuizQuestion{
     return $form;
   }
 
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
     $form['max_score'] = array(
       '#type' => 'textfield',
       '#title' => t('Maximum Possible Score'),
@@ -141,7 +141,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
    */
   protected $answer_id = 0;
 
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
 
     if (!isset($answer)) {

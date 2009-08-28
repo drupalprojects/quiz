@@ -29,7 +29,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
     // This space intentionally left blank. :)
   }
 
@@ -64,7 +64,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
 
     // Question first
     $form['question'] = array(
@@ -88,7 +88,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   }
 
 
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',
       '#value' => t('There are no settings for this question type.'),
@@ -97,7 +97,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
   }
 
 
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
     $form['correct_answer'] = array(
       '#type' => 'radios',
       '#title' => t('Correct answer'),
@@ -147,7 +147,7 @@ class TrueFalseQuestion extends AbstractQuizQuestion {
 
 class TrueFalseResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
       $r = $this->getCorrectAnswer();

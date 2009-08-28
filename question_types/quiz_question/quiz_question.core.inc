@@ -41,7 +41,7 @@ interface QuizQuestion {
    * @param $node
    *   the node object
    */
-  public function __construct($node);
+  public function __construct(stdClass $node);
 
   /**
    * Responsible for handling insert/update of question-specific data.
@@ -72,7 +72,7 @@ interface QuizQuestion {
    * @param $form
    *  The processed form.
    */
-  public function validateNode(&$form);
+  public function validateNode(array &$form);
   
   /**
    * Deletes a question from the database.
@@ -105,7 +105,7 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getAnsweringForm($context = NULL);
+  public function getAnsweringForm(array $form_state = NULL);
   
   /**
    * Get the form that contains admin settings for this question type.
@@ -115,7 +115,7 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getAdminForm($form_state = NULL);
+  public function getAdminForm(array $form_state = NULL);
   
   /**
    * Get the form used to create a new question.
@@ -124,7 +124,7 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getCreationForm($form_state);
+  public function getCreationForm(array $form_state = NULL);
   
   /**
    * Get the maximum possible score for this question.
@@ -152,7 +152,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
    * @param $node
    *   The node object
    */
-  public function __construct($node) {
+  public function __construct(stdClass $node) {
     $this->node = $node;
   }
 
@@ -281,7 +281,7 @@ interface QuizQuestionResponse {
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($result_id, $question_node, $answer = NULL);
+  public function __construct($result_id, stdClass $question_node, $tries = NULL);
 
   /**
    * Save the current response.
@@ -367,7 +367,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   protected $answer = NULL;
   protected $score;
 
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;

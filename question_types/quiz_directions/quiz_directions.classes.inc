@@ -21,7 +21,7 @@
  */
 class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
-  public function __construct($node) {
+  public function __construct(stdClass $node) {
     parent::__construct($node);
     $this->node->no_skip_button = TRUE; // No skip button
     $this->node->not_a_question = TRUE;
@@ -30,7 +30,7 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
   public function save($is_new = FALSE) {
   }
 
-  public function validateNode(&$form) {}
+  public function validateNode(array &$form) {}
 
   public function delete($only_this_version = FALSE) {}
 
@@ -44,7 +44,7 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -61,14 +61,14 @@ class QuizDirectionsQuestion extends AbstractQuizQuestion {
 
      return $form;
   }
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['settings'] = array(
       '#type' => 'markup',
       '#value' => t('There are no settings for this question type.'),
     );
     return $form;
   }
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
     return array();
   }
   public function getMaximumScore() {

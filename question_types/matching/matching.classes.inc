@@ -16,7 +16,7 @@
  */
 class MatchingQuestion extends AbstractQuizQuestion {
 
-  public function __construct($node) {
+  public function __construct(stdClass $node) {
     parent::__construct($node);
     if (empty($this->node->match)) $this->node->match = array();
   }
@@ -40,7 +40,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
   }
 
 
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
     // This space intentionally left blank. :)
   }
 
@@ -91,7 +91,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     list($questions, $select_option) = $this->getSubquestions();
     foreach ($questions as $question) {
       $title = $question['question'];
@@ -107,7 +107,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
     return variable_get('quiz_matching_shuffle_options', TRUE) ? $this->customShuffle($form) : $form;
   }
 
-  private function customShuffle($array = array()) {
+  private function customShuffle(array $array = array()) {
     $new_array = array();
     while (count($array)) {
       $element = array_rand($array);
@@ -133,7 +133,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
     return array($questions, $select_option);
   }
 
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['matching'] = array(
       '#type' => 'fieldset',
       '#title' => t('Matching Settings'),
@@ -156,7 +156,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
     return system_settings_form($form);
   }
 
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
     $form['match'] = array(
       '#type' => 'fieldset',
       '#title' => t('Match Question'),
@@ -224,7 +224,7 @@ class MatchingQuestion extends AbstractQuizQuestion {
 
 class MatchingResponse extends AbstractQuizQuestionResponse {
 
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     $this->is_correct = $this->isCorrect();
     if (!isset($answer)) {

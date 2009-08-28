@@ -161,7 +161,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
    */
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
     if ($this->node->choice_multi == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
@@ -291,7 +291,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * to an administrator or to a quiz taker.
    */
 
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -335,7 +335,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
     return $form;
   }
 
-  private function shuffle(&$array) {
+  private function shuffle(array &$array) {
     $newArray = array();
     $toReturn = array_keys($array);
     shuffle($toReturn);
@@ -351,7 +351,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
    */
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     $form['multichoice_max_num_of_alts'] = array(
       '#type' => 'textfield',
       '#title' => t('Maximum number of alternatives allowed'),
@@ -366,7 +366,7 @@ class MultichoiceQuestion extends AbstractQuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
    */
-  public function getCreationForm($form_state) {
+  public function getCreationForm(array $form_state = NULL) {
     $form = array();
     $type = node_get_types('type', $this->node);
 
@@ -598,7 +598,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   protected $user_answer_ids;
   protected $choice_order;
 
-  public function __construct($result_id, $question_node, $tries = NULL) {
+  public function __construct($result_id, stdClass $question_node, $tries = NULL) {
     parent::__construct($result_id, $question_node);
     $this->user_answer_ids = array();
     if (is_array($tries)) {
@@ -764,7 +764,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     return $slug . $result;
   }
 
-  private function orderAlternatives(&$alternatives) {
+  private function orderAlternatives(array &$alternatives) {
     if (!$this->question->choice_random) return;
     $sql = "SELECT choice_order
             FROM {quiz_multichoice_user_answers}

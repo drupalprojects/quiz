@@ -50,7 +50,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
     }
   }
 
-  public function validateNode(&$form) {
+  public function validateNode(array &$form) {
     $max_score = $this->node->max_score;
     if (!ctype_digit($max_score) || intval($max_score) < 0) {
       form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
@@ -87,7 +87,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
     return $content;
   }
 
-  public function getAnsweringForm($context = NULL) {
+  public function getAnsweringForm(array $form_state = NULL) {
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -106,7 +106,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
     return $form;
   }
 
-  public function getAdminForm($edit = NULL) {
+  public function getAdminForm(array $form_state = NULL) {
     /*
     $form['short_answer_allow_regex'] = array(
       '#type' => 'checkbox',
@@ -123,7 +123,7 @@ class ShortAnswerQuestion extends AbstractQuizQuestion {
   }
 
 
-  public function getCreationForm($edit) {
+  public function getCreationForm(array $form_state = NULL) {
      $form['answer'] = array(
        '#type' => 'fieldset',
        '#title' => t('Answer'),
@@ -279,7 +279,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
    */
   protected $answer_id = 0;
 
-  public function __construct($result_id, $question_node, $answer = NULL) {
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
