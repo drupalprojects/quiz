@@ -137,7 +137,12 @@ interface QuizQuestion {
  * A base implementation of QuizQuestion, adding a layer of abstraction between the
  * node API, quiz API and the question types.
  *
- * It is recommended that Question type implementations extend this.
+ * It is recommended that Question types extend this abstract class.
+ * 
+ * This class has default behaviour that all question types should have. It also handles the node API, but
+ * gives the question types oppurtunity to save, delete and provide data specific for the question types.
+ * This is done by declaring helper functions as abstract functions instead of relying on the question
+ * types to call their parent methods for all node API methods.
  */
 abstract class AbstractQuizQuestion implements QuizQuestion {
 
@@ -162,7 +167,6 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
    * @return array
    */
   public function viewNode() {
-    // TODO make this a method of QuizQuestion
     $type = node_get_types('type', $this->node);
     $content['question_type'] = array(
       '#type'  => 'markup',
@@ -174,10 +178,22 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
       '#weight' => -1,
     );
-    $question_specific = $this->getNodeView();
+    $question_specific = $this->getView();
     if (is_array($question_specific)) $content = array_merge($content, $question_specific);
     return $content;
   }
+  
+  // Force question-types to return specific data for the nodeView:
+  
+  /**
+   * Retrieve information relevant for viewing the node.
+   * 
+   * This data is generally added to the node's extra field.
+   * 
+   * @return
+   *  Content array
+   */
+  abstract public function getNodeView();
   
   /**
    * Getter function returning the node properties to the node API
@@ -200,6 +216,15 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     return $to_return;
   }
   
+  // Force question-types to implement a function returning specific data for the node object:
+  
+  /**
+   * Getter function returning properties to be loaded when the node is loaded. 
+   * 
+   * @return array or object
+   */
+  abstract public function getNodeProperties();
+  
   /**
    * Saves quiz question data to the database.
    */
@@ -219,6 +244,16 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     $this->save($is_new);
   }
   
+  // Force question-types to implement a funciton for saving data:
+  
+  /**
+   * Save data about the question to the database.
+   * 
+   * @param $is_new
+   *   If this is a new node or not.
+   */
+  abstract public function save($is_new = FALSE);
+  
   /**
    * Deletes quiz question data from the database
    */
@@ -230,20 +265,7 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     $this->delete();
   }
   
-  /**
-   * Getter function returning properties to be loaded when the node is loaded. 
-   * 
-   * @return array or object
-   */
-  abstract public function getNodeProperties();
-  
-  /**
-   * Save data about the question to the database.
-   * 
-   * @param $is_new
-   *   If this is a new node or not.
-   */
-  abstract public function save($is_new = FALSE);
+  // Force question types to implement a function for deleting data
   
   /**
    * Delete question data from the database
@@ -252,16 +274,6 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
    *   If only this version(vid) should be deleted, or all versions.
    */
   abstract public function delete($only_this_version = FALSE);
-  
-  /**
-   * Retrieve information relevant for viewing the node.
-   * 
-   * This data is generally added to the node's extra field.
-   * 
-   * @return
-   *  Content array
-   */
-  abstract public function getNodeView();
 }
 
 /**
