@@ -22,6 +22,10 @@
 /**
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make it possible to add questions to multiple quizzes from the question creation form 
+ *     TODO: Delete from this table in nodeDelete in the abstract class
+ *     TODO: Populate the options array
+ *     TODO: Store stuff in quiz_node_relationship
+ *     TODO: Make function to create new quiz with only a title
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
  * TODO: There were error messages when updating from 3.x to 4.x.

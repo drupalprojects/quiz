@@ -194,7 +194,7 @@ function quiz_question_form(&$node, $form_state) {
       '#type' => 'value',
       '#value' => $collection->vid,
     );
-
+    
     // If coming from collection view, go back there on submit.
 
     // TODO ask the node itself where to go after authoring a question
@@ -210,7 +210,26 @@ function quiz_question_form(&$node, $form_state) {
 
   $question = _quiz_question_get_instance($node);
   $form = array_merge($form, $question->getCreationForm($form_state));
-
+  
+  $form['add_directly'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Add to quiz(under development...)'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => TRUE,
+  );
+  $form['add_directly']['excisting'] = array(
+    '#type' => 'select',
+    '#multiple' => TRUE,
+    '#title' => t('Your last used quizzes'),
+    '#description' => t('Hold CTRL to select multiple quizzes'),
+    '#options' => array('Yeah', 'Yo', 'My lovely quiz'),
+  );
+  $form['add_directly']['new'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title for new quiz'),
+    '#description' => t('Write in the name of the new quiz you want to create and add this question to'),
+  );
   return $form;
 }
 

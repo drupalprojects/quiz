@@ -34,7 +34,34 @@ function quiz_question_schema() {
       'nid' , 'vid'
     ),
   );
+  $schema['quiz_question_last_quizzes'] = _quiz_question_last_quizzes_table();
   return $schema;
+}
+
+function _quiz_question_last_quizzes_table() {
+  return array(
+    'fields' => array(
+      'quiz_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'order' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'default' => 0, 
+      ),
+    ),
+    'primary key' => array(
+      'quiz_nid' , 'uid',
+    ),
+  );
 }
 
 /**
@@ -55,6 +82,12 @@ function quiz_question_update_6400() {
 function quiz_question_update_6401() {
   if (!module_exists('truefalse') && db_table_exists('quiz_truefalse_node')) drupal_install_modules(array('truefalse'));
   return array();
+}
+
+function quiz_question_update_6402() {
+  $results = array();
+  db_create_table($results, 'quiz_question_last_quizzes', _quiz_question_last_quizzes_table());
+  return $results;
 }
 
 function quiz_question_uninstall() {
