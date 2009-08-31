@@ -22,7 +22,6 @@
 /**
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make it possible to add questions to multiple quizzes from the question creation form 
- *     TODO: select -> checkboxes...
  *     TODO: Delete from this table in nodeDelete in the abstract class
  *     TODO: Store stuff in quiz_node_relationship
  *     TODO: Make function to create new quiz with only a title
