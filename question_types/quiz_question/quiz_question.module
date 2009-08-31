@@ -213,18 +213,46 @@ function quiz_question_form(&$node, $form_state) {
   $form = array_merge($form, $question->getCreationForm($form_state));
   
   // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
-  $options = array();
-  $sql = 'SELECT quiz_nid, title
+  $already = array();
+  if (is_numeric($node->nid)) {
+    $sql = 'SELECT n.nid, n.title
+            FROM {quiz_node_relationship} r
+            JOIN {node} n
+            ON n.nid = r.parent_nid
+            WHERE r.child_nid = %d';
+    $res = db_query($sql, $node->nid);
+    while ($res_o = db_fetch_object($res)) {
+      $already[$res_o->nid] = $res_o->title; 
+    }
+  }
+  $found = implode(', ', array_keys($already));
+  $latest = array();
+  $sql = "SELECT quiz_nid, title
           FROM {quiz_question_latest_quizzes} lq
           JOIN {node} n
           ON n.nid = lq.quiz_nid
-          WHERE lq.uid = %d
-          ORDER BY lq.order';
+          WHERE lq.uid = %d"; 
+  if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
+  $sql .= " ORDER BY lq.id DESC";
   $res = db_query($sql, $user->uid);
   while ($res_o = db_fetch_object($res)) {
-    $options[$res_o->quiz_nid] = $res_o->title;
+    $latest[$res_o->quiz_nid] = $res_o->title;
   }
-  
+  $found = implode(', ', array_merge(array_keys($already), array_keys($latest)));
+  if (count($latest) < 10) {
+    $sql = "SELECT nid, title
+          FROM {node} n
+          WHERE n.uid = %d AND type = 'quiz'"; 
+    if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
+    $sql .= " ORDER BY changed LIMIT %d";
+    $res = db_query(db_rewrite_sql($sql), $user->uid, 10 - count($latest));
+    while ($res_o = db_fetch_object($res)) {
+      $latest[$res_o->nid] = $res_o->title;
+    } 
+  }
+  $options = array();
+  if (count($already) > 0) $options[t('Quizzes this question already is a member of')] = $already;
+  if (count($latest) > 0) $options[t('Latest quizzes this question isn\'t a member of')] = $latest;
   $form['add_directly'] = array(
     '#type' => 'fieldset',
     '#title' => t('Add to quiz'),
@@ -232,17 +260,22 @@ function quiz_question_form(&$node, $form_state) {
     '#collapsed' => TRUE,
     '#tree' => TRUE,
   );
-  $form['add_directly']['existing'] = array(
-    '#type' => 'select',
-    '#multiple' => TRUE,
-    '#title' => t('Your last used quizzes'),
-    '#description' => t('Hold CTRL to select multiple quizzes'),
-    '#options' => array('Yeah', 'Yo', 'My lovely quiz'),
-  );
+  $count = count($options);
+  if ($count > 0) {
+    //TODO: select -> checkboxes!
+    $form['add_directly']['existing'] = array(
+      '#type' => 'select',
+      '#multiple' => TRUE,
+      '#title' => t('Add question to'),
+      '#description' => t('Hold CTRL to select multiple quizzes'),
+      '#options' => $options,
+      '#default_value' => array_keys($already),
+    );
+  }
   $form['add_directly']['new'] = array(
     '#type' => 'textfield',
     '#title' => t('Title for new quiz'),
-    '#description' => t('Write in the name of the new quiz you want to create and add this question to'),
+    '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
   );
   return $form;
 }
@@ -486,6 +519,17 @@ function quiz_question_nodeapi(&$node, $op) {
       }
     }
   }
+  elseif ($node->type == 'quiz') {
+    switch ($op) {
+      case 'insert':
+      case 'update':
+        quiz_question_refresh_latest_quizzes($node->nid);
+        break;
+      case 'delete':
+        quiz_question_remove_latest_quizzes($node->nid);
+        break;
+    }
+  }
 }
 
 /**
@@ -498,6 +542,7 @@ function quiz_question_insert($node) {
     $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
         VALUES (%d, %d, %d, %d, %d, %d)';
     db_query($sql, $node->collection_nid, $node->collection_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
+    quiz_question_refresh_latest_quizzes($node->collection_nid);
   }
 }
 
@@ -654,4 +699,32 @@ function quiz_question_type_access_load($arg) {
   }
 
   return $node;
+}
+
+function quiz_question_refresh_latest_quizzes($nid) {
+  global $user;
+  $sql = 'DELETE FROM {quiz_question_latest_quizzes}
+          WHERE uid = %d AND quiz_nid = %d';
+  db_query($sql, $user->uid, $nid);
+  $sql = 'INSERT INTO {quiz_question_latest_quizzes}
+          (uid, quiz_nid)
+          VALUES (%d, %d)';
+  db_query($sql, $user->uid, $nid);
+  $sql = 'SELECT COUNT(*)
+          FROM {quiz_question_latest_quizzes}
+          WHERE uid = %d';
+  $count = db_result(db_query($sql, $user->uid));
+  $n_to_delete = (int)$count - 3;
+  if ($n_to_delete > 0) {
+    $sql = 'DELETE FROM {quiz_question_latest_quizzes}
+            WHERE uid = %d
+            ORDER BY id LIMIT %d';
+    db_query($sql, $user->uid, $n_to_delete);
+  }
+}
+
+function quiz_question_remove_latest_quizzes($nid) {
+  $sql = 'DELETE FROM {quiz_question_latest_quizzes}
+          WHERE quiz_nid = %d';
+  db_query($sql, $nid);
 }

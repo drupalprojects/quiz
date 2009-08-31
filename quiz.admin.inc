@@ -505,7 +505,7 @@ function quiz_add_question_submit($form, &$form_state) {
 function quiz_questions_form_submit($form, &$form_state) {
   // FIXME This is ugly and should be fixed.
   $quiz = node_load(arg(1));
-
+  if (module_exists('quiz_question')) quiz_question_refresh_latest_quizzes($quiz->nid);
   $is_new_revision = (bool) $form_state['values']['new_revision'];
 
   $removed = explode(',', $form_state['values']['remove_from_quiz']);

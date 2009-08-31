@@ -51,15 +51,14 @@ function _quiz_question_latest_quizzes_table() {
         'unsigned' => TRUE,
         'not null' => TRUE,  
       ),
-      'order' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'id' => array(
+        'type' => 'serial',
         'unsigned' => TRUE,
-        'default' => 0, 
+        'not null' => TRUE, 
       ),
     ),
     'primary key' => array(
-      'quiz_nid' , 'uid',
+      'id',
     ),
   );
 }
