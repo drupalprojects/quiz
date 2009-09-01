@@ -20,8 +20,15 @@
  */
 
 /**
+ * TODO: Rework how revisioning is done in quiz
+ *   TODO: Lag has been answered funksjon i quiz_question
+ *   TODO: if(has_been_answered) mark create new revision by default, og vis det grafisk med lenke til å skru av
+ *   TODO: Settings for å skru av auto revisioning
+ *   TODO: Lag has been answered funksjon i quiz
+ *   TODO: If has been answered new revision på manage question 
+ *   TODO: og new revision på edit siden
+ *   TODO: Pass på at new revision av en quiz får med seg alle spørsmålene fra forrige versjon...
  * TODO: Make it easier to add questions to a quiz
- *   TODO: Rework how revisioning is done in quiz
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
  * TODO: There were error messages when updating from 3.x to 4.x.
