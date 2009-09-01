@@ -38,7 +38,7 @@
 /**
  * Implementation of QuizQuestion.
  */
-class MultichoiceQuestion extends AbstractQuizQuestion {
+class MultichoiceQuestion extends QuizQuestion {
 
   private function forgive() {
     if ($this->node->choice_multi == 1) {

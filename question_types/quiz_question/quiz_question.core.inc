@@ -28,21 +28,46 @@
  * @file
  */
 
+
 /**
- * A Quiz Question.
- * There should be an implementation of this interface for every question type supported
- * by Quiz.
+ * A base implementation of a quiz_question, adding a layer of abstraction between the
+ * node API, quiz API and the question types.
+ *
+ * It is required that Question types extend this abstract class.
+ * 
+ * This class has default behaviour that all question types must have. It also handles the node API, but
+ * gives the question types oppurtunity to save, delete and provide data specific to the question types.
+ * This is done by declaring helper functions as abstract functions instead of relying on the question
+ * types to call their parent methods for all node API methods.
+ * 
+ * This abstract class also declares several abstract functions forcing question-types to implement required 
+ * methods.
  */
-interface QuizQuestion {
-
-  /**
-   * Construct a new quiz question.
-   *
-   * @param $node
-   *   the node object
+abstract class QuizQuestion {
+  /*
+   * ABSTRACT FUNCTIONS
+   * This part acts as a contract(/interface) between the question-types and the rest of the system.
+   * 
+   * All question types needs to implement the abstract functions.
    */
-  public function __construct(stdClass $node);
-
+  
+   /**
+   * Retrieve information relevant for viewing the node.
+   * 
+   * (This data is generally added to the node's extra field.)
+   * 
+   * @return
+   *  Content array
+   */
+  abstract public function getNodeView();
+  
+  /**
+   * Getter function returning properties to be loaded when the node is loaded. 
+   * 
+   * @return array or object
+   */
+  abstract public function getNodeProperties();
+  
   /**
    * Responsible for handling insert/update of question-specific data.
    * This is typically called from within the Node API, so there is no need
@@ -61,7 +86,15 @@ interface QuizQuestion {
    * @param $is_new
    *  TRUE when the node is initially created.
    */
-  public function saveNode($is_new = FALSE);
+  abstract public function save($is_new = FALSE);
+  
+  /**
+   * Delete question data from the database
+   * 
+   * @param $only_this_version
+   *   If only this version(vid) should be deleted, or all versions.
+   */
+  abstract public function delete($only_this_version = FALSE);
   
   /**
    * Provides validation for question before it is created.
@@ -72,30 +105,7 @@ interface QuizQuestion {
    * @param $form
    *  The processed form.
    */
-  public function validateNode(array &$form);
-  
-  /**
-   * Deletes a question from the database.
-   *
-   * @param $only_this_version
-   *  If the $only_this_version flag is TRUE, then only the particular
-   *  nid/vid combo should be deleted. Otherwise, all questions with the
-   *  current nid can be deleted.
-   */
-  public function deleteNode($only_this_version = FALSE);
-  
-  /**
-   * Retrieve information relevant for viewing the node.
-   * This data is generally added to the node's extra field.
-   * @return
-   *  Content array
-   */
-  public function viewNode();
-  
-  /**
-   * Retrieve information about the question and add it to the node.
-   */
-  public function loadNode();
+  abstract public function validateNode(array &$form);
   
   /**
    * Get the form through which the user will answer the question.
@@ -105,7 +115,7 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getAnsweringForm(array $form_state = NULL);
+  abstract public function getAnsweringForm(array $form_state = NULL);
   
   /**
    * Get the form that contains admin settings for this question type.
@@ -115,37 +125,31 @@ interface QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  public function getAdminForm(array $form_state = NULL);
+  abstract public function getAdminForm(array $form_state = NULL);
   
   /**
    * Get the form used to create a new question.
+   * 
    * @param
    *  FAPI form state
    * @return
    *  Must return a FAPI array.
    */
-  public function getCreationForm(array $form_state = NULL);
+  abstract public function getCreationForm(array $form_state = NULL);
   
   /**
    * Get the maximum possible score for this question.
    */
-  public function getMaximumScore();
-
-}
-
-/**
- * A base implementation of QuizQuestion, adding a layer of abstraction between the
- * node API, quiz API and the question types.
- *
- * It is recommended that Question types extend this abstract class.
- * 
- * This class has default behaviour that all question types should have. It also handles the node API, but
- * gives the question types oppurtunity to save, delete and provide data specific for the question types.
- * This is done by declaring helper functions as abstract functions instead of relying on the question
- * types to call their parent methods for all node API methods.
- */
-abstract class AbstractQuizQuestion implements QuizQuestion {
-
+  abstract public function getMaximumScore();
+  
+  
+  
+  
+  /*
+   * DEFAULT BEHAVIOR
+   * Behavior default for all question types should be written below
+   */
+  
   /**
    * The current node for this question.
    */
@@ -162,7 +166,10 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
   }
 
   /**
-   * Getter function returning the node view to the node API.
+   * hook_view OO counterpart
+   * 
+   * Calls the abstract function getNodeView() to get question type specific data,
+   * adds common data for all question types and returns the data to the node API.
    * 
    * @return array
    */
@@ -182,21 +189,12 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     if (is_array($question_specific)) $content = array_merge($content, $question_specific);
     return $content;
   }
-  
-  // Force question-types to return specific data for the nodeView:
-  
+    
   /**
-   * Retrieve information relevant for viewing the node.
+   * hook_load OO counterpart
    * 
-   * This data is generally added to the node's extra field.
-   * 
-   * @return
-   *  Content array
-   */
-  abstract public function getNodeView();
-  
-  /**
-   * Getter function returning the node properties to the node API
+   * Calls the abstract function getNodeProperties() to get question type specific data,
+   * adds common data for all question types and returns the data to the node API.
    * 
    * @return array or object
    */
@@ -216,17 +214,11 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     return $to_return;
   }
   
-  // Force question-types to implement a function returning specific data for the node object:
-  
   /**
-   * Getter function returning properties to be loaded when the node is loaded. 
+   * hook_update and hook_insert OO counterpart
    * 
-   * @return array or object
-   */
-  abstract public function getNodeProperties();
-  
-  /**
-   * Saves quiz question data to the database.
+   * Saves data common for all question types to the database and call the abstract function save()
+   * to let the question-type save its specific data
    */
   public function saveNode($is_new = FALSE) {
     $is_new_node = $is_new || $this->node->revision == 1;
@@ -244,18 +236,16 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     $this->save($is_new);
   }
   
-  // Force question-types to implement a funciton for saving data:
-  
   /**
-   * Save data about the question to the database.
+   * hook_delete OO counterpart
    * 
-   * @param $is_new
-   *   If this is a new node or not.
-   */
-  abstract public function save($is_new = FALSE);
-  
-  /**
-   * Deletes quiz question data from the database
+   * Deletes data common for all questiontypes and call the abstract function delete() 
+   * to let the question-type delete its specific data
+   *
+   * @param $only_this_version
+   *  If the $only_this_version flag is TRUE, then only the particular
+   *  nid/vid combo should be deleted. Otherwise, all questions with the
+   *  current nid can be deleted.
    */
   public function deleteNode($only_this_version = FALSE) {
     $sql = 'DELETE FROM {quiz_question_properties}
@@ -264,16 +254,6 @@ abstract class AbstractQuizQuestion implements QuizQuestion {
     db_query($sql, $this->node->nid, $this->node->vid);
     $this->delete();
   }
-  
-  // Force question types to implement a function for deleting data
-  
-  /**
-   * Delete question data from the database
-   * 
-   * @param $only_this_version
-   *   If only this version(vid) should be deleted, or all versions.
-   */
-  abstract public function delete($only_this_version = FALSE);
 }
 
 /**

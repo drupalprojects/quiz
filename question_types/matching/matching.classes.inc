@@ -14,7 +14,7 @@
 /**
  * Implementation of Matching.
  */
-class MatchingQuestion extends AbstractQuizQuestion {
+class MatchingQuestion extends QuizQuestion {
 
   public function __construct(stdClass $node) {
     parent::__construct($node);
