@@ -6,6 +6,24 @@ module_load_include('inc', 'quiz', 'quiz.admin');
 
 
 /**
+ * Creates a content array listing quiz questions.
+ *
+ * Handles the list items tab.
+ *
+ * @param $qid
+ *   ID of quiz to create
+ * @return
+ *   String containing the form.
+ */
+function _qcollection_list(stdClass $node) {
+  // TODO replace this with a view
+  $questions = _quiz_get_questions($node->nid, $node->vid);
+  $table_markup = theme('qcollection_question_table', $questions, $collection_nid);
+  return $table_markup;
+}
+
+
+/**
  * Creates a form for quiz questions.
  *
  * Handles the manage questions tab.
@@ -15,7 +33,7 @@ module_load_include('inc', 'quiz', 'quiz.admin');
  * @return
  *   String containing the form.
  */
-function qcollection_items($node) {
+function _qcollection_items($node) {
   // Add JS
   $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
   drupal_add_js($path, 'module');
@@ -34,7 +52,7 @@ function qcollection_items($node) {
  *
  * @param $collection_node
  */
-function qcollection_export_quiz($collection_node) {
+function _qcollection_export_quiz($collection_node) {
   global $user;
 
   $quiz_node = new stdClass();

@@ -82,10 +82,22 @@ function qcollection_node_info() {
  * Implementation of qcollection_menu().
  */
 function qcollection_menu() {
+  // Menu item for listing items in a collection
+  $items['node/%qcollection_type_access/list'] = array(
+  	'title' => t('List items'),
+    'page callback' => '_qcollection_list',
+    'page arguments' => array(1),
+    'access callback' => 'node_access',
+    'access arguments' => array('view', 1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'qcollection.inc',
+    'weight' => -1,
+  );
+
   // Menu item for managing items in a collection
   $items['node/%qcollection_type_access/items'] = array(
-  'title' => t('Manage items'),
-    'page callback' => 'qcollection_items',
+    'title' => t('Manage items'),
+    'page callback' => '_qcollection_items',
     'page arguments' => array(1),
     'access callback' => 'node_access',
     'access arguments' => array('update', 1),
@@ -95,8 +107,8 @@ function qcollection_menu() {
 
   // Menu item to export item list into a new quiz
   $items['node/%qcollection_type_access/export-quiz'] = array(
-  'title' => t('Export as quiz'),
-    'page callback' => 'qcollection_export_quiz',
+    'title' => t('Export as quiz'),
+    'page callback' => '_qcollection_export_quiz',
     'page arguments' => array(1),
     'access callback' => 'user_access',
     'access arguments' => array('create quiz'),
@@ -155,23 +167,11 @@ function qcollection_view($node, $teaser = FALSE, $page = FALSE, $links = TRUE) 
   $collection_nid = $node->nid;
 
   $info = _qcollection_get_info($node);
-  if ($teaser) {
-    $node->content['info'] = array(
-    // TODO theme the info block
+  $node->content['info'] = array(
+      // TODO theme the info block
       '#value' => "<em>$info[questions_count] questions</em><br/>",
       '#weight' => 0
-    );
-  } else {
-    $questions = _quiz_get_questions($node->nid, $node->vid);
-    $table_markup = theme('qcollection_question_table', $questions, $collection_nid);
-    $node->content['questions'] = array(
-    '#type' => 'fieldset',
-    '#title' => 'Items ('.count($questions).')',
-    '#collapsible' => TRUE,
-    '#weight' => 1,
-    );
-    $node->content['questions']['table']['#value'] = $table_markup;
-  }
+  );
 
   if (user_access('create quiz')) {
     $node->content['export-quiz'] = array(
