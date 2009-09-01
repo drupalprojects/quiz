@@ -256,7 +256,6 @@ function quiz_question_form(&$node, $form_state) {
     } 
   }
   
-  if (count($latest) > 0) $options[t('Latest quizzes this question isn\'t a member of')] = $latest;
   $form['add_directly'] = array(
     '#type' => 'fieldset',
     '#title' => t('Add to quiz'),
@@ -276,7 +275,7 @@ function quiz_question_form(&$node, $form_state) {
   if (count($latest) > 0) {
     $form['add_directly']['latest'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('The latest quizzes this question isn\'t a member of'),
+      '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
       '#description' => t('If you check any of the checkboxes this question will be added to the corresponding quiz.'),
       '#options' => $latest,
     );
