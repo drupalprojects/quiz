@@ -455,12 +455,12 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
 
     // set taxonomy, if specified
     $keyword_vid = $form_state['values']['keyword_vid'];
-    if (is_int($keyword_vid)) {
+    if (is_numeric($keyword_vid)) {
       // FIXME wrap each term in quotes in case terms have commas
       $node->taxonomy['tags'][$keyword_vid] = implode(",", $mq->keywords);
     }
     $category_vid = $form_state['values']['category_vid'];
-    if (is_int($category_vid)) {
+    if (is_numeric($category_vid)) {
       // treat category as 'tags' too so taxonomy_node_save will create missing terms
       $node->taxonomy['tags'][$category_vid] = $mq->category;
     }
