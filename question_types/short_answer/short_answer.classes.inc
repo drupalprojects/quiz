@@ -130,6 +130,7 @@ class ShortAnswerQuestion extends QuizQuestion {
        '#description' => t('Provide the answer and the method by which the answer will be evaluated.'),
        '#collapsible' => TRUE,
        '#collapsed' => FALSE,
+       '#weight' => -4,
      );
 
     $form['answer']['correct_answer_evaluation'] = array(

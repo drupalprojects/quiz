@@ -71,6 +71,7 @@ class LongAnswerQuestion extends QuizQuestion{
       '#default_value' => isset($this->node->max_score) ? $this->node->max_score : variable_get('long_answer_default_maximum_score', 1),
       '#size' => 3,
       '#maxlength' => 3,
+      '#weight' => -4,
       '#required' => TRUE,
     );
     return $form;

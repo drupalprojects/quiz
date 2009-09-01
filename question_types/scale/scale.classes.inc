@@ -345,6 +345,7 @@ class ScaleQuestion extends QuizQuestion {
       '#description' => t('Provide alternatives for the user to answer.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
+      '#weight' => -4,
     );
     $form['answer']['#theme'][] = 'scale_creation_form';
     $form['answer']['presets'] = array(

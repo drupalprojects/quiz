@@ -160,6 +160,7 @@ class MatchingQuestion extends QuizQuestion {
     $form['match'] = array(
       '#type' => 'fieldset',
       '#title' => t('Match Question'),
+      '#weight' => -4,
       '#tree' => TRUE,
     );
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {

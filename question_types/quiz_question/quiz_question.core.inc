@@ -165,6 +165,150 @@ abstract class QuizQuestion {
     $this->node = $node;
   }
 
+  public function getNodeForm(array $form_state = NULL) {
+    global $user;
+    $form = array();
+  
+    $form['body'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Question'),
+      '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
+      '#default_value' => $node->body,
+      '#required' => TRUE,
+      '#weight' => -15,
+    );
+  
+    // process up the filter format
+    $form['format'] = filter_form($node->format);
+    $form['format']['#weight'] = -14;
+  
+    // First we do the basic title and text fields.
+    // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
+  
+    // Allow user to set title?
+    if (user_access('allow user titles')) {
+      $form['helper']['#theme'] = 'quiz_question_creation_form';
+      $form['title'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Title'),
+        '#default_value' => $node->title,
+        '#required' => FALSE,
+        '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
+      );
+    }
+    else {
+      $form['title'] = array(
+        '#type' => 'value',
+        '#value' => $node->title,
+      );
+    }
+  
+    // Collection ID used here to tie creation of a question to a specific quiz or qcollection
+    $collection_id = arg(3);
+    if (is_numeric($collection_id)) {
+      $vid = (is_numeric(arg(4) && arg(4) > 0)) ? arg(4) : NULL;
+      $collection = node_load((int)$collection_id, $vid);
+      $form['collection_nid'] = array(
+        '#type' => 'value',
+        '#value' => $collection->nid,
+      );
+      $form['collection_vid'] = array(
+        '#type' => 'value',
+        '#value' => $collection->vid,
+      );
+      
+      // If coming from collection view, go back there on submit.
+  
+      // TODO ask the node itself where to go after authoring a question
+      switch ($collection->type) {
+        case 'quiz':
+          $form['#redirect'] = 'node/'. $collection->nid .'/questions';
+          break;
+        case 'qcollection':
+          $form['#redirect'] = 'node/'. $collection->nid .'/items';
+          break;
+      }
+    }
+    
+    //Add question specific content
+    $form = array_merge($form, $this->getCreationForm($form_state));
+    
+    // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
+    $already = array();
+    $already_nids = array();
+    if (is_numeric($node->nid)) {
+      $sql = 'SELECT n.nid, r.parent_vid AS vid, n.title
+              FROM {quiz_node_relationship} r
+              JOIN {node} n
+              ON n.nid = r.parent_nid
+              WHERE r.child_nid = %d AND r.child_vid = %d';
+      $res = db_query($sql, $node->nid, $node->vid);
+      while ($res_o = db_fetch_object($res)) {
+        $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+        $already_nids[] = $res_o->nid;
+      }
+    }
+    $found = implode(', ', $already_nids);
+    $latest = array();
+    $latest_nids = array();
+    $sql = "SELECT quiz_nid, n.vid, title
+            FROM {quiz_question_latest_quizzes} lq
+            JOIN {node} n
+            ON n.nid = lq.quiz_nid
+            WHERE lq.uid = %d"; 
+    if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
+    $sql .= " ORDER BY lq.id DESC";
+    $res = db_query($sql, $user->uid);
+    while ($res_o = db_fetch_object($res)) {
+      $latest[$res_o->quiz_nid .'-'. $res_o->vid] = $res_o->title;
+      $latest_nids[] = $res_o->quiz_nid;
+    }
+    $found = implode(', ', array_merge($already_nids, $latest_nids));
+    if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
+      $sql = "SELECT nid, vid, title
+            FROM {node} n
+            WHERE n.uid = %d AND type = 'quiz'"; 
+      if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
+      $sql .= " ORDER BY changed LIMIT %d";
+      $res = db_query(db_rewrite_sql($sql), $user->uid, QUIZ_QUESTION_N_O_LATEST - count($latest));
+      while ($res_o = db_fetch_object($res)) {
+        $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+      } 
+    }
+    
+    $form['add_directly'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Add to quiz'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#weight' => -3,
+      '#tree' => TRUE,
+    );
+    if (count($already) > 0) {
+      $form['add_directly']['already'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Quizzes this question already is a member of'),
+        '#description' => t('If you uncheck any of the checkboxes this question will be removed from the corresponding quiz.'),
+        '#options' => $already,
+        '#default_value' => array_keys($already),
+      );
+    }
+    if (count($latest) > 0) {
+      $form['add_directly']['latest'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
+        '#description' => t('If you check any of the checkboxes this question will be added to the corresponding quiz.'),
+        '#options' => $latest,
+      );
+    }
+    $form['add_directly']['new'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Title for new quiz'),
+      '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
+    );
+    return $form;
+  }
+  
   /**
    * hook_view OO counterpart
    * 
@@ -253,6 +397,21 @@ abstract class QuizQuestion {
     if ($only_this_version) $sql .= ' AND vid = %d';
     db_query($sql, $this->node->nid, $this->node->vid);
     $this->delete();
+  }
+  
+  /**
+   * Finds out if a question has been answered or not...
+   * 
+   * @return
+   *   true if there exists answers to the current question
+   */
+  public function hasBeenAnswered() {
+    $sql = 'SELECT *
+            FROM {quiz_node_results_answers}
+            WHERE question_nid = %d AND question_vid = %d
+            LIMIT 1';
+    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    return db_fetch_object($res) ? TRUE : FALSE;
   }
 }
 

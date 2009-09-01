@@ -102,11 +102,12 @@ class TrueFalseQuestion extends QuizQuestion {
       '#type' => 'radios',
       '#title' => t('Correct answer'),
       '#options' => array(
-    1 => t('True'),
-    0 => t('False'),
-    ),
+        1 => t('True'),
+        0 => t('False'),
+      ),
       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
       '#required' => TRUE,
+      '#weight' => -4,
     );
     $form['feedback_fields'] = array(
       '#type' => 'fieldset',
@@ -114,6 +115,7 @@ class TrueFalseQuestion extends QuizQuestion {
       '#description' => t('Settings pertaining to feedback given along with results.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      '#weight' => -3,
     );
     $form['feedback_fields']['feedback'] = array(
       '#type' => 'textarea',

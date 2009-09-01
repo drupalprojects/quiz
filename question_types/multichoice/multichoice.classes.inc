@@ -21,13 +21,13 @@
 
 /**
  * TODO: Rework how revisioning is done in quiz
- *   TODO: Lag has been answered funksjon i quiz_question
- *   TODO: if(has_been_answered) mark create new revision by default, og vis det grafisk med lenke til å skru av
- *   TODO: Settings for å skru av auto revisioning
- *   TODO: Lag has been answered funksjon i quiz
- *   TODO: If has been answered new revision på manage question 
- *   TODO: og new revision på edit siden
- *   TODO: Pass på at new revision av en quiz får med seg alle spørsmålene fra forrige versjon...
+ *   TODO: Make has been answered function in quiz_question
+ *   TODO: if(has_been_answered) mark create new revision by default, and show graphic with link to switch off...
+ *   TODO: Settings to switch off auto-revisioning
+ *   TODO: Make has been answered function in quiz
+ *   TODO: If has been answered new revision on manage question 
+ *   TODO: and new revision on edit page
+ *   TODO: Make sure new revision of a quiz gets all questions from previos version...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
@@ -390,6 +390,7 @@ class MultichoiceQuestion extends QuizQuestion {
       '#title' => t('Alternatives'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
+      '#weight' => -4,
       '#tree' => TRUE,
     );
     $form['alternatives']['settings'] = array(
