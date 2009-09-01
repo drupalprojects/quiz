@@ -766,15 +766,24 @@ function quiz_question_type_access_load($arg) {
   return $node;
 }
 
+/**
+ * Refreshes the ..._latest_quizzes table when a user has modified a new quiz.
+ * 
+ * @param $nid
+ *   nid of the last quiz the current user modified
+ */
 function quiz_question_refresh_latest_quizzes($nid) {
   global $user;
+  // Delete entry if it allready exists
   $sql = 'DELETE FROM {quiz_question_latest_quizzes}
           WHERE uid = %d AND quiz_nid = %d';
   db_query($sql, $user->uid, $nid);
+  // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)
   $sql = 'INSERT INTO {quiz_question_latest_quizzes}
           (uid, quiz_nid)
           VALUES (%d, %d)';
   db_query($sql, $user->uid, $nid);
+  // If we have to many entries for current user, delete the oldest entries...
   $sql = 'SELECT COUNT(*)
           FROM {quiz_question_latest_quizzes}
           WHERE uid = %d';
@@ -788,6 +797,12 @@ function quiz_question_refresh_latest_quizzes($nid) {
   }
 }
 
+/**
+ * Removes a quiz from the ..._latest_quizzes table.
+ * 
+ * @param $nid
+ *   the nid of a quiz that shall be removed from the ..._latest_quizzes table
+ */
 function quiz_question_remove_latest_quizzes($nid) {
   $sql = 'DELETE FROM {quiz_question_latest_quizzes}
           WHERE quiz_nid = %d';
