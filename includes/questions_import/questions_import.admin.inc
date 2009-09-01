@@ -449,8 +449,8 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
   foreach ($moodle_questions as $mq) {
     $node = new stdClass();
     $node->weight = $import_count;
-    $node->quiz_id = $destination_node->nid;
-    $node->quiz_vid = $destination_node->vid;
+    $node->collection_nid = $destination_node->nid;
+    $node->collection_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
 
     // set taxonomy, if specified
@@ -573,8 +573,8 @@ function questions_import_submit_qti12($destination_node, $form, $form_state, $i
   foreach ($qti_items as $item) {
     $node = new stdClass();
     $node->weight = $row;
-    $node->quiz_id = $destination_node->nid;
-    $node->quiz_vid = $destination_node->vid;
+    $node->collection_nid = $destination_node->nid;
+    $node->collection_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
 
     _questions_import_qti_create_node($item, $form_state, $row, $import_id, $node);
@@ -828,8 +828,8 @@ function questions_import_submit_aiken($destination_node, $form, $form_state, $i
 
     $node = new stdClass();
     $node->weight = $row;
-    $node->quiz_id = $destination_node->nid;
-    $node->quiz_vid = $destination_node->vid;
+    $node->collection_nid = $destination_node->nid;
+    $node->collection_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
 
     questions_import_read_node_aiken($line, $node);
@@ -967,8 +967,8 @@ function questions_import_submit_csv($destination_node, $form, $form_state, $imp
   foreach ($lines as $line) {
     $node = new stdClass();
     $node->weight = $row;
-    $node->quiz_id = $destination_node->nid;
-    $node->quiz_vid = $destination_node->vid;
+    $node->collection_nid = $destination_node->nid;
+    $node->collection_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
 
     questions_import_read_node_csv($line, $node, $separator);
