@@ -8,6 +8,7 @@
  * hooks, this module provides a framework that makes adding new types much easier.
  * @file
  */
+define(QUIZ_QUESTION_N_O_LATEST, 10);
 
 /**
  * Implementation of hook_help().
@@ -243,13 +244,13 @@ function quiz_question_form(&$node, $form_state) {
     $latest_nids[] = $res_o->quiz_nid;
   }
   $found = implode(', ', array_merge($already_nids, $latest_nids));
-  if (count($latest) < 10) {
+  if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
     $sql = "SELECT nid, vid, title
           FROM {node} n
           WHERE n.uid = %d AND type = 'quiz'"; 
     if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
     $sql .= " ORDER BY changed LIMIT %d";
-    $res = db_query(db_rewrite_sql($sql), $user->uid, 10 - count($latest));
+    $res = db_query(db_rewrite_sql($sql), $user->uid, QUIZ_QUESTION_N_O_LATEST - count($latest));
     while ($res_o = db_fetch_object($res)) {
       $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
     } 
@@ -788,7 +789,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
           FROM {quiz_question_latest_quizzes}
           WHERE uid = %d';
   $count = db_result(db_query($sql, $user->uid));
-  $n_to_delete = (int)$count - 3;
+  $n_to_delete = (int)$count - QUIZ_QUESTION_N_O_LATEST;
   if ($n_to_delete > 0) {
     $sql = 'DELETE FROM {quiz_question_latest_quizzes}
             WHERE uid = %d
