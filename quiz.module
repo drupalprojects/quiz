@@ -408,7 +408,7 @@ function quiz_insert($node) {
     VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
-  $_REQUEST['destination'] = "node/$node->nid/questions";
+  if (!$node->auto_created) $_REQUEST['destination'] = "node/$node->nid/questions";
 }
 
 /**
@@ -2761,4 +2761,25 @@ function quiz_answers_access($node, $account=NULL) {
     return TRUE;
   }
 }
-
+/**
+ * Makes, saves and returns a new quiz node.
+ * 
+ * @param $title - the title of the new node
+ * @return $node
+ */
+function quiz_make_new($title) {
+  global $user;
+  $new_node = new stdClass();
+  $new_node->title = $title;
+  $new_node->type = 'quiz';
+  $new_node->status = 1;
+  $new_node->quiz_open = _quiz_form_prepare_date();
+  $new_node->quiz_close = _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30));
+  $new_node->auto_created = true;
+  $new_node->uid = $user->uid;
+  node_save($new_node);
+  if (is_numeric($new_node->nid)) {
+    drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
+  }
+  return $new_node;
+}

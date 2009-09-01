@@ -601,7 +601,13 @@ function quiz_question_quiz_relationships($node) {
       db_query($sql, $insert_values);
     }
   }
-  
+  if (drupal_strlen($node->add_directly['new']) > 0) {
+    $new_node = quiz_make_new($node->add_directly['new']);
+    $sql = 'INSERT INTO {quiz_node_relationship} 
+            (parent_nid, parent_vid, child_nid, child_vid)
+            VALUES (%d, %d, %d, %d)';
+    db_query($sql, $new_node->nid, $new_node->vid, $node->nid, $node->vid);
+  }
 }
 
 /**

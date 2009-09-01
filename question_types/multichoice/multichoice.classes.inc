@@ -21,8 +21,6 @@
 
 /**
  * TODO: Make it easier to add questions to a quiz
- *   TODO: Make it possible to add questions to multiple quizzes from the question creation form
- *     TODO: Make function to create new quiz with only a title
  *   TODO: Rework how revisioning is done in quiz
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
