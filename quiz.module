@@ -2384,7 +2384,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
     $types = array_keys(_quiz_get_question_types());
     if (count($types) > 0) {
     $str_types = "'". implode("','", $types) ."'";
-      $where_add[] = 'question.type IN ( '. $str_types .' )';
+      $where_add[] = 'question.type IN ('. $str_types .')';
     }
   }
 
