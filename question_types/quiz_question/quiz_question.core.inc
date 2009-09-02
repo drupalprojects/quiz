@@ -285,10 +285,12 @@ abstract class QuizQuestion {
       '#tree' => TRUE,
     );
     if (count($already) > 0) {
+      $desc = 'If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. ';
+      $desc .= 'If the quiz has been answered a new revision of the quiz will be created automatically.';
       $form['add_directly']['already'] = array(
         '#type' => 'checkboxes',
         '#title' => t('Quizzes this question already is a member of'),
-        '#description' => t('If you uncheck any of the checkboxes this question will be removed from the corresponding quiz.'),
+        '#description' => t($desc),
         '#options' => $already,
         '#default_value' => array_keys($already),
       );
@@ -403,9 +405,21 @@ abstract class QuizQuestion {
     if (is_array($this->node->add_directly['already'])) {
       foreach ($this->node->add_directly['already'] as $key => $checked) {
         if ($checked == 0) {
+          $nid_vid = explode('-', $key);
+          $dummy_node = new stdClass();
+          $dummy_node->nid = $nid_vid[0];
+          $dummy_node->vid = $nid_vid[1];
+          if (quiz_has_been_answered($dummy_node)) {
+            $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
+            $temp_quiz_node->revision = 1;
+            $temp_quiz_node->auto_created = true;
+            node_save($temp_quiz_node);
+            $nid_vid[1] = $temp_quiz_node->vid;
+            $msg = 'New revision has been created for the quiz %n';
+            drupal_set_message(t($msg, array('%n' => $temp_quiz_node->title)));
+          }
           $sql = 'DELETE FROM {quiz_node_relationship}
                   WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
-          $nid_vid = explode('-', $key);
           db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid);
         }
       }
@@ -419,6 +433,18 @@ abstract class QuizQuestion {
       $insert_values = array();
       foreach ($this->node->add_directly['latest'] as $nid => $checked) {
         if ($checked != 0) {
+          $dummy_node = new stdClass();
+          $dummy_node->nid = $nid_vid[0];
+          $dummy_node->vid = $nid_vid[1];
+          if (quiz_has_been_answered($dummy_node)) {
+            $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
+            $temp_quiz_node->revision = 1;
+            $temp_quiz_node->auto_created = true;
+            node_save($temp_quiz_node);
+            $nid_vid[1] = $temp_quiz_node->vid;
+            $msg = 'New revision has been created for the quiz %n';
+            drupal_set_message(t($msg, array('%n' => $temp_quiz_node->title)));
+          }
           if (count($insert_values) > 0) $to_insert .= ',';
           $to_insert .= ' (%d, %d, %d, %d)';
           $nid_vid = explode('-', $checked);

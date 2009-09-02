@@ -20,8 +20,6 @@
  */
 
 /**
- * TODO: Rework how revisioning is done in quiz
- *   TODO: When adding questions to a quiz from the question node form revisioning might be required...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
  *   TODO: List the users newest questions in manage questions somehow
