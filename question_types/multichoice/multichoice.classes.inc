@@ -21,8 +21,7 @@
 
 /**
  * TODO: Rework how revisioning is done in quiz
- *   TODO: Make has been answered function in quiz_question
- *   TODO: if(has_been_answered) mark create new revision by default, and show graphic with link to switch off...
+ *   TODO: show graphic with link to switch off autorevisioning?
  *   TODO: Settings to switch off auto-revisioning
  *   TODO: Make has been answered function in quiz
  *   TODO: If has been answered new revision on manage question 

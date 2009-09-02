@@ -165,7 +165,7 @@ abstract class QuizQuestion {
     $this->node = $node;
   }
 
-  public function getNodeForm(array $form_state = NULL) {
+  public function getNodeForm(&$node, array $form_state = NULL) {
     global $user;
     $form = array();
   
@@ -306,6 +306,7 @@ abstract class QuizQuestion {
       '#title' => t('Title for new quiz'),
       '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
     );
+    if ($this->hasBeenAnswered()) $node->revision = 1;
     return $form;
   }
   
