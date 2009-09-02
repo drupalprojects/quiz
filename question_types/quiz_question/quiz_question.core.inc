@@ -294,10 +294,12 @@ abstract class QuizQuestion {
       );
     }
     if (count($latest) > 0) {
+      $desc = 'If you check any of the checkboxes this question will be added to the corresponding quiz. ';
+      $desc .= 'If the quiz has been answered a new revision will be created automatically.';
       $form['add_directly']['latest'] = array(
         '#type' => 'checkboxes',
         '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
-        '#description' => t('If you check any of the checkboxes this question will be added to the corresponding quiz.'),
+        '#description' => t($desc),
         '#options' => $latest,
       );
     }
@@ -315,7 +317,7 @@ abstract class QuizQuestion {
     return $form;
   }
   
-  /**
+  /**-
    * hook_view OO counterpart
    * 
    * Calls the abstract function getNodeView() to get question type specific data,
@@ -383,9 +385,64 @@ abstract class QuizQuestion {
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
     }
+    $this->saveRelationships();
     $this->save($is_new);
   }
   
+  /**
+   * Handle the add to quiz part of the quiz_question_form
+   * 
+   * @param $node
+   *   node object made out of form values.
+   */
+  function saveRelationships() {
+    /*
+     * If the question already is part of quizzes we might have to remove some
+     * relationships
+     */ 
+    if (is_array($this->node->add_directly['already'])) {
+      foreach ($this->node->add_directly['already'] as $key => $checked) {
+        if ($checked == 0) {
+          $sql = 'DELETE FROM {quiz_node_relationship}
+                  WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
+          $nid_vid = explode('-', $key);
+          db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid);
+        }
+      }
+    }
+    
+    /*
+     * The quiz question might have been added to new quizzes
+     */
+    if (is_array($this->node->add_directly['latest'])) {
+      $to_insert = 'VALUES';
+      $insert_values = array();
+      foreach ($this->node->add_directly['latest'] as $nid => $checked) {
+        if ($checked != 0) {
+          if (count($insert_values) > 0) $to_insert .= ',';
+          $to_insert .= ' (%d, %d, %d, %d)';
+          $nid_vid = explode('-', $checked);
+          $insert_values[] = $nid_vid[0];
+          $insert_values[] = $nid_vid[1];
+          $insert_values[] = $this->node->nid;
+          $insert_values[] = $this->node->vid;
+        } 
+      }
+      if (count($insert_values) > 0) {
+        $sql = 'INSERT INTO {quiz_node_relationship} 
+                (parent_nid, parent_vid, child_nid, child_vid)
+                '. $to_insert;
+        db_query($sql, $insert_values);
+      }
+    }
+    if (drupal_strlen($this->node->add_directly['new']) > 0) {
+      $new_node = quiz_make_new($this->node->add_directly['new']);
+      $sql = 'INSERT INTO {quiz_node_relationship} 
+              (parent_nid, parent_vid, child_nid, child_vid)
+              VALUES (%d, %d, %d, %d)';
+      db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid);
+    }
+  }
   /**
    * hook_delete OO counterpart
    * 

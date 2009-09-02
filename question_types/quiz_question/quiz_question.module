@@ -416,62 +416,6 @@ function quiz_question_insert(stdClass $node) {
     db_query($sql, $node->collection_nid, $node->collection_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
     quiz_question_refresh_latest_quizzes($node->collection_nid);
   }
-  quiz_question_quiz_relationships($node);
-}
-
-/**
- * Handle the add to quiz part of the quiz_question_form
- * 
- * @param $node
- *   node object made out of form values.
- */
-function quiz_question_quiz_relationships($node) {
-  /*
-   * If the question already is part of quizzes we might have to remove some
-   * relationships
-   */ 
-  if (is_array($node->add_directly['already'])) {
-    foreach ($node->add_directly['already'] as $key => $checked) {
-      if ($checked == 0) {
-        $sql = 'DELETE FROM {quiz_node_relationship}
-                WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
-        $nid_vid = explode('-', $key);
-        db_query($sql, $nid_vid[0], $nid_vid[1], $node->nid, $node->vid);
-      }
-    }
-  }
-  
-  /*
-   * The quiz question might have been added to new quizzes
-   */
-  if (is_array($node->add_directly['latest'])) {
-    $to_insert = 'VALUES';
-    $insert_values = array();
-    foreach ($node->add_directly['latest'] as $nid => $checked) {
-      if ($checked != 0) {
-        if (count($insert_values) > 0) $to_insert .= ',';
-        $to_insert .= ' (%d, %d, %d, %d)';
-        $nid_vid = explode('-', $checked);
-        $insert_values[] = $nid_vid[0];
-        $insert_values[] = $nid_vid[1];
-        $insert_values[] = $node->nid;
-        $insert_values[] = $node->vid;
-      } 
-    }
-    if (count($insert_values) > 0) {
-      $sql = 'INSERT INTO {quiz_node_relationship} 
-              (parent_nid, parent_vid, child_nid, child_vid)
-              '. $to_insert;
-      db_query($sql, $insert_values);
-    }
-  }
-  if (drupal_strlen($node->add_directly['new']) > 0) {
-    $new_node = quiz_make_new($node->add_directly['new']);
-    $sql = 'INSERT INTO {quiz_node_relationship} 
-            (parent_nid, parent_vid, child_nid, child_vid)
-            VALUES (%d, %d, %d, %d)';
-    db_query($sql, $new_node->nid, $new_node->vid, $node->nid, $node->vid);
-  }
 }
 
 /**
@@ -507,7 +451,6 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
  */
 function quiz_question_update($node) {
   _quiz_question_get_instance($node)->saveNode();
-  quiz_question_quiz_relationships($node);
 }
 
 /**
