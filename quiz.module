@@ -799,6 +799,12 @@ function quiz_form(&$node) {
       );
     }
   }
+  if (quiz_has_been_answered($node)) {
+    $log = 'The current revision has been answered. We create a new revision so that the reports ';
+    $log .= 'from the existing answers stays correct.';
+    $node->revision = 1;
+    $node->log = t($log);
+  }
   return $form;
 }
 
@@ -2782,4 +2788,19 @@ function quiz_make_new($title) {
     drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
   }
   return $new_node;
+}
+
+/**
+   * Finds out if a quiz has been answered or not...
+   * 
+   * @return
+   *   true if there exists answers to the current question
+   */
+function quiz_has_been_answered($node) {
+  $sql = 'SELECT *
+          FROM {quiz_node_results}
+          WHERE nid = %d AND vid = %d
+          LIMIT 1';
+  $res = db_query($sql, $node->nid, $node->vid);
+  return db_fetch_object($res) ? TRUE : FALSE;
 }

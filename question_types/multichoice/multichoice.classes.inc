@@ -21,9 +21,7 @@
 
 /**
  * TODO: Rework how revisioning is done in quiz
- *   TODO: Make has been answered function in quiz
- *   TODO: If has been answered new revision on manage question 
- *   TODO: and new revision on edit page
+ *   TODO: Try to always pass the node as reference to the constructor?
  *   TODO: Make sure new revision of a quiz gets all questions from previos version...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser

@@ -292,12 +292,22 @@ function quiz_questions_form($form_state, $quiz, $options) {
   // Show the number of 'always' questions in the 'always' table header.
   $always_count = isset($form['filtered_question_list_always']['titles']) ? count($form['filtered_question_list_always']['titles']) : 0;
   $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
-
+  
+  if (quiz_has_been_answered($quiz)) {
+    $rev_default = TRUE;
+    $rev_description = 'This quiz has been answered. To maintain correctnes of existing answer reports ';
+    $rev_description .= 'changes should be saved as a new revision.';
+  } 
+  else {
+    $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
+    $rev_description = 'Allow question status changes to create a new revision of the quiz?';
+  }
+  
   $form['new_revision'] = array(
     '#type' => 'checkbox',
-    '#default_value' => in_array('revision', variable_get('node_options_quiz', array())),
+    '#default_value' => $rev_default,
     '#title' => t('New revision'),
-    '#description' => t('Allow question status changes to create a new revision of the quiz?'),
+    '#description' => t($rev_description),
   );
 
   $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
@@ -307,8 +317,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#value' => t('Submit questions'),
     '#submit' => array('quiz_questions_form_submit'),
   );
-
-  //$form['#submit'][] = 'quiz_questions_form_submit';
 
   return $form;
 }
@@ -455,7 +463,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
     }
     list($state, $nid, $vid) = explode('-', $id, 3);
     $nid = (int)$nid;
-    $nid = (int)$nid;
+    $vid = (int)$vid;
     $question['nid'] = $nid;
     $question['vid'] = $vid;
     $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
