@@ -476,7 +476,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
   }
 
   // Save questions.
-  quiz_set_questions($quiz, $questions, $new_revision);
+  quiz_set_questions($quiz, $questions, $is_new_revision);
 
   return $questions;
 }

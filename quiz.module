@@ -1831,7 +1831,6 @@ function quiz_node_map($node) {
  */
 function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   $old_vid = $quiz->vid;
-
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
@@ -1846,7 +1845,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   // updates/inserts/deletes, but that method has already proven error prone as the module
   // has gained complexity (See 5.x-2.0-RC2).
   // So we go with the brute force method:
-  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $old_vid);
+  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $quiz->vid);
 
   if (empty($questions)) {
     return TRUE; // This is not an error condition.
