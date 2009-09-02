@@ -150,12 +150,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
 
   $form['filtered_question_list_always']['always_box'] = array(
     '#type' => 'fieldset',
-    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
+    '#title' => t('Search by title and type'),
     '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
        '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
   t('To add a new question, expand the "Add new question" section at top.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
   );
 
   $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
@@ -180,6 +180,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
       'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
     ),
   );
+  $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($form_state, $quiz, 'always');
+    
   $form['filtered_question_list_always']['remove_from_quiz'] = array(
     '#type' => 'hidden',
     '#default_value' => '',
@@ -391,6 +393,48 @@ function _quiz_form_fields_random_pool($quiz) {
     );
   }
 
+  return $form;
+}
+
+function _quiz_question_browser_form($form_state, $quiz, $freq) {
+  $form = array();
+  $question_types = _quiz_get_question_types();
+  if (!is_array($question_types) || count($question_types) == 0) {
+    return $form['no_questions'] = array(
+      '#type' => 'markup',
+      '#value' => t('No question types are enabled'),
+    );
+  }
+  $form[$freq .'_browse'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Browse by title, type and category.'),
+    '#description' => t('Mark all the questions you want to add.') .' '
+    .t('You can filter questions by using the textfields and select boxes.') .' '
+    .t('You can sort by pressing the table headers.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#tree' => TRUE,
+  );
+  $browser = &$form[$freq .'_browse'];
+  $question_type_list = implode('\', \'', array_keys($question_types));
+  $sql = 'SELECT type, nid, title, changed 
+  		  FROM {node} n
+  		  WHERE n.type IN (\''. $question_type_list .'\')
+  		  ORDER BY changed
+  		  LIMIT 10';
+  $res = db_query($sql);
+  $options = array();
+  while ($res_o = db_fetch_object($res)) {
+    $options[$res_o->nid] = check_plain($res_o->title);
+    $browser['changed'][$res_o->nid]['#value'] = format_date($res_o->changed, 'small');
+    $browser['types'][$res_o->nid]['#value'] = $res_o->type;
+  }
+  
+  $browser['titles'] = array(
+    '#title' => t('THIS IS WORK IN PROGRESS!!!'),
+    '#type' => 'checkboxes',
+    '#options' => $options,
+  );
   return $form;
 }
 

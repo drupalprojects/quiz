@@ -20,9 +20,14 @@
  */
 
 /**
- * TODO: Make it easier to add questions to a quiz
- *   TODO: Make a question browser
- *   TODO: List the users newest questions in manage questions somehow
+ * TODO: Make a question browser
+ *   TODO: Beeing able to add from form
+ *   TODO: Add theming - form as table
+ *   TODO: Add pagination
+ *   TODO: Add sorting(Sorting by url, stored in the formstate/form arrays)
+ *   TODO: Add filtering(Filtering by textfields and select boxes.)
+ *   TODO: Add ajax?
+ * TODO: Check that the random question features still works.
  * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form for multichoice question?
  */
