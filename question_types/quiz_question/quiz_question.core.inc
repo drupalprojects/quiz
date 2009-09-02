@@ -161,11 +161,11 @@ abstract class QuizQuestion {
    * @param $node
    *   The node object
    */
-  public function __construct(stdClass $node) {
+  public function __construct(stdClass &$node) {
     $this->node = $node;
   }
 
-  public function getNodeForm(&$node, array $form_state = NULL) {
+  public function getNodeForm(array $form_state = NULL) {
     global $user;
     $form = array();
   
@@ -173,13 +173,13 @@ abstract class QuizQuestion {
       '#type' => 'textarea',
       '#title' => t('Question'),
       '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
-      '#default_value' => $node->body,
+      '#default_value' => $this->node->body,
       '#required' => TRUE,
       '#weight' => -15,
     );
   
     // process up the filter format
-    $form['format'] = filter_form($node->format);
+    $form['format'] = filter_form($this->node->format);
     $form['format']['#weight'] = -14;
   
     // First we do the basic title and text fields.
@@ -191,7 +191,7 @@ abstract class QuizQuestion {
       $form['title'] = array(
         '#type' => 'textfield',
         '#title' => t('Title'),
-        '#default_value' => $node->title,
+        '#default_value' => $this->node->title,
         '#required' => FALSE,
         '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
       );
@@ -199,7 +199,7 @@ abstract class QuizQuestion {
     else {
       $form['title'] = array(
         '#type' => 'value',
-        '#value' => $node->title,
+        '#value' => $this->node->title,
       );
     }
   
@@ -236,13 +236,13 @@ abstract class QuizQuestion {
     // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
     $already = array();
     $already_nids = array();
-    if (is_numeric($node->nid)) {
+    if (is_numeric($this->node->nid)) {
       $sql = 'SELECT n.nid, r.parent_vid AS vid, n.title
               FROM {quiz_node_relationship} r
               JOIN {node} n
               ON n.nid = r.parent_nid
               WHERE r.child_nid = %d AND r.child_vid = %d';
-      $res = db_query($sql, $node->nid, $node->vid);
+      $res = db_query($sql, $this->node->nid, $this->node->vid);
       while ($res_o = db_fetch_object($res)) {
         $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
         $already_nids[] = $res_o->nid;
@@ -309,8 +309,8 @@ abstract class QuizQuestion {
     if ($this->hasBeenAnswered()) {
       $log = 'The current revision has been answered. We create a new revision so that the reports ';
       $log .= 'from the existing answers stays correct.';
-      $node->revision = 1;
-      $node->log = t($log);
+      $this->node->revision = 1;
+      $this->node->log = t($log);
     }
     return $form;
   }

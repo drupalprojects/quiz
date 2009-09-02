@@ -148,7 +148,7 @@ function quiz_question_access($op, $node, $account) {
  */
 function quiz_question_form(&$node, $form_state) {
   $question = _quiz_question_get_instance($node);
-  $form = $question->getNodeForm($node, $form_state);
+  $form = $question->getNodeForm($form_state);
   return $form;
 }
 
@@ -551,7 +551,7 @@ function quiz_question_load($node) {
  * Get information about the class and use it to construct a new
  * object of the appropriate type.
  */
-function _quiz_question_get_instance($node) {
+function _quiz_question_get_instance(&$node) {
   if (is_object($node)) {
     $name = $node->type;
   }

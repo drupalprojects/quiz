@@ -21,7 +21,6 @@
 
 /**
  * TODO: Rework how revisioning is done in quiz
- *   TODO: Try to always pass the node as reference to the constructor?
  *   TODO: Make sure new revision of a quiz gets all questions from previos version...
  * TODO: Make it easier to add questions to a quiz
  *   TODO: Make a question browser
