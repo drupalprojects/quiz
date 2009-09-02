@@ -306,7 +306,12 @@ abstract class QuizQuestion {
       '#title' => t('Title for new quiz'),
       '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
     );
-    if ($this->hasBeenAnswered()) $node->revision = 1;
+    if ($this->hasBeenAnswered()) {
+      $log = 'The current revision has been answered. We create a new revision so that the reports ';
+      $log .= 'from the existing answers stays correct.';
+      $node->revision = 1;
+      $node->log = t($log);
+    }
     return $form;
   }
   

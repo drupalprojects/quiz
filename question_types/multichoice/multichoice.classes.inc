@@ -21,8 +21,6 @@
 
 /**
  * TODO: Rework how revisioning is done in quiz
- *   TODO: show graphic with link to switch off autorevisioning?
- *   TODO: Settings to switch off auto-revisioning
  *   TODO: Make has been answered function in quiz
  *   TODO: If has been answered new revision on manage question 
  *   TODO: and new revision on edit page
