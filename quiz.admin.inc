@@ -219,7 +219,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       preg_match('/id:([0-9]+)/', $quest, $matches);
       $nid = $matches[1];
       $node = node_load($nid);
-      $max_score = quiz_question_quiz_question_score(NULL, $node->nid, $node->vid)->possible;
+      $max_score = quiz_question_get_max_score($node->nid, $node->vid);
       $node->max_score = $max_score;
       $node->weight = 0;
       foreach ($questions as $question) {
@@ -405,7 +405,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
       '#value' => t('No question types are enabled'),
     );
   }
-  $form[$freq .'_browse'] = array(
+  $form[$freq .'_browser'] = array(
     '#type' => 'fieldset',
     '#title' => t('Browse by title, type and category.'),
     '#description' => t('Mark all the questions you want to add.') .' '
@@ -415,9 +415,9 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#collapsed' => FALSE,
     '#tree' => TRUE,
   );
-  $browser = &$form[$freq .'_browse'];
+  $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));
-  $sql = 'SELECT type, nid, title, changed 
+  $sql = 'SELECT type, nid, vid, title, changed 
   		  FROM {node} n
   		  WHERE n.type IN (\''. $question_type_list .'\')
   		  ORDER BY changed
@@ -425,9 +425,10 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   $res = db_query($sql);
   $options = array();
   while ($res_o = db_fetch_object($res)) {
-    $options[$res_o->nid] = check_plain($res_o->title);
-    $browser['changed'][$res_o->nid]['#value'] = format_date($res_o->changed, 'small');
-    $browser['types'][$res_o->nid]['#value'] = $res_o->type;
+    $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
+    $options[$id] = check_plain($res_o->title);
+    $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'small');
+    $browser['types'][$id]['#value'] = $res_o->type;
   }
   
   $browser['titles'] = array(
@@ -559,7 +560,9 @@ function quiz_questions_form_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
   if (module_exists('quiz_question')) quiz_question_refresh_latest_quizzes($quiz->nid);
   $is_new_revision = (bool) $form_state['values']['new_revision'];
-
+  
+  _quiz_question_browser_submit($form, $form_state);
+  
   $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
@@ -609,6 +612,21 @@ function quiz_questions_form_submit($form, &$form_state) {
   }
 }
 
+function _quiz_question_browser_submit($form, &$form_state) {
+  //Find the biggest weight:
+  $next_weight = max($form_state['values']['weights']);
+  //TODO: Consider random and always separately?
+  foreach ($form_state['values']['always_browser']['titles'] as $id) {
+    if ($id !== 0) {
+      $matches = array();
+      preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+      $nid = $matches[1];
+      $vid = $matches[2];
+      $form_state['values']['weights'][$id] = ++$next_weight;
+      $form_state['values']['max_scores'][$id] = quiz_question_get_max_score($nid, $vid);
+    }
+  }
+}
 /**
  * Autocompletion function for quiz questions.
  */

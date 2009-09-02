@@ -21,7 +21,7 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Beeing able to add from form
+ *   TODO: Do not show questions already part of quiz in the browser
  *   TODO: Add theming - form as table
  *   TODO: Add pagination
  *   TODO: Add sorting(Sorting by url, stored in the formstate/form arrays)

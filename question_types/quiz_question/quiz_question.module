@@ -339,6 +339,9 @@ function quiz_question_get_report($nid, $vid, $rid) {
  * Implementation of hook_quiz_question_score().
  */
 function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid = NULL, $rid = NULL) {
+  if (!isset($quiz) && !isset($rid)) {
+    return quiz_question_get_max_score($question_nid, $question_vid);
+  }
   $node = node_load($question_nid, $question_vid);
   $question = _quiz_question_get_instance($node);
 
@@ -614,4 +617,11 @@ function quiz_question_remove_latest_quizzes($nid) {
   $sql = 'DELETE FROM {quiz_question_latest_quizzes}
           WHERE quiz_nid = %d';
   db_query($sql, $nid);
+}
+
+function quiz_question_get_max_score($nid, $vid) {
+  $sql = 'SELECT max_score 
+          FROM {quiz_question_properties}
+          WHERE nid = %d AND vid = %d';
+  return db_result(db_query($sql, $nid, $vid));
 }
