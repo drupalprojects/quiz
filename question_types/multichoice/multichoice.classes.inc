@@ -21,9 +21,10 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Add sorting(Sorting by url, stored in the formstate/form arrays)
  *   TODO: Add filtering(Filtering by textfields and select boxes.)
- *   TODO: Add ajax?
+ *   TODO: Add ajax or something to remember previously selected questions etc.
+ *   TODO: UX engineering
+ *     TODO: Must look different from the other tables on the page.
  * TODO: Check that the random question features still works.
  * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form for multichoice question?

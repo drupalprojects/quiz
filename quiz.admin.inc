@@ -422,6 +422,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     NULL, 
     array('data' => t('Title'), 'field' => 'n.title'),
     array('data' => t('Type'), 'field' => 'n.type'),
+    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc'),
     array('data' => t('Username'), 'field' => 'u.name'),
   );
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
@@ -432,7 +433,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		    SELECT child_nid
   		    FROM {quiz_node_relationship}
   		    WHERE parent_nid = %d AND parent_vid = %d) '.tablesort_sql($browser['#header']);
-  $res = pager_query(db_rewrite_sql($sql), 10, $pager_num, NULL, $quiz->nid, $quiz->vid);
+  $res = pager_query(db_rewrite_sql($sql), 20, $pager_num, NULL, $quiz->nid, $quiz->vid);
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
@@ -444,7 +445,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   
   if (count($options) > 0) {
     $browser['titles'] = array(
-      '#title' => t('THIS IS WORK IN PROGRESS!!!'),
+      '#title' => t('Titles'),
       '#type' => 'checkboxes',
       '#options' => $options,
     );
@@ -455,7 +456,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     );
   }
   $browser['pager'] = array(
-    '#value' => theme('pager', NULL, 10, $pager_num),
+    '#value' => theme('pager', NULL, 20, $pager_num),
   );
   return $form;
 }

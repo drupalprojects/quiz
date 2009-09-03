@@ -43,6 +43,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
   $row[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q'])));
   $row[] = $form['types'][$key]['#value'];
+  $row[] = $form['changed'][$key]['#value'];
   $row[] = $form['names'][$key]['#value'];
   $rows[] = array('data' => $row, 'class' => 'quiz_question_browser_row');
 }
