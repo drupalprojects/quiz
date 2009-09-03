@@ -316,7 +316,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
 
   $form['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Submit questions'),
+    '#value' => t('Submit'),
     '#submit' => array('quiz_questions_form_submit'),
   );
 
@@ -417,28 +417,97 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   );
   $browser = &$form[$freq .'_browser'];
   
+  $type_options = array(
+    t('No filter'),
+  );
+  foreach (array_keys($question_types) as $type) {
+    $type_options[$type] = $type;
+  }
+  $changedOptions = array(
+    t('No filter'),
+    t('Today'),
+    t('Yesterday'),
+    t('Two days ago'),
+    t('This week'),
+    t('Last week'),
+    t('This month'),
+    t('Last month'),
+    t('This year'),
+    t('Last year'),
+    t('Long ago'),
+  );
+  $now = time();
+  $one_day = 86400;
+  $one_week = 604800;
+  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
+  $weekday = date('N', $now);
+  $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
+  
+  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
+  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
+  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
+  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
+  $changedTimestamps = array(
+    NULL,
+    array($timestamp_today, $now),
+    array($timestamp_today - $one_day * 1, $timestamp_today),
+    array($timestamp_today - $one_day * 2, $timestamp_today - $one_day * 1),
+    array($timestamp_week, $now),
+    array($timestamp_week - $one_week, $timestamp_week),
+    array($timestamp_month, $now),
+    array($timestamp_last_month, $timestamp_month),
+    array($timestamp_year, $now),
+    array($timestamp_last_year, $timestamp_year),
+    array(0, $timestamp_last_year),
+  );
+  foreach ($changedTimestamps as $key => &$val) {
+    if ($val == NULL) continue;
+    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1]; 
+  }
   //Build filter part of form:
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
     '#type' => 'checkbox',
   );
+  $pre = 'quiz_question_browser_';
   $filters['title'] = array(
     '#type' => 'textfield',
     '#size' => 20,
+    '#default_value' => $_SESSION[$pre .'title'],
   );
   $filters['type'] = array(
     '#type' => 'select',
-    '#options' => array('No filter', 'multichoice', 'long_answer'),
+    '#options' => $type_options,
+    '#default_value' => $_SESSION[$pre .'type'],
   );
   $filters['changed'] = array(
     '#type' => 'select',
-    '#options' => array(t('No filter'), t('Yesterday'), t('Another day...')),
+    '#options' => $changedOptions,
+    '#default_value' => $_SESSION[$pre .'changed'],
   );
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 10,
+    '#default_value' => $_SESSION[$pre .'name'],
   );
+  $filter_array = array($quiz->nid, $quiz->vid);
+  $filtering = '';
+  if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
+    $filtering .= ' AND n.title LIKE \'%s%%\'';
+    $filter_array[] = $_SESSION[$pre .'title'];
+  }
+  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+    $filtering .= ' AND u.name LIKE \'%s%%\'';
+    $filter_array[] = $_SESSION[$pre .'name'];
+  }
+  if (isset($_SESSION[$pre .'type']) && ($_SESSION[$pre .'type'] !== '0')) {
+    $filtering .= ' AND n.type = \'%s\'';
+    $filter_array[] = $_SESSION[$pre .'type'];
+  }
+  if (isset($_SESSION[$pre .'changed'])) {
+    $filtering .= $changedTimestamps[$_SESSION[$pre .'changed']]['sql'];
+  }
   // Get data:
   $question_type_list = implode('\', \'', array_keys($question_types));
   $pager_num = 0;
@@ -456,9 +525,10 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
   		    SELECT child_nid
   		    FROM {quiz_node_relationship}
-  		    WHERE parent_nid = %d AND parent_vid = %d) '.tablesort_sql($browser['#header']);
-  $res = pager_query(db_rewrite_sql($sql), 20, $pager_num, NULL, $quiz->nid, $quiz->vid);
-  
+  		    WHERE parent_nid = %d AND parent_vid = %d
+  		  )'. $filtering . tablesort_sql($browser['#header']);
+  $res = pager_query(db_rewrite_sql($sql), 20, $pager_num, NULL, $filter_array);
+
   // build data part of form
   $options = array();
   while ($res_o = db_fetch_object($res)) {
@@ -468,19 +538,11 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     $browser['types'][$id]['#value'] = $res_o->type;
     $browser['names'][$id]['#value'] = check_plain($res_o->name);
   }
-  
-  if (count($options) > 0) {
-    $browser['titles'] = array(
-      '#title' => t('Titles'),
-      '#type' => 'checkboxes',
-      '#options' => $options,
-    );
-  } else {
-    $browser['titles'] = array(
-      '#type' => 'markup',
-      '#value' => t('No questions were found.'),
-    );
-  }
+  $browser['titles'] = array(
+    '#title' => t('Titles'),
+    '#type' => 'checkboxes',
+    '#options' => $options,
+  );
   $browser['pager'] = array(
     '#value' => theme('pager', NULL, 20, $pager_num),
   );
@@ -663,6 +725,13 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   //Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
+  $filters = $form_state['values']['always_browser']['filters'];
+  $pre = 'quiz_question_browser_';
+  $_SESSION[$pre .'title'] = $filters['title'];
+  $_SESSION[$pre .'type'] = $filters['type'];
+  $_SESSION[$pre .'changed'] = $filters['changed'];
+  $_SESSION[$pre .'name'] = $filters['name'];
+  
   //TODO: Consider random and always separately?
   if (is_array($form_state['values']['always_browser']['titles'])) {
     foreach ($form_state['values']['always_browser']['titles'] as $id) {

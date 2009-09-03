@@ -57,5 +57,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
 }
 print drupal_render($form['filters']);
 print theme('table', $form['#header'], $rows);
+if (count($form['titles']['#options']) == 0)
+  print t('No questions were found');
 print $form['pager']['#value'];
 ?>

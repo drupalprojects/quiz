@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Add filtering(Filtering by textfields and select boxes.)
  *   TODO: Add ajax or something to remember previously selected questions etc.
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.
