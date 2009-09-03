@@ -150,7 +150,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
 
   $form['filtered_question_list_always']['always_box'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Search by title and type'),
+    '#title' => t('Search for a question to add'),
     '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
        '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
   t('To add a new question, expand the "Add new question" section at top.'),
@@ -406,13 +406,14 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   }
   $form[$freq .'_browser'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Browse by title, type and category.'),
+    '#title' => t('Browse for questions to add'),
     '#description' => t('Mark all the questions you want to add.') .' '
     .t('You can filter questions by using the textfields and select boxes.') .' '
     .t('You can sort by pressing the table headers.'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
+    '#theme' => 'quiz_question_browser',
   );
   $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));

@@ -373,6 +373,13 @@ function quiz_theme() {
       'file' => 'quiz.pages.inc',
       'arguments' => array(),
     ),
+    'quiz_question_browser' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'quiz') .'/theme',
+      'template' => 'quiz_question_browser',
+    ),
   );
 }
 

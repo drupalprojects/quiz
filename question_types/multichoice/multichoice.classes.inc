@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Add theming - form as table
  *   TODO: Add pagination
  *   TODO: Add sorting(Sorting by url, stored in the formstate/form arrays)
  *   TODO: Add filtering(Filtering by textfields and select boxes.)
