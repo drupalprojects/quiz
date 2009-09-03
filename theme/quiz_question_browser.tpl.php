@@ -49,4 +49,5 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $rows[] = array('data' => $row, 'class' => 'quiz_question_browser_row');
 }
 print theme('table', $header, $rows);
+print $form['pager']['#value'];
 ?>

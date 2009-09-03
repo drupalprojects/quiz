@@ -417,6 +417,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   );
   $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));
+  $pager_num = 0;
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
   		  FROM {node} n
   		  JOIN {users} u
@@ -425,9 +426,8 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		    SELECT child_nid
   		    FROM {quiz_node_relationship}
   		    WHERE parent_nid = %d AND parent_vid = %d)
-  		  ORDER BY changed
-  		  LIMIT 10';
-  $res = db_query(db_rewrite_sql($sql), $quiz->nid, $quiz->vid);
+  		  ORDER BY changed';
+  $res = pager_query(db_rewrite_sql($sql), 10, $pager_num, NULL, $quiz->nid, $quiz->vid);
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
@@ -449,6 +449,9 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
       '#value' => t('No questions were found.'),
     );
   }
+  $browser['pager'] = array(
+    '#value' => theme('pager', NULL, 10, $pager_num),
+  );
   return $form;
 }
 
