@@ -392,7 +392,6 @@ function _quiz_form_fields_random_pool($quiz) {
       '#weight' => 2,
     );
   }
-
   return $form;
 }
 
@@ -419,10 +418,13 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   $question_type_list = implode('\', \'', array_keys($question_types));
   $sql = 'SELECT type, nid, vid, title, changed 
   		  FROM {node} n
-  		  WHERE n.type IN (\''. $question_type_list .'\')
+  		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
+  		    SELECT child_nid
+  		    FROM {quiz_node_relationship}
+  		    WHERE parent_nid = %d AND parent_vid = %d)
   		  ORDER BY changed
   		  LIMIT 10';
-  $res = db_query($sql);
+  $res = db_query($sql, $quiz->nid, $quiz->vid);
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
@@ -431,11 +433,18 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     $browser['types'][$id]['#value'] = $res_o->type;
   }
   
-  $browser['titles'] = array(
-    '#title' => t('THIS IS WORK IN PROGRESS!!!'),
-    '#type' => 'checkboxes',
-    '#options' => $options,
-  );
+  if (count($options) > 0) {
+    $browser['titles'] = array(
+      '#title' => t('THIS IS WORK IN PROGRESS!!!'),
+      '#type' => 'checkboxes',
+      '#options' => $options,
+    );
+  } else {
+    $browser['titles'] = array(
+      '#type' => 'markup',
+      '#value' => t('No questions were found.'),
+    );
+  }
   return $form;
 }
 
