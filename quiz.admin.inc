@@ -416,6 +416,30 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#theme' => 'quiz_question_browser',
   );
   $browser = &$form[$freq .'_browser'];
+  
+  //Build filter part of form:
+  $browser['filters'] = array();
+  $filters = &$browser['filters'];
+  $filters['all'] = array(
+    '#type' => 'checkbox',
+  );
+  $filters['title'] = array(
+    '#type' => 'textfield',
+    '#size' => 20,
+  );
+  $filters['type'] = array(
+    '#type' => 'select',
+    '#options' => array('No filter', 'multichoice', 'long_answer'),
+  );
+  $filters['changed'] = array(
+    '#type' => 'select',
+    '#options' => array(t('No filter'), t('Yesterday'), t('Another day...')),
+  );
+  $filters['name'] = array(
+    '#type' => 'textfield',
+    '#size' => 10,
+  );
+  // Get data:
   $question_type_list = implode('\', \'', array_keys($question_types));
   $pager_num = 0;
   $browser['#header'] = array(
@@ -434,6 +458,8 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		    FROM {quiz_node_relationship}
   		    WHERE parent_nid = %d AND parent_vid = %d) '.tablesort_sql($browser['#header']);
   $res = pager_query(db_rewrite_sql($sql), 20, $pager_num, NULL, $quiz->nid, $quiz->vid);
+  
+  // build data part of form
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;

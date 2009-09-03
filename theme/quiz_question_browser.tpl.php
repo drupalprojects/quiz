@@ -34,19 +34,28 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $fullOptions[$key] = $form['titles'][$key];
   $fullOptions[$key]['#title'] = '';
 }
+$rows = array();
+$cols = array();
+$cols[] = drupal_render($form['filters']['all']);
+$cols[] = drupal_render($form['filters']['title']);
+$cols[] = drupal_render($form['filters']['type']);
+$cols[] = drupal_render($form['filters']['changed']);
+$cols[] = drupal_render($form['filters']['name']);
+$rows[] = array('data' => $cols);
 foreach ($form['titles']['#options'] as $key => $value) {
-  $row = array();
+  $cols = array();
   $matches = array();
   preg_match('/-([0-9]+)-([0-9]+)/', $key, $matches);
   $quest_nid = $matches[1];
   $quest_vid = $matches[2];
-  $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
-  $row[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q'])));
-  $row[] = $form['types'][$key]['#value'];
-  $row[] = $form['changed'][$key]['#value'];
-  $row[] = $form['names'][$key]['#value'];
-  $rows[] = array('data' => $row, 'class' => 'quiz_question_browser_row');
+  $cols[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
+  $cols[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q'])));
+  $cols[] = $form['types'][$key]['#value'];
+  $cols[] = $form['changed'][$key]['#value'];
+  $cols[] = $form['names'][$key]['#value'];
+  $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row');
 }
+print drupal_render($form['filters']);
 print theme('table', $form['#header'], $rows);
 print $form['pager']['#value'];
 ?>
