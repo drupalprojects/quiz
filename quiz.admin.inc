@@ -418,6 +418,12 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));
   $pager_num = 0;
+  $browser['#header'] = array(
+    NULL, 
+    array('data' => t('Title'), 'field' => 'n.title'),
+    array('data' => t('Type'), 'field' => 'n.type'),
+    array('data' => t('Username'), 'field' => 'u.name'),
+  );
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
   		  FROM {node} n
   		  JOIN {users} u
@@ -425,8 +431,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
   		    SELECT child_nid
   		    FROM {quiz_node_relationship}
-  		    WHERE parent_nid = %d AND parent_vid = %d)
-  		  ORDER BY changed';
+  		    WHERE parent_nid = %d AND parent_vid = %d) '.tablesort_sql($browser['#header']);
   $res = pager_query(db_rewrite_sql($sql), 10, $pager_num, NULL, $quiz->nid, $quiz->vid);
   $options = array();
   while ($res_o = db_fetch_object($res)) {

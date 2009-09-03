@@ -34,8 +34,6 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $fullOptions[$key] = $form['titles'][$key];
   $fullOptions[$key]['#title'] = '';
 }
-
-$header = array(NULL, t('Title'), t('Type'), t('Username'));
 foreach ($form['titles']['#options'] as $key => $value) {
   $row = array();
   $matches = array();
@@ -48,6 +46,6 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $row[] = $form['names'][$key]['#value'];
   $rows[] = array('data' => $row, 'class' => 'quiz_question_browser_row');
 }
-print theme('table', $header, $rows);
+print theme('table', $form['#header'], $rows);
 print $form['pager']['#value'];
 ?>
