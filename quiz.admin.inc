@@ -416,7 +416,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   );
   $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));
-  $sql = 'SELECT type, nid, vid, title, changed 
+  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed 
   		  FROM {node} n
   		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
   		    SELECT child_nid
@@ -424,7 +424,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   		    WHERE parent_nid = %d AND parent_vid = %d)
   		  ORDER BY changed
   		  LIMIT 10';
-  $res = db_query($sql, $quiz->nid, $quiz->vid);
+  $res = db_query(db_rewrite_sql($sql), $quiz->nid, $quiz->vid);
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
