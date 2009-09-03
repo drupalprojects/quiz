@@ -416,8 +416,10 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   );
   $browser = &$form[$freq .'_browser'];
   $question_type_list = implode('\', \'', array_keys($question_types));
-  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed 
+  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
   		  FROM {node} n
+  		  JOIN {users} u
+  		  ON n.uid = u.uid
   		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
   		    SELECT child_nid
   		    FROM {quiz_node_relationship}
@@ -431,6 +433,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     $options[$id] = check_plain($res_o->title);
     $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'small');
     $browser['types'][$id]['#value'] = $res_o->type;
+    $browser['names'][$id]['#value'] = check_plain($res_o->name);
   }
   
   if (count($options) > 0) {
@@ -625,14 +628,16 @@ function _quiz_question_browser_submit($form, &$form_state) {
   //Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
   //TODO: Consider random and always separately?
-  foreach ($form_state['values']['always_browser']['titles'] as $id) {
-    if ($id !== 0) {
-      $matches = array();
-      preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
-      $nid = $matches[1];
-      $vid = $matches[2];
-      $form_state['values']['weights'][$id] = ++$next_weight;
-      $form_state['values']['max_scores'][$id] = quiz_question_get_max_score($nid, $vid);
+  if (is_array($form_state['values']['always_browser']['titles'])) {
+    foreach ($form_state['values']['always_browser']['titles'] as $id) {
+      if ($id !== 0) {
+        $matches = array();
+        preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+        $nid = $matches[1];
+        $vid = $matches[2];
+        $form_state['values']['weights'][$id] = ++$next_weight;
+        $form_state['values']['max_scores'][$id] = quiz_question_get_max_score($nid, $vid);
+      }
     }
   }
 }
