@@ -280,6 +280,15 @@ function quiz_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'quiz.pages.inc',
   );
+  
+  $items['admin/quiz/browser/ahah'] = array(
+    'title' => t('Filter browser content'),
+    'description' => t('AHAH Callback for filtering browser content'),
+    'page callback' => 'quiz_browser_ahah',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('create quiz'),
+    'file' => 'quiz.admin.inc',
+  );
 
   return $items;
 }

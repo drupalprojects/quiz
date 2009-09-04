@@ -465,6 +465,10 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1]; 
   }
   //Build filter part of form:
+  $browser['ahah_target'] = array(
+    '#type' => 'markup',
+    '#value' => '<DIV ID = "quiz-browser-ahah-target"></DIV>'
+  );
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
@@ -475,21 +479,43 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#type' => 'textfield',
     '#size' => 20,
     '#default_value' => $_SESSION[$pre .'title'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'quiz-browser-ahah-target',
+      'method' => 'replace',
+      'event' => 'doneTyping',
+    ),
   );
   $filters['type'] = array(
     '#type' => 'select',
     '#options' => $type_options,
     '#default_value' => $_SESSION[$pre .'type'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'quiz-browser-ahah-target',
+      'method' => 'replace',
+    ),
   );
   $filters['changed'] = array(
     '#type' => 'select',
     '#options' => $changedOptions,
     '#default_value' => $_SESSION[$pre .'changed'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'quiz-browser-ahah-target',
+      'method' => 'replace',
+    ),
   );
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 10,
     '#default_value' => $_SESSION[$pre .'name'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'quiz-browser-ahah-target',
+      'method' => 'replace',
+      'event' => 'doneTyping',
+    ),
   );
   $filter_array = array($quiz->nid, $quiz->vid);
   $filtering = '';
@@ -727,10 +753,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
   $next_weight = max($form_state['values']['weights']);
   $filters = $form_state['values']['always_browser']['filters'];
   $pre = 'quiz_question_browser_';
-  $_SESSION[$pre .'title'] = $filters['title'];
-  $_SESSION[$pre .'type'] = $filters['type'];
-  $_SESSION[$pre .'changed'] = $filters['changed'];
-  $_SESSION[$pre .'name'] = $filters['name'];
+  _quiz_browser_store_filters($filters);
   
   //TODO: Consider random and always separately?
   if (is_array($form_state['values']['always_browser']['titles'])) {
@@ -745,6 +768,14 @@ function _quiz_question_browser_submit($form, &$form_state) {
       }
     }
   }
+}
+
+function _quiz_browser_store_filters($filters) {
+  $pre = 'quiz_question_browser_';
+  $_SESSION[$pre .'title'] = $filters['title'];
+  $_SESSION[$pre .'type'] = $filters['type'];
+  $_SESSION[$pre .'changed'] = $filters['changed'];
+  $_SESSION[$pre .'name'] = $filters['name'];
 }
 /**
  * Autocompletion function for quiz questions.
@@ -840,6 +871,49 @@ function quiz_admin_add_question_ahah() {
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 
+/**
+ * AHAH form completion for adding new questions.
+ */
+function quiz_browser_ahah() {
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_id = $_POST['form_build_id'];
+  // Make sure the form exists
+  if (!($form = form_get_cache($form_id, $form_state))) {
+    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator. $form_id"));
+    $output = theme('status_messages');
+    print drupal_to_js(array('status' => TRUE, 'data' => $output));
+    exit();
+  }
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+
+  // We will run some of the submit handlers so we need to disable redirecting.
+  $form['#redirect'] = FALSE;
+
+  // We need to process the form, prepare for that by setting a few internals
+  // variables.
+  $form['#post'] = $_POST;
+  $form['#programmed'] = FALSE;
+  $form_state['post'] = $_POST;
+  
+  
+  _quiz_skip_validation($form);
+  
+  _quiz_browser_store_filters($form_state['post']['always_browser']['filters']);
+  
+  // Build, validate and submit the form.
+  drupal_process_form($form_id, $form, $form_state);
+
+  // Get a new form with the new question attached
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  // Send status messages, new build id for the form and the new question row to the javascript:
+  $b_rows = _quiz_get_browser_content(drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']));
+  $output = theme('status_messages');
+  $output .= '<script>var quizNewBuildId = '.drupal_to_js($form['#build_id']).';';
+  $output .= ' var quizBrowserRows = '.drupal_to_js($b_rows).';';
+  $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId);</script>';
+  drupal_json(array('status' => TRUE, 'data' => $output));
+}
 // Quiz Admin Settings
 
 /**
@@ -1414,4 +1488,17 @@ function _quiz_get_last_table_row($table) {
   $matches = array();
   $n_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
   return $matches[0][$n_matches - 1];
+}
+
+/**
+ * Finds and returns all table rows with a certain class(HTML) in a table(HTML)
+ *
+ * @param $table
+ *   HTML string with a table
+ * @return all table rows with a certain class in a table
+ */
+function _quiz_get_browser_content($table) {
+  $matches = array();
+  $n_matches = preg_match('/<tr class="quiz_question_browser_row.*<\/tr>/is', $table, $matches);
+  return $matches[0];
 }

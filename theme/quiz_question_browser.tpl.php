@@ -15,6 +15,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $fullOptions[$key] = $form['titles'][$key];
   $fullOptions[$key]['#title'] = '';
 }
+print drupal_render($form['ahah_target']);
 $rows = array();
 $cols = array();
 $cols[] = drupal_render($form['filters']['all']);
@@ -22,7 +23,7 @@ $cols[] = drupal_render($form['filters']['title']);
 $cols[] = drupal_render($form['filters']['type']);
 $cols[] = drupal_render($form['filters']['changed']);
 $cols[] = drupal_render($form['filters']['name']);
-$rows[] = array('data' => $cols);
+$rows[] = array('data' => $cols, 'id' => 'quiz_question_browser_filters');
 foreach ($form['titles']['#options'] as $key => $value) {
   $cols = array();
   $matches = array();
@@ -36,7 +37,6 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $cols[] = $form['names'][$key]['#value'];
   $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row');
 }
-print drupal_render($form['filters']);
 print theme('table', $form['#header'], $rows);
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');

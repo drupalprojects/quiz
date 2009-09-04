@@ -4,6 +4,7 @@
  * @file
  * Javascript functions for the quizQuestionBrowser
  */
+var Quiz = Quiz || {};
 
 Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.quiz_question_browser_row')
@@ -23,6 +24,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       }
     }
   });
+};
+$(document).ready(function () {
   $('#edit-always-browser-filters-all')
   .click(function(event) {
     var ch = $(this).attr('checked');
@@ -39,4 +42,42 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       }
     });
   });
-};
+  $('#edit-always-browser-filters-type, #edit-always-browser-filters-changed')
+  .change(function(event) {
+    $('.quiz_question_browser_row').each(function() { 
+      $(this).remove();
+    });
+    $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
+  });
+  /*$('#edit-always-browser-filters-title').doneTyping = function(event) {
+    alert('done typing');
+  };*/
+  var quizRefreshId;
+  $('#edit-always-browser-filters-title, #edit-always-browser-filters-name')
+  .keyup(function(event) {
+	clearInterval(quizRefreshId);
+	var quizClicked = this;
+    quizRefreshId = setInterval(function(){
+      $('.quiz_question_browser_row').each(function() { 
+        $(this).remove();
+      });
+      $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
+      $(quizClicked).trigger('doneTyping');
+      clearInterval(quizRefreshId);
+    }, 1000);
+  });
+});
+
+Quiz.addBrowserRows = function(rows, newBuildId) {
+  //Add the new row:
+  //alert('Build id:' + newBuildId);
+  $('#quiz_question_browser_filters').after(rows);
+  
+  //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
+  
+  // Change build id to the new id provided by the server:
+  $('[name="form_build_id"]').val(newBuildId);
+  
+  
+  Drupal.attachBehaviors();
+}
