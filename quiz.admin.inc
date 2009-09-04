@@ -116,6 +116,7 @@ function quiz_questions($node) {
 //TODO rename $quiz to $qcollection
 function quiz_questions_form($form_state, $quiz, $options) {
   // This is a target for AHAH callbacks. Do not remove.
+  $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
   $form['ahah_target'] = array(
     '#type' => 'markup',
     '#value' => '<div id="questions-always-target"></div>',
@@ -218,6 +219,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $matches = array();
       preg_match('/id:([0-9]+)/', $quest, $matches);
       $nid = $matches[1];
+      if (!is_numeric($nid) || $nid == 0) break;
       $node = node_load($nid);
       $max_score = quiz_question_get_max_score($node->nid, $node->vid);
       $node->max_score = $max_score;
@@ -590,7 +592,6 @@ function quiz_questions_form_validate($form, $form_state) {
     form_set_error('none', 'No questions were included.');
     return;
   }
-
   foreach ($weight_map as $id => $weight) {
       if (in_array($id, $removed)) {
       // Ignore items that are going to be removed anyway.
@@ -754,7 +755,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
   $filters = $form_state['values']['always_browser']['filters'];
   $pre = 'quiz_question_browser_';
   _quiz_browser_store_filters($filters);
-  
   //TODO: Consider random and always separately?
   if (is_array($form_state['values']['always_browser']['titles'])) {
     foreach ($form_state['values']['always_browser']['titles'] as $id) {
