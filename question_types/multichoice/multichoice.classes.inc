@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- * TODO: Checkbox marks all
  *   TODO: Add ajax or something to remember previously selected questions etc.
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.

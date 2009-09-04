@@ -23,4 +23,20 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       }
     }
   });
+  $('#edit-always-browser-filters-all')
+  .click(function(event) {
+    var ch = $(this).attr('checked');
+    $('.quiz_question_browser_row').each(function() { 
+      if (!ch) {
+        $(this).filter(':has(:checkbox:checked)').each(function() {
+          $(this).click();
+        });
+      }
+      else {
+        $(this).filter(':has(:checkbox:not(:checked))').each(function() {
+          $(this).click();
+        });
+      }
+    });
+  });
 };
