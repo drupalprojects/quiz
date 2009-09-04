@@ -8,27 +8,8 @@
  * Variables available:
  * - $form
  */
-//TODO: Move this to a separate file
-print "
-<SCRIPT type='text/javascript'>Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
-  $('.quiz_question_browser_row')
-  .filter(':has(:checkbox:checked)')
-  .addClass('selected')
-  .end()
-  .click(function(event) {
-    $(this).toggleClass('selected');
-    if (event.target.type !== 'checkbox') {
-      $(':checkbox', this).attr('checked', function() {
-        return !this.checked;
-      });
-      $(':radio', this).attr('checked', true);
-      if ($(':radio', this).html() != null) {
-        $('.multichoice_row').removeClass('selected');
-    	  $(this).addClass('selected');
-      }
-    }
-  });
-};</SCRIPT>";
+$p = drupal_get_path('module', 'quiz') .'/theme/';
+drupal_add_js($p .'quiz_question_browser.js', 'module');
 $fullOptions = array();
 foreach ($form['titles']['#options'] as $key => $value) {
   $fullOptions[$key] = $form['titles'][$key];
