@@ -21,7 +21,7 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Make the old search system work
+ *   TODO: Table header doesn't work properly
  *   TODO: Add ajax or something to remember previously selected questions etc.
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.

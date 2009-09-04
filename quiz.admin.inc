@@ -858,6 +858,8 @@ function quiz_admin_add_question_ahah() {
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
 
   // Get the filtered question list with the new question.
+  dpm($form);
+  unset($form['filtered_question_list_'.$frequency]['always_browse']);
   $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
 
   // The new question is the last row in the table...
