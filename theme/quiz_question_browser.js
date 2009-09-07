@@ -75,11 +75,11 @@ $(document).ready(function () {
   };
 });
 
-Quiz.addBrowserRows = function(rows, newBuildId) {
+Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   //Add the new row:
   //alert('Build id:' + newBuildId);
   $('#quiz_question_browser_filters').after(rows);
-  
+  $('#quiz-question-browser-pager').replaceWith(pager);
   //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
   
   // Change build id to the new id provided by the server:

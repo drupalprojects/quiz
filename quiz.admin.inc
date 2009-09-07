@@ -572,7 +572,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#options' => $options,
   );
   $browser['pager'] = array(
-    '#value' => theme('pager', NULL, 20, $pager_num),
+    '#value' => '<DIV ID ="quiz-question-browser-pager">'. theme('pager', NULL, 20, $pager_num) .'</DIV>',
   );
   return $form;
 }
@@ -909,10 +909,13 @@ function quiz_browser_ahah() {
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
   // Send status messages, new build id for the form and the new question row to the javascript:
   $b_rows = _quiz_get_browser_content(drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']));
+  $b_pager = drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']['pager']);
+  
   $output = theme('status_messages');
-  $output .= '<script>var quizNewBuildId = '.drupal_to_js($form['#build_id']).';';
-  $output .= ' var quizBrowserRows = '.drupal_to_js($b_rows).';';
-  $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId);</script>';
+  $output .= '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+  $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
+  $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
+  $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);</script>';
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 // Quiz Admin Settings
