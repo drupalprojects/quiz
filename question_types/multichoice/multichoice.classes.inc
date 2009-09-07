@@ -21,12 +21,11 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Remove the old add autocomplete thing...
- *   TODO: Only one "need to save warning" required...
  *   TODO: Add ajax or something to remember previously selected questions etc.
  *     TODO: Javascript remove and store old table rows. The form just add more table rows to the form when
  *     js have manipulated the next and previos buttons.
  *   TODO: Questions aren't marked correctly...
+ *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.
  * TODO: Check that the random question features still works.

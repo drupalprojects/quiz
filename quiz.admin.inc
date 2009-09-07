@@ -148,39 +148,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#collapsible' => (isset($options['fieldset_always']['collapsible'])) ? $options['fieldset_always']['collapsible'] : TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-
-  $form['filtered_question_list_always']['always_box'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Search for a question to add'),
-    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-  t('To add a new question, expand the "Add new question" section at top.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  $form['filtered_question_list_always']['always_box']['always_autocomplete'] = array(
-    '#type' => 'textfield',
-    //'#title' => t('Find a question'),
-    // '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-    //       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-    //       t('To add a new question, use the "Create additional questions" section above.'),
-    '#default_value' => '',
-    '#size' => 60,
-    '#maxlength' => 256,
-    '#required' => FALSE,
-    '#autocomplete_path' => 'admin/quiz/listquestions',
-  );
-  $form['filtered_question_list_always']['always_box']['add_to_list'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add to quiz'),
-    '#submit' => array('quiz_add_question_submit'),
-    '#ahah' => array(
-      'path' => 'admin/quiz/newquestion',
-      'wrapper' => 'questions-always-target',
-      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
-    ),
-  );
+  
   $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($form_state, $quiz, 'always');
     
   $form['filtered_question_list_always']['remove_from_quiz'] = array(
@@ -412,7 +380,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#description' => t('Mark all the questions you want to add.') .' '
     .t('You can filter questions by using the textfields and select boxes.') .' '
     .t('You can sort by pressing the table headers.'),
-    '#collapsible' => TRUE,
+    '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
     '#theme' => 'quiz_question_browser',
