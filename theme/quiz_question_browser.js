@@ -66,6 +66,13 @@ $(document).ready(function () {
       clearInterval(quizRefreshId);
     }, 1000);
   });
+  var oldTableHeader = Drupal.behaviors.tableHeader;
+  Drupal.behaviors.tableHeader = function(context) {
+    if (!$('table.sticky-enabled', context).size()) {
+	  return;
+	}
+    oldTableHeader(context);
+  };
 });
 
 Quiz.addBrowserRows = function(rows, newBuildId) {
@@ -79,5 +86,5 @@ Quiz.addBrowserRows = function(rows, newBuildId) {
   $('[name="form_build_id"]').val(newBuildId);
   
   
-  Drupal.attachBehaviors();
+  Drupal.behaviors.quizQuestionBrowserBehavior();
 }

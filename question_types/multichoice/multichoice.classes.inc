@@ -21,8 +21,8 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Table header doesn't work properly
  *   TODO: Add ajax or something to remember previously selected questions etc.
+ *   TODO: Only one need to save warning required...
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.
  * TODO: Check that the random question features still works.
