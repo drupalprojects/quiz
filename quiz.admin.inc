@@ -1507,6 +1507,7 @@ function _quiz_add_to_get($to_add){
   parse_str($to_add, $output);
   $vars = array('sort', 'order');
   foreach ($vars as $value) {
+    if (isset($_GET[$value])) continue;
     if (isset($output[$value])) {
       $_GET[$value] = $_SESSION[$pre . $value] = $output[$value];
     }
