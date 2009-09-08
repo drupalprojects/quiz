@@ -1503,12 +1503,15 @@ function _quiz_get_browser_content($table) {
 }
 
 function _quiz_add_to_get($to_add){
-  if (is_array($to_add)) {
-    $_GET = array_merge($GLOBALS['_GET'], $to_add);
-    return;
-  }
+  $pre = 'quiz_question_browser_';
   parse_str($to_add, $output);
-  if(is_array($output) && count($output) > 0) {
-    $_GET = array_merge($GLOBALS['_GET'], $output);
+  $vars = array('sort', 'order');
+  foreach ($vars as $value) {
+    if (isset($output[$value])) {
+      $_GET[$value] = $_SESSION[$pre . $value] = $output[$value];
+    }
+    elseif (isset($_SESSION[$pre . $value])) {
+      $_GET[$value] = $_SESSION[$pre . $value];
+    }
   }
 } 
