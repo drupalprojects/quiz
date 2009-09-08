@@ -138,6 +138,7 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId) {
   Drupal.attachBehaviors();
 };
 Quiz.storeCheckboxes = function() {
+  Quiz.clearStoredCheckboxes();
   $('.quiz-browser-checkbox').each(function() {
     if ($(this).attr('checked')) {
       var oldVal = $('#edit-always-browser-questions-to-add').val() + '';
@@ -150,6 +151,15 @@ Quiz.storeCheckboxes = function() {
     }
   });
   Quiz.questionsToAdd = $('#edit-always-browser-questions-to-add').val();
+};
+Quiz.clearStoredCheckboxes = function() {
+  var oldStored = $('#edit-always-browser-questions-to-add').val() + '';
+  $('.quiz-browser-checkbox').each(function() {
+    var toClear = $(this).val() + '';
+    var pattern = new RegExp(',?'+toClear);
+    oldStored = oldStored.replace(pattern,'');
+  });
+  $('#edit-always-browser-questions-to-add').val(oldStored);
 };
 Quiz.updatePageInUrl = function(myUrl) {
   //Finds page from input parameter

@@ -22,7 +22,7 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Remember questions that has been unselected
+ *     TODO: Add remebered questions on submit
  *   TODO: Questions aren't marked correctly...
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: UX engineering
