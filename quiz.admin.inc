@@ -447,6 +447,10 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#type' => 'hidden',
     '#default_value' => '',
   );
+  $browser['questions_to_add'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
@@ -547,6 +551,8 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#title' => t('Titles'),
     '#type' => 'checkboxes',
     '#options' => $options,
+    '#attributes' => array('class' => 'quiz-browser-checkbox'),
+    '#default_value' => explode(',', $form_state['values']['always_browser']['questions_to_add']),
   );
   $browser['pager'] = array(
     '#value' => '<DIV ID ="quiz-question-browser-pager">'. theme('pager', NULL, 20) .'</DIV>',
@@ -898,7 +904,7 @@ function quiz_browser_ahah() {
     unset($b_form['#value']);
     
     $rendered_browser = drupal_render($b_form);
-    $output .= ' var renderedBrowser = '. drupal_to_js($rendered_browser) .';';
+    $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
     $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);</script>';
   }
   else {
@@ -909,8 +915,8 @@ function quiz_browser_ahah() {
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);</script>';
+    $output .= ' '. theme('status_messages');
   }
-  $output .= ' '. theme('status_messages');
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 // Quiz Admin Settings

@@ -21,9 +21,9 @@
 
 /**
  * TODO: Make a question browser
+ *   TODO: Make next and prev page use ajax...
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Javascript remove and store old table rows. The form just add more table rows to the form when
- *     js have manipulated the next and previos buttons.
+ *     TODO: Remember questions when page changes
  *   TODO: Questions aren't marked correctly...
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: UX engineering
