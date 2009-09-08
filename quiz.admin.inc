@@ -1511,7 +1511,7 @@ function _quiz_get_browser_content($table) {
 function _quiz_add_to_get($to_add){
   $pre = 'quiz_question_browser_';
   parse_str($to_add, $output);
-  $vars = array('sort', 'order');
+  $vars = array('sort', 'order', 'page');
   foreach ($vars as $value) {
     if (isset($_GET[$value])) continue;
     if (isset($output[$value])) {

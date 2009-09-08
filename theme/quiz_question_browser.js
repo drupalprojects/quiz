@@ -98,6 +98,15 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     event.preventDefault();
   });
   $('#edit-always-browser-questions-to-add').val(Quiz.questionsToAdd);
+  $('.pager-item a, .pager-first a, .pager-next a, .pager-previous a, .pager-last a')
+  .addClass('quizQuestionBrowserBehavior-processed')
+  .click(function(event){
+	var myUrl = $(this).attr('href').substr(2);
+	Quiz.updatePageInUrl(myUrl);
+    Quiz.storeCheckboxes();
+    $('#edit-always-browser-filters-title').trigger('doneTyping');
+    event.preventDefault();
+  });
 };
 $(document).ready(function () {
   var oldTableHeader = Drupal.behaviors.tableHeader;
@@ -141,4 +150,17 @@ Quiz.storeCheckboxes = function() {
     }
   });
   Quiz.questionsToAdd = $('#edit-always-browser-questions-to-add').val();
+};
+Quiz.updatePageInUrl = function(myUrl) {
+  //Finds page from input parameter
+  var pageQuery = myUrl + '';
+  var pattern = new RegExp('page=[0-9]+');
+  pageQuery = pattern.exec(pageQuery);
+  if (pageQuery == null) pageQuery = 'page=0';
+  
+  //Replaces stored query strings page with our page
+  var currentQuery = $('#edit-always-browser-add-to-get').val() + '';
+  currentQuery = currentQuery.replace(pattern,'');
+  currentQuery += pageQuery;
+  $('#edit-always-browser-add-to-get').val(currentQuery);
 };
