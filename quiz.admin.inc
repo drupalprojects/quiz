@@ -439,6 +439,14 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#type' => 'markup',
     '#value' => '<DIV ID = "quiz-browser-ahah-target"></DIV>'
   );
+  $browser['ahah_target_all'] = array(
+    '#type' => 'markup',
+    '#value' => '<DIV ID = "quiz-browser-all-ahah-target">'
+  );
+  $browser['add_to_get'] = array(
+    '#type' => 'hidden',
+    '#default_value' => '',
+  );
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
@@ -507,12 +515,13 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   // Get data:
   $question_type_list = implode('\', \'', array_keys($question_types));
   $pager_num = 0;
+  _quiz_add_to_get($form_state['values']['always_browser']['add_to_get']);
   $browser['#header'] = array(
     NULL, 
-    array('data' => t('Title'), 'field' => 'n.title'),
-    array('data' => t('Type'), 'field' => 'n.type'),
-    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc'),
-    array('data' => t('Username'), 'field' => 'u.name'),
+    array('data' => t('Title'), 'field' => 'n.title', 'class' => 'quiz-browser-header-title'),
+    array('data' => t('Type'), 'field' => 'n.type', 'class' => 'quiz-browser-header-type'),
+    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc', 'class' => 'quiz-browser-header-changed'),
+    array('data' => t('Username'), 'field' => 'u.name', 'class' => 'quiz-browser-header-name'),
   );
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
   		  FROM {node} n
@@ -540,7 +549,11 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
     '#options' => $options,
   );
   $browser['pager'] = array(
-    '#value' => '<DIV ID ="quiz-question-browser-pager">'. theme('pager', NULL, 20, $pager_num) .'</DIV>',
+    '#value' => '<DIV ID ="quiz-question-browser-pager">'. theme('pager', NULL, 20) .'</DIV>',
+  );
+  $browser['ahah_target_all_end'] = array(
+    '#type' => 'markup',
+    '#value' => '</DIV>'
   );
   return $form;
 }
@@ -845,6 +858,7 @@ function quiz_admin_add_question_ahah() {
  */
 function quiz_browser_ahah() {
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $replace_all = drupal_strlen($_POST['always_browser']['add_to_get']) > 0;
   $form_id = $_POST['form_build_id'];
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
@@ -864,26 +878,39 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-  
-  
+  foreach ($_POST as $key => $value) {
+    unset($_REQUEST[$key]);
+  }
+  $_POST = array();
   _quiz_skip_validation($form);
   
   _quiz_browser_store_filters($form_state['post']['always_browser']['filters']);
   
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
-
   // Get a new form with the new question attached
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  // Send status messages, new build id for the form and the new question row to the javascript:
-  $b_rows = _quiz_get_browser_content(drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']));
-  $b_pager = drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']['pager']);
   
-  $output = theme('status_messages');
-  $output .= '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
-  $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
-  $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
-  $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);</script>';
+  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+  if($replace_all) {
+    $b_form = &$form['filtered_question_list_always']['always_browse']['always_browser'];
+    unset($b_form['#type']);
+    unset($b_form['#value']);
+    
+    $rendered_browser = drupal_render($b_form);
+    $output .= ' var renderedBrowser = '. drupal_to_js($rendered_browser) .';';
+    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);</script>';
+  }
+  else {
+    // Send status messages, new build id for the form and the new question row to the javascript:
+    $b_rows = _quiz_get_browser_content(drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']));
+    $b_pager = drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']['pager']);
+    
+    $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
+    $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
+    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);</script>';
+  }
+  $output .= ' '. theme('status_messages');
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 // Quiz Admin Settings
@@ -1474,3 +1501,14 @@ function _quiz_get_browser_content($table) {
   $n_matches = preg_match('/<tr class="quiz_question_browser_row.*<\/tr>/is', $table, $matches);
   return $matches[0];
 }
+
+function _quiz_add_to_get($to_add){
+  if (is_array($to_add)) {
+    $_GET = array_merge($GLOBALS['_GET'], $to_add);
+    return;
+  }
+  parse_str($to_add, $output);
+  if(is_array($output) && count($output) > 0) {
+    $_GET = array_merge($GLOBALS['_GET'], $output);
+  }
+} 

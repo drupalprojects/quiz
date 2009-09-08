@@ -24,8 +24,6 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       }
     }
   });
-};
-$(document).ready(function () {
   $('#edit-always-browser-filters-all')
   .click(function(event) {
     var ch = $(this).attr('checked');
@@ -42,18 +40,17 @@ $(document).ready(function () {
       }
     });
   });
-  $('#edit-always-browser-filters-type, #edit-always-browser-filters-changed')
+  $('#edit-always-browser-filters-type:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-changed:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
   .change(function(event) {
     $('.quiz_question_browser_row').each(function() { 
       $(this).remove();
     });
     $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
   });
-  /*$('#edit-always-browser-filters-title').doneTyping = function(event) {
-    alert('done typing');
-  };*/
   var quizRefreshId;
-  $('#edit-always-browser-filters-title, #edit-always-browser-filters-name')
+  $('#edit-always-browser-filters-title:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-name:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
   .keyup(function(event) {
 	clearInterval(quizRefreshId);
 	var quizClicked = this;
@@ -66,6 +63,40 @@ $(document).ready(function () {
       clearInterval(quizRefreshId);
     }, 1000);
   });
+  $('.quiz-browser-header-title > a:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
+  .click(function(event){
+	var myUrl = $(this).attr('href').substr(2);
+	$('#edit-always-browser-add-to-get').val(myUrl);
+	$('#edit-always-browser-filters-title').trigger('doneTyping');
+    event.preventDefault();
+  });
+  $('.quiz-browser-header-name > a:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
+  .click(function(event){
+	var myUrl = $(this).attr('href').substr(2);
+	$('#edit-always-browser-add-to-get').val(myUrl);
+	$('#edit-always-browser-filters-name').trigger('doneTyping');
+    event.preventDefault();
+  });
+  $('.quiz-browser-header-type > a:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
+  .click(function(event){
+	var myUrl = $(this).attr('href').substr(2);
+	$('#edit-always-browser-add-to-get').val(myUrl);
+	$('#edit-always-browser-filters-type').trigger('change');
+    event.preventDefault();
+  });
+  $('.quiz-browser-header-changed > a:not(.quizQuestionBrowserBehavior-processed)')
+  .addClass('quizQuestionBrowserBehavior-processed')
+  .click(function(event){
+	var myUrl = $(this).attr('href').substr(2);
+	$('#edit-always-browser-add-to-get').val(myUrl);
+	$('#edit-always-browser-filters-changed').trigger('change');
+    event.preventDefault();
+  });
+};
+$(document).ready(function () {
   var oldTableHeader = Drupal.behaviors.tableHeader;
   Drupal.behaviors.tableHeader = function(context) {
     if (!$('table.sticky-enabled', context).size()) {
@@ -77,7 +108,6 @@ $(document).ready(function () {
 
 Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   //Add the new row:
-  //alert('Build id:' + newBuildId);
   $('#quiz_question_browser_filters').after(rows);
   $('#quiz-question-browser-pager').replaceWith(pager);
   //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
@@ -87,4 +117,11 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   
   
   Drupal.behaviors.quizQuestionBrowserBehavior();
-}
+};
+Quiz.replaceBrowser = function(renderedBrowser, newBuildId) {
+  // Change build id to the new id provided by the server:
+  $('[name="form_build_id"]').val(newBuildId);
+  $('#quiz-browser-all-ahah-target').replaceWith(renderedBrowser);
+  
+  Drupal.attachBehaviors();
+};

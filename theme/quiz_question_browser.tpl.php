@@ -15,6 +15,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $fullOptions[$key] = $form['titles'][$key];
   $fullOptions[$key]['#title'] = '';
 }
+print drupal_render($form['ahah_target_all']);
 print drupal_render($form['ahah_target']);
 $rows = array();
 $cols = array();
@@ -41,4 +42,6 @@ print theme('table', $form['#header'], $rows);
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
 print $form['pager']['#value'];
+print drupal_render($form['add_to_get']);
+print drupal_render($form['ahah_target_all_end']);
 ?>
