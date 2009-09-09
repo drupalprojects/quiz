@@ -166,7 +166,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
 
   // We use $form_state[post] to avoid validation failures when questions are added using AJAX
   if (isset($form_state['post']['weights'])) {
-    foreach ($form_state['post']['weights'] as $id => $weight) {
+    // TODO: Add node access security
+    foreach ($form_state['post']['weights'] as $id => $value) {
       $matches = array();
       preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
       $nid = $matches[1];
@@ -180,7 +181,28 @@ function quiz_questions_form($form_state, $quiz, $options) {
   else {
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
-
+  $tempToAdd = explode(',', $form_state['values']['always_browser']['questions_to_add']);
+  $form['filtered_question_list_always']['temp_questions'] = array();
+  foreach ($tempToAdd as $key => $id) {
+    $matches = array();
+    preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+    $nid = $matches[1];
+    $vid = $matches[2];
+    $continue = FALSE;
+    foreach($questions as $question) {
+      if($question->vid == $vid) {
+        $continue = TRUE;
+        continue;
+      }
+    }
+    if (!is_numeric($nid) || !is_numeric($vid) || $continue) continue; 
+    $node = node_load($nid, $vid);
+    $max_score = quiz_question_get_max_score($node->nid, $node->vid);
+    $node->max_score = $max_score;
+    $node->weight = 0; //TODO: Weight needs to be the biggest...
+    $questions[] = quiz_node_map($node);
+    $form['filtered_question_list_always']['temp_questions'][$id]['#value'] = TRUE;
+  }
   // IF new questions have been added using AJAX
   if (is_array($form_state['new_questions'])) {
     foreach ($form_state['new_questions'] as $quest) {
@@ -849,7 +871,7 @@ function quiz_admin_add_question_ahah() {
   $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
 
   // The new question is the last row in the table...
-  $q_row_html = _quiz_get_last_table_row($sub_form_html);
+  $q_row_html = _quiz_get_last_table_rows($sub_form_html);
 
   // Send status messages, new build id for the form and the new question row to the javascript:
   $output = theme('status_messages');
@@ -884,6 +906,7 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
+  $num_temps = _quiz_browser_count_temps($_POST['always_browser']['questions_to_add']);
   foreach ($_POST as $key => $value) {
     unset($_REQUEST[$key]);
   }
@@ -896,10 +919,18 @@ function quiz_browser_ahah() {
   drupal_process_form($form_id, $form, $form_state);
   // Get a new form with the new question attached
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  $extra_output = '';
   
   $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+  $b_form = $form['filtered_question_list_always']['always_browse']['always_browser'];
+  unset($form['filtered_question_list_always']['always_browse']);
+  if ($num_temps > 0) { 
+    $sub_form_html = drupal_render($form['filtered_question_list_always']);
+    $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_temps);
+    $output .= ' var qRowsTemp = '.drupal_to_js($q_rows_html).';';
+    $output .= ' Quiz.addQuestions("always", qRowsTemp);';
+  }
   if($replace_all) {
-    $b_form = &$form['filtered_question_list_always']['always_browse']['always_browser'];
     unset($b_form['#type']);
     unset($b_form['#value']);
     
@@ -909,8 +940,8 @@ function quiz_browser_ahah() {
   }
   else {
     // Send status messages, new build id for the form and the new question row to the javascript:
-    $b_rows = _quiz_get_browser_content(drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']));
-    $b_pager = drupal_render($form['filtered_question_list_always']['always_browse']['always_browser']['pager']);
+    $b_rows = _quiz_get_browser_content(drupal_render($b_form));
+    $b_pager = drupal_render($b_form['pager']);
     
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
@@ -1329,7 +1360,7 @@ function theme_question_selection_table($form) {
     foreach (element_children($form['titles']) as $id) {
       $form['weights'][$id]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
 
-      $rows[] = _quiz_get_question_row($form, $id, $question_types[$type]['name']);
+      $rows[] = _quiz_get_question_row($form, $id);
       unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id]);
       unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id]);
     }
@@ -1451,7 +1482,7 @@ function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
   return array(
-    'class' => 'draggable',
+    'class' => 'draggable'. ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : ''),
     'data' => array(
       drupal_render($sub_form['titles'][$id]),
       $type,
@@ -1489,10 +1520,15 @@ function _quiz_get_question_id($new_question, $frequency) {
  *   HTML string with a table
  * @return last table row in the table
  */
-function _quiz_get_last_table_row($table) {
+function _quiz_get_last_table_rows($table, $num_rows = 1) {
   $matches = array();
-  $n_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
-  return $matches[0][$n_matches - 1];
+  $num_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
+  $to_return = '';
+  $num_rows_to_return = ($num_matches > $num_rows) ? $num_rows : $num_matches;
+  for ($i = $num_matches - 1; $i > $num_matches - 1 - $num_rows_to_return; $i--) {
+    $to_return .= $matches[0][$i];
+  }
+  return $to_return;
 }
 
 /**
@@ -1522,3 +1558,11 @@ function _quiz_add_to_get($to_add){
     }
   }
 } 
+function _quiz_browser_count_temps($temp_string) {
+  $temps = explode(',', $temp_string);
+  $to_return = 0;
+  foreach ($temps as $value) {
+    $to_return += preg_match('/-[0-9]+-[0-9]+/', $value);
+  }
+  return $to_return;
+}

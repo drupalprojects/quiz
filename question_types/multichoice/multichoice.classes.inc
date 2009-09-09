@@ -22,12 +22,21 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Add remebered questions on submit
+ *     TODO: Add questions to main list on paging, sorting and filtering
+ *     TODO: Remove questions from main list when unchecked
+ *     TODO: Mark temporary questions as temporary on main list
+ *     TODO: Add node access security
+ *     TODO: Make sure editing of max score and order in main list is kept
+ *     TODO: Questions removed from main list gets unchecked and removed from temp list.
  *   TODO: Questions aren't marked correctly...
+ *   TODO: Try to remove some of the node loading in manage questions
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
+ *   TODO: Check that the random question features still works.
  *   TODO: UX engineering
  *     TODO: Must look different from the other tables on the page.
- * TODO: Check that the random question features still works.
+ *   TODO: Clean up the code
+ *   TODO: Add comments
+ * TODO: Add several ways to take quiz.
  * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form for multichoice question?
  */
