@@ -22,9 +22,7 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Add questions to main list on paging, sorting and filtering
- *     TODO: Remove questions from main list when unchecked
- *     TODO: Mark temporary questions as temporary on main list
+ *     TODO: Uncheck questions when removed from main list
  *     TODO: Add node access security
  *     TODO: Make sure editing of max score and order in main list is kept
  *     TODO: Questions removed from main list gets unchecked and removed from temp list.

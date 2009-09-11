@@ -36,7 +36,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $cols[] = $form['types'][$key]['#value'];
   $cols[] = $form['changed'][$key]['#value'];
   $cols[] = $form['names'][$key]['#value'];
-  $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row');
+  $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row', 'id' => 'browser-'. $key);
 }
 print theme('table', $form['#header'], $rows);
 if (count($form['titles']['#options']) == 0)

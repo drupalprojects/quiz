@@ -148,8 +148,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#collapsible' => (isset($options['fieldset_always']['collapsible'])) ? $options['fieldset_always']['collapsible'] : TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-  
-  $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($form_state, $quiz, 'always');
+  $hidden_questions = array();
+  $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($hidden_questions, $form_state, $quiz, 'always');
     
   $form['filtered_question_list_always']['remove_from_quiz'] = array(
     '#type' => 'hidden',
@@ -181,9 +181,11 @@ function quiz_questions_form($form_state, $quiz, $options) {
   else {
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
-  $tempToAdd = explode(',', $form_state['values']['always_browser']['questions_to_add']);
+  $temp_to_add = explode(',', $form_state['values']['always_browser']['questions_to_add']);
+  $temp_to_add = array_merge($temp_to_add, $hidden_questions);
   $form['filtered_question_list_always']['temp_questions'] = array();
-  foreach ($tempToAdd as $key => $id) {
+  $form['filtered_question_list_always']['hidden_questions'] = array();
+  foreach ($temp_to_add as $key => $id) {
     $matches = array();
     preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
     $nid = $matches[1];
@@ -202,6 +204,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $node->weight = 0; //TODO: Weight needs to be the biggest...
     $questions[] = quiz_node_map($node);
     $form['filtered_question_list_always']['temp_questions'][$id]['#value'] = TRUE;
+    if (in_array($id, $hidden_questions)) $form['filtered_question_list_always']['hidden_questions'][$id]['#value'] = TRUE;
   }
   // IF new questions have been added using AJAX
   if (is_array($form_state['new_questions'])) {
@@ -387,7 +390,7 @@ function _quiz_form_fields_random_pool($quiz) {
   return $form;
 }
 
-function _quiz_question_browser_form($form_state, $quiz, $freq) {
+function _quiz_question_browser_form(&$questions, $form_state, $quiz, $freq) {
   $form = array();
   $question_types = _quiz_get_question_types();
   if (!is_array($question_types) || count($question_types) == 0) {
@@ -564,6 +567,7 @@ function _quiz_question_browser_form($form_state, $quiz, $freq) {
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
+    $questions[] = $id;
     $options[$id] = check_plain($res_o->title);
     $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'small');
     $browser['types'][$id]['#value'] = $res_o->type;
@@ -1481,8 +1485,11 @@ function _quiz_skip_validation(&$elements) {
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
+  $display = $sub_form['hidden_questions'][$id]['#value'] === TRUE ? 'none' : 'table-row';
   return array(
     'class' => 'draggable'. ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : ''),
+    'style' => 'display:'. $display,
+    'id' => $id,
     'data' => array(
       drupal_render($sub_form['titles'][$id]),
       $type,
