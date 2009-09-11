@@ -77,9 +77,17 @@ abstract class QuizQuestion {
   /**
    * Getter function returning properties to be loaded when the node is loaded.
    *
-   * @return array or object
+   * @see load hook in quiz_question.module (quiz_question_load)
+   *
+   * @return array
    */
-  abstract public function getNodeProperties();
+  public function getNodeProperties() {
+    $sql = 'SELECT max_score
+            FROM {quiz_question_properties}
+            WHERE nid = %d AND vid = %d';
+    $props['max_score'] = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    return $props;
+  }
 
   /**
    * Responsible for handling insert/update of question-specific data.
@@ -356,31 +364,6 @@ abstract class QuizQuestion {
       $this->node->log = t($log);
     }
     return $form;
-  }
-
-
-  /**
-   * hook_load OO counterpart
-   *
-   * Calls the abstract function getNodeProperties() to get question type specific data,
-   * adds common data for all question types and returns the data to the node API.
-   *
-   * @return array or object
-   */
-  public function loadNode() {
-    $sql = 'SELECT max_score
-            FROM {quiz_question_properties}
-            WHERE nid = %d AND vid = %d';
-    $max_score = db_result(db_query($sql, $this->node->nid, $this->node->vid));
-    $to_return = $this->getNodeProperties();
-    if (empty($to_return)) $to_return = array();
-    if (is_array($to_return)) {
-      $to_return['max_score'] = $max_score;
-    }
-    elseif (is_object($to_return)) {
-      $to_return->max_score = $max_score;
-    }
-    return $to_return;
   }
 
   /**

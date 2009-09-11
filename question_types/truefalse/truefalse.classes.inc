@@ -51,9 +51,13 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 
   public function getNodeProperties() {
+    $props = parent::getNodeProperties();
+
     $sql = 'SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
-    $result = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
-    return $result;
+    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $props = array_merge($props, db_fetch_array($res));
+
+    return $props;
   }
 
   public function getNodeView() {

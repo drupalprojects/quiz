@@ -74,11 +74,15 @@ class ShortAnswerQuestion extends QuizQuestion {
   }
 
   public function getNodeProperties() {
+    $props = parent::getNodeProperties();
+
     $sql = 'SELECT correct_answer, correct_answer_evaluation
       FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
-    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
-    return $to_return;
+    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $props = array_merge($props, db_fetch_array($res));
+
+    return $props;
   }
 
   public function getNodeView() {

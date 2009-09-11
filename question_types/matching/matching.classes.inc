@@ -63,18 +63,19 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   public function getNodeProperties() {
-    $rows = $result = array();
+    $props = parent::getNodeProperties();
+
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
-      $rows['answer'][] = array(
+      $props['answer'][] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
         'answer' => $result->answer,
         'feedback' => $result->feedback,
       );
     }
-    return $rows;
+    return $props;
   }
 
   public function getNodeView() {

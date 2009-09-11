@@ -242,21 +242,24 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function getNodeProperties() {
+    $props = parent::getNodeProperties();
+
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
             FROM {quiz_multichoice_properties}
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $to_return = db_fetch_array($res);
+    $props = array_merge($props, db_fetch_array($res));
+
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_multichoice_answers}
             WHERE question_nid = %d AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $to_return['alternatives'] = array(); // init array so it can be iterated even if empty
+    $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = db_fetch_array($res)) {
-      $to_return['alternatives'][] = $res_arr;
+      $props['alternatives'][] = $res_arr;
     }
-    return $to_return;
+    return $props;
   }
 
   /**
@@ -547,20 +550,20 @@ class MultichoiceQuestion extends QuizQuestion {
     return $form;
   }
   private function getDefaultAltSettings() {
-    $to_return = array();
+    $settings = array();
     if (isset($this->node->nid)) {
-      $to_return['choice_multi'] = $this->node->choice_multi;
-      $to_return['choice_random'] = $this->node->choice_random;
-      $to_return['choice_boolean'] = $this->node->choice_boolean;
+      $settings['choice_multi'] = $this->node->choice_multi;
+      $settings['choice_random'] = $this->node->choice_random;
+      $settings['choice_boolean'] = $this->node->choice_boolean;
     }
-    elseif ($to_return = $this->getUserSettings()) {
+    elseif ($settings = $this->getUserSettings()) {
     }
     else {
-      $to_return['choice_multi'] = 0;
-      $to_return['choice_random'] = 0;
-      $to_return['choice_boolean'] = 0;
+      $settings['choice_multi'] = 0;
+      $settings['choice_random'] = 0;
+      $settings['choice_boolean'] = 0;
     }
-    return $to_return;
+    return $settings;
   }
   private function getUserSettings() {
     global $user;

@@ -28,10 +28,6 @@ class LongAnswerQuestion extends QuizQuestion{
     }
   }
 
-  public function getNodeProperties() {
-    //Nothing to return...
-  }
-
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getAnsweringForm(array $form_state = NULL) {

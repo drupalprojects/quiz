@@ -253,16 +253,17 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function getNodeProperties() {
-    $to_return = array();
+    $props = parent::getNodeProperties();
+
     $sql = 'SELECT id, answer, a.answer_collection_id
             FROM {quiz_scale_node_properties} p
             JOIN {quiz_scale_answer} a ON (p.answer_collection_id = a.answer_collection_id)
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     while ($res_o = db_fetch_object($res)) {
-      $to_return[] = $res_o;
+      $props[] = $res_o;
     }
-    return $to_return;
+    return $props;
   }
   /**
    * Implementation of view

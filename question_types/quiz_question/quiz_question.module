@@ -492,7 +492,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
  * Implementation of hook_load().
  */
 function quiz_question_load($node) {
-  return _quiz_question_get_instance($node)->loadNode();
+  return _quiz_question_get_instance($node)->getNodeProperties();
 }
 
 // END NODE API
