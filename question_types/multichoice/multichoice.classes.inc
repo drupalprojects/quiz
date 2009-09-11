@@ -49,8 +49,8 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_multi == 1) {
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
-        if ($short['score_if_chosen'] == $short['score_if_not_chosen'] 
-        || !is_numeric($short['score_if_chosen']) 
+        if ($short['score_if_chosen'] == $short['score_if_not_chosen']
+        || !is_numeric($short['score_if_chosen'])
         || !is_numeric($short['score_if_not_chosen'])) {
           if ($short['correct'] == 1) {
             $short['score_if_chosen'] = 1;
@@ -264,6 +264,8 @@ class MultichoiceQuestion extends QuizQuestion {
    *
    */
   public function getNodeView() {
+    $content = parent::getNodeView();
+
     $content['answers'] = array();
 
     $header = array('','');
@@ -275,14 +277,14 @@ class MultichoiceQuestion extends QuizQuestion {
       $image = $is_correct ? 'correct' : 'wrong';
       $rows[] = array(
         array(
-          'data' => theme('image', 
-            "$p/theme/images/$image.png", 
-            t($image), 
+          'data' => theme('image',
+            "$p/theme/images/$image.png",
+            t($image),
             t('Score if chosen: @sc Score if not chosen: @nc', array(
               '@sc' => $short['score_if_chosen'],
               '@nc' => $short['score_if_not_chosen'])
             )
-          ), 
+          ),
           'width' => 35
         ),
         $answer_markup

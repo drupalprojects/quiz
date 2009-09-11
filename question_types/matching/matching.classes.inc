@@ -78,6 +78,8 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   public function getNodeView() {
+    $content = parent::getNodeView();
+
     $content['answers'] = array();
 
     $header = array(t('Subquestion'), t('Correct match'));

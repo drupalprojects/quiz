@@ -77,11 +77,13 @@ class ShortAnswerQuestion extends QuizQuestion {
     $sql = 'SELECT correct_answer, correct_answer_evaluation
       FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
-    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));    
+    $to_return = db_fetch_object(db_query($sql, $this->node->nid, $this->node->vid));
     return $to_return;
   }
 
   public function getNodeView() {
+    $content = parent::getNodeView();
+
     $content['answers'] = array('#type' => 'markup',
       // FIXME hack should use CSS instead, maybe across all quiz_question.module
       '#value' => '<div style="background-color: lightgreen">'. $this->node->correct_answer .'</div>',
@@ -290,7 +292,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         FROM {quiz_short_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
       $r = db_fetch_object(db_query($sql, $question_node->nid, $question_node->vid, $result_id));
-      
+
       if (!empty($r)) {
         $this->answer = $r->answer;
         $this->score = $r->score;

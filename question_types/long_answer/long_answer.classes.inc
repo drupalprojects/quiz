@@ -31,8 +31,6 @@ class LongAnswerQuestion extends QuizQuestion{
   public function getNodeProperties() {
     //Nothing to return...
   }
-  
-  public function getNodeView() {}
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.

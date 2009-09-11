@@ -34,40 +34,53 @@
  * node API, quiz API and the question types.
  *
  * It is required that Question types extend this abstract class.
- * 
+ *
  * This class has default behaviour that all question types must have. It also handles the node API, but
  * gives the question types oppurtunity to save, delete and provide data specific to the question types.
  * This is done by declaring helper functions as abstract functions instead of relying on the question
  * types to call their parent methods for all node API methods.
- * 
- * This abstract class also declares several abstract functions forcing question-types to implement required 
+ *
+ * This abstract class also declares several abstract functions forcing question-types to implement required
  * methods.
  */
 abstract class QuizQuestion {
   /*
    * ABSTRACT FUNCTIONS
    * This part acts as a contract(/interface) between the question-types and the rest of the system.
-   * 
+   *
    * All question types needs to implement the abstract functions.
    */
-  
+
    /**
    * Retrieve information relevant for viewing the node.
-   * 
+   *
    * (This data is generally added to the node's extra field.)
-   * 
+   *
    * @return
    *  Content array
    */
-  abstract public function getNodeView();
-  
+  public function getNodeView() {
+    $type = node_get_types('type', $this->node);
+    $content['question_type'] = array(
+      '#type'  => 'markup',
+      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+      '#weight' => -2,
+    );
+    $content['question'] = array(
+      '#type'  => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#weight' => -1,
+    );
+    return $content;
+  }
+
   /**
-   * Getter function returning properties to be loaded when the node is loaded. 
-   * 
+   * Getter function returning properties to be loaded when the node is loaded.
+   *
    * @return array or object
    */
   abstract public function getNodeProperties();
-  
+
   /**
    * Responsible for handling insert/update of question-specific data.
    * This is typically called from within the Node API, so there is no need
@@ -132,7 +145,7 @@ abstract class QuizQuestion {
    *  The processed form.
    */
   abstract public function validateNode(array &$form);
-  
+
   /**
    * Get the form through which the user will answer the question.
    *
@@ -142,7 +155,7 @@ abstract class QuizQuestion {
    *  Must return a FAPI array.
    */
   abstract public function getAnsweringForm(array $form_state = NULL);
-  
+
   /**
    * Get the form that contains admin settings for this question type.
    *
@@ -152,38 +165,38 @@ abstract class QuizQuestion {
    *  Must return a FAPI array.
    */
   abstract public function getAdminForm(array $form_state = NULL);
-  
+
   /**
    * Get the form used to create a new question.
-   * 
+   *
    * @param
    *  FAPI form state
    * @return
    *  Must return a FAPI array.
    */
   abstract public function getCreationForm(array $form_state = NULL);
-  
+
   /**
    * Get the maximum possible score for this question.
    */
   abstract public function getMaximumScore();
-  
-  
-  
-  
+
+
+
+
   /*
    * DEFAULT BEHAVIOR
    * Behavior default for all question types should be written below
    */
-  
+
   /**
    * The current node for this question.
    */
   protected $node = NULL;
-  
+
   /**
    * QuizQuestion constructor stores the node object.
-   * 
+   *
    * @param $node
    *   The node object
    */
@@ -194,7 +207,7 @@ abstract class QuizQuestion {
   public function getNodeForm(array $form_state = NULL) {
     global $user;
     $form = array();
-  
+
     $form['body'] = array(
       '#type' => 'textarea',
       '#title' => t('Question'),
@@ -203,14 +216,14 @@ abstract class QuizQuestion {
       '#required' => TRUE,
       '#weight' => -15,
     );
-  
+
     // process up the filter format
     $form['format'] = filter_form($this->node->format);
     $form['format']['#weight'] = -14;
-  
+
     // First we do the basic title and text fields.
     // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
-  
+
     // Allow user to set title?
     if (user_access('allow user titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
@@ -228,7 +241,7 @@ abstract class QuizQuestion {
         '#value' => $this->node->title,
       );
     }
-  
+
     // Collection ID used here to tie creation of a question to a specific quiz or qcollection
     $collection_id = arg(3);
     if (is_numeric($collection_id)) {
@@ -242,9 +255,9 @@ abstract class QuizQuestion {
         '#type' => 'value',
         '#value' => $collection->vid,
       );
-      
+
       // If coming from collection view, go back there on submit.
-  
+
       // TODO ask the node itself where to go after authoring a question
       switch ($collection->type) {
         case 'quiz':
@@ -255,10 +268,10 @@ abstract class QuizQuestion {
           break;
       }
     }
-    
+
     //Add question specific content
     $form = array_merge($form, $this->getCreationForm($form_state));
-    
+
     // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
     $already = array();
     $already_nids = array();
@@ -281,7 +294,7 @@ abstract class QuizQuestion {
             FROM {quiz_question_latest_quizzes} lq
             JOIN {node} n
             ON n.nid = lq.quiz_nid
-            WHERE lq.uid = %d"; 
+            WHERE lq.uid = %d";
     if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
     $sql .= " ORDER BY lq.id DESC";
     $res = db_query($sql, $user->uid);
@@ -293,15 +306,15 @@ abstract class QuizQuestion {
     if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
       $sql = "SELECT nid, vid, title
             FROM {node} n
-            WHERE n.uid = %d AND type = 'quiz'"; 
+            WHERE n.uid = %d AND type = 'quiz'";
       if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
       $sql .= " ORDER BY changed LIMIT %d";
       $res = db_query(db_rewrite_sql($sql), $user->uid, QUIZ_QUESTION_N_O_LATEST - count($latest));
       while ($res_o = db_fetch_object($res)) {
         $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
-      } 
+      }
     }
-    
+
     $form['add_directly'] = array(
       '#type' => 'fieldset',
       '#title' => t('Add to quiz'),
@@ -344,38 +357,14 @@ abstract class QuizQuestion {
     }
     return $form;
   }
-  
-  /**-
-   * hook_view OO counterpart
-   * 
-   * Calls the abstract function getNodeView() to get question type specific data,
-   * adds common data for all question types and returns the data to the node API.
-   * 
-   * @return array
-   */
-  public function viewNode() {
-    $type = node_get_types('type', $this->node);
-    $content['question_type'] = array(
-      '#type'  => 'markup',
-      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
-      '#weight' => -2,
-    );
-    $content['question'] = array(
-      '#type'  => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-      '#weight' => -1,
-    );
-    $question_specific = $this->getNodeView();
-    if (is_array($question_specific)) $content = array_merge($content, $question_specific);
-    return $content;
-  }
-    
+
+
   /**
    * hook_load OO counterpart
-   * 
+   *
    * Calls the abstract function getNodeProperties() to get question type specific data,
    * adds common data for all question types and returns the data to the node API.
-   * 
+   *
    * @return array or object
    */
   public function loadNode() {
@@ -387,16 +376,16 @@ abstract class QuizQuestion {
     if (empty($to_return)) $to_return = array();
     if (is_array($to_return)) {
       $to_return['max_score'] = $max_score;
-    } 
+    }
     elseif (is_object($to_return)) {
       $to_return->max_score = $max_score;
     }
     return $to_return;
   }
-  
+
   /**
    * Handle the add to quiz part of the quiz_question_form
-   * 
+   *
    * @param $node
    *   node object made out of form values.
    */
@@ -404,7 +393,7 @@ abstract class QuizQuestion {
     /*
      * If the question already is part of quizzes we might have to remove some
      * relationships
-     */ 
+     */
     if (is_array($this->node->add_directly['already'])) {
       foreach ($this->node->add_directly['already'] as $key => $checked) {
         if ($checked == 0) {
@@ -427,7 +416,7 @@ abstract class QuizQuestion {
         }
       }
     }
-    
+
     /*
      * The quiz question might have been added to new quizzes
      */
@@ -455,10 +444,10 @@ abstract class QuizQuestion {
           $insert_values[] = $nid_vid[1];
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
-        } 
+        }
       }
       if (count($insert_values) > 0) {
-        $sql = 'INSERT INTO {quiz_node_relationship} 
+        $sql = 'INSERT INTO {quiz_node_relationship}
                 (parent_nid, parent_vid, child_nid, child_vid)
                 '. $to_insert;
         db_query($sql, $insert_values);
@@ -466,7 +455,7 @@ abstract class QuizQuestion {
     }
     if (drupal_strlen($this->node->add_directly['new']) > 0) {
       $new_node = quiz_make_new($this->node->add_directly['new']);
-      $sql = 'INSERT INTO {quiz_node_relationship} 
+      $sql = 'INSERT INTO {quiz_node_relationship}
               (parent_nid, parent_vid, child_nid, child_vid)
               VALUES (%d, %d, %d, %d)';
       db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid);
@@ -475,7 +464,7 @@ abstract class QuizQuestion {
 
   /**
    * Finds out if a question has been answered or not...
-   * 
+   *
    * @return
    *   true if there exists answers to the current question
    */
@@ -516,29 +505,29 @@ interface QuizQuestionResponse {
    * Delete the response.
    */
   public function delete();
-  
+
   /**
    * Calculate the score for the response.
    */
   public function score();
-  
+
   /**
    * Determine whether the score is a passing score.
    */
   public function isCorrect();
-  
+
   /**
    * Indicate whether the response has been evaluated (scored) yet.
    * Questions that require human scoring (e.g. essays) may need to manually
    * toggle this.
    */
   public function isEvaluated();
-  
+
   /**
    * Get the user's response.
    */
   public function getResponse();
-  
+
   /**
    * Get data suitable for reporting a user's score on the question.
    * This expects an object with the following attributes:

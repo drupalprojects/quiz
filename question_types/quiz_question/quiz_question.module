@@ -201,7 +201,7 @@ function quiz_question_answering_form($form_state, $node) {
 function _quiz_question_info($node) {
   $question = _quiz_question_get_instance($node);
 
-  $content = $question->viewNode();
+  $content = $question->getNodeView();
 
   $results = module_invoke_all('answers_access', $node);
   $may_view_answers = in_array(true, $results);
@@ -351,15 +351,15 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   $score->question_vid = $node->vid;
 
   if (isset($rid)) {
-    $sql = 'SELECT max_score 
+    $sql = 'SELECT max_score
             FROM {quiz_node_relationship}
             WHERE parent_vid = %d AND child_vid = %d';
     $max_score = db_result(db_query($sql, $quiz->vid, $node->vid));
     $response = _quiz_question_response_get_instance($rid, $node);
-    
+
     $score->attained = $score->possible > 0 ? round($response->getScore() * $max_score / $score->possible) : 0;
     $score->possible = $max_score;
-    
+
     $score->is_evaluated = $response->isEvaluated();
   }
 
@@ -411,7 +411,7 @@ function quiz_question_nodeapi(&$node, $op) {
  * Implementation of hook_insert()
  */
 function quiz_question_insert(stdClass $node) {
-  _quiz_question_get_instance($node)->saveNode(TRUE);
+  _quiz_question_get_instance($node)->save(TRUE);
   // if the question node says it should be attached to a quiz/qcollection, attach it.
   if (isset($node->collection_nid) && $node->collection_nid > 0) {
     $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
@@ -453,7 +453,7 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
  * Implementation of hook_update().
  */
 function quiz_question_update($node) {
-  _quiz_question_get_instance($node)->saveNode();
+  _quiz_question_get_instance($node)->save();
 }
 
 /**
@@ -520,7 +520,7 @@ function _quiz_question_get_instance(&$node) {
   if (!($to_return instanceof QuizQuestion)) {
     drupal_set_message(t('The question-type %name isn\'t a QuizQuestion. It needs to extend the QuizQuestion interface, or extend the abstractQuizQuestion class.', array('%name' => $name)), 'error', FALSE);
   }
-  return $to_return; 
+  return $to_return;
 }
 
 function _quiz_question_response_get_instance($rid, $question, $answer= NULL) {
@@ -583,7 +583,7 @@ function quiz_question_type_access_load($arg) {
 
 /**
  * Refreshes the ..._latest_quizzes table when a user has modified a new quiz.
- * 
+ *
  * @param $nid
  *   nid of the last quiz the current user modified
  */
@@ -614,7 +614,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
 
 /**
  * Removes a quiz from the ..._latest_quizzes table.
- * 
+ *
  * @param $nid
  *   the nid of a quiz that shall be removed from the ..._latest_quizzes table
  */
@@ -625,7 +625,7 @@ function quiz_question_remove_latest_quizzes($nid) {
 }
 
 function quiz_question_get_max_score($nid, $vid) {
-  $sql = 'SELECT max_score 
+  $sql = 'SELECT max_score
           FROM {quiz_question_properties}
           WHERE nid = %d AND vid = %d';
   return db_result(db_query($sql, $nid, $vid));

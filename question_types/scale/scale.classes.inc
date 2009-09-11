@@ -271,6 +271,8 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
    */
   public function getNodeView() {
+    $content = parent::getNodeView();
+
     //TODO: Consider changing this to something prettier...
     $form = $this->getAnsweringForm();
     //$to_return = drupal_render($form['question']);
