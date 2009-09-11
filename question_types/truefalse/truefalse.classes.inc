@@ -14,6 +14,8 @@
 class TrueFalseQuestion extends QuizQuestion {
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
+
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
@@ -34,6 +36,8 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 
   public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
+
     // Only delete a nid/vid.
     if ($only_this_version) {
       $sql = 'DELETE FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';

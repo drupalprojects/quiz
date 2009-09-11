@@ -14,6 +14,7 @@
 class LongAnswerQuestion extends QuizQuestion{
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
@@ -25,9 +26,6 @@ class LongAnswerQuestion extends QuizQuestion{
     if (!ctype_digit($max_score) || intval($max_score) < 0) {
       form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
     }
-  }
-
-  public function delete($only_this_version = FALSE) {
   }
 
   public function getNodeProperties() {

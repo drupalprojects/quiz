@@ -93,6 +93,8 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function save($is_new = FALSE) {
+    parent::save($is_new);
+
     $is_new_node = $is_new || $this->node->revision == 1;
     $this->forgive();
     if ($is_new_node) {
@@ -209,6 +211,8 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
+
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_multichoice_user_answers}

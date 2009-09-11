@@ -22,6 +22,8 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
+
     foreach ($this->node->match as $match) {
       if (empty($match['question']) || empty($match['answer'])) {
         continue;
@@ -46,6 +48,8 @@ class MatchingQuestion extends QuizQuestion {
 
 
   public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
+
     // Only delete a nid/vid.
     if ($only_this_version) {
       $sql = 'DELETE FROM {quiz_matching_node} WHERE nid = %d AND vid = %d';

@@ -27,12 +27,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
     $this->node->not_a_question = TRUE;
   }
 
-  public function save($is_new = FALSE) {
-  }
-
   public function validateNode(array &$form) {}
-
-  public function delete($only_this_version = FALSE) {}
 
   public function getNodeProperties() {
     // Nothing to return

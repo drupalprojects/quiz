@@ -83,19 +83,45 @@ abstract class QuizQuestion {
    *   node itself is not new).
    * - An existing node revision is modified.
    *
+   * @see hook_update and hook_insert in quiz_question.module
+   *
    * @param $is_new
    *  TRUE when the node is initially created.
    */
-  abstract public function save($is_new = FALSE);
-  
+  public function save($is_new = FALSE) {
+    $is_new_node = $is_new || $this->node->revision == 1;
+    if ($is_new_node) {
+      $sql = 'INSERT INTO {quiz_question_properties}
+              (nid, vid, max_score)
+              VALUES(%d, %d, %d)';
+      db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore());
+    } else {
+      $sql = 'UPDATE {quiz_question_properties}
+              SET max_score = %d
+              WHERE nid = %d AND vid = %d';
+      db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
+    }
+    $this->saveRelationships();
+  }
+
   /**
-   * Delete question data from the database
-   * 
+   * Delete question data from the database.
+   *
+   * Called by quiz_question_delete (hook_delete).
+   * Child classes must call super
+   *
    * @param $only_this_version
-   *   If only this version(vid) should be deleted, or all versions.
+   *  If the $only_this_version flag is TRUE, then only the particular
+   *  nid/vid combo should be deleted. Otherwise, all questions with the
+   *  current nid can be deleted.
    */
-  abstract public function delete($only_this_version = FALSE);
-  
+  public function delete($only_this_version = FALSE) {
+    $sql = 'DELETE FROM {quiz_question_properties}
+            WHERE nid = %d';
+    if ($only_this_version) $sql .= ' AND vid = %d';
+    db_query($sql, $this->node->nid, $this->node->vid);
+  }
+
   /**
    * Provides validation for question before it is created.
    *
@@ -369,29 +395,6 @@ abstract class QuizQuestion {
   }
   
   /**
-   * hook_update and hook_insert OO counterpart
-   * 
-   * Saves data common for all question types to the database and call the abstract function save()
-   * to let the question-type save its specific data
-   */
-  public function saveNode($is_new = FALSE) {
-    $is_new_node = $is_new || $this->node->revision == 1;
-    if ($is_new_node) {
-      $sql = 'INSERT INTO {quiz_question_properties}
-              (nid, vid, max_score)
-              VALUES(%d, %d, %d)';
-      db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore());
-    } else {
-      $sql = 'UPDATE {quiz_question_properties}
-              SET max_score = %d
-              WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
-    }
-    $this->saveRelationships();
-    $this->save($is_new);
-  }
-  
-  /**
    * Handle the add to quiz part of the quiz_question_form
    * 
    * @param $node
@@ -469,25 +472,7 @@ abstract class QuizQuestion {
       db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid);
     }
   }
-  /**
-   * hook_delete OO counterpart
-   * 
-   * Deletes data common for all questiontypes and call the abstract function delete() 
-   * to let the question-type delete its specific data
-   *
-   * @param $only_this_version
-   *  If the $only_this_version flag is TRUE, then only the particular
-   *  nid/vid combo should be deleted. Otherwise, all questions with the
-   *  current nid can be deleted.
-   */
-  public function deleteNode($only_this_version = FALSE) {
-    $sql = 'DELETE FROM {quiz_question_properties}
-            WHERE nid = %d';
-    if ($only_this_version) $sql .= ' AND vid = %d';
-    db_query($sql, $this->node->nid, $this->node->vid);
-    $this->delete();
-  }
-  
+
   /**
    * Finds out if a question has been answered or not...
    * 

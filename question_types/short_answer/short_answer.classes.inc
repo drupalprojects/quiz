@@ -33,6 +33,8 @@ class ShortAnswerQuestion extends QuizQuestion {
   const TEXT_ENTRY_TEXTAREA = 1;
 
   public function save($is_new = FALSE) {
+    parent::save($is_new);
+
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
@@ -62,6 +64,7 @@ class ShortAnswerQuestion extends QuizQuestion {
   }
 
   public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_short_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
     }

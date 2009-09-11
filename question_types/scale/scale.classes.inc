@@ -53,7 +53,8 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function save($is_new = FALSE) {
-    global $user;
+    parent::save($is_new);
+
     $is_new_node = $is_new || $this->node->revision == 1;
     $answer_collection_id = $this->saveAnswerCollection($is_new_node);
     if ($this->node->save == 1) {
@@ -220,6 +221,8 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
+
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_scale_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_scale_user_answers}
