@@ -200,23 +200,9 @@ function quiz_question_answering_form($form_state, $node) {
 // TODO eliminate this function somehow, with a theme?
 function _quiz_question_info($node) {
   $question = _quiz_question_get_instance($node);
-
   $content = $question->getNodeView();
-
-  $results = module_invoke_all('answers_access', $node);
-  $may_view_answers = in_array(true, $results);
-
-  if (!$may_view_answers) {
-    $content['answers'] = array(
-      '#type' => 'markup',
-      '#value' => '<br /> <em>Answers hidden</em>.',
-      '#weight' => 2,
-    );
-  }
-
   return $content;
 }
-
 
 /**
  * Form for teaser display

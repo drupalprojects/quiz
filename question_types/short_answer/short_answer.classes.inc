@@ -88,11 +88,21 @@ class ShortAnswerQuestion extends QuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
 
-    $content['answers'] = array('#type' => 'markup',
-      // FIXME hack should use CSS instead, maybe across all quiz_question.module
+    if ($this->viewCanRevealCorrect()) {
+      $content['answers'] = array('#type' => 'markup',
+      // TODO should use CSS instead, maybe across all quiz_question.module
       '#value' => '<div style="background-color: lightgreen">'. $this->node->correct_answer .'</div>',
       '#weight' => 1,
-    );
+      );
+    } else {
+      // TODO this should use CSS and be a theme chunk
+      $content['answers'] = array(
+      '#type' => 'markup',
+      '#value' => '<br /> <em>Answer hidden</em>.',
+      '#weight' => 2,
+      );
+    }
+
     return $content;
   }
 

@@ -63,10 +63,19 @@ class TrueFalseQuestion extends QuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
 
-    $answer = ($this->node->correct_answer) ? t('True') : t('False');
-    // leave other values of 'answers' element from parent
-    $content['answers']['#type'] = 'markup';
-    $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
+    if ($this->viewCanRevealCorrect()) {
+      $answer = ($this->node->correct_answer) ? t('True') : t('False');
+      // leave other values of 'answers' element from parent
+      $content['answers']['#type'] = 'markup';
+      $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
+    } else {
+      // TODO this should use CSS and be a theme chunk
+      $content['answers'] = array(
+      '#type' => 'markup',
+      '#value' => '<br /> <em>Answer hidden</em>.',
+      '#weight' => 2,
+      );
+    }
 
     return $content;
   }

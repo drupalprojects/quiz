@@ -278,6 +278,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
       $p = drupal_get_path('module', 'multichoice');
       $image = $is_correct ? 'correct' : 'wrong';
+      if (!$this->viewCanRevealCorrect()) $image = 'unknown';
       $rows[] = array(
         array(
           'data' => theme('image',

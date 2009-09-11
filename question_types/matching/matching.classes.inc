@@ -81,31 +81,41 @@ class MatchingQuestion extends QuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
 
-    $content['answers'] = array();
+    list($matches, $select_option) = $this->getSubquestions();
 
-    $header = array(t('Subquestion'), t('Correct match'));
-    list($questions, $select_option) = $this->getSubquestions();
-    foreach ($questions as $question) {
-      $rows[] = array($question['question'], $question['answer']);
+    if ($this->viewCanRevealCorrect()) {
+      $header = array(t('Subquestion'), t('Correct match'));
+      foreach ($matches as $match) {
+        $rows[] = array($match['question'], $match['answer']);
+      }
+    } else {
+      $header = array(t('Subquestion'), t('Random possible match'));
+      // shuffle the answer column
+      foreach ($matches as $match) {
+        $sub_qs[] = $match['question'];
+        $sub_as[] = $match['answer'];
+      }
+      shuffle($sub_as);
+      foreach ($sub_qs as $i => $sub_q) {
+        $rows[] = array($sub_q, $sub_as[$i]);
+      }
     }
 
     $content['answers'] = array(
        '#value' => theme('table', $header, $rows),
        '#weight' => 2,
     );
+
     return $content;
   }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getAnsweringForm(array $form_state = NULL) {
-    list($questions, $select_option) = $this->getSubquestions();
-    foreach ($questions as $question) {
-      $title = $question['question'];
-      if (!_quiz_is_taking_context()) {
-        $title .= " (answer is '$question[answer]')";
-      }
-      $form['tries[' . $question['match_id'] . ']'] = array(
+    list($matches, $select_option) = $this->getSubquestions();
+    foreach ($matches as $match) {
+      $title = $match['question'];
+      $form['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $title,
         '#options' => $this->customShuffle($select_option),
@@ -125,11 +135,11 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   private function getSubquestions() {
-    $questions = $select_option = array();
+    $matches = $select_option = array();
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
-      $questions[] = array(
+      $matches[] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
         'answer' => $result->answer,
@@ -137,7 +147,7 @@ class MatchingQuestion extends QuizQuestion {
       );
       $select_option[$result->match_id] = $result->answer;
     }
-    return array($questions, $select_option);
+    return array($matches, $select_option);
   }
 
   public function getAdminForm(array $form_state = NULL) {

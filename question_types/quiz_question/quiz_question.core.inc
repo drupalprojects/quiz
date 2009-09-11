@@ -460,6 +460,18 @@ abstract class QuizQuestion {
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     return db_fetch_object($res) ? TRUE : FALSE;
   }
+
+  /**
+   *
+   * @return boolean
+   *   true iff the view may include the correct answers to the question
+   */
+  public function viewCanRevealCorrect() {
+    $results = module_invoke_all('answers_access', $node);
+    $may_view_answers = in_array(true, $results);
+    return $may_view_answers;
+  }
+
 }
 
 /**
