@@ -45,10 +45,11 @@
  */
 abstract class QuizQuestion {
   /*
-   * ABSTRACT FUNCTIONS
+   * QUESTION IMPLEMENTATION FUNCTIONS
+   *
    * This part acts as a contract(/interface) between the question-types and the rest of the system.
    *
-   * All question types needs to implement the abstract functions.
+   * Question types are made by extending these generic methods and abstract methods.
    */
 
    /**
