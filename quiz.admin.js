@@ -45,9 +45,11 @@ Drupal.behaviors.attachRemoveAction = function () {
     var remList = $('#edit-remove-from-quiz');
     var orig = remList.val();
     remList.val(remItem + ',' + orig);
-
-    $this.parents('tr').remove();
-
+    
+    $this.parents('tr').css('display', 'none');
+    
+    $('#browser-' + remItem).click();
+    
     var table = Drupal.tableDrag['questions-order-' + statusCode];
     if (!table.changed) {
       table.changed;

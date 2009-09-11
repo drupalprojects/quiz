@@ -16,13 +16,13 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $(this).toggleClass('selected');
     if (event.target.type !== 'checkbox') {
       $(':checkbox', this).attr('checked', function() {
-        var pattern = new RegExp('always-[0-9]+-[0-9]+');
-    	var idToShow = pattern.exec(this.id);
-    	var disp = this.checked ? 'none': 'table-row';
-    	$('#' + idToShow).css('display', disp);
     	return !this.checked;
       });
     }
+    var pattern = new RegExp('always-[0-9]+-[0-9]+');
+	var idToShow = pattern.exec(this.id);
+	var disp = $(':checkbox', this).attr('checked') ? 'table-row': 'none';
+	$('#' + idToShow).css('display', disp);
   });
   $('#edit-always-browser-filters-all')
   .click(function(event) {
