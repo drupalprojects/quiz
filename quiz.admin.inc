@@ -151,6 +151,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $hidden_questions = array();
   $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($hidden_questions, $form_state, $quiz, 'always');
     
+  // TODO: Remove this
   $form['filtered_question_list_always']['remove_from_quiz'] = array(
     '#type' => 'hidden',
     '#default_value' => '',
@@ -175,7 +176,9 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $node = node_load($nid, $vid);
       $node->max_score = $form_state['post']['max_scores'][$id];
       $node->weight = $weight;
-      $questions[] = quiz_node_map($node);
+      $q_to_add = quiz_node_map($node);
+      $q_to_add->hidden = $form_state['post']['hidden'][$id];
+      $questions[] = $q_to_add;
     }
   }//TODO: Make question_status out of id...
   else {
@@ -202,9 +205,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $max_score = quiz_question_get_max_score($node->nid, $node->vid);
     $node->max_score = $max_score;
     $node->weight = 0; //TODO: Weight needs to be the biggest...
-    $questions[] = quiz_node_map($node);
-    $form['filtered_question_list_always']['temp_questions'][$id]['#value'] = TRUE;
-    if (in_array($id, $hidden_questions)) $form['filtered_question_list_always']['hidden_questions'][$id]['#value'] = TRUE;
+    $q_to_add = quiz_node_map($node);
+    $form['filtered_question_list_always']['temp_questions'][$id]['#default_value'] = TRUE;
+    if (in_array($id, $hidden_questions) && !isset($form_state['post']['hiddens'][$id])) {
+      $q_to_add->hidden = TRUE;
+    }
+    $questions[] = $q_to_add;
   }
   // IF new questions have been added using AJAX
   if (is_array($form_state['new_questions'])) {
@@ -220,16 +226,19 @@ function quiz_questions_form($form_state, $quiz, $options) {
       foreach ($questions as $question) {
         $node->weight = max($node->weight, ($question->weight +1));
       }
-      $questions[] = quiz_node_map($node);
+      $q_to_add = quiz_node_map($node);
+      $questions[] = $q_to_add;
     }
   }
-
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
 
   $form['filtered_question_list_random']['max_scores'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['max_scores'] = array('#tree' => TRUE);
+  
+  $form['filtered_question_list_random']['hiddens'] = array('#tree' => TRUE);
+  $form['filtered_question_list_always']['hiddens'] = array('#tree' => TRUE);
 
   $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
@@ -254,6 +263,10 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#size' => 2,
       '#maxlength' => 2,
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+    );
+    $form[$fieldset]['hiddens'][$id] = array(
+      '#type' => 'hidden',
+      '#default_value' => isset($question->hidden) ? 1 : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l($question->title, 'node/'. $question->nid, array('html' => TRUE)),
@@ -648,7 +661,7 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_new_revision, $refreshes) {
+function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_new_revision, $refreshes, $hiddens) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
@@ -656,6 +669,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
       // Skip items that should be removed.
       continue;
     }
+    if ($hiddens[$id] == 1) continue;
     list($state, $nid, $vid) = explode('-', $id, 3);
     $nid = (int)$nid;
     $vid = (int)$vid;
@@ -717,7 +731,8 @@ function quiz_questions_form_submit($form, &$form_state) {
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
-  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $removed, $is_new_revision, $refreshes);
+  $hiddens = $form_state['values']['hiddens'];
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $removed, $is_new_revision, $refreshes, $hiddens);
 
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
@@ -778,6 +793,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
         $vid = $matches[2];
         $form_state['values']['weights'][$id] = ++$next_weight;
         $form_state['values']['max_scores'][$id] = quiz_question_get_max_score($nid, $vid);
+        $form_state['values']['hiddens'][$id] = 0;
       }
     }
   }
@@ -1485,13 +1501,13 @@ function _quiz_skip_validation(&$elements) {
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
-  $display = $sub_form['hidden_questions'][$id]['#value'] === TRUE ? 'none' : 'table-row';
+  $display = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? 'none' : 'table-row';
   return array(
     'class' => 'draggable'. ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : ''),
     'style' => 'display:'. $display,
     'id' => $id,
     'data' => array(
-      drupal_render($sub_form['titles'][$id]),
+      drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
       $type,
       $sub_form['view_links'][$id]['#value'] . ' | ' . $sub_form['remove_links'][$id]['#value'],
       isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),

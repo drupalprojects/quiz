@@ -23,6 +23,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	var idToShow = pattern.exec(this.id);
 	var disp = $(':checkbox', this).attr('checked') ? 'table-row': 'none';
 	$('#' + idToShow).css('display', disp);
+	$('#edit-hiddens-' + idToShow).val((disp == 'none') ? 1 : 0);
   });
   $('#edit-always-browser-filters-all')
   .click(function(event) {
