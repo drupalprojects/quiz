@@ -1994,6 +1994,11 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
  *   The result ID found for the current quiz.
  */
 function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
+  // Anonymous users cannot resume quizzes.
+  if ($uid == 0) {
+    return;
+  }
+
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   $already_answered = array();
