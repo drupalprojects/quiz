@@ -177,7 +177,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $node->max_score = $form_state['post']['max_scores'][$id];
       $node->weight = $weight;
       $q_to_add = quiz_node_map($node);
-      $q_to_add->hidden = $form_state['post']['hidden'][$id];
+      $q_to_add->hidden = $form_state['post']['hiddens'][$id] === '1';
       $questions[] = $q_to_add;
     }
   }//TODO: Make question_status out of id...
@@ -197,7 +197,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     foreach($questions as $question) {
       if($question->vid == $vid) {
         $continue = TRUE;
-        continue;
+        break;
       }
     }
     if (!is_numeric($nid) || !is_numeric($vid) || $continue) continue; 
@@ -207,13 +207,13 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $node->weight = 0; //TODO: Weight needs to be the biggest...
     $q_to_add = quiz_node_map($node);
     $form['filtered_question_list_always']['temp_questions'][$id]['#default_value'] = TRUE;
-    if (in_array($id, $hidden_questions) && !isset($form_state['post']['hiddens'][$id])) {
-      $q_to_add->hidden = TRUE;
+    if (in_array($id, $hidden_questions)) {
+      $q_to_add->hidden = isset($form_state['values']['hiddens'][$id]) ? $form_state['values']['hiddens'][$id] === '1' : TRUE;
     }
     $questions[] = $q_to_add;
   }
   // IF new questions have been added using AJAX
-  if (is_array($form_state['new_questions'])) {
+  /*if (is_array($form_state['new_questions'])) {
     foreach ($form_state['new_questions'] as $quest) {
       $matches = array();
       preg_match('/id:([0-9]+)/', $quest, $matches);
@@ -229,7 +229,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $q_to_add = quiz_node_map($node);
       $questions[] = $q_to_add;
     }
-  }
+  }*/
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
@@ -266,7 +266,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     );
     $form[$fieldset]['hiddens'][$id] = array(
       '#type' => 'hidden',
-      '#default_value' => isset($question->hidden) ? 1 : 0,
+      '#default_value' => (isset($question->hidden) && $question->hidden === TRUE) ? 1 : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l($question->title, 'node/'. $question->nid, array('html' => TRUE)),
@@ -298,7 +298,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
     }
     $form[$fieldset]['revision'][$id] = $update_cell;
   }
-
   // Show the number of 'always' questions in the 'always' table header.
   $always_count = isset($form['filtered_question_list_always']['titles']) ? count($form['filtered_question_list_always']['titles']) : 0;
   $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
@@ -926,7 +925,6 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-  $num_temps = _quiz_browser_count_temps($_POST['always_browser']['questions_to_add']);
   foreach ($_POST as $key => $value) {
     unset($_REQUEST[$key]);
   }
@@ -943,20 +941,25 @@ function quiz_browser_ahah() {
   
   $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
   $b_form = $form['filtered_question_list_always']['always_browse']['always_browser'];
-  unset($form['filtered_question_list_always']['always_browse']);
-  if ($num_temps > 0) { 
-    $sub_form_html = drupal_render($form['filtered_question_list_always']);
-    $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_temps);
-    $output .= ' var qRowsTemp = '.drupal_to_js($q_rows_html).';';
-    $output .= ' Quiz.addQuestions("always", qRowsTemp);';
+  unset($form['filtered_question_list_always']['always_browse']); 
+  foreach ($form['filtered_question_list_always']['hiddens'] as $key => $value) {
+    if (isset($value['#value']) && $value['#value'] == 0) unset($form['filtered_question_list_always']['titles'][$key]);
   }
+  $num_hiddens = 0;
+  foreach ($form['filtered_question_list_always']['titles'] as $key => $value) {
+    if (preg_match('/^always/', $key)) $num_hiddens++;
+  }
+  $sub_form_html = drupal_render($form['filtered_question_list_always']);
+  $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
+  $output .= ' var qRowsHidden = '.drupal_to_js($q_rows_html).';';
   if($replace_all) {
     unset($b_form['#type']);
     unset($b_form['#value']);
     
     $rendered_browser = drupal_render($b_form);
     $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
-    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);</script>';
+    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
+    $output .= ' Quiz.addQuestions("always", qRowsHidden);</script>';
   }
   else {
     // Send status messages, new build id for the form and the new question row to the javascript:
@@ -965,7 +968,8 @@ function quiz_browser_ahah() {
     
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
-    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);</script>';
+    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
+    $output .= ' Quiz.addQuestions("always", qRowsHidden);</script>';
     $output .= ' '. theme('status_messages');
   }
   drupal_json(array('status' => TRUE, 'data' => $output));
@@ -1501,10 +1505,10 @@ function _quiz_skip_validation(&$elements) {
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
-  $display = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? 'none' : 'table-row';
+  $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
+  $temp_class = ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : '');
   return array(
-    'class' => 'draggable'. ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : ''),
-    'style' => 'display:'. $display,
+    'class' => 'draggable'. $hidden_class . $temp_class,
     'id' => $id,
     'data' => array(
       drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),

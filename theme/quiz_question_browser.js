@@ -21,8 +21,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     }
     var pattern = new RegExp('always-[0-9]+-[0-9]+');
 	var idToShow = pattern.exec(this.id);
-	var disp = $(':checkbox', this).attr('checked') ? 'table-row': 'none';
-	$('#' + idToShow).css('display', disp);
+	$('#' + idToShow).toggleClass('hidden-question');
 	$('#edit-hiddens-' + idToShow).val((disp == 'none') ? 1 : 0);
   });
   $('#edit-always-browser-filters-all')
@@ -118,8 +117,10 @@ $(document).ready(function () {
   };
 });
 
-Quiz.addBrowserRows = function(rows, newBuildId, pager) {
+Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {
   //Add the new row:
+  $('.hidden-question').remove();
+  
   $('#quiz_question_browser_filters').after(rows);
   $('#quiz-question-browser-pager').replaceWith(pager);
   //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
@@ -130,8 +131,9 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   
   Drupal.behaviors.quizQuestionBrowserBehavior();
 };
-Quiz.replaceBrowser = function(renderedBrowser, newBuildId) {
+Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   // Change build id to the new id provided by the server:
+  $('.hidden-question').remove();
   $('[name="form_build_id"]').val(newBuildId);
   $('#quiz-browser-all-ahah-target').replaceWith(renderedBrowser);
   

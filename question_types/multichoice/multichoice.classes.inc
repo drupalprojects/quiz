@@ -22,6 +22,7 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
+ *     TODO: Add marking to sort, page and filter results if they have allready been added.
  *     TODO: Things must be working correctly on submit
  *     TODO: Add node access security
  *     TODO: Make sure editing of max score and order in main list is kept

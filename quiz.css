@@ -86,3 +86,7 @@ div.multichoice_answer_incorrect {
 .multichoice_answer_correct {
 	background-color: lightgreen;
 }
+
+.hidden-question {
+  display: none;
+}

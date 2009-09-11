@@ -15,7 +15,7 @@ Quiz.addQuestions = function (key, rowHtml) {
   
   var table = Drupal.tableDrag['questions-order-' + statusCode];
   
-  $('.quiz-temp').each(function(){
+  $('.quiz-temp, .hidden-question').each(function(){
 	//Hide weight column:
     $('td:last', this).css('display', 'none');
   table.makeDraggable(this);
