@@ -2059,6 +2059,12 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
  *   If no quiz is in progress, this will return 0.
  */
 function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
+
+  // Do not get active result IDs for anonymous users.
+  if ($uid == 0) {
+    return 0;
+  }
+
   if (!isset($now)) {
     $now = time();
   }
