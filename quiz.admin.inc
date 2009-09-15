@@ -786,6 +786,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
   if (is_array($form_state['values']['always_browser']['titles'])) {
     foreach ($form_state['values']['always_browser']['titles'] as $id) {
       if ($id !== 0) {
+        if($form_state['values']['hiddens'][$id] == 0) continue;
         $matches = array();
         preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
         $nid = $matches[1];
