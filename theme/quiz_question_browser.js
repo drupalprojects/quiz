@@ -5,7 +5,6 @@
  * Javascript functions for the quizQuestionBrowser
  */
 var Quiz = Quiz || {};
-Quiz.questionsToAdd = '';
 
 Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.quiz_question_browser_row')
@@ -68,7 +67,6 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	$('#edit-always-browser-add-to-get').val(myUrl);
-	Quiz.storeCheckboxes();
 	$('#edit-always-browser-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
@@ -96,13 +94,11 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#edit-always-browser-filters-changed').trigger('change');
     event.preventDefault();
   });
-  $('#edit-always-browser-questions-to-add').val(Quiz.questionsToAdd);
   $('.pager-item a, .pager-first a, .pager-next a, .pager-previous a, .pager-last a')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	Quiz.updatePageInUrl(myUrl);
-    Quiz.storeCheckboxes();
     $('#edit-always-browser-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
@@ -138,30 +134,6 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   $('#quiz-browser-all-ahah-target').replaceWith(renderedBrowser);
   
   Drupal.attachBehaviors();
-};
-Quiz.storeCheckboxes = function() {
-  Quiz.clearStoredCheckboxes();
-  $('.quiz-browser-checkbox').each(function() {
-    if ($(this).attr('checked')) {
-      var oldVal = $('#edit-always-browser-questions-to-add').val() + '';
-      var newVal = $(this).val() + '';
-      if (oldVal.length > 0) {
-    	$('#edit-always-browser-questions-to-add').val(oldVal + ',' + newVal);
-      } else {
-    	$('#edit-always-browser-questions-to-add').val(newVal);
-      }
-    }
-  });
-  Quiz.questionsToAdd = $('#edit-always-browser-questions-to-add').val();
-};
-Quiz.clearStoredCheckboxes = function() {
-  var oldStored = $('#edit-always-browser-questions-to-add').val() + '';
-  $('.quiz-browser-checkbox').each(function() {
-    var toClear = $(this).val() + '';
-    var pattern = new RegExp(',?'+toClear);
-    oldStored = oldStored.replace(pattern,'');
-  });
-  $('#edit-always-browser-questions-to-add').val(oldStored);
 };
 Quiz.updatePageInUrl = function(myUrl) {
   //Finds page from input parameter

@@ -22,8 +22,7 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Add marking to sort, page and filter results if they have allready been added.
- *     TODO: Things must be working correctly on submit
+ *     TODO: Colors and weight must be correct when questions are added to main list without beeing edited.
  *     TODO: Add node access security
  *     TODO: Make sure editing of max score and order in main list is kept
  *     TODO: Questions removed from main list gets unchecked and removed from temp list.
