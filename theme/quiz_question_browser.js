@@ -22,6 +22,9 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	var idToShow = pattern.exec(this.id);
 	$('#' + idToShow).toggleClass('hidden-question');
 	$('#edit-hiddens-' + idToShow).val(($('#' + idToShow).hasClass('hidden-question')) ? 1 : 0);
+	if (!$('#' + idToShow).hasClass('hidden-question')) {
+      Quiz.fixColorAndWeight();
+	}
   });
   $('#edit-always-browser-filters-all')
   .click(function(event) {
@@ -147,4 +150,16 @@ Quiz.updatePageInUrl = function(myUrl) {
   currentQuery = currentQuery.replace(pattern,'');
   currentQuery += pageQuery;
   $('#edit-always-browser-add-to-get').val(currentQuery);
+};
+Quiz.fixColorAndWeight = function() {
+  var nextClass = 'odd';
+  var lastClass = 'even';
+  $('.q-row').each(function() {
+    if (!$(this).hasClass('hidden-question')) {
+      if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
+      var currentClass = nextClass;
+      nextClass = lastClass;
+      lastClass = currentClass;
+    }
+  });
 };

@@ -1507,7 +1507,7 @@ function _quiz_get_question_row($sub_form, $id) {
   $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
   $temp_class = ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : '');
   return array(
-    'class' => 'draggable'. $hidden_class . $temp_class,
+    'class' => 'q-row draggable'. $hidden_class . $temp_class,
     'id' => $id,
     'data' => array(
       drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
