@@ -1385,7 +1385,7 @@ function theme_question_selection_table($form) {
       $form['weights'][$id]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
 
       $rows[] = _quiz_get_question_row($form, $id);
-      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id]);
+      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['hiddens'][$id]);
       unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id]);
     }
   }

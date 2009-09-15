@@ -22,7 +22,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     var pattern = new RegExp('always-[0-9]+-[0-9]+');
 	var idToShow = pattern.exec(this.id);
 	$('#' + idToShow).toggleClass('hidden-question');
-	$('#edit-hiddens-' + idToShow).val((disp == 'none') ? 1 : 0);
+	$('#edit-hiddens-' + idToShow).val(($('#' + idToShow).hasClass('hidden-question')) ? 1 : 0);
   });
   $('#edit-always-browser-filters-all')
   .click(function(event) {
