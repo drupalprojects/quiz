@@ -22,7 +22,6 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Add node access security
  *     TODO: Questions removed from main list gets unchecked and removed from temp list.
  *   TODO: The right questions must be marked as changed.
  *   TODO: History compatibility

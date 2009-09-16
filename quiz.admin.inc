@@ -171,7 +171,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
       preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
       $nid = $matches[1];
       $vid = $matches[2];
-      $node = node_load($nid, $vid);
+      $node = node_load($nid, $vid); // TODO: These two lines create a major performance hit...
+      if (!node_access('view', $node)) continue;
       $node->max_score = $form_state['post']['max_scores'][$id];
       $node->weight = $weight;
       $q_to_add = quiz_node_map($node);
