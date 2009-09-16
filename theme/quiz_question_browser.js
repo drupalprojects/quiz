@@ -7,6 +7,8 @@
 var Quiz = Quiz || {};
 
 Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
+  
+  // Question rows in the browser
   $('.quiz_question_browser_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
@@ -26,6 +28,10 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       Quiz.fixColorAndWeight($('#' + idToShow));
 	}
   });
+  
+  // Filter row in the browser
+  
+  // Mark all button
   $('#edit-always-browser-filters-all')
   .click(function(event) {
     var ch = $(this).attr('checked');
@@ -42,6 +48,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       }
     });
   });
+  
+  // Type and date filters
   $('#edit-always-browser-filters-type:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-changed:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .change(function(event) {
@@ -51,6 +59,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
   });
   var quizRefreshId;
+  
+  //Title and username filters
   $('#edit-always-browser-filters-title:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-name:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .keyup(function(event) {
@@ -65,6 +75,10 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       clearInterval(quizRefreshId);
     }, 1000);
   });
+  
+  // Sorting
+  
+  // Sort by title
   $('.quiz-browser-header-title > a:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
@@ -73,6 +87,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#edit-always-browser-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
+  
+  // Sort by username
   $('.quiz-browser-header-name > a:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
@@ -81,6 +97,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#edit-always-browser-filters-name').trigger('doneTyping');
     event.preventDefault();
   });
+  
+  // Sort by type
   $('.quiz-browser-header-type > a:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
@@ -89,6 +107,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#edit-always-browser-filters-type').trigger('change');
     event.preventDefault();
   });
+  
+  // Sort by date
   $('.quiz-browser-header-changed > a:not(.quizQuestionBrowserBehavior-processed)')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
@@ -97,6 +117,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#edit-always-browser-filters-changed').trigger('change');
     event.preventDefault();
   });
+  
+  // Pager
   $('.pager-item a, .pager-first a, .pager-next a, .pager-previous a, .pager-last a')
   .addClass('quizQuestionBrowserBehavior-processed')
   .click(function(event){
