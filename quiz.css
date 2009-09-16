@@ -90,3 +90,34 @@ div.multichoice_answer_incorrect {
 .hidden-question {
   display: none;
 }
+
+.quiz_question_browser_row, #quiz_question_browser_filters {
+  border: 0px solid #666666;
+}
+
+.quiz_question_browser_row.odd {
+  background-color: #e7e7e7;
+}
+
+.quiz_question_browser_row.even {
+  background-color: #fbfbfb;
+}
+
+#quiz_question_browser_filters {
+  background-color: #000000;
+}
+#quiz_question_browser_filters td.active {
+  background-color: #202050;
+}
+
+.quiz_question_browser_row.odd:not(.selected) td.active {
+  background-color: #e2e2f9;
+}
+
+.quiz_question_browser_row.even:not(.selected) td.active {
+  background-color: #f8f8ff;
+}
+
+.browser-table th {
+  border-bottom: 0px solid #666666;
+}

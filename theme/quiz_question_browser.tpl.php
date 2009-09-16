@@ -38,7 +38,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $cols[] = $form['names'][$key]['#value'];
   $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row', 'id' => 'browser-'. $key);
 }
-print theme('table', $form['#header'], $rows);
+print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
 print $form['pager']['#value'];

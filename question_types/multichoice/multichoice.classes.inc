@@ -31,7 +31,6 @@
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: Check that the random question features still works.
  *   TODO: UX engineering
- *     TODO: Must look different from the other tables on the page.
  *   TODO: Clean up the code
  *   TODO: Add comments
  * TODO: Add several ways to take quiz.
