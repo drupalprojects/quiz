@@ -22,7 +22,7 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Colors and weight must be correct when questions are added to main list without beeing edited.
+ *     TODO: When browsers back button is used it bugs...
  *     TODO: Add node access security
  *     TODO: Make sure editing of max score and order in main list is kept
  *     TODO: Questions removed from main list gets unchecked and removed from temp list.

@@ -23,7 +23,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	$('#' + idToShow).toggleClass('hidden-question');
 	$('#edit-hiddens-' + idToShow).val(($('#' + idToShow).hasClass('hidden-question')) ? 1 : 0);
 	if (!$('#' + idToShow).hasClass('hidden-question')) {
-      Quiz.fixColorAndWeight();
+      Quiz.fixColorAndWeight($('#' + idToShow));
 	}
   });
   $('#edit-always-browser-filters-all')
@@ -151,15 +151,29 @@ Quiz.updatePageInUrl = function(myUrl) {
   currentQuery += pageQuery;
   $('#edit-always-browser-add-to-get').val(currentQuery);
 };
-Quiz.fixColorAndWeight = function() {
+Quiz.fixColorAndWeight = function(newest) {
   var nextClass = 'odd';
   var lastClass = 'even';
+  var lastWeight = 0;
+  newest.remove();
+  var lastQuestion = null;
   $('.q-row').each(function() {
-    if (!$(this).hasClass('hidden-question')) {
+    if (!$(this).hasClass('hidden-question') && $(this) != newest) {
+      // Color:
       if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
       var currentClass = nextClass;
       nextClass = lastClass;
       lastClass = currentClass;
+      lastQuestion = $(this);
+      // Weight:
+      var myId = $(this).attr('id') + '';
+      var weightField = $('#edit-weights-' + myId);
+      weightField.val(lastWeight);
+      lastWeight++;
     }
   });
+  if (!newest.hasClass(nextClass)) newest.removeClass(lastClass).addClass(nextClass);
+  var newestId = newest.attr('id');
+  lastQuestion.after(newest);
+  $('#edit-weights-' + newestId).val(lastWeight);
 };
