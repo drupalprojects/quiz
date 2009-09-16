@@ -7,9 +7,11 @@
 var Quiz = Quiz || {};
 
 Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
-  
+  var done = 'quizQuestionBrowserBehavior-processed';
+  var notDone = ':not(.'+ done +')';
   // Question rows in the browser
-  $('.quiz_question_browser_row')
+  $('.quiz_question_browser_row'+ notDone)
+  .addClass(done)
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
   .end()
@@ -32,7 +34,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   // Filter row in the browser
   
   // Mark all button
-  $('#edit-always-browser-filters-all')
+  $('#edit-always-browser-filters-all'+ notDone)
+  .addClass(done)
   .click(function(event) {
     var ch = $(this).attr('checked');
     $('.quiz_question_browser_row').each(function() { 
@@ -50,8 +53,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   });
   
   // Type and date filters
-  $('#edit-always-browser-filters-type:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-changed:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('#edit-always-browser-filters-type'+ notDone +', #edit-always-browser-filters-changed'+ notDone)
+  .addClass(done)
   .change(function(event) {
     $('.quiz_question_browser_row').each(function() { 
       $(this).remove();
@@ -61,8 +64,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   var quizRefreshId;
   
   //Title and username filters
-  $('#edit-always-browser-filters-title:not(.quizQuestionBrowserBehavior-processed), #edit-always-browser-filters-name:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('#edit-always-browser-filters-title'+ notDone +', #edit-always-browser-filters-name'+ notDone)
+  .addClass(done)
   .keyup(function(event) {
 	clearInterval(quizRefreshId);
 	var quizClicked = this;
@@ -76,11 +79,11 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     }, 1000);
   });
   
-  // Sorting
+  // Sorting TODO: Merge all the sortings into one...
   
   // Sort by title
-  $('.quiz-browser-header-title > a:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('.quiz-browser-header-title > a'+ notDone)
+  .addClass(done)
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	$('#edit-always-browser-add-to-get').val(myUrl);
@@ -89,8 +92,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   });
   
   // Sort by username
-  $('.quiz-browser-header-name > a:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('.quiz-browser-header-name > a'+ notDone)
+  .addClass(done)
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	$('#edit-always-browser-add-to-get').val(myUrl);
@@ -99,8 +102,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   });
   
   // Sort by type
-  $('.quiz-browser-header-type > a:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('.quiz-browser-header-type > a'+ notDone)
+  .addClass(done)
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	$('#edit-always-browser-add-to-get').val(myUrl);
@@ -109,8 +112,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   });
   
   // Sort by date
-  $('.quiz-browser-header-changed > a:not(.quizQuestionBrowserBehavior-processed)')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('.quiz-browser-header-changed > a'+ notDone)
+  .addClass(done)
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	$('#edit-always-browser-add-to-get').val(myUrl);
@@ -119,8 +122,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   });
   
   // Pager
-  $('.pager-item a, .pager-first a, .pager-next a, .pager-previous a, .pager-last a')
-  .addClass('quizQuestionBrowserBehavior-processed')
+  $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
+  .addClass(done)
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	Quiz.updatePageInUrl(myUrl);
@@ -157,7 +160,6 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   $('.hidden-question').remove();
   $('[name="form_build_id"]').val(newBuildId);
   $('#quiz-browser-all-ahah-target').replaceWith(renderedBrowser);
-  
   Drupal.attachBehaviors();
 };
 Quiz.updatePageInUrl = function(myUrl) {

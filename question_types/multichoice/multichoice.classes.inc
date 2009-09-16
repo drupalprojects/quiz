@@ -22,11 +22,13 @@
 /**
  * TODO: Make a question browser
  *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: When browsers back button is used it bugs...
  *     TODO: Add node access security
- *     TODO: Make sure editing of max score and order in main list is kept
  *     TODO: Questions removed from main list gets unchecked and removed from temp list.
- *   TODO: Questions aren't marked correctly...
+ *   TODO: The right questions must be marked as changed.
+ *   TODO: History compatibility
+ *     TODO: Invisible iframes
+ *     TODO: # urls...?
+ *     TODO: CTools or other module?
  *   TODO: Try to remove some of the node loading in manage questions
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: Check that the random question features still works.
