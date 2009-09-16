@@ -30,29 +30,26 @@ Quiz.addQuestions = function (key, rowHtml) {
 };
 
 Drupal.behaviors.attachRemoveAction = function () {
-  $('.rem-link').click(function (e) {
+  $('.rem-link:not(attachRemoveAction-processed)')
+  .addClass('attachRemoveAction-processed')
+  .click(function (e) {
     var $this = $(this);
-    var remID = $this.parents('tr').find('.question-order-weight').attr('id');
-
-    var matches = remID.match(/edit-weights-([a-zA-Z]+)-([0-9]+)-([0-9]+)/);
-    if (!matches || matches.length < 4) {
+    var remID = $this.parents('tr').attr('id');
+    var matches = remID.match(/(always|random)-[0-9]+-[0-9]+/);
+    if (!matches || matches.length < 1) {
       return false;
     }
 
-    var remItem = matches[1] + '-' + matches[2] + '-' + matches[3];
-    var statusCode = (matches[1] == 'always') ? 1 : 0;
-
-    var remList = $('#edit-remove-from-quiz');
-    var orig = remList.val();
-    remList.val(remItem + ',' + orig);
+    var statusCode = (matches[1] == 'always') ? 1 : 0;      
     
-    $this.parents('tr').css('display', 'none');
+    $this.parents('tr').addClass('hidden-question');
+    $('#edit-hiddens-' + remID).val(1);
     
-    $('#browser-' + remItem).click();
+    $('#browser-' + remID).click();
     
     var table = Drupal.tableDrag['questions-order-' + statusCode];
     if (!table.changed) {
-      table.changed;
+      table.changed = true;
       $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
     }
 

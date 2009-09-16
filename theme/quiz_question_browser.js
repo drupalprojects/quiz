@@ -24,7 +24,11 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     }
     var pattern = new RegExp('always-[0-9]+-[0-9]+');
 	var idToShow = pattern.exec(this.id);
-	$('#' + idToShow).toggleClass('hidden-question');
+	if ($(this).hasClass('selected')) {
+      $('#' + idToShow).removeClass('hidden-question');
+	} else {
+      $('#' + idToShow).addClass('hidden-question');
+	}
 	$('#edit-hiddens-' + idToShow).val(($('#' + idToShow).hasClass('hidden-question')) ? 1 : 0);
 	if (!$('#' + idToShow).hasClass('hidden-question')) {
       Quiz.fixColorAndWeight($('#' + idToShow));
@@ -198,6 +202,7 @@ Quiz.fixColorAndWeight = function(newest) {
   });
   if (!newest.hasClass(nextClass)) newest.removeClass(lastClass).addClass(nextClass);
   var newestId = newest.attr('id');
-  lastQuestion.after(newest);
+  newest.insertAfter('#'+ lastQuestion.attr('id'));
   $('#edit-weights-' + newestId).val(lastWeight);
+  Drupal.attachBehaviors();
 };

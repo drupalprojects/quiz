@@ -21,8 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Add ajax or something to remember previously selected questions etc.
- *     TODO: Questions removed from main list gets unchecked and removed from temp list.
  *   TODO: The right questions must be marked as changed.
  *   TODO: History compatibility
  *     TODO: Invisible iframes
