@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: The right questions must be marked as changed.
  *   TODO: History compatibility
  *     TODO: Invisible iframes
  *     TODO: # urls...?

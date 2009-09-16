@@ -204,5 +204,17 @@ Quiz.fixColorAndWeight = function(newest) {
   var newestId = newest.attr('id');
   newest.insertAfter('#'+ lastQuestion.attr('id'));
   $('#edit-weights-' + newestId).val(lastWeight);
+  
+  var marker = Drupal.theme('tableDragChangedMarker');
+  var cell = $('td:first', newest);
+  if ($('span.tabledrag-changed', cell).length == 0) {
+    cell.append(marker);
+  }
+  var table = Drupal.tableDrag['questions-order-1']; //TODO: Must be changed in order to have random work...
+  if (!table.changed) {
+    table.changed = true;
+    $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
+  }
+  
   Drupal.attachBehaviors();
 };
