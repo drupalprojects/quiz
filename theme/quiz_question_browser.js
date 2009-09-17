@@ -143,6 +143,10 @@ $(document).ready(function () {
 	}
     oldTableHeader(context);
   };
+  
+  $('.quiz_question_browser_row:has(:checkbox:checked)').each(function() {
+    $(this).click();
+  });
 });
 
 Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {

@@ -272,13 +272,27 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#default_value' => (isset($question->hidden) && $question->hidden === TRUE) ? 1 : 0,
     );
     $form[$fieldset]['titles'][$id] = array(
-      '#value' => l($question->title, 'node/'. $question->nid, array('html' => TRUE)),
+      '#value' => l(
+        $question->title, 
+        'node/'. $question->nid, 
+        array(
+          'html' => TRUE, 
+          'attributes' => array('target' => 'blank')
+        )
+      ),
     );
     $form[$fieldset]['types'][$id] = array(
       '#value' => $question->type,
     );
     $form[$fieldset]['view_links'][$id] = array(
-      '#value' => l(t('Edit'), 'node/'. $question->nid .'/edit', array('query' => array('destination' => $my_dest))),
+      '#value' => l(
+        t('Edit'), 
+        'node/'. $question->nid .'/edit', 
+        array(
+          'query' => array('destination' => $my_dest),
+          'attributes' => array('target' => 'blank'),
+        )
+      ),
     );
     $form[$fieldset]['remove_links'][$id] = array(
       // FIXME: This does not degrade for non-JS browsers.

@@ -21,10 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: History compatibility
- *     TODO: Invisible iframes
- *     TODO: # urls...?
- *     TODO: CTools or other module?
  *   TODO: Try to remove some of the node loading in manage questions
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: Check that the random question features still works.
