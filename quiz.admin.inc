@@ -165,22 +165,35 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $questions_to_add = array();
   // We use $form_state[post] to avoid validation failures when questions are added using AJAX
   if (isset($form_state['post']['weights'])) {
-    // TODO: Add node access security
+    $cur_questions = array();
+    $vids = array();
     foreach ($form_state['post']['weights'] as $id => $value) {
+      $cur_question = new stdClass();
       $matches = array();
       preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
-      $nid = $matches[1];
-      $vid = $matches[2];
-      $node = node_load($nid, $vid); // TODO: These two lines create a major performance hit...
-      if (!node_access('view', $node)) continue;
-      $node->max_score = $form_state['post']['max_scores'][$id];
-      $node->weight = $weight;
-      $q_to_add = quiz_node_map($node);
-      $q_to_add->hidden = $form_state['post']['hiddens'][$id] === '1';
-      if($q_to_add->hidden == FALSE) {
+      $cur_question->nid = $matches[1];
+      if (!is_numeric($matches[2])) continue;
+      $vids[] = $cur_question->vid = $matches[2];
+      $cur_question->max_score = $form_state['post']['max_scores'][$id];
+      $cur_question->weight = $weight;
+      $cur_question->hidden = $form_state['post']['hiddens'][$id] === '1';
+      $cur_question->question_status = 1; //FIXME
+      if($cur_question->hidden == FALSE) {
         $questions_to_add[] = $id;
       }
-      $questions[] = $q_to_add;
+      $cur_questions[$cur_question->nid] = $cur_question;
+    }
+    $sql = 'SELECT n.nid, n.type, r.title
+            FROM {node} n
+            JOIN {node_revisions} r
+            ON n.nid = r.nid
+            WHERE r.vid IN ('. implode(', ', $vids) .')';
+    // The primary reason for this is to add node access security...
+    $res = db_query(db_rewrite_sql($sql));
+    while ($res_o = db_fetch_object($res)) {
+      $cur_questions[$res_o->nid]->type = $res_o->type;
+      $cur_questions[$res_o->nid]->title = $res_o->title;
+      $questions[] = $cur_questions[$res_o->nid];
     }
   }//TODO: Make question_status out of id...
   else {
@@ -189,9 +202,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $hidden_questions = array();
   $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz, 'always');
   $temp_to_add = $hidden_questions;
-  $form['filtered_question_list_always']['temp_questions'] = array();
   $form['filtered_question_list_always']['hidden_questions'] = array();
+  
+  $cur_questions = array();
+  $vids = array();
   foreach ($temp_to_add as $key => $id) {
+    $cur_question = new stdClass();
     $matches = array();
     preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
     $nid = $matches[1];
@@ -203,36 +219,33 @@ function quiz_questions_form($form_state, $quiz, $options) {
         break;
       }
     }
-    if (!is_numeric($nid) || !is_numeric($vid) || $continue) continue; 
-    $node = node_load($nid, $vid);
-    $max_score = quiz_question_get_max_score($node->nid, $node->vid);
-    $node->max_score = $max_score;
-    $node->weight = 0; //TODO: Weight needs to be the biggest...
-    $q_to_add = quiz_node_map($node);
-    $form['filtered_question_list_always']['temp_questions'][$id]['#default_value'] = TRUE;
+    if (!is_numeric($nid) || !is_numeric($vid) || $continue) continue;
+    $cur_question->nid = $nid;
+    $vids[] = $cur_question->vid = $vid; 
+    $cur_question->weight = 0;
+    $cur_question->question_status = 1; //FIXME
     if (in_array($id, $hidden_questions)) {
-      $q_to_add->hidden = isset($form_state['values']['hiddens'][$id]) ? $form_state['values']['hiddens'][$id] === '1' : TRUE;
+      $cur_question->hidden = isset($form_state['values']['hiddens'][$id]) ? $form_state['values']['hiddens'][$id] === '1' : TRUE;
     }
-    $questions[] = $q_to_add;
+    $cur_questions[$cur_question->nid] = $cur_question;
   }
-  // IF new questions have been added using AJAX
-  /*if (is_array($form_state['new_questions'])) {
-    foreach ($form_state['new_questions'] as $quest) {
-      $matches = array();
-      preg_match('/id:([0-9]+)/', $quest, $matches);
-      $nid = $matches[1];
-      if (!is_numeric($nid) || $nid == 0) break;
-      $node = node_load($nid);
-      $max_score = quiz_question_get_max_score($node->nid, $node->vid);
-      $node->max_score = $max_score;
-      $node->weight = 0;
-      foreach ($questions as $question) {
-        $node->weight = max($node->weight, ($question->weight +1));
-      }
-      $q_to_add = quiz_node_map($node);
-      $questions[] = $q_to_add;
+  if (count($vids) > 0) {
+    $sql = 'SELECT n.nid, n.type, r.title, p.max_score
+            FROM {node} n
+            JOIN {node_revisions} r
+            ON n.nid = r.nid
+            JOIN {quiz_question_properties} p
+            ON r.vid = p.vid
+            WHERE r.vid IN ('. implode(', ', $vids) .')';
+    // The primary reason for this is to add node access security...
+    $res = db_query(db_rewrite_sql($sql));
+    while ($res_o = db_fetch_object($res)) {
+      $cur_questions[$res_o->nid]->type = $res_o->type;
+      $cur_questions[$res_o->nid]->title = $res_o->title;
+      $cur_questions[$res_o->nid]->max_score = $res_o->max_score;
+      $questions[] = $cur_questions[$res_o->nid];
     }
-  }*/
+  }
   $rows = array();
   $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
   $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
@@ -251,7 +264,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $fieldset = 'filtered_question_list_' . $id_mod;
     $id = $id_mod . '-' . $question->nid . '-' . $question->vid;
 
-    $latest = node_load($question->nid);
+    $latest = db_fetch_object(db_query('SELECT vid FROM node WHERE nid = %d', $question->nid));
+    // TODO: Can we do without this one as well?
 
     $form[$fieldset]['weights'][$id] = array(
       //'#type' => 'weight',
@@ -960,8 +974,10 @@ function quiz_browser_ahah() {
     if (isset($value['#value']) && $value['#value'] == 0) unset($form['filtered_question_list_always']['titles'][$key]);
   }
   $num_hiddens = 0;
-  foreach ($form['filtered_question_list_always']['titles'] as $key => $value) {
-    if (preg_match('/^always/', $key)) $num_hiddens++;
+  if (is_array($form['filtered_question_list_always']['titles'])) {
+    foreach ($form['filtered_question_list_always']['titles'] as $key => $value) {
+      if (preg_match('/^always/', $key)) $num_hiddens++;
+    }
   }
   $sub_form_html = drupal_render($form['filtered_question_list_always']);
   $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
@@ -1520,9 +1536,8 @@ function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
   $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
-  $temp_class = ($sub_form['temp_questions'][$id]['#value'] === TRUE ? ' drag-previous quiz-temp' : '');
   return array(
-    'class' => 'q-row draggable'. $hidden_class . $temp_class,
+    'class' => 'q-row draggable'. $hidden_class,
     'id' => $id,
     'data' => array(
       drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),

@@ -21,12 +21,13 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Try to remove some of the node loading in manage questions
+ *   TODO: Number of questions on quiz is wrong
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: Check that the random question features still works.
  *   TODO: UX engineering
  *   TODO: Clean up the code
  *   TODO: Add comments
+ * TODO: Improve quiz results performance.
  * TODO: Add several ways to take quiz.
  * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form for multichoice question?
