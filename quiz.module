@@ -1822,6 +1822,7 @@ function quiz_node_map($node) {
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
   $new_question->type = $node->type;
+  $new_question->latest_vid = $node->latest_vid;
   $new_question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
   if (isset($node->max_score)) $new_question->max_score = $node->max_score;
   $new_question->weight = $node->weight;
@@ -2422,7 +2423,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
     $where_sql = trim( $where_sql, ' AND ');
   }
 
-  $result = db_query('SELECT question.nid, nr.vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
+  $result = db_query('SELECT question.nid, nr.vid, question.vid AS latest_vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
     FROM {node} question
     INNER JOIN {node_revisions} nr ON question.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr ON nr.vid = qnr.child_vid

@@ -183,7 +183,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       }
       $cur_questions[$cur_question->nid] = $cur_question;
     }
-    $sql = 'SELECT n.nid, n.type, r.title
+    $sql = 'SELECT n.nid, n.type, n.vid AS latest_vid, r.title
             FROM {node} n
             JOIN {node_revisions} r
             ON n.nid = r.nid
@@ -193,6 +193,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     while ($res_o = db_fetch_object($res)) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
+      $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
       $questions[] = $cur_questions[$res_o->nid];
     }
   }//TODO: Make question_status out of id...
@@ -230,7 +231,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $cur_questions[$cur_question->nid] = $cur_question;
   }
   if (count($vids) > 0) {
-    $sql = 'SELECT n.nid, n.type, r.title, p.max_score
+    $sql = 'SELECT n.nid, n.type, r.title, p.max_score, n.vid AS lastest_vid
             FROM {node} n
             JOIN {node_revisions} r
             ON n.nid = r.nid
@@ -243,6 +244,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
       $cur_questions[$res_o->nid]->max_score = $res_o->max_score;
+      $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
       $questions[] = $cur_questions[$res_o->nid];
     }
   }
@@ -263,9 +265,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
     $fieldset = 'filtered_question_list_' . $id_mod;
     $id = $id_mod . '-' . $question->nid . '-' . $question->vid;
-
-    $latest = db_fetch_object(db_query('SELECT vid FROM node WHERE nid = %d', $question->nid));
-    // TODO: Can we do without this one as well?
 
     $form[$fieldset]['weights'][$id] = array(
       //'#type' => 'weight',
@@ -313,7 +312,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
       //'#value' => l('Remove', 'node/' . $question->nid .'/questions/remove', array('attributes' => array('class' => 'rem-link'))),
       '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
-    if ($question->vid == $latest->vid) {
+    if ($question->vid == $question->latest_vid) {
       $update_cell = array(
         '#type' => 'markup',
         '#value' => t('<em>Up to date</em>'),
