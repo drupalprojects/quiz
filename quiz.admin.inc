@@ -117,10 +117,7 @@ function quiz_questions($node) {
 function quiz_questions_form($form_state, $quiz, $options) {
   // This is a target for AHAH callbacks. Do not remove.
   $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
-  $form['ahah_target'] = array(
-    '#type' => 'markup',
-    '#value' => '<div id="questions-always-target"></div>',
-  );
+  
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
@@ -717,26 +714,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_n
 
   return $questions;
 }
-/**
- * Adds questions to the quiz_questions_form using ahah.
- *
- * @param $form
- *   Standard form definition array
- * @param $form_state
- *   Standard form state...
- */
-function quiz_add_question_submit($form, &$form_state) {
-  if (!empty($form_state['post']['always_autocomplete'])) {
-    $new_question = $form_state['post']['always_autocomplete'];
-    $frequency = 'always';
-  }
-  elseif (!empty($form_state['post']['random_autocomplete'])) {
-    $new_question = $form_state['post']['random_autocomplete'];
-    $frequency = 'random';
-  }
-  $form_state['new_questions'][] = $new_question;
-  $form_state['rebuild'] = TRUE;
-}
+
  /**
   * Submit function for quiz_questions.
   *
@@ -865,73 +843,7 @@ function quiz_admin_list_questions_ac($vid, $string = '') {
 }
 
 /**
- * AHAH form completion for adding new questions.
- */
-function quiz_admin_add_question_ahah() {
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_id = $_POST['form_build_id'];
-  // Make sure the form exists
-  if (!($form = form_get_cache($form_id, $form_state))) {
-    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator. $form_id"));
-    $output = theme('status_messages');
-    print drupal_to_js(array('status' => TRUE, 'data' => $output));
-    exit();
-  }
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
-
-  // We will run some of the submit handlers so we need to disable redirecting.
-  $form['#redirect'] = FALSE;
-
-  // We need to process the form, prepare for that by setting a few internals
-  // variables.
-  $form['#post'] = $_POST;
-  $form['#programmed'] = FALSE;
-  $form_state['post'] = $_POST;
-
-  // Find the new question:
-  if (!empty($form_state['post']['always_autocomplete'])) {
-    $new_question = $form_state['post']['always_autocomplete'];
-    $frequency = 'always';
-  }
-  elseif (!empty($form_state['post']['random_autocomplete'])) {
-    drupal_set_message('Adding random question', 'status');
-    $new_question = $form_state['post']['random_autocomplete'];
-    $frequency = 'random';
-  }
-  else {
-    form_set_error('form_token', t('No question was found.'));
-    $output = theme('status_messages');
-    print drupal_to_js(array('status' => TRUE, 'data' => $output));
-    exit();
-  }
-  $id = _quiz_get_question_id($new_question, $frequency);
-
-  _quiz_skip_validation($form);
-
-  // Build, validate and submit the form.
-  drupal_process_form($form_id, $form, $form_state);
-
-  // Get a new form with the new question attached
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-
-  // Get the filtered question list with the new question.
-  unset($form['filtered_question_list_'.$frequency]['always_browse']);
-  $sub_form_html = drupal_render($form['filtered_question_list_'.$frequency]);
-
-  // The new question is the last row in the table...
-  $q_row_html = _quiz_get_last_table_rows($sub_form_html);
-
-  // Send status messages, new build id for the form and the new question row to the javascript:
-  $output = theme('status_messages');
-  $output .= '<script>var newBuildId = '.drupal_to_js($form['#build_id']).';';
-  $output .= ' var qRowTotal = '.drupal_to_js($q_row_html).';';
-  $output .= ' Quiz.addQuestion("' . $frequency . '", qRowTotal);</script>';
-  drupal_json(array('status' => TRUE, 'data' => $output));
-}
-
-/**
- * AHAH form completion for adding new questions.
+ * AHAH handler for the question browser
  */
 function quiz_browser_ahah() {
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
@@ -1553,25 +1465,6 @@ function _quiz_get_question_row($sub_form, $id) {
 }
 
 /**
- * Converts question description(from autocomplete field) into question id(used in form definition)
- *
- * @param $new_question
- *   Question description from autocomplete field
- * @param $frequency
- *   Random or always.
- * @return question id
- *   String used as identifier in quiz_questions_form
- */
-function _quiz_get_question_id($new_question, $frequency) {
-  $matches = array();
-  preg_match('/id:([0-9]+)/', $new_question, $matches);
-  $nid = $matches[1];
-  $sql = 'SELECT vid FROM {node} n where n.nid = %d';
-  $vid = db_result(db_query($sql, $nid));
-  return $frequency .'-'. $nid .'-'. $vid;
-}
-
-/**
  * Finds and returns the last table row(HTML) in a table(HTML)
  *
  * @param $table
@@ -1615,12 +1508,4 @@ function _quiz_add_to_get($to_add){
       $_GET[$value] = $_SESSION[$pre . $value];
     }
   }
-} 
-function _quiz_browser_count_temps($temp_string) {
-  $temps = explode(',', $temp_string);
-  $to_return = 0;
-  foreach ($temps as $value) {
-    $to_return += preg_match('/-[0-9]+-[0-9]+/', $value);
-  }
-  return $to_return;
 }

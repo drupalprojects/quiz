@@ -231,15 +231,6 @@ function quiz_menu() {
     'access arguments' => array('create quiz'),
     'file' => 'quiz.admin.inc'
   );
-  // AHAH callback
-  $items['admin/quiz/newquestion'] = array(
-    'title' => t('Add a Question to a Quiz'),
-    'description' => t('AHAH Callback for adding a quiz question'),
-    'page callback' => 'quiz_admin_add_question_ahah',
-    'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
-    'file' => 'quiz.admin.inc',
-  );
 
   // Menu item for adding questions to quiz.
   $items['node/%quiz_type_access/questions'] = array(
