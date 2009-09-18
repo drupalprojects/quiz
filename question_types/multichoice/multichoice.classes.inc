@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Number of questions on quiz is wrong
  *   TODO: Completely remove code from the old autocomplete way of adding questions.
  *   TODO: Check that the random question features still works.
  *   TODO: UX engineering

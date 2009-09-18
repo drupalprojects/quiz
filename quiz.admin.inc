@@ -329,7 +329,10 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $form[$fieldset]['revision'][$id] = $update_cell;
   }
   // Show the number of 'always' questions in the 'always' table header.
-  $always_count = isset($form['filtered_question_list_always']['titles']) ? count($form['filtered_question_list_always']['titles']) : 0;
+  $always_count = 0;
+  foreach ($form['filtered_question_list_always']['hiddens'] as $hidden) {
+    if ($hidden['#default_value'] === 0) $always_count++;
+  }
   $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
   
   if (quiz_has_been_answered($quiz)) {
