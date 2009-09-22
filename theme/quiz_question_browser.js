@@ -23,7 +23,6 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       });
     }
 	var idToShow = Quiz.findNidVidString(this.id);
-	alert('click');
 	if ($(this).hasClass('selected')) {
       $('#q-' + idToShow).removeClass('hidden-question');
 	} else {
