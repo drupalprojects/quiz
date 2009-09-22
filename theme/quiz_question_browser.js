@@ -154,7 +154,6 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {
   // Change build id to the new id provided by the server:
   $('[name="form_build_id"]').val(newBuildId);
   
-  
   Drupal.behaviors.quizQuestionBrowserBehavior();
 };
 Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
@@ -181,10 +180,9 @@ Quiz.fixColorAndWeight = function(newest) {
   var nextClass = 'odd';
   var lastClass = 'even';
   var lastWeight = 0;
-  newest.remove();
   var lastQuestion = null;
   $('.q-row').each(function() {
-    if (!$(this).hasClass('hidden-question') && $(this) != newest) {
+    if (!$(this).hasClass('hidden-question') && $(this).attr('id') != newest.attr('id')) {
       // Color:
       if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
       var currentClass = nextClass;
