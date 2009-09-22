@@ -24,7 +24,7 @@ Quiz.addQuestions = function (rowHtml) {
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
   
-  Drupal.attachBehaviors();
+  Drupal.attachBehaviors(table.table);
 };
 
 Drupal.behaviors.attachRemoveAction = function () {

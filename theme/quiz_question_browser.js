@@ -60,7 +60,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $(this.selector)
   .addClass(done)
   .change(function(event) {
-    $('.quiz_question_browser_row').each(function() { 
+    $('.quiz-question-browser-row').each(function() { 
       $(this).remove();
     });
     $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
@@ -159,7 +159,7 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   $('.hidden-question').remove();
   $('[name="form_build_id"]').val(newBuildId);
   $('#all-ahah-target').replaceWith(renderedBrowser);
-  Drupal.attachBehaviors();
+  Drupal.attachBehaviors($('#all-ahah-target'));
 };
 Quiz.updatePageInUrl = function(myUrl) {
   //Finds page from input parameter
@@ -208,7 +208,7 @@ Quiz.fixColorAndWeight = function(newest) {
     table.changed = true;
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
-  Drupal.attachBehaviors();
+  //Drupal.attachBehaviors();
 };
 Quiz.findNidVidString = function(str) {
   var pattern = new RegExp('[0-9]+-[0-9]+');
