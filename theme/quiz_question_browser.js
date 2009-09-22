@@ -23,15 +23,14 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       });
     }
 	var idToShow = Quiz.findNidVidString(this.id);
+	alert('click');
 	if ($(this).hasClass('selected')) {
       $('#q-' + idToShow).removeClass('hidden-question');
 	} else {
       $('#q-' + idToShow).addClass('hidden-question');
 	}
 	$('#edit-hiddens-' + idToShow).val(($('#q-' + idToShow).hasClass('hidden-question')) ? 1 : 0);
-	if (!$('#q-' + idToShow).hasClass('hidden-question')) {
-      Quiz.fixColorAndWeight($('#q-' + idToShow));
-	}
+    Quiz.fixColorAndWeight($('#q-' + idToShow));
   });
   
   // Filter row in the browser
@@ -205,7 +204,7 @@ Quiz.fixColorAndWeight = function(newest) {
   if ($('span.tabledrag-changed', cell).length == 0) {
     cell.append(marker);
   }
-  var table = Drupal.tableDrag['question-list']; //TODO: Must be changed in order to have random work...
+  var table = Drupal.tableDrag['question-list'];
   if (!table.changed) {
     table.changed = true;
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');

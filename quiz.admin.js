@@ -28,7 +28,7 @@ Quiz.addQuestions = function (rowHtml) {
 };
 
 Drupal.behaviors.attachRemoveAction = function () {
-  $('.rem-link:not(attachRemoveAction-processed)')
+  $('.rem-link:not(.attachRemoveAction-processed)')
   .addClass('attachRemoveAction-processed')
   .click(function (e) {
     var $this = $(this);
@@ -37,6 +37,7 @@ Drupal.behaviors.attachRemoveAction = function () {
     if (!matches || matches.length < 1) {
       return false;
     }
+    Quiz.fixColorAndWeight($this.parents('tr'));
     $this.parents('tr').addClass('hidden-question');
     $('#edit-hiddens-' + matches[0]).val(1);
     $('#browser-'+ matches[0]).click();
