@@ -717,6 +717,8 @@ function questions_import_qti_extract_info($file) {
 function questions_import_read_node_aiken($line, &$node) {
   // now $line is an array holding question fields.
   $type = questions_import_get_next_aiken_field($line);
+  /*
+   * FIX IT Redundant code
   if (!in_array($type, array_keys(_quiz_get_question_types()))) {
     drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
     // oops you have miss spelled question type or you are trying to import question whose module is disabled.
@@ -725,6 +727,7 @@ function questions_import_read_node_aiken($line, &$node) {
     //empty the $line to load the next question
     return $line;
   }
+  */
   $node->type = $type;
   $node->title = $node->body = $node->teaser = questions_import_get_next_aiken_field($line);
 
@@ -747,12 +750,16 @@ function questions_import_read_node_aiken($line, &$node) {
       $line = array();
       // empty the $line and load the next question fields into it.
       $node->num_answers = count($options);
-      $node->answers = array();
+      $node->alternatives = array();
       foreach ($options as $option) {
-        $node->answers[] = array(
-          'correct' => (trim($answer) == trim($option['choice'])) ? 1 : 0,
+        $node->alternatives[] = array(
           'answer' => trim($option['choice']),
-          'feedback' => trim($option['feedback']),
+          'feedback_if_chosen' => trim($option['feedback']),
+          'feedback_if_not_chosen' => trim($option['feedback']),
+          'score_if_chosen' => (trim($answer) == trim($option['choice'])) ? 1 : 0,
+          'answer_format' => 1,
+          'feedback_if_chosen_format' => 1,
+          'feedback_if_not_chosen_format' => 1,
         );
       }
       break;
@@ -866,84 +873,91 @@ function questions_import_get_next_aiken_question(&$lines) {
 }
 
 
+/*
+ * @param $line
+ *   string containing a line from CSV file
+ * @param $node
+ *   object drupal quiz question node
+ * @param $separator
+ *   string containing CSV field separator
+ */
 function questions_import_read_node_csv($line, &$node, $separator) {
-    $line = trim($line);
-    if (empty($line) || $line[0] === '#') {
-      return;
-    }
 
-    $line = explode($separator, $line);
-    // The line variable looks something like
-    // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
-    // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
-    $type = questions_import_get_next_csv_field($line);
-    if (!in_array($type, array_keys(_quiz_get_question_types()))) {
-      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
-      continue;
-    }
-    $node->type = $type;
-    $question = questions_import_get_next_csv_field($line);
-    switch ($type) {
+  $line = explode($separator, $line);
+  // The $line variable looks something like
+  // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
+  // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
 
-      case 'multichoice':
-        $correct_answer = array_pop($line);
-        $node->num_answers = count($options);
-        $node->answers = array();
-        while (!empty($line)) {
-          $answer = questions_import_get_next_csv_field($line);
-          $feedback = questions_import_get_next_csv_field($line);
-          $node->answers[] = array(
-            'answer' => $answer,
-            'feedback' => $feedback === 'nil' ? '' : $feedback,
-            'correct' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
-          );
-        }
-        break;
+  $type = questions_import_get_next_csv_field($line);
+  $node->type = $type;
+  $question = questions_import_get_next_csv_field($line);
+  switch ($type) {
 
-      case 'true_false':
-        $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
+    case 'multichoice':
+      $correct_answer = array_pop($line);
+      //$node->num_answers = count($options);
+      $node->alternatives = array();
+      while (!empty($line)) {
+        $answer = questions_import_get_next_csv_field($line);
         $feedback = questions_import_get_next_csv_field($line);
-        $node->feedback = $feedback === 'nil' ? '' : $feedback;
-        break;
+        $score = questions_import_get_next_csv_field($line);
+        $node->alternatives[] = array(
+          'answer' => $answer,
+          'feedback_if_chosen' => $feedback === 'nil' ? '' : $feedback,
+          'feedback_if_not_chosen' => $feedback === 'nil' ? '' : $feedback,
+          'score_if_chosen' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
+          'score_if_not_chosen' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
+          'answer_format' => 1,
+          'feedback_if_chosen_format' => 1,
+          'feedback_if_not_chosen_format' => 1,
+        );
+      }
+      break;
 
-      case 'matching':
-        $node->match = array();
-        while (!empty($line)) {
-          $match = array(
-            'question' => questions_import_get_next_csv_field($line),
-            'answer' => questions_import_get_next_csv_field($line),
-            'feedback' => questions_import_get_next_csv_field($line),
-          );
-          $node->match[] = array(
-            'question' => $match['question'],
-            'answer' => $match['answer'],
-            'feedback' => $match['feedback'] ? '' : $match['feedback']
-          );
-        }
-        break;
+    case 'true_false':
+      $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
+      $feedback = questions_import_get_next_csv_field($line);
+      $node->feedback = $feedback === 'nil' ? '' : $feedback;
+      break;
 
-      case 'long_answer':
-        $node->maximum_score = questions_import_get_next_csv_field($line);
-        break;
+    case 'matching':
+      $node->match = array();
+      while (!empty($line)) {
+        $match = array(
+          'question' => questions_import_get_next_csv_field($line),
+          'answer' => questions_import_get_next_csv_field($line),
+          'feedback' => questions_import_get_next_csv_field($line),
+        );
+        $node->match[] = array(
+          'question' => $match['question'],
+          'answer' => $match['answer'],
+          'feedback' => $match['feedback'] ? '' : $match['feedback']
+        );
+      }
+      break;
 
-      case 'short_answer':
-        $evaluation = array(
-          'case sensitive match',
-          'case insensitive match',
-          'regular expression match',
-          'manually score match'
-          );
-          $node->correct_answer = questions_import_get_next_csv_field($line);
-          $node->maximum_score = questions_import_get_next_csv_field($line);
-          $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
-          // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
-          break;
+    case 'long_answer':
+      $node->maximum_score = questions_import_get_next_csv_field($line);
+      break;
 
-      case 'quiz_directions':
-        break;
+    case 'short_answer':
+      $evaluation = array(
+        'case sensitive match',
+        'case insensitive match',
+        'regular expression match',
+        'manually score match'
+      );
+      $node->correct_answer = questions_import_get_next_csv_field($line);
+      $node->maximum_score = questions_import_get_next_csv_field($line);
+      $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
+      // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
+      break;
 
-    }
-    $node->title = $node->body = $node->teaser = $question;
+    case 'quiz_directions':
+      break;
+
+  }
+  $node->title = $node->body = $node->teaser = $question;
 }
 
 /**
@@ -960,11 +974,26 @@ function questions_import_submit_csv($destination_node, $form, $form_state, $imp
   $output = '';
 
   $file = $form_state['values']['validated_file'];
-  $separator = $form_state['values']['field_separator'];
+  // drupal file object
 
-  // iterate through all the lines in the file. Each line corresponds to one quiz question
+  $separator = $form_state['values']['field_separator'];
+  // CSV field separator
+
   $lines = file($file->filepath);
+  // iterate through all the lines in the file. Each line corresponds to one quiz question
   foreach ($lines as $line) {
+    // check empty line and comment lines
+    $line = trim($line);
+    if (empty($line) || $line[0] === '#') {
+      continue;
+    }
+    // check question type
+    $fields = explode($line, $separator);
+    $type = trim($fields[0]);
+    if (!in_array($type, array_keys(_quiz_get_question_types()))) {
+      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
+      continue;
+    }
     $node = new stdClass();
     $node->weight = $row;
     $node->collection_nid = $destination_node->nid;

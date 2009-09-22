@@ -7,14 +7,14 @@
 # 2. Don't end the question with trailing dot.
 # 3. Don't use double quotes over CSV fields.
 # 4. Make sure the CSV field separator is unique and it does not appears as a part of question or answer.
-# 
+#
 # We encourage you to reports bugs and feature request here http://drupal.org/project/issues/quiz.
 
 
 # Multichoice
-# Type, Question, Choice 1, Feedback ch1, Choice 2, Feedback ch2, Choice 3, Feedback ch3,..,Correct choice
+# Type, Question, Choice 1, Feedback ch1, Score ch1, Choice 2, Feedback ch2, Score ch2, Choice 3, Feedback ch3, Score ch3,..,Correct choice
 
-multichoice, which one of the following is correct when A =10 and B=5 ?, A > B, A is greater than B, B > A, B is greater than A, A = B, A is equal to B, A > B
+multichoice, which one of the following is correct when A =10 and B=5 ?, A > B, A is greater than B, 1, B > A, B is greater than A, 1, A = B, A is equal to B, 1, A > B
 
 
 
