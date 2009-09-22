@@ -140,6 +140,9 @@ $(document).ready(function () {
   $('.quiz_question_browser_row:has(:checkbox:checked)').each(function() {
     $(this).click();
   });
+  $('.q-row').each(function() {
+	if ($('.q-row-hidden', $(this)).val() == '0') $(this).removeClass('hidden-question');
+  });
 });
 Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {
   //Add the new row:

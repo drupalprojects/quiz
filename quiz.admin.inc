@@ -117,7 +117,6 @@ function quiz_questions($node) {
 function quiz_questions_form($form_state, $quiz, $options) {
   // This is a target for AHAH callbacks. Do not remove.
   $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
-  
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
@@ -261,6 +260,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $form[$fieldset]['hiddens'][$id] = array(
       '#type' => 'hidden',
       '#default_value' => (isset($question->hidden) && $question->hidden === TRUE) ? 1 : 0,
+      '#attributes' => array('class' => 'q-row-hidden'),
     );
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l(
