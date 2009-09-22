@@ -17,7 +17,6 @@ Quiz.addQuestions = function (rowHtml) {
 	//Hide weight column:
     $('td:last', this).css('display', 'none');
     table.makeDraggable(this);
-    alert('hiding...');
   });
   
   if (table.changed == false) {
