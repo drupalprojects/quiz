@@ -91,30 +91,30 @@ div.multichoice_answer_incorrect {
   display: none;
 }
 
-.quiz_question_browser_row, #quiz_question_browser_filters {
+.quiz-question-browser-row, #quiz_question_browser_filters {
   border: 0px solid #666666;
 }
 
-.quiz_question_browser_row.odd {
+.quiz-question-browser-row.odd {
   background-color: #e7e7e7;
 }
 
-.quiz_question_browser_row.even {
+.quiz-question-browser-row.even {
   background-color: #fbfbfb;
 }
 
-#quiz_question_browser_filters {
+#quiz-question-browser-filters {
   background-color: #000000;
 }
-#quiz_question_browser_filters td.active {
+#quiz-question-browser-filters td.active {
   background-color: #202050;
 }
 
-.quiz_question_browser_row.odd:not(.selected) td.active {
+.quiz-question-browser-row.odd:not(.selected) td.active {
   background-color: #e2e2f9;
 }
 
-.quiz_question_browser_row.even:not(.selected) td.active {
+.quiz-question-browser-row.even:not(.selected) td.active {
   background-color: #f8f8ff;
 }
 
