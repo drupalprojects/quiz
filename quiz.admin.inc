@@ -144,7 +144,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   $questions_to_add = array();
