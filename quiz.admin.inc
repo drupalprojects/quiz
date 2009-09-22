@@ -683,8 +683,8 @@ function _quiz_question_browser_submit($form, &$form_state) {
   $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
   //TODO: Consider random and always separately?
-  if (is_array($form_state['values']['browser']['titles'])) {
-    foreach ($form_state['values']['browser']['titles'] as $id) {
+  if (is_array($form_state['values']['browser']['table']['titles'])) {
+    foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
         if($form_state['values']['hiddens'][$id] == 0) continue;
         $matches = array();
