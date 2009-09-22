@@ -21,7 +21,8 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Check that the random question features still works.
+ *   TODO: Make the question browser work for random pool
+ *   TODO: Make removing questions work with js disabled
  *   TODO: UX engineering
  *   TODO: Clean up the code
  *   TODO: Add comments

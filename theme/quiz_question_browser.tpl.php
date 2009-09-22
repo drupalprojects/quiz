@@ -11,37 +11,38 @@
 $p = drupal_get_path('module', 'quiz') .'/theme/';
 drupal_add_js($p .'quiz_question_browser.js', 'module');
 $fullOptions = array();
-foreach ($form['titles']['#options'] as $key => $value) {
-  $fullOptions[$key] = $form['titles'][$key];
+$table = $form;
+foreach ($table['titles']['#options'] as $key => $value) {
+  $fullOptions[$key] = $table['titles'][$key];
   $fullOptions[$key]['#title'] = '';
 }
-print drupal_render($form['ahah_target_all']);
-print drupal_render($form['ahah_target']);
+print drupal_render($table['ahah_target_all']);
+print drupal_render($table['ahah_target']);
 $rows = array();
 $cols = array();
-$cols[] = drupal_render($form['filters']['all']);
-$cols[] = drupal_render($form['filters']['title']);
-$cols[] = drupal_render($form['filters']['type']);
-$cols[] = drupal_render($form['filters']['changed']);
-$cols[] = drupal_render($form['filters']['name']);
+$cols[] = drupal_render($table['filters']['all']);
+$cols[] = drupal_render($table['filters']['title']);
+$cols[] = drupal_render($table['filters']['type']);
+$cols[] = drupal_render($table['filters']['changed']);
+$cols[] = drupal_render($table['filters']['name']);
 $rows[] = array('data' => $cols, 'id' => 'quiz_question_browser_filters');
-foreach ($form['titles']['#options'] as $key => $value) {
+foreach ($table['titles']['#options'] as $key => $value) {
   $cols = array();
   $matches = array();
-  preg_match('/-([0-9]+)-([0-9]+)/', $key, $matches);
+  preg_match('/([0-9]+)-([0-9]+)/', $key, $matches);
   $quest_nid = $matches[1];
   $quest_vid = $matches[2];
   $cols[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
   $cols[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q']), 'attributes' => array('target' => 'blank')));
-  $cols[] = $form['types'][$key]['#value'];
-  $cols[] = $form['changed'][$key]['#value'];
-  $cols[] = $form['names'][$key]['#value'];
-  $rows[] = array('data' => $cols, 'class' => 'quiz_question_browser_row', 'id' => 'browser-'. $key);
+  $cols[] = $table['types'][$key]['#value'];
+  $cols[] = $table['changed'][$key]['#value'];
+  $cols[] = $table['names'][$key]['#value'];
+  $rows[] = array('data' => $cols, 'class' => 'quiz-question-browser-row', 'id' => 'browser-'. $key);
 }
-print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
-if (count($form['titles']['#options']) == 0)
+print theme('table', $table['#header'], $rows, array('class' => 'browser-table'));
+if (count($table['titles']['#options']) == 0)
   print t('No questions were found');
-print $form['pager']['#value'];
-print drupal_render($form['add_to_get']);
-print drupal_render($form['ahah_target_all_end']);
+print $table['pager']['#value'];
+print drupal_render($table['add_to_get']);
+print drupal_render($table['ahah_target_all_end']);
 ?>

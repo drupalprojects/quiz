@@ -137,25 +137,14 @@ function quiz_questions_form($form_state, $quiz, $options) {
   }
 
   // Display questions 'always' on this quiz.
-  $form['filtered_question_list_always'] = array(
+  $form['question_list'] = array(
     '#type' => 'fieldset',
-    '#title' => (isset($options['fieldset_always']['title'])) ? $options['fieldset_always']['title'] : t('Questions always on this quiz'),
+    '#title' => (isset($options['fieldset_always']['title'])) ? $options['fieldset_always']['title'] : t('Questions on this quiz'),
  //   '#theme' => 'quiz_filtered_questions',
     '#theme' => 'question_selection_table',
-    '#collapsible' => (isset($options['fieldset_always']['collapsible'])) ? $options['fieldset_always']['collapsible'] : TRUE,
+    '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-    
-  // TODO: Remove this
-  $form['filtered_question_list_always']['remove_from_quiz'] = array(
-    '#type' => 'hidden',
-    '#default_value' => '',
-  );
-
-  // Display questions used 'randomly' on this quiz.
-  if ($options['random_pool']['enabled']) {
-    $form += _quiz_form_fields_random_pool($quiz);
-  }
 
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
@@ -167,7 +156,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     foreach ($form_state['post']['weights'] as $id => $value) {
       $cur_question = new stdClass();
       $matches = array();
-      preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+      preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
       $cur_question->nid = $matches[1];
       if (!is_numeric($matches[2])) continue;
       $vids[] = $cur_question->vid = $matches[2];
@@ -198,16 +187,17 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
   $hidden_questions = array();
-  $form['filtered_question_list_always']['always_browse'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz, 'always');
+  $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz);
+  
   $temp_to_add = $hidden_questions;
-  $form['filtered_question_list_always']['hidden_questions'] = array();
+  $form['question_list']['hidden_questions'] = array();
   
   $cur_questions = array();
   $vids = array();
   foreach ($temp_to_add as $key => $id) {
     $cur_question = new stdClass();
     $matches = array();
-    preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+    preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
     $nid = $matches[1];
     $vid = $matches[2];
     $continue = FALSE;
@@ -228,7 +218,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $cur_questions[$cur_question->nid] = $cur_question;
   }
   if (count($vids) > 0) {
-    $sql = 'SELECT n.nid, n.type, r.title, p.max_score, n.vid AS lastest_vid
+    $sql = 'SELECT n.nid, n.type, r.title, p.max_score, n.vid AS latest_vid
             FROM {node} n
             JOIN {node_revisions} r
             ON n.nid = r.nid
@@ -246,26 +236,17 @@ function quiz_questions_form($form_state, $quiz, $options) {
     }
   }
   $rows = array();
-  $form['filtered_question_list_random']['weights'] = array('#tree' => TRUE);
-  $form['filtered_question_list_always']['weights'] = array('#tree' => TRUE);
-
-  $form['filtered_question_list_random']['max_scores'] = array('#tree' => TRUE);
-  $form['filtered_question_list_always']['max_scores'] = array('#tree' => TRUE);
+  $form['question_list']['weights'] = array('#tree' => TRUE);
+  $form['question_list']['max_scores'] = array('#tree' => TRUE);
+  $form['question_list']['hiddens'] = array('#tree' => TRUE);
+  $form['question_list']['revision'] = array('#tree' => TRUE);
   
-  $form['filtered_question_list_random']['hiddens'] = array('#tree' => TRUE);
-  $form['filtered_question_list_always']['hiddens'] = array('#tree' => TRUE);
-
-  $form['filtered_question_list_random']['revision'] = array('#tree' => TRUE);
-  $form['filtered_question_list_always']['revision'] = array('#tree' => TRUE);
   $my_dest = $_GET['q'];
   foreach ($questions as $question) {
-    $id_mod = ($question->question_status == QUESTION_RANDOM ? 'random' : 'always');
-    $fieldset = 'filtered_question_list_' . $id_mod;
-    $id = $id_mod . '-' . $question->nid . '-' . $question->vid;
+    $fieldset = 'question_list';
+    $id = $question->nid . '-' . $question->vid;
 
     $form[$fieldset]['weights'][$id] = array(
-      //'#type' => 'weight',
-      //'#delta' => 60,
       '#type' => 'textfield',
       '#size' => 3,
       '#maxlength' => 4,
@@ -325,12 +306,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
     }
     $form[$fieldset]['revision'][$id] = $update_cell;
   }
-  // Show the number of 'always' questions in the 'always' table header.
+  // Show the number of questions in the table header.
   $always_count = 0;
-  foreach ($form['filtered_question_list_always']['hiddens'] as $hidden) {
+  foreach ($form['question_list']['hiddens'] as $hidden) {
     if ($hidden['#default_value'] === 0) $always_count++;
   }
-  $form['filtered_question_list_always']['#title'] .= ' ('. $always_count .')';
+  $form['question_list']['#title'] .= ' ('. $always_count .')';
   
   if (quiz_has_been_answered($quiz)) {
     $rev_default = TRUE;
@@ -360,80 +341,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   return $form;
 }
 
-/**
- *
- * @param $quiz
- * @return array
- *   form fields for the section of the form handling random questions
- */
-function _quiz_form_fields_random_pool($quiz) {
-  $form['filtered_question_list_random'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Pool of questions randomly selected for this quiz'),
-    '#theme' => 'question_selection_table',
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE, // Setting this to TRUE breaks tableDrag. What a drag.
-    'question_status' => array('#tree' => TRUE),
-  );
-
-  $form['filtered_question_list_random']['number_of_random_questions'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Number of questions to randomize'),
-    '#size' => 3,
-    '#default_value' => $quiz->number_of_random_questions,
-    '#description' => t('The number of randomly selected questions that should be assigned to this quiz.'),
-    '#weight' => 1,
-  );
-
-  $form['filtered_question_list_random']['random_box'] = array(
-    '#type' => 'fieldset',
-    '#title' => '<strong>' . t('Find and add a question') . '</strong>',
-    '#description' => t('Begin typing a question title or keyword. Suggestions will be presented based on your typing. ') .
-       '<strong>' . t('You must choose one of the suggested questions.') . '</strong> ' .
-       t('To add a new question, use the "Create additional questions" section above.'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#weight' => -1,
-  );
-
-  $form['filtered_question_list_random']['random_box']['random_autocomplete'] = array(
-    '#type' => 'textfield',
-    '#default_value' => '',
-    '#size' => 60,
-    '#maxlength' => 256,
-    '#required' => FALSE,
-    '#weight' => -2,
-    '#autocomplete_path' => 'admin/quiz/listquestions',
-  );
-  $form['filtered_question_list_random']['random_box']['add_to_random'] = array(
-    '#type' => 'submit',
-    '#value' => t('Add to quiz'),
-    '#submit' => array('quiz_add_question_submit'),
-    '#weight' => -1,
-    '#ahah' => array(
-      'path' => 'admin/quiz/newquestion',
-      'wrapper' => 'questions-always-target',
-      'progress' => array('type' => 'bar', 'message' => t('Adding question...')),
-    ),
-  );
-
-  $terms =  _quiz_taxonomy_select($quiz->tid);
-  if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
-    $form['filtered_question_list_random']['random_term_id'] = array(
-      '#type' => 'select',
-      '#title' => t('Terms'),
-      '#size' => 1,
-      '#options' => _quiz_taxonomy_select($quiz->tid),
-      '#default_value' => $quiz->tid,
-      '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
-      '#weight' => 2,
-    );
-  }
-  return $form;
-}
-
-function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state, $quiz, $freq) {
-  $form = array();
+function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state, $quiz) {
   $question_types = _quiz_get_question_types();
   if (!is_array($question_types) || count($question_types) == 0) {
     return $form['no_questions'] = array(
@@ -441,7 +349,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
       '#value' => t('No question types are enabled'),
     );
   }
-  $form[$freq .'_browser'] = array(
+  $form = array(
     '#type' => 'fieldset',
     '#title' => t('Browse for questions to add'),
     '#description' => t('Mark all the questions you want to add.') .' '
@@ -450,10 +358,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
-    '#theme' => 'quiz_question_browser',
   );
-  $browser = &$form[$freq .'_browser'];
-  
+  $form['table'] = array('#theme' => 'quiz_question_browser');
+  $browser = &$form['table'];
   $type_options = array(
     t('No filter'),
   );
@@ -504,11 +411,11 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   //Build filter part of form:
   $browser['ahah_target'] = array(
     '#type' => 'markup',
-    '#value' => '<DIV ID = "quiz-browser-ahah-target"></DIV>'
+    '#value' => '<DIV ID = "ahah-target"></DIV>'
   );
   $browser['ahah_target_all'] = array(
     '#type' => 'markup',
-    '#value' => '<DIV ID = "quiz-browser-all-ahah-target">'
+    '#value' => '<DIV ID = "all-ahah-target">'
   );
   $browser['add_to_get'] = array(
     '#type' => 'hidden',
@@ -526,7 +433,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => $_SESSION[$pre .'title'],
     '#ahah' => array(
       'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'quiz-browser-ahah-target',
+      'wrapper' => 'ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping',
     ),
@@ -537,7 +444,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => $_SESSION[$pre .'type'],
     '#ahah' => array(
       'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'quiz-browser-ahah-target',
+      'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
   );
@@ -547,7 +454,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => $_SESSION[$pre .'changed'],
     '#ahah' => array(
       'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'quiz-browser-ahah-target',
+      'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
   );
@@ -557,7 +464,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => $_SESSION[$pre .'name'],
     '#ahah' => array(
       'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'quiz-browser-ahah-target',
+      'wrapper' => 'ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping',
     ),
@@ -581,14 +488,13 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   }
   // Get data:
   $question_type_list = implode('\', \'', array_keys($question_types));
-  $pager_num = 0;
-  _quiz_add_to_get($form_state['values']['always_browser']['add_to_get']);
+  _quiz_add_to_get($form_state['values']['browser']['table']['add_to_get']);
   $browser['#header'] = array(
     NULL, 
-    array('data' => t('Title'), 'field' => 'n.title', 'class' => 'quiz-browser-header-title'),
-    array('data' => t('Type'), 'field' => 'n.type', 'class' => 'quiz-browser-header-type'),
-    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc', 'class' => 'quiz-browser-header-changed'),
-    array('data' => t('Username'), 'field' => 'u.name', 'class' => 'quiz-browser-header-name'),
+    array('data' => t('Title'), 'field' => 'title', 'class' => 'quiz-browser-header-title'),
+    array('data' => t('Type'), 'field' => 'type', 'class' => 'quiz-browser-header-type'),
+    array('data' => t('Changed'), 'field' => 'changed', 'sort' => 'desc', 'class' => 'quiz-browser-header-changed'),
+    array('data' => t('Username'), 'field' => 'name', 'class' => 'quiz-browser-header-name'),
   );
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
   		  FROM {node} n
@@ -599,12 +505,12 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   		    FROM {quiz_node_relationship}
   		    WHERE parent_nid = %d AND parent_vid = %d
   		  )'. $filtering . tablesort_sql($browser['#header']);
-  $res = pager_query(db_rewrite_sql($sql), 20, $pager_num, NULL, $filter_array);
+  $res = pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_array);
 
   // build data part of form
   $options = array();
   while ($res_o = db_fetch_object($res)) {
-    $id = $freq .'-'. $res_o->nid .'-'. $res_o->vid;
+    $id = $res_o->nid .'-'. $res_o->vid;
     $hidden_questions[] = $id;
     $options[$id] = check_plain($res_o->title);
     $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'small');
@@ -619,7 +525,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => $questions,
   );
   $browser['pager'] = array(
-    '#value' => '<DIV ID ="quiz-question-browser-pager">'. theme('pager', NULL, 20) .'</DIV>',
+    '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 20) .'</DIV>',
   );
   $browser['ahah_target_all_end'] = array(
     '#type' => 'markup',
@@ -648,7 +554,7 @@ function quiz_questions_form_validate($form, $form_state) {
       // Ignore items that are going to be removed anyway.
       continue;
     }
-    list($state, $nid) = explode('-', $id, 2);
+    list($nid, $vid) = explode('-', $id, 2);
     $params = $question_types; // Copy array.
     $params[] = $nid;
 
@@ -686,21 +592,18 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $max_scores, $removed_set, $is_new_revision, $refreshes, $hiddens) {
+function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
-    if (in_array($id, $removed_set)) {
-      // Skip items that should be removed.
-      continue;
-    }
     if ($hiddens[$id] == 1) continue;
-    list($state, $nid, $vid) = explode('-', $id, 3);
+    list($nid, $vid) = explode('-', $id, 2);
     $nid = (int)$nid;
     $vid = (int)$vid;
     $question['nid'] = $nid;
     $question['vid'] = $vid;
-    $question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    //FIXME$question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
+    $question['state'] = QUESTION_ALWAYS;
     $question['weight'] = $weight;
     $question['max_score'] = $max_scores[$id];
     $question['refresh'] = (isset($refreshes[$id]) && $refreshes[$id] == 1);
@@ -733,12 +636,11 @@ function quiz_questions_form_submit($form, &$form_state) {
   
   _quiz_question_browser_submit($form, $form_state);
   
-  $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
   $hiddens = $form_state['values']['hiddens'];
-  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $removed, $is_new_revision, $refreshes, $hiddens);
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens);
 
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
@@ -786,16 +688,15 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   //Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
-  $filters = $form_state['values']['always_browser']['filters'];
-  $pre = 'quiz_question_browser_';
+  $filters = $form_state['values']['browser']['filters'];
   _quiz_browser_store_filters($filters);
   //TODO: Consider random and always separately?
-  if (is_array($form_state['values']['always_browser']['titles'])) {
-    foreach ($form_state['values']['always_browser']['titles'] as $id) {
+  if (is_array($form_state['values']['browser']['titles'])) {
+    foreach ($form_state['values']['browser']['titles'] as $id) {
       if ($id !== 0) {
         if($form_state['values']['hiddens'][$id] == 0) continue;
         $matches = array();
-        preg_match('/-([0-9]+)-([0-9]+)/', $id, $matches);
+        preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
         $nid = $matches[1];
         $vid = $matches[2];
         $form_state['values']['weights'][$id] = ++$next_weight;
@@ -813,41 +714,13 @@ function _quiz_browser_store_filters($filters) {
   $_SESSION[$pre .'changed'] = $filters['changed'];
   $_SESSION[$pre .'name'] = $filters['name'];
 }
-/**
- * Autocompletion function for quiz questions.
- */
-function quiz_admin_list_questions_ac($vid, $string = '') {
-  $type_map = _quiz_get_question_types();
-  $values = array_keys($type_map);
-  $placeholder = db_placeholders($values, 'varchar');
-  $query = strtolower($string);
-
-  $sql = "SELECT n.nid, n.title, n.type
-    FROM {node} n
-    INNER JOIN {node_revisions} r ON n.vid = r.vid
-    WHERE n.type IN ($placeholder)
-      AND n.status = 1
-      AND (LOWER(n.title) LIKE '%%%s%%' OR LOWER(r.body) LIKE '%%%s%%')";
-
-  array_push($values, $query, $query);
-  $result = db_query_range(db_rewrite_sql($sql), $values, 0, 20);
-
-  $matches = array();
-  while ($node = db_fetch_object($result)) {
-    $type = $type_map[$node->type]['name'];
-    $key = sprintf('%s [type:%s, id:%d]', check_plain($node->title), check_plain($type), $node->nid);
-    $matches[$key] = $key;
-  }
-
-  drupal_json($matches);
-}
 
 /**
  * AHAH handler for the question browser
  */
 function quiz_browser_ahah() {
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $replace_all = drupal_strlen($_POST['always_browser']['add_to_get']) > 0;
+  $replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
   $form_id = $_POST['form_build_id'];
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
@@ -873,7 +746,7 @@ function quiz_browser_ahah() {
   $_POST = array();
   _quiz_skip_validation($form);
   
-  _quiz_browser_store_filters($form_state['post']['always_browser']['filters']);
+  _quiz_browser_store_filters($form_state['post']['browser']['filters']);
   
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
@@ -882,38 +755,38 @@ function quiz_browser_ahah() {
   $extra_output = '';
   
   $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
-  $b_form = $form['filtered_question_list_always']['always_browse']['always_browser'];
-  unset($form['filtered_question_list_always']['always_browse']); 
-  foreach ($form['filtered_question_list_always']['hiddens'] as $key => $value) {
-    if (isset($value['#value']) && $value['#value'] == 0) unset($form['filtered_question_list_always']['titles'][$key]);
+  $b_form = $form['question_list']['browser'];
+  unset($form['question_list']['browser']); 
+  foreach ($form['question_list']['hiddens'] as $key => $value) {
+    if (isset($value['#value']) && $value['#value'] == 0) unset($form['question_list']['titles'][$key]);
   }
   $num_hiddens = 0;
-  if (is_array($form['filtered_question_list_always']['titles'])) {
-    foreach ($form['filtered_question_list_always']['titles'] as $key => $value) {
-      if (preg_match('/^always/', $key)) $num_hiddens++;
+  if (is_array($form['question_list']['titles'])) {
+    foreach ($form['question_list']['titles'] as $key => $value) {
+      if (preg_match('/^[0-9]+-[0-9]+/', $key)) $num_hiddens++;
     }
   }
-  $sub_form_html = drupal_render($form['filtered_question_list_always']);
+  $sub_form_html = drupal_render($form['question_list']);
   $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
   $output .= ' var qRowsHidden = '.drupal_to_js($q_rows_html).';';
   if($replace_all) {
     unset($b_form['#type']);
     unset($b_form['#value']);
     
-    $rendered_browser = drupal_render($b_form);
+    $rendered_browser = drupal_render($b_form['table']);
     $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
     $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
-    $output .= ' Quiz.addQuestions("always", qRowsHidden);</script>';
+    $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
   }
   else {
     // Send status messages, new build id for the form and the new question row to the javascript:
     $b_rows = _quiz_get_browser_content(drupal_render($b_form));
-    $b_pager = drupal_render($b_form['pager']);
+    $b_pager = drupal_render($b_form['table']['pager']);
     
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
-    $output .= ' Quiz.addQuestions("always", qRowsHidden);</script>';
+    $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
     $output .= ' '. theme('status_messages');
   }
   drupal_json(array('status' => TRUE, 'data' => $output));
@@ -1314,26 +1187,21 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
  * Theme a question selection table, adding drag and drop support.
  */
 function theme_question_selection_table($form) {
-  // This is a temporary hack.
-  static $table_counter = 0;
-  ++$table_counter;
-
-  //drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight', 'question-order-weight-' . $table_counter, NULL, TRUE);
-  drupal_add_tabledrag('questions-order-' . $table_counter, 'order', 'sibling', 'question-order-weight-' . $table_counter, NULL, NULL, TRUE);
+  drupal_add_tabledrag('question-list', 'order', 'sibling', 'question-list-weight', NULL, NULL, TRUE);
 
   $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Weight'));
 
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $id) {
-      $form['weights'][$id]['#attributes']['class'] = 'question-order-weight question-order-weight-' . $table_counter;
+      $form['weights'][$id]['#attributes']['class'] = 'question-list-weight';
 
       $rows[] = _quiz_get_question_row($form, $id);
       unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['hiddens'][$id]);
       unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id]);
     }
   }
-  $table = theme('table', $headers, $rows, array('id' => 'questions-order-' . $table_counter));
+  $table = theme('table', $headers, $rows, array('id' => 'question-list'));
   return $table . drupal_render($form);
 }
 
@@ -1452,7 +1320,7 @@ function _quiz_get_question_row($sub_form, $id) {
   $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
   return array(
     'class' => 'q-row draggable'. $hidden_class,
-    'id' => $id,
+    'id' => 'q-'.$id,
     'data' => array(
       drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
       $type,
