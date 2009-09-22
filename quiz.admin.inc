@@ -539,21 +539,16 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
  */
 function quiz_questions_form_validate($form, $form_state) {
   $question_types = array_keys(_quiz_get_question_types());
-  $removed = explode(',', $form_state['values']['remove_from_quiz']);
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
   $already_checked = array();
-
   $weight_map = $form_state['values']['weights'];
   if (empty($weight_map)) {
     form_set_error('none', 'No questions were included.');
     return;
   }
   foreach ($weight_map as $id => $weight) {
-      if (in_array($id, $removed)) {
-      // Ignore items that are going to be removed anyway.
-      continue;
-    }
+    if ($form_state['values']['hiddens'][$id] == 1) continue;
     list($nid, $vid) = explode('-', $id, 2);
     $params = $question_types; // Copy array.
     $params[] = $nid;
@@ -573,10 +568,7 @@ function quiz_questions_form_validate($form, $form_state) {
 
   $max_scores = $form_state['values']['max_scores'];
   foreach ($max_scores as $id => $max_score) {
-    if (in_array($id, $removed)) {
-      // Ignore items that are going to be removed anyway.
-      continue;
-    }
+    if ($form_state['values']['hiddens'][$id] == 1) continue;
     if (!is_numeric($max_score)) {
       form_set_error("max_scores][$id", t('Max score needs to be numeric'));
     }
@@ -749,6 +741,9 @@ function quiz_browser_ahah() {
   
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
+  //Remove any status messages the processing resulted in...
+  theme('status_messages');
+  
   // Get a new form with the new question attached
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
   $extra_output = '';
