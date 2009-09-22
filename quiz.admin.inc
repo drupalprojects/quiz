@@ -688,7 +688,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   //Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
-  $filters = $form_state['values']['browser']['filters'];
+  $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
   //TODO: Consider random and always separately?
   if (is_array($form_state['values']['browser']['titles'])) {
@@ -745,8 +745,7 @@ function quiz_browser_ahah() {
   }
   $_POST = array();
   _quiz_skip_validation($form);
-  
-  _quiz_browser_store_filters($form_state['post']['browser']['filters']);
+  _quiz_browser_store_filters($form_state['post']['browser']['table']['filters']);
   
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
@@ -1359,7 +1358,7 @@ function _quiz_get_last_table_rows($table, $num_rows = 1) {
  */
 function _quiz_get_browser_content($table) {
   $matches = array();
-  $n_matches = preg_match('/<tr class="quiz_question_browser_row.*<\/tr>/is', $table, $matches);
+  $n_matches = preg_match('/<tr class="quiz-question-browser-row.*<\/tr>/is', $table, $matches);
   return $matches[0];
 }
 

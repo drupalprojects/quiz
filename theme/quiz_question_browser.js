@@ -78,7 +78,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	clearInterval(quizRefreshId);
 	var quizClicked = this;
     quizRefreshId = setInterval(function(){
-      $('.quiz_question_browser_row').each(function() { 
+      $('.quiz-question-browser-row').each(function() { 
         $(this).remove();
       });
       $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
@@ -147,7 +147,7 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {
   //Add the new row:
   $('.hidden-question').remove();
   
-  $('#quiz_question_browser_filters').after(rows);
+  $('#quiz-question-browser-filters').after(rows);
   $('#quiz-question-browser-pager').replaceWith(pager);
   //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
   

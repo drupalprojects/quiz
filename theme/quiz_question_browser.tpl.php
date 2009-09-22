@@ -25,7 +25,7 @@ $cols[] = drupal_render($table['filters']['title']);
 $cols[] = drupal_render($table['filters']['type']);
 $cols[] = drupal_render($table['filters']['changed']);
 $cols[] = drupal_render($table['filters']['name']);
-$rows[] = array('data' => $cols, 'id' => 'quiz_question_browser_filters');
+$rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
 foreach ($table['titles']['#options'] as $key => $value) {
   $cols = array();
   $matches = array();
