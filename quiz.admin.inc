@@ -144,6 +144,19 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
+  
+  if ($quiz->randomize) {
+    $form['question_list']['num_random_questions'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 3,
+      '#weight' => -5,
+      '#title' => 'Number of random questions',
+      '#description' => 'The number of questions to be randomly selected each time someone takes this quiz',
+      '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
+    );
+  }
+  
   // Build up a list of questions, sorted into those that are random and those that are
   // always on the quiz.
   $questions_to_add = array();
@@ -238,6 +251,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $form['question_list']['max_scores'] = array('#tree' => TRUE);
   $form['question_list']['hiddens'] = array('#tree' => TRUE);
   $form['question_list']['revision'] = array('#tree' => TRUE);
+  if ($quiz->randomize) $form['question_list']['compulsories'] = array('#tree' => TRUE);
   
   $my_dest = $_GET['q'];
   foreach ($questions as $question) {
@@ -261,6 +275,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#default_value' => (isset($question->hidden) && $question->hidden === TRUE) ? 1 : 0,
       '#attributes' => array('class' => 'q-row-hidden'),
     );
+    if ($quiz->randomize) {
+      $form[$fieldset]['compulsories'][$id] = array(
+      	'#type' => 'checkbox',
+      	'#default_value' => isset($question->compulsory) ? $question->compulsory : 0,
+      );
+    }
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l(
         $question->title, 
@@ -1182,8 +1202,9 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
 function theme_question_selection_table($form) {
   drupal_add_tabledrag('question-list', 'order', 'sibling', 'question-list-weight', NULL, NULL, TRUE);
 
-  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Weight'));
-
+  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'));
+  if (isset($form['compulsories'])) $headers[] = t('Compulsory');
+  $headers[] = t('Weight');
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $id) {
@@ -1191,11 +1212,11 @@ function theme_question_selection_table($form) {
 
       $rows[] = _quiz_get_question_row($form, $id);
       unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['hiddens'][$id]);
-      unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id]);
+      unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id], $form['compulsories'][$id]);
     }
   }
   $table = theme('table', $headers, $rows, array('id' => 'question-list'));
-  return $table . drupal_render($form);
+  return drupal_render($form['num_random_questions']) . $table . drupal_render($form);
 }
 
 function quiz_remove_partial_quiz_record_value() {
@@ -1311,17 +1332,19 @@ function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
   $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
+  $data_array = array(
+    drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
+    $type,
+    $sub_form['view_links'][$id]['#value'] . ' | ' . $sub_form['remove_links'][$id]['#value'],
+    isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
+    drupal_render($sub_form['max_scores'][$id])
+  );
+  if (isset($sub_form['compulsories'])) $data_array[] = drupal_render($sub_form['compulsories'][$id]);
+  $data_array[] = drupal_render($sub_form['weights'][$id]);
   return array(
     'class' => 'q-row draggable'. $hidden_class,
     'id' => 'q-'.$id,
-    'data' => array(
-      drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
-      $type,
-      $sub_form['view_links'][$id]['#value'] . ' | ' . $sub_form['remove_links'][$id]['#value'],
-      isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
-      drupal_render($sub_form['max_scores'][$id]),
-      drupal_render($sub_form['weights'][$id]),
-    ),
+    'data' => $data_array
   );
 }
 
