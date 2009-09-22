@@ -182,9 +182,11 @@ Quiz.fixColorAndWeight = function(newest) {
   var lastClass = 'even';
   var lastWeight = 0;
   var lastQuestion = null;
+  var numQRows = 0;
   $('.q-row').each(function() {
     if (!$(this).hasClass('hidden-question') && $(this).attr('id') != newest.attr('id')) {
       // Color:
+      numQRows++;
       if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
       var currentClass = nextClass;
       nextClass = lastClass;
@@ -197,6 +199,7 @@ Quiz.fixColorAndWeight = function(newest) {
       lastWeight++;
     }
   });
+  if (numQRows < 2) return;
   if (!newest.hasClass(nextClass)) newest.removeClass(lastClass).addClass(nextClass);
   var newestId = Quiz.findNidVidString(newest.attr('id'));
   newest.insertAfter('#q-'+ Quiz.findNidVidString(lastQuestion.attr('id')));
