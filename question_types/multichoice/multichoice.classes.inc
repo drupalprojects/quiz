@@ -21,13 +21,11 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Make all logic work with the new random stuff...
- *   TODO: Make updater set random to 1 if there are random questions....
- *   TODO: Make default number of randoms...
  *   TODO: Make removing questions work with js disabled
- *   TODO: UX engineering
  *   TODO: Clean up the code
  *   TODO: Add comments
+ *   TODO: Test
+ *     TODO: Test updating from 3.x
  * TODO: Improve quiz results performance.
  * TODO: Add several ways to take quiz.
  * TODO: There were error messages when updating from 3.x to 4.x.

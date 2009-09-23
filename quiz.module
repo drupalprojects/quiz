@@ -413,6 +413,7 @@ function quiz_insert($node) {
     (vid, nid, aid, number_of_random_questions, shuffle, randomize,
       backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
     VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
+  _quiz_check_num_random($node);
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
   if (!$node->auto_created) $_REQUEST['destination'] = "node/$node->nid/questions";
@@ -457,6 +458,7 @@ function quiz_update($node) {
         allow_skipping = %d
       WHERE vid = %d
         AND nid = %d";
+    _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
@@ -2810,11 +2812,11 @@ function quiz_make_new($title) {
 }
 
 /**
-   * Finds out if a quiz has been answered or not...
-   *
-   * @return
-   *   true if there exists answers to the current question
-   */
+ * Finds out if a quiz has been answered or not...
+ *
+ * @return
+ *   true if there exists answers to the current question
+ */
 function quiz_has_been_answered($node) {
   $sql = 'SELECT *
           FROM {quiz_node_results}
@@ -2822,4 +2824,19 @@ function quiz_has_been_answered($node) {
           LIMIT 1';
   $res = db_query($sql, $node->nid, $node->vid);
   return db_fetch_object($res) ? TRUE : FALSE;
+}
+
+/**
+ * If a quiz is saved as not randomized we should make sure all random questions are converted to always...
+ * 
+ * @param $node
+ *   quiz node
+ */
+function _quiz_check_num_random(&$node) {
+  if ($node->randomize == 1) return;
+  $node->number_of_random_questions = 0;
+  $sql = 'UPDATE {quiz_node_relationship}
+          SET question_status = %d
+          WHERE parent_nid = %d AND parent_vid = %d';
+  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid);  
 }
