@@ -139,7 +139,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $form['question_list'] = array(
     '#type' => 'fieldset',
     '#title' => (isset($options['fieldset_always']['title'])) ? $options['fieldset_always']['title'] : t('Questions on this quiz'),
- //   '#theme' => 'quiz_filtered_questions',
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
@@ -155,6 +154,18 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#description' => 'The number of questions to be randomly selected each time someone takes this quiz',
       '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
     );
+    $terms =  _quiz_taxonomy_select($quiz->tid); 	 
+    if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) { 	 
+      $form['question_list']['random_term_id'] = array( 	 
+        '#type' => 'select', 	 
+        '#title' => t('Terms'), 	 
+        '#size' => 1, 	 
+        '#options' => _quiz_taxonomy_select($quiz->tid), 	 
+        '#default_value' => $quiz->tid, 	 
+        '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'), 	 
+        '#weight' => -4, 	 
+      ); 	 
+    }
   }
   
   // Build up a list of questions, sorted into those that are random and those that are
@@ -659,7 +670,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $compulsories = $form_state['values']['compulsories'];
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens, $compulsories);
 
-  $num_random = $form_state['values']['number_of_random_questions'];
+  $num_random = $form_state['values']['num_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
 
   // If using random questions and no term ID is specified, make sure we have enough.
@@ -1222,7 +1233,7 @@ function theme_question_selection_table($form) {
     }
   }
   $table = theme('table', $headers, $rows, array('id' => 'question-list'));
-  return drupal_render($form['num_random_questions']) . $table . drupal_render($form);
+  return drupal_render($form['num_random_questions']) . drupal_render($form['random_term_id']) . $table . drupal_render($form);
 }
 
 function quiz_remove_partial_quiz_record_value() {
