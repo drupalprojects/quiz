@@ -278,7 +278,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     if ($quiz->randomize) {
       $form[$fieldset]['compulsories'][$id] = array(
       	'#type' => 'checkbox',
-      	'#default_value' => isset($question->compulsory) ? $question->compulsory : 0,
+      	'#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
       );
     }
     $form[$fieldset]['titles'][$id] = array(
@@ -603,7 +603,7 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens) {
+function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens, $compulsories = NULL) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
@@ -613,8 +613,12 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $
     $vid = (int)$vid;
     $question['nid'] = $nid;
     $question['vid'] = $vid;
-    //FIXME$question['state'] = ($state == 'always' ? QUESTION_ALWAYS : QUESTION_RANDOM);
-    $question['state'] = QUESTION_ALWAYS;
+    if (isset($compulsories)) {
+      $question['state'] = ($compulsories[$id] == 1) ? QUESTION_ALWAYS : QUESTION_RANDOM;
+    }
+    else {
+      $question['state'] = QUESTION_ALWAYS;
+    }
     $question['weight'] = $weight;
     $question['max_score'] = $max_scores[$id];
     $question['refresh'] = (isset($refreshes[$id]) && $refreshes[$id] == 1);
@@ -651,7 +655,9 @@ function quiz_questions_form_submit($form, &$form_state) {
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
   $hiddens = $form_state['values']['hiddens'];
-  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens);
+  if (isset($form_state['values']['compulsories']))
+    $compulsories = $form_state['values']['compulsories'];
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens, $compulsories);
 
   $num_random = $form_state['values']['number_of_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;

@@ -410,7 +410,7 @@ function quiz_insert($node) {
   }
 
   $sql = "INSERT INTO {quiz_node_properties}
-    (vid, nid, aid, number_of_random_questions, shuffle, randomize
+    (vid, nid, aid, number_of_random_questions, shuffle, randomize,
       backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
     VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
@@ -2741,7 +2741,7 @@ function quiz_get_collection_options() {
   $results = db_query("SELECT nid, title, type FROM {node} WHERE type in ('quiz', 'qcollection')");
   while ($result = db_fetch_object($results)) {
     $type = ($result->type != 'quiz') ? t('Item collection') : t('Quiz');
-    $options[$type][$result->nid] = substr($result->title, 0, 30);
+    $options[$type][$result->nid] = substr(check_plain($result->title), 0, 30);
     // truncate the node title if its length is greater than 30 characters
   }
   /*
