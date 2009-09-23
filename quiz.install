@@ -15,6 +15,10 @@ function quiz_update_6404() {
   $result = array();
   if (!db_column_exists('quiz_node_properties', 'randomize')) {
     db_add_field($result, 'quiz_node_properties', 'randomize', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
+    $sql = 'UPDATE {quiz_node_properties}
+            SET randomize = 1
+            WHERE number_of_random_questions > 0';
+    $result[] = update_sql($sql);
   }
   return $result;
 }
