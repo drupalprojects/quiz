@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Make removing questions work with js disabled
  *   TODO: Clean up the code
  *   TODO: Add comments
  *   TODO: Test

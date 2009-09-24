@@ -130,6 +130,33 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.q-staying').css('display', 'none');
   $('.q-remove').css('display', 'inline');
 };
+
+Drupal.behaviors.attachRemoveAction = function () {
+  $('.rem-link:not(.attachRemoveAction-processed)')
+  .addClass('attachRemoveAction-processed')
+  .click(function (e) {
+    var $this = $(this);
+    var remID = $this.parents('tr').attr('id');
+    var matches = remID.match(/[0-9]+-[0-9]+/);
+    if (!matches || matches.length < 1) {
+      return false;
+    }
+    Quiz.fixColorAndWeight($this.parents('tr'));
+    $this.parents('tr').addClass('hidden-question');
+    $('#edit-stayers-' + matches[0]).val(0);
+    $('#browser-'+ matches[0]).click();
+    
+    var table = Drupal.tableDrag['question-list'];
+    if (!table.changed) {
+      table.changed = true;
+      $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
+    }
+
+    e.preventDefault();
+    return true;
+  });
+};
+
 $(document).ready(function () {
   var oldTableHeader = Drupal.behaviors.tableHeader;
   Drupal.behaviors.tableHeader = function(context) {
@@ -221,4 +248,24 @@ Quiz.fixColorAndWeight = function(newest) {
 Quiz.findNidVidString = function(str) {
   var pattern = new RegExp('[0-9]+-[0-9]+');
   return pattern.exec(str);
+};
+
+Quiz.addQuestions = function (rowHtml) {
+  //Add the new rows:
+  $('#question-list tr:last').after(rowHtml);
+  
+  var table = Drupal.tableDrag['question-list'];
+  
+  $('.hidden-question').each(function(){
+	//Hide weight column:
+    $('td:last', this).css('display', 'none');
+    table.makeDraggable(this);
+  });
+  
+  if (table.changed == false) {
+    table.changed = true;
+    $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
+  }
+  
+  Drupal.attachBehaviors(table.table);
 };
