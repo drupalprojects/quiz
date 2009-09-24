@@ -184,9 +184,9 @@ function quiz_questions_form($form_state, $quiz, $options) {
       $vids[] = $cur_question->vid = $matches[2];
       $cur_question->max_score = $form_state['post']['max_scores'][$id];
       $cur_question->weight = $weight;
-      $cur_question->hidden = $form_state['post']['hiddens'][$id] === '1';
-      $cur_question->question_status = 1; //FIXME
-      if($cur_question->hidden == FALSE) {
+      $cur_question->staying = $form_state['post']['stayers'][$id] === '1';
+      $cur_question->question_status = QUESTION_ALWAYS;
+      if($cur_question->staying == TRUE) {
         $questions_to_add[] = $id;
       }
       $cur_questions[$cur_question->nid] = $cur_question;
@@ -212,7 +212,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz);
   
   $temp_to_add = $hidden_questions;
-  $form['question_list']['hidden_questions'] = array();
   
   $cur_questions = array();
   $vids = array();
@@ -234,9 +233,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     $vids[] = $cur_question->vid = $vid; 
     $cur_question->weight = 0;
     $cur_question->question_status = 1; //FIXME
-    if (in_array($id, $hidden_questions)) {
-      $cur_question->hidden = isset($form_state['values']['hiddens'][$id]) ? $form_state['values']['hiddens'][$id] === '1' : TRUE;
-    }
+    $cur_question->staying = isset($form_state['values']['stayers'][$id]) ? $form_state['values']['stayers'][$id] === '1' : FALSE;
     $cur_questions[$cur_question->nid] = $cur_question;
   }
   if (count($vids) > 0) {
@@ -260,7 +257,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $rows = array();
   $form['question_list']['weights'] = array('#tree' => TRUE);
   $form['question_list']['max_scores'] = array('#tree' => TRUE);
-  $form['question_list']['hiddens'] = array('#tree' => TRUE);
+  $form['question_list']['stayers'] = array('#tree' => TRUE);
   $form['question_list']['revision'] = array('#tree' => TRUE);
   if ($quiz->randomize) $form['question_list']['compulsories'] = array('#tree' => TRUE);
   
@@ -281,10 +278,11 @@ function quiz_questions_form($form_state, $quiz, $options) {
       '#maxlength' => 2,
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
     );
-    $form[$fieldset]['hiddens'][$id] = array(
-      '#type' => 'hidden',
-      '#default_value' => (isset($question->hidden) && $question->hidden === TRUE) ? 1 : 0,
-      '#attributes' => array('class' => 'q-row-hidden'),
+    
+    $form[$fieldset]['stayers'][$id] = array(
+      '#type' => 'checkbox',
+      '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
+      '#attributes' => array('class' => 'q-staying'),
     );
     if ($quiz->randomize) {
       $form[$fieldset]['compulsories'][$id] = array(
@@ -316,8 +314,6 @@ function quiz_questions_form($form_state, $quiz, $options) {
       ),
     );
     $form[$fieldset]['remove_links'][$id] = array(
-      // FIXME: This does not degrade for non-JS browsers.
-      //'#value' => l('Remove', 'node/' . $question->nid .'/questions/remove', array('attributes' => array('class' => 'rem-link'))),
       '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
     if ($question->vid == $question->latest_vid) {
@@ -338,8 +334,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
   }
   // Show the number of questions in the table header.
   $always_count = 0;
-  foreach ($form['question_list']['hiddens'] as $hidden) {
-    if ($hidden['#default_value'] === 0) $always_count++;
+  foreach ($form['question_list']['stayers'] as $stayer) {
+    if ($stayer['#default_value'] === 1) $always_count++;
   }
   $form['question_list']['#title'] .= ' ('. $always_count .')';
   
@@ -578,7 +574,7 @@ function quiz_questions_form_validate($form, $form_state) {
     return;
   }
   foreach ($weight_map as $id => $weight) {
-    if ($form_state['values']['hiddens'][$id] == 1) continue;
+    if ($form_state['values']['stayers'][$id] == 0) continue;
     list($nid, $vid) = explode('-', $id, 2);
     $params = $question_types; // Copy array.
     $params[] = $nid;
@@ -598,7 +594,7 @@ function quiz_questions_form_validate($form, $form_state) {
 
   $max_scores = $form_state['values']['max_scores'];
   foreach ($max_scores as $id => $max_score) {
-    if ($form_state['values']['hiddens'][$id] == 1) continue;
+    if ($form_state['values']['stayers'][$id] == 0) continue;
     if (!is_numeric($max_score)) {
       form_set_error("max_scores][$id", t('Max score needs to be numeric'));
     }
@@ -614,11 +610,11 @@ function quiz_questions_form_validate($form, $form_state) {
  * @param $is_new_revision
  * @return array set of questions after updating
  */
-function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens, $compulsories = NULL) {
+function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $stayers, $compulsories = NULL) {
     // Get quiz questions that will always be on the quiz:
   $questions = array();
   foreach ($weight_map as $id => $weight) {
-    if ($hiddens[$id] == 1) continue;
+    if ($stayers[$id] == 0) continue;
     list($nid, $vid) = explode('-', $id, 2);
     $nid = (int)$nid;
     $vid = (int)$vid;
@@ -665,10 +661,10 @@ function quiz_questions_form_submit($form, &$form_state) {
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
-  $hiddens = $form_state['values']['hiddens'];
+  $stayers = $form_state['values']['stayers'];
   if (isset($form_state['values']['compulsories']))
     $compulsories = $form_state['values']['compulsories'];
-  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $hiddens, $compulsories);
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $stayers, $compulsories);
 
   $num_random = $form_state['values']['num_random_questions'];
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
@@ -722,14 +718,14 @@ function _quiz_question_browser_submit($form, &$form_state) {
   if (is_array($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
-        if($form_state['values']['hiddens'][$id] == 0) continue;
+        if($form_state['values']['stayers'][$id] == 1) continue;
         $matches = array();
         preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
         $nid = $matches[1];
         $vid = $matches[2];
         $form_state['values']['weights'][$id] = ++$next_weight;
         $form_state['values']['max_scores'][$id] = quiz_question_get_max_score($nid, $vid);
-        $form_state['values']['hiddens'][$id] = 0;
+        $form_state['values']['stayers'][$id] = 1;
       }
     }
   }
@@ -787,8 +783,8 @@ function quiz_browser_ahah() {
   $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
   $b_form = $form['question_list']['browser'];
   unset($form['question_list']['browser']); 
-  foreach ($form['question_list']['hiddens'] as $key => $value) {
-    if (isset($value['#value']) && $value['#value'] == 0) unset($form['question_list']['titles'][$key]);
+  foreach ($form['question_list']['stayers'] as $key => $value) {
+    if (isset($value['#value']) && $value['#value'] == 1) unset($form['question_list']['titles'][$key]);
   }
   $num_hiddens = 0;
   if (is_array($form['question_list']['titles'])) {
@@ -1228,7 +1224,7 @@ function theme_question_selection_table($form) {
       $form['weights'][$id]['#attributes']['class'] = 'question-list-weight';
 
       $rows[] = _quiz_get_question_row($form, $id);
-      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['hiddens'][$id]);
+      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['stayers'][$id]);
       unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id], $form['compulsories'][$id]);
     }
   }
@@ -1348,11 +1344,11 @@ function _quiz_skip_validation(&$elements) {
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
-  $hidden_class = ($sub_form['hiddens'][$id]['#default_value'] === 1) ? ' hidden-question' : '';
+  $hidden_class = ($sub_form['stayers'][$id]['#default_value'] === 0) ? ' hidden-question' : '';
   $data_array = array(
-    drupal_render($sub_form['hiddens'][$id]) . drupal_render($sub_form['titles'][$id]),
+    drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
     $type,
-    $sub_form['view_links'][$id]['#value'] . ' | ' . $sub_form['remove_links'][$id]['#value'],
+    $sub_form['view_links'][$id]['#value'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | '. $sub_form['remove_links'][$id]['#value'] .'</SPAN>',
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
     drupal_render($sub_form['max_scores'][$id])
   );

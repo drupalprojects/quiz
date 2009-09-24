@@ -121,3 +121,9 @@ div.multichoice_answer_incorrect {
 .browser-table th {
   border-bottom: 0px solid #666666;
 }
+
+.q-staying {
+  display: inline;
+  float: left;
+  margin-right: 8px;
+}

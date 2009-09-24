@@ -28,7 +28,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	} else {
       $('#q-' + idToShow).addClass('hidden-question');
 	}
-	$('#edit-hiddens-' + idToShow).val(($('#q-' + idToShow).hasClass('hidden-question')) ? 1 : 0);
+	$('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
     Quiz.fixColorAndWeight($('#q-' + idToShow));
   });
   
@@ -127,6 +127,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $('#edit-browser-table-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
+  $('.q-staying').css('display', 'none');
+  $('.q-remove').css('display', 'inline');
 };
 $(document).ready(function () {
   var oldTableHeader = Drupal.behaviors.tableHeader;
@@ -141,7 +143,7 @@ $(document).ready(function () {
     $(this).click();
   });
   $('.q-row').each(function() {
-	if ($('.q-row-hidden', $(this)).val() == '0') $(this).removeClass('hidden-question');
+    if ($('.q-staying', $(this)).attr('checked')) $(this).removeClass('hidden-question');
   });
 });
 Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {

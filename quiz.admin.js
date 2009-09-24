@@ -39,7 +39,7 @@ Drupal.behaviors.attachRemoveAction = function () {
     }
     Quiz.fixColorAndWeight($this.parents('tr'));
     $this.parents('tr').addClass('hidden-question');
-    $('#edit-hiddens-' + matches[0]).val(1);
+    $('#edit-stayers-' + matches[0]).val(0);
     $('#browser-'+ matches[0]).click();
     
     var table = Drupal.tableDrag['question-list'];
