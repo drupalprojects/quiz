@@ -1,20 +1,35 @@
 // $Id$
 
 /**
+ * Sponsored by: Norwegian Centre for Telemedicine
+ * Code: falcon
+ * 
  * @file
  * Javascript functions for the quizQuestionBrowser
  */
+
+// The quiz object
 var Quiz = Quiz || {};
 
+/**
+ * Adding behavior. Behaviors are called everytime a page is refreshed fully or through ahah.
+ */ 
 Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
+  
+  // Using variables for readability and to ease change of names...
   var done = 'quizQuestionBrowserBehavior-processed';
   var notDone = ':not(.'+ done +')';
+  
   // Question rows in the browser
   $('.quiz-question-browser-row'+ notDone)
   .addClass(done)
+  
+  // Add selected class to already selected questions
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
   .end()
+  
+  // When the browser row is clicked toggle the selected class and add the questions to the question list
   .click(function(event) {
     $(this).toggleClass('selected');
     if (event.target.type !== 'checkbox') {
@@ -24,8 +39,10 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     }
 	var idToShow = Quiz.findNidVidString(this.id);
 	if ($(this).hasClass('selected')) {
+	  // Show the question in the question list
       $('#q-' + idToShow).removeClass('hidden-question');
 	} else {
+	  // Hide the question in the question list
       $('#q-' + idToShow).addClass('hidden-question');
 	}
 	$('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
@@ -35,12 +52,11 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   // Filter row in the browser
   
   // Mark all button
-  this.selector = '#edit-browser-table-filters-all'+ notDone;
-  $(this.selector)
+  $('#edit-browser-table-filters-all'+ notDone)
   .addClass(done)
   .click(function(event) {
     var ch = $(this).attr('checked');
-    $('.quiz_question_browser_row').each(function() { 
+    $('.quiz-question-browser-row').each(function() { 
       if (!ch) {
         $(this).filter(':has(:checkbox:checked)').each(function() {
           $(this).click();
@@ -63,15 +79,15 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $('.quiz-question-browser-row').each(function() { 
       $(this).remove();
     });
-    $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
   });
-  var quizRefreshId;
   
   //Title and username filters
+  var quizRefreshId;
   this.selector = '#edit-browser-table-filters-title'+ notDone;
   this.selector += ', #edit-browser-table-filters-name'+ notDone;
   $(this.selector)
   .addClass(done)
+  // triggering custom event "doneTyping" one second after the last key up in the text fields...
   .keyup(function(event) {
 	clearInterval(quizRefreshId);
 	var quizClicked = this;
@@ -79,13 +95,14 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       $('.quiz-question-browser-row').each(function() { 
         $(this).remove();
       });
-      $('.quiz_question_browser_filters').after('<TR id="quiz-question-browser-searching"><TD colspan="5">Searching...</TD></TR>');
       $(quizClicked).trigger('doneTyping');
       clearInterval(quizRefreshId);
     }, 1000);
   });
   
-  // Sorting TODO: Merge all the sortings into one...
+  // Sorting 
+  
+  // Making datastructure holding all sortable colums and the events that triggers sorting
   var toSort = [
     {
       name: 'title',
@@ -112,6 +129,9 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     .attr('myEvent', toSort[i].event)
     .click(function(event) {
       var myUrl = $(this).attr('href').substr(2);
+      // add-to-get is the query string used by drupals tablesort api.
+      // We need to post the query string to drupal since we are using ajax.
+      // The querystring will be added to $_REQUEST on the server.
       $('#edit-browser-table-add-to-get').val(myUrl);
       $('#edit-browser-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
       event.preventDefault();
@@ -127,10 +147,17 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $('#edit-browser-table-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
+  
+  // If js is active we don't want to show a checkbox for selecting questions
   $('.q-staying').css('display', 'none');
+  
+  // If js is active we use a link to remove questions from the question list
   $('.q-remove').css('display', 'inline');
 };
 
+/**
+ * Adding behavior. Behaviors are called everytime a page is refreshed fully or through ahah.
+ */ 
 Drupal.behaviors.attachRemoveAction = function () {
   $('.rem-link:not(.attachRemoveAction-processed)')
   .addClass('attachRemoveAction-processed')
@@ -142,8 +169,14 @@ Drupal.behaviors.attachRemoveAction = function () {
       return false;
     }
     Quiz.fixColorAndWeight($this.parents('tr'));
+    
+    //Hide the question
     $this.parents('tr').addClass('hidden-question');
-    $('#edit-stayers-' + matches[0]).val(0);
+    
+    // Mark the question as removed
+    $('#edit-stayers-' + matches[0]).attr('checked', false);
+    
+    // Uncheck the question in the browser
     $('#browser-'+ matches[0]).click();
     
     var table = Drupal.tableDrag['question-list'];
@@ -157,7 +190,10 @@ Drupal.behaviors.attachRemoveAction = function () {
   });
 };
 
+// This is only called once, not on ajax refreshes...
 $(document).ready(function () {
+  
+  // There are some problems with table headers and ajax. We try to reduce those problems here...
   var oldTableHeader = Drupal.behaviors.tableHeader;
   Drupal.behaviors.tableHeader = function(context) {
     if (!$('table.sticky-enabled', context).size()) {
@@ -166,26 +202,51 @@ $(document).ready(function () {
     oldTableHeader(context);
   };
   
+  // If a browser row is selected make sure it gets marked.
   $('.quiz_question_browser_row:has(:checkbox:checked)').each(function() {
     $(this).click();
   });
+  
+  // If validation of the form fails questions added using the browser will become invisible.
+  // We fix this problem here:
   $('.q-row').each(function() {
     if ($('.q-staying', $(this)).attr('checked')) $(this).removeClass('hidden-question');
   });
 });
-Quiz.addBrowserRows = function(rows, newBuildId, pager, hiddenRows) {
-  //Add the new row:
+
+/**
+ * Adds new rows to the browser. This function is called from a inline js added to the page using ahah.
+ * 
+ * @param rows
+ *   Browser rows(html string)
+ * @param newBuildId
+ *   Id of the new form(string)
+ * @param pager
+ *   The browsers new pager(html string)  
+ */
+Quiz.addBrowserRows = function(rows, newBuildId, pager) {
+  // The previous questions in the browser are added to the question list as invisible questions
+  // Since they cannot be selected anymore we remove them here...
   $('.hidden-question').remove();
   
+  // Add the new rows to the browser and replace the pager
   $('#quiz-question-browser-filters').after(rows);
   $('#quiz-question-browser-pager').replaceWith(pager);
-  //var newRow = $('#questions-order-' + statusCode + ' tr:last').get(0);
   
-  // Change build id to the new id provided by the server:
+  // Change build id to the new id provided by the server(prevents validation error):
   $('[name="form_build_id"]').val(newBuildId);
   
   Drupal.behaviors.quizQuestionBrowserBehavior();
 };
+
+/**
+ * Replaces the entire browser. This function is called from a inline js added to the page using ahah.
+ * 
+ * @param renderedBrowser
+ *   The entire browser(html string)
+ * @param newBuildId
+ *   Id of the new form(string)
+ */
 Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   // Change build id to the new id provided by the server:
   $('.hidden-question').remove();
@@ -193,8 +254,15 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   $('#all-ahah-target').replaceWith(renderedBrowser);
   Drupal.attachBehaviors($('#all-ahah-target'));
 };
+
+/**
+ * Updates the page part of the query string in the add-to-get hidden field
+ * 
+ * @param myUrl
+ *   The url in the links in the pager(string)
+ */
 Quiz.updatePageInUrl = function(myUrl) {
-  //Finds page from input parameter
+  // Finds page from input parameter
   var pageQuery = myUrl + '';
   var pattern = new RegExp('page=[0-9]+');
   pageQuery = pattern.exec(pageQuery);
@@ -202,16 +270,24 @@ Quiz.updatePageInUrl = function(myUrl) {
   
   //Replaces stored query strings page with our page
   var currentQuery = $('#edit-browser-table-add-to-get').val() + '';
-  currentQuery = currentQuery.replace(pattern,'');
+  currentQuery = currentQuery.replace(pattern, '');
   currentQuery += pageQuery;
   $('#edit-browser-table-add-to-get').val(currentQuery);
 };
+
+/**
+ * Restripes the question list and adjusts the weight fields
+ * 
+ * @param newest
+ *   The row that last was added to the question list(jQuery object)
+ */
 Quiz.fixColorAndWeight = function(newest) {
   var nextClass = 'odd';
   var lastClass = 'even';
   var lastWeight = 0;
   var lastQuestion = null;
   var numQRows = 0;
+  
   $('.q-row').each(function() {
     if (!$(this).hasClass('hidden-question') && $(this).attr('id') != newest.attr('id')) {
       // Color:
@@ -221,6 +297,7 @@ Quiz.fixColorAndWeight = function(newest) {
       nextClass = lastClass;
       lastClass = currentClass;
       lastQuestion = $(this);
+      
       // Weight:
       var myId = $(this).attr('id') + '';
       var weightField = $('#edit-weights-' + myId);
@@ -228,9 +305,13 @@ Quiz.fixColorAndWeight = function(newest) {
       lastWeight++;
     }
   });
+  
   if (numQRows < 2) return;
+  
   if (!newest.hasClass(nextClass)) newest.removeClass(lastClass).addClass(nextClass);
   var newestId = Quiz.findNidVidString(newest.attr('id'));
+  
+  //We move the newest question to the bottom of the list
   newest.insertAfter('#q-'+ Quiz.findNidVidString(lastQuestion.attr('id')));
   $('#edit-weights-' + newestId).val(lastWeight);
   var marker = Drupal.theme('tableDragChangedMarker');
@@ -243,13 +324,25 @@ Quiz.fixColorAndWeight = function(newest) {
     table.changed = true;
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
-  //Drupal.attachBehaviors();
 };
+
+/**
+ * Finds and returns the part of a string holding the nid and vid
+ * 
+ * @param str
+ *   A string that should have nid and vid inside it on this format: nid-vid, for instance 23-24
+ */
 Quiz.findNidVidString = function(str) {
   var pattern = new RegExp('[0-9]+-[0-9]+');
   return pattern.exec(str);
 };
 
+/**
+ * Adds question rows to the question list
+ * 
+ * @param rowHtml
+ *   The question rows to be added(html string)
+ */
 Quiz.addQuestions = function (rowHtml) {
   //Add the new rows:
   $('#question-list tr:last').after(rowHtml);
@@ -257,8 +350,9 @@ Quiz.addQuestions = function (rowHtml) {
   var table = Drupal.tableDrag['question-list'];
   
   $('.hidden-question').each(function(){
-	//Hide weight column:
+	// Hide weight column:
     $('td:last', this).css('display', 'none');
+    
     table.makeDraggable(this);
   });
   
