@@ -569,6 +569,13 @@ function quiz_questions_form_validate($form, $form_state) {
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
   $already_checked = array();
   $weight_map = $form_state['values']['weights'];
+  if (isset($form_state['values']['num_random_questions'])) {
+    if (!is_numeric($form_state['values']['num_random_questions']) || 
+         $form_state['values']['num_random_questions'] < 0) {
+      form_set_error('num_random_questions', 'The number of random questions needs to be a positive number');
+    }
+  }
+  
   if (empty($weight_map)) {
     form_set_error('none', 'No questions were included.');
     return;
