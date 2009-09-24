@@ -569,6 +569,8 @@ function quiz_question_type_access_load($arg) {
 
 /**
  * Refreshes the ..._latest_quizzes table when a user has modified a new quiz.
+ * 
+ * The latest quizzes table is used to know what quizzes the user last has been using.
  *
  * @param $nid
  *   nid of the last quiz the current user modified
