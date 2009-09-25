@@ -739,6 +739,8 @@ function quiz_questions_form_submit($form, &$form_state) {
   $stayers = $form_state['values']['stayers'];
   if (isset($form_state['values']['compulsories']))
     $compulsories = $form_state['values']['compulsories'];
+  
+  // Store what questions belong to the quiz
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $stayers, $compulsories);
 
   $num_random = $form_state['values']['num_random_questions'];
@@ -746,19 +748,19 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {
-   $assigned_random = 0;
+    $assigned_random = 0;
 
-   foreach ($questions as $question) {
+    foreach ($questions as $question) {
      if ($question->state == QUESTION_RANDOM) {
        ++$assigned_random;
      }
-   }
-
-   // Adjust number of random questions downward to match number of selected questions..
-   if ($num_random > $assigned_random) {
+    }
+    
+    // Adjust number of random questions downward to match number of selected questions..
+    if ($num_random > $assigned_random) {
      $num_random = $assigned_random;
      drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), 'warning'));
-   }
+    }
   }
   else {
     // Warn user if not enough questions available with this term_id.
@@ -784,12 +786,27 @@ function quiz_questions_form_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Takes care of the browser part of the submitted form values.
+ * 
+ * This function changes the form_state to reflect questions added via the browser. 
+ * (Especially if js is disabled)
+ * 
+ * 
+ * @param $form
+ *   FAPI form(array)
+ * @param $form_state
+ *   FAPI form_state(array)
+ */
 function _quiz_question_browser_submit($form, &$form_state) {
-  //Find the biggest weight:
+  // Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
+  
+  // Save the active filters in $_SESSION
   $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
-  //TODO: Consider random and always separately?
+  
+  // If a question is chosen in the browser, add it to the question list if it isn't already there
   if (is_array($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
@@ -806,6 +823,12 @@ function _quiz_question_browser_submit($form, &$form_state) {
   }
 }
 
+/**
+ * Store values for each browser filter in $_SESSION
+ * 
+ * @param $filters
+ *   array holding the values for each filter
+ */
 function _quiz_browser_store_filters($filters) {
   $pre = 'quiz_question_browser_';
   $_SESSION[$pre .'title'] = $filters['title'];
@@ -818,9 +841,10 @@ function _quiz_browser_store_filters($filters) {
  * AHAH handler for the question browser
  */
 function quiz_browser_ahah() {
+  // Prepare to get the form from cache
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
   $form_id = $_POST['form_build_id'];
+  
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
     form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator. $form_id"));
@@ -828,6 +852,10 @@ function quiz_browser_ahah() {
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
   }
+  // If filter or pager has been used
+  $replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
+  
+  // Prepare to submit the form
   $args = $form['#parameters'];
   $form_id = array_shift($args);
 
@@ -839,46 +867,75 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
+  
+  // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
   foreach ($_POST as $key => $value) {
     unset($_REQUEST[$key]);
   }
   $_POST = array();
+  
+  // We don't want any validation errors to show up. This isn't a real submit.
   _quiz_skip_validation($form);
+  
   _quiz_browser_store_filters($form_state['post']['browser']['table']['filters']);
   
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
+  
   //Remove any status messages the processing resulted in...
   theme('status_messages');
   
-  // Get a new form with the new question attached
+  // Get the form the ajax call resulted in
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  $extra_output = '';
   
-  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+  // We store a copy of the browser part of the form, and remove it from the main form.
+  // This way we can render the form without the browser, and render the browser separatly
   $b_form = $form['question_list']['browser'];
-  unset($form['question_list']['browser']); 
+  unset($form['question_list']['browser']);
+  
+  /*
+   * $output is the string we will send to ajax, and that will be added to the page.
+   * We are doing this in a special way so way have to call javascript functions to
+   * update the DOM.
+   */ 
+  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+  
+  // We remove all visible questions from the quiz. We only want to render the hidden questions.
   foreach ($form['question_list']['stayers'] as $key => $value) {
     if (isset($value['#value']) && $value['#value'] == 1) unset($form['question_list']['titles'][$key]);
   }
+  
+  // We count the number of hidden questions
   $num_hiddens = 0;
   if (is_array($form['question_list']['titles'])) {
     foreach ($form['question_list']['titles'] as $key => $value) {
       if (preg_match('/^[0-9]+-[0-9]+/', $key)) $num_hiddens++;
     }
   }
+  
+  // We render what is left of the question list
   $sub_form_html = drupal_render($form['question_list']);
+  
+  // We pick the table rows holding the hidden questions
   $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
   $output .= ' var qRowsHidden = '.drupal_to_js($q_rows_html).';';
-  if($replace_all) {
+  
+  // We replace the entire browser. This is done when the browser is sorted
+  if ($replace_all) {
+    // Make sure the description and test is removed
     unset($b_form['#type']);
     unset($b_form['#value']);
     
     $rendered_browser = drupal_render($b_form['table']);
     $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
+    
+    // Have js(jQuery) replace the browser and change the form build id in the DOM
     $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
+    
+    // Add the hidden questions to the question list
     $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
   }
+  // Only the question rows in the browser is replaced.
   else {
     // Send status messages, new build id for the form and the new question row to the javascript:
     $b_rows = _quiz_get_browser_content(drupal_render($b_form));
@@ -1299,9 +1356,10 @@ function theme_question_selection_table($form) {
       $form['weights'][$id]['#attributes']['class'] = 'question-list-weight';
 
       $rows[] = _quiz_get_question_row($form, $id);
-      unset($form['types'][$id], $form['view_links'][$id], $form['remove_links'][$id], $form['stayers'][$id]);
-      unset($form['max_scores'][$id], $form['revision'][$id], $form['weights'][$id], $form['titles'][$id], $form['compulsories'][$id]);
     }
+    // Make sure the same fields aren't rendered twice
+    unset($form['types'], $form['view_links'], $form['remove_links'], $form['stayers']);
+    unset($form['max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories']);
   }
   $table = theme('table', $headers, $rows, array('id' => 'question-list'));
   return drupal_render($form['num_random_questions']) . drupal_render($form['random_term_id']) . $table . drupal_render($form);
@@ -1404,7 +1462,7 @@ function _quiz_skip_validation(&$elements) {
 }
 
 /**
- *
+ * Helper function for theme_question_selection_table
  *
  * @see quiz_questions_form()
  * @see theme_question_selection_table()
@@ -1437,11 +1495,14 @@ function _quiz_get_question_row($sub_form, $id) {
 }
 
 /**
- * Finds and returns the last table row(HTML) in a table(HTML)
+ * Finds and returns the last table rows(HTML) in a table(HTML)
  *
  * @param $table
  *   HTML string with a table
- * @return last table row in the table
+ * @param $num_rows
+ *   The number of rows to return(int)
+ * @return 
+ *   last table row in the table(html string)
  */
 function _quiz_get_last_table_rows($table, $num_rows = 1) {
   $matches = array();
@@ -1459,7 +1520,8 @@ function _quiz_get_last_table_rows($table, $num_rows = 1) {
  *
  * @param $table
  *   HTML string with a table
- * @return all table rows with a certain class in a table
+ * @return 
+ *   all table rows with a certain class in a table(html string)
  */
 function _quiz_get_browser_content($table) {
   $matches = array();
@@ -1467,6 +1529,14 @@ function _quiz_get_browser_content($table) {
   return $matches[0];
 }
 
+/**
+ * Adds variables from a querystring to $_GET
+ * 
+ * @see quiz_browser_ahah()
+ * 
+ * @param $to_add
+ *   query string
+ */
 function _quiz_add_to_get($to_add){
   $pre = 'quiz_question_browser_';
   parse_str($to_add, $output);
