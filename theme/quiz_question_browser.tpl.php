@@ -8,41 +8,62 @@
  * Variables available:
  * - $form
  */
+
+// Add js
 $p = drupal_get_path('module', 'quiz') .'/theme/';
 drupal_add_js($p .'quiz_question_browser.js', 'module');
-$fullOptions = array();
-$table = $form;
-foreach ($table['titles']['#options'] as $key => $value) {
-  $fullOptions[$key] = $table['titles'][$key];
-  $fullOptions[$key]['#title'] = '';
+
+// We need to separate the title and the checkbox. We make a custom options array...
+$full_options = array();
+foreach ($form['titles']['#options'] as $key => $value) {
+  $full_options[$key] = $form['titles'][$key];
+  $full_options[$key]['#title'] = '';
 }
-print drupal_render($table['ahah_target_all']);
-print drupal_render($table['ahah_target']);
+
+// Print ahah targets
+print drupal_render($form['ahah_target_all']);
+print drupal_render($form['ahah_target']);
+
 $rows = array();
 $cols = array();
-$cols[] = drupal_render($table['filters']['all']);
-$cols[] = drupal_render($table['filters']['title']);
-$cols[] = drupal_render($table['filters']['type']);
-$cols[] = drupal_render($table['filters']['changed']);
-$cols[] = drupal_render($table['filters']['name']);
+
+// We make the filter row
+$cols[] = drupal_render($form['filters']['all']);
+$cols[] = drupal_render($form['filters']['title']);
+$cols[] = drupal_render($form['filters']['type']);
+$cols[] = drupal_render($form['filters']['changed']);
+$cols[] = drupal_render($form['filters']['name']);
 $rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
-foreach ($table['titles']['#options'] as $key => $value) {
+
+// We make the question rows
+foreach ($form['titles']['#options'] as $key => $value) {
   $cols = array();
+  
+  // Find nid and vid
   $matches = array();
   preg_match('/([0-9]+)-([0-9]+)/', $key, $matches);
   $quest_nid = $matches[1];
   $quest_vid = $matches[2];
-  $cols[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
+  
+  // The checkbox(without the title)
+  $cols[] = array('data' => drupal_render($full_options[$key]), 'width' => 35);
+  
+  // The title
   $cols[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q']), 'attributes' => array('target' => 'blank')));
-  $cols[] = $table['types'][$key]['#value'];
-  $cols[] = $table['changed'][$key]['#value'];
-  $cols[] = $table['names'][$key]['#value'];
+  
+  $cols[] = $form['types'][$key]['#value'];
+  $cols[] = $form['changed'][$key]['#value'];
+  $cols[] = $form['names'][$key]['#value'];
+  
   $rows[] = array('data' => $cols, 'class' => 'quiz-question-browser-row', 'id' => 'browser-'. $key);
 }
-print theme('table', $table['#header'], $rows, array('class' => 'browser-table'));
-if (count($table['titles']['#options']) == 0)
+
+print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
+
+if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
-print $table['pager']['#value'];
-print drupal_render($table['add_to_get']);
-print drupal_render($table['ahah_target_all_end']);
+
+print $form['pager']['#value'];
+print drupal_render($form['add_to_get']);
+print drupal_render($form['ahah_target_all_end']);
 ?>
