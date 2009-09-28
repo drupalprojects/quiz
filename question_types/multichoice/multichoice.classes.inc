@@ -21,6 +21,7 @@
 
 /**
  * TODO: Make a question browser
+ *   TODO: Weight wasn't saved...
  *   TODO: Clean up the code
  *   TODO: Make changes to the scrollbar to avoid jumping when questions are added to the question list?
  *   TODO: Newly added questions must not have compulsory as default
