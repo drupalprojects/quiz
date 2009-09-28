@@ -254,7 +254,17 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   // Change build id to the new id provided by the server:
   $('.hidden-question').remove();
   $('[name="form_build_id"]').val(newBuildId);
-  $('#all-ahah-target').replaceWith(renderedBrowser);
+   
+  var $this = $('#all-ahah-target'); 
+  var par = $this.parent(); 
+  var sib = $this.prev(); 
+  $this.remove(); 
+
+  if (sib[0]) 
+    sib.after(renderedBrowser); 
+  else 
+    par.prepend(renderedBrowser); 
+
   Drupal.attachBehaviors($('#all-ahah-target'));
 };
 
@@ -358,11 +368,6 @@ Quiz.addQuestions = function (rowHtml) {
     
     table.makeDraggable(this);
   });
-  
-  if (table.changed == false) {
-    table.changed = true;
-    $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
-  }
   
   Drupal.attachBehaviors(table.table);
 };
