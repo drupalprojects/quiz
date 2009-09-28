@@ -38,6 +38,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       });
     }
 	var idToShow = Quiz.findNidVidString(this.id);
+	var oldHeight = $(document).height();
 	if ($(this).hasClass('selected')) {
 	  // Show the question in the question list
       $('#q-' + idToShow).removeClass('hidden-question');
@@ -47,6 +48,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	}
 	$('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
     Quiz.fixColorAndWeight($('#q-' + idToShow));
+    var toScroll = $(document).height() - oldHeight;
+    window.scrollBy(0, toScroll);
   });
   
   // Filter row in the browser

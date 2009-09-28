@@ -21,9 +21,9 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Make changes to the scrollbar to avoid jumping when questions are added to the question list?
  *   TODO: Newly added questions must not have compulsory as default
  *   TODO: Make sure that the changes made to this table... isn't shown when hidden questions are added
+ *   TODO: The browser tends to disappear in IE...
  *   TODO: Test
  *     TODO: Test updating from 3.x
  * TODO: Improve quiz results performance.
