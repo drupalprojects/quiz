@@ -119,7 +119,8 @@ function quiz_questions_form($form_state, $quiz, $options) {
   // To the page with the ahah callback...
   $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
   
-  _quiz_add_fields_for_creating_questions($form);
+  $types = _quiz_get_question_types();
+  _quiz_add_fields_for_creating_questions($form, $types);
 
   // Display questions on this quiz.
   $form['question_list'] = array(
@@ -147,7 +148,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   
   // We add the browser and allows the browser to give us information on what questions are displayed in the browser...
   $hidden_questions = array();
-  $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz);
+  $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz, $types);
   
   // We add the questions from the browser as hidden question rows in the question list. Doing this we can have
   // the question show up in the question list instantly when a question is chosen in the browser.
@@ -181,7 +182,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
  * @param $form
  *   FAPI form(array)
  */
-function _quiz_add_fields_for_creating_questions(&$form) {
+function _quiz_add_fields_for_creating_questions(&$form, &$types) {
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
@@ -191,7 +192,6 @@ function _quiz_add_fields_for_creating_questions(&$form) {
     '#collapsed' => FALSE,
   );
 
-  $types = _quiz_get_question_types();
   foreach ($types as $type => $info) {
     $url_type = str_replace('_', '-', $type);
     $form['additional_questions'][$type] = array(
@@ -478,8 +478,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
  * @return form
  *   FAPI form(array)
  */
-function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state, $quiz) {
-  $question_types = _quiz_get_question_types(); // TODO: Use the one we've already got...
+function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state, $quiz, $question_types) {
   if (!is_array($question_types) || count($question_types) == 0) {
     return $form['no_questions'] = array(
       '#type' => 'markup',
@@ -499,59 +498,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $form['table'] = array('#theme' => 'quiz_question_browser');
   $browser = &$form['table'];
   
-  // Create options array for the type filter(select field)
-  $type_options = array(
-    t('No filter'),
-  );
-  foreach (array_keys($question_types) as $type) {
-    $type_options[$type] = $type;
-  }
-  
-  // Create options array for the changed filter
-  $changedOptions = array(
-    t('No filter'),
-    t('Today'),
-    t('Yesterday'),
-    t('Two days ago'),
-    t('This week'),
-    t('Last week'),
-    t('This month'),
-    t('Last month'),
-    t('This year'),
-    t('Last year'),
-    t('Long ago'),
-  );
-  
-  // Create datastructure to help create where clause in the sql for the changed filter...
-  $now = time();
-  $one_day = 86400;
-  $one_week = 604800;
-  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
-  $weekday = date('N', $now);
-  $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
-  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
-  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
-  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
-  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
-  $changedTimestamps = array(
-    NULL,
-    array($timestamp_today, $now),
-    array($timestamp_today - $one_day * 1, $timestamp_today),
-    array($timestamp_today - $one_day * 2, $timestamp_today - $one_day * 1),
-    array($timestamp_week, $now),
-    array($timestamp_week - $one_week, $timestamp_week),
-    array($timestamp_month, $now),
-    array($timestamp_last_month, $timestamp_month),
-    array($timestamp_year, $now),
-    array($timestamp_last_year, $timestamp_year),
-    array(0, $timestamp_last_year),
-  );
-  
-  foreach ($changedTimestamps as $key => &$val) {
-    if ($val == NULL) continue;
-    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1]; 
-  }
-  
   // Ahah targets
   $browser['ahah_target'] = array(
     '#type' => 'markup',
@@ -569,73 +515,11 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   );
   
   //Build filter part of form:
-  $browser['filters'] = array();
-  $filters = &$browser['filters'];
-  $filters['all'] = array(
-    '#type' => 'checkbox',
-  );
-  $pre = 'quiz_question_browser_';
-  $filters['title'] = array(
-    '#type' => 'textfield',
-    '#size' => 20,
-    '#default_value' => $_SESSION[$pre .'title'],
-    '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'ahah-target',
-      'method' => 'replace',
-      'event' => 'doneTyping',
-    ),
-  );
-  $filters['type'] = array(
-    '#type' => 'select',
-    '#options' => $type_options,
-    '#default_value' => $_SESSION[$pre .'type'],
-    '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'ahah-target',
-      'method' => 'replace',
-    ),
-  );
-  $filters['changed'] = array(
-    '#type' => 'select',
-    '#options' => $changedOptions,
-    '#default_value' => $_SESSION[$pre .'changed'],
-    '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'ahah-target',
-      'method' => 'replace',
-    ),
-  );
-  $filters['name'] = array(
-    '#type' => 'textfield',
-    '#size' => 10,
-    '#default_value' => $_SESSION[$pre .'name'],
-    '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
-      'wrapper' => 'ahah-target',
-      'method' => 'replace',
-      'event' => 'doneTyping',
-    ),
-  );
+  _quiz_question_browser_add_filter_fields($browser, $question_types);
   
   // Create filter part of sql.
   $filter_params = array($quiz->nid, $quiz->vid);
-  $filter_sql = '';
-  if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
-    $filter_sql .= ' AND n.title LIKE \'%s%%\'';
-    $filter_params[] = $_SESSION[$pre .'title'];
-  }
-  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
-    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
-    $filter_params[] = $_SESSION[$pre .'name'];
-  }
-  if (isset($_SESSION[$pre .'type']) && ($_SESSION[$pre .'type'] !== '0')) {
-    $filter_sql .= ' AND n.type = \'%s\'';
-    $filter_params[] = $_SESSION[$pre .'type'];
-  }
-  if (isset($_SESSION[$pre .'changed'])) {
-    $filter_sql .= $changedTimestamps[$_SESSION[$pre .'changed']]['sql'];
-  }
+  $filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
   
   // Add querystring recieved via ajax to the $_GET array...
   $question_type_list = implode('\', \'', array_keys($question_types));
@@ -689,6 +573,168 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   return $form;
 }
 
+/**
+ * Returns list of options for the changed select box
+ * 
+ * @see _quiz_questions_browser_form()
+ * 
+ * @return $changed_options
+ *   Options for the changed select box.
+ */
+function _quiz_get_changed_options() {
+  return array(
+    t('No filter'),
+    t('Today'),
+    t('Yesterday'),
+    t('Two days ago'),
+    t('This week'),
+    t('Last week'),
+    t('This month'),
+    t('Last month'),
+    t('This year'),
+    t('Last year'),
+    t('Long ago'),
+  );
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the changed filter.
+ * 
+ * @see _quiz_questions_browser_form()
+ * 
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_changed_timestamps() {
+  // Create datastructure to help create where clause in the sql for the changed filter...
+  $now = time();
+  $one_day = 86400;
+  $one_week = 604800;
+  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
+  $weekday = date('N', $now);
+  $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
+  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
+  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
+  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
+  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
+  $changed_timestamps = array(
+    NULL,
+    array($timestamp_today, $now),
+    array($timestamp_today - $one_day * 1, $timestamp_today),
+    array($timestamp_today - $one_day * 2, $timestamp_today - $one_day * 1),
+    array($timestamp_week, $now),
+    array($timestamp_week - $one_week, $timestamp_week),
+    array($timestamp_month, $now),
+    array($timestamp_last_month, $timestamp_month),
+    array($timestamp_year, $now),
+    array($timestamp_last_year, $timestamp_year),
+    array(0, $timestamp_last_year),
+  );
+  
+  foreach ($changed_timestamps as $key => &$val) {
+    if ($val == NULL) continue;
+    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1]; 
+  }
+  return $changed_timestamps;
+}
+
+/**
+ * adds filter fields to the browser form
+ * 
+ * @param $form
+ *   FAPI form(array)
+ */
+function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
+  // Create options array for the type filter(select field)
+  $type_options = array(
+    t('No filter'),
+  );
+  foreach (array_keys($question_types) as $type) {
+    $type_options[$type] = $type;
+  }
+  
+  // Create options array for the changed filter
+  $changed_options = _quiz_get_changed_options(); 
+  $browser['filters'] = array();
+  $filters = &$browser['filters'];
+  $filters['all'] = array(
+    '#type' => 'checkbox',
+  );
+  $pre = 'quiz_question_browser_';
+  $filters['title'] = array(
+    '#type' => 'textfield',
+    '#size' => 20,
+    '#default_value' => $_SESSION[$pre .'title'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+      'event' => 'doneTyping',
+    ),
+  );
+  $filters['type'] = array(
+    '#type' => 'select',
+    '#options' => $type_options,
+    '#default_value' => $_SESSION[$pre .'type'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['changed'] = array(
+    '#type' => 'select',
+    '#options' => $changed_options,
+    '#default_value' => $_SESSION[$pre .'changed'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['name'] = array(
+    '#type' => 'textfield',
+    '#size' => 10,
+    '#default_value' => $_SESSION[$pre .'name'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/browser/ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+      'event' => 'doneTyping',
+    ),
+  );
+}
+
+/**
+ * Returns sql to be added in where clause in the browseres select statement
+ * 
+ * @see _quiz_questions_browser_form()
+ * 
+ * @param $filter_params
+ *   params to be sent as parameter to db_query. (array)
+ * @return $filter_sql
+ *   sql to be added to where statement in browser(string)
+ */
+function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
+  $changed_timestamps = _quiz_get_changed_timestamps();
+  $filter_sql = '';
+  if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
+    $filter_sql .= ' AND n.title LIKE \'%s%%\'';
+    $filter_params[] = $_SESSION[$pre .'title'];
+  }
+  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
+    $filter_params[] = $_SESSION[$pre .'name'];
+  }
+  if (isset($_SESSION[$pre .'type']) && ($_SESSION[$pre .'type'] !== '0')) {
+    $filter_sql .= ' AND n.type = \'%s\'';
+    $filter_params[] = $_SESSION[$pre .'type'];
+  }
+  if (isset($_SESSION[$pre .'changed'])) {
+    $filter_sql .= $changed_timestamps[$_SESSION[$pre .'changed']]['sql'];
+  }
+  return $filter_sql;
+}
 /**
  * Validate that the supplied questions are real.
  */
