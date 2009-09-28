@@ -21,7 +21,6 @@
 
 /**
  * TODO: Make a question browser
- *   TODO: Newly added questions must not have compulsory as default
  *   TODO: Make sure that the changes made to this table... isn't shown when hidden questions are added
  *   TODO: The browser tends to disappear in IE...
  *   TODO: Test

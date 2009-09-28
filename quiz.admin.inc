@@ -152,7 +152,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   
   // We add the questions from the browser as hidden question rows in the question list. Doing this we can have
   // the question show up in the question list instantly when a question is chosen in the browser.
-  _quiz_add_hidden_questions($questions, $hidden_questions, $form_state);
+  _quiz_add_hidden_questions($questions, $hidden_questions, $form_state, $quiz);
   
   _quiz_add_questions_to_form($form, $questions, $quiz);
   
@@ -298,7 +298,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
  * @param $form_state
  *   FAPI form_state(array)
  */
-function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_state) {
+function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_state, &$quiz) {
   $cur_questions = array();
   $vids = array();
   foreach ($hidden_questions as $key => $id) {
@@ -323,7 +323,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
     $cur_question->nid = $nid;
     $vids[] = $cur_question->vid = $vid; 
     $cur_question->weight = 0;
-    $cur_question->question_status = 1;
+    $cur_question->question_status = ($quiz->randomize) ? QUESTION_RANDOM : QUESTION_ALWAYS;
     $cur_question->staying = isset($form_state['values']['stayers'][$id]) ? $form_state['values']['stayers'][$id] === '1' : FALSE;
     $cur_questions[$cur_question->nid] = $cur_question;
   }
