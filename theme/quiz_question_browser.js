@@ -299,7 +299,7 @@ Quiz.fixColorAndWeight = function(newest) {
       lastQuestion = $(this);
       
       // Weight:
-      var myId = $(this).attr('id') + '';
+      var myId = Quiz.findNidVidString($(this).attr('id') + '');
       var weightField = $('#edit-weights-' + myId);
       weightField.val(lastWeight);
       lastWeight++;
