@@ -716,6 +716,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
  *   sql to be added to where statement in browser(string)
  */
 function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
+  $pre = 'quiz_question_browser_';
   $changed_timestamps = _quiz_get_changed_timestamps();
   $filter_sql = '';
   if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
@@ -735,6 +736,7 @@ function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
   }
   return $filter_sql;
 }
+
 /**
  * Validate that the supplied questions are real.
  */
