@@ -215,7 +215,14 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   public function getMaximumScore() {
-    return count($this->node->answer);
+    $to_return = 0;
+    foreach ($this->node->match as $match) {
+      if (empty($match['question']) || empty($match['answer'])) {
+        continue;
+      }
+      $to_return++;
+    }
+    return $to_return;
   }
 
   public function getCorrectAnswer() {
