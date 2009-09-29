@@ -52,6 +52,13 @@ abstract class QuizQuestion {
    * Question types are made by extending these generic methods and abstract methods.
    */
 
+  /**
+   * The current node for this question.
+   */
+  protected $node = NULL;
+  
+  // Extra node properties
+  protected $nodeProperties = NULL;
    /**
    * Retrieve information relevant for viewing the node.
    *
@@ -83,10 +90,12 @@ abstract class QuizQuestion {
    * @return array
    */
   public function getNodeProperties() {
+    if (isset($this->nodeProperties)) return $this->nodeProperties;    
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
     $props['max_score'] = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    $this->nodeProperties = $props;
     return $props;
   }
 
@@ -197,11 +206,6 @@ abstract class QuizQuestion {
    * DEFAULT BEHAVIOR
    * Behavior default for all question types should be written below
    */
-
-  /**
-   * The current node for this question.
-   */
-  protected $node = NULL;
 
   /**
    * QuizQuestion constructor stores the node object.
@@ -593,7 +597,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
-    $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
+    $possible = _quiz_question_get_instance($this->question, TRUE)->getMaximumScore();
     $actual = $this->getScore();
 
     assert($action <= $possible);

@@ -231,6 +231,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function getNodeProperties() {
+    if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
 
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
@@ -248,6 +249,7 @@ class MultichoiceQuestion extends QuizQuestion {
     while ($res_arr = db_fetch_array($res)) {
       $props['alternatives'][] = $res_arr;
     }
+    $this->nodeProperties = $props;
     return $props;
   }
 

@@ -63,6 +63,7 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   public function getNodeProperties() {
+    if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
 
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
@@ -75,6 +76,7 @@ class MatchingQuestion extends QuizQuestion {
         'feedback' => $result->feedback,
       );
     }
+    $this->nodeProperties = $props;
     return $props;
   }
 

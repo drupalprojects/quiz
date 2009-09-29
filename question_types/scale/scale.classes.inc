@@ -253,6 +253,7 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
    */
   public function getNodeProperties() {
+    if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
 
     $sql = 'SELECT id, answer, a.answer_collection_id
@@ -263,6 +264,7 @@ class ScaleQuestion extends QuizQuestion {
     while ($res_o = db_fetch_object($res)) {
       $props[] = $res_o;
     }
+    $this->nodeProperties = $props;
     return $props;
   }
   /**
