@@ -17,11 +17,7 @@ function theme_quiz_question_report($question, $show_points, $show_feedback) {
   }
 
   $answer = $question->answers[0];
-  //$types = _quiz_get_question_types();
-  //$constructor = $types[$question->type]['response provider'];
   $result = _quiz_question_response_get_instance($answer['result_id'], $question, $answer); 
-  //new $constructor($answer['result_id'], $question);
-  
   return $result->formatReport();
 }
 

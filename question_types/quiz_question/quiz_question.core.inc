@@ -55,10 +55,10 @@ abstract class QuizQuestion {
   /**
    * The current node for this question.
    */
-  protected $node = NULL;
+  public $node = NULL;
   
   // Extra node properties
-  protected $nodeProperties = NULL;
+  public $nodeProperties = NULL;
    /**
    * Retrieve information relevant for viewing the node.
    *
@@ -577,7 +577,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   protected $is_correct = FALSE;
 
   protected $evaluated = TRUE;
-  protected $question = NULL;
+  public $question = NULL;
   protected $answer = NULL;
   protected $score;
 

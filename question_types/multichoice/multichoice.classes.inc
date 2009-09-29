@@ -20,7 +20,6 @@
  */
 
 /**
- * TODO: Improve quiz results performance.
  * TODO: Matching got zero as default max score.
  * TODO: Test question browser
  *   TODO: Test updating from 3.x
