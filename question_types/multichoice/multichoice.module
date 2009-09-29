@@ -1283,15 +1283,16 @@ function theme_multichoice_feedback($quiz, $report) {
 function theme_multichoice_generate_title($node) {
   $title = '';
   // Get the first taxonomy term if available.
-  $taxonomy = $node->taxonomy;
-  while (is_array($taxonomy)) {
-    $taxonomy = current($taxonomy);
-  }
+  if (!empty($node->taxonomy)) {
+    $taxonomy = $node->taxonomy;
+    while (is_array($taxonomy)) {
+      $taxonomy = current($taxonomy);
+    }
 
-  if (!empty($taxonomy)) {
     $taxonomy = taxonomy_get_term($taxonomy);
     $title .= $taxonomy->name .' - ';
   }
+
 
   // Append a numeric sequence.
   $qnum = variable_get('multichoice_qnum', 0);

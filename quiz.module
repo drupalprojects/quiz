@@ -2006,7 +2006,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
 
-  $answered_questions = db_query("SELECT question_nid AS nid, question_vid AS vid     FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp", $rid);
+  $answered_questions = db_query("SELECT question_nid AS nid, question_vid AS vid FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp", $rid);
   while ($answered = db_fetch_object($answered_questions)) {
     foreach ($questions as $question) {
       if ($question['vid'] == $answered->vid) {
