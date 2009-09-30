@@ -20,6 +20,7 @@
  */
 
 /**
+ * TODO: Make result page alot faster(db)
  * TODO: Test question browser
  *   TODO: Test updating from 3.x
  * TODO: Add several ways to take quiz.

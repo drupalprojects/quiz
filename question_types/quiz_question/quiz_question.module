@@ -484,8 +484,21 @@ function quiz_question_load($node) {
  */
 function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   static $question_instances = array();
+  $using_dummy_node = FALSE;
   if (is_object($node)) {
-    if (!isset($node->type)) $node = node_load($node->nid, $node->vid);
+    if (!isset($node->type)) {
+      // To substanitally improve performance on the result page we avoid node_load()...
+      $sql = 'SELECT n.type, r.nid, p.vid, r.title, r.body, max_score
+            FROM {node} n 
+            JOIN {node_revisions} r
+            ON r.nid = n.nid
+            JOIN {quiz_question_properties} p
+            ON r.vid = p.vid
+            WHERE r.vid = %d';
+      $res = db_query($sql, $node->vid);
+      $node = db_fetch_object($res);
+      $using_dummy_node = TRUE;
+    }
     $name = $node->type;
     $vid = $node->vid;
   }
@@ -509,6 +522,12 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   $to_return = new $constructor($node);
   if (!($to_return instanceof QuizQuestion)) {
     drupal_set_message(t('The question-type %name isn\'t a QuizQuestion. It needs to extend the QuizQuestion interface, or extend the abstractQuizQuestion class.', array('%name' => $name)), 'error', FALSE);
+  }
+  if ($using_dummy_node) {
+    $props = $to_return->getNodeProperties();
+    foreach($props as $key => $value) {
+      $to_return->node->{$key} = $value;
+    }
   }
   $question_instances[$vid] = $to_return;
   return $to_return;
