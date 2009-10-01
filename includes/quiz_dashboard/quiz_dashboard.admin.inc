@@ -417,17 +417,17 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
     return '<p>' . t('No questions were found.') . '</p>';
   }
   $header = array(
-    'nid' => t('Quiz Nid <br/> <h6> Link to Quiz </h6>'),
-    'title' => t('Title <br/> <h6> Link to Report </h6>'),
-    'creator' => t('Author Name <h6> Link to Profile </h6>'),
-    'created' => t('Create Date'),
-    'questions_count' => user_access('access author dashboard') ? t('Questions Count') : t(''),
-    'attempt_count' => user_access('access author dashboard') ? t('Attempt Count') : t(''),
+    'title' => t('Quiz'),
+    'creator' => t('Author'),
+    'created' => t('Created'),
+    'questions_count' => user_access('access author dashboard') ? t('Questions') : '',
+    'attempt_count' => user_access('access author dashboard') ? t('Attempts') : '',
   );
+  $p = drupal_get_path('module', 'quiz_dashboard');
+  $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
   foreach ($results as $result) {
     $rows[] = array(
-      'nid' => l($result['nid'], 'node/'. $result['nid']),
-      'title' => l($result['title'], $title_link . $result['nid'] .'/view'),
+      'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/view', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
       'questions_count' => user_access('access author dashboard') ? _quiz_get_questions_count($result['nid']) : t(''),
@@ -435,8 +435,9 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
     );
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
+  $cc = '<I>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</I>';
   // FIX IT need to get community feedback.
   //quiz_add_table_sorter();
   // quiz_add_table_sorter(); function defined in quiz.page.inc includes css and js for jQuery table sorter.
-  return theme('table', $header, $rows, array('id' => 'tablesorter'));
+  return theme('table', $header, $rows, array('id' => 'tablesorter')) . $cc;
 }
