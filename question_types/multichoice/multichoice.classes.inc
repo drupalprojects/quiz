@@ -20,10 +20,8 @@
  */
 
 /**
- * TODO: Make result page alot faster(db)
- * TODO: Test question browser
- *   TODO: Test updating from 3.x
  * TODO: Add several ways to take quiz.
+ * TODO: Review the statistics the module provides
  * TODO: There were error messages when updating from 3.x to 4.x.
  * @todo: Make a simplified alternative way to view the creation form for multichoice question?
  */

@@ -1223,13 +1223,13 @@ function quiz_admin_settings() {
   $form['quiz_email_settings']['quiz_email_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_email_results', 1),
+    '#default_value' => variable_get('quiz_email_results', 0),
     '#description' => t('Check this to send users quiz results over E-mail at the end of quiz.')
   );
   $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail all users results to Quiz Author.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_results_to_quiz_author', 1),
+    '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
     '#description' => t('Check this to send users quiz results over E-mail to quiz author. (<em> it works only when the attendee is an anonymous user</em>).'),
   );
   $form['quiz_email_settings']['quiz_email_results_subject'] = array(
