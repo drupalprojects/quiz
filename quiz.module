@@ -596,7 +596,7 @@ function quiz_form(&$node) {
     '#default_value' => isset($node->shuffle) ? $node->shuffle : 0,
     '#description' => t('Whether to shuffle the questions on the @quiz. This randomizes the order in which the questions are presented to the quiz taker.', array('@quiz' => QUIZ_NAME)),
   );
-  
+
   $form['randomize'] = array(
     '#type' => 'checkbox',
     '#title' => t('Randomize questions'),
@@ -1295,7 +1295,7 @@ function quiz_node_view($question_node) {
 function quiz_store_question_result($result, $options) {
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
-      drupal_set_message('Last question skipped.', 'status');
+      drupal_set_message(t('Last question skipped.'), 'status');
     }
     $result->is_correct = FALSE;
     $result->score = 0;
@@ -1622,7 +1622,7 @@ function quiz_start_actions($quiz) {
     if ($taken) {
       if ($user_is_admin) {
 
-        drupal_set_message('You have taken this quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', 'status');
+        drupal_set_message(t('You have taken this quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.'), 'status');
       }
       // If the user has already taken this quiz too many times, stop the user.
       elseif ($taken >= $quiz->takes) {
@@ -1710,7 +1710,7 @@ function quiz_calculate_score($quiz, $rid) {
       $scores[] = $function($quiz, $question->child_nid, $question->child_vid, $rid);
     }
     else {
-      drupal_set_message('A quiz question could not be scored: No scoring info is available', 'error');
+      drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
       $dummy_score = new stdClass();
       $dummy_score->possible = 0;
       $dummy_score->attained = 0;
@@ -2251,7 +2251,7 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
 function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
 
   if (!is_object($quiz)) {
-    drupal_set_message('The question pool cannot be generated.', 'error');
+    drupal_set_message(t('The question pool cannot be generated.'), 'error');
     watchdog('quiz', '_quiz_get_random_questions was called incorrectly.', array(), WATCHDOG_ERROR);
     return FALSE;
   }
@@ -2828,7 +2828,7 @@ function quiz_has_been_answered($node) {
 
 /**
  * If a quiz is saved as not randomized we should make sure all random questions are converted to always...
- * 
+ *
  * @param $node
  *   quiz node
  */
@@ -2838,5 +2838,5 @@ function _quiz_check_num_random(&$node) {
   $sql = 'UPDATE {quiz_node_relationship}
           SET question_status = %d
           WHERE parent_nid = %d AND parent_vid = %d';
-  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid);  
+  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid);
 }

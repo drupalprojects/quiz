@@ -12,12 +12,12 @@
  */
 function theme_quiz_question_report($question, $show_points, $show_feedback) {
   if (!isset($question->answers[0])) {
-    drupal_set_message('No result could be calculated.', 'status');
+    drupal_set_message(t('No result could be calculated.'), 'status');
     return;
   }
 
   $answer = $question->answers[0];
-  $result = _quiz_question_response_get_instance($answer['result_id'], $question, $answer); 
+  $result = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   return $result->formatReport();
 }
 

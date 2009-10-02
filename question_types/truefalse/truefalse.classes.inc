@@ -25,7 +25,7 @@ class TrueFalseQuestion extends QuizQuestion {
       db_query($sql, $this->node->nid, $this->node->vid, (int)$this->node->correct_answer, $this->node->feedback);
     }
     else {
-      drupal_set_message('Updating', 'status');
+      //drupal_set_message('Updating', 'status');
       $sql = "UPDATE {quiz_truefalse_node} SET correct_answer = %d, feedback = '%s' WHERE nid = %d AND vid = %d";
       db_query($sql, (int)$this->node->correct_answer, $this->node->feedback, $this->node->nid, $this->node->vid);
     }

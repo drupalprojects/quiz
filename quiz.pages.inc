@@ -224,7 +224,7 @@ function theme_quiz_get_user_results($results) {
   $rows = array();
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l('view', 'user/quiz/'. $result['result_id'] .'/userresults'),
+      l(t('view'), 'user/quiz/'. $result['result_id'] .'/userresults'),
       check_plain($result['title']),
       check_plain($result['name']),
       $result['result_id'],

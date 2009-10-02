@@ -641,7 +641,7 @@ function questions_import_qti_extract_info($file) {
       $bodytext = $body->text();
 
       if (strpos($bodytext, '<html') === FALSE) {
-        drupal_set_message('Adding HTML', 'status');
+        //drupal_set_message('Adding HTML', 'status');
         $bodytext =  '<html>' . $bodytext . '</html>';
       }
 

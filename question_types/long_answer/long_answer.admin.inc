@@ -28,7 +28,6 @@ function long_answer_admin_settings_form() {
  */
 function long_answer_view_unscored() {
   $unscored = long_answer_get_all_unscored_answers();
-
   return theme('long_answer_view_unscored', $unscored);
 }
 
@@ -68,7 +67,6 @@ function long_answer_edit_score($vid, $rid) {
   }
 
   drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
-
   return drupal_get_form('long_answer_score_form', $node, $answer);
 }
 
@@ -166,11 +164,11 @@ function long_answer_score_form_submit($form, &$form_state) {
   $result = long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score);
 
   if ($result == 1) {
-    drupal_set_message("The score has been saved.");
+    drupal_set_message(t('The score has been saved.'));
     $form_state['redirect'] = 'admin/quiz/score-long-answer';
   }
   else {
-    drupal_set_message('Error saving the score. The selected answer was not scored.', 'error');
+    drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
   }
 }
 
@@ -196,17 +194,12 @@ function theme_long_answer_view_unscored($unscored) {
         $item->result_id,
         $item->title,
         date('Y-m-d H:i', $item->time_end),
-        l('score this response', 'admin/quiz/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('score this response'), 'admin/quiz/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
 
   }
 
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('There are no unscored essays.');
-  }
+  $output .= !empty($rows) ? theme('table', $header, $rows) : t('There are no unscored essays.');
   return $output;
 }

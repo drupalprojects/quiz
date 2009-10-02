@@ -13,10 +13,10 @@
  * Theme the feedback report for a quiz. This report is generated (typically) at the end of the quiz.
  */
 function theme_truefalse_report($question, $show_points, $show_feedback) {
-  drupal_set_message('called');
+  //drupal_set_message('called');
 
   if (!isset($question->answers[0])) {
-    drupal_set_message('No result could be calculated.', 'status');
+    drupal_set_message(t('No result could be calculated.'), 'status');
     return;
   }
 
