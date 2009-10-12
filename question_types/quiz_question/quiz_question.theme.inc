@@ -10,12 +10,11 @@
  * Implementation of theme_$type_report().
  * Theme the feedback report for a quiz. This report is generated (typically) at the end of the quiz.
  */
-function theme_quiz_question_report($question, $show_points, $show_feedback) {
+function theme_quiz_question_report($form) {
   if (!isset($question->answers[0])) {
     drupal_set_message(t('No result could be calculated.'), 'status');
     return;
   }
-
   $answer = $question->answers[0];
   $result = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   return $result->formatReport();

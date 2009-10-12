@@ -224,5 +224,8 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
 
     return $slug . $result;
   }
+  public function getReportForm() {
+    return array();
+  }
 }
 

@@ -38,6 +38,33 @@ function quiz_user_results($result_id) {
 }
 
 /**
+ * Form for showing feedback, and for editing the feedback if necessary...
+ * 
+ * @param $questions
+ *   array of questions to inclide in the report
+ * @param $showpoints
+ *   Should points be included in the report? (Boolean)
+ * @param $showfeedback
+ *   Should feedback be included in the report? (Boolean)
+ * @return $form
+ *   FAPI form array
+ */
+function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE) {
+  $form = array();
+  foreach ($questions as $question) {
+    $module = quiz_question_module_for_type($question->type);
+    $function = $module .'_report_form';
+    $form_to_add = $function($question, $showpoints, $showfeedback);
+    $form_to_add['#theme'] = $module .'_report';
+    $form[] = $form_to_add;
+  }
+  $form['#theme'] = 'quiz_report_form';
+  $form['#showpoints'] = $showpoints;
+  $form['#showfeedback'] = $showfeedback;
+  return $form;
+}
+
+/**
  * Displays all the quizzes the user has taken part in.
  *
  * @return
@@ -481,6 +508,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
  * @ingroup themeable
  */
 function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
+  $form = array();
   $header = array(format_plural(count($questions), 'Question Result', 'Question Results'));
   $rows = array();
   // Go through each of the questions.
@@ -488,6 +516,8 @@ function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FAL
     $cols = array();
     // Ask each question to render a themed report of how the user did.
     $module = quiz_question_module_for_type($question->type);
+    $function = $module .'_report_form';
+    $form[] = $function();
     $report = theme($module .'_report', $question, $showpoints, $showfeedback);
     // Only include reports with actual data:
     if (!empty($report) && strlen($report) > 0) {

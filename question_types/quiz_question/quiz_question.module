@@ -659,3 +659,8 @@ function quiz_question_get_max_score($nid, $vid) {
           WHERE nid = %d AND vid = %d';
   return db_result(db_query($sql, $nid, $vid));
 }
+
+function quiz_question_report_form($question, $showpoints, $showfeedback) {
+  $answer = $question->answers[0];
+  return _quiz_question_response_get_instance($answer['rid'], $question, $answers)->getReportForm($showpoints, $showfeedback);
+}

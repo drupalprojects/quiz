@@ -638,5 +638,15 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
 
     return $report;
   }
+  
+  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+    $form = array();
+    $form['static'] = array(
+      '#type' => 'markup',
+      '#value' => $this->formatReport($showPoints, $showfeedback),
+    );
+    $form['#is_correct'] = $this->isCorrect();
+    return $form;
+  }
 }
 

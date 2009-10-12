@@ -1463,7 +1463,8 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
+  require_once(drupal_get_path('module', 'quiz') .'/quiz.pages.inc');
+  $output .= drupal_get_form('quiz_report_form', $questions, TRUE, TRUE);
   return $output;
 }
 

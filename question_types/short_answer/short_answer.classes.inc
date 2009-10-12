@@ -360,7 +360,45 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   public function getResponse() {
     return $this->answer;
   }
-
+  
+  public function getReportForm() {
+    $form = array();
+    $form['score'] = array(
+      '#type' => 'textfield',
+      '#default_value' => 0,
+      '#size' => 3,
+      '#maxlength' => 3,
+    );
+    $form['max_score'] = array(
+      '#type' => 'markup',
+      '#value' => $this->question->max_score,
+    );
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
+    );
+    if ($this->question && !empty($this->question->answers)) {
+      $answer = (object) current($this->question->answers);
+      if ($answer->is_evaluated == 1) {
+        // Show feedback, if any.
+        if ($showfeedback && !empty($answer->feedback)) {
+          $feedback = check_markup($answer->feedback, $this->question->format, FALSE);
+        }
+      }
+      else {
+        $feedback = t('This answer has not yet been scored.') .
+          '<br/>' .
+          t('Until the answer is scored, the total score will not be correct.');
+      }
+      $form['feedback'] = array(
+        '#type' => 'markup',
+        '#value' => $feedback,
+      );
+    }
+    $form['#is_correct'] = $this->isCorrect(); 
+    return $form;
+  }
+  
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
 
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.

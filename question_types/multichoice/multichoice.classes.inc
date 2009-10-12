@@ -694,7 +694,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   public function getResponse() {
     return $this->user_answer_ids;
   }
-
+  
   /**
    * Implementation of format report.
    *
