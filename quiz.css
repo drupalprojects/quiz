@@ -127,3 +127,9 @@ div.multichoice_answer_incorrect {
   float: left;
   margin-right: 8px;
 }
+
+.short-answer-score {
+  display: inline;
+  float: left;
+  margin-right: 8px;
+}

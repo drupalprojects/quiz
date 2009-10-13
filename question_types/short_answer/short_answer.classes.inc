@@ -368,6 +368,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       '#default_value' => 0,
       '#size' => 3,
       '#maxlength' => 3,
+      '#attributes' => array('class' => 'short-answer-score'),
     );
     $form['max_score'] = array(
       '#type' => 'markup',
@@ -395,7 +396,8 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         '#value' => $feedback,
       );
     }
-    $form['#is_correct'] = $this->isCorrect(); 
+    $form['#is_correct'] = $this->isCorrect();
+    $form['#theme'] = 'short_answer_report'; 
     return $form;
   }
   

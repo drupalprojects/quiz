@@ -82,6 +82,7 @@ function short_answer_theme() {
         'show_points' => NULL,
         'show_feedback' => NULL
       ),
+      'path' => drupal_get_path('module', 'short_answer') .'/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_feedback' => array(
@@ -89,11 +90,19 @@ function short_answer_theme() {
         'quiz' => NULL,
         'report' => NULL
       ),
+      'path' => drupal_get_path('module', 'short_answer') .'/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_view_unscored' => array(
       'arguments' => array('unscored' => array()),
       'file' => 'short_answer.admin.inc',
+    ),
+    'short_answer_report' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'short_answer') .'/theme',
+      'template' => 'short_answer_report',
     ),
   );
 }

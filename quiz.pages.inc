@@ -55,7 +55,6 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
     $module = quiz_question_module_for_type($question->type);
     $function = $module .'_report_form';
     $form_to_add = $function($question, $showpoints, $showfeedback);
-    $form_to_add['#theme'] = $module .'_report';
     $form[] = $form_to_add;
   }
   $form['#theme'] = 'quiz_report_form';
