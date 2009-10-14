@@ -361,15 +361,28 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     return $this->answer;
   }
   
-  public function getReportForm() {
+  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
-    $form['score'] = array(
-      '#type' => 'textfield',
-      '#default_value' => 0,
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#attributes' => array('class' => 'short-answer-score'),
-    );
+    if ($this->question && !empty($this->question->answers)) 
+      $answer = (object) current($this->question->answers);
+    else
+      return $form;
+    if (user_access('score short answer')) {
+      $form['score'] = array(
+        '#type' => 'textfield',
+        '#default_value' => 0,
+        '#size' => 3,
+        '#maxlength' => 3,
+        '#attributes' => array('class' => 'short-answer-score'),
+      );
+      $form['#show_submit'] = TRUE;
+    }
+    else {
+      $form['score'] = array(
+        '#type' => 'markup',
+        '#value' => $answer->score,
+      );
+    }
     $form['max_score'] = array(
       '#type' => 'markup',
       '#value' => $this->question->max_score,
@@ -378,24 +391,29 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       '#type' => 'markup',
       '#value' => check_markup($this->question->body, $this->question->format, FALSE),
     );
-    if ($this->question && !empty($this->question->answers)) {
-      $answer = (object) current($this->question->answers);
-      if ($answer->is_evaluated == 1) {
-        // Show feedback, if any.
-        if ($showfeedback && !empty($answer->feedback)) {
-          $feedback = check_markup($answer->feedback, $this->question->format, FALSE);
-        }
+    
+    $form['answer'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($answer->answer),
+    );
+    if ($answer->is_evaluated == 1) {
+      // Show feedback, if any.
+      if ($showfeedback && !empty($answer->feedback)) {
+        $feedback = check_markup($answer->feedback);
       }
-      else {
-        $feedback = t('This answer has not yet been scored.') .
-          '<br/>' .
-          t('Until the answer is scored, the total score will not be correct.');
-      }
+    }
+    else {
+      $feedback = t('This answer has not yet been scored.') .
+        '<br/>' .
+        t('Until the answer is scored, the total score will not be correct.');
+    }
+    if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
         '#value' => $feedback,
       );
     }
+    
     $form['#is_correct'] = $this->isCorrect();
     $form['#theme'] = 'short_answer_report'; 
     return $form;

@@ -217,7 +217,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     if ($showpoints) {
       $innerheader[] = t('Correct Answer');
     }
-    $innerheader[] = t('User Answer');
+    $innerheader[] = t('Response');
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }

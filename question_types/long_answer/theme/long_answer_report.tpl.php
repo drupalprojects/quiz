@@ -1,5 +1,5 @@
 <?php 
-print '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q(short):</span> ';
+print '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q(long):</span> ';
 print drupal_render($form['question']);
 print '</div>';
 

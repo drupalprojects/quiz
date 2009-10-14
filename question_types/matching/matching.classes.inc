@@ -322,7 +322,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     if ($showpoints) {
       $innerheader[] = t('Correct Answer');
     }
-    $innerheader[] = t('User Answer');
+    $innerheader[] = t('Response');
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }
@@ -333,14 +333,17 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     $user_answers = $this->getUserAnswers();
     foreach ($correct_answers as $correct_answer) {
+      $cols = array();
       $id = $user_answers[$correct_answer['match_id']];
       $theme = ($correct_answer['answer'] == $correct_answers[$id]['answer']) ? 'quiz_score_correct' : 'quiz_score_incorrect';
-      $rows[] = array(
-        'match' => $correct_answer['question'],
-        'correct_answer' => ($showpoints) ? $correct_answer['answer'] : '',
-        'user_answer' => ($showfeedback) ? $correct_answers[$id]['answer'] : '',
-        'image' => ($showfeedback) ? array('data' => theme($theme), 'class' => 'quiz_summary_qcell') : '',
-      );
+      $cols[] = $correct_answer['question'];
+      if ($showpoints)
+        $cols[] = $correct_answer['answer'];
+      $cols[] = $correct_answers[$id]['answer'];
+      if ($showfeedback)
+        $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
+      
+      $rows[] = $cols;
     }
     // Add the cell with the question and the answers.
     $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body, $this->question->format, FALSE) .'</div>';

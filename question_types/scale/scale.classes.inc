@@ -503,13 +503,12 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
-
     if (isset($answer)) $this->answer_id = $answer;
     else {
       $sql = 'SELECT answer_id
               FROM {quiz_scale_user_answers}
               WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
-      $res = db_query($sql, $rid, $this->question->nid, $this->question->vid);
+      $res = db_query($sql, $result_id, $this->question->nid, $this->question->vid);
       $res_o = db_fetch_object($res);
       $this->answer_id = $res_o->answer_id;
     }
@@ -580,11 +579,9 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body, $this->question->format, FALSE) .
       '</div>';
-    $result = '<div class="quiz_answer_feedback">';
-    $result .= t('You answered:');
+    $result = '<b>'. t('Response') .'</b>:';
     $result .= '<BR/>';
     $result .= check_plain($this->answer);
-    $result .= '</div>';
 
     return $slug . $result;
   }

@@ -92,17 +92,21 @@ function long_answer_autoload_info() {
  */
 function long_answer_theme() {
   return array(
-    'long_answer_report' => array(
-      'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
-      'file' => 'long_answer.theme.inc',
-    ),
     'long_answer_feedback' => array(
       'arguments' => array('quiz' => NULL, 'report' => NULL),
+      'path' => drupal_get_path('module', 'long_answer') .'/theme',
       'file' => 'long_answer.theme.inc',
     ),
     'long_answer_view_unscored' => array(
       'arguments' => array('unscored' => array()),
       'file' => 'long_answer.admin.inc',
+    ),
+    'long_answer_report' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'long_answer') .'/theme',
+      'template' => 'long_answer_report',
     ),
   );
 }

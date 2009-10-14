@@ -183,7 +183,65 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   public function getResponse() {
     return $this->answer;
   }
-
+  
+  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+    $form = array();
+    if ($this->question && !empty($this->question->answers)) 
+      $answer = (object) current($this->question->answers);
+    else
+      return $form;
+    if (user_access('score long answer')) {
+      $form['score'] = array(
+        '#type' => 'textfield',
+        '#default_value' => 0,
+        '#size' => 3,
+        '#maxlength' => 3,
+        '#attributes' => array('class' => 'answer-scoring'),
+      );
+      $form['#show_submit'] = TRUE;
+    }
+    else {
+      $form['score'] = array(
+        '#type' => 'markup',
+        '#value' => $answer->score,
+      );
+    }
+    $form['max_score'] = array(
+      '#type' => 'markup',
+      '#value' => $this->question->max_score,
+    );
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
+    );
+    
+    $form['answer'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($answer->answer),
+    );
+    if ($answer->is_evaluated == 1) {
+      // Show feedback, if any.
+      if ($showfeedback && !empty($answer->feedback)) {
+        $feedback = check_markup($answer->feedback);
+      }
+    }
+    else {
+      $feedback = t('This answer has not yet been scored.') .
+        '<br/>' .
+        t('Until the answer is scored, the total score will not be correct.');
+    }
+    if (!empty($feedback)) {
+      $form['feedback'] = array(
+        '#type' => 'markup',
+        '#value' => $feedback,
+      );
+    }
+    
+    $form['#is_correct'] = $this->isCorrect();
+    $form['#theme'] = 'long_answer_report'; 
+    return $form;
+  }
+  
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
       check_markup($this->question->body, $this->question->format, FALSE) .
@@ -223,9 +281,6 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     $result .= '</div>';
 
     return $slug . $result;
-  }
-  public function getReportForm() {
-    return array();
   }
 }
 

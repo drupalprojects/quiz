@@ -706,8 +706,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
     check_markup($this->question->body, $this->question->filter, FALSE).
       '</div>';
-    $result = '<div class="quiz_answer_feedback">';
-    $result .= '<H4>'. t('Alternatives'). ':</H4>';
+    $result = '<b>'. t('Response'). ':</b>';
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
     while (is_array($this->question->alternatives[$i])) {
@@ -752,7 +751,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
         $rows[] = $row;
         if ($rowspan > 1) {
           $feedback = $this->checkMarkup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
-          $rows[] = array("<H5>Feedback:</H5>$feedback");
+          $rows[] = array("<b>Feedback:</b><div class=\"quiz_answer_feedback\">$feedback</div>");
         }
       }
       $i++;

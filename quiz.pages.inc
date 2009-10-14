@@ -51,15 +51,25 @@ function quiz_user_results($result_id) {
  */
 function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE) {
   $form = array();
+  $show_submit = FALSE;
   foreach ($questions as $question) {
     $module = quiz_question_module_for_type($question->type);
     $function = $module .'_report_form';
     $form_to_add = $function($question, $showpoints, $showfeedback);
+    if (isset($form_to_add['#show_submit']))
+      $show_submit = TRUE;
     $form[] = $form_to_add;
   }
   $form['#theme'] = 'quiz_report_form';
   $form['#showpoints'] = $showpoints;
   $form['#showfeedback'] = $showfeedback;
+  if ($show_submit) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#submit' => array('quiz_report_form_submit'),
+      '#value' => t('Submit'),
+    );
+  }
   return $form;
 }
 

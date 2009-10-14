@@ -643,7 +643,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $form = array();
     $form['static'] = array(
       '#type' => 'markup',
-      '#value' => $this->formatReport($showPoints, $showfeedback),
+      '#value' => $this->formatReport($showpoints, $showfeedback),
     );
     $form['#is_correct'] = $this->isCorrect();
     return $form;
