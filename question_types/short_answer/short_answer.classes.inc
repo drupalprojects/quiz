@@ -379,6 +379,10 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         '#type' => 'value',
         '#value' => 'short_answer_report_submit',
       );
+      $form['validate'] = array(
+        '#type' => 'value',
+        '#value' => 'short_answer_report_validate',
+      );
       $form['nid'] = array(
         '#type' => 'value',
         '#value' => $this->question->nid,
@@ -399,7 +403,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       );
     }
     $form['max_score'] = array(
-      '#type' => 'markup',
+      '#type' => 'value',
       '#value' => $this->question->max_score,
     );
     $form['question'] = array(

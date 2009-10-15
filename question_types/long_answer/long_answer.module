@@ -291,5 +291,19 @@ function long_answer_questions_list() {
 
 
 function long_answer_report_submit($values) {
-  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], $values['score']);
+  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int)$values['score']);
+}
+
+function long_answer_report_validate($values, $form_key) {
+  // Check to make sure that entered score is not higher than max allowed score.
+  if (!is_numeric($values['score'])) {
+    form_set_error($form_key .'][score', t('The score needs to be numeric'));
+  }
+  $max = (int)$values['max_score'];
+  $given = (int)$values['score'];
+
+  if ($given > $max || $given < 0) {
+    $args = array('@score' => $given, '@max' => $max);
+    form_set_error($form_key .'][score', t('The given score (@score) is higher than the maximum allowed score (@max)', $args));
+  }
 }

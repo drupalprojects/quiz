@@ -68,6 +68,7 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
     $form['submit'] = array(
       '#type' => 'submit',
       '#submit' => array('quiz_report_form_submit'),
+      '#validate' => array('quiz_report_form_validate'),
       '#value' => t('Submit'),
     );
   }
@@ -75,7 +76,12 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
 }
 
 function quiz_report_form_validate($form, &$form_state) {
-  
+  foreach ($form_state['values'] as $key => $q_values) {
+    if (!is_numeric($key)) continue;
+    if (!isset($q_values['validate'])) continue;
+    if (!function_exists($q_values['validate'])) continue;
+    call_user_func($q_values['validate'], $q_values, $key);
+  }
 }
 
 function quiz_report_form_submit($form, &$form_state) {
