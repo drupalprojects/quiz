@@ -56,13 +56,14 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
     $module = quiz_question_module_for_type($question->type);
     $function = $module .'_report_form';
     $form_to_add = $function($question, $showpoints, $showfeedback);
-    if (isset($form_to_add['#show_submit']))
+    if (isset($form_to_add['submit']))
       $show_submit = TRUE;
     $form[] = $form_to_add;
   }
   $form['#theme'] = 'quiz_report_form';
   $form['#showpoints'] = $showpoints;
   $form['#showfeedback'] = $showfeedback;
+  $form['#tree'] = TRUE;
   if ($show_submit) {
     $form['submit'] = array(
       '#type' => 'submit',
@@ -71,6 +72,25 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
     );
   }
   return $form;
+}
+
+function quiz_report_form_validate($form, &$form_state) {
+  
+}
+
+function quiz_report_form_submit($form, &$form_state) {
+  foreach ($form_state['values'] as $key => $q_values) {
+    if (!is_numeric($key)) continue;
+    if (!isset($q_values['submit'])) continue;
+    if (!function_exists($q_values['submit'])) continue;
+    if (!isset($quiz)) {
+      $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
+      $result = db_fetch_object(db_query($sql, $q_values['rid']));
+      $quiz = node_load($result->nid, $result->vid);
+    }
+    $q_values['quiz'] = $quiz;
+    call_user_func($q_values['submit'], $q_values);
+  }
 }
 
 /**

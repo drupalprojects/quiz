@@ -150,6 +150,10 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
   return $changed;
 }
 
+function short_answer_report_submit($values) {
+  short_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], $values['score']);
+}
+
 /**
  * Set the answer for a question.
  *

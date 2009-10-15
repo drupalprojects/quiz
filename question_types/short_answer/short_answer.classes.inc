@@ -370,12 +370,27 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     if (user_access('score short answer')) {
       $form['score'] = array(
         '#type' => 'textfield',
-        '#default_value' => 0,
+        '#default_value' => $this->getScore(),
         '#size' => 3,
         '#maxlength' => 3,
-        '#attributes' => array('class' => 'short-answer-score'),
+        '#attributes' => array('class' => 'answer-scoring'),
       );
-      $form['#show_submit'] = TRUE;
+      $form['submit'] = array(
+        '#type' => 'value',
+        '#value' => 'short_answer_report_submit',
+      );
+      $form['nid'] = array(
+        '#type' => 'value',
+        '#value' => $this->question->nid,
+      );
+      $form['vid'] = array(
+        '#type' => 'value',
+        '#value' => $this->question->vid,
+      );
+      $form['rid'] = array(
+        '#type' => 'value',
+        '#value' => $this->rid,
+      );
     }
     else {
       $form['score'] = array(
@@ -420,43 +435,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   }
   
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body, $this->question->format, FALSE) .
-      '</div>';
-
-    $result = '<div class="quiz_answer_feedback">';
-    if ($this->question && !empty($this->question->answers)) {
-      $answer = (object) current($this->question->answers);
-      if ($answer->is_evaluated == 1) {
-        // Show score:
-        if ($showpoints) {
-          $args = array('@yours' => $answer->score, '@total' => $this->question->max_score);
-          $result .= t('Score: @yours of @total possible points', $args);
-        }
-
-        // Show feedback, if any.
-        if ($showfeedback && !empty($answer->feedback)) {
-          $result .= '</div><div class="quiz_answer_feedback">' . $answer->feedback;
-        }
-
-      }
-      else {
-        $result .= t('This answer has not yet been scored.') .
-          '<br/>' .
-          t('Until the answer is scored, the total score will not be correct.');
-      }
-
-      if (user_access('score short answer')) {
-        $path = sprintf('admin/quiz/score-short-answer/%s/%s', $this->question->vid, $this->rid);
-        $result .= '<p>' . l(t('Score this answer'), $path) . '</p>';
-      }
-    }
-    else {
-      $result .= t('This question was not answered.');
-    }
-    $result .= '</div>';
-
-    return $slug . $result;
+    return '';
   }
 }

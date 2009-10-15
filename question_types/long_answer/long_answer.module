@@ -289,3 +289,7 @@ function long_answer_questions_list() {
   return $questions;
 }
 
+
+function long_answer_report_submit($values) {
+  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], $values['score']);
+}
