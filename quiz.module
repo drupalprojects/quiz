@@ -329,10 +329,6 @@ function quiz_theme() {
       'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
       'file' => 'quiz.pages.inc',
     ),
-    'quiz_feedback' => array(
-      'arguments' => array('questions' => NULL, 'showpoints' => TRUE, 'showfeedback' => FALSE),
-      'file' => 'quiz.pages.inc',
-    ),
     'quiz_single_question_feedback' => array(
       'arguments' => array('quiz' => NULL, 'report' => NULL),
       'file' => 'quiz.pages.inc',
