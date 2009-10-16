@@ -82,7 +82,7 @@ function quiz_question_perm() {
 function quiz_question_theme() {
   return array(
     'quiz_question_report' => array(
-      'arguments' => array('show_points' => NULL, 'show_feedback' => NULL),
+      'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
   ),
     'quiz_question_creation_form' => array(
@@ -506,7 +506,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
     $name = $node['type'];
     $vid = $node['vid'];
   }
-  /*else { TODO: Remove this if it passes testing phase...
+  /*else { //TODO: Remove this if it passes testing phase...
     // TODO why is this condition permitted?  name is passed as arg to constructor?
     $name = $node;
   }*/

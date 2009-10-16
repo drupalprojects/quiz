@@ -488,7 +488,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   }
   $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  $output .= theme('quiz_feedback', $questions, ($quiz->pass_rate > 0), TRUE);
+  $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
 
   return $output;
 }
@@ -524,52 +524,8 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. check_markup($summary,$quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
+  $output .= drupal_get_form('quiz_report_form', $questions, FALSE, TRUE);
   return $output;
-}
-
-/**
- * Theme the question feedback.
- *
- * @param $questions
- *  Array of quiz questions objects as returned by _quiz_get_answers.
- * @param showpoints
- *  Binary flag for whether to show the actual answers or not.
- * @param $showfeedback
- *  Binary flag for whether to show question feedback.
- * @return
- *  Themed html.
- *
- * @ingroup themeable
- */
-function theme_quiz_feedback($questions, $showpoints = TRUE, $showfeedback = FALSE) {
-  $form = array();
-  $header = array(format_plural(count($questions), 'Question Result', 'Question Results'));
-  $rows = array();
-  // Go through each of the questions.
-  foreach ($questions as $question) {
-    $cols = array();
-    // Ask each question to render a themed report of how the user did.
-    $module = quiz_question_module_for_type($question->type);
-    $function = $module .'_report_form';
-    $form[] = $function();
-    $report = theme($module .'_report', $question, $showpoints, $showfeedback);
-    // Only include reports with actual data:
-    if (!empty($report) && strlen($report) > 0) {
-
-      $cols[] = array('data' => $report, 'class' => 'quiz_summary_qrow');
-
-      // Get the score result for each question only if it's a scored quiz.
-      if ($showpoints) {
-
-        $theme = ($question->correct) ? 'quiz_score_correct' : 'quiz_score_incorrect';
-        $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
-      }
-      // Pack all of this into a table row.
-      $rows[] = array('data' => $cols, 'class' => 'quiz_summary_qrow');
-    }
-  }
-  return theme('table', $header, $rows);
 }
 
 /**
