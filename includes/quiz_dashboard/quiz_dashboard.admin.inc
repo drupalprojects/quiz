@@ -173,25 +173,27 @@ function _get_quiz_status_chart($nid = 0, $uid = 0) {
  */
 function _get_date_vs_takeup_count_chart($nid = 0, $uid = 0) {
   $start = 0;
-  $end = 10;
+  $end = 30;
   $takeup = array();
   $sql = "SELECT COUNT(result_id) AS count,
-            DATE(FROM_UNIXTIME(time_start)) AS date
+            DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
             FROM {quiz_node_results}";
   if ($uid != 0) {
     $sql .= " WHERE uid = %d";
   }
-  $sql .=" GROUP BY date ORDER BY date DESC";
+  $sql .=" GROUP BY date ORDER BY time_start DESC";
   $results = db_query_range($sql, $uid, $start, $end);
-  while ($result = db_fetch_array($results)) {
-    $takeup[] = $result;
-  }
-  if (count($takeup) < 3) {
-    return; //t('insufficient data to generate graph');
+  $days = _quiz_get_last_days($end);
+  $res_o = db_fetch_object($results);
+  foreach ($days as $date => &$value) {
+   if ($date == $res_o->date) {
+      $value->value = $res_o->count;
+      $res_o = db_fetch_object($results);
+    }
   }
   $output = '<div id="date_vs_takeup_count" class="quiz-dashboard-chart-space">';
   // wrapping the chart output with div for custom theming.
-  $output .= theme('date_vs_takeup_count', $takeup);
+  $output .= theme('date_vs_takeup_count', $days);
   // generate date vs takeup count line chart
   $output .= '</div>';
   return $output;
@@ -375,7 +377,8 @@ function theme_get_quiz_status_chart($quiz) {
  * @return
  *   HTML to render/display chart
  */
-function theme_date_vs_takeup_count($takeup) {
+function theme_date_vs_takeup_count($days) {
+  $days = array_reverse($days);
   $max_count = 0;
   $chart = array(
     '#chart_id' => 'test_chart',
@@ -386,12 +389,18 @@ function theme_date_vs_takeup_count($takeup) {
     '#grid_lines' => chart_grid_lines(10, 10, 1, 5),
     '#adjust_resolution' => TRUE,
   );
-  while (!empty($takeup)) {
-    $t = array_pop($takeup);
-    $chart['#data'][] = $t['count'];
-    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label(format_date(strtotime($t['date']), 'custom', 'd M'));
-    $max_count = ($max_count > $t['count']) ? $max_count : $t['count'];
-    $test[] = array($t['count'], chart_mixed_axis_label(format_date(strtotime($t['date']), 'custom', 'd M')));
+  $interval = 1;
+  foreach ($days as $date => $obj) {
+    $count = $obj->value;
+    $chart['#data'][] = $count;
+    $x_label = '|';
+    if ($interval == 7) {
+      $x_label = chart_mixed_axis_label(format_date($obj->timestamp, 'custom', 'd M'));
+      $interval = 0;
+    }
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = $x_label;
+    $interval++;
+    $max_count = ($max_count > $count) ? $max_count : $count;
   }
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_count);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Count'), 90);
@@ -440,4 +449,18 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
   //quiz_add_table_sorter();
   // quiz_add_table_sorter(); function defined in quiz.page.inc includes css and js for jQuery table sorter.
   return theme('table', $header, $rows, array('id' => 'tablesorter')) . $cc;
+}
+
+function _quiz_get_last_days($num_days) {
+  $to_return = array();
+  $now = time();
+  $one_day = 86400;
+  for ($i = 0; $i < $num_days; $i++) {
+    $timestamp = $now - ($one_day * $i);
+    $to_add = new stdClass();
+    $to_add->timestamp = $timestamp;
+    $to_add->value = '0';
+    $to_return[date('Y.m.j', $timestamp)] = $to_add;
+  }
+  return $to_return;
 }
