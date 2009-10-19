@@ -151,8 +151,6 @@ function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
-  $sql = 'SELECT max_score FROM {quiz_node_properties} WHERE vid = %d';
-  $top_scorers['max_score'] = db_result(db_query($sql, $vid));
   $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
   $output .= theme('quiz_top_scorers', $top_scorers);
   $output .= '</div>';
@@ -305,33 +303,35 @@ function theme_quiz_grade_range($range) {
     '#adjust_resolution' => TRUE,
   );
   // chart data
-  $chart['#data'][][] = $range->zero_to_twenty;
-  $chart['#data'][][] = $range->twenty_to_fourty;
-  $chart['#data'][][] = $range->fourty_to_sixty;
-  $chart['#data'][][] = $range->sixty_to_eighty;
   $chart['#data'][][] = $range->eighty_to_hundred;
+  $chart['#data'][][] = $range->sixty_to_eighty;
+  $chart['#data'][][] = $range->fourty_to_sixty;
+  $chart['#data'][][] = $range->twenty_to_fourty;
+  $chart['#data'][][] = $range->zero_to_twenty;
+    
   $max = max($range->zero_to_twenty,
              $range->twenty_to_fourty,
              $range->fourty_to_sixty,
              $range->sixty_to_eighty,
              $range->eighty_to_hundred);
   // chart color
-  $chart['#data_colors'][] = chart_unique_color($range->zero_to_twenty);
-  $chart['#data_colors'][] = chart_unique_color($range->twenty_to_fourty);
-  $chart['#data_colors'][] = chart_unique_color($range->fourty_to_sixty);
-  $chart['#data_colors'][] = chart_unique_color($range->sixty_to_eighty);
-  $chart['#data_colors'][] = chart_unique_color($range->eighty_to_hundred);
+  $chart['#data_colors'][] = '00ff00';
+  $chart['#data_colors'][] = '66ff00';
+  $chart['#data_colors'][] = 'ffff00';
+  $chart['#data_colors'][] = 'ff6600';
+  $chart['#data_colors'][] = 'ff0000';
   // chart x-axis label
   $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Grade Range'), 50);
   // chart y-axis label and data
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Attempts'), 90);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max);
   // chart description on the right side
-  $chart['#legends'][] = t('0 to 20 % - ') . $range->zero_to_twenty;
-  $chart['#legends'][] = t('20 to 40 % - ') . $range->twenty_to_fourty;
-  $chart['#legends'][] = t('40 to 60 % - ') . $range->fourty_to_sixty;
-  $chart['#legends'][] = t('60 to 80 % - ') . $range->sixty_to_eighty;
   $chart['#legends'][] = t('80 to 100 % - ') . $range->eighty_to_hundred;
+  $chart['#legends'][] = t('60 to 80 % - ') . $range->sixty_to_eighty;
+  $chart['#legends'][] = t('40 to 60 % - ') . $range->fourty_to_sixty;
+  $chart['#legends'][] = t('20 to 40 % - ') . $range->twenty_to_fourty;
+  $chart['#legends'][] = t('0 to 20 % - ') . $range->zero_to_twenty;
+    
   return chart_render($chart);
 }
 
@@ -353,18 +353,15 @@ function theme_quiz_top_scorers($attendees) {
     '#size' => chart_size(600, 400),
     '#grid_lines' => chart_grid_lines(10, 10),
     '#bar_size' => chart_bar_size(20, 15),
-    '#adjust_resolution' => TRUE,
   );
-  $max_score = $attendees['max_score'];
-  unset($attendees['max_score']);
   foreach ($attendees as $attendee) {
     $chart['#data'][] = $attendee['score'];
     $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
     $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] .' %';
   }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_score);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') .' (%)', 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
   return chart_render($chart);
 }
 
