@@ -56,8 +56,16 @@ function quiz_dashboard_menu() {
     'description' => t('Generates a report on quiz results for quiz creators.'),
     'file' => 'quiz_dashboard.admin.inc',
     'page callback' => 'quiz_dashboard_get_basic_stats',
-    //'page arguments' => array('questions_import_form'),
     'access arguments' => array('access author dashboard'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['admin/quiz/reports/dashboard/creator/%/revisions'] = array(
+    'title' => t('Quiz Creators Dashboard'),
+    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'file' => 'quiz_dashboard.admin.inc',
+    'page callback' => 'quiz_dashboard_revision_selector_page',
+    'page arguments' => array(5),
+    'access arguments' => array('access user dashboard'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/quiz/reports/dashboard/creator/%/view'] = array(
@@ -116,6 +124,11 @@ function quiz_dashboard_theme() {
     'quiz_grade_range' => array(
       'arguments' => array('range' => NULL),
       'file' => 'quiz_dashboard.admin.inc',
+    ),
+    'quiz_dashboard_revision_selector' => array(
+      'arguments' => array('content' => NULL),
+      'path' => drupal_get_path('module', 'quiz_dashboard') .'/theme',
+      'template' => 'quiz_dashboard_revision_selector',
     ),
   );
 }

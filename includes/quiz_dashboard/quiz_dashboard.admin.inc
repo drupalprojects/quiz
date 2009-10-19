@@ -10,6 +10,34 @@
 
 // Callback function
 
+
+function quiz_dashboard_revision_selector_page($nid) {
+  $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
+  $res = db_query($sql, $nid);
+  $count = 0; //uses this variable to slightly increase performance
+  $vids = array();
+  while ($res_o = db_fetch_object($res)) {
+    $vids[] = $res_o->vid;
+    $count++;
+  }
+  if ($count < 1) 
+    return t('Something went wrong. Please try again');
+  else if ($count == 1) {
+    drupal_goto('admin/quiz/reports/dashboard/creator/'. $vids[0] .'/view');
+  }
+  else {
+    $content = array();
+    $content['explanation'] = t('There are !num revisions of this quiz that has been taken.
+    Different revisions may have different scoring, difficulity and other differences affecting its statistics.
+    Because of this you have to choose the revision you want to see statistics from.', array('!num' => $count));
+    $content['links'] = array();
+    foreach ($vids as $key => $value) {
+      $content['links'][] = 'admin/quiz/reports/dashboard/creator/'. $value .'/view';
+    }
+    return theme('quiz_dashboard_revision_selector', $content);
+  } 
+}
+
 /*
  * @function
  *   callback function
@@ -123,6 +151,8 @@ function _get_quiz_top_scorers_chart($nid = 0, $uid = 0) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
+  $sql = 'SELECT max_score FROM {quiz_node_properties} WHERE nid = %d';
+  $top_scorers['max_score'] = db_result(db_query($sql, $nid));
   $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
   $output .= theme('quiz_top_scorers', $top_scorers);
   $output .= '</div>';
@@ -317,14 +347,16 @@ function theme_quiz_top_scorers($attendees) {
     '#bar_size' => chart_bar_size(20, 15),
     '#adjust_resolution' => TRUE,
   );
+  $max_score = $attendees['max_score'];
+  unset($attendees['max_score']);
   foreach ($attendees as $attendee) {
     $chart['#data'][] = $attendee['score'];
     $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
-    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'];
+    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] .' %';
   }
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_score);
   return chart_render($chart);
 }
 
@@ -436,7 +468,7 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
   $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
   foreach ($results as $result) {
     $rows[] = array(
-      'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/view', array('html' => TRUE)),
+      'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
       'questions_count' => user_access('access author dashboard') ? _quiz_get_questions_count($result['nid']) : t(''),
