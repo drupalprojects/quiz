@@ -318,8 +318,8 @@ function theme_quiz_top_scorers($attendees) {
     '#adjust_resolution' => TRUE,
   );
   foreach ($attendees as $attendee) {
-    $chart['#data'][][] = $attendee['score'];
-    $chart['#data_colors'][] = chart_unique_color($attendee['score']);
+    $chart['#data'][] = $attendee['score'];
+    $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
     $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'];
   }
