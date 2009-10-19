@@ -352,10 +352,10 @@ function theme_get_quiz_status_chart($quiz) {
     'fail' => $quiz['no_fail'],
     'incomplete' => $quiz['no_incomplete']
   );
-  $chart['#labels'] = array(
-    'pass' => t('Pass ') . $quiz['no_pass'] . '/' . $quiz['total'],
-    'fail' => t('Fail ') . $quiz['no_fail'] . '/' . $quiz['total'],
-    'incomplete' => t('Incomplete ') . $quiz['no_incomplete'] . '/' . $quiz['total'],
+  $chart['#data_colors'] = array(
+    'pass' => '00ff00',
+    'fail' => 'ff0000',
+    'incomplete' => 'ffff00',
   );
   ini_set('precision', '3');
   // FIX IT deprecated.
