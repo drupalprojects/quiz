@@ -1692,11 +1692,12 @@ function quiz_calculate_score($quiz, $rid) {
     WHERE qnr.parent_nid = %d';
   $results = db_query($sql, $quiz->nid);
   */
-  $sql = 'SELECT question_nid AS child_nid, question_vid AS child_vid, type
-  FROM {quiz_node_results_answers}
-  LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid)
-  WHERE result_id = %d';
-  $results = db_query($sql, $rid);
+  $sql = 'SELECT question_nid, question_vid, type, max_score
+  FROM {quiz_node_results_answers} a
+  LEFT JOIN {node} n ON (question_nid = nid AND question_vid = vid)
+  LEFT JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid)
+  WHERE result_id = %d AND r.parent_vid = %d';
+  $results = db_query($sql, $rid, $quiz->vid);
 
 
   // 2. Callback into the modules and let them do the scoring.
@@ -1710,7 +1711,10 @@ function quiz_calculate_score($quiz, $rid) {
     $function = $mod . '_quiz_question_score';
 
     if (function_exists($function)) {
-      $scores[] = $function($quiz, $question->child_nid, $question->child_vid, $rid);
+      $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
+      $score->attained = ($score->possible > 0) ? round($score->attained / $score->possible * $question->max_score) : 0;
+      $score->possible = $question->max_score;
+      $scores[] = $score;
     }
     else {
       drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
@@ -1744,7 +1748,6 @@ function quiz_calculate_score($quiz, $rid) {
     'percentage_score' => ($possible_score == 0) ? 0 : round(($total_score * 100) / $possible_score),
     'is_evaluated' => $is_evaluated,
   );
-
 }
 
 /**

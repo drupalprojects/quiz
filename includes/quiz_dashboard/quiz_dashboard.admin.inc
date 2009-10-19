@@ -355,7 +355,7 @@ function theme_quiz_top_scorers($attendees) {
     '#bar_size' => chart_bar_size(20, 15),
   );
   foreach ($attendees as $attendee) {
-    $chart['#data'][] = $attendee['score'];
+    $chart['#data'][][] = $attendee['score'];
     $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
     $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] .' %';
@@ -386,20 +386,20 @@ function theme_get_quiz_status_chart($quiz) {
   );
   $chart['#data'] = array(
     'pass' => $quiz['no_pass'],
+    'incomplete' => $quiz['no_incomplete'],
     'fail' => $quiz['no_fail'],
-    'incomplete' => $quiz['no_incomplete']
   );
   $chart['#data_colors'] = array(
     'pass' => '00ff00',
-    'fail' => 'ff0000',
     'incomplete' => 'ffff00',
+    'fail' => 'ff0000',
   );
   ini_set('precision', '3');
   // FIX IT deprecated.
   $chart['#legends'] = array(
-    'pass' => ($quiz['no_pass'] / $quiz['total']) * 100.00 . t('% pass'),
-    'fail' => ($quiz['no_fail'] / $quiz['total']) * 100 . t('% fail'),
+    'pass' => ($quiz['no_pass'] / $quiz['total']) * 100 . t('% pass'),
     'incomplete' => ($quiz['no_incomplete'] / $quiz['total']) * 100 . t('% incomplete'),
+    'fail' => ($quiz['no_fail'] / $quiz['total']) * 100 . t('% fail'),
   );
   return chart_render($chart);
 }

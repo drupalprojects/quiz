@@ -216,7 +216,7 @@ class MatchingQuestion extends QuizQuestion {
 
   public function getMaximumScore() {
     $to_return = 0;
-    foreach ($this->node->match as $match) {
+    foreach ($this->node->answer as $match) {
       if (empty($match['question']) || empty($match['answer'])) {
         continue;
       }
@@ -308,7 +308,12 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function getUserAnswers() {
     $user_answers = array();
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
-    $results = db_query("SELECT match_id, answer FROM {quiz_matching_user_answers} WHERE result_id = %d", $this->rid);
+    $results = db_query("SELECT a.match_id, a.answer 
+    					 FROM {quiz_matching_user_answers} a
+    					 JOIN {quiz_matching_node} n
+    					 ON n.match_id = a.match_id
+    					 WHERE result_id = %d
+    					 AND vid = %d", $this->rid, $this->question->vid);
     while ($result = db_fetch_object($results)) {
       $user_answers[$result->match_id] = $result->answer;
     }

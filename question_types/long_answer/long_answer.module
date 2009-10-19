@@ -132,7 +132,7 @@ function long_answer_theme() {
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
-function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
+function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_total = TRUE) {
   // Quiz scoring information is spread out across three tables:
   // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
   // 2. The Quiz module (needlessly?) retains a limited amount of scoring information. This appears to be used only
@@ -167,7 +167,8 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
     db_query($sql, $points_awarded, $is_correct, $vid, $rid);
 
     // Third, we update the main quiz results table
-    quiz_update_total_score($quiz, $rid);
+    if ($update_total)
+      quiz_update_total_score($quiz, $rid);
   }
 
   return $changed;
@@ -291,7 +292,7 @@ function long_answer_questions_list() {
 
 
 function long_answer_report_submit($values) {
-  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int)$values['score']);
+  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int)$values['score'], FALSE);
 }
 
 function long_answer_report_validate($values, $form_key) {

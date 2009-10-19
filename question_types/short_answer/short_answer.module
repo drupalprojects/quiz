@@ -119,7 +119,7 @@ function short_answer_theme() {
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
-function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
+function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_total = TRUE) {
   // See long_answer.module for details on how this works.
 
   db_query("UPDATE {quiz_short_answer_user_answers} SET score = %d, is_evaluated = 1 WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $score, $nid, $vid, $rid);
@@ -144,7 +144,8 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score) {
     db_query($sql, $points_awarded, $is_correct, $vid, $rid);
 
     // Third, we update the main quiz results table
-    quiz_update_total_score($quiz, $rid);
+    if ($update_total)
+      quiz_update_total_score($quiz, $rid);
   }
 
   return $changed;
@@ -165,7 +166,7 @@ function short_answer_report_validate($values, $form_key) {
 }
 
 function short_answer_report_submit($values) {
-  short_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int)$values['score']);
+  short_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int)$values['score'], FALSE);
 }
 
 /**

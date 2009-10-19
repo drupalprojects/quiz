@@ -93,10 +93,26 @@ function quiz_report_form_submit($form, &$form_state) {
       $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
       $result = db_fetch_object(db_query($sql, $q_values['rid']));
       $quiz = node_load($result->nid, $result->vid);
+      $rid = $q_values['rid'];
     }
     $q_values['quiz'] = $quiz;
     call_user_func($q_values['submit'], $q_values);
   }
+  quiz_update_total_score_fast($rid, $quiz->vid);
+}
+
+function quiz_update_total_score_fast($rid, $quiz_vid) {
+  $sql = 'UPDATE {quiz_node_results} r
+          SET score = (
+            SELECT ROUND(100*SUM(points_awarded/p.max_score*r.max_score)/SUM(r.max_score))
+            FROM {quiz_node_results_answers} a
+            JOIN {quiz_question_properties} p
+            ON p.vid = a.question_vid
+            JOIN {quiz_node_relationship} r
+            ON r.child_vid = p.vid
+            WHERE a.result_id = %d)
+          WHERE result_id = %d';
+  db_query($sql, $rid, $rid);
 }
 
 /**
