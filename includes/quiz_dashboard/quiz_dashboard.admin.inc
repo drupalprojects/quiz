@@ -60,8 +60,8 @@ function quiz_dashboard_get_basic_stats($uid = 0) {
  * @function
  *   callback function
  *
- * @param $nid
- *   quiz node id
+ * @param $vid
+ *   quiz revision id
  *
  * @param $uid
  *   uid of user whose results statistics need to generated and displayed
@@ -69,15 +69,15 @@ function quiz_dashboard_get_basic_stats($uid = 0) {
  * @return
  *   HTML page with charts/graphs
  */
-function quiz_dashboard_get_adv_stats($nid = 0, $uid = 0) {
+function quiz_dashboard_get_adv_stats($vid = 0, $uid = 0) {
   $output = '<div class="quiz-dashboard-chart-wrapper">';
-  $output .= _get_date_vs_takeup_count_chart($nid, $uid);
+  $output .= _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
-  $output .= _get_quiz_status_chart($nid, $uid);
+  $output .= _get_quiz_status_chart($vid, $uid);
   // 3D pie chart showing percentage of pass, fail, incomplete quiz status
-  $output .= _get_quiz_top_scorers_chart($nid, $uid);
+  $output .= _get_quiz_top_scorers_chart($vid, $uid);
   // Bar chart displaying top scorers
-  $output .= _get_quiz_grade_range_chart($nid, $uid);
+  $output .= _get_quiz_grade_range_chart($vid, $uid);
   if (!strlen($output)) {
     drupal_set_message(t('Insufficient data, unable to generate chart'), 'warning');
   }
@@ -95,13 +95,13 @@ function quiz_dashboard_get_adv_stats($nid = 0, $uid = 0) {
  * @param $uid
  *   uid of user whose results statistics need to generated and displayed
  *
- * @param $nid
- *   node id of quiz node
+ * @param $vid
+ *   revision id of quiz node
  *
  * @return
  *   HTML to render to chart/graph
  */
-function _get_quiz_grade_range_chart($nid = 0, $uid = 0) {
+function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   // ToDo make the range configurable
   $sql = "SELECT SUM(score >= 0 && score <= 20) AS zero_to_twenty,
     SUM(score >= 20 && score <= 40) AS twenty_to_fourty,
@@ -109,11 +109,11 @@ function _get_quiz_grade_range_chart($nid = 0, $uid = 0) {
     SUM(score >= 60 && score <= 80) AS sixty_to_eighty,
     SUM(score >= 80 && score <= 100) AS eighty_to_hundred
     FROM {quiz_node_results}
-    WHERE nid = %d";
+    WHERE vid = %d";
   if ($uid != 0) {
     $sql .= " AND uid = %d";
   }
-  $range = db_fetch_object(db_query($sql, $nid, $uid));
+  $range = db_fetch_object(db_query($sql, $vid, $uid));
   $count = $range->zero_to_twenty + $range->twenty_to_fourty + $range->fourty_to_sixty + $range->sixty_to_eighty + $range->eighty_to_hundred;
   if ($count < 2) {
     return;
@@ -128,8 +128,8 @@ function _get_quiz_grade_range_chart($nid = 0, $uid = 0) {
  * @function
  *   generates chart containing top 10 users name and their score
  *
- * @param $nid
- *   node id of quiz node
+ * @param $vid
+ *   revision id of quiz node
  *
  * @param $uid
  *   uid of user whose results statistics need to generated and displayed
@@ -137,22 +137,22 @@ function _get_quiz_grade_range_chart($nid = 0, $uid = 0) {
  * @return
  *   HTML to render to chart/graph
  */
-function _get_quiz_top_scorers_chart($nid = 0, $uid = 0) {
+function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
   $top_scorers = array();
   $sql = 'SELECT name, score FROM {quiz_node_results} qnr
     LEFT JOIN {users} u ON (u.uid = qnr.uid)
-    WHERE nid = %d';
+    WHERE vid = %d';
   if ($uid != 0) {
     $sql .= " AND qnr.uid = %d";
   }
   $sql .= ' ORDER by score DESC';
-  $results = db_query_range($sql, $nid, $uid, 0, 10);
+  $results = db_query_range($sql, $vid, $uid, 0, 10);
   while ($result = db_fetch_array($results)) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
-  $sql = 'SELECT max_score FROM {quiz_node_properties} WHERE nid = %d';
-  $top_scorers['max_score'] = db_result(db_query($sql, $nid));
+  $sql = 'SELECT max_score FROM {quiz_node_properties} WHERE vid = %d';
+  $top_scorers['max_score'] = db_result(db_query($sql, $vid));
   $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
   $output .= theme('quiz_top_scorers', $top_scorers);
   $output .= '</div>';
@@ -163,8 +163,8 @@ function _get_quiz_top_scorers_chart($nid = 0, $uid = 0) {
  * @function
  *   generates a chart based on user's quiz status pass, fail, progress
  *
- * @param $nid
- *   node id of quiz node
+ * @param $vid
+ *   revision id of quiz node
  *
  * @param $uid
  *   uid of user whose results statistics need to generated and displayed *
@@ -172,12 +172,12 @@ function _get_quiz_top_scorers_chart($nid = 0, $uid = 0) {
  * @return
  *   HTML to render to chart/graph
  */
-function _get_quiz_status_chart($nid = 0, $uid = 0) {
-  // get the pass rate of the given quiz by nid
-  $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE nid = %d", intval($nid)));
+function _get_quiz_status_chart($vid = 0, $uid = 0) {
+  // get the pass rate of the given quiz by vid
+  $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = %d", intval($vid)));
   // get the count value of results row above and below pass rate
-  $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE nid = %d";
-  $quiz = db_fetch_array(db_query($sql, intval($nid)));
+  $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = %d";
+  $quiz = db_fetch_array(db_query($sql, intval($vid)));
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 3) {
     return; // no sufficient data
   }
@@ -195,24 +195,27 @@ function _get_quiz_status_chart($nid = 0, $uid = 0) {
  * @param $uid
  *   user id
  *
- * @param $nid
- *   node id of quiz
+ * @param $vid
+ *   revision id of quiz
  *
  * @return
  *   HTML to display chart
  */
-function _get_date_vs_takeup_count_chart($nid = 0, $uid = 0) {
+function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
   $start = 0;
   $end = 30;
   $takeup = array();
   $sql = "SELECT COUNT(result_id) AS count,
             DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
-            FROM {quiz_node_results}";
+            FROM {quiz_node_results}
+            WHERE vid = %d";
+  $sql_args = array($vid);
   if ($uid != 0) {
-    $sql .= " WHERE uid = %d";
+    $sql .= " AND uid = %d";
+    $sql_args[] = $uid;
   }
   $sql .=" GROUP BY date ORDER BY time_start DESC";
-  $results = db_query_range($sql, $uid, $start, $end);
+  $results = db_query_range($sql, $sql_args, $start, $end);
   $days = _quiz_get_last_days($end);
   $res_o = db_fetch_object($results);
   foreach ($days as $date => &$value) {
@@ -234,8 +237,8 @@ function _get_date_vs_takeup_count_chart($nid = 0, $uid = 0) {
  *   computes the number of questions been assigned
  *   to a quiz node.
  *
- * @param $nid
- *   quiz node id
+ * @param $vid
+ *   quiz revision id
  *
  * @param $uid
  *   user id for filtering based on author optionally
@@ -243,20 +246,20 @@ function _get_date_vs_takeup_count_chart($nid = 0, $uid = 0) {
  * @return
  *   Imteger count of questions.
  */
-function _quiz_get_questions_count($nid, $uid = 0) {
-  $sql = "SELECT COUNT(child_nid) FROM {quiz_node_relationship} WHERE parent_nid = %d";
+function _quiz_get_questions_count($vid, $uid = 0) {
+  $sql = "SELECT COUNT(child_nid) FROM {quiz_node_relationship} WHERE parent_vid = %d";
   if ($uid != 0) {
     $sql .= " AND uid = %d";
   }
-  return db_result(db_query($sql, $nid, $uid));
+  return db_result(db_query($sql, $vid, $uid));
 }
 
 /*
  * @function
  *   computes quiz attempt count
  *
- * @param $nid
- *   quiz node id
+ * @param $vid
+ *   quiz revision id
  *
  * @param $uid
  *   user id of user for filtering
@@ -265,12 +268,12 @@ function _quiz_get_questions_count($nid, $uid = 0) {
  *   Integer containing number of times that a quiz has
  *   been attended, can be filtered by uid optionally.
  */
-function _quiz_get_attempt_count($nid, $uid = 0) {
-  $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d";
+function _quiz_get_attempt_count($vid, $uid = 0) {
+  $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE vid = %d";
   if ($uid != 0) {
     $sql .= " AND uid = %d";
   }
-  return db_result(db_query($sql, $nid, $uid));
+  return db_result(db_query($sql, $vid, $uid));
 }
 
 // End model functions
@@ -452,7 +455,7 @@ function theme_date_vs_takeup_count($days) {
  */
 function theme_quiz_dashboard_get_basic_stats($results = array()) {
   $header = $rows = array();
-  //$title_link = user_access('access author dashboard') ? 'admin/quiz/reports/dashboard/creator/'. $result['nid'] .'/view' : 'user/%/dashboard/%/view'; .
+  //$title_link = user_access('access author dashboard') ? 'admin/quiz/reports/dashboard/creator/'. $result['vid'] .'/view' : 'user/%/dashboard/%/view'; .
   $title_link = user_access('access author dashboard') ? 'admin/quiz/reports/dashboard/creator/' : 'user/'. arg(1) .'/dashboard/';
   if (empty($results)) {
     return '<p>' . t('No questions were found.') . '</p>';
