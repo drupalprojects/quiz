@@ -103,10 +103,10 @@ function quiz_dashboard_get_adv_stats($vid = 0, $uid = 0) {
  */
 function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   // ToDo make the range configurable
-  $sql = "SELECT SUM(score >= 0 && score <= 20) AS zero_to_twenty,
-    SUM(score >= 20 && score <= 40) AS twenty_to_fourty,
-    SUM(score >= 40 && score <= 60) AS fourty_to_sixty,
-    SUM(score >= 60 && score <= 80) AS sixty_to_eighty,
+  $sql = "SELECT SUM(score >= 0 && score < 20) AS zero_to_twenty,
+    SUM(score >= 20 && score < 40) AS twenty_to_fourty,
+    SUM(score >= 40 && score < 60) AS fourty_to_sixty,
+    SUM(score >= 60 && score < 80) AS sixty_to_eighty,
     SUM(score >= 80 && score <= 100) AS eighty_to_hundred
     FROM {quiz_node_results}
     WHERE vid = %d";
