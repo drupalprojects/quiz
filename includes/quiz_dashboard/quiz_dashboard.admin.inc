@@ -310,6 +310,11 @@ function theme_quiz_grade_range($range) {
   $chart['#data'][][] = $range->fourty_to_sixty;
   $chart['#data'][][] = $range->sixty_to_eighty;
   $chart['#data'][][] = $range->eighty_to_hundred;
+  $max = max($range->zero_to_twenty,
+             $range->twenty_to_fourty,
+             $range->fourty_to_sixty,
+             $range->sixty_to_eighty,
+             $range->eighty_to_hundred);
   // chart color
   $chart['#data_colors'][] = chart_unique_color($range->zero_to_twenty);
   $chart['#data_colors'][] = chart_unique_color($range->twenty_to_fourty);
@@ -319,8 +324,8 @@ function theme_quiz_grade_range($range) {
   // chart x-axis label
   $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Grade Range'), 50);
   // chart y-axis label and data
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score'), 90);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 10);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Attempts'), 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max);
   // chart description on the right side
   $chart['#legends'][] = t('0 to 20 % - ') . $range->zero_to_twenty;
   $chart['#legends'][] = t('20 to 40 % - ') . $range->twenty_to_fourty;
