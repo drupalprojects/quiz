@@ -70,18 +70,15 @@ function quiz_dashboard_get_basic_stats($uid = 0) {
  *   HTML page with charts/graphs
  */
 function quiz_dashboard_get_adv_stats($vid = 0, $uid = 0) {
-  $output = '<div class="quiz-dashboard-chart-wrapper">';
-  $output .= _get_date_vs_takeup_count_chart($vid, $uid);
+  $charts = array();
+  $charts['takeup'] = _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
-  $output .= _get_quiz_status_chart($vid, $uid);
+  $charts['status'] = _get_quiz_status_chart($vid, $uid);
   // 3D pie chart showing percentage of pass, fail, incomplete quiz status
-  $output .= _get_quiz_top_scorers_chart($vid, $uid);
+  $charts['top_scorers'] = _get_quiz_top_scorers_chart($vid, $uid);
   // Bar chart displaying top scorers
-  $output .= _get_quiz_grade_range_chart($vid, $uid);
-  if (!strlen($output)) {
-    drupal_set_message(t('Insufficient data, unable to generate chart'), 'warning');
-  }
-  return $output;
+  $charts['grade_range'] = _get_quiz_grade_range_chart($vid, $uid);
+  return theme('quiz_dashboard_charts', $charts);
 }
 
 // End callback function
@@ -116,12 +113,16 @@ function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   $range = db_fetch_object(db_query($sql, $vid, $uid));
   $count = $range->zero_to_twenty + $range->twenty_to_fourty + $range->fourty_to_sixty + $range->sixty_to_eighty + $range->eighty_to_hundred;
   if ($count < 2) {
-    return;
+    return FALSE;
   }
-  $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
-  $output .= theme('quiz_grade_range', $range);
-  $output .= '</div>';
-  return $output;
+  $chart = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
+  $chart .= theme('quiz_grade_range', $range);
+  $chart .= '</div>';
+  return array(
+    'chart' => $chart, 
+    'title' => t('Distribution'),
+    'explanation' => t('This chart shows the distribution of the scores on this quiz.'),
+  );
 }
 
 /*
@@ -151,10 +152,15 @@ function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
-  $output = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
-  $output .= theme('quiz_top_scorers', $top_scorers);
-  $output .= '</div>';
-  return $output;
+  if (count($top_scorers) == 0) return FALSE;
+  $chart = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
+  $chart .= theme('quiz_top_scorers', $top_scorers);
+  $chart .= '</div>';
+  return array(
+    'chart' => $chart, 
+    'title' => t('Top scorers'),
+    'explanation' => t('This chart shows what question takers have the highest scores'),
+  );
 }
 
 /*
@@ -177,13 +183,17 @@ function _get_quiz_status_chart($vid = 0, $uid = 0) {
   $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = %d";
   $quiz = db_fetch_array(db_query($sql, intval($vid)));
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 3) {
-    return; // no sufficient data
+    return FALSE; // no sufficient data
   }
   // generates quiz status chart 3D pie chart
-  $output = '<div id="get_quiz_status_chart" class="quiz-dashboard-chart-space">';
-  $output .= theme('get_quiz_status_chart', $quiz);
-  $output .= '</div>';
-  return $output;
+  $chart = '<div id="get_quiz_status_chart" class="quiz-dashboard-chart-space">';
+  $chart .= theme('get_quiz_status_chart', $quiz);
+  $chart .= '</div>';
+  return array(
+    'chart' => $chart, 
+    'title' => t('Status'),
+    'explanation' => t('This chart shows the status for all attempts made to answer this revision of the quiz.'),
+  );
 }
 
 /*
@@ -222,12 +232,16 @@ function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
       $res_o = db_fetch_object($results);
     }
   }
-  $output = '<div id="date_vs_takeup_count" class="quiz-dashboard-chart-space">';
+  $chart = '<div id="date_vs_takeup_count" class="quiz-dashboard-chart-space">';
   // wrapping the chart output with div for custom theming.
-  $output .= theme('date_vs_takeup_count', $days);
+  $chart .= theme('date_vs_takeup_count', $days);
   // generate date vs takeup count line chart
-  $output .= '</div>';
-  return $output;
+  $chart .= '</div>';
+  return array(
+    'chart' => $chart, 
+    'title' => t('Activity'),
+    'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array('!days' => $end)),
+  );
 }
 
 /*
@@ -295,7 +309,7 @@ function theme_quiz_grade_range($range) {
 
   $chart = array(
     '#chart_id' => 'quiz_grade_range',
-    '#title' => t('Quiz Grade Range'),
+    //'#title' => t('Quiz Grade Range'),
     '#type' => CHART_TYPE_BAR_V_GROUPED,
     '#size' => chart_size($chart_width, $chart_height),
     '#grid_lines' => chart_grid_lines(10, 10),
@@ -323,7 +337,7 @@ function theme_quiz_grade_range($range) {
   // chart x-axis label
   $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Grade Range'), 50);
   // chart y-axis label and data
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Attempts'), 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Attempts'), 100);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max);
   // chart description on the right side
   $chart['#legends'][] = t('80 to 100 % - ') . $range->eighty_to_hundred;
@@ -348,7 +362,7 @@ function theme_quiz_grade_range($range) {
 function theme_quiz_top_scorers($attendees) {
   $chart = array(
     '#chart_id' => 'quiz_top_scorers',
-    '#title' => t('Quiz Top Scorers'),
+    //'#title' => t('Quiz Top Scorers'),
     '#type' => CHART_TYPE_BAR_V_GROUPED,
     '#size' => chart_size(600, 400),
     '#grid_lines' => chart_grid_lines(10, 10),
@@ -360,7 +374,7 @@ function theme_quiz_top_scorers($attendees) {
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
     $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] .' %';
   }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') .' (%)', 90);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') .' (%)', 100);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
   return chart_render($chart);
 }
@@ -379,7 +393,7 @@ function theme_get_quiz_status_chart($quiz) {
   $quiz['total'] = $quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete'];
   $chart = array(
     '#chart_id' => 'quiz_status_chart',
-    '#title' => t('Quiz Status Chart'),
+    //'#title' => t('Quiz Status Chart'),
     '#type' => CHART_TYPE_PIE_3D,
     '#size' => chart_size(500, 200),
     '#adjust_resolution' => TRUE,
@@ -419,7 +433,7 @@ function theme_date_vs_takeup_count($days) {
   $max_count = 0;
   $chart = array(
     '#chart_id' => 'test_chart',
-    '#title' => t('Date vs Quiz Takeup'),
+    //'#title' => t('Date vs Quiz Takeup'),
     '#type' => CHART_TYPE_LINE,
     '#size' => chart_size(600, 400),
     //'#chart_fill' => chart_fill('c', 'eeeeee'),
@@ -429,19 +443,22 @@ function theme_date_vs_takeup_count($days) {
   $interval = 1;
   foreach ($days as $date => $obj) {
     $count = $obj->value;
-    $chart['#data'][] = $count;
+    $chart['#data'][]= $count;
     $x_label = '|';
     if ($interval == 7) {
       $x_label = chart_mixed_axis_label(format_date($obj->timestamp, 'custom', 'd M'));
       $interval = 0;
     }
-    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = $x_label;
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][0][] = $x_label;
     $interval++;
     $max_count = ($max_count > $count) ? $max_count : $count;
   }
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_count);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Count'), 90);
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Days of the week'), 50);
+  
+  // The chart module has some bugs. If we have the time we should provide patches instead of tricking it to work...
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1] = array('|', chart_mixed_axis_label(t('Attempts')));
+  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1] = array('|',chart_mixed_axis_label(t('Date')), '|');
+  
   return chart_render($chart);
 }
 

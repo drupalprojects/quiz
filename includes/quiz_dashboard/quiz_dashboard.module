@@ -130,5 +130,10 @@ function quiz_dashboard_theme() {
       'path' => drupal_get_path('module', 'quiz_dashboard') .'/theme',
       'template' => 'quiz_dashboard_revision_selector',
     ),
+    'quiz_dashboard_charts' => array(
+      'arguments' => array('charts' => NULL),
+      'path' => drupal_get_path('module', 'quiz_dashboard') .'/theme',
+      'template' => 'quiz_dashboard_charts',
+    ),
   );
 }
