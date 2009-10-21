@@ -12,7 +12,6 @@
 $td_classes = array('quiz-report-odd-td', 'quiz-report-even-td');
 $td_class_i = 0;
 ?>
-<h1 style="color:#ff0000; font-size:4em; line-height:4em">COLORS AND LAYOUT ARE JUST TEMPORARY (FOR FUN)</h1>
 <h2><?php print format_plural(count($questions), 'Question Result', 'Question Results');?></h2>
 <table>
 <?php
