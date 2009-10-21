@@ -1356,7 +1356,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   //function to send results over email
   if ($user->uid && variable_get('quiz_email_results', 1) && variable_get('quiz_use_passfail', 1)) { // email can be sent only for registered users
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
-    drupal_set_message(t('Results has been sent to your e-mail ID.'));
+    drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
   //calls userpoints functions to credit user point based on number of correct answers
@@ -1369,7 +1369,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
     );
     $params = array(
       'points' => $score['numeric_score'],
-      'description' => t('Attened @title @quiz on @time', $variables),
+      'description' => t('Attended @title @quiz on @time', $variables),
     );
     userpoints_userpointsapi($params);
   }
