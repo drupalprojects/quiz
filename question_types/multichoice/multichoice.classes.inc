@@ -702,11 +702,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
    * @param $showfeedback
    * @return report as html
    */
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-    check_markup($this->question->body, $this->question->filter, FALSE).
-      '</div>';
-    $result = '<b>'. t('Response'). ':</b>';
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
     while (is_array($this->question->alternatives[$i])) {
@@ -756,13 +752,14 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       }
       $i++;
     }
-    $result .= theme('table', NULL, $rows);
+    $table = theme('table', NULL, $rows);
 
-    $result .= '</div>';
-
-    return $slug . $result;
+    return array(
+      '#type' => 'markup',
+      '#value' => $table,
+    );
   }
-
+  
   private function orderAlternatives(array &$alternatives) {
     if (!$this->question->choice_random) return;
     $sql = "SELECT choice_order

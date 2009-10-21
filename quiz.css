@@ -128,8 +128,43 @@ div.multichoice_answer_incorrect {
   margin-right: 8px;
 }
 
-.answer-scoring {
-  display: inline;
-  float: left;
-  margin-right: 8px;
+.quiz-report-scoring {
+  float: right;
+}
+
+table.quiz-report-q-header {
+  border-style: none;
+  padding:0px;
+  margin:0px;
+  border:0px;
+  border-collapse: separate;
+}
+
+.quiz-report-score-cell {
+  width: 20%;
+  padding:0px;
+  margin:0px;
+  border:0px;
+}
+
+.quiz-report-q-cell {
+  padding:0px;
+  margin:0px;
+  border:0px;
+}
+
+.quiz-report-score {
+  text-align: right;
+}
+
+.quiz-report-question {
+  margin-top: 0px;
+  margin-bottom: 40px;
+}
+
+.quiz-report-odd-td {
+  background-color:#ff00ff;
+}
+.quiz-report-even-td {
+  background-color:#66ff66;
 }

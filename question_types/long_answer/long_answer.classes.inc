@@ -184,56 +184,12 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     return $this->answer;
   }
   
-  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
     if ($this->question && !empty($this->question->answers)) 
       $answer = (object) current($this->question->answers);
     else
       return $form;
-    if (user_access('score long answer')) {
-      $form['score'] = array(
-        '#type' => 'textfield',
-        '#default_value' => $this->getScore(),
-        '#size' => 3,
-        '#maxlength' => 3,
-        '#attributes' => array('class' => 'answer-scoring'),
-      );
-      $form['submit'] = array(
-        '#type' => 'value',
-        '#value' => 'long_answer_report_submit',
-      );
-      $form['validate'] = array(
-        '#type' => 'value',
-        '#value' => 'long_answer_report_validate',
-      );
-      $form['nid'] = array(
-        '#type' => 'value',
-        '#value' => $this->question->nid,
-      );
-      $form['vid'] = array(
-        '#type' => 'value',
-        '#value' => $this->question->vid,
-      );
-      $form['rid'] = array(
-        '#type' => 'value',
-        '#value' => $this->rid,
-      );
-    }
-    else {
-      $form['score'] = array(
-        '#type' => 'markup',
-        '#value' => $answer->score,
-      );
-    }
-    $form['max_score'] = array(
-      '#type' => 'value',
-      '#value' => $this->question->max_score,
-    );
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
-    );
-    
     $form['answer'] = array(
       '#type' => 'markup',
       '#value' => check_markup($answer->answer),
@@ -255,10 +211,31 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
         '#value' => $feedback,
       );
     }
-    
-    $form['#is_correct'] = $this->isCorrect();
-    $form['#theme'] = 'long_answer_report'; 
     return $form;
+  }
+  
+  public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE) {
+    if (user_access('score long answer')) {
+      return array(
+        '#type' => 'textfield',
+        '#default_value' => $this->getScore(),
+        '#size' => 3,
+        '#maxlength' => 3,
+      );
+    }
+    else {
+      return array(
+        '#type' => 'markup',
+        '#value' => $this->getScore(),
+      );
+    }
+  }
+  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
+    return 'long_answer_report_submit';
+  }
+  
+  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
+    return 'long_answer_report_validate';
   }
   
   public function formatReport($showfeedback = TRUE, $showpoints = TRUE) {

@@ -543,14 +543,6 @@ interface QuizQuestionResponse {
   public function getReport();
 
   /**
-   * Return an HTML marked-up report for displaying the results of this question.
-   *
-   * @return
-   *  An HTML string.
-   */
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE);
-
-  /**
    * Get the integer score.
    */
   public function getScore();
@@ -641,12 +633,67 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   
   public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
-    $form['static'] = array(
-      '#type' => 'markup',
-      '#value' => $this->formatReport($showpoints, $showfeedback),
+    $form['nid'] = array(
+      '#type' => 'value',
+      '#value' => $this->question->nid,
     );
+    $form['vid'] = array(
+      '#type' => 'value',
+      '#value' => $this->question->vid,
+    );
+    $form['rid'] = array(
+      '#type' => 'value',
+      '#value' => $this->rid,
+    );
+    if ($submit = $this->getReportFormSubmit($showpoints, $showfeedback)) {
+      $form['submit'] = array(
+        '#type' => 'value',
+        '#value' => $submit,
+      );
+    }
+    if ($validate = $this->getReportFormValidate($showpoints, $showfeedback)) {
+      $form['validate'] = array(
+        '#type' => 'value',
+        '#value' => $validate,
+      );
+    }
+    $form['question'] = $this->getReportFormQuestion($showpoints, $showfeedback);
+    $form['score'] = $this->getReportFormScore($showpoints, $showfeedback);
+    $form['max_score'] = array(
+      '#type' => 'value',
+      '#value' => $this->question->max_score,
+    );
+    $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback);
+    
+    $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
     $form['#is_correct'] = $this->isCorrect();
     return $form;
+  }
+  
+  public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
+    return array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->question->body, $this->question->filter, FALSE),
+    );
+  }
+  
+  public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE) {
+    return array(
+      '#type' => 'markup',
+      '#value' => '<span class="quiz-report-score">'. $this->getScore() .'</span>',
+    );
+  }
+  
+  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
+    return FALSE;
+  }
+  
+  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
+    return FALSE;
+  }
+  
+  public function getReportFormTheme($showfeedback = TRUE, $showpoints = TRUE) {
+    return FALSE;
   }
 }
 

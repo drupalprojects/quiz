@@ -211,7 +211,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     return db_fetch_object(db_query($sql, $this->question->vid, $this->rid));
   }
 
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
 
     // Build the question answers header (add blank space for IE).
     if ($showpoints) {
@@ -221,9 +221,12 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }
-
+    
     if (empty($this->question->answers)) {
-      return t('Missing question.');
+      return array(
+        '#type' => 'markup',
+        '#value' => t('Missing question.'),
+      );
     }
 
     $answer = $this->question->answers[0];
@@ -239,8 +242,10 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     }
 
     // Add the cell with the question and the answers.
-    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body, $this->question->format, FALSE) .'</div>';
-    $q_output .= theme('table', $innerheader, $rows) .'<br />';
-    return $q_output;
+    $table = theme('table', $innerheader, $rows);
+    return array(
+      '#type' => 'markup',
+      '#value' => $table,
+    );
   }
 }

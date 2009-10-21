@@ -101,13 +101,6 @@ function long_answer_theme() {
       'arguments' => array('unscored' => array()),
       'file' => 'long_answer.admin.inc',
     ),
-    'long_answer_report' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'long_answer') .'/theme',
-      'template' => 'long_answer_report',
-    ),
   );
 }
 

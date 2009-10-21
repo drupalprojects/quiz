@@ -361,56 +361,12 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     return $this->answer;
   }
   
-  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
     if ($this->question && !empty($this->question->answers)) 
       $answer = (object) current($this->question->answers);
     else
-      return $form;
-    if (user_access('score short answer')) {
-      $form['score'] = array(
-        '#type' => 'textfield',
-        '#default_value' => $this->getScore(),
-        '#size' => 3,
-        '#maxlength' => 3,
-        '#attributes' => array('class' => 'answer-scoring'),
-      );
-      $form['submit'] = array(
-        '#type' => 'value',
-        '#value' => 'short_answer_report_submit',
-      );
-      $form['validate'] = array(
-        '#type' => 'value',
-        '#value' => 'short_answer_report_validate',
-      );
-      $form['nid'] = array(
-        '#type' => 'value',
-        '#value' => $this->question->nid,
-      );
-      $form['vid'] = array(
-        '#type' => 'value',
-        '#value' => $this->question->vid,
-      );
-      $form['rid'] = array(
-        '#type' => 'value',
-        '#value' => $this->rid,
-      );
-    }
-    else {
-      $form['score'] = array(
-        '#type' => 'markup',
-        '#value' => $answer->score,
-      );
-    }
-    $form['max_score'] = array(
-      '#type' => 'value',
-      '#value' => $this->question->max_score,
-    );
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
-    );
-    
+      return $form;    
     $form['answer'] = array(
       '#type' => 'markup',
       '#value' => check_markup($answer->answer),
@@ -432,13 +388,29 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         '#value' => $feedback,
       );
     }
-    
-    $form['#is_correct'] = $this->isCorrect();
-    $form['#theme'] = 'short_answer_report'; 
     return $form;
   }
+  public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE) {
+    if (user_access('score short answer')) {
+      return array(
+        '#type' => 'textfield',
+        '#default_value' => $this->getScore(),
+        '#size' => 3,
+        '#maxlength' => 3,
+      );
+    }
+    else {
+      return array(
+        '#type' => 'markup',
+        '#value' => $this->getScore(),
+      );
+    }
+  }
+  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
+    return 'short_answer_report_submit';
+  }
   
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    return '';
+  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
+    return 'short_answer_report_validate';
   }
 }

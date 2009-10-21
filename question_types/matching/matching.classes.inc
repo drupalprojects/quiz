@@ -320,7 +320,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     return $user_answers;
   }
 
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $rows = $innerheader = array();
     // Build the question answers header (add blank space for IE).
     $innerheader[] = t('Match');
@@ -351,8 +351,10 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       $rows[] = $cols;
     }
     // Add the cell with the question and the answers.
-    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body, $this->question->format, FALSE) .'</div>';
-    $q_output .= theme('table', $innerheader, $rows) .'<br />';
-    return $q_output;
+    $table = theme('table', $innerheader, $rows) .'<br />';
+    return array(
+      '#type' => 'markup',
+      '#value' => $table,
+    );
   }
 }

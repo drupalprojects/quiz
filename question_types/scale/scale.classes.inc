@@ -575,14 +575,10 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @param $showfeedback
    * @return report as html
    */
-  public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
-      check_markup($this->question->body, $this->question->format, FALSE) .
-      '</div>';
-    $result = '<b>'. t('Response') .'</b>:';
-    $result .= '<BR/>';
-    $result .= check_plain($this->answer);
-
-    return $slug . $result;
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+    return array(
+      '#type' => 'markup',
+      '#value' => check_plain($this->answer),
+    );
   }
 }

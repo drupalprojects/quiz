@@ -88,13 +88,6 @@ function short_answer_theme() {
       'arguments' => array('unscored' => array()),
       'file' => 'short_answer.admin.inc',
     ),
-    'short_answer_report' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'short_answer') .'/theme',
-      'template' => 'short_answer_report',
-    ),
   );
 }
 
