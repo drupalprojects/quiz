@@ -397,6 +397,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         '#default_value' => $this->getScore(),
         '#size' => 3,
         '#maxlength' => 3,
+        '#attributes' => array('class' => 'quiz-report-score'),
       );
     }
     else {

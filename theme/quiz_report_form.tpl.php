@@ -11,6 +11,8 @@
  */
 $td_classes = array('quiz-report-odd-td', 'quiz-report-even-td');
 $td_class_i = 0;
+$p = drupal_get_path('module', 'quiz') .'/theme/';
+$q_image = $p. 'question_bg.png'
 ?>
 <h2><?php print format_plural(count($questions), 'Question Result', 'Question Results');?></h2>
 <table>
@@ -34,9 +36,9 @@ foreach ($form as $key => $sub_form) {
         </table>
       </td>
     </tr>
-  </table>
-  <div class="quiz-report-question"><?php print drupal_render($sub_form['question']);?></div>
-  <?php $theme = ($sub_form['#is_correct']) ? t('The response is correct') : t('The response is incorrect');
+  </table></td></tr>
+  <tr><td style="background:#ffffff url('<?php print $q_image?>') no-repeat top right;"><div class="quiz-report-question"><?php print drupal_render($sub_form['question']);?></div></td><tr>
+  <tr><td><?php $theme = ($sub_form['#is_correct']) ? t('The response is correct') : t('The response is incorrect');
   ?>
   <h3><?php print t('Response')?></h3>
   

@@ -147,7 +147,7 @@ table.quiz-report-q-header {
   border:0px;
 }
 
-.quiz-report-q-cell {
+.quiz-report-q-cell, .quiz-report-score-cell div {
   padding:0px;
   margin:0px;
   border:0px;
@@ -155,6 +155,8 @@ table.quiz-report-q-header {
 
 .quiz-report-score {
   text-align: right;
+  margin: 0px;
+  padding: 0px;
 }
 
 .quiz-report-question {
