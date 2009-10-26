@@ -385,16 +385,17 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
-        '#value' => $feedback,
+        '#value' => '<I>'. $feedback .'</I>',
       );
     }
     return $form;
   }
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE) {
+    $score = ($this->isEvaluated()) ? $this->getScore() : '?'; 
     if (user_access('score short answer')) {
       return array(
         '#type' => 'textfield',
-        '#default_value' => $this->getScore(),
+        '#default_value' => $score,
         '#size' => 3,
         '#maxlength' => 3,
         '#attributes' => array('class' => 'quiz-report-score'),
@@ -403,7 +404,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     else {
       return array(
         '#type' => 'markup',
-        '#value' => $this->getScore(),
+        '#value' => $score,
       );
     }
   }

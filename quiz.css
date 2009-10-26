@@ -176,3 +176,6 @@ table.quiz-report-q-header {
 .q-wrong {
   background-color: #ff0000;
 }
+.q-waiting {
+  background-color: #ffff00;
+}

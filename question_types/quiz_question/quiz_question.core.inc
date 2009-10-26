@@ -580,7 +580,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   }
 
   public function isEvaluated() {
-    return $this->evaluated;
+    return (bool)$this->evaluated;
   }
 
   /**
@@ -667,6 +667,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
     $form['#is_correct'] = $this->isCorrect();
+    $form['#is_evaluated'] = $this->isEvaluated();
     return $form;
   }
   
