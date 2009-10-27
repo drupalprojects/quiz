@@ -25,7 +25,7 @@ $q_image = $p. 'question_bg.png';
 <h2><?php print format_plural(count($questions), 'Question Result', 'Question Results');?></h2>
 <table>
 <?php
-foreach ($form as $key => $sub_form) {
+foreach ($form as $key => $sub_form):
   if (!is_numeric($key) || $sub_form['#no_report'] === TRUE) continue;
   unset($form[$key]);
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
@@ -47,7 +47,7 @@ foreach ($form as $key => $sub_form) {
       </td>
     </tr>
   </table></td></tr>
-  <tr><td style="background:#ffffff url('<?php print $q_image?>') no-repeat top right;"><div class="quiz-report-question"><?php print drupal_render($sub_form['question']);?></div></td>
+  <tr><td style="background:#ffffff url('<?php print $q_image?>') no-repeat top right;"><div class="quiz-report-question"><?php print drupal_render($sub_form['question']);?></div></td></tr>
   <tr><td><h3><?php print t('Response')?></h3>
   
   <?php print drupal_render($sub_form['response']);
@@ -55,7 +55,7 @@ foreach ($form as $key => $sub_form) {
   else $td_class_i = 1;
   ?>
   </td></tr><?php 
-}
+endforeach;
 ?>
 </table>
 <div style="float:right;"><?php print drupal_render($form);?></div>
