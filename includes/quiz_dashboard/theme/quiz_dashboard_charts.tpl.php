@@ -26,7 +26,6 @@ if (!function_exists('_quiz_dashboard_print_chart')) {
       print '<h2 class="quiz-charts-title">'. $chart['title'] .'</h2>'. $chart['chart'] . $chart['explanation'];
   }
 }
-
 _quiz_dashboard_print_chart($charts['takeup']);
 _quiz_dashboard_print_chart($charts['top_scorers']);
 _quiz_dashboard_print_chart($charts['status']);

@@ -956,6 +956,75 @@ function quiz_type_access_load($arg) {
 }
 
 /**
+ * Returns the titles for all quizzes the user has access to.
+ * 
+ * @return quizzes
+ *   array with nids as keys and titles as values
+ */
+function quiz_get_all_titles() {
+  $sql = 'SELECT nid, title
+          FROM {node} n
+          WHERE n.type = \'quiz\'';
+  $res = db_query(db_rewrite_sql($sql));
+  $to_return = array();
+  while ($res_o = db_fetch_object($res)) {
+    $to_return[$res_o->nid] = $res_o->title;
+  }
+  return $to_return;
+}
+
+/**
+ * 
+ * @param array $nids
+ *   nids for the quizzes we want to collect scores from
+ * @param int $uid
+ *   uid for the user we want to collect score for.
+ * @param boolean $include_num_questions
+ *   Do we want to collect information about the number of questions in a quiz?(adds a performance hit)
+ * @return array of score data
+ */
+function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
+  foreach ($nids as $key => $nid) {
+    if(!is_int($nid)) unset($nids[$key]);
+  } 
+  $to_return = array();
+  $vids = array();
+  $sql = 'SELECT n.title, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.summary_pass AS percent_pass
+          FROM {node} n
+          JOIN {quiz_node_properties} p
+          ON n.vid = p.vid
+          JOIN {quiz_node_results} r
+          ON r.nid = n.nid
+          JOIN (
+            SELECT nid, max(score) as highest_score
+            FROM {quiz_node_results}
+            GROUP BY nid
+          ) rm
+          ON n.nid = rm.nid AND r.score = rm.highest_score
+          WHERE n.nid in ('. implode(', ', $nids) .')
+          AND r.uid = %d';
+  $res = db_query(db_rewrite_sql($sql), $uid);
+  while ($res_o = db_fetch_object($res)) {
+    if (!$include_num_questions) unset($res_o->num_random_questions);
+    $to_return[$res_o->vid] = $res_o;
+    $vids[] = $res_o->vid;
+  }
+  
+  if ($include_num_questions) {
+    $sql = 'SELECT COUNT(*) as num_always_questions, parent_vid
+            FROM {quiz_node_relationship}
+            WHERE parent_vid IN ('. implode(', ', $vids) .')
+            AND question_status = %d
+            GROUP BY parent_vid';
+    $res = db_query(db_rewrite_sql($sql), QUESTION_ALWAYS);
+    while ($res_o = db_fetch_object($res)) {
+      $to_return[$res_o->parent_vid]->num_questions = $to_return[$res_o->parent_vid]->num_random_questions + $res_o->num_always_questions;
+    }
+  }
+  return $to_return;
+}
+
+/**
  * Finds out the number of questions for the quiz.
  *
  * Good example of usage could be to calculate the % of score.
