@@ -1,5 +1,5 @@
 ; $Id$
-name = Quiz Dashboard
+name = Quiz Statistics
 description = "Creates a report to compare and analyse the results of quiz attendees."
 core = 6.x
 php = 5

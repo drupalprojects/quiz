@@ -1,5 +1,5 @@
 <?php 
-// $ID$
+// $Id$
 
 /**
  * @file
@@ -20,14 +20,14 @@
  * $charts['top_scorers']['explanation'] (string)
  */
 
-if (!function_exists('_quiz_dashboard_print_chart')) {
-  function _quiz_dashboard_print_chart(&$chart) {
+if (!function_exists('_quiz_stats_print_chart')) {
+  function _quiz_stats_print_chart(&$chart) {
     if (is_array($chart))
       print '<h2 class="quiz-charts-title">'. $chart['title'] .'</h2>'. $chart['chart'] . $chart['explanation'];
   }
 }
-_quiz_dashboard_print_chart($charts['takeup']);
-_quiz_dashboard_print_chart($charts['top_scorers']);
-_quiz_dashboard_print_chart($charts['status']);
-_quiz_dashboard_print_chart($charts['grade_range']);
+_quiz_stats_print_chart($charts['takeup']);
+_quiz_stats_print_chart($charts['top_scorers']);
+_quiz_stats_print_chart($charts['status']);
+_quiz_stats_print_chart($charts['grade_range']);
 ?>

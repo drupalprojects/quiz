@@ -4,14 +4,14 @@
 
 /*
  * @file
- * Administration file for Quiz Dashboard Module
+ * Administration file for Quiz stats Module
  *
  */
 
 // Callback function
 
 
-function quiz_dashboard_revision_selector_page($nid) {
+function quiz_stats_revision_selector_page($nid) {
   $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
   $res = db_query($sql, $nid);
   $count = 0; //uses this variable to slightly increase performance
@@ -23,7 +23,7 @@ function quiz_dashboard_revision_selector_page($nid) {
   if ($count < 1) 
     return t('Something went wrong. Please try again');
   else if ($count == 1) {
-    drupal_goto('admin/quiz/reports/dashboard/creator/'. $vids[0] .'/view');
+    drupal_goto('admin/quiz/reports/stats/creator/'. $vids[0] .'/view');
   }
   else {
     $content = array();
@@ -32,9 +32,9 @@ function quiz_dashboard_revision_selector_page($nid) {
     Because of this you have to choose the revision you want to see statistics from.', array('!num' => $count));
     $content['links'] = array();
     foreach ($vids as $key => $value) {
-      $content['links'][] = 'admin/quiz/reports/dashboard/creator/'. $value .'/view';
+      $content['links'][] = 'admin/quiz/reports/stats/creator/'. $value .'/view';
     }
-    return theme('quiz_dashboard_revision_selector', $content);
+    return theme('quiz_stats_revision_selector', $content);
   } 
 }
 
@@ -51,9 +51,9 @@ function quiz_dashboard_revision_selector_page($nid) {
  *   HTML table containing quiz node title, link to report, questions count
  *   and attempt count
  */
-function quiz_dashboard_get_basic_stats($uid = 0) {
+function quiz_stats_get_basic_stats($uid = 0) {
   $results = _quiz_get_quizzes();
-  return empty($results) ? t('No Statistics found.') : theme('quiz_dashboard_get_basic_stats', $results);
+  return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', $results);
 }
 
 /*
@@ -69,7 +69,7 @@ function quiz_dashboard_get_basic_stats($uid = 0) {
  * @return
  *   HTML page with charts/graphs
  */
-function quiz_dashboard_get_adv_stats($vid = 0, $uid = 0) {
+function quiz_stats_get_adv_stats($vid = 0, $uid = 0) {
   $charts = array();
   $charts['takeup'] = _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
@@ -78,7 +78,7 @@ function quiz_dashboard_get_adv_stats($vid = 0, $uid = 0) {
   $charts['top_scorers'] = _get_quiz_top_scorers_chart($vid, $uid);
   // Bar chart displaying top scorers
   $charts['grade_range'] = _get_quiz_grade_range_chart($vid, $uid);
-  return theme('quiz_dashboard_charts', $charts);
+  return theme('quiz_stats_charts', $charts);
 }
 
 // End callback function
@@ -115,7 +115,7 @@ function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   if ($count < 2) {
     return FALSE;
   }
-  $chart = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
+  $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
   $chart .= theme('quiz_grade_range', $range);
   $chart .= '</div>';
   return array(
@@ -153,7 +153,7 @@ function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
     $top_scorers[$key] = $result;
   }
   if (count($top_scorers) == 0) return FALSE;
-  $chart = '<div id="quiz_top_scorers" class="quiz-dashboard-chart-space">';
+  $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
   $chart .= theme('quiz_top_scorers', $top_scorers);
   $chart .= '</div>';
   return array(
@@ -186,7 +186,7 @@ function _get_quiz_status_chart($vid = 0, $uid = 0) {
     return FALSE; // no sufficient data
   }
   // generates quiz status chart 3D pie chart
-  $chart = '<div id="get_quiz_status_chart" class="quiz-dashboard-chart-space">';
+  $chart = '<div id="get_quiz_status_chart" class="quiz-stats-chart-space">';
   $chart .= theme('get_quiz_status_chart', $quiz);
   $chart .= '</div>';
   return array(
@@ -232,7 +232,7 @@ function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
       $res_o = db_fetch_object($results);
     }
   }
-  $chart = '<div id="date_vs_takeup_count" class="quiz-dashboard-chart-space">';
+  $chart = '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">';
   // wrapping the chart output with div for custom theming.
   $chart .= theme('date_vs_takeup_count', $days);
   // generate date vs takeup count line chart
@@ -472,10 +472,10 @@ function theme_date_vs_takeup_count($days) {
  * @return
  *   HTML table containing quiz title, author, questions count, attempt count
  */
-function theme_quiz_dashboard_get_basic_stats($results = array()) {
+function theme_quiz_stats_get_basic_stats($results = array()) {
   $header = $rows = array();
-  //$title_link = user_access('access author dashboard') ? 'admin/quiz/reports/dashboard/creator/'. $result['vid'] .'/view' : 'user/%/dashboard/%/view'; .
-  $title_link = user_access('access author dashboard') ? 'admin/quiz/reports/dashboard/creator/' : 'user/'. arg(1) .'/dashboard/';
+  //$title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/'. $result['vid'] .'/view' : 'user/%/stats/%/view'; .
+  $title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/' : 'user/'. arg(1) .'/stats/';
   if (empty($results)) {
     return '<p>' . t('No questions were found.') . '</p>';
   }
@@ -483,18 +483,18 @@ function theme_quiz_dashboard_get_basic_stats($results = array()) {
     'title' => t('Quiz'),
     'creator' => t('Author'),
     'created' => t('Created'),
-    'questions_count' => user_access('access author dashboard') ? t('Questions') : '',
-    'attempt_count' => user_access('access author dashboard') ? t('Attempts') : '',
+    'questions_count' => user_access('access author stats') ? t('Questions') : '',
+    'attempt_count' => user_access('access author stats') ? t('Attempts') : '',
   );
-  $p = drupal_get_path('module', 'quiz_dashboard');
+  $p = drupal_get_path('module', 'quiz_stats');
   $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
   foreach ($results as $result) {
     $rows[] = array(
       'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
-      'questions_count' => user_access('access author dashboard') ? _quiz_get_questions_count($result['nid']) : t(''),
-      'attempt_count' => user_access('access author dashboard') ? _quiz_get_attempt_count($result['nid']) : t(''),
+      'questions_count' => user_access('access author stats') ? _quiz_get_questions_count($result['nid']) : t(''),
+      'attempt_count' => user_access('access author stats') ? _quiz_get_attempt_count($result['nid']) : t(''),
     );
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
