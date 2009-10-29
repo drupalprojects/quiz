@@ -1,8 +1,0 @@
-; $Id$
-name = Quiz Dashboard
-description = "Creates a report to compare and analyse the results of quiz attendees."
-core = 6.x
-php = 5
-package = Quiz Addon
-dependencies[] = quiz
-dependencies[] = chart
