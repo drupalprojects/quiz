@@ -196,7 +196,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types) {
     $url_type = str_replace('_', '-', $type);
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => '<div class="add-questions">' . l(t($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
+      '#value' => '<div class="add-questions">' . l(check_plain($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
     );
   }
 }
@@ -449,19 +449,18 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
   // Recomend and preselect to create the quiz as a new revision if it already has been answered
   if (quiz_has_been_answered($quiz)) {
     $rev_default = TRUE;
-    $rev_description = 'This quiz has been answered. To maintain correctnes of existing answer reports ';
-    $rev_description .= 'changes should be saved as a new revision.';
+    $rev_description = t('This quiz has been answered. To maintain correctnes of existing answer reports changes should be saved as a new revision.');
   } 
   else {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
-    $rev_description = 'Allow question status changes to create a new revision of the quiz?';
+    $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
   
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => $rev_default,
     '#title' => t('New revision'),
-    '#description' => t($rev_description),
+    '#description' => $rev_description,
   );
 }
 /**
@@ -973,7 +972,7 @@ function quiz_browser_ahah() {
   
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
-    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator. $form_id"));
+    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
     $output = theme('status_messages');
     print drupal_to_js(array('status' => TRUE, 'data' => $output));
     exit();
