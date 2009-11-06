@@ -426,17 +426,18 @@ abstract class QuizQuestion {
             drupal_set_message(t($msg, array('%n' => $temp_quiz_node->title)));
           }
           if (count($insert_values) > 0) $to_insert .= ',';
-          $to_insert .= ' (%d, %d, %d, %d)';
+          $to_insert .= ' (%d, %d, %d, %d, %d)';
           $nid_vid = explode('-', $checked);
           $insert_values[] = $nid_vid[0];
           $insert_values[] = $nid_vid[1];
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
+          $insert_values[] = $this->getMaximumScore();
         }
       }
       if (count($insert_values) > 0) {
         $sql = 'INSERT INTO {quiz_node_relationship}
-                (parent_nid, parent_vid, child_nid, child_vid)
+                (parent_nid, parent_vid, child_nid, child_vid, max_score)
                 '. $to_insert;
         db_query($sql, $insert_values);
       }
@@ -444,9 +445,9 @@ abstract class QuizQuestion {
     if (drupal_strlen($this->node->add_directly['new']) > 0) {
       $new_node = quiz_make_new($this->node->add_directly['new']);
       $sql = 'INSERT INTO {quiz_node_relationship}
-              (parent_nid, parent_vid, child_nid, child_vid)
+              (parent_nid, parent_vid, child_nid, child_vid, max_score)
               VALUES (%d, %d, %d, %d)';
-      db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid);
+      db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore());
     }
   }
 
@@ -579,6 +580,10 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $this->answer = $answer;
   }
 
+  public function refreshQuestionNode($newNode) {
+    $this->question = $newNode;
+  }
+  
   public function isEvaluated() {
     return (bool)$this->evaluated;
   }
@@ -599,6 +604,8 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
 
   function getScore() {
     if (!isset($this->score)) $this->score = $this->score();
+    if (isset($this->question->score_weight))
+      return $this->score * $this->question->score_weight;
     return $this->score;
   }
 

@@ -29,6 +29,7 @@ foreach ($form as $key => $sub_form):
   if (!is_numeric($key) || $sub_form['#no_report'] === TRUE) continue;
   unset($form[$key]);
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
+  if ($sub_form['max_score']['#value'] == 0) $c_class = 'q-waiting';
   
   ?>
   <tr><td class="<?php print $td_classes[$td_class_i]?>"><table class = "quiz-report-q-header">

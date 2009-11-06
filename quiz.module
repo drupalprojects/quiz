@@ -2662,16 +2662,24 @@ function _quiz_get_quizzes($uid = 0) {
 
 function _quiz_get_answers($rid) {
   $questions = array();
-  $ids = db_query("SELECT question_nid, question_vid, type
-    FROM {quiz_node_results_answers}
+  $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score
+    FROM {quiz_node_results_answers} ra
     LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid)
-    WHERE result_id = %d
+    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
+    LEFT JOIN {quiz_node_relationship} rs ON (question_vid = rs.child_vid)
+    WHERE ra.result_id = %d
+    AND rs.parent_vid = r.vid
     ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     $module = quiz_question_module_for_type($line->type);
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    if ($questions[$line->question_nid]->max_score == 0) $weight = 0;
+    else $weight = $line->max_score / $questions[$line->question_nid]->max_score;
+    $questions[$line->question_nid]->max_score = $line->max_score;
+    $questions[$line->question_nid]->score_weight = $weight;
   }
+
   return $questions;
 }
 

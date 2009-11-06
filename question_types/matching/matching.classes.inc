@@ -69,7 +69,7 @@ class MatchingQuestion extends QuizQuestion {
     $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $results = db_query($sql, $this->node->nid, $this->node->vid);
     while ($result = db_fetch_object($results)) {
-      $props['answer'][] = array(
+      $props['match'][] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
         'answer' => $result->answer,
@@ -216,7 +216,7 @@ class MatchingQuestion extends QuizQuestion {
 
   public function getMaximumScore() {
     $to_return = 0;
-    foreach ($this->node->answer as $match) {
+    foreach ($this->node->match as $match) {
       if (empty($match['question']) || empty($match['answer'])) {
         continue;
       }

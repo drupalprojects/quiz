@@ -536,6 +536,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
 function _quiz_question_response_get_instance($rid, $question, $answer = NULL, $nid = NULL, $vid = NULL) {
   static $quiz_responses = array();
   if (isset($quiz_responses[$rid][$question->vid])) {
+    $quiz_responses[$rid][$question->vid]->refreshQuestionNode($question);
     return $quiz_responses[$rid][$question->vid];
   }
   elseif (isset($quiz_responses[$rid][$vid])) {
