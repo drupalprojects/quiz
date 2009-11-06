@@ -20,10 +20,8 @@
  */
 
 /**
- * TODO: Spørsmål som legges til quiz automatisk får null som max_score...
  * 
- * 
- * TODO: Make sure all random questions has the same max_score
+ * TODO: Make sure all random questions have the same max_score
  * TODO: Make sure security is ensured in the new api functions for certify
  * TODO: There were error messages when updating from 3.x to 4.x.
  * TODO: Remove unnecessary queries from matching.

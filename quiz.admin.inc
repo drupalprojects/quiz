@@ -1389,7 +1389,6 @@ function theme_quiz_admin($results) {
     $rows[] = array(
       implode(' ', $action),
       check_plain($result['name']),
-      $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
       ($result['time_end'] > 0) ? quiz_get_time_taken_in_minutes($result['time_end'] - $result['time_start']) : quiz_get_time_taken_in_minutes(time() - $result['time_start']),
@@ -1401,11 +1400,10 @@ function theme_quiz_admin($results) {
   $header = array(
     t('Action'),
     t('Username'),
-    t('Result<br />ID'),
-    t('Time <br />Started <br /> (m/d/y - h/m)'),
-    t('Finished? <br /> (m/d/y - h/m)'),
+    t('Time <br />Started'),
+    t('Finished'),
     t('Time <br />Taken <br /> (min:sec)'),
-    t('Score'),
+    t('Score (%)'),
     module_exists('results_export') ? t('Export') : '',
   );
 
