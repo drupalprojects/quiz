@@ -236,7 +236,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     if ($showpoints) {
       $rows[0][] = ($correct_answer ? t('True') : t('False'));
     }
-    $rows[0][] = ($user_answer ? t('True') : t('False'));
+    $rows[0][] = (($user_answer === NULL) ? '': ($user_anser ? t('True') : t('False')));
     if ($showfeedback && !empty($this->question->feedback)) {
       $rows[0][] = $this->question->feedback;
     }
