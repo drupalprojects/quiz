@@ -535,10 +535,12 @@ function _quiz_question_response_get_instance($rid, $question, $answer = NULL, $
   static $quiz_responses = array();
   if (isset($quiz_responses[$rid][$question->vid])) {
     $quiz_responses[$rid][$question->vid]->refreshQuestionNode($question);
-    return $quiz_responses[$rid][$question->vid];
+    if ($quiz_responses[$rid][$question->vid]->is_skipped !== FALSE)
+      return $quiz_responses[$rid][$question->vid];
   }
   elseif (isset($quiz_responses[$rid][$vid])) {
-    return $quiz_responses[$rid][$vid];
+    if ($quiz_responses[$rid][$question->vid]->is_skipped !== FALSE)
+      return $quiz_responses[$rid][$vid];
   }
   if (!isset($quiz_responses[$rid])) {
     $quiz_responses[$rid] = array();

@@ -30,12 +30,12 @@ foreach ($form as $key => $sub_form):
   unset($form[$key]);
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
   if ($sub_form['max_score']['#value'] == 0) $c_class = 'q-waiting';
-  
+  $q_header = t('Question'). (($sub_form['#is_skipped']) ? '<SPAN CLASS = "q-skipped">'. t('(skipped)') .'</SPAN>': '');
   ?>
   <tr><td class="<?php print $td_classes[$td_class_i]?>"><table class = "quiz-report-q-header">
     <tr>
       <td valign="middle" class = "quiz-report-q-cell">
-        <h3 class = "quiz-report-question-label"><?php print t('Question')?></h3>
+        <h3 class = "quiz-report-question-label"><?php print $q_header?></h3>
       </td>
       <td class = "quiz-report-score-cell">
         <table class = "quiz-report-q-header <?php print $c_class?>">

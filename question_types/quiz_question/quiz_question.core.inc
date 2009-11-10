@@ -578,6 +578,11 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
+    $sql = 'SELECT is_skipped
+            FROM {quiz_node_results_answers}
+            WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
+    $res = db_query($sql, $result_id, $question_node->nid, $question_node->vid);
+    $this->is_skipped = db_result($res);
   }
 
   public function refreshQuestionNode($newNode) {
@@ -675,6 +680,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
     $form['#is_correct'] = $this->isCorrect();
     $form['#is_evaluated'] = $this->isEvaluated();
+    $form['#is_skipped'] = $this->is_skipped;
     return $form;
   }
   

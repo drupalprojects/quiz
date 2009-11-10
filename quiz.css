@@ -189,3 +189,6 @@ table.quiz-report-q-header {
   cursor: pointer;
   text-decoration: underline;
 }
+.q-skipped {
+  color: #cc2200;	
+}
