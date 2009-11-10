@@ -186,14 +186,13 @@ function quiz_question_answering_form($form_state, $node) {
     '#value' => t('Next'),
   );
 
-  /* TODO is skipping supporting?
-   if (empty($node->no_skip_button)) {
-   $form['op']  = array(
-   '#type' => 'submit',
-   '#value' => t('Skip'),
-   );
-   }
-   */
+  if (empty($node->no_skip_button)) {
+    $form['op']  = array(
+      '#type' => 'submit',
+      '#value' => t('Skip'),
+      '#attributes' => array('class' => 'q-skip-button'),
+    );
+  }
   return $form;
 }
 

@@ -179,3 +179,13 @@ table.quiz-report-q-header {
 .q-waiting {
   background-color: #ffff00;
 }
+.q-skip-button {
+  border: none;
+  background: none;
+  color: red;
+}
+.q-skip-button:hover {
+  color: #cc7700;
+  cursor: pointer;
+  text-decoration: underline;
+}
