@@ -1165,6 +1165,7 @@ function quiz_take_quiz($quiz) {
   }
   // Check for answer submission.
   elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next')) {
+    /* We are re-introducing the old skip logic...
     if (!isset($_POST['tries'])) {
       // Moving skip logic here...
 
@@ -1187,7 +1188,8 @@ function quiz_take_quiz($quiz) {
         drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
       }
     }
-    else {
+    
+    else {*/
       //unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
 
       // Previous quiz questions: Questions that have been asked already. We save a record of all of them
@@ -1216,12 +1218,12 @@ function quiz_take_quiz($quiz) {
         //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
         drupal_goto('node/' . $quiz->nid, array('quizkey' => md5(mt_rand() . time())));
       }
-    }
+  //}
   }
   // Check for a skip.
   // XXX: Deprecated. Causing too many UI issues.
   elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
-
+    
     // Advance the question.
     $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
 
@@ -1237,7 +1239,6 @@ function quiz_take_quiz($quiz) {
     //quiz_store_question_result($former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id'], $result);
     quiz_store_question_result($result, array('set_msg' => TRUE));
   }
-
   // The content array:
   //$content['body'] = array();
 
@@ -1309,7 +1310,7 @@ function quiz_take_quiz($quiz) {
       // the $content for the quiz node. Since we want to override the default theme, we use the
       // quiz_node_view() function, which performs the steps in node_view(), but in a way more
       // specific to our needs.
-      $content['body']['#value'] = quiz_node_view($question_node, TRUE, FALSE);
+      $content['body']['#value'] = quiz_node_view($question_node, $quiz);
       drupal_set_title(check_plain($quiz->title));
       unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
     }
@@ -1351,7 +1352,8 @@ function quiz_take_quiz($quiz) {
  * @return
  *  A string containing the body of the node.
  */
-function quiz_node_view($question_node) {
+function quiz_node_view($question_node, $quiz_node) {
+  $question_node->allow_skipping = $quiz_node->allow_skipping;
   $question_node = node_build_content($question_node, FALSE, TRUE);
   node_invoke_nodeapi($question_node, 'alter', FALSE, TRUE);
   $question_node->body = drupal_render($question_node->content);

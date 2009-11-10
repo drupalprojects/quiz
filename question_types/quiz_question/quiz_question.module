@@ -185,8 +185,7 @@ function quiz_question_answering_form($form_state, $node) {
     '#type' => 'submit',
     '#value' => t('Next'),
   );
-
-  if (empty($node->no_skip_button)) {
+  if ($node->allow_skipping) {
     $form['op']  = array(
       '#type' => 'submit',
       '#value' => t('Skip'),
