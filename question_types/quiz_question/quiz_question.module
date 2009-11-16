@@ -229,7 +229,7 @@ function _quiz_question_teaser_content($node) {
 function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
   if (empty($answer)) {
     // FIXME this use of POST array is hacky
-    $answer = $_POST['tries'];
+    $answer = $_POST['tries']; 
     //$answer = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
   }
   unset($_POST['tries']);

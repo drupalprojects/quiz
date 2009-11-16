@@ -1194,7 +1194,6 @@ function quiz_take_quiz($quiz) {
       // Previous quiz questions: Questions that have been asked already. We save a record of all of them
       // so that a user can navigate backward all the way to the beginning of the quiz.
       $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
-
       $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
       $former_question = node_load(array('nid' => $former_question_array['nid']));
 
@@ -1202,7 +1201,7 @@ function quiz_take_quiz($quiz) {
       $types = _quiz_get_question_types();
       $module = $types[$former_question->type]['module'];
       $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-
+      $q_passed_validation = $result->is_valid;
       quiz_store_question_result($result, array('set_msg' => TRUE));
 
       // Stash feedback in the session, since the $_POST gets cleared.
@@ -1222,7 +1221,7 @@ function quiz_take_quiz($quiz) {
   // Check for a skip.
   // XXX: Deprecated. Causing too many UI issues.
   elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
-    
+    $q_passed_validation = TRUE;
     // Advance the question.
     $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
 
@@ -1248,8 +1247,16 @@ function quiz_take_quiz($quiz) {
   }
 
   // If this quiz is in progress, load the next questions and return it via the theme.
-  if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-    $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
+  if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
+    if (!is_string($q_passed_validation)) {
+      $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
+    } else {
+      $question_node = $former_question;
+      drupal_set_message($q_passed_validation, 'error');
+      array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $former_question_array);
+      if (is_array($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']))
+        array_shift($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+    }
     //$output .= theme('quiz_take_question', $quiz, $question_node);
     // Start mods...
 
@@ -1352,12 +1359,7 @@ function quiz_take_quiz($quiz) {
  */
 function quiz_node_view($question_node, $quiz_node) {
   $question_node->allow_skipping = $quiz_node->allow_skipping;
-  $error_messages = $_SESSION['messages']['error']; // TODO: This is UGLY! SHOULD BE REMOVED!
   $question_node = node_build_content($question_node, FALSE, TRUE);
-  if (!empty($error_messages))
-    $_SESSION['messages']['error'] = $error_messages;
-  else
-    unset($_SESSION['messages']['error']); 
   node_invoke_nodeapi($question_node, 'alter', FALSE, TRUE);
   $question_node->body = drupal_render($question_node->content);
   return theme('quiz_single_question_node', $question_node);

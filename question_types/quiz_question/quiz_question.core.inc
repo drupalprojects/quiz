@@ -623,7 +623,12 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $obj->is_correct = $this->isCorrect();
     $obj->is_evaluated = $this->isEvaluated();
     $obj->is_skipped = FALSE;
+    $obj->is_valid = $this->isValid();
     return $obj;
+  }
+  
+  public function isValid() {
+    return TRUE;
   }
 
   public function getReport() {
