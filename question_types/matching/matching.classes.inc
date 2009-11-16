@@ -190,26 +190,26 @@ class MatchingQuestion extends QuizQuestion {
       );
       $form['match'][$i]['match_id'] = array(
         '#type' => 'hidden',
-        '#default_value' => isset($this->node->answer[$i-1]['match_id']) ? $this->node->answer[$i-1]['match_id'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['match_id']) ? $this->node->match[$i-1]['match_id'] : ''
       );
       $form['match'][$i]['question'] = array(
         '#type' => 'textarea',
         '#title' => t('Question'),
         '#rows' => 2,
-        '#default_value' => isset($this->node->answer[$i-1]['question']) ? $this->node->answer[$i-1]['question'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['question']) ? $this->node->match[$i-1]['question'] : ''
       );
       $form['match'][$i]['answer'] = array(
         '#type' => 'textarea',
         '#title' => t('Match'),
         '#rows' => 2,
-        '#default_value' => isset($this->node->answer[$i-1]['answer']) ? $this->node->answer[$i-1]['answer'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['answer']) ? $this->node->match[$i-1]['answer'] : ''
       );
 
       $form['match'][$i]['feedback'] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback / Reason'),
         '#rows' => 2,
-        '#default_value' => isset($this->node->answer[$i-1]['feedback']) ? $this->node->answer[$i-1]['feedback'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['feedback']) ? $this->node->match[$i-1]['feedback'] : ''
       );
     }
     return $form;
