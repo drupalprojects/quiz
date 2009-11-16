@@ -521,6 +521,11 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
   }
 
 
+  public function isValid() {
+    if (empty($this->answer_id)) return t('You must provide an answer');
+    return TRUE;
+  }
+
   /**
    * Implementation of save
    */

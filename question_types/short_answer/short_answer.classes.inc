@@ -320,6 +320,11 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     }
   }
 
+  public function isValid() {
+    if (empty($this->answer)) return t('You must provide an answer');
+    return TRUE;
+  }
+  
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since

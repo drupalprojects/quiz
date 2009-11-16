@@ -128,6 +128,7 @@ class MatchingQuestion extends QuizQuestion {
 
   private function customShuffle(array $array = array()) {
     $new_array = array();
+    $new_array['def'] = '';
     while (count($array)) {
       $element = array_rand($array);
       $new_array[$element] = $array[$element];
@@ -267,7 +268,13 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       }
     }
   }
-
+  
+  public function isValid() {
+    foreach ($this->answer as $value) 
+      if ($value != 'def') return TRUE;
+    return t('You need to match at least one of the items.');
+  }
+  
   public function save() {
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()

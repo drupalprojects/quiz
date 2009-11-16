@@ -155,6 +155,11 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     }
   }
 
+  public function isValid() {
+    if (empty($this->answer)) return t('You must provide an answer');
+    return TRUE;
+  }
+  
   public function save() {
     $sql = "INSERT INTO {quiz_long_answer_user_answers} (answer, question_nid, question_vid, result_id) VALUES ('%s', %d, %d, %d)";
     db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid);
