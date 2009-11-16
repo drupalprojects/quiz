@@ -692,7 +692,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     return array(
       '#type' => 'markup',
-      '#value' => check_markup($this->question->body, $this->question->filter, FALSE),
+      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
     );
   }
   
