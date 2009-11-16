@@ -1145,7 +1145,6 @@ function quiz_take_quiz($quiz) {
       return array('body' => array('#value' => ''));
     }
   }
-
   if (!isset($_POST['op'])) {
     // Starting new quiz... Do we need to show instructions here?
   }
@@ -1319,7 +1318,6 @@ function quiz_take_quiz($quiz) {
   else {
     $quiz_end = TRUE;
   }
-
   // If we're at the end of the quiz.
   if (!empty($quiz_end)) {
     $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
@@ -1354,7 +1352,12 @@ function quiz_take_quiz($quiz) {
  */
 function quiz_node_view($question_node, $quiz_node) {
   $question_node->allow_skipping = $quiz_node->allow_skipping;
+  $error_messages = $_SESSION['messages']['error'];
   $question_node = node_build_content($question_node, FALSE, TRUE);
+  if (!empty($error_messages))
+    $_SESSION['messages']['error'] = $error_messages;
+  else
+    unset($_SESSION['messages']['error']); 
   node_invoke_nodeapi($question_node, 'alter', FALSE, TRUE);
   $question_node->body = drupal_render($question_node->content);
   return theme('quiz_single_question_node', $question_node);
