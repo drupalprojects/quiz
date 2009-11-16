@@ -625,6 +625,11 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       }
     }
   }
+  
+  public function isValid() {
+    if ($this->question->choice_multi) return TRUE;
+    if (empty($this->user_answer_ids)) return t('You must provide an answer');
+  }
 
   /**
    * Implementation of save
