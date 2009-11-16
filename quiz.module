@@ -1352,7 +1352,7 @@ function quiz_take_quiz($quiz) {
  */
 function quiz_node_view($question_node, $quiz_node) {
   $question_node->allow_skipping = $quiz_node->allow_skipping;
-  $error_messages = $_SESSION['messages']['error'];
+  $error_messages = $_SESSION['messages']['error']; // TODO: This is UGLY! SHOULD BE REMOVED!
   $question_node = node_build_content($question_node, FALSE, TRUE);
   if (!empty($error_messages))
     $_SESSION['messages']['error'] = $error_messages;
