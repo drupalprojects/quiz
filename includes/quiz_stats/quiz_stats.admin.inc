@@ -229,9 +229,11 @@ function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
   foreach ($days as $date => &$value) {
    if ($date == $res_o->date) {
       $value->value = $res_o->count;
+      if ($res_o->count > 0) $valid_data = TRUE;
       $res_o = db_fetch_object($results);
     }
   }
+  if (!$valid_data) return FALSE;
   $chart = '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">';
   // wrapping the chart output with div for custom theming.
   $chart .= theme('date_vs_takeup_count', $days);
