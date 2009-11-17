@@ -340,7 +340,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
     while ($res_o = db_fetch_object($res)) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
-      $cur_questions[$res_o->nid]->max_score = $res_o->max_score;
+      $cur_questions[$res_o->nid]->max_score = $res_o->type == 'scale' ? 0 : $res_o->max_score;
       $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
       $questions[] = $cur_questions[$res_o->nid];
     }
@@ -380,6 +380,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#size' => 2,
       '#maxlength' => 2,
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+      '#disabled' => ($question->type == 'quiz_directions'),
     );
     
     $form[$fieldset]['stayers'][$id] = array(

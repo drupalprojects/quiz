@@ -73,6 +73,7 @@ class ScaleQuestion extends QuizQuestion {
       db_query($sql, $answer_collection_id, $this->node->nid, $this->node->vid);
     }
   }
+  
   /**
    * Add a preset for the current user.
    *
@@ -85,6 +86,7 @@ class ScaleQuestion extends QuizQuestion {
             VALUES (%d, %d)';
     db_query($sql, $user->uid, $col_id);
   }
+  
   /**
    * Stores the answer collection to the database, or reuses an excisting collection.
    *
@@ -131,6 +133,7 @@ class ScaleQuestion extends QuizQuestion {
     db_unlock_tables();
     return $answer_collection_id;
   }
+  
   /**
    * Saves one alternative to the database
    *
@@ -143,6 +146,7 @@ class ScaleQuestion extends QuizQuestion {
     		VALUES (%d, \'%s\')';
     db_query($sql, $answer_collection_id, $alternative);
   }
+  
   /**
    * Deletes an answer collection if it isn't beeing used.
    *
@@ -176,6 +180,7 @@ class ScaleQuestion extends QuizQuestion {
     }
     return FALSE;
   }
+  
   /**
    * Finds out if a collection allready exists.
    *
@@ -206,6 +211,7 @@ class ScaleQuestion extends QuizQuestion {
     } while ($res_o = db_fetch_object($res));
     return FALSE;
   }
+  
   /**
    * Implementation of validate
    *
@@ -214,6 +220,7 @@ class ScaleQuestion extends QuizQuestion {
    */
   public function validateNode(array &$form) {
   }
+  
   /**
    * Implementation of delete
    *
@@ -267,6 +274,7 @@ class ScaleQuestion extends QuizQuestion {
     $this->nodeProperties = $props;
     return $props;
   }
+  
   /**
    * Implementation of view
    *
@@ -313,6 +321,7 @@ class ScaleQuestion extends QuizQuestion {
     );
     return $form;
   }
+  
   /**
    * Implementation of getAdminForm
    *
@@ -331,6 +340,7 @@ class ScaleQuestion extends QuizQuestion {
     );
     return system_settings_form($form);
   }//TODO: Add validation
+  
   /**
    * Implementation of getCreation form
    *
@@ -396,6 +406,7 @@ class ScaleQuestion extends QuizQuestion {
     );
     return $form;
   }
+  
   /**
    * Get all available presets for the current user.
    *
@@ -443,6 +454,7 @@ class ScaleQuestion extends QuizQuestion {
     }
     return $collections;
   }
+  
   /**
    * Makes options array for form elements.
    *
@@ -456,6 +468,7 @@ class ScaleQuestion extends QuizQuestion {
     }
     return $options;
   }
+  
   /**
    * Makes a javascript constructing an answer collection array.
    *
@@ -474,6 +487,7 @@ class ScaleQuestion extends QuizQuestion {
     }
     return $jsArray;
   }
+  
   /**
    * Implementation of getMaximumScore.
    *
@@ -481,7 +495,7 @@ class ScaleQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-DRUPAL-6--4/question_types/quiz_question/QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
-    return 0;
+    return 1;
   }
 }
 
@@ -553,7 +567,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @return 0 - this question type is never scored.
    */
   public function score() {
-    return 0;
+    return $this->isValid() ? 1 : 0;
   }
   /**
    * Implementation of isCorrect
