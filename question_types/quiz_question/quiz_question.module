@@ -108,7 +108,6 @@ function quiz_question_node_info() {
   );
   foreach ($types as $type => $definition) {
     $node_info = array(
-      'help' => t('Create a new @name.', array('@name' => $definition['name'])),
       'name' => $definition['name'],
       'description' => $definition['description']
     );
