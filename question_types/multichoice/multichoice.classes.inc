@@ -449,10 +449,19 @@ class MultichoiceQuestion extends QuizQuestion {
         '#collapsed' => !($i < 2 || isset($short['answer'])),
       );
       $form['alternatives'][$i]['#theme'][] = 'multichoice_alternative_creation';
+      if (is_array($short)) {
+        if ($short['score_if_chosen'] == $short['score_if_not_chosen'])
+          $correct_default = $short['correct'];
+        else
+          $correct_default = $short['score_if_chosen'] > $short['score_if_not_chosen'];
+      } 
+      else {
+        $correct_default = FALSE;
+      }
       $form['alternatives'][$i]['correct'] = array(
         '#type' => 'checkbox',
         '#title' => t('Correct'),
-        '#default_value' => ($short['score_if_chosen'] > $short['score_if_not_chosen']),
+        '#default_value' => $correct_default,
         '#attributes' => array('onchange' => 'refreshScores(this)'),
       );
 
