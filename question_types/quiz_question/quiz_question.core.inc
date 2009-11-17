@@ -619,10 +619,9 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
-    $possible = _quiz_question_get_instance($this->question, TRUE)->getMaximumScore();
+    $possible = $this->question->max_score;
     $actual = $this->getScore();
-
-    assert($action <= $possible);
+    assert($actual <= $possible);
 
     return ($possible == $actual);
   }
