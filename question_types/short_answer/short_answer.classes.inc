@@ -331,7 +331,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
       $sql = "SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
-      $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
+      $score = db_result(db_query($sql, $this->rid, $this->question->vid));
     }
     // Otherwise, we run the scoring automatically.
     else {
