@@ -49,7 +49,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $cols[] = array('data' => drupal_render($full_options[$key]), 'width' => 35);
   
   // The title
-  $cols[] = l($value, "node/$quest_nid", array('query' => array('destination' => $_GET['q']), 'attributes' => array('target' => 'blank')));
+  $cols[] = l($value, "node/$quest_nid", array('html' => TRUE, 'query' => array('destination' => $_GET['q']), 'attributes' => array('target' => 'blank')));
   
   $cols[] = $form['types'][$key]['#value'];
   $cols[] = $form['changed'][$key]['#value'];

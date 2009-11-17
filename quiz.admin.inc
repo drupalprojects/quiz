@@ -395,7 +395,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     }
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l(
-        $question->title, 
+        check_plain($question->title), 
         'node/'. $question->nid, 
         array(
           'html' => TRUE, 
