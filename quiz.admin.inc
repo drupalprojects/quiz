@@ -154,7 +154,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   // the question show up in the question list instantly when a question is chosen in the browser.
   _quiz_add_hidden_questions($questions, $hidden_questions, $form_state, $quiz);
   
-  _quiz_add_questions_to_form($form, $questions, $quiz);
+  _quiz_add_questions_to_form($form, $questions, $quiz, $types);
   
   // Show the number of questions in the table header.
   $always_count = 0;
@@ -357,7 +357,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
  * @param $quiz
  *   The quiz node(object)
  */
-function _quiz_add_questions_to_form(&$form, &$questions, &$quiz) {
+function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_types) {
   $form['question_list']['weights'] = array('#tree' => TRUE);
   $form['question_list']['max_scores'] = array('#tree' => TRUE);
   $form['question_list']['stayers'] = array('#tree' => TRUE);
@@ -404,7 +404,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz) {
       ),
     );
     $form[$fieldset]['types'][$id] = array(
-      '#value' => $question->type,
+      '#value' => $question_types[$question->type]['name'],
     );
     $form[$fieldset]['view_links'][$id] = array(
       '#value' => l(
@@ -551,7 +551,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     $hidden_questions[] = $id;
     $options[$id] = check_plain($res_o->title);
     $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'small');
-    $browser['types'][$id]['#value'] = $res_o->type;
+    $browser['types'][$id]['#value'] = $question_types[$res_o->type]['name'];
     $browser['names'][$id]['#value'] = check_plain($res_o->name);
   }
   
@@ -649,7 +649,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
     t('No filter'),
   );
   foreach (array_keys($question_types) as $type) {
-    $type_options[$type] = $type;
+    $type_options[$type] = $question_types[$type]['name'];
   }
   
   // Create options array for the changed filter
