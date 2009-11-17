@@ -1789,7 +1789,7 @@ function quiz_calculate_score($quiz, $rid) {
 
     if (function_exists($function)) {
       $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
-      $score->attained = ($score->possible > 0) ? round($score->attained / $score->possible * $question->max_score) : 0;
+      $score->attained = ($score->possible > 0) ? ($score->attained / $score->possible * $question->max_score) : 0;
       $score->possible = $question->max_score;
       $scores[] = $score;
     }
@@ -1802,7 +1802,6 @@ function quiz_calculate_score($quiz, $rid) {
     }
     ++$count;
   }
-
   // 3. Sum the results
   $possible_score = 0;
   $total_score = 0;

@@ -332,8 +332,7 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   if (isset($rid)) {
     $max_score = $question->node->max_score;
     $response = _quiz_question_response_get_instance($rid, $question->node);
-
-    $score->attained = $score->possible > 0 ? round($response->getScore() * $max_score / $score->possible) : 0;
+    $score->attained = $score->possible > 0 ? round($response->getScore()) : 0;
     $score->possible = $max_score;
 
     $score->is_evaluated = $response->isEvaluated();
