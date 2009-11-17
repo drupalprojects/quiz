@@ -120,7 +120,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
   
   $types = _quiz_get_question_types();
-  _quiz_add_fields_for_creating_questions($form, $types);
+  _quiz_add_fields_for_creating_questions($form, $types, $quiz);
 
   // Display questions on this quiz.
   $form['question_list'] = array(
@@ -182,7 +182,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
  * @param $form
  *   FAPI form(array)
  */
-function _quiz_add_fields_for_creating_questions(&$form, &$types) {
+function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
