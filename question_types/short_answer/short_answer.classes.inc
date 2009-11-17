@@ -53,11 +53,6 @@ class ShortAnswerQuestion extends QuizQuestion {
   }
 
   public function validateNode(array &$form) {
-    $max_score = $this->node->max_score;
-    if (!ctype_digit($max_score) || intval($max_score) < 0) {
-      form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
-    }
-
     if ($this->node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($this->node->correct_answer)) {
       form_set_error('correct_answer_evaluation', t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
@@ -192,21 +187,12 @@ class ShortAnswerQuestion extends QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
      );
-     $form['answer']['max_score'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Maximum score'),
-       '#description' => t('If this is automatically graded, this will be treated as an "all or nothing" score. Manual grading may assign any whole number value between 0 and this number.'),
-       '#default_value' => isset($this->node->max_score) ? $this->node->max_score : 1,
-       '#size' => 3,
-       '#maxlength' => 3,
-       '#required' => FALSE,
-     );
 
      return $form;
 
   }
   public function getMaximumScore() {
-    return $this->node->max_score;
+    return 5;
   }
 
   /**

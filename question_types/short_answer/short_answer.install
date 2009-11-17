@@ -101,7 +101,7 @@ function short_answer_schema() {
         'not null' => TRUE,
       ),
       'score' => array(
-        'type' => 'int',
+        'type' => 'float',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
@@ -125,4 +125,16 @@ function short_answer_schema() {
   );
 
   return $schema;
+}
+
+function short_answer_update_6400() {
+  $to_return = array();
+  $spec = array(
+    'type' => 'float',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_change_field($to_return, 'quiz_short_answer_user_answers', 'score', 'score', $spec);
+  return $to_return;
 }

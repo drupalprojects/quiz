@@ -21,11 +21,6 @@ class LongAnswerQuestion extends QuizQuestion{
   }
 
   public function validateNode(array &$form) {
-    // Check to make sure that the maximum score is greater-than or equal-to 0.
-    $max_score = $this->node->max_score;
-    if (!ctype_digit($max_score) || intval($max_score) < 0) {
-      form_set_error('max_score', t('Score must be a positive integer (0 or higher).'));
-    }
   }
 
   // This is called whenever a question is rendered, either
@@ -56,21 +51,11 @@ class LongAnswerQuestion extends QuizQuestion{
   }
 
   public function getCreationForm(array $form_state = NULL) {
-    $form['max_score'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Maximum Possible Score'),
-      '#description' => t('Long answer questions are scored manually. This field indicates to the person scoring what the maximum number of points per essay is. Multichoice questions have a score of 1.'),
-      '#default_value' => isset($this->node->max_score) ? $this->node->max_score : variable_get('long_answer_default_maximum_score', 1),
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#weight' => -4,
-      '#required' => TRUE,
-    );
-    return $form;
+    return array();
   }
 
   public function getMaximumScore() {
-    return $this->node->max_score;
+    return 10;
   }
 
 }

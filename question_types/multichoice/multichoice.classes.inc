@@ -408,7 +408,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $form['alternatives']['settings']['choice_multi'] = array(
       '#type' => 'checkbox',
       '#title' => t('Multiple answers'),
-      '#description' => t('Allow any number of answers. If this box is not checked, one, and only one answer is allowed.'),
+      '#description' => t('Allow any number of answers(checkboxes are used). If this box is not checked, one, and only one answer is allowed(radiobuttons are used).'),
       '#default_value' => $default_settings['choice_multi'],
       '#parents' => array('choice_multi'),
     );
@@ -422,7 +422,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $form['alternatives']['settings']['choice_boolean'] = array(
       '#type' => 'checkbox',
       '#title' => t('Simple scoring'),
-      '#description' => t('Give one point if everything is correct. Zero points otherwise.'),
+      '#description' => t('Give max score if everything is correct. Zero points otherwise.'),
       '#default_value' => $default_settings['choice_boolean'],
       '#parents' => array('choice_boolean'),
     );
