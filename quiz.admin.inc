@@ -375,13 +375,20 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#maxlength' => 4,
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
-    $form[$fieldset]['max_scores'][$id] = array(
-      '#type' => 'textfield',
-      '#size' => 2,
-      '#maxlength' => 2,
-      '#default_value' => isset($question->max_score) ? $question->max_score : 0,
-      '#disabled' => ($question->type == 'quiz_directions'),
-    );
+    if ($question->type != 'quiz_directions') {
+	  $form[$fieldset]['max_scores'][$id] = array(
+	    '#type' => 'textfield',
+	    '#size' => 2,
+	    '#maxlength' => 2,
+	    '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+	  );
+    }
+    else {
+      $form[$fieldset]['max_scores'][$id] = array(
+	    '#type' => 'markup',
+	    '#value' => '',
+	  );
+    }
     
     $form[$fieldset]['stayers'][$id] = array(
       '#type' => 'checkbox',
