@@ -390,9 +390,6 @@ function quiz_question_insert(stdClass $node) {
   _quiz_question_get_instance($node)->save(TRUE);
   // if the question node says it should be attached to a quiz/qcollection, attach it.
   if (isset($node->collection_nid) && $node->collection_nid > 0) {
-    $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight)
-        VALUES (%d, %d, %d, %d, %d, %d)';
-    db_query($sql, $node->collection_nid, $node->collection_vid, $node->nid, $node->vid, QUESTION_ALWAYS, $node->weight);
     quiz_question_refresh_latest_quizzes($node->collection_nid);
   }
 }

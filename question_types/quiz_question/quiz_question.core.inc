@@ -289,6 +289,7 @@ abstract class QuizQuestion {
     $already = array();
     $already_nids = array();
     if (is_numeric($this->node->nid)) {
+      // Finding quizzes this question already belongs to.
       $sql = 'SELECT n.nid, r.parent_vid AS vid, n.title
               FROM {quiz_node_relationship} r
               JOIN {node} n
@@ -303,6 +304,7 @@ abstract class QuizQuestion {
     $found = implode(', ', $already_nids);
     $latest = array();
     $latest_nids = array();
+    // Finding the last quizzes the current user has been using
     $sql = "SELECT quiz_nid, n.vid, title
             FROM {quiz_question_latest_quizzes} lq
             JOIN {node} n
@@ -317,15 +319,33 @@ abstract class QuizQuestion {
     }
     $found = implode(', ', array_merge($already_nids, $latest_nids));
     if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
+      // Suplementing with other available quizzes...
       $sql = "SELECT nid, vid, title
             FROM {node} n
-            WHERE n.uid = %d AND type = 'quiz'";
+            WHERE type = 'quiz'";
       if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
       $sql .= " ORDER BY changed LIMIT %d";
-      $res = db_query(db_rewrite_sql($sql), $user->uid, QUIZ_QUESTION_N_O_LATEST - count($latest));
+      $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_N_O_LATEST - count($latest));
       while ($res_o = db_fetch_object($res)) {
         $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
       }
+    }
+    // If we came from the manage questions tab...
+    $latest_default = array();
+    if (isset($collection)) {
+      foreach ($latest as $key => $value) {
+        $latest_nid = preg_match('/^[0-9]+/', $key);
+        if ($latest_nid == $collection->nid) {
+          unset($latest[$key]);
+          break;
+        }
+      }
+      $sql = 'SELECT title 
+              FROM {node_revisions}
+              WHERE vid = %d';
+      $res = db_query($sql, $collection->vid);
+      $latest[$collection->nid .'-'. $collection->vid] = db_result($res);
+      $latest_default[] = $collection->nid .'-'. $collection->vid;
     }
 
     $form['add_directly'] = array(
@@ -336,6 +356,7 @@ abstract class QuizQuestion {
       '#weight' => -3,
       '#tree' => TRUE,
     );
+    
     if (count($already) > 0) {
       $desc = 'If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. ';
       $desc .= 'If the quiz has been answered a new revision of the quiz will be created automatically.';
@@ -348,13 +369,13 @@ abstract class QuizQuestion {
       );
     }
     if (count($latest) > 0) {
-      $desc = 'If you check any of the checkboxes this question will be added to the corresponding quiz. ';
-      $desc .= 'If the quiz has been answered a new revision will be created automatically.';
+      $desc = t('If you check any of the checkboxes this question will be added to the corresponding quiz. If the quiz has been answered a new revision will be created automatically.');
       $form['add_directly']['latest'] = array(
         '#type' => 'checkboxes',
         '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
-        '#description' => t($desc),
+        '#description' => $desc,
         '#options' => $latest,
+        '#default_value' => $latest_default,
       );
     }
     $form['add_directly']['new'] = array(
@@ -363,10 +384,9 @@ abstract class QuizQuestion {
       '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
     );
     if ($this->hasBeenAnswered()) {
-      $log = 'The current revision has been answered. We create a new revision so that the reports ';
-      $log .= 'from the existing answers stays correct.';
+      $log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
       $this->node->revision = 1;
-      $this->node->log = t($log);
+      $this->node->log = $log;
     }
     return $form;
   }
