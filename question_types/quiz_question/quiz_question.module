@@ -485,7 +485,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   if (is_object($node)) {
     if (!isset($node->type)) {
       // To substanitally improve performance on the result page we avoid node_load()...
-      $sql = 'SELECT n.type, r.nid, p.vid, r.title, r.body, max_score
+      $sql = 'SELECT n.type, r.nid, p.vid, r.title, r.body, max_score, r.format
             FROM {node} n 
             JOIN {node_revisions} r
             ON r.nid = n.nid
