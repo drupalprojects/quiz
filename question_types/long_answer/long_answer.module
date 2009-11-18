@@ -136,7 +136,21 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
   // We update all three.
 
   // First, we update the long answer table
-  db_query("UPDATE {quiz_long_answer_user_answers} SET score = %d, is_evaluated = 1 WHERE question_nid = %d AND question_vid = %d AND result_id = %d", $score, $nid, $vid, $rid);
+  db_query("UPDATE {quiz_long_answer_user_answers} 
+            SET score = %d * (
+              SELECT max_score
+              FROM {quiz_question_properties}
+              WHERE vid = %d
+            ) / (
+              SELECT max_score
+              FROM {quiz_node_relationship}
+              WHERE parent_vid = %d
+              AND child_vid = %d
+            ), is_evaluated = 1 
+            WHERE question_nid = %d 
+            AND question_vid = %d 
+            AND result_id = %d", 
+           $score, $vid, $quiz->vid, $vid, $nid, $vid, $rid);
   $changed = db_affected_rows();
 
   if ($changed > 0) {

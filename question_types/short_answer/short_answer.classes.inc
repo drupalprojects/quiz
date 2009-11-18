@@ -320,7 +320,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     $sql = "INSERT INTO {quiz_short_answer_user_answers}
       (answer, question_nid, question_vid, result_id, score, is_evaluated)
       VALUES ('%s', %d, %d, %d, %d, %d)";
-    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->getScore(), $this->is_evaluated);
+    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->getScore(FALSE), $this->is_evaluated);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
   public function delete() {
