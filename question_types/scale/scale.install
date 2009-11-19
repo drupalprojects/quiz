@@ -149,6 +149,19 @@ function scale_update_6400() {
   return array();
 }
 
+function scale_update_6401() {
+  $sql = 'UPDATE {quiz_question_properties} qqp
+          SET max_score = 1
+          WHERE qqp.nid IN(
+            SELECT n.nid 
+            FROM {node} n
+            WHERE n.type = \'scale\'
+          )';
+  $to_return = array();          
+  $to_return[] = update_sql($sql);
+  return $to_return;
+}
+
 /**
  * Implementation of hook_uninstall()
  */

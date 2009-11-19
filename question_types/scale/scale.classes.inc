@@ -569,6 +569,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
   public function score() {
     return $this->isValid() ? 1 : 0;
   }
+
   /**
    * Implementation of isCorrect
    *
