@@ -1117,7 +1117,7 @@ function quiz_take_quiz($quiz) {
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
     }
     // First time running through quiz.
-    elseif ($rid = quiz_start_actions($quiz)) {
+    elseif ($rid = quiz_start_check($quiz)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
 
@@ -1135,7 +1135,6 @@ function quiz_take_quiz($quiz) {
 
       // Initialize session variables.
       $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
-      $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
@@ -1164,6 +1163,8 @@ function quiz_take_quiz($quiz) {
   }
   // Check for answer submission.
   elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next')) {
+    if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id']))
+      $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     /* We are re-introducing the old skip logic...
     if (!isset($_POST['tries'])) {
       // Moving skip logic here...
@@ -1669,7 +1670,7 @@ function quiz_is_passed($uid, $nid, $vid) {
  * @return
  *  Returns quiz_node_results result_id, or FALSE if there is an error.
  */
-function quiz_start_actions($quiz) {
+function quiz_start_check($quiz) {
   global $user;
 
   $user_is_admin = user_access('administer quiz') || user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
@@ -1729,6 +1730,15 @@ function quiz_start_actions($quiz) {
   //     "INSERT INTO {quiz_node_results} (result_id, nid, vid, uid, time_start) VALUES (%d, %d, %d, %d, %d)",
   //     $rid, $quiz->nid, $quiz->vid, $user->uid, time()
   //   );
+
+  // Call hook_quiz_begin().
+  module_invoke_all('quiz_begin', $quiz, $rid);
+
+  return TRUE;
+}
+
+function quiz_create_rid($quiz) {
+  global $user;
   $result = db_query(
     "INSERT INTO {quiz_node_results} (nid, vid, uid, time_start) VALUES (%d, %d, %d, %d)",
     $quiz->nid, $quiz->vid, $user->uid, time()
@@ -1742,10 +1752,6 @@ function quiz_start_actions($quiz) {
     drupal_set_message(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), 'error'));
     return FALSE;
   }
-
-  // Call hook_quiz_begin().
-  module_invoke_all('quiz_begin', $quiz, $rid);
-
   return $rid;
 }
 
