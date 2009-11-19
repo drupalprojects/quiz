@@ -2912,6 +2912,7 @@ function quiz_make_new($title) {
  *   true if there exists answers to the current question
  */
 function quiz_has_been_answered($node) {
+  if (!isset($node->nid)) return false;
   $sql = 'SELECT *
           FROM {quiz_node_results}
           WHERE nid = %d AND vid = %d

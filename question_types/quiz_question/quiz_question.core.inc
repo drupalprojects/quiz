@@ -478,6 +478,7 @@ abstract class QuizQuestion {
    *   true if there exists answers to the current question
    */
   public function hasBeenAnswered() {
+    if (!isset($this->node->nid)) return false;
     $sql = 'SELECT *
             FROM {quiz_node_results_answers}
             WHERE question_nid = %d AND question_vid = %d
