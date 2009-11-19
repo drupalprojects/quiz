@@ -357,7 +357,12 @@ function quiz_question_type_settings_form($context, $type) {
  */
 function quiz_question_nodeapi(&$node, $op) {
   if ($op == 'delete revision') {
-    _quiz_delete_question($node, TRUE); // true for only this version
+    $q_types = _quiz_question_get_implementations();
+    foreach ($q_types as $q_type => $info) {
+      if ($node->type == $q_type) {
+        _quiz_delete_question($node, TRUE); // true for only this version
+      }
+    }
   }
   elseif ($op == 'presave') {
     $q_types = _quiz_question_get_implementations();
@@ -445,7 +450,10 @@ function quiz_question_delete(&$node) {
  */
 function _quiz_delete_question(&$node, $only_this_version) {
   // let each question class delete its own stuff
-  _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
+  try {
+    _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
+  }
+  catch(Exception $e) {}
 
   // FIXME QuizQuestion class makes these relationships, so it should handle their 'deletion' too
   // FIXME alternately, move the relationship handling out of QuizQuestion class

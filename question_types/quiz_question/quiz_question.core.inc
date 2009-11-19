@@ -294,11 +294,13 @@ abstract class QuizQuestion {
               FROM {quiz_node_relationship} r
               JOIN {node} n
               ON n.nid = r.parent_nid
-              WHERE r.child_nid = %d AND r.child_vid = %d';
+              WHERE r.child_nid = %d AND r.child_vid = %d
+              ORDER BY r.parent_vid DESC';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
       while ($res_o = db_fetch_object($res)) {
-        $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+        if (in_array($res_o->nid, $already_nids)) continue;
         $already_nids[] = $res_o->nid;
+        $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
       }
     }
     $found = implode(', ', $already_nids);
