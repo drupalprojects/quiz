@@ -75,5 +75,32 @@ function quiz_question_revision_actions($form_state, $vid) {
     );
     $form['quizzes'][$quiz->vid]['#quiz_title'] = $quiz->title;
   }
+  $form['#quiz_header'] = array(
+    t('Quiz'), 
+    t('Update and revise'),
+    t('Update and unpublish'),
+    t('Update'),
+    t('Do nothing'),
+  );
+  $form['explanation'] = array();
+  $form['explanation'][0]['#title'] = t('Update and revise');
+  $form['explanation'][0]['#expl'] = t('Updates the quiz with the new revision of the question, and makes a new revision of the quiz.');
+  $form['explanation'][0]['#practical'] = t('Use this when your changes affects the difficulty, meaning or scoring of the question.');
+  $form['explanation'][1]['#title'] = t('Update and unpublish');
+  $form['explanation'][1]['#expl'] = t('Updates the quiz with the new revision of the question, and unpublishes the quiz.');
+  $form['explanation'][1]['#practical'] = t('Use this when you plan to make changes to multiple questions in the quiz.');
+  $form['explanation'][2]['#title'] = t('Update');
+  $form['explanation'][2]['#expl'] = t('Updates the quiz with the new revision of the question.');
+  $form['explanation'][2]['#practical'] = t('Use this when you have made unsignificant changes, like correcting spelling errors or blemishes.');
+  $form['explanation'][2]['#warning'] = t('If your changes affects the scoring of the quiz you should make a new revision so that the old scoring data won\'t be affected by your changes.');
+  $form['explanation'][3]['#title'] = t('Do nothing');
+  $form['explanation'][3]['#expl'] = t('The quiz will not be updated');
+  $form['explanation'][3]['#practical'] = t('Use this when your changes aren\'t supposed to be included in excisting quizzes.');
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+    '#submit' => array('quiz_question_revision_actions_submit'),
+  );
   return $form;
 }

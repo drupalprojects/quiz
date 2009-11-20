@@ -48,7 +48,7 @@ function quiz_question_menu() {
     'file' => 'quiz_question.pages.inc',
   );
   
-  $items['node/%/revision_actions'] = array(
+  $items['quiz_question/%/revision_actions'] = array(
     'title' => 'Revision actions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_revision_actions', 1),
