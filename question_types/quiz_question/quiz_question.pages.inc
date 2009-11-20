@@ -66,12 +66,13 @@ function quiz_question_revision_actions($form_state, $vid) {
   $form['#intro'] = t('You have created a new revision of a question that belongs to %num quizzes.', array('%num' => count($quizzes)));
   $form['#desc'] = t('Choose what you want to do with the different quizzes.');
   $form['quizzes'] = array();
-  $options = array(NULL, NULL, NULL, NULL);
+  $options = array(0 => NULL, 1 => NULL, 2 => NULL, 3 => NULL);
   foreach ($quizzes as $quiz) {
     $form['quizzes'][$quiz->vid] = array(
       '#type' => 'radios',
       '#title' => 'test',
       '#options' => $options,
+      '#default_value' => 0,
     );
     $form['quizzes'][$quiz->vid]['#quiz_title'] = $quiz->title;
   }
