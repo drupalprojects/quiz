@@ -468,7 +468,7 @@ abstract class QuizQuestion {
       $new_node = quiz_make_new($this->node->add_directly['new']);
       $sql = 'INSERT INTO {quiz_node_relationship}
               (parent_nid, parent_vid, child_nid, child_vid, max_score)
-              VALUES (%d, %d, %d, %d)';
+              VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore());
     }
   }

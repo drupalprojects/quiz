@@ -39,7 +39,7 @@ function quiz_question_menu() {
 
   // Menu item for seeing references to a question.
   $items['node/%quiz_question_type_access/references'] = array(
-    'title' => t('References'),
+    'title' => 'References',
     'page callback' => 'quiz_question_references',
     'page arguments' => array(1),
   // FIXME give this a sensible callback
@@ -47,12 +47,17 @@ function quiz_question_menu() {
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz_question.pages.inc',
   );
+  
+  $items[] = array(
+    'title' => t(''),
+  );
 
   // Menu items for admin view of each question type.
   $types = _quiz_question_get_implementations();
   foreach ($types as $type => $definition) {
     $items['admin/quiz/' . str_replace('_', '-', $type)] = array(
-      'title' => t('@name administration', array('@name' => $definition['name'])),
+      'title' => '@name administration',
+      'title arguments' => array('@name' => $definition['name']),
       'description' => t('Configure the @name question type.', array('@name' => $definition['name'])),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('quiz_question_type_settings_form', $type),
