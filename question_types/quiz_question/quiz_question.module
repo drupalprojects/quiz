@@ -48,8 +48,13 @@ function quiz_question_menu() {
     'file' => 'quiz_question.pages.inc',
   );
   
-  $items[] = array(
-    'title' => t(''),
+  $items['node/%/revision_actions'] = array(
+    'title' => 'Revision actions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_question_revision_actions', 1),
+    'access arguments' => array('create quiz question'),
+    'file' => 'quiz_question.pages.inc',
+    'type' => MENU_NORMAL_ITEM,
   );
 
   // Menu items for admin view of each question type.
@@ -64,7 +69,6 @@ function quiz_question_menu() {
       'access arguments' => array('configure quiz question types'),
       'type' => MENU_NORMAL_ITEM,
     );
-
   }
   return $items;
 }
@@ -89,11 +93,16 @@ function quiz_question_theme() {
     'quiz_question_report' => array(
       'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
       'file' => 'quiz_question.theme.inc',
-  ),
+    ),
     'quiz_question_creation_form' => array(
       'arguments' => array('form' => NULL),
       'file' => 'quiz_question.theme.inc',
-  ),
+    ),
+    'quiz_question_revision_actions' => array(
+      'arguments' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'quiz_question') .'/theme',
+      'template' => 'quiz_question_revision_actions',
+    ),
   );
 }
 

@@ -49,3 +49,31 @@ function _quiz_question_parents($question_node) {
   }
   return $parent_nodes;
 }
+
+function quiz_question_revision_actions($form_state, $vid) {
+  $form = array();
+  $form['#theme'] = 'quiz_question_revision_actions';
+  $quizzes = array();
+  $sql = "SELECT nr.nid, nr.vid, nr.title
+          FROM {node_revisions} nr
+          JOIN {quiz_node_relationship} qnr
+          ON qnr.parent_vid = nr.vid
+          WHERE qnr.child_vid = %d";
+  $res = db_query($sql, $vid);
+  while ($res_o = db_fetch_object($res)) {
+    $quizzes[] = $res_o;
+  }
+  $form['#intro'] = t('You have created a new revision of a question that belongs to %num quizzes.', array('%num' => count($quizzes)));
+  $form['#desc'] = t('Choose what you want to do with the different quizzes.');
+  $form['quizzes'] = array();
+  $options = array(NULL, NULL, NULL, NULL);
+  foreach ($quizzes as $quiz) {
+    $form['quizzes'][$quiz->vid] = array(
+      '#type' => 'radios',
+      '#title' => 'test',
+      '#options' => $options,
+    );
+    $form['quizzes'][$quiz->vid]['#quiz_title'] = $quiz->title;
+  }
+  return $form;
+}
