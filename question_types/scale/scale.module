@@ -143,7 +143,7 @@ function scale_user($op, &$edit, &$account, $category = NULL) {
  */
 function scale_manage_collection_form(&$form_state) {
   global $user;
-  $scale_question = new ScaleQuestion(NULL);
+  $scale_question = new ScaleQuestion(new stdClass());
   $collections = $scale_question->getPresetCollections(user_access('Edit global presets'));
   if (user_access('Edit global presets')) {
     $new_col = new stdClass();
