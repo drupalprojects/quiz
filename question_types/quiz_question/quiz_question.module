@@ -98,11 +98,6 @@ function quiz_question_theme() {
       'arguments' => array('form' => NULL),
       'file' => 'quiz_question.theme.inc',
     ),
-    'quiz_question_revision_actions' => array(
-      'arguments' => array('form' => NULL),
-      'path' => drupal_get_path('module', 'quiz_question') .'/theme',
-      'template' => 'quiz_question_revision_actions',
-    ),
   );
 }
 
