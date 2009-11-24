@@ -76,7 +76,9 @@ class ShortAnswerQuestion extends QuizQuestion {
       FROM {quiz_short_answer_node_properties}
       WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $props = array_merge($props, db_fetch_array($res));
+    $res_a = db_fetch_array($res);
+    if (is_array($res_a))
+      $props = array_merge($props, $res_a);
     $this->nodeProperties = $props;
     return $props;
   }

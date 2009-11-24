@@ -237,7 +237,9 @@ class MultichoiceQuestion extends QuizQuestion {
             FROM {quiz_multichoice_properties}
             WHERE nid = %d AND vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $props = array_merge($props, db_fetch_array($res));
+    $res_a = db_fetch_array($res);
+    if (is_array($res_a))
+      $props = array_merge($props, $res_a);
 
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
