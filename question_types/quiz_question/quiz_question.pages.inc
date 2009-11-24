@@ -50,15 +50,27 @@ function _quiz_question_parents($question_node) {
   return $parent_nodes;
 }
 
-function quiz_question_revision_actions($form_state, $vid) {
+function quiz_question_revision_actions($form_state, $nid, $vid) {
+  if (!isset($_SESSION['quiz_question_kept']))
+    drupal_goto('node/'. $nid);
   $form = array();
+  $form['q_nid'] = array('#type' => 'value', '#value' => $nid);
+  $form['q_vid'] = array('#type' => 'value', '#value' => $vid);
+  $quiz_nids = array();
+  $quiz_vids = array();
+  foreach($_SESSION['quiz_question_kept'] as $nid_vid) {
+    $temp = explode('-', $nid_vid);
+    if (is_numeric($temp[0]) && is_numeric($temp[1])) {
+      $quiz_nids[] = $temp[0];
+      $quiz_vids[] = $temp[1];
+    }
+  }
   $quizzes = array();
   $sql = "SELECT nr.nid, nr.vid, nr.title, n.status
           FROM {node_revisions} nr
-          JOIN {quiz_node_relationship} qnr ON qnr.parent_vid = nr.vid
           JOIN {node} n ON n.nid = nr.nid
-          WHERE qnr.child_vid = %d";
-  $res = db_query($sql, $vid);
+          WHERE nr.vid IN (". implode(',', $quiz_vids) .")";
+  $res = db_query($sql);
   while ($res_o = db_fetch_object($res)) {
     $res_o->answered = quiz_has_been_answered($res_o);
     $quizzes[] = $res_o;
@@ -74,7 +86,7 @@ function quiz_question_revision_actions($form_state, $vid) {
     $published = $quiz->status == 1 ? t('published') : t('unpublished');
     $answered = $quiz->answered ? t('answered') : t('unanswered');
     $options = _quiz_question_revision_options($quiz->status == 1, $quiz->answered);
-    $form['quizzes'][$quiz->vid] = array(
+    $form['quizzes'][$quiz->nid .'-'. $quiz->vid .'-'. $quiz->status .'-'. ($quiz->answered ? '1' : '0')] = array(
       '#type' => 'radios',
       '#title' => check_plain($quiz->title) .' ('. $published .' '. t('and') .' '. $answered .')',
       '#default_value' => $options['default'],
@@ -140,22 +152,45 @@ function _quiz_question_revision_options($published, $answered){
 }
 
 function quiz_question_revision_actions_submit($form, &$form_state) {
+  unset($_SESSION['quiz_question_kept']);
   foreach ($form_state['values'] as $key => $value) {
-    if (!is_numeric($key)) continue;
-    switch ($value) {
-      case 'ur':
-        _quiz_question_revise_quiz();
-        _quiz_question_update_in_quiz();
-        break;
-      case 'uu':
-        _quiz_question_update_in_quiz();
-        break;
-      case 'u':
-        _quiz_question();
-        break;
-      case 'n':
-        
-        break;
+    if (!preg_match('/^[0-9]+-[0-9]+-[0,1]-[0,1]$/', $key)) continue;
+    $chars = str_split($value); //FORMAT: Update[0,1], revise[0,1] and publish[0,1]
+    $codes = explode('-', $key); //FORMAT: nid(int), vid(int), published[0,1] and answered[0,1]
+    //If we are to revise the quiz we need to do that first...
+    if ($chars[1] == '1') {
+      $quiz_node = node_load((int)$codes[0], (int)$codes[1]);
+      $quiz_node->revision = 1;
+      $quiz_node->auto_created = true;
+    }
+    if (!isset($quiz_node) && $chars[2] != $codes[2])
+      $quiz_node = node_load((int)$codes[0], (int)$codes[1]);
+    if (isset($quiz_node)) {
+      $quiz_node->status = $chars[2];
+      node_save($quiz_node);
+    }
+    if ($chars[0] == '1') {
+      // TODO: This doesn't necessarily get the newest max_score...
+      $sql = 'SELECT max_score 
+              FROM {quiz_node_relationship} 
+              WHERE parent_vid = %d
+              AND child_nid = %d';
+      $res = db_query($sql, $codes[1], $form_state['values']['q_vid']);
+      if ($max_score = db_result($res));
+      else {
+        $sql = 'SELECT max_score 
+                FROM {quiz_question_properties} 
+                WHERE vid = %d';
+        $res = db_query($sql, $form_state['values']['q_vid']);
+        $max_score = db_result($res);
+      }
+      $sql = 'DELETE FROM {quiz_node_relationship}
+              WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
+      db_query($sql, $codes[0], (int)$codes[1]+(int)$chars[1], $form_state['values']['q_nid']);
+      
+      $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score)
+              VALUES(%d, %d, %d, %d, %d)';
+      db_query($sql, $codes[0], $codes[1], $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
     }
   }
 }

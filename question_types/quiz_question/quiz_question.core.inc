@@ -132,7 +132,10 @@ abstract class QuizQuestion {
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
     }
-    $this->saveRelationships();
+    $questions_kept = $this->saveRelationships();
+    if ($questions_kept) {
+      drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/'. revision_actions);
+    }
   }
 
   /**
@@ -400,6 +403,8 @@ abstract class QuizQuestion {
    *   node object made out of form values.
    */
   function saveRelationships() {
+    $questions_kept = FALSE;
+    unset($_SESSION['quiz_question_kept']);
     /*
      * If the question already is part of quizzes we might have to remove some
      * relationships
@@ -423,6 +428,10 @@ abstract class QuizQuestion {
           $sql = 'DELETE FROM {quiz_node_relationship}
                   WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
           db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid);
+        }
+        else {
+          $questions_kept = TRUE;
+          $_SESSION['quiz_question_kept'][] = $key;
         }
       }
     }
@@ -471,6 +480,7 @@ abstract class QuizQuestion {
               VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore());
     }
+    return $questions_kept;
   }
 
   /**
