@@ -467,6 +467,7 @@ abstract class QuizQuestion {
         }
       }
       if (count($insert_values) > 0) {
+        //TODO: Delete old revisions of the questions here.
         $sql = 'INSERT INTO {quiz_node_relationship}
                 (parent_nid, parent_vid, child_nid, child_vid, max_score)
                 '. $to_insert;
