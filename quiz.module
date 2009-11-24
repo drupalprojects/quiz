@@ -91,7 +91,9 @@ function quiz_perm() {
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
      // Allow user someone to see the answers to any quiz question
-    'view answers for any quiz item'
+    'view answers for any quiz item',
+    // Allows users to pick a name for their questions. Otherwise this is auto generated.
+    'allow user titles'
   );
 }
 
