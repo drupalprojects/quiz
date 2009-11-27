@@ -100,6 +100,17 @@ function quiz_question_revision_actions($form_state, $nid, $vid) {
     '#value' => t('Submit'),
   );
   $form['#submit'] = array('quiz_question_revision_actions_submit');
+  $form['update_expl'] = array(
+    '#type' => 'item',
+    '#title' => t('Update'),
+    '#value' => t('Replace the old revision of the question with the new revision.'),
+  );
+  $form['revise_expl'] = array(
+    '#type' => 'item',
+    '#title' => t('Revise'),
+    '#value' => t('If a quiz has been answered you should make a new revision to ensure that excisting answer statistics and reports remain correct.'),
+    '#description' => t('If the new revision of the question only correct spelling errors etc. you don\'t need to revise.'),
+  );
   return $form;
 }
 
