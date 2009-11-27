@@ -134,6 +134,8 @@ abstract class QuizQuestion {
     }
     $questions_kept = $this->saveRelationships();
     if ($questions_kept) {
+      unset($_REQUEST['destination']);
+      unset($_REQUEST['edit']['destination']);
       drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/'. revision_actions);
     }
   }
