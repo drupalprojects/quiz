@@ -461,13 +461,18 @@ abstract class QuizQuestion {
           $nid_vid = explode('-', $checked);
           $insert_values[] = $nid_vid[0];
           $insert_values[] = $nid_vid[1];
+          $delete_values[] = $nid_vid[1];
+          $delete_values[] = $this->node->nid;
+          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)'; 
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
           $insert_values[] = $this->getMaximumScore();
         }
       }
       if (count($insert_values) > 0) {
-        //TODO: Delete old revisions of the questions here.
+        $sql = 'DELETE FROM {quiz_node_relationship}
+                WHERE '. implode(' OR ', $delete_sqls);
+        db_query($sql, $delete_values);
         $sql = 'INSERT INTO {quiz_node_relationship}
                 (parent_nid, parent_vid, child_nid, child_vid, max_score)
                 '. $to_insert;
