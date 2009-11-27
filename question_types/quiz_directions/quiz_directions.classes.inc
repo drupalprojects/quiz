@@ -28,6 +28,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
   }
 
   public function validateNode(array &$form) {}
+  public function saveNodeProperties($is_new = FALSE) {}
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.

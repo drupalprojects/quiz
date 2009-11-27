@@ -13,9 +13,7 @@
  */
 class TrueFalseQuestion extends QuizQuestion {
 
-  public function save($is_new = FALSE) {
-    parent::save($is_new);
-
+  public function saveNodeProperties($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }

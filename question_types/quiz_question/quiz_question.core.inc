@@ -132,8 +132,9 @@ abstract class QuizQuestion {
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
     }
+    $this->saveNodeProperties($is_new);
     $questions_kept = $this->saveRelationships();
-    if ($questions_kept) {
+    if ($questions_kept && $this->node->revision) {
       unset($_REQUEST['destination']);
       unset($_REQUEST['edit']['destination']);
       drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/'. revision_actions);
@@ -204,7 +205,7 @@ abstract class QuizQuestion {
    */
   abstract public function getMaximumScore();
 
-
+  abstract public function saveNodeProperties($is_new = FALSE);
 
 
   /*

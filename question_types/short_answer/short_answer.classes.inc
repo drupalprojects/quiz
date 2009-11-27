@@ -32,8 +32,7 @@ class ShortAnswerQuestion extends QuizQuestion {
   const TEXT_ENTRY_TEXTFIELD = 0;
   const TEXT_ENTRY_TEXTAREA = 1;
 
-  public function save($is_new = FALSE) {
-    parent::save($is_new);
+  public function saveNodeProperties($is_new = FALSE) {
 
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';

@@ -21,8 +21,7 @@ class MatchingQuestion extends QuizQuestion {
     if (empty($this->node->match)) $this->node->match = array();
   }
 
-  public function save($is_new = FALSE) {
-    parent::save($is_new);
+  public function saveNodeProperties($is_new = FALSE) {
 
     foreach ($this->node->match as $match) {
       if (empty($match['question']) || empty($match['answer'])) {

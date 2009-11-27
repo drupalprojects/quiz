@@ -80,8 +80,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
-  public function save($is_new = FALSE) {
-    parent::save($is_new);
+  public function saveNodeProperties($is_new = FALSE) {
 
     $is_new_node = $is_new || $this->node->revision == 1;
     $this->forgive();
