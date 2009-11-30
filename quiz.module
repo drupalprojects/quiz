@@ -992,7 +992,7 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   if (empty($nids)) return array();
   $to_return = array();
   $vids = array();
-  $sql = 'SELECT n.title, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.summary_pass AS percent_pass
+  $sql = 'SELECT n.title, n.nid, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.summary_pass AS percent_pass
           FROM {node} n
           JOIN {quiz_node_properties} p
           ON n.vid = p.vid
