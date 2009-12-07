@@ -1012,7 +1012,7 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
     $to_return[$res_o->vid] = $res_o;
     $vids[] = $res_o->vid;
   }
-  
+  if (empty($vids)) return array();
   if ($include_num_questions) {
     $sql = 'SELECT COUNT(*) as num_always_questions, parent_vid
             FROM {quiz_node_relationship}
