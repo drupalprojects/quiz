@@ -12,6 +12,7 @@ Drupal.behaviors.multichoiceBehavior = function(context) {
   var defaultValue = $('.multichoice_filter:first :radio[checked=1]').val();
   $('.multichoice_filter:not(:first):not(.multichoiceBehavior-processed) :radio[value='+defaultValue+']').click().change().addClass('multichoiceBehavior-processed');
   $('.multichoice_filter:not(:first)').hide().addClass('multichoiceStayHidden');
+  $('.multichoice_filter:first').insertAfter('#input-all-ph');
   var oldToggle = Drupal.toggleFieldset;
   Drupal.toggleFieldset = function(context) {
     oldToggle(context);

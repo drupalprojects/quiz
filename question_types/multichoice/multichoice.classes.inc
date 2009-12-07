@@ -432,6 +432,11 @@ class MultichoiceQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => t('Your settings will be remembered.'),
     );
+    
+    $form['alternatives']['input_format_all'] = array(
+      '#type' => 'markup',
+      '#value' => '<DIV id="input-all-ph"></DIV>',
+    );
 
     $form['alternatives']['#theme'][] = 'multichoice_creation_form';
     $i = 0;
