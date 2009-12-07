@@ -8,28 +8,6 @@
 
 
 /**
- * Menu callback. Prints a listing of containers that reference the question node nodes.
- *
- * @param $qid
- *   ID of question to look up
- * @return
- *   String containing the markup.
- */
-function quiz_question_references($node) {
-  $parents = _quiz_question_parents($node);
-
-  if (empty($parents)) {
-    return '<div>No references.</div>';
-  } else {
-    $output = '<div>';
-    foreach ($parents as $parent)
-      $output .= node_view($parent, true);
-    $output .= '</div>';
-    return $output;
-  }
-}
-
-/**
  * @param $question_nid
  *
  * @return
