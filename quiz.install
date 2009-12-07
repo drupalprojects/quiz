@@ -338,6 +338,8 @@ function quiz_install() {
   $temp_array = variable_get('theme_settings', array());
   $temp_array['toggle_node_info_quiz'] = 0;
   variable_set('theme_settings', $temp_array);
+  // Default the comment settings to disabled.
+  $temp_array = variable_set('comment_quiz', '0');
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
 }
 
@@ -720,7 +722,8 @@ function quiz_uninstall() {
     'quiz_max_result_options',
     'quiz_remove_partial_quiz_record',
     'quiz_show_allowed_times',
-    'quiz_autotitle_length'
+    'quiz_autotitle_length',
+    'comment_quiz'
   );
   foreach ($var as $v) {
     variable_del($v);

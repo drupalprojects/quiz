@@ -36,17 +36,6 @@ function quiz_question_autoload_info() {
  * Implementation of hook_menu().
  */
 function quiz_question_menu() {
-
-  // Menu item for seeing references to a question.
-  $items['node/%quiz_question_type_access/references'] = array(
-    'title' => 'References',
-    'page callback' => 'quiz_question_references',
-    'page arguments' => array(1),
-  // FIXME give this a sensible callback
-    'access callback' => TRUE,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz_question.pages.inc',
-  );
   
   $items['quiz_question/%/%/revision_actions'] = array(
     'title' => 'Revision actions',
