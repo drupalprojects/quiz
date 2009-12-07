@@ -405,9 +405,8 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  * Implementation of hook_insert().
  */
 function quiz_insert($node) {
-  quiz_translate_form_date($node, 'quiz_open');
-  quiz_translate_form_date($node, 'quiz_close');
-
+  _quiz_common_presave_actions($node);
+  
   $tid = (isset($node->tid) ? $node->tid : 0);
 
   if (!isset($node->has_userpoints)) {
@@ -441,8 +440,7 @@ function quiz_update($node) {
   // Quiz node vid (revision) was not updated.
   else {
     // Update an existing row in the quiz_node_properties table.
-    quiz_translate_form_date($node, 'quiz_open');
-    quiz_translate_form_date($node, 'quiz_close');
+    _quiz_common_presave_actions($node);
     $sql = "UPDATE {quiz_node_properties}
       SET vid = %d,
         aid='%s',
@@ -474,6 +472,12 @@ function quiz_update($node) {
     //     }
   }
   _quiz_update_resultoptions($node);
+}
+
+function _quiz_common_presave_actions(&$node) {
+  quiz_translate_form_date($node, 'quiz_open');
+  quiz_translate_form_date($node, 'quiz_close');
+  if (empty($node->pass_rate)) $node->pass_rate = 0;
 }
 
 /**
@@ -839,14 +843,16 @@ function quiz_validate($node) {
   if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
     form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
   }
-  if (!is_numeric($node->pass_rate)) {
-    form_set_error('pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
-  }
-  if ($node->pass_rate > 100) {
-    form_set_error('pass_rate', t('The pass rate value must not be more than 100%.'));
-  }
-  if ($node->pass_rate < 0) {
-    form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
+  if(!empty($node->pass_rate)) {
+    if (!is_numeric($node->pass_rate)) {
+      form_set_error('pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
+    }
+    if ($node->pass_rate > 100) {
+      form_set_error('pass_rate', t('The pass rate value must not be more than 100%.'));
+    }
+    if ($node->pass_rate < 0) {
+      form_set_error('pass_rate', t('The pass rate value must not be less than 0%.'));
+    }
   }
 
   if (isset($node->time_limit)) {
@@ -896,9 +902,6 @@ function quiz_validate($node) {
     elseif (!empty($option['option_summary'])) {
         form_set_error('option_summary', t('Option has a summary, but no name.'));
     }
-  }
-  if ($node->pass_rate == 0 && !$num_options) {
-    form_set_error('pass_rate', t('Unscored quiz, but no result options defined.'));
   }
 }
 /**
