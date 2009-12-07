@@ -542,7 +542,6 @@ function quiz_load($node) {
   while ($option = db_fetch_array($result_options)) {
     $additions->resultoptions[$option['option_id']] = $option;
   }
-
   return $additions;
 }
 
@@ -915,7 +914,8 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
          * Why the actions module does this I do not know?  Maybe to prevent invalid values put
          * into the options value="" field.
          */
-        $node->aid = actions_function_lookup($node->aid);
+        if ($aid = actions_function_lookup($node->aid))
+          $node->aid = $aid;
         break;
       case 'prepare':
         // Meet E_STRICT on new nodes.
