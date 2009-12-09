@@ -16,7 +16,7 @@ function theme_long_answer_report($question, $show_points, $show_feedback) {
     $question = (object)$question;
   }
   
-  $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. 
+  $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">'. t('Q:') . '</span> '. 
     check_markup($question->body) .
     '</div>';
     

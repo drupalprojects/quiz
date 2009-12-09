@@ -329,7 +329,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     //}
 
     // Add the cell with the question and the answers.
-    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '. check_markup($this->question->body) .'</div>';
+    $q_output = '<div class="quiz_summary_question"><span class="quiz_question_bullet">'. t('Q:') . '</span> '. check_markup($this->question->body) .'</div>';
     $q_output .= theme('table', $innerheader, $rows) .'<br />';
     return $q_output;
   }

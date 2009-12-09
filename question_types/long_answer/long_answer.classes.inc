@@ -219,7 +219,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
 
   public function formatReport($showpoints = TRUE, $showfeedback = TRUE) {
 
-    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">Q:</span> '.
+    $slug = '<div class="quiz_summary_question"><span class="quiz_question_bullet">'. t('Q:') . '</span> '.
       check_markup($this->question->body, $this->question->filter) .
       '</div>';
 
