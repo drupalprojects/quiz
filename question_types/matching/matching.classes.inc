@@ -113,16 +113,24 @@ class MatchingQuestion extends QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getAnsweringForm(array $form_state = NULL) {
+    $form = array();
+
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+    );
+
     list($matches, $select_option) = $this->getSubquestions();
     foreach ($matches as $match) {
       $title = $match['question'];
-      $form['tries[' . $match['match_id'] . ']'] = array(
+      $form['subquestions']['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $title,
         '#options' => $this->customShuffle($select_option),
       );
     }
-    return variable_get('quiz_matching_shuffle_options', TRUE) ? $this->customShuffle($form) : $form;
+
+    return variable_get('quiz_matching_shuffle_options', TRUE) ? array($form['question'], $this->customShuffle($form['subquestions'])) : $form;
   }
 
   private function customShuffle(array $array = array()) {
@@ -267,13 +275,13 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       }
     }
   }
-  
+
   public function isValid() {
-    foreach ($this->answer as $value) 
+    foreach ($this->answer as $value)
       if ($value != 'def') return TRUE;
     return t('You need to match at least one of the items.');
   }
-  
+
   public function save() {
     $user_answers = isset($this->answer) ? $this->answer : array();
     // to prevent warning : Invalid argument supplied for foreach()
@@ -314,12 +322,12 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function getUserAnswers() {
     $user_answers = array();
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
-    $results = db_query("SELECT a.match_id, a.answer 
-    					 FROM {quiz_matching_user_answers} a
-    					 JOIN {quiz_matching_node} n
-    					 ON n.match_id = a.match_id
-    					 WHERE result_id = %d
-    					 AND vid = %d", $this->rid, $this->question->vid);
+    $results = db_query("SELECT a.match_id, a.answer
+               FROM {quiz_matching_user_answers} a
+               JOIN {quiz_matching_node} n
+               ON n.match_id = a.match_id
+               WHERE result_id = %d
+               AND vid = %d", $this->rid, $this->question->vid);
     while ($result = db_fetch_object($results)) {
       $user_answers[$result->match_id] = $result->answer;
     }
@@ -353,7 +361,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       $cols[] = $correct_answers[$id]['answer'];
       if ($showfeedback)
         $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
-      
+
       $rows[] = $cols;
     }
     // Add the cell with the question and the answers.

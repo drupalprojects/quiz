@@ -406,7 +406,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  */
 function quiz_insert($node) {
   _quiz_common_presave_actions($node);
-  
+
   $tid = (isset($node->tid) ? $node->tid : 0);
 
   if (!isset($node->has_userpoints)) {
@@ -962,7 +962,7 @@ function quiz_type_access_load($arg) {
 
 /**
  * Returns the titles for all quizzes the user has access to.
- * 
+ *
  * @return quizzes
  *   array with nids as keys and titles as values
  */
@@ -979,7 +979,7 @@ function quiz_get_all_titles() {
 }
 
 /**
- * 
+ *
  * @param array $nids
  *   nids for the quizzes we want to collect scores from
  * @param int $uid
@@ -991,7 +991,7 @@ function quiz_get_all_titles() {
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   foreach ($nids as $key => $nid) {
     if(!is_int($nid)) unset($nids[$key]);
-  } 
+  }
   if (empty($nids)) return array();
   $to_return = array();
   $vids = array();
@@ -1116,7 +1116,7 @@ function quiz_take_quiz($quiz) {
 
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
     /* We delete questions in progress from old revisions... */
-    _quiz_delete_old_in_progress($quiz, $user->uid); 
+    _quiz_delete_old_in_progress($quiz, $user->uid);
     $rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid);
 
     // Are we resuming an in-progress quiz?
@@ -1195,7 +1195,7 @@ function quiz_take_quiz($quiz) {
         drupal_set_message(t('You must select an answer before you can progress to the next question!'), 'error');
       }
     }
-    
+
     else {*/
       //unset($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
 
@@ -2107,10 +2107,10 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   $already_answered = array();
-  
+
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
-  
+
   $sql = "SELECT question_nid AS nid, question_vid AS vid
     FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp";
   $answered_questions = db_query($sql, $rid);
@@ -2147,7 +2147,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
 }
 
 /**
- * 
+ *
  * @param $quiz
  *   A quiz node where old in progress results shall be deleted
  * @param $uid
@@ -2155,7 +2155,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
  */
 function _quiz_delete_old_in_progress($quiz, $uid) {
   $sql = "DELETE FROM {quiz_node_results_answers}
-          WHERE question_nid = %d 
+          WHERE question_nid = %d
           AND question_vid < %d
           AND result_id IN (
             SELECT qnr.result_id
@@ -2165,7 +2165,7 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
             AND qnr.time_end = 0
           )";
   db_query($sql, $quiz->nid, $quiz->vid, $uid, $quiz_nid);
-  
+
   $sql = "DELETE FROM {quiz_node_results}
           WHERE uid = %d
           AND nid = %d
