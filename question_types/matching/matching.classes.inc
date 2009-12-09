@@ -92,24 +92,20 @@ class MatchingQuestion implements QuizQuestion {
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
   public function getQuestionForm($node, $context = NULL) {
+    $form = array();
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+    );
     list($questions, $select_option) = $this->getQuestion($node);
-     /* $form['tries'] = array(
-      '#type' => 'hidden',
-      '#value' => 1
-    ); */
-
     foreach ($questions as $question) {
-      //srand((float)microtime() * 1000000);
-      //shuffle($select_option);
-      //print_r($select_option);
-      // yes we need this dirty form index to get users answers as as array to $_POST['tries'].
-      $form['tries[' . $question['match_id'] . ']'] = array(
+      $form['subquestion']['tries[' . $question['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $question['question'],
         '#options' => $this->customShuffle($select_option),
       );
     }
-    return $this->customShuffle($form);
+    return array($form['question'], $this->customShuffle($form['subquestion']));
   }
 
   public function customShuffle($array = array()) {
@@ -264,11 +260,11 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     return $this->score;
   }
 
-  
+
   public function getResponse() {
     return $this->answer;
   }
-  
+
 
   public function getUserAnswers() {
     $user_answers = array();
