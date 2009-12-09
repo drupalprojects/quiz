@@ -39,7 +39,7 @@ function quiz_user_results($result_id) {
 
 /**
  * Form for showing feedback, and for editing the feedback if necessary...
- * 
+ *
  * @param $questions
  *   array of questions to inclide in the report
  * @param $showpoints
@@ -493,10 +493,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   //if ($score['percentage_score']) {
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
-      $msg = t(
-        'Parts of this @quiz have not been evaluated yet. The score below is not final.',
-        array('@quiz' => QUIZ_NAME)
-      );
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
       drupal_set_message($msg, 'error');
     }
     $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
@@ -504,8 +501,9 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   }
   $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
-
+  if (variable_get('quiz_display_feedback', 0)) {
+    $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
+  }
   return $output;
 }
 

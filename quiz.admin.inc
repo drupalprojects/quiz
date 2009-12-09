@@ -118,7 +118,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
   // We need to add this because of the use of ajax. Without this the form api might redirect the user
   // To the page with the ahah callback...
   $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
-  
+
   $types = _quiz_get_question_types();
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
 
@@ -130,10 +130,10 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#collapsible' => TRUE,
     'question_status' => array('#tree' => TRUE),
   );
-  
+
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
-  
+
   // Build up a list of questions
   $questions_to_add = array();
 
@@ -145,24 +145,24 @@ function quiz_questions_form($form_state, $quiz, $options) {
     // We are coming in fresh and fetches the questions currently on the quiz from the database...
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
-  
+
   // We add the browser and allows the browser to give us information on what questions are displayed in the browser...
   $hidden_questions = array();
   $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz, $types);
-  
+
   // We add the questions from the browser as hidden question rows in the question list. Doing this we can have
   // the question show up in the question list instantly when a question is chosen in the browser.
   _quiz_add_hidden_questions($questions, $hidden_questions, $form_state, $quiz);
-  
+
   _quiz_add_questions_to_form($form, $questions, $quiz, $types);
-  
+
   // Show the number of questions in the table header.
   $always_count = 0;
   foreach ($form['question_list']['stayers'] as $stayer) {
     if ($stayer['#default_value'] === 1) $always_count++;
   }
   $form['question_list']['#title'] .= ' ('. $always_count .')';
-  
+
   _quiz_add_revision_checkbox($form, $quiz);
 
   $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
@@ -178,7 +178,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
 
 /**
  * Fields for creating new questions are added to the quiz_questions_form
- * 
+ *
  * @param $form
  *   FAPI form(array)
  */
@@ -203,7 +203,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
 
 /**
  * Add fields for random quiz to the quiz_questions_form
- * 
+ *
  * @param $form
  *   FAPI form array
  * @param $quiz
@@ -220,24 +220,24 @@ function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
       '#description' => t('The number of questions to be randomly selected each time someone takes this quiz'),
       '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
     );
-    $terms =  _quiz_taxonomy_select($quiz->tid); 	 
-    if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) { 	 
-      $form['question_list']['random_term_id'] = array( 	 
-        '#type' => 'select', 	 
-        '#title' => t('Terms'), 	 
-        '#size' => 1, 	 
-        '#options' => _quiz_taxonomy_select($quiz->tid), 	 
-        '#default_value' => $quiz->tid, 	 
-        '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'), 	 
-        '#weight' => -4, 	 
-      ); 	 
+    $terms =  _quiz_taxonomy_select($quiz->tid);
+    if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
+      $form['question_list']['random_term_id'] = array(
+        '#type' => 'select',
+        '#title' => t('Terms'),
+        '#size' => 1,
+        '#options' => _quiz_taxonomy_select($quiz->tid),
+        '#default_value' => $quiz->tid,
+        '#description' => t('Randomly select from questions with this term, or choose from the random question pool below'),
+        '#weight' => -4,
+      );
     }
   }
 }
 
 /**
- * Returns the questions that was in the question list when the form was submitted using ajax. 
- * 
+ * Returns the questions that was in the question list when the form was submitted using ajax.
+ *
  * @param $form_state
  *   FAPI form_state(array)
  * @return $questions
@@ -251,7 +251,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
   $vids = array();
   foreach ($form_state['post']['weights'] as $id => $value) {
     $cur_question = new stdClass();
-    
+
     // Find nid and vid
     $matches = array();
     preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
@@ -267,14 +267,14 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     }
     $cur_questions[$cur_question->nid] = $cur_question;
   }
-  
+
   // Fetching the rest of the data we need for each question...
   $sql = 'SELECT n.nid, n.type, n.vid AS latest_vid, r.title
           FROM {node} n
           JOIN {node_revisions} r
           ON n.nid = r.nid
           WHERE r.vid IN ('. implode(', ', $vids) .')';
-  
+
   // We use db_rewrite_sql to add node access security
   $res = db_query(db_rewrite_sql($sql));
   while ($res_o = db_fetch_object($res)) {
@@ -288,9 +288,9 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
 
 /**
  * Adds all information about the hidden questions to the questions array
- * 
+ *
  * @see quiz_questions_form
- * 
+ *
  * @param $questions
  *   The questions already added to the question list(array)
  * @param $hidden_questions
@@ -304,12 +304,12 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
   foreach ($hidden_questions as $key => $id) {
     $cur_question = new stdClass();
     $matches = array();
-    
+
     // Find nid and vid
     preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
     $nid = $matches[1];
     $vid = $matches[2];
-    
+
     // If a question already exists in the $questions array we won't add a new one...
     $continue = FALSE;
     foreach($questions as $question) {
@@ -319,9 +319,9 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
       }
     }
     if (!is_numeric($nid) || !is_numeric($vid) || $continue) continue;
-    
+
     $cur_question->nid = $nid;
-    $vids[] = $cur_question->vid = $vid; 
+    $vids[] = $cur_question->vid = $vid;
     $cur_question->weight = 0;
     $cur_question->question_status = ($quiz->randomize) ? QUESTION_RANDOM : QUESTION_ALWAYS;
     $cur_question->staying = isset($form_state['values']['stayers'][$id]) ? $form_state['values']['stayers'][$id] === '1' : FALSE;
@@ -349,7 +349,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
 
 /**
  * Adds the questions in the $questions array to the form
- * 
+ *
  * @param $form
  *   FAPI form(array)
  * @param $questions
@@ -363,7 +363,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
   $form['question_list']['stayers'] = array('#tree' => TRUE);
   $form['question_list']['revision'] = array('#tree' => TRUE);
   if ($quiz->randomize) $form['question_list']['compulsories'] = array('#tree' => TRUE);
-  
+
   $my_dest = $_GET['q'];
   foreach ($questions as $question) {
     $fieldset = 'question_list';
@@ -376,20 +376,20 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
     if ($question->type != 'quiz_directions') {
-	  $form[$fieldset]['max_scores'][$id] = array(
-	    '#type' => 'textfield',
-	    '#size' => 2,
-	    '#maxlength' => 2,
-	    '#default_value' => isset($question->max_score) ? $question->max_score : 0,
-	  );
+    $form[$fieldset]['max_scores'][$id] = array(
+      '#type' => 'textfield',
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+    );
     }
     else {
       $form[$fieldset]['max_scores'][$id] = array(
-	    '#type' => 'markup',
-	    '#value' => '',
-	  );
+      '#type' => 'markup',
+      '#value' => '',
+    );
     }
-    
+
     $form[$fieldset]['stayers'][$id] = array(
       '#type' => 'checkbox',
       '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
@@ -397,16 +397,16 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     );
     if ($quiz->randomize) {
       $form[$fieldset]['compulsories'][$id] = array(
-      	'#type' => 'checkbox',
-      	'#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
+        '#type' => 'checkbox',
+        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
       );
     }
     $form[$fieldset]['titles'][$id] = array(
       '#value' => l(
-        check_plain($question->title), 
-        'node/'. $question->nid, 
+        check_plain($question->title),
+        'node/'. $question->nid,
         array(
-          'html' => TRUE, 
+          'html' => TRUE,
           'attributes' => array('target' => 'blank')
         )
       ),
@@ -416,8 +416,8 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     );
     $form[$fieldset]['view_links'][$id] = array(
       '#value' => l(
-        t('Edit'), 
-        'node/'. $question->nid .'/edit', 
+        t('Edit'),
+        'node/'. $question->nid .'/edit',
         array(
           'query' => array('destination' => $my_dest),
           'attributes' => array('target' => 'blank'),
@@ -447,7 +447,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
 
 /**
  * Adds checkbox for creating new revision. Checks it by default if answers exists.
- * 
+ *
  * @param $form
  *   FAPI form(array)
  * @param $quiz
@@ -458,12 +458,12 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
   if (quiz_has_been_answered($quiz)) {
     $rev_default = TRUE;
     $rev_description = t('This quiz has been answered. To maintain correctnes of existing answer reports changes should be saved as a new revision.');
-  } 
+  }
   else {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
     $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
-  
+
   $form['new_revision'] = array(
     '#type' => 'checkbox',
     '#default_value' => $rev_default,
@@ -473,7 +473,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
 }
 /**
  * Creates the browser part of the quiz_questions_form
- * 
+ *
  * @param $hidden_questions
  *   Array where we add the questions in the browser
  * @param $questions
@@ -504,7 +504,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   );
   $form['table'] = array('#theme' => 'quiz_question_browser');
   $browser = &$form['table'];
-  
+
   // Ahah targets
   $browser['ahah_target'] = array(
     '#type' => 'markup',
@@ -514,42 +514,42 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#type' => 'markup',
     '#value' => '<DIV ID = "all-ahah-target">'
   );
-  
+
   // Ajax use this field to send extra query strings to drupal
   $browser['add_to_get'] = array(
     '#type' => 'hidden',
     '#default_value' => '',
   );
-  
+
   //Build filter part of form:
   _quiz_question_browser_add_filter_fields($browser, $question_types);
-  
+
   // Create filter part of sql.
   $filter_params = array($quiz->nid, $quiz->vid);
   $filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
-  
+
   // Add querystring recieved via ajax to the $_GET array...
   $question_type_list = implode('\', \'', array_keys($question_types));
   _quiz_add_to_get($form_state['values']['browser']['table']['add_to_get']);
-  
+
   // Browsers table header
   $browser['#header'] = array(
-    NULL, 
+    NULL,
     array('data' => t('Title'), 'field' => 'title', 'class' => 'quiz-browser-header-title'),
     array('data' => t('Type'), 'field' => 'type', 'class' => 'quiz-browser-header-type'),
     array('data' => t('Changed'), 'field' => 'changed', 'sort' => 'desc', 'class' => 'quiz-browser-header-changed'),
     array('data' => t('Username'), 'field' => 'name', 'class' => 'quiz-browser-header-name'),
   );
-  
-  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
-  		  FROM {node} n
-  		  JOIN {users} u
-  		  ON n.uid = u.uid
-  		  WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
-  		    SELECT child_nid
-  		    FROM {quiz_node_relationship}
-  		    WHERE parent_nid = %d AND parent_vid = %d
-  		  )'. $filter_sql . tablesort_sql($browser['#header']);
+
+  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name
+        FROM {node} n
+        JOIN {users} u
+        ON n.uid = u.uid
+        WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
+          SELECT child_nid
+          FROM {quiz_node_relationship}
+          WHERE parent_nid = %d AND parent_vid = %d
+        )'. $filter_sql . tablesort_sql($browser['#header']);
   $res = pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_params);
 
   // build data part of form
@@ -562,7 +562,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     $browser['types'][$id]['#value'] = $question_types[$res_o->type]['name'];
     $browser['names'][$id]['#value'] = check_plain($res_o->name);
   }
-  
+
   $browser['titles'] = array(
     '#title' => t('Titles'),
     '#type' => 'checkboxes',
@@ -582,9 +582,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
 /**
  * Returns list of options for the changed select box
- * 
+ *
  * @see _quiz_questions_browser_form()
- * 
+ *
  * @return $changed_options
  *   Options for the changed select box.
  */
@@ -606,9 +606,9 @@ function _quiz_get_changed_options() {
 
 /**
  * Returns an array with sql where clauses correscponding to the options in the changed filter.
- * 
+ *
  * @see _quiz_questions_browser_form()
- * 
+ *
  * @return $changed_timestamps
  *   array of timestamps and sql filters
  */
@@ -637,17 +637,17 @@ function _quiz_get_changed_timestamps() {
     array($timestamp_last_year, $timestamp_year),
     array(0, $timestamp_last_year),
   );
-  
+
   foreach ($changed_timestamps as $key => &$val) {
     if ($val == NULL) continue;
-    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1]; 
+    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1];
   }
   return $changed_timestamps;
 }
 
 /**
  * adds filter fields to the browser form
- * 
+ *
  * @param $form
  *   FAPI form(array)
  */
@@ -659,9 +659,9 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
   foreach (array_keys($question_types) as $type) {
     $type_options[$type] = $question_types[$type]['name'];
   }
-  
+
   // Create options array for the changed filter
-  $changed_options = _quiz_get_changed_options(); 
+  $changed_options = _quiz_get_changed_options();
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
@@ -714,9 +714,9 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
 
 /**
  * Returns sql to be added in where clause in the browseres select statement
- * 
+ *
  * @see _quiz_questions_browser_form()
- * 
+ *
  * @param $filter_params
  *   params to be sent as parameter to db_query. (array)
  * @return $filter_sql
@@ -751,28 +751,28 @@ function quiz_questions_form_validate($form, $form_state) {
   $question_types = array_keys(_quiz_get_question_types());
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
-  
+
   $already_checked = array();
   $weight_map = $form_state['values']['weights'];
-  
+
   // Make sure the number of random questions is a positive number
   if (isset($form_state['values']['num_random_questions'])) {
-    if (!is_numeric($form_state['values']['num_random_questions']) || 
+    if (!is_numeric($form_state['values']['num_random_questions']) ||
          $form_state['values']['num_random_questions'] < 0) {
       form_set_error('num_random_questions', 'The number of random questions needs to be a positive number');
     }
   }
-  
+
   if (empty($weight_map)) {
     form_set_error('none', 'No questions were included.');
     return;
   }
-  
+
   foreach ($weight_map as $id => $weight) {
     if ($form_state['values']['stayers'][$id] == 0) continue; // The question isn't to be added...
-    
+
     list($nid, $vid) = explode('-', $id, 2);
-    
+
     // If a node isn't one of the questionstypes we remove it from the question list
     $params = $question_types; // Copy array.
     $params[] = $nid;
@@ -780,7 +780,7 @@ function quiz_questions_form_validate($form, $form_state) {
       form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
     }
-    
+
     // We also make sure that we don't have duplicate questions in the quiz.
     elseif (in_array($nid, $already_checked)) {
       form_set_error('none', 'A duplicate question has been removed. You can only ask a question once per quiz.');
@@ -858,21 +858,21 @@ function quiz_questions_form_submit($form, &$form_state) {
     drupal_set_message(t('A critical error was detected. Please pray that it will never happen again.'), 'error');
     return;
   }
-  
+
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
   if (module_exists('quiz_question')) quiz_question_refresh_latest_quizzes($quiz->nid);
-  
+
   $is_new_revision = (bool) $form_state['values']['new_revision'];
-  
+
   _quiz_question_browser_submit($form, $form_state);
-  
+
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = $form_state['values']['revision'];
   $stayers = $form_state['values']['stayers'];
   if (isset($form_state['values']['compulsories']))
     $compulsories = $form_state['values']['compulsories'];
-  
+
   // Store what questions belong to the quiz
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $stayers, $compulsories);
 
@@ -888,7 +888,7 @@ function quiz_questions_form_submit($form, &$form_state) {
        ++$assigned_random;
      }
     }
-    
+
     // Adjust number of random questions downward to match number of selected questions..
     if ($num_random > $assigned_random) {
      $num_random = $assigned_random;
@@ -921,11 +921,11 @@ function quiz_questions_form_submit($form, &$form_state) {
 
 /**
  * Takes care of the browser part of the submitted form values.
- * 
- * This function changes the form_state to reflect questions added via the browser. 
+ *
+ * This function changes the form_state to reflect questions added via the browser.
  * (Especially if js is disabled)
- * 
- * 
+ *
+ *
  * @param $form
  *   FAPI form(array)
  * @param $form_state
@@ -934,11 +934,11 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   // Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
-  
+
   // Save the active filters in $_SESSION
   $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
-  
+
   // If a question is chosen in the browser, add it to the question list if it isn't already there
   if (is_array($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
@@ -958,7 +958,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
 
 /**
  * Store values for each browser filter in $_SESSION
- * 
+ *
  * @param $filters
  *   array holding the values for each filter
  */
@@ -977,7 +977,7 @@ function quiz_browser_ahah() {
   // Prepare to get the form from cache
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
   $form_id = $_POST['form_build_id'];
-  
+
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
     form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
@@ -987,7 +987,7 @@ function quiz_browser_ahah() {
   }
   // If filter or pager has been used
   $replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
-  
+
   // Prepare to submit the form
   $args = $form['#parameters'];
   $form_id = array_shift($args);
@@ -1000,44 +1000,44 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-  
+
   // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
   foreach ($_POST as $key => $value) {
     unset($_REQUEST[$key]);
   }
   $_POST = array();
-  
+
   // We don't want any validation errors to show up. This isn't a real submit.
   _quiz_skip_validation($form);
-  
+
   _quiz_browser_store_filters($form_state['post']['browser']['table']['filters']);
-  
+
   // Build, validate and submit the form.
   drupal_process_form($form_id, $form, $form_state);
-  
+
   //Remove any status messages the processing resulted in...
   theme('status_messages');
-  
+
   // Get the form the ajax call resulted in
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  
+
   // We store a copy of the browser part of the form, and remove it from the main form.
   // This way we can render the form without the browser, and render the browser separatly
   $b_form = $form['question_list']['browser'];
   unset($form['question_list']['browser']);
-  
+
   /*
    * $output is the string we will send to ajax, and that will be added to the page.
    * We are doing this in a special way so way have to call javascript functions to
    * update the DOM.
-   */ 
+   */
   $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
-  
+
   // We remove all visible questions from the quiz. We only want to render the hidden questions.
   foreach ($form['question_list']['stayers'] as $key => $value) {
     if (isset($value['#value']) && $value['#value'] == 1) unset($form['question_list']['titles'][$key]);
   }
-  
+
   // We count the number of hidden questions
   $num_hiddens = 0;
   if (is_array($form['question_list']['titles'])) {
@@ -1045,26 +1045,26 @@ function quiz_browser_ahah() {
       if (preg_match('/^[0-9]+-[0-9]+/', $key)) $num_hiddens++;
     }
   }
-  
+
   // We render what is left of the question list
   $sub_form_html = drupal_render($form['question_list']);
-  
+
   // We pick the table rows holding the hidden questions
   $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
   $output .= ' var qRowsHidden = '.drupal_to_js($q_rows_html).';';
-  
+
   // We replace the entire browser. This is done when the browser is sorted
   if ($replace_all) {
     // Make sure the description and test is removed
     unset($b_form['#type']);
     unset($b_form['#value']);
-    
+
     $rendered_browser = drupal_render($b_form['table']);
     $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
-    
+
     // Have js(jQuery) replace the browser and change the form build id in the DOM
     $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
-    
+
     // Add the hidden questions to the question list
     $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
   }
@@ -1073,7 +1073,7 @@ function quiz_browser_ahah() {
     // Send status messages, new build id for the form and the new question row to the javascript:
     $b_rows = _quiz_get_browser_content(drupal_render($b_form));
     $b_pager = drupal_render($b_form['table']['pager']);
-    
+
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
@@ -1119,6 +1119,13 @@ function quiz_admin_settings() {
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_use_passfail', 1),
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
+  );
+
+  $form['quiz_global_settings']['quiz_display_feedback'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display @quiz feedback.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_display_feedback', 1),
+    '#description' => t('List the user selected answer and correct answer at the end of the @quiz.', array('@quiz' => QUIZ_NAME)),
   );
 
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
@@ -1633,7 +1640,7 @@ function _quiz_get_question_row($sub_form, $id) {
  *   HTML string with a table
  * @param $num_rows
  *   The number of rows to return(int)
- * @return 
+ * @return
  *   last table row in the table(html string)
  */
 function _quiz_get_last_table_rows($table, $num_rows = 1) {
@@ -1652,7 +1659,7 @@ function _quiz_get_last_table_rows($table, $num_rows = 1) {
  *
  * @param $table
  *   HTML string with a table
- * @return 
+ * @return
  *   all table rows with a certain class in a table(html string)
  */
 function _quiz_get_browser_content($table) {
@@ -1663,9 +1670,9 @@ function _quiz_get_browser_content($table) {
 
 /**
  * Adds variables from a querystring to $_GET
- * 
+ *
  * @see quiz_browser_ahah()
- * 
+ *
  * @param $to_add
  *   query string
  */
