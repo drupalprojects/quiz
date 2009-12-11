@@ -90,10 +90,6 @@ function quiz_questions($node) {
   // Set page title.
   drupal_set_title(check_plain($node->title));
 
-  // Add JS
-  $path = drupal_get_path('module', 'quiz') . '/quiz.admin.js';
-  drupal_add_js($path, 'module');
-
   $options['random_pool']['enabled'] = TRUE;
 
   return drupal_get_form('quiz_questions_form', $node, $options);
