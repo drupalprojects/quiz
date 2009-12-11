@@ -1227,8 +1227,9 @@ function quiz_take_quiz($quiz) {
   //}
   }
   // Check for a skip.
-  // XXX: Deprecated. Causing too many UI issues.
   elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
+    if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id']))
+      $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     $q_passed_validation = TRUE;
     // Advance the question.
     $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
@@ -1345,7 +1346,6 @@ function quiz_take_quiz($quiz) {
       // Get the results and summary text for this quiz.
       $questions = _quiz_get_answers($_SESSION['quiz_'. $quiz->nid]['result_id']);
       $summary = _quiz_get_summary_text($quiz, $score);
-
       // Get the themed summary page.
       $content['body']['#value'] = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
     }

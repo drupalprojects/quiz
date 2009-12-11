@@ -231,3 +231,15 @@ dl.quiz-report dd {
 .q-waiting {
   background-color: #FFFFDD;
 }
+
+.q-skip-button {
+  background: 0 none;
+  border: 0 none;
+  color: #bb0000;
+}
+
+.q-skip-button:hover {
+  color: #ff0000;
+  cursor: pointer;
+  text-decoration: underline;
+}
