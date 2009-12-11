@@ -501,7 +501,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   }
   $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  if (variable_get('quiz_display_feedback', 0)) {
+  if (variable_get('quiz_display_feedback', 1)) {
     $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
   }
   return $output;
