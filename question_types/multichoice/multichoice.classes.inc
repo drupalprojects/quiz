@@ -54,7 +54,6 @@ class MultichoiceQuestion extends QuizQuestion {
     else {
       for ($i = 0;is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        $short['score_if_chosen'] = $short['correct'];
         $short['score_if_not_chosen'] = 0;
       }
     }
@@ -167,7 +166,7 @@ class MultichoiceQuestion extends QuizQuestion {
         if (strlen($this->checkMarkup($i,'answer')) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
-            form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
+            //form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
           }
           else {
             $found_one_correct = TRUE;
@@ -427,7 +426,6 @@ class MultichoiceQuestion extends QuizQuestion {
       '#default_value' => $default_settings['choice_boolean'],
       '#parents' => array('choice_boolean'),
     );
-
     $form['alternatives']['settings']['desc'] = array(
       '#type' => 'markup',
       '#value' => t('Your settings will be remembered.'),
@@ -600,7 +598,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $max = 0;
     for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
-      $max += max($short['score_if_chosen'], $short['score_if_not_chosen']);
+      if ($this->node->choice_multi) {
+        $max += max($short['score_if_chosen'], $short['score_if_not_chosen']);
+      }
+      else {
+        $max = max($max, $short['score_if_chosen'], $short['score_if_not_chosen']);
+      }
     }
     return $max;
   }
