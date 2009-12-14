@@ -1173,34 +1173,33 @@ function quiz_take_quiz($quiz) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id']))
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
 
-      // Previous quiz questions: Questions that have been asked already. We save a record of all of them
-      // so that a user can navigate backward all the way to the beginning of the quiz.
-      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
-      $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-      $former_question = node_load(array('nid' => $former_question_array['nid']));
+    // Previous quiz questions: Questions that have been asked already. We save a record of all of them
+    // so that a user can navigate backward all the way to the beginning of the quiz.
+    $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+    $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+    $former_question = node_load(array('nid' => $former_question_array['nid']));
 
-      // Call hook_evaluate_question().
-      $types = _quiz_get_question_types();
-      $module = $types[$former_question->type]['module'];
-      $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-      $q_passed_validation = $result->is_valid;
-      quiz_store_question_result($result, array('set_msg' => TRUE));
+    // Call hook_evaluate_question().
+    $types = _quiz_get_question_types();
+    $module = $types[$former_question->type]['module'];
+    $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    $q_passed_validation = $result->is_valid;
+    quiz_store_question_result($result, array('set_msg' => TRUE));
 
-      // Stash feedback in the session, since the $_POST gets cleared.
-      if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-        // Invoke hook_get_report().
-        //$report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
-        $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
-        $path = drupal_get_path('module', 'quiz');
-        require_once($path .'/quiz.pages.inc');
-        $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form',array($report)));
-      }
-      // If anonymous user, refresh url with unique hash to prevent caching.
-      if (!$user->uid) {
-        //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
-        drupal_goto('node/' . $quiz->nid, array('quizkey' => md5(mt_rand() . time())));
-      }
-  //}
+    // Stash feedback in the session, since the $_POST gets cleared.
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+      // Invoke hook_get_report().
+      //$report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+      $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+      $path = drupal_get_path('module', 'quiz');
+      require_once($path .'/quiz.pages.inc');
+      $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form',array($report)));
+    }
+    // If anonymous user, refresh url with unique hash to prevent caching.
+    if (!$user->uid) {
+      //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
+      drupal_goto('node/' . $quiz->nid, array('quizkey' => md5(mt_rand() . time())));
+    }
   }
   // Check for a skip.
   elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
@@ -1224,12 +1223,6 @@ function quiz_take_quiz($quiz) {
   }
   // The content array:
   //$content['body'] = array();
-
-  // If we had feedback from the last question.
-  if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-    $content['body']['feedback']['#value'] = rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
-    //$output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
-  }
 
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
@@ -1302,6 +1295,11 @@ function quiz_take_quiz($quiz) {
       // quiz_node_view() function, which performs the steps in node_view(), but in a way more
       // specific to our needs.
       $content['body']['#value'] = quiz_node_view($question_node, $quiz);
+      // If we had feedback from the last question.
+      if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+        $content['body']['feedback']['#value'] = rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+        //$output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+      }
       drupal_set_title(check_plain($quiz->title));
       unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
     }

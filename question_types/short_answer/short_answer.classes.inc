@@ -303,7 +303,11 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       }
     }
     else {
-      $this->answer = $answer;
+      if (is_array($answer)) {
+        $this->answer = $answer['answer'];
+      } else {
+        $this->answer = $answer;
+      }
     }
   }
 
