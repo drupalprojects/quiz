@@ -1191,7 +1191,9 @@ function quiz_take_quiz($quiz) {
         // Invoke hook_get_report().
         //$report = module_invoke($former_question->type, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
         $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
-        $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(quiz_get_feedback($quiz, $report));
+        $path = drupal_get_path('module', 'quiz');
+        require_once($path .'/quiz.pages.inc');
+        $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form',array($report)));
       }
       // If anonymous user, refresh url with unique hash to prevent caching.
       if (!$user->uid) {

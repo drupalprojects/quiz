@@ -620,7 +620,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   protected $choice_order;
 
   public function __construct($result_id, stdClass $question_node, $tries = NULL) {
-    parent::__construct($result_id, $question_node);
+    parent::__construct($result_id, $question_node, $tries);
     $this->user_answer_ids = array();
     if (is_array($tries)) {
       $this->choice_order = $tries['choice_order'];
