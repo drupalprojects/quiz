@@ -557,7 +557,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   if (!$teaser && $page) {
     //load the questions in the view page
     //$node->content['body']['#value'] = quiz_take_quiz($node);
-    $node->content = quiz_take_quiz($node);
+    $node->content['quiz'] = quiz_take_quiz($node);
   }
   else {
     $node = node_prepare($node, $teaser);

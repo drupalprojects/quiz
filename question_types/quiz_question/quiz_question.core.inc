@@ -56,7 +56,7 @@ abstract class QuizQuestion {
    * The current node for this question.
    */
   public $node = NULL;
-  
+
   // Extra node properties
   public $nodeProperties = NULL;
    /**
@@ -90,7 +90,7 @@ abstract class QuizQuestion {
    * @return array
    */
   public function getNodeProperties() {
-    if (isset($this->nodeProperties)) return $this->nodeProperties;    
+    if (isset($this->nodeProperties)) return $this->nodeProperties;
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
@@ -328,7 +328,7 @@ abstract class QuizQuestion {
     $found = implode(', ', array_merge($already_nids, $latest_nids));
     if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
       // Suplementing with other available quizzes...
-      $sql = "SELECT nid, vid, title
+      $sql = "SELECT n.nid, n.vid, title
             FROM {node} n
             WHERE type = 'quiz'";
       if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
@@ -348,7 +348,7 @@ abstract class QuizQuestion {
           break;
         }
       }
-      $sql = 'SELECT title 
+      $sql = 'SELECT title
               FROM {node_revisions}
               WHERE vid = %d';
       $res = db_query($sql, $collection->vid);
@@ -364,7 +364,7 @@ abstract class QuizQuestion {
       '#weight' => -3,
       '#tree' => TRUE,
     );
-    
+
     if (count($already) > 0) {
       $desc = 'If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. ';
       $desc .= 'If the quiz has been answered a new revision of the quiz will be created automatically.';
@@ -466,7 +466,7 @@ abstract class QuizQuestion {
           $insert_values[] = $nid_vid[1];
           $delete_values[] = $nid_vid[1];
           $delete_values[] = $this->node->nid;
-          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)'; 
+          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)';
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
           $insert_values[] = $this->getMaximumScore();
@@ -630,7 +630,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   public function refreshQuestionNode($newNode) {
     $this->question = $newNode;
   }
-  
+
   public function isEvaluated() {
     return (bool)$this->evaluated;
   }
@@ -667,7 +667,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $obj->is_valid = $this->isValid();
     return $obj;
   }
-  
+
   public function isValid() {
     return TRUE;
   }
@@ -688,7 +688,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
 
     return $report;
   }
-  
+
   public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
     $form['nid'] = array(
@@ -722,36 +722,36 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
       '#value' => $this->question->max_score,
     );
     $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback);
-    
+
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
     $form['#is_correct'] = $this->isCorrect();
     $form['#is_evaluated'] = $this->isEvaluated();
     $form['#is_skipped'] = $this->is_skipped;
     return $form;
   }
-  
+
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     return array(
       '#type' => 'markup',
       '#value' => check_markup($this->question->body, $this->question->format, FALSE),
     );
   }
-  
+
   public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE) {
     return array(
       '#type' => 'markup',
       '#value' => '<span class="quiz-report-score">'. $this->getScore() .'</span>',
     );
   }
-  
+
   public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
     return FALSE;
   }
-  
+
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
     return FALSE;
   }
-  
+
   public function getReportFormTheme($showfeedback = TRUE, $showpoints = TRUE) {
     return FALSE;
   }
