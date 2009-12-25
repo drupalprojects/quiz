@@ -397,16 +397,11 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
       );
     }
-    $form[$fieldset]['titles'][$id] = array(
-      '#value' => l(
-        check_plain($question->title),
-        'node/'. $question->nid,
-        array(
-          'html' => TRUE,
-          'attributes' => array('target' => 'blank')
-        )
-      ),
+    $link_options = array(
+      'attributes' => array('target' => 'blank'),
+      'html' => TRUE,
     );
+    $form[$fieldset]['titles'][$id] = array('#value' => l($question->title, 'node/'. $question->nid, $link_options));
     $form[$fieldset]['types'][$id] = array(
       '#value' => $question_types[$question->type]['name'],
     );
