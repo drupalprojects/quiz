@@ -315,7 +315,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     if (empty($this->answer)) return t('You must provide an answer');
     return TRUE;
   }
-  
+
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     // Unfortunately, when score() is called, we don't yet have the record to modify (since
@@ -356,17 +356,23 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
   public function getResponse() {
     return $this->answer;
   }
-  
+
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $form = array();
-    if ($this->question && !empty($this->question->answers)) 
+    if ($this->question && !empty($this->question->answers)) {
       $answer = (object) current($this->question->answers);
-    else
-      return $form;    
+    }
+    else {
+      return $form;
+    }
+
+    $header = array(t('Correct Answer') ,t('User Answer'));
+    $row = array(array($this->question->correct_answer, $answer->answer));
     $form['answer'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($answer->answer),
+      '#value' => theme('table', $header, $row),
     );
+
     if ($answer->is_evaluated == 1) {
       // Show feedback, if any.
       if ($showfeedback && !empty($answer->feedback)) {
@@ -386,8 +392,9 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     }
     return $form;
   }
+
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE) {
-    $score = ($this->isEvaluated()) ? $this->getScore() : '?'; 
+    $score = ($this->isEvaluated()) ? $this->getScore() : '?';
     if (user_access('score short answer')) {
       return array(
         '#type' => 'textfield',
@@ -404,10 +411,11 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
       );
     }
   }
+
   public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
     return 'short_answer_report_submit';
   }
-  
+
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
     return 'short_answer_report_validate';
   }
