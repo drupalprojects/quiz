@@ -192,7 +192,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     $url_type = str_replace('_', '-', $type);
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => '<div class="add-questions">' . l(check_plain($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('title' => t('Go to @name administration', array('@name' => $info['name'])))) .'</div>',
+      '#value' => '<div class="add-questions">' . l(check_plain($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('attributes' => array('title' => t('Go to @name administration', array('@name' => $info['name']))))) .'</div>',
     );
   }
 }

@@ -78,8 +78,8 @@ function matching_autoload_info() {
  */
 function matching_theme() {
   return array(
-    'matching_question' => array(
-      //'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
+    'matching_question_form' => array(
+      'arguments' => array('form' => NULL),
       'file' => 'matching.theme.inc',
     ),
     /*'long_answer_feedback' => array(

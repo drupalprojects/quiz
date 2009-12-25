@@ -189,6 +189,7 @@ class MatchingQuestion extends QuizQuestion {
       '#title' => t('Match Question'),
       '#weight' => -4,
       '#tree' => TRUE,
+      '#theme' => 'matching_question_form',
     );
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
       $form['match'][$i] = array(
@@ -201,20 +202,17 @@ class MatchingQuestion extends QuizQuestion {
       );
       $form['match'][$i]['question'] = array(
         '#type' => 'textarea',
-        '#title' => t('Question'),
         '#rows' => 2,
         '#default_value' => isset($this->node->match[$i-1]['question']) ? $this->node->match[$i-1]['question'] : ''
       );
       $form['match'][$i]['answer'] = array(
         '#type' => 'textarea',
-        '#title' => t('Match'),
         '#rows' => 2,
         '#default_value' => isset($this->node->match[$i-1]['answer']) ? $this->node->match[$i-1]['answer'] : ''
       );
 
       $form['match'][$i]['feedback'] = array(
         '#type' => 'textarea',
-        '#title' => t('Feedback / Reason'),
         '#rows' => 2,
         '#default_value' => isset($this->node->match[$i-1]['feedback']) ? $this->node->match[$i-1]['feedback'] : ''
       );
