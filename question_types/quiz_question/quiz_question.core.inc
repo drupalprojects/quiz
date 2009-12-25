@@ -331,7 +331,9 @@ abstract class QuizQuestion {
       $sql = "SELECT n.nid, n.vid, title
             FROM {node} n
             WHERE type = 'quiz'";
-      if (drupal_strlen($found) > 0) $sql .= " AND nid NOT IN ($found)";
+      if (drupal_strlen($found) > 0) {
+        $sql .= " AND n.nid NOT IN ($found)";
+      }
       $sql .= " ORDER BY changed LIMIT %d";
       $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_N_O_LATEST - count($latest));
       while ($res_o = db_fetch_object($res)) {
