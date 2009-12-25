@@ -76,7 +76,8 @@ div.multichoice_answer_incorrect {
 
 .add-questions {
   background: transparent url(images/add.png) no-repeat scroll 0% 10%;
-  padding: 0 0 1em 2em;
+  float: left;
+  padding: 0 2em 1em;
 }
 
 #export-table {
@@ -84,7 +85,7 @@ div.multichoice_answer_incorrect {
 }
 
 .multichoice_answer_correct {
-	background-color: lightgreen;
+  background-color: lightgreen;
 }
 
 .hidden-question {
@@ -108,8 +109,8 @@ div.multichoice_answer_incorrect {
   background-color: black;
 }
 #quiz-question-browser-filters td.active {
-/*  background-color: #202050; */ 
-	background-color: #666;
+/*  background-color: #202050; */
+  background-color: #666;
 }
 
 .quiz-question-browser-row.odd:not(.selected) td.active {
@@ -134,7 +135,7 @@ div.multichoice_answer_incorrect {
   float: right;
 }
 
-/* alpha 3 original CSS 
+/* alpha 3 original CSS
 
 table.quiz-report-q-header {
   border-style: none;
@@ -182,42 +183,42 @@ table.quiz-report-q-header {
  */
 
 dl.quiz-report {
-	margin: 0;
-	padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 dl.quiz-report dt {
-	background: #eee;
-	border-top: solid 1px gray;
+  background: #eee;
+  border-top: solid 1px gray;
     float: left;
-	padding-left: 5px; 
-	width: 100%;
+  padding-left: 5px;
+  width: 100%;
 }
 
 dl.quiz-report dt div.quiz-report-score-container {
-	border-right: solid 1px gray;
-	border-left: solid 1px gray;
-	border-bottom: solid 1px gray;
-	float: right;
-	padding: 4px 6px;
+  border-right: solid 1px gray;
+  border-left: solid 1px gray;
+  border-bottom: solid 1px gray;
+  float: right;
+  padding: 4px 6px;
 }
 
 dl.quiz-report dt p {
-	clear: both	;
-	float: left;
+  clear: both ;
+  float: left;
 }
 
 dl.quiz-report dt p.quiz-report-question {
-	clear: none;
+  clear: none;
 }
 
 dl.quiz-report dt div.quiz-report-score-container span div.form-item {
-	display: inline;
+  display: inline;
 }
 
 dl.quiz-report dd {
-	margin: 10px 0 50px 0;
-	padding-left: 5px; 
+  margin: 10px 0 50px 0;
+  padding-left: 5px;
 }
 
 .q-correct {
