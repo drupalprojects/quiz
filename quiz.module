@@ -264,7 +264,7 @@ function quiz_menu() {
 
   // USER //
   $items['user/%/myresults'] = array(
-    'title' => t('My results'),
+    'title' => t('Quiz results'),
     'page callback' => 'quiz_get_user_results',
     'page arguments' => array(1),
     'access arguments' => array('view own results'),
