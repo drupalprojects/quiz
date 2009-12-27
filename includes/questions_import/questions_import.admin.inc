@@ -105,7 +105,7 @@ function questions_import_question_type() {
  */
 function questions_import_type() {
   $type = array(
-    'csv' => t('Comma Separated Values(CVS)'),
+    'csv' => t('Comma Separated Values (CSV)'),
     'aiken' => t('Moodle Aiken'),
     'qti' => t('Question and Test Interoperability'),
   );
