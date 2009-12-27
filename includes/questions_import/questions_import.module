@@ -25,7 +25,7 @@ function questions_import_help($path, $arg) {
  */
 
 function questions_import_perm() {
-  return array('import_questions');
+  return array('import questions');
 }
 
 /**
