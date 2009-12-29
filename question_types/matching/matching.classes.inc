@@ -304,10 +304,13 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $user_answers = isset($user_answers) ? $user_answers : $this->getUserAnswers();
     // to prevent warning : Invalid argument supplied for foreach()
     foreach ((array)$user_answers as $key => $value) {
-      if ($key != $value) {
-        $wrong_answer++;
+      if ($key == $value) {
+        $correct_answer++;
       }
-      else $correct_answer++;
+      elseif($value == 0 || $value == 'def') {}
+      else {
+        $wrong_answer++;
+      } 
     }
     $score = $correct_answer - $wrong_answer;
     return $score < 0 ? 0 : $score;
