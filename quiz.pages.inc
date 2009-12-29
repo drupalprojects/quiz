@@ -49,13 +49,13 @@ function quiz_user_results($result_id) {
  * @return $form
  *   FAPI form array
  */
-function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE) {
+function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE, $allow_scoring = FALSE) {
   $form = array();
   $show_submit = FALSE;
   foreach ($questions as $question) {
     $module = quiz_question_module_for_type($question->type);
     $function = $module .'_report_form';
-    $form_to_add = $function($question, $showpoints, $showfeedback);
+    $form_to_add = $function($question, $showpoints, $showfeedback, $allow_scoring);
     if (isset($form_to_add['submit']))
       $show_submit = TRUE;
     $form[] = $form_to_add;

@@ -393,9 +393,9 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     return $form;
   }
 
-  public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE) {
+  public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     $score = ($this->isEvaluated()) ? $this->getScore() : '?';
-    if (user_access('score short answer')) {
+    if (user_access('score short answer') && $allow_scoring) {
       return array(
         '#type' => 'textfield',
         '#default_value' => $score,
@@ -412,11 +412,11 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     }
   }
 
-  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
-    return 'short_answer_report_submit';
+  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
+    return $allow_scoring ? 'short_answer_report_submit' : FALSE;
   }
 
-  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
-    return 'short_answer_report_validate';
+  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
+    return $allow_scoring ? 'short_answer_report_validate' : FALSE;
   }
 }

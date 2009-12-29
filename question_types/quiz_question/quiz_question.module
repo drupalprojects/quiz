@@ -661,8 +661,8 @@ function quiz_question_get_max_score($nid, $vid) {
   return db_result(db_query($sql, $nid, $vid));
 }
 
-function quiz_question_report_form($question, $showpoints, $showfeedback) {
+function quiz_question_report_form($question, $showpoints, $showfeedback, $allow_scoring = FALSE) {
   $answer = $question->answers[0];
   
-  return _quiz_question_response_get_instance($answer['result_id'], $question, $answer)->getReportForm($showpoints, $showfeedback);
+  return _quiz_question_response_get_instance($answer['result_id'], $question, $answer)->getReportForm($showpoints, $showfeedback, $allow_scoring);
 }

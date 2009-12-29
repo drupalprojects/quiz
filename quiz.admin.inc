@@ -1467,7 +1467,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
   require_once(drupal_get_path('module', 'quiz') .'/quiz.pages.inc');
-  $output .= drupal_get_form('quiz_report_form', $questions, TRUE, TRUE);
+  $output .= drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE);
   return $output;
 }
 

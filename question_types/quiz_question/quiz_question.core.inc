@@ -691,7 +691,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     return $report;
   }
 
-  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
     $form['nid'] = array(
       '#type' => 'value',
@@ -705,20 +705,20 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->rid,
     );
-    if ($submit = $this->getReportFormSubmit($showpoints, $showfeedback)) {
+    if ($submit = $this->getReportFormSubmit($showpoints, $showfeedback, $allow_scoring)) {
       $form['submit'] = array(
         '#type' => 'value',
         '#value' => $submit,
       );
     }
-    if ($validate = $this->getReportFormValidate($showpoints, $showfeedback)) {
+    if ($validate = $this->getReportFormValidate($showpoints, $showfeedback, $allow_scoring)) {
       $form['validate'] = array(
         '#type' => 'value',
         '#value' => $validate,
       );
     }
     $form['question'] = $this->getReportFormQuestion($showpoints, $showfeedback);
-    $form['score'] = $this->getReportFormScore($showpoints, $showfeedback);
+    $form['score'] = $this->getReportFormScore($showpoints, $showfeedback, $allow_scoring);
     $form['max_score'] = array(
       '#type' => 'value',
       '#value' => $this->question->max_score,
@@ -739,18 +739,18 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     );
   }
 
-  public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return array(
       '#type' => 'markup',
       '#value' => '<span class="quiz-report-score">'. $this->getScore() .'</span>',
     );
   }
 
-  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE) {
+  public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return FALSE;
   }
 
-  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE) {
+  public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return FALSE;
   }
 
