@@ -261,7 +261,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     parent::__construct($result_id, $question_node, $answer);
     $this->is_correct = $this->isCorrect();
     if (!isset($answer)) {
-      $sql = 'SELECT ua.answer, score
+      $sql = 'SELECT ua.answer, score, ua.match_id
               FROM {quiz_matching_user_answers} ua
               JOIN {quiz_matching_node} n
               ON n.match_id = ua.match_id
@@ -269,7 +269,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
       $res = db_query($sql, $question_node->vid);
       $this->answer = array();
       while ($obj = db_fetch_object($res)) {
-        $this->answer[$obj->answer] = $obj->answer;
+        $this->answer[$obj->match_id] = $obj->answer;
       }
     }
   }
@@ -300,8 +300,8 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   public function score() {
     $wrong_answer = 0;
     $correct_answer = 0;
-    $user_answers = isset($this->answer) ? $this->answer : $this->getUserAnswers();
-    $user_answers = isset($user_answers) ? $user_answers : array();
+    $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
+    $user_answers = isset($user_answers) ? $user_answers : $this->getUserAnswers();
     // to prevent warning : Invalid argument supplied for foreach()
     foreach ((array)$user_answers as $key => $value) {
       if ($key != $value) {
