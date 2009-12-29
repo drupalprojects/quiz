@@ -731,6 +731,15 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
+    if ($this->question->choice_multi == 0) {
+      $max_score_if_chosen = -999;
+      while (is_array($this->question->alternatives[$i])) {
+        $short = $this->question->alternatives[$i];
+        if ($short['score_if_chosen'] > $max_score_if_chosen) $max_score_if_chosen = $short['score_if_chosen'];
+        $i++;
+      }
+      $i = 0;
+    }
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
       if (drupal_strlen($this->checkMarkup($short['answer'], $short->answer_format)) > 0) {
@@ -744,14 +753,31 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
             if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
               $rowspan = 2;
             }
-            $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+            
+            if ($this->question->choice_multi == 0) {
+              if ($short['score_if_chosen'] < $max_score_if_chosen && $this->question->choice_boolean == 0) {
+                $row[] = array('data' => theme('image', "$p/theme/images/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score')), 'width' => 35, 'rowspan' => $rowspan);
+              }
+              elseif ($short['score_if_chosen'] < $max_score_if_chosen && $this->question->choice_boolean == 1) {
+                $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose a wrong answer')), 'width' => 35, 'rowspan' => $rowspan);
+              }
+              else {
+                $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+              }
+            } else {
+              $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+            }
           }
           else {
             if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
               $rowspan = 2;
               $not = '_not';
             }
-            $row[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+            if ($this->question->choice_multi == 1 || $short['score_if_chosen'] == $max_score_if_chosen) 
+              $row[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+            else {
+              $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
+            }
           }
         }
         else {
@@ -759,7 +785,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
             if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
               $rowspan = 2;
             }
-            $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose !the wrong answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+            $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose a wrong answer')), 'width' => 35, 'rowspan' => $rowspan);
           }
           else {
             if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
