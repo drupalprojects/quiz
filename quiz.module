@@ -2696,6 +2696,7 @@ function _quiz_get_answers($rid) {
     if (!isset($questions[$line->question_nid]->score_weight)) {
       if ($questions[$line->question_nid]->max_score == 0) $weight = 0;
       else $weight = $line->max_score / $questions[$line->question_nid]->max_score;
+      $questions[$line->question_nid]->qnr_max_score = $line->max_score;
       $questions[$line->question_nid]->score_weight = $weight;
     }
   }

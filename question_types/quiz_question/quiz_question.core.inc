@@ -657,7 +657,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     return $this->score;
   }
   
-  function getMaxScore($weight_adjusted = TRUE) {
+  public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) $this->question->max_score = $this->question->getMaximumScore();
     if (isset($this->question->score_weight) && $weight_adjusted)
       return $this->question->max_score * $this->question->score_weight;
