@@ -643,7 +643,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
-    $possible = $this->question->max_score;
+    $possible = $this->getMaxScore();
     $actual = $this->getScore();
     assert($actual <= $possible);
 
@@ -655,6 +655,13 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     if (isset($this->question->score_weight) && $weight_adjusted)
       return $this->score * $this->question->score_weight;
     return $this->score;
+  }
+  
+  function getMaxScore($weight_adjusted = TRUE) {
+    if (!isset($this->question->max_score)) $this->question->max_score = $this->question->getMaximumScore();
+    if (isset($this->question->score_weight) && $weight_adjusted)
+      return $this->question->max_score * $this->question->score_weight;
+    return $this->question->max_score;
   }
 
   function toBareObject() {
@@ -721,7 +728,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $form['score'] = $this->getReportFormScore($showpoints, $showfeedback, $allow_scoring);
     $form['max_score'] = array(
       '#type' => 'value',
-      '#value' => $this->question->max_score,
+      '#value' => $this->getMaxScore(),
     );
     $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback);
 

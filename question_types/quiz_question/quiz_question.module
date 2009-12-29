@@ -304,6 +304,7 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
  */
 function quiz_question_get_report($nid, $vid, $rid) {
   $response_instance = _quiz_question_response_get_instance($rid, NULL, NULL, $nid, $vid);
+  
   $result = $response_instance->getReport();
   $response_instance->question->answers[$result['answer_id']] = $result;
   $response_instance->question->correct = $result['is_correct'];
@@ -663,6 +664,20 @@ function quiz_question_get_max_score($nid, $vid) {
 
 function quiz_question_report_form($question, $showpoints, $showfeedback, $allow_scoring = FALSE) {
   $answer = $question->answers[0];
-  
-  return _quiz_question_response_get_instance($answer['result_id'], $question, $answer)->getReportForm($showpoints, $showfeedback, $allow_scoring);
+  $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
+  if (!isset($response_instance->question->score_weight)) {
+    $sql = 'SELECT qnr.max_score 
+            FROM quiz_node_relationship qnr
+            WHERE qnr.child_vid = %d
+            AND qnr.parent_vid = (
+              SELECT vid 
+              FROM quiz_node_results
+              WHERE result_id = %d
+            )';
+    $qnr_max_score = db_result(db_query($sql, $question->vid, $answer['result_id']));
+    if ($qnr_max_score == 0) $weight = 0;
+    else $weight = $qnr_max_score / $response_instance->question->max_score;
+    $response_instance->question->score_weight = $weight;
+  }
+  return $response_instance->getReportForm($showpoints, $showfeedback, $allow_scoring);
 }

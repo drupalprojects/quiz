@@ -2693,10 +2693,11 @@ function _quiz_get_answers($rid) {
     $module = quiz_question_module_for_type($line->type);
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
-    if ($questions[$line->question_nid]->max_score == 0) $weight = 0;
-    else $weight = $line->max_score / $questions[$line->question_nid]->max_score;
-    $questions[$line->question_nid]->max_score = $line->max_score;
-    $questions[$line->question_nid]->score_weight = $weight;
+    if (!isset($questions[$line->question_nid]->score_weight)) {
+      if ($questions[$line->question_nid]->max_score == 0) $weight = 0;
+      else $weight = $line->max_score / $questions[$line->question_nid]->max_score;
+      $questions[$line->question_nid]->score_weight = $weight;
+    }
   }
 
   return $questions;
