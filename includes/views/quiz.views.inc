@@ -314,6 +314,10 @@ function quiz_views_data() {
     'parent_nid' => array(
       'title' => t('Quiz Node ID'),
       'help' => t('The node id of the quiz to which the question is attached.'),
+      'field' => array(
+        'handler' => 'views_handler_field_numeric',
+        'click sortable' => TRUE,
+      ),
       'argument' => array(
         // This'll get us the node title for the title, which may or may not be
         // preferable; that's the only difference between this handler and the
