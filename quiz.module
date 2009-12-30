@@ -194,7 +194,7 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
 
-  $items['admin/quiz/reports/%/results'] = array(
+  $items['admin/quiz/reports/%/results'] = array( //TODO: Deprecatet in quiz 4, remove this in version 6 of quiz
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'description' => t('View results for the given quiz.'),
     'page callback' => 'quiz_admin_results',
@@ -203,11 +203,30 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
   );
+  
+  $items['admin/quiz/reports/results/%/%'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View results for the given quiz.'),
+    'page callback' => 'quiz_admin_results',
+    'page arguments' => array(5),
+    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'file' => 'quiz.admin.inc',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+  );
 
-  $items['admin/quiz/%/view'] = array(
+  $items['admin/quiz/%/view'] = array( //TODO: Deprecatet in quiz 4, remove this in version 6 of quiz
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'quiz_admin',
     'page arguments' => array(2),
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_CALLBACK,
+    'file' => 'quiz.admin.inc',
+  );
+  
+  $items['admin/quiz/reports/results/%'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'quiz_admin',
+    'page arguments' => array(4),
     'access arguments' => array('administer quiz'),
     'type' => MENU_CALLBACK,
     'file' => 'quiz.admin.inc',

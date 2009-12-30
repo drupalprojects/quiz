@@ -1335,7 +1335,7 @@ function theme_quiz_admin_quizzes($results) {
 
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-      l($result['title'], 'admin/quiz/'. $result['nid'] .'/view'),
+      l($result['title'], 'admin/quiz/reports/results/'. $result['nid']),
       check_plain($result['name']),
       format_date($result['created'], 'small'),
     );
@@ -1381,7 +1381,7 @@ function theme_quiz_admin($results) {
   }
   while (list($key, $result) = each($results)) {
     $action = array(
-      'view_png' => l($png['view'], 'admin/quiz/reports/' . $result['result_id'] . '/results', array('html' => TRUE)),
+      'view_png' => l($png['view'], 'admin/quiz/reports/results/'. $quiz['nid'] .'/' . $result['result_id'], array('html' => TRUE)),
       'delete_png' => l($png['delete'], 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
     );
     if (module_exists('results_export')) {
