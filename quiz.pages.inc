@@ -123,28 +123,22 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
  */
 function quiz_get_user_results($user_id) {
   global $user;
+  $results = array();
+  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
+    FROM {node} n
+    INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    INNER JOIN {users} u ON u.uid = qnrs.uid
+    WHERE n.type = 'quiz'
+      AND u.uid = %d
+    ORDER BY qnrs.result_id ASC";
 
-  if ($user_id == $user->uid || user_access('view user results')) {
-    $results = array();
-    $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
-      FROM {node} n
-      INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
-      INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
-      INNER JOIN {users} u ON u.uid = qnrs.uid
-      WHERE n.type = 'quiz'
-        AND u.uid = %d
-      ORDER BY qnrs.result_id ASC";
-
-    $dbresult = db_query($sql, $user_id);
-    // Create an array out of the results.
-    while ($line = db_fetch_array($dbresult)) {
-     $results[$line['result_id']] = $line;
-    }
-    return theme('quiz_get_user_results', $results);
+  $dbresult = db_query($sql, $user_id);
+  // Create an array out of the results.
+  while ($line = db_fetch_array($dbresult)) {
+    $results[$line['result_id']] = $line;
   }
-  else {
-    return 'You have no permission to view the results of this user.';
-  }
+  return theme('quiz_get_user_results', $results);
 }
 
 // THEME FUNCTIONS

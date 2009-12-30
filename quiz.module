@@ -279,7 +279,8 @@ function quiz_menu() {
     'title' => t('My results'),
     'page callback' => 'quiz_get_user_results',
     'page arguments' => array(1),
-    'access arguments' => array('view own results'),
+    'access callback' => '_quiz_user_results_access',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.pages.inc',
   );
@@ -2963,4 +2964,12 @@ function _quiz_check_num_random(&$node) {
           SET question_status = %d
           WHERE parent_nid = %d AND parent_vid = %d';
   db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid);
+}
+
+/**
+ * Determine who should have access to the My results tab.
+ */
+function _quiz_user_results_access($user_id) {
+  global $user;
+  return ($user_id == $user->uid && user_access('view own results')) || user_access('view user results');
 }
