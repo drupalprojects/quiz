@@ -150,7 +150,16 @@ function quiz_init() {
  * Implementation of hook_menu().
  */
 function quiz_menu() {
-
+  
+  // Take //
+  $items['node/%quiz_type_access/take'] = array(
+    'title' => t('Take'),
+    'page callback' => 'quiz_take',
+    'page arguments' => array(1),
+    'access arguments' => array('access quiz'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  
   // ADMIN //
   $items['admin/quiz'] = array(
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
@@ -271,7 +280,6 @@ function quiz_menu() {
     'access arguments' => array('administer quiz'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.admin.inc',
-
   );
 
   // USER //
@@ -574,16 +582,20 @@ function quiz_load($node) {
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   drupal_alter('quiz_view', $node, $teaser, $page);
-  if (!$teaser && $page) {
-    //load the questions in the view page
-    //$node->content['body']['#value'] = quiz_take_quiz($node);
-    $node->content['quiz'] = quiz_take_quiz($node);
-  }
-  else {
-    $node = node_prepare($node, $teaser);
-  }
+  $node = node_prepare($node, $teaser);
   return $node;
 }
+
+/**
+ * Primary quiz-taking view (on Take tab)
+ */
+function quiz_take($node) {
+  drupal_alter('quiz_take', $node);
+  // load the questions in the view page
+  $node->content['quiz'] = quiz_take_quiz($node);
+  // render into a view
+  return node_view($node);
+}  
 
 // QUIZ FORM
 
@@ -1113,7 +1125,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  *  The quiz node.
  *
  * @return
- *  HTML output for page.
+ *  Content array
  */
 function quiz_take_quiz($quiz) {
   global $user;
