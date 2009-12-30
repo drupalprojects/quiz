@@ -46,7 +46,7 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-    '#options' => array('new_qcollection' => t('New item collection'), 'new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz or item collection')),
+    '#options' => array(/*'new_qcollection' => t('New item collection'),TODO: Remove completely*/ 'new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz'/* or item collection' TODO: REMOVE*/)),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -157,9 +157,9 @@ function _questions_import_vocabulary_options($tags_only) {
 function questions_import_type() {
   $type = array(
   // native types
-    'native_csv' => t('Comma Separated Values (by Drupal)'),
+    /*'native_csv' => t('Comma Separated Values (by Drupal)'),
     'native_aiken' => t('Aiken (by Drupal)'),
-    'native_qti12' => t('QTI 1.2 (by Drupal)'),
+    'native_qti12' => t('QTI 1.2 (by Drupal)'), TODO: Remove these completely and everything that uses them...*/
   // types implemented using Moodle code
   // TODO would be nice to scan the Moodle 'format' directory for types but they don't have display names
     'moodle_aiken' => t('Aiken (by Moodle)'),
