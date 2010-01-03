@@ -139,8 +139,8 @@ class MatchingQuestion implements QuizQuestion {
       '#type' => 'fieldset',
       '#title' => t('Matching Settings'),
       '#description' => t('Matching Questions Settings and Configuration'),
-      'collapsible' => TRUE,
-      'collapsed' => TRUE,
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
     );
     $form['matching']['quiz_matching_form_size'] = array(
       '#type' => 'textfield',
