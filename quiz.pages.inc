@@ -462,7 +462,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
   $output .= '<div id="quiz_summary">'. check_markup($summary,$quiz->format) .'</div><br />'."\n";
   // Get the feedback for all questions.
-  $output .= theme('quiz_feedback', $questions, FALSE, TRUE);
+  $output .= theme('quiz_feedback', $questions, TRUE, TRUE);
   return $output;
 }
 
