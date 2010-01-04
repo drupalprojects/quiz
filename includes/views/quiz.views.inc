@@ -205,6 +205,16 @@ function quiz_views_data() {
       ),
     'sort' => array('handler' => 'views_handler_sort'),
     ),
+    'repeat_until_correct' => array(
+      'title' => t('Repeat until correct'),
+      'help' => t('Require the user to re-try the question until they answer it correctly.'),
+      'field' => array(
+        'handler' => 'views_handler_field_boolean',
+        'click sortable' => TRUE,
+      ),
+    'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    
     'feedback_time' => array(
       'title' => t('Feedback Time'),
       'help' => t('Indicates whether quiz takers will get feedback after every question.'),

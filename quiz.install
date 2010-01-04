@@ -9,6 +9,16 @@
 
 /**
  * Implementation of hook_update_N().
+ * Adding a new field to for whether to repeat questions until they're found correct
+ */
+function quiz_update_6405() {
+  $result = array();
+  db_add_field($result, 'quiz_node_properties', 'repeat_until_correct', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  return $result;
+}
+
+/**
+ * Implementation of hook_update_N().
  * Adding a new field to save if a quiz takes random questions or not.
  */
 function quiz_update_6404() {
@@ -410,6 +420,13 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'repeat_until_correct' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
       'feedback_time' => array(
         'type' => 'int',

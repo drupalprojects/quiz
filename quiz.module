@@ -443,10 +443,10 @@ function quiz_insert($node) {
 
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, shuffle, randomize,
-      backwards_navigation, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
+      backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
   _quiz_check_num_random($node);
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
   if (!$node->auto_created) $_REQUEST['destination'] = "node/$node->nid/questions";
 }
@@ -475,6 +475,7 @@ function quiz_update($node) {
         shuffle = %d,
         randomize = %d,
         backwards_navigation = %d,
+        repeat_until_correct = %d,
         quiz_open = %d,
         quiz_close = %d,
         takes = %d,
@@ -490,7 +491,7 @@ function quiz_update($node) {
       WHERE vid = %d
         AND nid = %d";
     _quiz_check_num_random($node);
-    $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->quiz_open, $node->quiz_close,
+    $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
@@ -530,6 +531,7 @@ function _quiz_get_node_defaults() {
     'shuffle' => 0,
     'randomize' => 0,
     'backwards_navigation' => 0,
+    'repeat_until_correct' => 0,
     'feedback_time' => 0,
     'quiz_open' => 0,
     'quiz_close' => 0,
@@ -671,6 +673,13 @@ function quiz_form(&$node) {
     '#title' => t('Backwards navigation'),
     '#default_value' => $node->backwards_navigation,
     '#description' => t('Whether to allow user to go back and revisit their answers'),
+  );
+
+  $form['repeat_until_correct'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Repeat until correct'),
+    '#default_value' => $node->repeat_until_correct,
+    '#description' => t('Require the user to re-try the question until they answer it correctly.'),
   );
 
   $form['feedback_time'] = array(
@@ -1227,6 +1236,14 @@ function quiz_take_quiz($quiz) {
       require_once($path .'/quiz.pages.inc');
       $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form',array($report)));
     }
+    if ($quiz->repeat_until_correct) {
+      // If the question was answered incorrectly, repeat it
+      if ($result && !$result->is_correct) {
+        $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
+        array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
+      }
+    }
+ 
     // If anonymous user, refresh url with unique hash to prevent caching.
     if (!$user->uid) {
       //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
@@ -1326,10 +1343,12 @@ function quiz_take_quiz($quiz) {
       // the $content for the quiz node. Since we want to override the default theme, we use the
       // quiz_node_view() function, which performs the steps in node_view(), but in a way more
       // specific to our needs.
-      $content['body']['#value'] = quiz_node_view($question_node, $quiz);
+      $content['body']['question']['#value'] = quiz_node_view($question_node, $quiz);
+      $content['body']['question']['#weight'] = 0;
       // If we had feedback from the last question.
       if (isset($_SESSION['quiz_'. $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
         $content['body']['feedback']['#value'] = rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
+        $content['body']['feedback']['#weight'] = -100;
         //$output .= rawurldecode($_SESSION['quiz_'. $quiz->nid]['feedback']);
       }
       drupal_set_title(check_plain($quiz->title));
