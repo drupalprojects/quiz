@@ -1241,6 +1241,7 @@ function quiz_take_quiz($quiz) {
       if ($result && !$result->is_correct) {
         $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
         array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
+        drupal_set_message(t('The answer was incorrect. Please try again.'));
       }
     }
  
