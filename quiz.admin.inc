@@ -183,9 +183,8 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
     '#title' => t('Add new question'),
-    '#theme' => 'additional_questions',
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    '#collapsed' => TRUE,
   );
 
   foreach ($types as $type => $info) {

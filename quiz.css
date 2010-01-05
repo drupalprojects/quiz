@@ -76,8 +76,7 @@ div.multichoice_answer_incorrect {
 
 .add-questions {
   background: transparent url(images/add.png) no-repeat scroll 0% 10%;
-  float: left;
-  padding: 0 2em 1em;
+  padding: 0 0 1em 2em;
 }
 
 #export-table {
