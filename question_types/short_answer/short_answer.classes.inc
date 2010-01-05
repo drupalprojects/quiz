@@ -118,6 +118,11 @@ class ShortAnswerQuestion extends QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
     );
+    
+    if (isset($rid)) {
+      $response = new ShortAnswerResponse($rid, $this->node);
+      $form['tries']['#default_value'] = $response->getResponse();
+    }
 
     return $form;
   }

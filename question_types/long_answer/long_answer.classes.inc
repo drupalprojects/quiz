@@ -26,18 +26,22 @@ class LongAnswerQuestion extends QuizQuestion{
   // to an administrator or to a quiz taker.
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
-       '#type' => 'markup',
-       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-     );
-     $form['tries'] = array(
-       '#type' => 'textarea',
-       '#title' => t('Answer'),
-       '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
-       '#rows' => 15,
-       '#cols' => 60,
-       '#required' => FALSE,
-     );
-     return $form;
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+    );
+    $form['tries'] = array(
+      '#type' => 'textarea',
+      '#title' => t('Answer'),
+      '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
+      '#rows' => 15,
+      '#cols' => 60,
+      '#required' => FALSE,
+    );
+    if (isset($rid)) {
+      $response = new LongAnswerResponse($rid, $this->node);
+      $form['tries']['#default_value'] = $response->getResponse();
+    }
+    return $form;
   }
 
 

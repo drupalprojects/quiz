@@ -318,6 +318,10 @@ class ScaleQuestion extends QuizQuestion {
       '#title' => t('Choose one'),
       '#options' => $options,
     );
+    if (isset($rid)) {
+      $response = new ScaleResponse($rid, $this->node);
+      $form['tries']['#default_value'] = $response->getResponse();
+    }
     return $form;
   }
   
@@ -585,7 +589,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @return answer
    */
   public function getResponse() {
-    return $this->answer;
+    return $this->answer_id;
   }
   /**
    * Implementation of format report.

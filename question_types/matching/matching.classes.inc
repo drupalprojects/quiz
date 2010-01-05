@@ -119,7 +119,10 @@ class MatchingQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );
-
+    if (isset($rid)) {
+      $response = new MatchingResponse($rid, $this->node);
+      $responses = $response->getResponse();
+    }
     list($matches, $select_option) = $this->getSubquestions();
     foreach ($matches as $match) {
       $title = $match['question'];
@@ -128,6 +131,9 @@ class MatchingQuestion extends QuizQuestion {
         '#title' => $title,
         '#options' => $this->customShuffle($select_option),
       );
+      if (isset($rid)) {
+        $form['subquestions']['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
+      }
     }
 
     return variable_get('quiz_matching_shuffle_options', TRUE) ? array($form['question'], $this->customShuffle($form['subquestions'])) : $form;

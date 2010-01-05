@@ -101,7 +101,10 @@ class TrueFalseQuestion extends QuizQuestion {
 	    0 => t('False')
 	  ),
     );
-
+   if (isset($rid)) {
+      $response = new TrueFalseResponse($rid, $this->node);
+      $form['tries']['#default_value'] = $response->getResponse();
+    }
     return $form;
   }
 

@@ -335,11 +335,11 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_multi) {
       $form['tries[answer]']['#type'] = 'checkboxes';
       $form['tries[answer]']['#title'] = t('Choose');
-      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = $response->user_answer_ids;
+      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = $response->getResponse();
     } else {
       $form['tries[answer]']['#type'] = 'radios';
       $form['tries[answer]']['#title'] = t('Choose one');
-      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = array_pop($response->user_answer_ids);
+      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = array_pop($response->getResponse());
     }
 
     if (!$form['tries[answer]']['#taking_quiz']) {
@@ -621,7 +621,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   /**
    * ID of the answers.
    */
-  public $user_answer_ids;
+  protected $user_answer_ids;
   protected $choice_order;
 
   public function __construct($result_id, stdClass $question_node, $tries = NULL) {
