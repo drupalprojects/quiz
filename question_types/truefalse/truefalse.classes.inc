@@ -84,7 +84,7 @@ class TrueFalseQuestion extends QuizQuestion {
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm(array $form_state = NULL) {
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
 
     // Question first
     $form['question'] = array(

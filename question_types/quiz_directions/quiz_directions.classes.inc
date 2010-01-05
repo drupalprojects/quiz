@@ -32,7 +32,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
-  public function getAnsweringForm(array $form_state = NULL) {
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),

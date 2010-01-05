@@ -302,7 +302,7 @@ class ScaleQuestion extends QuizQuestion {
    * to an administrator or to a quiz taker.
    */
 
-  public function getAnsweringForm(array $form_state = NULL) {
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       if (drupal_strlen($this->node->{$i}->answer)>0) {

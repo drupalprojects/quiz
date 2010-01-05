@@ -300,7 +300,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * to an administrator or to a quiz taker.
    */
 
-  public function getAnsweringForm(array $form_state = NULL) {
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -309,6 +309,9 @@ class MultichoiceQuestion extends QuizQuestion {
       '#options' => array(),
       '#theme' => 'multichoice_alternative',
     );
+    if (isset($rid)) {
+      $response = new MultichoiceResponse($rid, $this->node);
+    }
     $form['tries[answer]']['#taking_quiz'] = _quiz_is_taking_context();
     $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
@@ -332,9 +335,11 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_multi) {
       $form['tries[answer]']['#type'] = 'checkboxes';
       $form['tries[answer]']['#title'] = t('Choose');
+      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = $response->user_answer_ids;
     } else {
       $form['tries[answer]']['#type'] = 'radios';
       $form['tries[answer]']['#title'] = t('Choose one');
+      if (is_array($response->user_answer_ids)) $form['tries[answer]']['#default_value'] = array_pop($response->user_answer_ids);
     }
 
     if (!$form['tries[answer]']['#taking_quiz']) {
@@ -616,7 +621,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   /**
    * ID of the answers.
    */
-  protected $user_answer_ids;
+  public $user_answer_ids;
   protected $choice_order;
 
   public function __construct($result_id, stdClass $question_node, $tries = NULL) {

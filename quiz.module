@@ -1216,6 +1216,7 @@ function quiz_take_quiz($quiz) {
 
     // Previous quiz questions: Questions that have been asked already. We save a record of all of them
     // so that a user can navigate backward all the way to the beginning of the quiz.
+    $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'] = $_SESSION['quiz_' . $quiz->nid]['result_id'];
     $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
     $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
     $former_question = node_load(array('nid' => $former_question_array['nid']));
@@ -1278,6 +1279,7 @@ function quiz_take_quiz($quiz) {
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
     if (!is_string($q_passed_validation)) {
       $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
+      $question_node->rid = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'];
     } else {
       $question_node = $former_question;
       drupal_set_message($q_passed_validation, 'error');

@@ -103,7 +103,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     return $content;
   }
 
-  public function getAnsweringForm(array $form_state = NULL) {
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
        '#type' => 'markup',
        '#value' => check_markup($this->node->body, $this->node->format, FALSE),
