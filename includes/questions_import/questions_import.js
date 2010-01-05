@@ -7,12 +7,12 @@
 $(document).ready(function() {
 	
   var updateDestination = function() {
-    if ($('#edit-destination-type option:selected').val() === 'existing_collection') {
+    if ($('#edit-destination-type option:selected').val() === 'existing_quiz') {
       $('#edit-destination-title-wrapper').hide();
-      $('#edit-collection-node-wrapper').show();
+      $('#edit-quiz-wrapper').show();
     } else {
       $('#edit-destination-title-wrapper').show();
-      $('#edit-collection-node-wrapper').hide();
+      $('#edit-quiz-wrapper').hide();
     }
   }
 

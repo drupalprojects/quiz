@@ -53,11 +53,6 @@ function multichoice_schema() {
       'id'
     ),
   );
-  /*
-   * Stores answer collection id.
-   * Pos = 0 means the collection won't be available as a predefined collection set.
-   * Pos > 0 is the collections position in the predefined collection list.
-   */
   $schema['quiz_multichoice_user_answer_multi'] = array(
     'fields' => array(
       'user_answer_id' => array(

@@ -390,9 +390,9 @@ function quiz_question_nodeapi(&$node, $op) {
  */
 function quiz_question_insert(stdClass $node) {
   _quiz_question_get_instance($node)->save(TRUE);
-  // if the question node says it should be attached to a quiz/qcollection, attach it.
-  if (isset($node->collection_nid) && $node->collection_nid > 0) {
-    quiz_question_refresh_latest_quizzes($node->collection_nid);
+  // if the question node says it should be attached to a quiz, attach it.
+  if (isset($node->quiz_nid) && $node->quiz_nid > 0) {
+    quiz_question_refresh_latest_quizzes($node->quiz_nid);
   }
 }
 
@@ -440,7 +440,7 @@ function quiz_question_delete(&$node) {
 
 /**
  * Delete the question node from the db, and mark its identifiers in the quiz
- * and qcollection linking table as "NEVER".  This is safer than deleting them
+ * linking table as "NEVER".  This is safer than deleting them
  * and allows for same tracing of what's happened if a question was deleted unintentionally.
  *
  * @param $node the question node

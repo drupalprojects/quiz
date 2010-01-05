@@ -2,10 +2,10 @@
 
 /**
  * @file
- * README file for Quiz Choice.
+ * README file for Quiz Multichoice.
  */
 
-Quiz Choice
+Quiz Multichoice
 Allows quiz creators to make a multiple choice question type.
 
 Sponsored by: Norwegian Centre for Telemedicine
@@ -21,7 +21,7 @@ CONTENTS
 
 ----
 1. Introduction
-
+TODO: UPDATE ME!
 This module is an attempt to make it easy to construct surveys using the quiz module.
 
 The Scale module lets the quiz creator store preset answer collections, enabling rapid

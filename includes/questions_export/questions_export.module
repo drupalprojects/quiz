@@ -45,9 +45,9 @@ function questions_export_menu() {
   );
 
   // Menu item to download item collection in a portable format
-  $items['node/%questions_export_collection_type_access/download'] = array(
+  $items['node/%quiz_type_access_load/download'] = array(
     'title' => t('Download'),
-    'description' => t('Download this collection of questions into a portable format.'),
+    'description' => t('Download this quiz into a portable format.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_export_download_form'),
     'access callback' => 'user_access',
@@ -57,22 +57,6 @@ function questions_export_menu() {
 
   return $items;
 }
-
-
-/**
- * Load a qcollection or quiz node and validate it.
- *
- * @param $arg
- *  The Node ID
- * @return
- *  A qcollection or quiz node object or FALSE if a load failed.
- */
-function questions_export_collection_type_access_load($arg) {
-  // Simple verification/load of the node.
-  $valid_types = array('qcollection', 'quiz');
-  return (($node = node_load($arg)) && in_array($node->type, $valid_types)) ? $node : FALSE;
-}
-
 
 /**
  * Return a form for selecting the export settings
@@ -103,7 +87,7 @@ function questions_export_download_form() {
  */
 function questions_export_download_form_submit(&$form, &$form_state) {
   // FIXME hacky way to get the node
-  $collection_node = node_load(arg(1));
+  $quiz = node_load(arg(1));
   $exporter = $form_state['values']['exporter'];
-  _questions_export_download($collection_node, $exporter);
+  _questions_export_download($quiz, $exporter);
 }

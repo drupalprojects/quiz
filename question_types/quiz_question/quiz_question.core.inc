@@ -261,30 +261,25 @@ abstract class QuizQuestion {
       );
     }
 
-    // Collection ID used here to tie creation of a question to a specific quiz or qcollection
-    $collection_id = arg(3);
-    if (is_numeric($collection_id)) {
+    // Collection ID used here to tie creation of a question to a specific quiz
+    $quiz_id = arg(3);
+    if (is_numeric($quiz_id)) {
       $vid = (is_numeric(arg(4) && arg(4) > 0)) ? arg(4) : NULL;
-      $collection = node_load((int)$collection_id, $vid);
-      $form['collection_nid'] = array(
+      $quiz = node_load((int)$quiz_id, $vid);
+      $form['quiz_nid'] = array(
         '#type' => 'value',
-        '#value' => $collection->nid,
+        '#value' => $quiz->nid,
       );
-      $form['collection_vid'] = array(
+      $form['quiz_vid'] = array(
         '#type' => 'value',
-        '#value' => $collection->vid,
+        '#value' => $quiz->vid,
       );
 
-      // If coming from collection view, go back there on submit.
+      // If coming from quiz view, go back there on submit.
 
       // TODO ask the node itself where to go after authoring a question
-      switch ($collection->type) {
-        case 'quiz':
-          $form['#redirect'] = 'node/'. $collection->nid .'/questions';
-          break;
-        case 'qcollection':
-          $form['#redirect'] = 'node/'. $collection->nid .'/items';
-          break;
+      if ($quiz->type == 'quiz') {
+        $form['#redirect'] = 'node/'. $collection->nid .'/questions';
       }
     }
 
@@ -342,10 +337,10 @@ abstract class QuizQuestion {
     }
     // If we came from the manage questions tab...
     $latest_default = array();
-    if (isset($collection)) {
+    if (isset($quiz)) {
       foreach ($latest as $key => $value) {
         $latest_nid = preg_match('/^[0-9]+/', $key);
-        if ($latest_nid == $collection->nid) {
+        if ($latest_nid == $quiz->nid) {
           unset($latest[$key]);
           break;
         }
@@ -353,9 +348,9 @@ abstract class QuizQuestion {
       $sql = 'SELECT title
               FROM {node_revisions}
               WHERE vid = %d';
-      $res = db_query($sql, $collection->vid);
-      $latest[$collection->nid .'-'. $collection->vid] = db_result($res);
-      $latest_default[] = $collection->nid .'-'. $collection->vid;
+      $res = db_query($sql, $quiz->vid);
+      $latest[$quiz->nid .'-'. $quiz->vid] = db_result($res);
+      $latest_default[] = $quiz->nid .'-'. $quiz->vid;
     }
 
     $form['add_directly'] = array(

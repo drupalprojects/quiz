@@ -22,11 +22,11 @@ function questions_export_form()  {
     '#title' => t('Export Questions'),
     '#description' => t('You can download questions into portable formats for use outside of Drupal, or on another Drupal site with the Quiz module.'),
   );
-  $options = quiz_get_collection_options();
+  $options = quiz_get_quiz_options();
   // $options is an array with nid as index and quiz node's title as value
   $form['quiz_questions_export']['quiz_node_title'] = array(
     '#type' => 'select',
-    '#title' => t('Collection'),
+    '#title' => t('Quiz'),
     '#options' => $options,
     '#description' => !empty($options) ? t('Select the resource to export its question(s).') : t('No quiz contents where found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
     '#required' => TRUE,
@@ -67,21 +67,21 @@ function _questions_exporters() {
  *
  */
 function questions_export_form_submit(&$form, &$form_state) {
-  $collection_node = node_load($form_state['values']['quiz_node_title']);
+  $quiz = node_load($form_state['values']['quiz_node_title']);
   $exporter = $form_state['values']['exporter'];
-  _questions_export_download($collection_node, $exporter);
+  _questions_export_download($quiz, $exporter);
 }
 
-function _questions_export_download($collection_node, $exporter) {
+function _questions_export_download($quiz, $exporter) {
   list($engine, $format) = explode('_', $exporter);
 
   // TODO use dynamic function names to eliminate this switch
   switch ($engine) {
     case 'moodle':
-      $count = _questions_export_moodle($collection_node, $format);
+      $count = _questions_export_moodle($quiz, $format);
       break;
     case 'native':
-      $count = _questions_export_native($collection_node, $format);
+      $count = _questions_export_native($quiz, $format);
       break;
   }
   return $count;
@@ -93,9 +93,9 @@ function _questions_export_download($collection_node, $exporter) {
  * @param $export_format
  * @return unknown_type
  */
-function _questions_export_native($collection_node, $export_format) {
+function _questions_export_native($quiz, $export_format) {
   // $questions is an array of quiz question node object
-  $questions = _questions_in_quiz($collection_node);
+  $questions = _questions_in_quiz($quiz);
   ob_start();
   $glue = ($export_format === 'aiken') ? "\n" : ',';
   // if the export type is 'aiken' use new line ("\n") else use comma (",") as glue for implode
@@ -146,7 +146,7 @@ function _questions_export_native($collection_node, $export_format) {
     $output .= (count($line) > 2) ? implode($glue, $line) . "\n\n" : '';
     $line = array();
   }
-  $filename = str_replace(' ', '_', $collection_node->title) . '.txt';
+  $filename = str_replace(' ', '_', $quiz->title) . '.txt';
   $filepath = file_directory_temp() . '/' . $filename;
   $handle = @fopen($filepath, 'w');
   fwrite($handle, $output);
@@ -158,14 +158,14 @@ function _questions_export_native($collection_node, $export_format) {
 }
 
 /*
- * @param $collection_node
- * quiz/qcollection node object
+ * @param $quiz
+ * quiz node object
  *
  * @return
  * a list of question node objects in the given quiz node object
  */
-function _questions_in_quiz($collection_node) {
-  if (empty($collection_node)) throw new Exception("empty collection node");
+function _questions_in_quiz($quiz) {
+  if (empty($quiz)) throw new Exception("empty quiz node");
   $questions = array();
   // Get all the questions (ignore `question_status`)
   $sql = "SELECT child_nid as question_nid, child_vid as question_vid
@@ -173,7 +173,7 @@ function _questions_in_quiz($collection_node) {
     WHERE parent_nid = %d
       AND parent_vid = %d
     ORDER BY weight";
-  $result = db_query($sql, $collection_node->nid, $collection_node->vid);
+  $result = db_query($sql, $quiz->nid, $quiz->vid);
   while ($row = db_fetch_array($result)) {
     $question_nodes[] = node_load($row['question_nid'], $row['question_vid']);
   }
@@ -264,11 +264,11 @@ function _fill_moodle_item_answers($dq, &$mq) {
  * Exports questions using the Moodle export engine.
  *
  */
-function _questions_export_moodle($collection_node, $format) {
+function _questions_export_moodle($quiz, $format) {
   global $user;
   ob_start();
 
-  $drupal_questions = _questions_in_quiz($collection_node);
+  $drupal_questions = _questions_in_quiz($quiz);
   $moodle_questions = _as_moodle_questions($drupal_questions);
 
   $file_name = tempnam(variable_get('file_directory_temp', file_directory_temp()), 'quiz');
@@ -282,7 +282,7 @@ function _questions_export_moodle($collection_node, $format) {
 
   if (!$qformat->provide_export()) throw new Exception("export not provided by $format format");
 
-  $qformat->filename = $collection_node->title;
+  $qformat->filename = $quiz->title;
 
   // process using Moodle
   $qformat->setQuestions($moodle_questions);

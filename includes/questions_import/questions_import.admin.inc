@@ -31,7 +31,7 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-    '#options' => array('new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz')),
+    '#options' => array('new_quiz' => t('New quiz'), 'existing_quiz' => t('Existing quiz')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
@@ -42,9 +42,9 @@ function questions_import_form()  {
     '#size' => 30,
     '#required' => TRUE,
   );
-  $options = quiz_get_collection_options();
+  $options = quiz_get_quiz_options();
   // $options is an array with nid as index and quiz node's title as value
-  $form['quiz_destination']['collection_node'] = array(
+  $form['quiz_destination']['quiz'] = array(
     '#type' => 'select',
     '#title' => t('Existing quiz'),
     '#options' => $options,
@@ -225,8 +225,8 @@ function _get_destination_node($form_state) {
 
   $destination_type = $form_state['values']['destination_type'];
 
-  if ($destination_type == 'existing_collection') {
-    $quiz_nid = $form_state['values']['collection_node'];
+  if ($destination_type == 'existing_quiz') {
+    $quiz_nid = $form_state['values']['quiz'];
     return node_load($quiz_nid);
   }
   else {
@@ -318,8 +318,8 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
   foreach ($moodle_questions as $mq) {
     $node = new stdClass();
     $node->weight = $import_count;
-    $node->collection_nid = $destination_node->nid;
-    $node->collection_vid = $destination_node->vid;
+    $node->quiz_nid = $destination_node->nid;
+    $node->quiz_vid = $destination_node->vid;
     $node->format = $form_state['values']['input_format'];
 
     // set taxonomy, if specified

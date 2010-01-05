@@ -105,11 +105,10 @@ function quiz_questions($node) {
  * @param $form_state
  *  The form state variable
  * @param $quiz
- *  The quiz or qcollection node.
+ *  The quiz node.
  * @return
  *  HTML output to create page.
  */
-//TODO rename $quiz to $qcollection?
 function quiz_questions_form($form_state, $quiz, $options) {
   // We need to add this because of the use of ajax. Without this the form api might redirect the user
   // To the page with the ahah callback...
@@ -793,7 +792,7 @@ function quiz_questions_form_validate($form, $form_state) {
 }
 
 /**
- * Update a quiz or qcollection set of items with new weights and membership
+ * Update a quiz set of items with new weights and membership
  * @param $quiz
  * @param $weight_map
  * @param $removed_set
@@ -904,7 +903,6 @@ function quiz_questions_form_submit($form, &$form_state) {
   if ($success) {
     drupal_set_message(t('Questions updated successfully.'));
   } else {
-    // FIXME output the right type name for quiz OR qcollection
     drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
 }

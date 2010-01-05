@@ -61,23 +61,23 @@ Here are the steps:
 How to clean up the database during development
 ==================================================
 
-# see what questions are deleted but still in collections
+# see what questions are deleted but still in quizzes
 SELECT qnr.* FROM quiz_node_relationship qnr
 LEFT JOIN node n ON qnr.child_nid = n.nid 
 WHERE n.nid IS NULL
 
-# delete questions that are deleted but still in collections
+# delete questions that are deleted but still in quizzes
 DELETE qnr
 FROM quiz_node_relationship qnr
 LEFT JOIN node n ON qnr.child_nid = n.nid 
 WHERE n.nid IS NULL
 
-# see what collections are deleted but still have questions
+# see what quizzes are deleted but still have questions
 SELECT qnr.* FROM quiz_node_relationship qnr
 LEFT JOIN node n ON qnr.parent_nid = n.nid 
 WHERE n.nid IS NULL
 
-# delete collections that are deleted but still have questions
+# delete quizzes that are deleted but still have questions
 DELETE qnr
 FROM quiz_node_relationship qnr
 LEFT JOIN node n ON qnr.parent_nid = n.nid 
