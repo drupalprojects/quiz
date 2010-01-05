@@ -166,8 +166,7 @@ function quiz_question_validate($node, &$form) {
 function quiz_question_answering_form($form_state, $node) {
   $question = _quiz_question_get_instance($node);
   $form = $question->getAnsweringForm($form_state);
-  $quiz = menu_get_object();
-
+  $quiz = menu_get_object('quiz_type_access');
   if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
     $form['back'] = array(
       '#type' => 'submit',

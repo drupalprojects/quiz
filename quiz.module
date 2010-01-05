@@ -2918,7 +2918,7 @@ function quiz_get_collection_options() {
  *   boolean
  */
 function _quiz_is_taking_context() {
-  $display_object = menu_get_object();
+  $display_object = menu_get_object('quiz_type_access');
   // in the AJAX Quiz there is no display object
   if (empty($display_object)) {
     return TRUE;
