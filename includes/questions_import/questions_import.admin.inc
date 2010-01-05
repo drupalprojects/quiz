@@ -13,21 +13,6 @@ module_load_include('php', 'quiz', 'includes/moodle_support');
 
 /**
  * @function
- * Generates link to view sample import files.
- */
-function questions_import_get_sample_file_link() {
-  $path = drupal_get_path('module', 'questions_import') .'/examples/';
-  return array(
-    '!csv' => l(t('CSV'), $path . 'csv_example.csv' ),
-    '!aiken' => l(t('AIKEN'), $path . 'aiken_example.txt'),
-    '!gift' => l(t('GIFT'), $path . 'gift_example.txt'),
-    '!learnwise' => l(t('LEARNWISE'), $path . 'learnwise_example.xml'),
-    '!qti_v1p2' => l(t('QTI 1.2'), $path . 'qti_v1p2_sample.xml'),
-  );
-}
-
-/**
- * @function
  * Implementation of hook_form()
  * provides form to upload questions
  *
@@ -46,14 +31,14 @@ function questions_import_form()  {
   $form['quiz_destination']['destination_type'] = array(
     '#type' => 'select',
     '#title' => t('Import destination'),
-    '#options' => array(/*'new_qcollection' => t('New item collection'),TODO: Remove completely*/ 'new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz'/* or item collection' TODO: REMOVE*/)),
+    '#options' => array('new_quiz' => t('New quiz'), 'existing_collection' => t('Existing quiz')),
     '#required' => TRUE,
   );
   $form['quiz_destination']['destination_title'] = array(
     '#type' => 'textfield',
     '#title' => t('Name of new node'),
     '#default_value' => t('<unnamed>'),
-    '#description' => t('Name for the new quiz or item collection'),
+    '#description' => t('Name for the new quiz'),
     '#size' => 30,
     '#required' => TRUE,
   );
@@ -61,9 +46,9 @@ function questions_import_form()  {
   // $options is an array with nid as index and quiz node's title as value
   $form['quiz_destination']['collection_node'] = array(
     '#type' => 'select',
-    '#title' => t('Existing collection'),
+    '#title' => t('Existing quiz'),
     '#options' => $options,
-    '#description' => count($options) ? t('Select the collection to which you want to add questions.') : t('No quiz contents were found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
+    '#description' => count($options) ? t('Select the quiz to which you want to add questions.') : t('No quiz contents were found. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))),
   );
   $form['quiz_import'] = array(
     '#type' => 'fieldset',
@@ -76,15 +61,8 @@ function questions_import_form()  {
     '#type' => 'select',
     '#title' => t('Import type'),
     '#options' => questions_import_type(),
-    '#description' => t('Select the import type (sample files !csv, !aiken, !gift, !learnwise, !qti_v1p2)', questions_import_get_sample_file_link()),
+    '#description' => t('Select the import type'),
     '#required' => TRUE,
-  );
-  $form['quiz_import']['field_separator'] = array(
-    '#type' => 'textfield',
-    '#title' => t('CSV Field Separator'),
-    '#default_value' => t(','),
-    '#description' => t('Special character used to separator the fields usually , : or ; '),
-    '#size' => 1,
   );
   //'upload' index will be used in file_check_upload()
   $form['quiz_import']['upload'] = array(
@@ -156,10 +134,6 @@ function _questions_import_vocabulary_options($tags_only) {
  */
 function questions_import_type() {
   $type = array(
-  // native types
-    /*'native_csv' => t('Comma Separated Values (by Drupal)'),
-    'native_aiken' => t('Aiken (by Drupal)'),
-    'native_qti12' => t('QTI 1.2 (by Drupal)'), TODO: Remove these completely and everything that uses them...*/
   // types implemented using Moodle code
   // TODO would be nice to scan the Moodle 'format' directory for types but they don't have display names
     'moodle_aiken' => t('Aiken (by Moodle)'),
@@ -180,7 +154,7 @@ function questions_import_type() {
 function questions_import_form_validate($form, &$form_state) {
 
   // TODO make the allowed extensions depend on the import type
-  $allowed_extensions = 'csv txt xml jcl jqz';
+  $allowed_extensions = 'txt xml jcl jqz';
 
   // it suppose to be a string which file extensions separated by space not an array
   $allowed_size = file_upload_max_size();
@@ -221,10 +195,6 @@ function questions_import_form_validate($form, &$form_state) {
     }
 
     switch ($import_engine) {
-      case 'native':
-        $validator_function_name = "questions_import_validate_$import_format";
-        $error_msg = $validator_function_name($file, $field_separator);
-        break;
       case 'moodle':
         // FIXME no validating yet for Moodle
         break;
@@ -242,99 +212,6 @@ function questions_import_form_validate($form, &$form_state) {
       }
     }
   }
-}
-
-/**
- * @function
- * This function checks whether the Question and Test Interoperability (QTI) XML
- * file is in proper format or not.
- */
-
-function questions_import_validate_qti12($file, $field_separator) {
-  $error_msg = '';
-  $row = 0;
-  $lines = file($file->filepath);
-  if (empty($lines)) {
-    form_set_error('xmlfile', 'File could not be uploaded. Please try again.');
-  }
-}
-
-
-/**
- * @function
- * This function checks whether the aiken import file is in proper format or not.
- *
- */
-function questions_import_validate_aiken($file, $separator) {
-  /*
-   $error_msg = '';
-   $row = 0;
-   $lines = file($file->filepath);
-
-   if (empty($lines) || (count($lines) < 4)) {
-   return '<p>' . t('Invalid number of lines or no lines were found in @filename.', array('@filename' => $file->filename)) . '</p>';
-   }
-
-   if ($question_type = 'multichoice') {
-   while (!empty($lines)) { // while not empty of file content
-   while ($current_line = trim(array_shift($lines))) {
-   if (empty($current_line)) {
-   break;
-   }
-   $line[] = $current_line;
-   }
-   // it should have read a questions, choices and its correct answer
-
-   if (count($line) < 4) {
-   $error_msg .= '<p>' . t('Error around line : @line_number', array('@line_number' => $row)) . '</p>';
-   }
-
-   $answer = trim(array_pop($line));
-   if (stristr($answer, 'ANSWER') === FALSE) {
-   $error_msg .= '<p>' . t('Error around line : @line_number', array('@line_number' => $row)) . '</p>';
-   }
-
-   // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
-   ++$row;
-   }
-   }
-
-   $error_msg .= !empty($error_msg) ? '<p>' . t('Aiken Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
-   return $error_msg;
-   */
-}
-
-/**
- * @function
- * This function checks whether the csv import file is in proper format or not.
- */
-
-function questions_import_validate_csv($file, $separator) {
-  $error_msg = '';
-  $row = 0;
-  $lines = file($file->filepath);
-  //reads the whole file content to an array
-  if (empty($lines)) {
-    return '<p>' . t('No lines were found in @filename.', array('@filename' => $file->filename)) . '</p>';
-  }
-
-  foreach ($lines as $line) {
-    $line = check_plain(trim($line));
-    if (!empty($line)) {
-      ++$row; // alway use pre_increment it is faster than post increment
-      $fields = explode($separator, $line);
-      switch ($field[0]) {
-        case 'multichoice':
-          $error_msg .= (count(fields) < 4) ? '<p>' . t('line : ') . $row . ' '. $line . ' </p>' : '';
-          break;
-        case 'true_false':
-          $error_msg .= '';
-      }
-    }
-  }
-
-  $error_msg .= !empty($error_msg) ? '<p>' . t('CSV Import Failed. These lines were found to have an invalid number of fields in @filename.', array('@filename' => $file->filename)) . '</p>' : '';
-  return $error_msg;
 }
 
 /**
@@ -396,16 +273,8 @@ function questions_import_form_submit(&$form, &$form_state) {
   $import_id = _questions_import_generate_record($form_state['values']['validated_file']->fid,
                                                 $form_state['values']['import_type']);
 
-  switch ($import_engine) {
-    case 'native':
-      $file = file_save_upload('upload');
-      $import_function_name = "questions_import_submit_$import_format";
-      $count = $import_function_name($destination_node, $form, $form_state, $import_id);
-      break;
-    case 'moodle':
-      $count = questions_import_submit_moodle_format($destination_node, $import_format, $form, $form_state, $import_id);
-      break;
-  }
+  $count = questions_import_submit_moodle_format($destination_node, $import_format, $form, $form_state, $import_id);
+      
   // $count contains number of questions successfully imported.
   $end = microtime(TRUE);
   $time =  substr($end - $start, 0, 6);
@@ -557,462 +426,6 @@ function _questions_import_moodle_create_node ($mq, $row, $import_id, &$node) {
       }
       break;
   }
-}
-
-/**
- * This function imports questions from Question and Test Interoperability (QTI) format file.
- * @return
- * Return the number of questions successfully imported.
- */
-function questions_import_submit_qti12($destination_node, $form, $form_state, $import_id) {
-  $file = $form_state['values']['validated_file'];
-  $row = 0;
-  $qti_items = questions_import_qti_extract_info($file->filepath);
-
-  // Loop through each question and import it into Drupal
-  foreach ($qti_items as $item) {
-    $node = new stdClass();
-    $node->weight = $row;
-    $node->collection_nid = $destination_node->nid;
-    $node->collection_vid = $destination_node->vid;
-    $node->format = $form_state['values']['input_format'];
-
-    _questions_import_qti_create_node($item, $form_state, $row, $import_id, $node);
-
-    node_save(questions_import_node_save_static_data($node));
-    _questions_import_record_item($import_id, $node->nid, $row);
-
-    ++$row;
-  }
-  return $row;
-}
-
-/**
- * Take a description of a quiz question and turn it into a node.
- *
- * The node is saved as the appropriate Quiz question type.
- */
-function _questions_import_qti_create_node($item, $row, $import_id, &$node) {
-  global $user;
-  $item = (object)$item;
-  $node->title = $item->title;
-  $node->teaser = $node->body = $item->content;
-  $node->uid = $user->uid;
-  $node->status = 1;
-  $node->log = 'Imported from QTI importer.';
-
-  switch (strtolower($item->type)) {
-    /*case 'explanation':
-     $node->type = 'quiz_directions';
-     break;
-     case 'essay':
-     $node->type = 'long_answer';
-     $node->maximum_score = 1;
-     break;*/
-    case 'multiple choice':
-      $node->type = 'multichoice';
-      $answers = $item->answers;
-      $node->number_of_answers = count($answers);
-      // Add answers:
-      $node->answers = array();
-      foreach ($answers as $answer) {
-        $node->answers[] = array(
-          'answer' => $answer['text'],
-          'feedback' => $answer['feedback'],
-          'correct' => $answer['is_correct'],
-          'result_option' => '0', // No support for personality.
-        );
-      }
-      break;
-  }
-}
-
-/**
- * Given a QTI 1.2 XML file, extract quiz questions.
- */
-function questions_import_qti_extract_info($file) {
-  $items = array();
-  foreach (qp($file, 'item') as $item) {
-    $title = $item->attr('title');
-    $type = $item->find('itemmetadata>qmd_itemtype')->text();
-    $body = $item->end()->find('presentation>material>mattext');
-    if ($body->attr('texttype') == 'text/html') {
-
-      $bodytext = $body->text();
-
-      if (strpos($bodytext, '<html') === FALSE) {
-        //drupal_set_message('Adding HTML', 'status');
-        $bodytext =  '<html>' . $bodytext . '</html>';
-      }
-
-      // Load here so that errors are caught by Drupal (which has no exception handler.)
-      $doc = new DOMDocument();
-      $doc->loadHTML($bodytext);
-
-      $html = qp($doc, 'body');
-      $contents = $html->get(0)->childNodes;
-
-      // Extract content from HTML and put it in a temp document.
-      $newdoc = qp('<?xml version="1.0"?><div id="qti-question-body"/>');
-      $i = 0;
-      while ($node = $contents->item($i++)) {
-        $newdoc->append($node);
-      }
-      $out = $newdoc->html(); // This leaves off XML declaration.
-    }
-    else {
-      $out = $body->text();
-    }
-
-    $new_item = array(
-      'title' => $title,
-      'type' => $type,
-      'content' => $out,
-    );
-
-    // Handle multiple choice questions:
-    if (strtolower($type) == 'multiple choice') {
-      $answers = array();
-
-      // First, get all anssers and loop through them.
-      $answerstexts = $item->parent('item')->find('response_lid>render_choice>response_label>material>mattext');
-      foreach ($answerstexts as $answertext) {
-
-        // As we find each answer, grab a bunch of related data. Processing-wise, this is not terribly
-        // efficient, since we are hoping back and forth inside of the document. However, it is much easier
-        // to do this all together.
-        $text = $answertext->text();
-        $index = $answertext->parent('response_label')->attr('ident');
-
-        // This filter grabs the answer setting by index. Most of the time, index appears to be
-        // an alpha char.
-        $contains_filter = 'resprocessing>respcondition>conditionvar>varequal:contains(' . $index . ')';
-        $correct = $answertext->parent('item')->find($contains_filter)->parent('respcondition')->find('setvar')->text();
-        if ($correct == 0) {
-          $feedback = $answertext->parent('item')->find('itemfeedback[ident="Wrong Answer"]>material>mattext')->text();
-        }
-        else {
-          $feedback = 'Correct';
-        }
-
-        // Store all of this in an array.
-        $answers[] = array(
-          'text' => $text,
-          'index' => $index,
-          'is_correct' => $correct,
-          'feedback' => $feedback,
-        );
-
-      }
-      // Store answers
-      $new_item['answers'] = $answers;
-    }
-    // Store questions
-    $items[] = $new_item;
-  }
-  return $items;
-}
-
-
-function questions_import_read_node_aiken($line, &$node) {
-  // now $line is an array holding question fields.
-  $type = questions_import_get_next_aiken_field($line);
-  /*
-   * FIX IT Redundant code
-  if (!in_array($type, array_keys(_quiz_get_question_types()))) {
-    drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
-    // oops you have miss spelled question type or you are trying to import question whose module is disabled.
-    // set an error message and read the next question.
-    $line = array();
-    //empty the $line to load the next question
-    return $line;
-  }
-  */
-  $node->type = $type;
-  $node->title = $node->body = $node->teaser = questions_import_get_next_aiken_field($line);
-
-  $options = array(); // clear the options array for a new question
-
-  switch ($node->type) {
-    case 'multichoice':
-      $options = array();
-      $answer = array_pop($line);
-      // now $line is left only with choices which looks like A) Moodle B) ATutor C) Claroline D) Blackboard etc
-      while (!empty($line)) {
-        $l = questions_import_get_next_aiken_field($line);
-        $option = explode($l[1], $l);
-        $options[trim($option[0])]['choice'] = trim($option[1]);
-        $feedback = questions_import_get_next_aiken_field($line);
-        $options[trim($option[0])]['feedback'] = ($feedback == 'nil') ? '' : $feedback;
-      }
-      $correct = substr(trim($answer), '-1');
-      $answer = $options[$correct]['choice'];
-      $line = array();
-      // empty the $line and load the next question fields into it.
-      $node->num_answers = count($options);
-      $node->alternatives = array();
-      foreach ($options as $option) {
-        $node->alternatives[] = array(
-          'answer' => trim($option['choice']),
-          'feedback_if_chosen' => trim($option['feedback']),
-          'feedback_if_not_chosen' => trim($option['feedback']),
-          'score_if_chosen' => (trim($answer) == trim($option['choice'])) ? 1 : 0,
-          'answer_format' => 1,
-          'feedback_if_chosen_format' => 1,
-          'feedback_if_not_chosen_format' => 1,
-        );
-      }
-      break;
-
-    case 'true_false':
-      $node->correct_answer = (questions_import_get_next_aiken_field($line) == 'true') ? 1 : 0;
-      $feedback = questions_import_get_next_aiken_field($line);
-      $node->feedback = ($feedback === 'nil') ? '' : $feedback;
-      break;
-
-    case 'matching':
-      $node->match = array();
-      while (!empty($line)) {
-        $row = explode(',', questions_import_get_next_aiken_field($line));
-        $node->match[] = array(
-          'question' => $row[0],
-          'answer' => $row[1],
-          'feedback' => $row[2] == 'nil' ? '' : $row[2],
-        );
-      }
-      break;
-
-    case 'short_answer':
-      $evaluation_type = array('case sensitive match', 'case insensitive match', 'regular expression match', 'manually score match');
-      $node->correct_answer = questions_import_get_next_aiken_field($line);
-      $node->maximum_score = (int) questions_import_get_next_aiken_field($line);
-      $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_aiken_field($line), $evaluation_type);
-      // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
-      break;
-
-    case 'long_answer':
-      $node->maximum_score = questions_import_get_next_aiken_field($line);
-      break;
-
-    case 'quiz_directions':
-      break;
-  }
-}
-
-/**
- * @function
- * This function imports questions from Moodle Aiken format file.
- * @return
- * Return the number of questions successfully imported.
- */
-function questions_import_submit_aiken($destination_node, $form, $form_state, $import_id) {
-  global $user;
-  $row = 0;
-  $output = '';
-  $line = array();
-
-  $file = $form_state['values']['validated_file'];
-  $lines = file($file->filepath);
-
-  // while not empty of file content
-  while (!empty($lines)) {
-    $line = questions_import_get_next_aiken_question($lines);
-    if (empty($line)) {
-      // this line is empty. Get the next line
-      continue;
-    }
-
-    // now $line is an array holding question fields.
-    //$type = questions_import_get_next_aiken_field($line);
-    if (!in_array($line[0], array_keys(_quiz_get_question_types()))) {
-      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
-      // oops you have miss spelled question type or you are trying to import question whose module is disabled.
-      // set an error message and read the next question.
-      $line = array();
-      //empty the $line to load the next question
-      continue;
-    }
-
-    $node = new stdClass();
-    $node->weight = $row;
-    $node->collection_nid = $destination_node->nid;
-    $node->collection_vid = $destination_node->vid;
-    $node->format = $form_state['values']['input_format'];
-
-    questions_import_read_node_aiken($line, $node);
-
-    node_save(questions_import_node_save_static_data($node));
-
-    _questions_import_record_item($import_id, $node->nid, $row);
-
-    ++$row;
-  }
-  return $row;
-}
-
-function questions_import_get_next_aiken_field(&$row) {
-  return trim(array_shift($row));
-}
-
-function questions_import_get_next_aiken_question(&$lines) {
-  $line = array();
-
-  while ($current_line = questions_import_get_next_aiken_field($lines)) {
-    // get the whole question fields to an array
-    if (empty($current_line)) {
-      // No more question fields. we have reached the end, exit from this loop.
-      break;
-    }
-    if ($current_line[0] === '#') {
-      // ho its a comment line, just ignore it
-      continue;
-    }
-    $line[] = $current_line;
-  }
-  return $line;
-}
-
-
-/*
- * @param $line
- *   string containing a line from CSV file
- * @param $node
- *   object drupal quiz question node
- * @param $separator
- *   string containing CSV field separator
- */
-function questions_import_read_node_csv($line, &$node, $separator) {
-
-  $line = explode($separator, $line);
-  // The $line variable looks something like
-  // Question Type, Question, Choice 1, Feedback Ch1, Choice 2, Feedback Ch2, ...,Correct Choice
-  // eg multichoice, which of the following is an IDE ?, Ubuntu, Ubuntu is a Linux Distro, Geany, Geany is a text editor for gnome, Eclipse, Eclipse is an IDE, Drupal, Drupal is an kick ass CMS, Eclipse
-
-  $type = questions_import_get_next_csv_field($line);
-  $node->type = $type;
-  $question = questions_import_get_next_csv_field($line);
-  switch ($type) {
-
-    case 'multichoice':
-      $correct_answer = array_pop($line);
-      //$node->num_answers = count($options);
-      $node->alternatives = array();
-      while (!empty($line)) {
-        $answer = questions_import_get_next_csv_field($line);
-        $feedback = questions_import_get_next_csv_field($line);
-        $score = questions_import_get_next_csv_field($line);
-        $node->alternatives[] = array(
-          'answer' => $answer,
-          'feedback_if_chosen' => $feedback === 'nil' ? '' : $feedback,
-          'feedback_if_not_chosen' => $feedback === 'nil' ? '' : $feedback,
-          'score_if_chosen' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
-          'score_if_not_chosen' => (trim($answer) == trim($correct_answer)) ? 1 : 0,
-          'answer_format' => 1,
-          'feedback_if_chosen_format' => 1,
-          'feedback_if_not_chosen_format' => 1,
-        );
-      }
-      break;
-
-    case 'true_false':
-      $node->correct_answer = (questions_import_get_next_csv_field($line) == 'true') ? 1 : 0;
-      $feedback = questions_import_get_next_csv_field($line);
-      $node->feedback = $feedback === 'nil' ? '' : $feedback;
-      break;
-
-    case 'matching':
-      $node->match = array();
-      while (!empty($line)) {
-        $match = array(
-          'question' => questions_import_get_next_csv_field($line),
-          'answer' => questions_import_get_next_csv_field($line),
-          'feedback' => questions_import_get_next_csv_field($line),
-        );
-        $node->match[] = array(
-          'question' => $match['question'],
-          'answer' => $match['answer'],
-          'feedback' => $match['feedback'] ? '' : $match['feedback']
-        );
-      }
-      break;
-
-    case 'long_answer':
-      $node->maximum_score = questions_import_get_next_csv_field($line);
-      break;
-
-    case 'short_answer':
-      $evaluation = array(
-        'case sensitive match',
-        'case insensitive match',
-        'regular expression match',
-        'manually score match'
-      );
-      $node->correct_answer = questions_import_get_next_csv_field($line);
-      $node->maximum_score = questions_import_get_next_csv_field($line);
-      $node->correct_answer_evaluation = (int) array_search(questions_import_get_next_csv_field($line), $evaluation);
-      // if array_search return FALSE we convert it to int 0 and take the default format 'case sensitive match'
-      break;
-
-    case 'quiz_directions':
-      break;
-
-  }
-  $node->title = $node->body = $node->teaser = $question;
-}
-
-/**
- * @function
- * This function imports multichoice questions from CSV file.
- * @param $lines
- *  It contains the whole csv file content.
- * @return
- *  Return the number of questions successfully imported.
- */
-function questions_import_submit_csv($destination_node, $form, $form_state, $import_id) {
-  global $user;
-  $row = 0;
-  $output = '';
-
-  $file = $form_state['values']['validated_file'];
-  // drupal file object
-
-  $separator = $form_state['values']['field_separator'];
-  // CSV field separator
-
-  $lines = file($file->filepath);
-  // iterate through all the lines in the file. Each line corresponds to one quiz question
-  foreach ($lines as $line) {
-    // check empty line and comment lines
-    $line = trim($line);
-    if (empty($line) || $line[0] === '#') {
-      continue;
-    }
-    // check question type
-    $fields = explode($line, $separator);
-    $type = trim($fields[0]);
-    if (!in_array($type, array_keys(_quiz_get_question_types()))) {
-      drupal_set_message(t('Unable to import @type type question. You may need to enable @type module.', array('@type' => $type)),'error');
-      continue;
-    }
-    $node = new stdClass();
-    $node->weight = $row;
-    $node->collection_nid = $destination_node->nid;
-    $node->collection_vid = $destination_node->vid;
-    $node->format = $form_state['values']['input_format'];
-
-    questions_import_read_node_csv($line, $node, $separator);
-
-    node_save(questions_import_node_save_static_data($node));
-
-    _questions_import_record_item($import_id, $node->nid, $row);
-
-    ++$row;
-  }
-  return $row;
-}
-
-function questions_import_get_next_csv_field(&$row) {
-  return trim(array_shift($row));
 }
 
 /**
