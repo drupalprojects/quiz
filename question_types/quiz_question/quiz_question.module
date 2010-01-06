@@ -55,7 +55,7 @@ function quiz_question_menu() {
       'description' => t('Configure the @name question type.', array('@name' => $definition['name'])),
       'page callback' => 'drupal_get_form',
       'page arguments' => array('quiz_question_type_settings_form', $type),
-      'access arguments' => array('configure quiz question types'),
+      'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
       'type' => MENU_NORMAL_ITEM,
     );
   }
@@ -69,7 +69,6 @@ function quiz_question_perm() {
   return array(
   // Manage questions:
     'create quiz question', 'edit own quiz question', 'edit any quiz question', 'delete own quiz question', 'delete any quiz question',
-    'score quiz question', 'configure quiz question types',
   );
 }
 
