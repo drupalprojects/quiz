@@ -41,7 +41,7 @@ function quiz_question_menu() {
     'title' => 'Revision actions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_revision_actions', 1, 2),
-    'access arguments' => array('create quiz question'),
+    'access arguments' => array('create quiz'),
     'file' => 'quiz_question.pages.inc',
     'type' => MENU_NORMAL_ITEM,
   );
@@ -63,19 +63,8 @@ function quiz_question_menu() {
 }
 
 /**
- * Implementation of hook_perm().
- */
-function quiz_question_perm() {
-  return array(
-  // Manage questions:
-    'create quiz question', 'edit own quiz question', 'edit any quiz question', 'delete own quiz question', 'delete any quiz question',
-  );
-}
-
-/**
  * Implementation of hook_theme().
  */
-
 function quiz_question_theme() {
   return array(
     'quiz_question_report' => array(
@@ -127,13 +116,13 @@ function quiz_question_access($op, $node, $account) {
     case 'view':
       return user_access('view quiz question outside of a quiz');
     case 'create':
-      return user_access('create quiz question', $account);
+      return user_access('create quiz', $account);
     case 'update':
-      if (user_access('edit any quiz question', $account) || user_access('edit own quiz question', $account) && ($account->uid == $node->uid)) {
+      if (user_access('edit any quiz', $account) || user_access('edit own quiz', $account) && ($account->uid == $node->uid)) {
         return TRUE;
       }
     case 'delete':
-      if (user_access('delete any quiz question', $account) || user_access('delete own quiz question', $account) && ($account->uid == $node->uid)) {
+      if (user_access('delete any quiz', $account) || user_access('delete own quiz', $account) && ($account->uid == $node->uid)) {
         return TRUE;
       }
   }

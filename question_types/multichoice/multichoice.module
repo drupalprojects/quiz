@@ -39,7 +39,7 @@ function multichoice_menu() {
   $items['multichoice/add_alternative_js'] = array(
     'page callback' => 'multichoice_add_alternative_js',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz question'),
+    'access arguments' => array('create quiz'),
   );
   return $items;
 }
