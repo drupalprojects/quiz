@@ -594,7 +594,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 
 function quiz_start_quiz_button_form(&$form_state, $node) {
   $form = array();
-  $form['#action'] = 'index.php?q=node/'. $node->nid .'/take';
+  $form['#action'] = url("node/$node->nid/take");
   $form['button'] = array(
     '#type' => 'button',
     '#value' => t('Start quiz'),
@@ -609,9 +609,6 @@ function quiz_take($node) {
   drupal_alter('quiz_take', $node);
   // load the questions in the view page
   return drupal_render(quiz_take_quiz($node));
-  /*$node->content['quiz'] = quiz_take_quiz($node);  TODO: REMOVE COMPLETELY
-  // render into a view
-  return node_view($node);*/
 }  
 
 // QUIZ FORM
