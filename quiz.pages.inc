@@ -139,7 +139,6 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
  *  HTML output for page.
  */
 function quiz_get_user_results($user_id) {
-  global $user;
   $results = array();
   $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
     FROM {node} n
@@ -150,7 +149,7 @@ function quiz_get_user_results($user_id) {
       AND u.uid = %d
     ORDER BY qnrs.result_id ASC";
 
-  $dbresult = db_query($sql, $user_id);
+  $dbresult = db_query(db_rewrite_sql($sql), $user_id);
   // Create an array out of the results.
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['result_id']] = $line;
@@ -316,7 +315,6 @@ function theme_quiz_get_user_results($results) {
       l(t('view'), 'user/quiz/'. $result['result_id'] .'/userresults'),
       check_plain($result['title']),
       check_plain($result['name']),
-      $result['result_id'],
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
     );
@@ -326,7 +324,6 @@ function theme_quiz_get_user_results($results) {
     t('Action'),
     t('@quiz Title', array('@quiz' => QUIZ_NAME)),
     t('Username'),
-    t('Result<br />ID'),
     t('Time Started'),
     t('Finished?'));
 
