@@ -1381,23 +1381,26 @@ function theme_quiz_admin($results) {
       'view_png' => l($png['view'], 'admin/quiz/reports/results/'. $quiz['nid'] .'/' . $result['result_id'], array('html' => TRUE)),
       'delete_png' => l($png['delete'], 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
     );
+    $user_object = new stdClass();
+    $user_object->name = $result['name'];
+    $user_object->uid = $result['uid'];
     $rows[] = array(
       implode(' ', $action),
-      check_plain($result['name']),
+      theme('username', $user_object),
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
-      ($result['time_end'] > 0) ? quiz_get_time_taken_in_minutes($result['time_end'] - $result['time_start']) : quiz_get_time_taken_in_minutes(time() - $result['time_start']),
-      ($result['time_end'] > 0) ? $result['score'] : t('--'),
+      ($result['time_end'] > 0) ? _quiz_format_duration($result['time_end'] - $result['time_start']) : _quiz_format_duration(time() - $result['time_start']),
+      ($result['time_end'] > 0) ? $result['score'] .' %' : t('--'),
     );
   }
 
   $header = array(
     t('Action'),
-    t('Username'),
-    t('Time <br />Started'),
+    t('Name'),
+    t('Started'),
     t('Finished'),
-    t('Time <br />Taken <br /> (min:sec)'),
-    t('Score (%)'),
+    t('Duration'),
+    t('Score'),
   );
 
   if (!empty($rows)) {
@@ -1416,10 +1419,13 @@ function theme_quiz_admin($results) {
  * @return
  *  String time in min : sec format
  */
-function quiz_get_time_taken_in_minutes($time_in_sec) {
-  $min = intval($time_in_sec / 60);
+function _quiz_format_duration($time_in_sec) {
+  $hours = intval($time_in_sec / 3600);
+  $min = intval(($time_in_sec - $hours * 3600) / 60);
   $sec = $time_in_sec % 60;
-  return "$min : $sec";
+  if (strlen($min) == 1) $min = '0'. $min;
+  if (strlen($sec) == 1) $sec = '0'. $sec;
+  return "$hours:$min:$sec";
 }
 
 
