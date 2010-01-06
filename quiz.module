@@ -448,7 +448,7 @@ function quiz_insert($node) {
   _quiz_check_num_random($node);
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
-  if (!$node->auto_created) $_REQUEST['destination'] = "node/$node->nid/questions";
+  if (!$node->auto_created) $_REQUEST['destination'] = url("node/$node->nid/questions");
 }
 
 /**

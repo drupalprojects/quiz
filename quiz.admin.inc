@@ -112,7 +112,7 @@ function quiz_questions($node) {
 function quiz_questions_form($form_state, $quiz, $options) {
   // We need to add this because of the use of ajax. Without this the form api might redirect the user
   // To the page with the ahah callback...
-  $form['#action'] = '?q=node/'. $quiz->nid .'/questions';
+  $form['#action'] = '?q='. url('node/'. $quiz->nid .'/questions');
 
   $types = _quiz_get_question_types();
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);

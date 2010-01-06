@@ -389,7 +389,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $action = '/node/add/'. $type->type;
 
     if ($this->node->nid) {
-      $action = '/node/'. $this->node->nid. '/edit';
+      $action = url('/node/'. $this->node->nid. '/edit');
     }
     $form['#action'] = "?q=$action";
     /*
