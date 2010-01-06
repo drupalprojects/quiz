@@ -1381,13 +1381,6 @@ function theme_quiz_admin($results) {
       'view_png' => l($png['view'], 'admin/quiz/reports/results/'. $quiz['nid'] .'/' . $result['result_id'], array('html' => TRUE)),
       'delete_png' => l($png['delete'], 'admin/quiz/' . $result['result_id'] . '/delete', array('html' => TRUE)),
     );
-    if (module_exists('results_export')) {
-      $export_full_view = array(
-        'html_png' => l($png['html'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/html', array('html' => TRUE)),
-        //'xml_png' => l($png['xml'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/xml', array('html' => TRUE)),
-        //'csv_png' => l($png['csv'], 'admin/quiz/results_export_full_view/'. $result['result_id'] . '/csv', array('html' => TRUE)),
-      );
-    }
     $rows[] = array(
       implode(' ', $action),
       check_plain($result['name']),
@@ -1395,7 +1388,6 @@ function theme_quiz_admin($results) {
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
       ($result['time_end'] > 0) ? quiz_get_time_taken_in_minutes($result['time_end'] - $result['time_start']) : quiz_get_time_taken_in_minutes(time() - $result['time_start']),
       ($result['time_end'] > 0) ? $result['score'] : t('--'),
-      module_exists('results_export') ? implode(' ', $export_full_view) : '',
     );
   }
 
@@ -1406,7 +1398,6 @@ function theme_quiz_admin($results) {
     t('Finished'),
     t('Time <br />Taken <br /> (min:sec)'),
     t('Score (%)'),
-    module_exists('results_export') ? t('Export') : '',
   );
 
   if (!empty($rows)) {
