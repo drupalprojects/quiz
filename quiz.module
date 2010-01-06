@@ -87,7 +87,7 @@ function quiz_perm() {
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // Managing results:
-    'view user results', 'view own results',
+    'view user results', 'view own results', 'score quiz',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
      // Allow user someone to see the answers to any quiz question

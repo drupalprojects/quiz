@@ -28,23 +28,12 @@ function long_answer_help($path, $arg) {
  * Implementation of hook_menu().
  */
 function long_answer_menu() {
-  /*
-  $items['admin/quiz/long_answer'] = array(
-    'title' => t('Long-answer configuration'),
-    'description' => t('Configure long-answer questions for users.'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('long_answer_admin_settings_form'),
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'long_answer.admin.inc',
-  );
-  */
   $items['admin/quiz/score-long-answer'] = array(
     'title' => t('Score long-answer questions'),
     'description' => t('Score the answers from quizzes that use long answer questions.'),
     'page callback' => 'long_answer_view_unscored',
     //'page arguments' => array('long_answer_admin_settings_form'),
-    'access arguments' => array('score long answer'),
+    'access arguments' => array('score quiz'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'long_answer.admin.inc',
   );
@@ -55,7 +44,7 @@ function long_answer_menu() {
     'page callback' => 'long_answer_edit_score',
     'page arguments' => array(3, 4),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('score long answer'),
+    'access arguments' => array('score quiz'),
     'file' => 'long_answer.admin.inc'
   );
 
@@ -215,15 +204,6 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
   }
 
   return db_fetch_array($results);
-}
-
-/**
- * Implementation of hook_perm().
- */
-function long_answer_perm() {
-  return array(
-    'score long answer',
-  );
 }
 
 /**

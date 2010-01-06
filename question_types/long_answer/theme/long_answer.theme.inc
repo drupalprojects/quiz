@@ -43,7 +43,7 @@ function theme_long_answer_report($question, $show_points, $show_feedback) {
         t('Until the answer is scored, the total score will not be correct.');
     }
 
-    if (user_access('score long answer')) {
+    if (user_access('score quiz')) {
       $path = sprintf('admin/quiz/score-long-answer/%s/%s', $question->vid, $answer->result_id);
       $result .= '<p>' . l(t('Score this answer'), $path) . '</p>';
     }

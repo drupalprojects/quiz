@@ -43,7 +43,7 @@ function theme_short_answer_report($question, $show_points, $show_feedback) {
         t('Until the answer is scored, the total score will not be correct.');
 
       // Add scoring link for admins.
-      if (user_access('score short answer')) {
+      if (user_access('score quiz')) {
         $path = sprintf('admin/quiz/score-short-answer/%s/%s', $question->vid, $answer->result_id);
         $result .= '<p>' . l(t('Score this answer'), $path) . '</p>';
       }
