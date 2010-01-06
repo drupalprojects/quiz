@@ -99,6 +99,23 @@ function quiz_report_form_submit($form, &$form_state) {
     call_user_func($q_values['submit'], $q_values);
   }
   quiz_update_total_score_fast($rid, $quiz->vid);
+  _quiz_remove_unscored_message();
+}
+
+function _quiz_remove_unscored_message() {
+  if (is_array($_SESSION['messages']['error'])) {
+    foreach ($_SESSION['messages']['error'] as $key => $val) {
+      if ($val == t('This quiz has not been scored yet.')) {
+        unset($_SESSION['messages']['error'][$key]);
+      }
+    }
+    if (empty($_SESSION['messages']['error'])) {
+      unset($_SESSION['messages']['error']);
+      if (empty($_SESSION['messages'])) {
+        unset($_SESSION['messages']);
+      } 
+    }
+  }
 }
 
 function quiz_update_total_score_fast($rid, $quiz_vid) {
