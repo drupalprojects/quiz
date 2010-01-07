@@ -86,8 +86,10 @@ function quiz_perm() {
     QUIZ_PERM_ADMIN_CONFIG,
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
-    // Managing results:
-    'view any quiz results', 'view own quiz results', 'view results for own quiz', 'delete quiz results', 'score quiz',
+    // viewing results:
+    'view any quiz results', 'view own quiz results', 'view results for own quiz', 
+    // deleting results:
+    'delete any quiz results', 'delete results for own quiz','score quiz',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
@@ -137,6 +139,31 @@ function quiz_access_results($quiz, $rid = NULL) {
   }
   if (user_access('view results for own quiz') && $user->uid == $quiz->uid)
     return TRUE;
+}
+
+/**
+ * Helper function to determine if a user has access to delete a certain result...
+ *
+ * @param $rid
+ *   Result id
+ * @return boolean
+ *   true if user has permission
+ */
+function quiz_access_delete_results($rid) {
+  global $user;
+  if (user_access('delete any quiz results')) {
+    return TRUE;
+  }
+  if (user_access('delete results for own quiz')) {
+    $sql = 'SELECT n.uid
+            FROM {node} n
+            WHERE n.nid = (
+              SELECT nid
+              FROM {quiz_node_results}
+              WHERE result_id = %d
+            )';
+    return db_result(db_query($sql, $rid)) == $user->uid;
+  }
 }
 
 function quiz_access_multi_or() {
@@ -247,14 +274,14 @@ function quiz_menu() {
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'quiz.admin.inc',
     'access arguments' => array(4, 5),
-    'access callback' => 'quiz_results_access',
+    'access callback' => 'quiz_access_results',
   );
 
   $items['admin/quiz/%/delete'] = array(
     'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'quiz_admin_result_delete',
-    //'page arguments' => array(2),
-    'access arguments' => array('delete quiz results'),
+    'access arguments' => array(2),
+    'access callback' => 'quiz_access_delete_results',
     'type' => MENU_CALLBACK,
     'file' => 'quiz.admin.inc',
   );

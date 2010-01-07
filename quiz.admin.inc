@@ -98,7 +98,7 @@ function quiz_questions($node) {
 function quiz_questions_form($form_state, $quiz, $options) {
   // We need to add this because of the use of ajax. Without this the form api might redirect the user
   // To the page with the ahah callback...
-  $form['#action'] = '?q='. url('node/'. $quiz->nid .'/questions');
+  $form['#action'] = url('node/'. $quiz->nid .'/questions');
 
   $types = _quiz_get_question_types();
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
@@ -1280,7 +1280,7 @@ function quiz_admin_result_delete() {
  * Creates a form used for deleting a set of quiz results.
  */
 function quiz_admin_result_delete_form() {
-  $form['del_rid'] = array('#type' => 'hidden', '#value' => arg(2));
+  $form['del_rid'] = array('#type' => 'value', '#value' => arg(2));
   return confirm_form($form,
     t('Are you sure you want to delete this @quiz result?', array('@quiz' => QUIZ_NAME)),
     'admin/quiz/results',
@@ -1295,7 +1295,7 @@ function quiz_admin_result_delete_form_submit($form, &$form_state) {
   db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
   db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
   drupal_set_message(t('Result has been Deleted.'));
-  $form_state['redirect'] = 'admin/quiz/'. intval($nid) .'/view';
+  $form_state['redirect'] = 'admin/quiz/reports/results/'. intval($nid);
   $form_state['nid'] = $nid;
 }
 
