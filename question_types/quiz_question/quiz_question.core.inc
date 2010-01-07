@@ -244,7 +244,7 @@ abstract class QuizQuestion {
     // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
 
     // Allow user to set title?
-    if (user_access('allow user titles') || user_access('administer quiz')) {
+    if (user_access('allow user titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
       $form['title'] = array(
         '#type' => 'textfield',

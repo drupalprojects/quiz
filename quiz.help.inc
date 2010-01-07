@@ -29,8 +29,6 @@ function _quiz_help($path, $arg) {
     <h5><strong><a href="@admin-access#module-quiz">Quiz Permissions</a></strong></h5>
     <dl><dt><strong>access quiz</strong></dt>
     <dd>allows users to take quizzes</dd>
-    <dt><strong>administer quiz</strong></dt>
-    <dd>allows users to edit quizzes</dd>
     <dt><strong>administer quiz configuration</strong></dt>
     <dd>allows users to use global admin settings, as well as override userresults if they don\'t have that permission. Can also delete quizzes</dd>
     <dt><strong>create quiz</strong></dt>

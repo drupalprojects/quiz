@@ -82,8 +82,6 @@ function quiz_views_api() {
  */
 function quiz_perm() {
   return array(QUIZ_PERM_ADMIN_CONFIG,
-    // Administrating quizzes:
-    'administer quiz',
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // Managing results:
@@ -93,7 +91,8 @@ function quiz_perm() {
      // Allow user someone to see the answers to any quiz question
     'view answers for any quiz', 'view answers for own quiz',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
-    'allow user titles'
+    'allow user titles',
+    'delete quiz results'
   );
 }
 
@@ -101,12 +100,6 @@ function quiz_perm() {
  * Implementation of hook_access().
  */
 function quiz_access($op, $node, $account) {
-
-  // Admin can do all of this.
-  if (user_access('administer quiz', $account)) {
-    return TRUE;
-  }
-
   if (!user_access('access quiz')) {
     // If you can't access, you get NOTHING!
     // Otherwise, we allow further permission checking.
@@ -140,7 +133,7 @@ function quiz_access_results($quiz, $rid = NULL) {
     $res = db_result(db_query($sql, $rid));
     if ($res != $quiz->nid) return FALSE;
   }
-  if (user_access('view answers for any quiz') || user_access('administer quiz')) {
+  if (user_access('view answers for any quiz')) {
     return TRUE;
   }
   if (user_access('view answers for own quiz') && $user->uid == $quiz->uid)
@@ -196,7 +189,7 @@ function quiz_menu() {
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
@@ -220,7 +213,7 @@ function quiz_menu() {
     'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array('view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
@@ -231,7 +224,7 @@ function quiz_menu() {
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
-    'access arguments' => array('administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array('view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
@@ -262,7 +255,7 @@ function quiz_menu() {
     'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'quiz_admin_result_delete',
     //'page arguments' => array(2),
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array('delete quiz results'),
     'type' => MENU_CALLBACK,
     'file' => 'quiz.admin.inc',
   );
@@ -1737,7 +1730,7 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_check($quiz) {
   global $user;
 
-  $user_is_admin = user_access('administer quiz') || user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
+  $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
@@ -2815,24 +2808,6 @@ function _quiz_availability($node) {
 
   return 'closed';
 }
-
-/**
- * Determine who should have access to the Take Quiz tab
- * depending on the quiz status
- */
-/* UNUSED
-function _quiz_status_access($node) {
-  $status = _quiz_availability($node);
-  switch ($status) {
-    case 'closed':
-    case 'future':
-      return user_access('administer quiz');
-    case 'open':
-      return (user_access('access quiz') && $node->status);
-  }
-  return FALSE;
-}
-*/
 
 /**
  * Get an array of feedback options.

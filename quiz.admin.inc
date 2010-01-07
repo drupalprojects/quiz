@@ -32,7 +32,7 @@ function quiz_admin($quiz) {
 function quiz_admin_quizzes() {
   global $user;
   $uid = $user->uid;
-  if (user_access('view answers for any quiz') || user_access('administer quiz'))
+  if (user_access('view answers for any quiz'))
     $uid = NULL;
   $results = _quiz_get_quizzes($uid);
   return theme('quiz_admin_quizzes', $results);

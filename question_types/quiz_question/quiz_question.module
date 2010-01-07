@@ -106,12 +106,6 @@ function quiz_question_node_info() {
  * Implementation of hook_access().
  */
 function quiz_question_access($op, $node, $account) {
-
-  // Allow admin to do whatever.
-  if (user_access('administer quiz', $account)) {
-    return TRUE;
-  }
-
   switch ($op) {
     case 'view':
       return user_access('view quiz question outside of a quiz');
