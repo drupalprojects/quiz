@@ -33,7 +33,8 @@ function long_answer_menu() {
     'description' => t('Score the answers from quizzes that use long answer questions.'),
     'page callback' => 'long_answer_view_unscored',
     //'page arguments' => array('long_answer_admin_settings_form'),
-    'access arguments' => array('score quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'long_answer.admin.inc',
   );
@@ -44,7 +45,8 @@ function long_answer_menu() {
     'page callback' => 'long_answer_edit_score',
     'page arguments' => array(3, 4),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('score quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'file' => 'long_answer.admin.inc'
   );
 
@@ -243,12 +245,16 @@ function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $
  *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
  */
 function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
-  $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
+  global $user;
+  $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, qnr.time_end, qnr.time_start, qnr.uid
     FROM {quiz_long_answer_user_answers} AS a
-    INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
-    INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
+    INNER JOIN {node_revisions} r ON a.question_vid = r.vid
+    INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
+    JOIN {node} n ON qnr.nid = n.nid
     WHERE is_evaluated = 0';
-  $results = db_query_range($sql, $offset, $count);
+  if (!user_access('score any quiz'))
+    $sql .= ' AND n.uid = %d';
+  $results = db_query_range(db_rewrite_sql($sql), $user->uid, $offset, $count);
   $unscored = array();
 
   if ($results) {

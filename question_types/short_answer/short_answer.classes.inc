@@ -247,12 +247,16 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
    *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
-    $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
-      FROM {quiz_short_answer_user_answers} AS a
-      INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
-      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
-      WHERE is_evaluated = 0';
-    $results = db_query_range($sql, $offset, $count);
+    global $user;
+    $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, qnr.time_end, qnr.time_start, qnr.uid
+            FROM {quiz_short_answer_user_answers} AS a
+            INNER JOIN {node_revisions} r ON a.question_vid = r.vid
+            INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
+            JOIN {node} n ON qnr.nid = n.nid
+            WHERE is_evaluated = 0';
+    if (!user_access('score any quiz'))
+      $sql .= ' AND n.uid = %d';
+    $results = db_query_range(db_rewrite_sql($sql), $user->uid, $offset, $count);
     $unscored = array();
 
     if ($results) {
@@ -260,7 +264,6 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
         $unscored[] = $row;
       }
     }
-
     return $unscored;
   }
   /**
@@ -400,7 +403,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
 
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     $score = ($this->isEvaluated()) ? $this->getScore() : '?';
-    if (user_access('score quiz') && $allow_scoring) {
+    if (quiz_access_to_score() && $allow_scoring) {
       return array(
         '#type' => 'textfield',
         '#default_value' => $score,

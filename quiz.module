@@ -89,7 +89,9 @@ function quiz_perm() {
     // viewing results:
     'view any quiz results', 'view own quiz results', 'view results for own quiz', 
     // deleting results:
-    'delete any quiz results', 'delete results for own quiz','score quiz',
+    'delete any quiz results', 'delete results for own quiz',
+    // scoring:
+    'score any quiz', 'score own quiz',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
@@ -138,6 +140,25 @@ function quiz_access_results($quiz, $rid = NULL) {
     return TRUE;
   }
   if (user_access('view results for own quiz') && $user->uid == $quiz->uid)
+    return TRUE;
+}
+
+/**
+ * Helper function to determine if a user has access to score a quiz.
+ *
+ * @param $quiz_creator
+ *   uid of the quiz creator
+ */
+function quiz_access_to_score($quiz_creator = NULL) {
+  global $user;
+  if ($quiz_creator == NULL) {
+    $quiz = quiz_get_quiz_from_menu();
+    $quiz_creator = $quiz->uid;
+  }
+  if (user_access('score any quiz')) {
+    return TRUE;
+  }
+  if (user_access('score own quiz') && $user->uid == $quiz_creator)
     return TRUE;
 }
 
@@ -215,7 +236,7 @@ function quiz_menu() {
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'score quiz', 'view any quiz results', 'view results for own quiz'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
@@ -239,7 +260,7 @@ function quiz_menu() {
     'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('score quiz', 'view any quiz results', 'view results for own quiz'),
+    'access arguments' => array('view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
@@ -250,7 +271,7 @@ function quiz_menu() {
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
-    'access arguments' => array('score quiz', 'view any quiz results', 'view results for own quiz'),
+    'access arguments' => array('view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
@@ -2975,6 +2996,12 @@ function quiz_make_new($title) {
     drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
   }
   return $new_node;
+}
+
+function quiz_get_quiz_from_menu() {
+  if ($to_return = menu_get_object('quiz_type_access'))
+    return $to_return;
+  return menu_get_object('quiz_type_access', 4);
 }
 
 /**

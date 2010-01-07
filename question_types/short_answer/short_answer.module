@@ -28,7 +28,8 @@ function short_answer_menu() {
     'description' => t('Score the answers from quizzes that use short answer questions.'),
     'page callback' => 'short_answer_view_unscored',
     //'page arguments' => array('short_answer_admin_settings_form'),
-    'access arguments' => array('score quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'short_answer.admin.inc',
   );
@@ -39,7 +40,8 @@ function short_answer_menu() {
     'page callback' => 'short_answer_edit_score',
     'page arguments' => array(3, 4),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('score quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'file' => 'short_answer.admin.inc'
   );
 

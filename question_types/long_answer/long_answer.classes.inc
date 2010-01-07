@@ -209,7 +209,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
   
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     $score = ($this->isEvaluated()) ? $this->getScore() : '?';
-    if (user_access('score quiz') && $allow_scoring) {
+    if (quiz_access_to_score() && $allow_scoring) {
       return array(
         '#type' => 'textfield',
         '#default_value' => $score,
