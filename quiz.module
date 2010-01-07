@@ -91,7 +91,7 @@ function quiz_perm() {
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
      // Allow user someone to see the answers to any quiz question
-    'view answers for any quiz item',
+    'view answers for any quiz', 'view answers for own quiz',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
     'allow user titles'
   );
@@ -121,6 +121,37 @@ function quiz_access($op, $node, $account) {
     case 'delete':
       return (user_access('delete any quiz', $account)  || (user_access('delete own quiz', $account) && $account->uid == $node->uid));
   }
+}
+
+/**
+ * Helper function to determine if a user has access to the different results pages.
+ *
+ * @param $node
+ * @param $account
+ * @return boolean
+ *   true if user has permission
+ */
+function quiz_access_results($quiz, $rid = NULL) {
+  global $user;
+  if (isset($rid)) {
+    $sql = 'SELECT qnr.nid
+            FROM {quiz_node_results} qnr
+            WHERE result_id = %d';
+    $res = db_result(db_query($sql, $rid));
+    if ($res != $quiz->nid) return FALSE;
+  }
+  if (user_access('view answers for any quiz') || user_access('administer quiz')) {
+    return TRUE;
+  }
+  if (user_access('view answers for own quiz') && $user->uid == $quiz->uid)
+    return TRUE;
+}
+
+function quiz_access_multi_or() {
+  $perms = func_get_args();
+  foreach ($perms as $perm) 
+    if (user_access($perm))
+      return TRUE;
 }
 
 /**
@@ -165,7 +196,8 @@ function quiz_menu() {
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -188,7 +220,8 @@ function quiz_menu() {
     'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -198,47 +231,31 @@ function quiz_menu() {
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz', 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
   );
-
-  $items['admin/quiz/reports/%/results'] = array( //TODO: Deprecatet in quiz 4, remove this in version 6 of quiz
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View results for the given quiz.'),
-    'page callback' => 'quiz_admin_results',
-    'page arguments' => array(3),
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
-    'file' => 'quiz.admin.inc',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-  );
   
-  $items['admin/quiz/reports/results/%/%'] = array(
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View results for the given quiz.'),
-    'page callback' => 'quiz_admin_results',
-    'page arguments' => array(5),
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
-    'file' => 'quiz.admin.inc',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-  );
-
-  $items['admin/quiz/%/view'] = array( //TODO: Deprecatet in quiz 4, remove this in version 6 of quiz
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'quiz_admin',
-    'page arguments' => array(2),
-    'access arguments' => array('administer quiz'),
-    'type' => MENU_CALLBACK,
-    'file' => 'quiz.admin.inc',
-  );
-  
-  $items['admin/quiz/reports/results/%'] = array(
+  $items['admin/quiz/reports/results/%quiz_type_access'] = array(
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'quiz_admin',
     'page arguments' => array(4),
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array(4),
+    'access callback' => 'quiz_access_results',
     'type' => MENU_CALLBACK,
     'file' => 'quiz.admin.inc',
+  );
+  
+  $items['admin/quiz/reports/results/%quiz_type_access/%'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'description' => t('View results for the given quiz.'),
+    'page callback' => 'quiz_admin_results',
+    'page arguments' => array(4, 5),
+    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'file' => 'quiz.admin.inc',
+    'access arguments' => array(4, 5),
+    'access callback' => 'quiz_results_access',
   );
 
   $items['admin/quiz/%/delete'] = array(
@@ -2936,20 +2953,6 @@ function _quiz_is_taking_context() {
   return FALSE;
 }
 
-/**
- * Implementation of hook_answers_access
- *
- * @param $node
- * @param $account
- * @return boolean
- *   true if user has permission
- */
-function quiz_answers_access($node, $account=NULL) {
-  // FIXME rename to 'view answers to any quiz question'
-  if (user_access('view answers for any quiz item', $account)) {
-    return TRUE;
-  }
-}
 /**
  * Makes, saves and returns a new quiz node.
  *

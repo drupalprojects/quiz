@@ -13,12 +13,12 @@
 /**
  * Quiz Admin.
  */
-function quiz_admin($nid) {
+function quiz_admin($quiz) {
   $breadcrumb = drupal_get_breadcrumb();
   //lets add the Quiz Results to the breadcrumb array
-  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
+  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results/'. $quiz->nid);
   drupal_set_breadcrumb($breadcrumb);
-  $results = _quiz_get_results($nid);
+  $results = _quiz_get_results($quiz->nid);
   return theme('quiz_admin', $results);
 }
 
@@ -30,7 +30,11 @@ function quiz_admin($nid) {
  *  Formatted data.
  */
 function quiz_admin_quizzes() {
-  $results = _quiz_get_quizzes();
+  global $user;
+  $uid = $user->uid;
+  if (user_access('view answers for any quiz') || user_access('administer quiz'))
+    $uid = NULL;
+  $results = _quiz_get_quizzes($uid);
   return theme('quiz_admin_quizzes', $results);
 }
 
@@ -39,41 +43,23 @@ function quiz_admin_quizzes() {
  /**
   * Quiz Results Admin.
   *
-  * @param $qid
-  *  The quiz result ID for a particular result.
+  * @param $quiz
+  *  The quiz node
+  * @param $rid
+  *  The result id
   */
-function quiz_admin_results($qid) {
+function quiz_admin_results($quiz, $rid) {
   $breadcrumb = drupal_get_breadcrumb();
   // Lets add the Quiz Results to the breadcrumb array.
-  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/results');
+  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
 
-  // We join against node because we might have multiple versions
-  // of a quiz, and joining against quiz_node_properties would
-  // return multiple rows with the same quiz result. Since we are
-  // only hitting the {node} index, this should be fast.
-  $result = db_fetch_object(db_query(
-    "SELECT qnrs.nid
-      FROM  {quiz_node_results} qnrs
-      INNER JOIN {node} n ON qnrs.nid = n.nid
-      WHERE qnrs.result_id = %d",
-    $qid
-  ));
-  if ($result->nid) {
-    $quiz = node_load($result->nid);
-    $questions = _quiz_get_answers($qid);
-    $score = quiz_calculate_score($quiz, $qid);
-    $summary = _quiz_get_summary_text($quiz, $score);
-
-    // Lets add the quiz title to the breadcrumb array.
-    $breadcrumb[] = l($quiz->title, 'admin/quiz/' . $result->nid . '/view');
-    drupal_set_breadcrumb($breadcrumb);
-    return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
-  }
-  else {
-    // Set the breadcrumb without the title since there isn't one and show error page.
-    drupal_set_breadcrumb($breadcrumb);
-    drupal_not_found();
-  }
+  $questions = _quiz_get_answers($rid);
+  $score = quiz_calculate_score($quiz, $rid);
+  $summary = _quiz_get_summary_text($quiz, $score);
+  // Lets add the quiz title to the breadcrumb array.
+  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $rid .'/'. $result->nid);
+  drupal_set_breadcrumb($breadcrumb);
+  return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
 }
 
 /**
@@ -1343,7 +1329,12 @@ function theme_quiz_admin_quizzes($results) {
     t('Created by'),
     t('Created on')
   );
-  $output = (!empty($rows)) ? theme('table', $header, $rows) : '<p>' . t('No @quizzes found.', array('@quiz' => QUIZ_NAME)) . '</p>';
+  if (!user_access('administer quiz') && !user_access('view answers for any quiz'))
+    $no_quizzes = '<p>' . t('No @quiz that you have created was found. You do not have permission to see any other results.', array('@quiz' => QUIZ_NAME)) .'</p>';
+  else {
+    $no_quizzes = '<p>' . t('No @quiz found.', array('@quiz' => QUIZ_NAME)) .'</p>';
+  }
+  $output = (!empty($rows)) ? theme('table', $header, $rows) : $no_quizzes;
   return $output;
 }
 
