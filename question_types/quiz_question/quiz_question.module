@@ -122,6 +122,27 @@ function quiz_question_access($op, $node, $account) {
   }
 }
 
+function quiz_question_access_to_score($vid, $rid) {
+  global $user;
+  $sql = 'SELECT * 
+          FROM {quiz_node_results_answers} 
+          WHERE result_id = %d AND question_vid = %d';
+  if (!db_fetch_object(db_query($sql, $rid, $vid)))
+    return FALSE;
+  if (user_access('score any quiz')) {
+    return TRUE;
+  }
+  if (user_access('score own quiz')) {
+    $sql = 'SELECT r.uid
+            FROM {node_revisions} r
+            WHERE r.nid = (
+              SELECT nid 
+              FROM {quiz_node_results}
+              WHERE result_id = %d
+            )';
+    return db_result(db_query($sql, $rid)) == $user->uid;
+  }
+}
 /**
  * Implementation of hook_form().
  */

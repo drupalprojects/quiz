@@ -44,7 +44,6 @@ function long_answer_view_unscored() {
  *  Text to display.
  */
 function long_answer_edit_score($vid, $rid) {
-
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
   // and we need to be able to access old nodes in node_revisions.vid. (BTW... why is node singular
   // and node_revisions plural?).
@@ -65,7 +64,7 @@ function long_answer_edit_score($vid, $rid) {
     drupal_not_found();
     return;
   }
-
+  
   drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
   return drupal_get_form('long_answer_score_form', $node, $answer);
 }
