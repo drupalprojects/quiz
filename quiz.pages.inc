@@ -21,7 +21,7 @@ function quiz_user_results($result_id) {
 
     // User can view own results (quiz_menu sets access to 'own results').
     // User with role 'user results' can view other user's results.
-    if ($result->uid != $user->uid && !user_access('view user results')) {
+    if ($result->uid != $user->uid && !user_access('view any quiz results')) {
       drupal_access_denied();
       return;
     }

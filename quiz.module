@@ -81,18 +81,17 @@ function quiz_views_api() {
  * Implementation of hook_perm().
  */
 function quiz_perm() {
-  return array(QUIZ_PERM_ADMIN_CONFIG,
+  return array(
+    // Configure quiz:  
+    QUIZ_PERM_ADMIN_CONFIG,
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // Managing results:
-    'view user results', 'view own results', 'score quiz',
+    'view any quiz results', 'view own quiz results', 'view results for own quiz', 'delete quiz results', 'score quiz',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
-     // Allow user someone to see the answers to any quiz question
-    'view answers for any quiz', 'view answers for own quiz',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
     'allow user titles',
-    'delete quiz results'
   );
 }
 
@@ -133,10 +132,10 @@ function quiz_access_results($quiz, $rid = NULL) {
     $res = db_result(db_query($sql, $rid));
     if ($res != $quiz->nid) return FALSE;
   }
-  if (user_access('view answers for any quiz')) {
+  if (user_access('view any quiz results')) {
     return TRUE;
   }
-  if (user_access('view answers for own quiz') && $user->uid == $quiz->uid)
+  if (user_access('view results for own quiz') && $user->uid == $quiz->uid)
     return TRUE;
 }
 
@@ -189,7 +188,7 @@ function quiz_menu() {
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'score quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
@@ -213,7 +212,7 @@ function quiz_menu() {
     'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array('score quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
@@ -224,7 +223,7 @@ function quiz_menu() {
     'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
-    'access arguments' => array('view user results', 'view own results', 'score quiz', 'view answers for any quiz', 'view answers for own quiz'),
+    'access arguments' => array('score quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
@@ -307,7 +306,7 @@ function quiz_menu() {
     'title' => t('User results'),
     'page callback' => 'quiz_user_results',
     'page arguments' => array(2),
-    'access arguments' => array('view own results'),
+    'access arguments' => array('view own quiz results'),
     'type' => MENU_CALLBACK,
     'file' => 'quiz.pages.inc',
   );
@@ -2987,5 +2986,5 @@ function _quiz_check_num_random(&$node) {
  */
 function _quiz_user_results_access($user_id) {
   global $user;
-  return ($user_id == $user->uid && user_access('view own results')) || user_access('view user results');
+  return ($user_id == $user->uid && user_access('view own quiz results')) || user_access('view any quiz results');
 }

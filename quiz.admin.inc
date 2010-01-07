@@ -32,7 +32,7 @@ function quiz_admin($quiz) {
 function quiz_admin_quizzes() {
   global $user;
   $uid = $user->uid;
-  if (user_access('view answers for any quiz'))
+  if (user_access('view any quiz results'))
     $uid = NULL;
   $results = _quiz_get_quizzes($uid);
   return theme('quiz_admin_quizzes', $results);
@@ -1329,7 +1329,7 @@ function theme_quiz_admin_quizzes($results) {
     t('Created by'),
     t('Created on')
   );
-  if (!user_access('administer quiz') && !user_access('view answers for any quiz'))
+  if (!user_access('view any quiz results'))
     $no_quizzes = '<p>' . t('No @quiz that you have created was found. You do not have permission to see any other results.', array('@quiz' => QUIZ_NAME)) .'</p>';
   else {
     $no_quizzes = '<p>' . t('No @quiz found.', array('@quiz' => QUIZ_NAME)) .'</p>';
