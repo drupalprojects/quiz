@@ -2729,10 +2729,11 @@ function _quiz_get_results($nid = '', $uid = 0) {
             AND qnrs.nid = qnp.nid
             AND u.uid = qnrs.uid";
   */
-  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end
+  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end, qnp.pass_rate
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
+          INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           WHERE n.type = 'quiz'";
   if ($nid) {
     $sql .= " AND qnrs.nid = %d";

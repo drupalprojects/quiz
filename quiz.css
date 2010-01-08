@@ -243,3 +243,11 @@ dl.quiz-report dd {
   cursor: pointer;
   text-decoration: underline;
 }
+
+.quiz-passed {
+  color: #00ff00;
+}
+
+.quiz-failed {
+  color: #ff0000;
+}

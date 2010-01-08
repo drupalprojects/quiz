@@ -16,7 +16,7 @@
 function quiz_admin($quiz) {
   $breadcrumb = drupal_get_breadcrumb();
   //lets add the Quiz Results to the breadcrumb array
-  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results/'. $quiz->nid);
+  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $quiz->nid);
   drupal_set_breadcrumb($breadcrumb);
   $results = _quiz_get_results($quiz->nid);
   return theme('quiz_admin', $results);
@@ -56,6 +56,9 @@ function quiz_admin_results($quiz, $rid) {
   $questions = _quiz_get_answers($rid);
   $score = quiz_calculate_score($quiz, $rid);
   $summary = _quiz_get_summary_text($quiz, $score);
+  
+  dpm($questions);
+  dpm($score);
   // Lets add the quiz title to the breadcrumb array.
   $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $rid .'/'. $result->nid);
   drupal_set_breadcrumb($breadcrumb);
@@ -1375,13 +1378,18 @@ function theme_quiz_admin($results) {
     $user_object = new stdClass();
     $user_object->name = $result['name'];
     $user_object->uid = $result['uid'];
+    $pre_score = $post_score = '';
+    if (!empty($result['pass_rate'])) {
+      $pre_score = $result['score'] >= $result['pass_rate'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
+      $post_score = '</span>';
+    }
     $rows[] = array(
       implode(' ', $action),
       theme('username', $user_object),
       format_date($result['time_start'], 'small'),
       ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
       ($result['time_end'] > 0) ? _quiz_format_duration($result['time_end'] - $result['time_start']) : _quiz_format_duration(time() - $result['time_start']),
-      ($result['time_end'] > 0) ? $result['score'] .' %' : t('--'),
+      ($result['time_end'] > 0) ? $pre_score . $result['score'] .' %'. $post_score : t('--'),
     );
   }
 
