@@ -287,6 +287,16 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
   
+  $items['admin/quiz/reports/newresults/%quiz_type_access'] = array(
+    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_results_manage_results_form', 4),
+    'access arguments' => array(4),
+    'access callback' => 'quiz_access_results',
+    'type' => MENU_CALLBACK,
+    'file' => 'quiz.admin.inc',
+  );
+  
   $items['admin/quiz/reports/results/%quiz_type_access/%'] = array(
     'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
     'description' => t('View results for the given quiz.'),

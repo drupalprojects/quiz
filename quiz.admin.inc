@@ -57,8 +57,6 @@ function quiz_admin_results($quiz, $rid) {
   $score = quiz_calculate_score($quiz, $rid);
   $summary = _quiz_get_summary_text($quiz, $score);
   
-  dpm($questions);
-  dpm($score);
   // Lets add the quiz title to the breadcrumb array.
   $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $rid .'/'. $result->nid);
   drupal_set_breadcrumb($breadcrumb);
@@ -583,14 +581,14 @@ function _quiz_get_changed_options() {
 }
 
 /**
- * Returns an array with sql where clauses correscponding to the options in the changed filter.
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
  *
  * @see _quiz_questions_browser_form()
  *
  * @return $changed_timestamps
  *   array of timestamps and sql filters
  */
-function _quiz_get_changed_timestamps() {
+function _quiz_get_interval_timestamps($fieldname) {
   // Create datastructure to help create where clause in the sql for the changed filter...
   $now = time();
   $one_day = 86400;
@@ -618,9 +616,72 @@ function _quiz_get_changed_timestamps() {
 
   foreach ($changed_timestamps as $key => &$val) {
     if ($val == NULL) continue;
-    $val['sql'] = ' AND changed > '. $val[0] .' AND changed < '. $val[1];
+    $val['sql'] = " AND $fieldname > ". $val[0] ." AND $fieldname < ". $val[1];
   }
   return $changed_timestamps;
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_duration_intervals() {
+  // Create datastructure to help create where clause in the sql for the changed filter...
+  $durations = array(
+    NULL,
+    '> 60',
+    '> 300',
+    '> 600',
+    '> 3600',
+    '> 28800',
+    '> 86400',
+    '< 60',
+    '< 300',
+    '< 600',
+    '< 3600',
+    '< 28800',
+    '< 86400',
+  );
+
+  foreach ($durations as $key => &$val) {
+    if ($val == NULL) continue;
+    $durations[$key] = ' AND duration '. $val[0];
+  }
+  return $durations;
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_score_intervals() {
+// Create datastructure to help create where clause in the sql for the changed filter...
+  $scores = array(
+    NULL,
+    '= 100',
+    '> 90',
+    '> 75',
+    '> 50',
+    '> 25',
+    '< 90',
+    '< 75',
+    '< 50',
+    '< 25',
+  );
+
+  foreach ($scores as $key => &$val) {
+    if ($val == NULL) continue;
+    $scores[$key] = ' AND score '. $val[0];
+  }
+  return $scores;
 }
 
 /**
@@ -702,7 +763,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
  */
 function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
   $pre = 'quiz_question_browser_';
-  $changed_timestamps = _quiz_get_changed_timestamps();
+  $changed_timestamps = _quiz_get_interval_timestamps('changed');
   $filter_sql = '';
   if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
     $filter_sql .= ' AND n.title LIKE \'%s%%\'';
@@ -1569,6 +1630,63 @@ function quiz_set_auto_title() {
     });
   });
   ', 'inline');
+}
+
+function quiz_results_manage_results_form(&$form_state, $quiz) {
+  $form = array();
+  return $form;
+}
+
+function _quiz_results_mr_data_provider(&$form, $quiz) {
+  
+  $filter_params = array($quiz_nid);
+  $filter_sql = _quiz_results_mr_prepare_filter_sql($filter_params);
+  
+  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end, qnp.pass_rate
+          FROM {node} n
+          INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
+          INNER JOIN {users} u ON u.uid = qnrs.uid
+          INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
+          WHERE n.type = 'quiz' 
+          AND qnrs.nid = %d $filter_sql ".tablesort_sql($form['#header']);
+  
+  $res = pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_params);
+}
+
+/**
+ * Returns sql to be added in where clause in the _quiz_results_mr_data_provider select statement
+ *
+ * @see _quiz_results_mr_data_provider()
+ *
+ * @param $filter_params
+ *   params to be sent as parameter to db_query. (array)
+ * @return $filter_sql
+ *   sql to be added to where statement in browser(string)
+ */
+function _quiz_results_mr_prepare_filter_sql(&$filter_params) {
+  $pre = 'quiz_results_mr_';
+  $started_intervals = _quiz_get_interval_timestamps('time_start');
+  $finished_intervals = _quiz_get_interval_timestamps('time_end');
+  $duration_intervals = _quiz_get_duration_intervals();
+  $score_intervals = _quiz_get_score_intervals();
+  $filter_sql = '';
+  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
+    $filter_params[] = $_SESSION[$pre .'name'];
+  }
+  if (isset($_SESSION[$pre .'started'])) {
+    $filter_sql .= $started_intervals[$_SESSION[$pre .'started']]['sql'];
+  }
+  if (isset($_SESSION[$pre .'finished'])) {
+    $filter_sql .= $finished_intervals[$_SESSION[$pre .'started']]['sql'];
+  }
+  if (isset($_SESSION[$pre .'duration'])) {
+    $filter_sql .= $duration_intervals[$_SESSION[$pre .'duration']]['sql'];
+  }
+  if (isset($_SESSION[$pre .'score'])) {
+    $filter_sql .= $score_intervals[$_SESSION[$pre .'score']]['sql'];
+  }
+  return $filter_sql;
 }
 
 /**
