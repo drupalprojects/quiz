@@ -330,15 +330,6 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%quiz_type_access/admin'] = array(
-    'title' => t('Quiz admin', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'theme',
-    'page arguments' => array('quiz_view', 1),
-    'access arguments' => array('administer quiz'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz.admin.inc',
-  );
-
   // USER //
   $items['user/%/myresults'] = array(
     'title' => t('My results'),
@@ -378,10 +369,6 @@ function quiz_theme() {
   return array(
     'quiz_availability' => array(
       'arguments' => array('node' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_view' => array(
-      'arguments' => array('node' => NULL, 'teaser' => FALSE, 'page' => FALSE),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_get_user_results' => array(
