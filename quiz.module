@@ -551,12 +551,11 @@ function quiz_update($node) {
       $node->takes, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
-
+    _quiz_update_resultoptions($node);
     // if (db_affected_rows($resource) == 0) {
     //       drupal_set_message('No quiz was found that could be modified.', 'status');
     //     }
   }
-  _quiz_update_resultoptions($node);
 }
 
 function _quiz_common_presave_actions(&$node) {
@@ -840,7 +839,7 @@ function quiz_form(&$node) {
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
     // New nodes get the default.
-    if (empty($node->nid)) {
+    if (empty($node->pass_rate)) {
       $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
     }
     $form['summaryoptions']['pass_rate'] = array(
