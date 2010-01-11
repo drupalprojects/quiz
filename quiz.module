@@ -710,7 +710,7 @@ function quiz_form(&$node) {
     '#type' => 'checkbox',
     '#title' => t('Randomize questions'),
     '#default_value' => isset($node->randomize) ? $node->randomize : 0,
-    '#description' => t('Whether to allow the @quiz to consist of randomly selected questions. The quiz might consist of different questions each time the quiz is taken.', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('Whether to allow the @quiz to consist of randomly selected questions from a question pool. The quiz might consist of different questions each time the quiz is taken.', array('@quiz' => QUIZ_NAME)),
   );
 
   /*
