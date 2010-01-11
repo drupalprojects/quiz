@@ -564,7 +564,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
  * @return $changed_options
  *   Options for the changed select box.
  */
-function _quiz_get_changed_options() {
+function _quiz_get_time_interval_options() {
   return array(
     t('No filter'),
     t('Today'),
@@ -655,6 +655,55 @@ function _quiz_get_duration_intervals() {
 }
 
 /**
+ * Returns an array with options for the time filters.
+ *
+ * @see _quiz_get_duration_intervals()
+ *
+ * @return $options
+ *   array of options for the duration filter
+ */
+function _quiz_get_duration_options() {
+  return array(
+    'No filter',
+    t('> 1 m'),
+    t('> 5 m'),
+    t('> 10 m'),
+    t('> 1 h'),
+    t('> 8 h'),
+    t('> 24 h'),
+    t('< 1 m'),
+    t('< 5 m'),
+    t('< 10 m'),
+    t('< 1 h'),
+    t('< 8 h'),
+    t('< 24 h'),
+  );
+}
+
+/**
+ * Returns an array with options for the score filters.
+ *
+ * @see _quiz_get_score_intervals()
+ *
+ * @return $options
+ *   array of options for the score filter
+ */
+function _quiz_get_score_options() {
+  return array(
+    'No filter',
+    t('= 100 %'),
+    t('> 90 %'),
+    t('> 75 %'),
+    t('> 50 %'),
+    t('> 25 %'),
+    t('< 90 %'),
+    t('< 75 %'),
+    t('< 50 %'),
+    t('< 25 %'),
+  );
+}
+
+/**
  * Returns an array with sql where clauses correscponding to the options in the time filters.
  *
  * @see _quiz_questions_browser_form()
@@ -700,7 +749,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
   }
 
   // Create options array for the changed filter
-  $changed_options = _quiz_get_changed_options();
+  $changed_options = _quiz_get_time_interval_options();
   $browser['filters'] = array();
   $filters = &$browser['filters'];
   $filters['all'] = array(
@@ -1637,7 +1686,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form['help'] = array(
     '#type' => 'item',
     '#title' => t('Browse for results'),
-    '#description' => t('Mark all the results you want to act on.') .' '
+    '#value' => t('Mark all the results you want to act on.') .' '
     .t('You can filter results by using the textfields and select boxes.') .' '
     .t('You can sort by pressing the table headers.'),
   );
@@ -1661,7 +1710,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   );
 
   //Build filter part of form:
-  _quiz_results_browser_add_filter_fields($browser);
+  _quiz_results_mr_add_filter_fields($browser);
 
   // Create filter part of sql.
   $filter_params = array($quiz->nid);
@@ -1759,8 +1808,65 @@ function _quiz_results_mr_prepare_filter_sql(&$filter_params) {
   return $filter_sql;
 }
 
-function _quiz_results_browser_add_filter_fields($browser) {
-  
+function _quiz_results_mr_add_filter_fields(&$browser) {
+  // Create options array for the changed filter
+  $browser['filters'] = array();
+  $filters = &$browser['filters'];
+  $filters['all'] = array(
+    '#type' => 'checkbox',
+  );
+  $pre = 'quiz_results_mr';
+  $filters['name'] = array(
+    '#type' => 'textfield',
+    '#size' => 20,
+    '#default_value' => $_SESSION[$pre .'title'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+      'event' => 'doneTyping',
+    ),
+  );
+  $filters['started'] = array(
+    '#type' => 'select',
+    '#options' => _quiz_get_time_interval_options(),
+    '#default_value' => $_SESSION[$pre .'started'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['finished'] = array(
+    '#type' => 'select',
+    '#options' => _quiz_get_time_interval_options(),
+    '#default_value' => $_SESSION[$pre .'finished'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['duration'] = array(
+    '#type' => 'select',
+    '#options' => _quiz_get_duration_options(),
+    '#default_value' => $_SESSION[$pre .'duration'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['score'] = array(
+    '#type' => 'select',
+    '#options' => _quiz_get_score_options(),
+    '#default_value' => $_SESSION[$pre .'score'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
 }
 
 /**

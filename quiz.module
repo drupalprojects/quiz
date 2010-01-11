@@ -462,6 +462,13 @@ function quiz_theme() {
       'path' => drupal_get_path('module', 'quiz') .'/theme',
       'template' => 'quiz_question_browser',
     ),
+    'quiz_results_browser' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'quiz') .'/theme',
+      'template' => 'quiz_results_browser',
+    ),
     'quiz_report_form' => array(
       'arguments' => array(
         'form' => NULL,
