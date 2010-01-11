@@ -1789,12 +1789,43 @@ function quiz_set_auto_title() {
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
-  $form['help'] = array(
+  $form['update'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Options'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('class' => 'container-inline', 'id' => 'quiz-results-update'),
+  );
+  $form['update']['bulk_action'] = array(
+    '#type' => 'select',
+    '#options' => array(
+      'def' => '',
+      'del' => t('delete'),
+    ),
+  );
+  $form['update']['update'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update'),
+  );
+  $form['confirm_delete'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Confirm deletion'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#attributes' => array('style' => 'display:none;', 'id' => 'quiz-results-confirm-delete')
+  );
+  $form['confirm_delete']['help'] = array(
     '#type' => 'item',
-    '#title' => t('Browse for results'),
-    '#value' => t('Mark all the results you want to act on.') .' '
-    .t('You can filter results by using the textfields and select boxes.') .' '
-    .t('You can sort by pressing the table headers.'),
+    '#value' => t('Are you sure you want to delete all of these results?'),
+    '#description' => t('This action cannot be undone'),
+  );
+  $form['confirm_delete']['confirm_delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete all marked results'),
+  );
+  $form['confirm_delete']['cancel'] = array(
+    '#type' => 'markup',
+    '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
   );
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
   $browser = &$form['table'];
@@ -1857,7 +1888,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#default_value' => array(),
   );
   $browser['pager'] = array(
-    '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 20) .'</DIV>',
+    '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 50) .'</DIV>',
   );
   $browser['ahah_target_all_end'] = array(
     '#type' => 'markup',
@@ -1875,7 +1906,7 @@ function _quiz_results_mr_data_provider($header, $filter_params, $filter_sql) {
           WHERE n.type = 'quiz' 
           AND qnrs.nid = %d $filter_sql ".tablesort_sql($header);
   
-  return pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_params);
+  return pager_query(db_rewrite_sql($sql), 50, 0, NULL, $filter_params);
 }
 
 /**

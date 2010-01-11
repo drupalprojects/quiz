@@ -139,7 +139,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	Quiz.updatePageInUrl(myUrl);
-    $('#edit-table-filters-title').trigger('doneTyping');
+    $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });
 };
@@ -159,6 +159,21 @@ $(document).ready(function () {
   // If a browser row is selected make sure it gets marked.
   $('.quiz_results_browser_row:has(:checkbox:checked)').each(function() {
     $(this).click();
+  });
+  
+  $('#edit-update').click(function(event){
+    if ($('#edit-bulk-action').val() == 'del') {
+      $('#quiz-results-update').css('display', 'none');
+      $('#quiz-results-confirm-delete').css('display', 'block');
+      $('input:not(#edit-confirm-delete), select').attr('DISABLED', true);
+      event.preventDefault();
+    }
+  });
+  $('#quiz-results-cancel-delete').click(function(event){
+	$('#quiz-results-update').css('display', 'block');
+	$('#quiz-results-confirm-delete').css('display', 'none');
+	$('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
+	event.preventDefault();
   });
 });
 
