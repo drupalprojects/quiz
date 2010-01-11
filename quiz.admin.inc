@@ -649,7 +649,7 @@ function _quiz_get_duration_intervals() {
 
   foreach ($durations as $key => &$val) {
     if ($val == NULL) continue;
-    $durations[$key] = ' AND duration '. $val[0];
+    $durations[$key] = ' AND (time_end - time_start) '. $val;
   }
   return $durations;
 }
@@ -728,7 +728,7 @@ function _quiz_get_score_intervals() {
 
   foreach ($scores as $key => &$val) {
     if ($val == NULL) continue;
-    $scores[$key] = ' AND score '. $val[0];
+    $scores[$key] = ' AND score '. $val;
   }
   return $scores;
 }
@@ -1058,6 +1058,21 @@ function _quiz_browser_store_filters($filters) {
 }
 
 /**
+ * Store values for each browser filter in $_SESSION
+ *
+ * @param $filters
+ *   array holding the values for each filter
+ */
+function _quiz_results_mr_store_filters($filters) {
+  $pre = 'quiz_results_mr_';
+  $_SESSION[$pre .'name'] = $filters['name'];
+  $_SESSION[$pre .'started'] = $filters['started'];
+  $_SESSION[$pre .'finished'] = $filters['finished'];
+  $_SESSION[$pre .'duration'] = $filters['duration'];
+  $_SESSION[$pre .'score'] = $filters['score'];
+}
+
+/**
  * AHAH handler for the question browser
  */
 function quiz_browser_ahah() {
@@ -1158,13 +1173,104 @@ function quiz_browser_ahah() {
   // Only the question rows in the browser is replaced.
   else {
     // Send status messages, new build id for the form and the new question row to the javascript:
-    $b_rows = _quiz_get_browser_content(drupal_render($b_form));
+    $b_rows = _quiz_get_browser_content(drupal_render($b_form), 'quiz-question-browser-row');
     $b_pager = drupal_render($b_form['table']['pager']);
 
     $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
     $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
     $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
+    $output .= ' '. theme('status_messages');
+  }
+  drupal_json(array('status' => TRUE, 'data' => $output));
+}
+
+/**
+ * AHAH handler for the results browser
+ */
+function quiz_results_mr_browser_ahah() {
+  // Prepare to get the form from cache
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_id = $_POST['form_build_id'];
+
+  // Make sure the form exists
+  if (!($form = form_get_cache($form_id, $form_state))) {
+    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
+    $output = theme('status_messages');
+    print drupal_to_js(array('status' => TRUE, 'data' => $output));
+    exit();
+  }
+  // If filter or pager has been used
+  $replace_all = drupal_strlen($_POST['table']['add_to_get']) > 0;
+
+  // Prepare to submit the form
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+
+  // We will run some of the submit handlers so we need to disable redirecting.
+  $form['#redirect'] = FALSE;
+
+  // We need to process the form, prepare for that by setting a few internals
+  // variables.
+  $form['#post'] = $_POST;
+  $form['#programmed'] = FALSE;
+  $form_state['post'] = $_POST;
+
+  // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
+  foreach ($_POST as $key => $value) {
+    unset($_REQUEST[$key]);
+  }
+  $_POST = array();
+
+  // We don't want any validation errors to show up. This isn't a real submit.
+  _quiz_skip_validation($form);
+
+  _quiz_results_mr_store_filters($form_state['post']['table']['filters']);
+
+  // Build, validate and submit the form.
+  drupal_process_form($form_id, $form, $form_state);
+
+  //Remove any status messages the processing resulted in...
+  theme('status_messages');
+
+  // Get the form the ajax call resulted in
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+
+  // We store a copy of the browser part of the form, and remove it from the main form.
+  // This way we can render the form without the browser, and render the browser separatly
+  $b_form = $form['table'];
+  unset($form['table']);
+
+  /*
+   * $output is the string we will send to ajax, and that will be added to the page.
+   * We are doing this in a special way so we have to call javascript functions to
+   * update the DOM.
+   */
+  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+
+  // We replace the entire browser. This is done when the browser is sorted
+  if ($replace_all) {
+    // Make sure the description and test is removed
+    unset($b_form['#type']);
+    unset($b_form['#value']);
+
+    $rendered_browser = drupal_render($b_form);
+    $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
+
+    // Have js(jQuery) replace the browser and change the form build id in the DOM
+    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
+  }
+  
+  // Only the question rows in the browser is replaced.
+  else {
+    // Send status messages, new build id for the form and the new question row to the javascript:
+    $b_rows = _quiz_get_browser_content(drupal_render($b_form), 'quiz-results-browser-row');
+    $b_pager = drupal_render($b_form['pager']);
+
+    $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
+    $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
+    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
+    $output .= ' </script>';
     $output .= ' '. theme('status_messages');
   }
   drupal_json(array('status' => TRUE, 'data' => $output));
@@ -1724,8 +1830,8 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   $browser['#header'] = array(
     NULL,
     array('data' => t('Name'), 'field' => 'u.uid', 'class' => 'quiz-browser-header-name'),
-    array('data' => t('Started'), 'field' => 'time_start', 'class' => 'quiz-browser-header-started'),
-    array('data' => t('Finished'), 'field' => 'time_end', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
+    array('data' => t('Started'), 'field' => 'started', 'class' => 'quiz-browser-header-started'),
+    array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
     array('data' => t('Duration'), 'field' => 'duration', 'class' => 'quiz-browser-header-duration'),
     array('data' => t('Score'), 'field' => 'score', 'class' => 'quiz-browser-header-score'),
   );
@@ -1761,7 +1867,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
 }
 
 function _quiz_results_mr_data_provider($header, $filter_params, $filter_sql) {
-  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
+  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
@@ -1797,13 +1903,13 @@ function _quiz_results_mr_prepare_filter_sql(&$filter_params) {
     $filter_sql .= $started_intervals[$_SESSION[$pre .'started']]['sql'];
   }
   if (isset($_SESSION[$pre .'finished'])) {
-    $filter_sql .= $finished_intervals[$_SESSION[$pre .'started']]['sql'];
+    $filter_sql .= $finished_intervals[$_SESSION[$pre .'finished']]['sql'];
   }
   if (isset($_SESSION[$pre .'duration'])) {
-    $filter_sql .= $duration_intervals[$_SESSION[$pre .'duration']]['sql'];
+    $filter_sql .= $duration_intervals[$_SESSION[$pre .'duration']];
   }
   if (isset($_SESSION[$pre .'score'])) {
-    $filter_sql .= $score_intervals[$_SESSION[$pre .'score']]['sql'];
+    $filter_sql .= $score_intervals[$_SESSION[$pre .'score']];
   }
   return $filter_sql;
 }
@@ -1815,11 +1921,11 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['all'] = array(
     '#type' => 'checkbox',
   );
-  $pre = 'quiz_results_mr';
+  $pre = 'quiz_results_mr_';
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 20,
-    '#default_value' => $_SESSION[$pre .'title'],
+    '#default_value' => $_SESSION[$pre .'name'],
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
@@ -1944,9 +2050,9 @@ function _quiz_get_last_table_rows($table, $num_rows = 1) {
  * @return
  *   all table rows with a certain class in a table(html string)
  */
-function _quiz_get_browser_content($table) {
+function _quiz_get_browser_content($table, $class) {
   $matches = array();
-  $n_matches = preg_match('/<tr class="quiz-question-browser-row.*<\/tr>/is', $table, $matches);
+  $n_matches = preg_match('/<tr class="'. $class .'.*<\/tr>/is', $table, $matches);
   return $matches[0];
 }
 
