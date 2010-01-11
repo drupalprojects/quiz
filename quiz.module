@@ -807,7 +807,6 @@ function quiz_form(&$node) {
     '#collapsed' => FALSE,
   );
 
-
   if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
     $form['addons']['time_limit'] = array(
       '#type' => 'textfield',
