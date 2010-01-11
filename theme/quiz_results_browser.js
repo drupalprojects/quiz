@@ -175,6 +175,9 @@ $(document).ready(function () {
 	$('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
 	event.preventDefault();
   });
+  $('#edit-confirm-delete').click(function(event){
+    $('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
+  });
 });
 
 /**

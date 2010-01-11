@@ -342,6 +342,11 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   return $score;
 }
 
+function quiz_question_delete_result($rid, $nid, $vid) {
+  $response = _quiz_question_response_get_instance($rid, NULL, NULL, $nid, $vid);
+  $response->delete();
+}
+
 /**
  * Get the admin settings form for a question type.
  */

@@ -1894,6 +1894,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'markup',
     '#value' => '</DIV>'
   );
+  $form['#submit'] = array('quiz_results_mr_form_submit');
   return $form;
 }
 
@@ -2006,6 +2007,33 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   );
 }
 
+function quiz_results_mr_form_submit($form, &$form_state) {
+  if ($form_state['values']['op'] == t('Delete all marked results')) {
+    foreach ($form_state['values']['table']['name'] as $value) {
+      if ($value !== 0) {
+        // Find nid and rid
+        $matches = array();
+        preg_match('/([0-9]+)-([0-9]+)/', $value, $matches);
+        $res_nid = $matches[1];
+        $res_rid = $matches[2];
+        _quiz_delete_result($res_rid);
+      }
+    }
+    if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
+  }
+}
+
+function _quiz_delete_result($rid) {
+  $sql = 'SELECT question_nid, question_vid
+          FROM {quiz_node_results_answers}
+          WHERE result_id = %d';
+  $res = db_query($sql, $rid);
+  while ($res_o = db_fetch_object($res)) {
+    quiz_question_delete_result($rid, $res_o->question_nid, $res_o->question_vid);
+    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $rid);
+    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $rid);
+  }
+}
 /**
  * Recursive helper function to set the validated property. (Taken from the skip validation module.)
  *
