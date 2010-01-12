@@ -106,6 +106,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       $('.quiz-results-browser-row').each(function() { 
         $(this).remove();
       });
+      $('#edit-table-filters-all').hide();
       $(quizClicked).trigger('doneTyping');
       clearInterval(quizRefreshId);
     }, 1000);
@@ -163,6 +164,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     event.preventDefault();
   });
   $('.quiz-hover-menu').hide();
+  $('#edit-table-filters-all').show();
 };
 
 // This is only called once, not on ajax refreshes...

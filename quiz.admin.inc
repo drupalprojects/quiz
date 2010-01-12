@@ -1945,7 +1945,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $pre = 'quiz_results_mr_';
   $filters['name'] = array(
     '#type' => 'textfield',
-    '#size' => 20,
+    '#size' => 12,
     '#default_value' => $_SESSION[$pre .'name'],
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
