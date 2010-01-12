@@ -1825,6 +1825,16 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'markup',
     '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
   );
+  $form['special_filters'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Special filters'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['special_filters']['best_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Only show each users best result'),
+  );
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
   $browser = &$form['table'];
 
