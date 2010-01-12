@@ -28,8 +28,7 @@ $rows = array();
 $cols = array();
 
 // We make the filter row
-$cols[] = drupal_render($form['filters']['all']);
-$cols[] = drupal_render($form['filters']['name']);
+$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['duration']);
@@ -47,10 +46,9 @@ foreach ($form['name']['#options'] as $key => $value) {
   $res_rid = $matches[2];
   
   // The checkbox(without the title)
-  $cols[] = array('data' => drupal_render($full_options[$key]), 'width' => 35);
-  
-  // The username
-  $cols[] = $value;
+  $data = '<span class = "container-inline" style = white-space: nowrap;>'. drupal_render($full_options[$key]) . $value .'</span>'; //Always shown
+  $data .= '<div class = "quiz-hover-menu">'.$form['view'][$key]['#value'].'</div>';
+  $cols[] = array('data' => $data, 'width' => 35);
   
   $cols[] = $form['started'][$key]['#value'];
   $cols[] = $form['finished'][$key]['#value'];

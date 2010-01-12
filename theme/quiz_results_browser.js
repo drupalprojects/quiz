@@ -37,7 +37,15 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     	return !this.checked;
       });
     }
-  });
+  })
+  .hover(
+    function() {
+      $('.quiz-hover-menu', this).show();
+    },
+    function() {
+      $('.quiz-hover-menu', this).hide();
+    }
+  );
   
   // Filter row in the browser
   
@@ -142,6 +150,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });
+  $('.quiz-hover-menu').hide();
 };
 
 // This is only called once, not on ajax refreshes...

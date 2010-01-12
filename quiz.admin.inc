@@ -11,18 +11,6 @@
 // QUIZ ADMIN
 
 /**
- * Quiz Admin.
- */
-function quiz_admin($quiz) {
-  $breadcrumb = drupal_get_breadcrumb();
-  //lets add the Quiz Results to the breadcrumb array
-  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $quiz->nid);
-  drupal_set_breadcrumb($breadcrumb);
-  $results = _quiz_get_results($quiz->nid);
-  return theme('quiz_admin', $results);
-}
-
-/**
  * Displays the quizzes by title with a link to the appropriate results
  * for that specific quiz.
  *
@@ -1559,6 +1547,7 @@ function theme_quiz_admin_quizzes($results) {
 
 
 /**
+ * TODO: DELETE THIS AND SOME OF THE IMAGES!!!
  * Theme the admin results table.
  *
  * @param $results
@@ -1859,7 +1848,6 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
 
   // Browsers table header
   $browser['#header'] = array(
-    NULL,
     array('data' => t('Name'), 'field' => 'u.uid', 'class' => 'quiz-browser-header-name'),
     array('data' => t('Started'), 'field' => 'started', 'class' => 'quiz-browser-header-started'),
     array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
@@ -1874,6 +1862,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   while ($res_o = db_fetch_object($res)) {
     $id = $res_o->nid .'-'. $res_o->result_id;
     $options[$id] = check_plain($res_o->name);
+    $browser['view'][$id]['#value'] = l(t('view'), $_GET['q'] .'/'. $res_o->result_id);
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
     $browser['finished'][$id]['#value'] = format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = _quiz_format_duration($res_o->duration);

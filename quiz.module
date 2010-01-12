@@ -280,17 +280,7 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/reports/results/%quiz_type_access'] = array(
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'quiz_admin',
-    'page arguments' => array(4),
-    'access arguments' => array(4),
-    'access callback' => 'quiz_access_results',
-    'type' => MENU_CALLBACK,
-    'file' => 'quiz.admin.inc',
-  );
-  
-  $items['admin/quiz/reports/newresults/%quiz_type_access'] = array(
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
+    'title' => t('Results for @quiz', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_results_manage_results_form', 4),
     'access arguments' => array(4),
@@ -411,10 +401,6 @@ function quiz_theme() {
     'quiz_take_summary' => array(
       'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => ''),
       'file' => 'quiz.pages.inc',
-    ),
-    'quiz_admin' => array(
-      'arguments' => array('results' => NULL),
-      'file' => 'quiz.admin.inc',
     ),
     'quiz_admin_summary' => array(
       'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
