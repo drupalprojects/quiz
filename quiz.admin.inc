@@ -1778,7 +1778,7 @@ function quiz_set_auto_title() {
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
-  $display = isset($_GET['del']) ? 'none' : 'block';
+  $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
   $form['update'] = array(
     '#type' => 'fieldset',
     '#title' => t('Options'),
@@ -1801,7 +1801,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'submit',
     '#value' => t('Update'),
   );
-  $display = isset($_GET['del']) ? 'block' : 'none';
+  $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'block' : 'none';
   $form['confirm_delete'] = array(
     '#type' => 'fieldset',
     '#title' => t('Confirm deletion'),
@@ -1877,13 +1877,14 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $browser['duration'][$id]['#value'] = _quiz_format_duration($res_o->duration);
     $browser['score'][$id]['#value'] = check_plain($res_o->score) .' %';
   }
-
+  $def = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
+  unset($form_state['storage']['del']);
   $browser['name'] = array(
     '#title' => t('Name'),
     '#type' => 'checkboxes',
     '#options' => $options,
     '#attributes' => array('class' => 'quiz-browser-checkbox'),
-    '#default_value' => array($quiz->nid .'-'. $_GET['del']),
+    '#default_value' => $def,
   );
   $browser['pager'] = array(
     '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 50) .'</DIV>',
@@ -1903,8 +1904,7 @@ function _quiz_results_mr_data_provider($header, $filter_params, $filter_sql) {
           INNER JOIN {users} u ON u.uid = qnrs.uid
           INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           WHERE n.type = 'quiz' 
-          AND qnrs.nid = %d $filter_sql ".tablesort_sql($header);
-  
+          AND qnrs.nid = %d $filter_sql ".tablesort_sql($header) .', qnrs.result_id DESC';
   return pager_query(db_rewrite_sql($sql), 50, 0, NULL, $filter_params);
 }
 
@@ -2018,6 +2018,9 @@ function quiz_results_mr_form_submit($form, &$form_state) {
       }
     }
     if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
+  }
+  else {
+    $form_state['storage']['del'] = $form_state['values']['table']['name'];
   }
 }
 
