@@ -32,18 +32,30 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   // When the browser row is clicked toggle the selected class
   .click(function(event) {
     $(this).toggleClass('selected');
+    $('.quiz-hover-menu', this).addClass('stop-anim');
     if (event.target.type !== 'checkbox') {
       $(':checkbox', this).attr('checked', function() {
-    	return !this.checked;
+    	  return !this.checked;
       });
     }
   })
   .hover(
     function() {
-      $('.quiz-hover-menu', this).removeClass('stop-anim').animate({opacity:1}, 500, null, function() {if(!$(this).hasClass('stop-anim')) $(this).slideDown(400);});
+      if (!$('.quiz-hover-menu', this).hasClass('q-timer')) {
+        $('.quiz-hover-menu', this).removeClass('stop-anim');
+      }
+      $('.quiz-hover-menu', this)
+      .removeClass('stop-anim')
+      .addClass('q-timer')
+      .animate({opacity:1}, 700, null, function() {
+        $(this).removeClass('q-timer');
+        if(!$(this).hasClass('stop-anim')) { 
+          $(this).slideDown(300);
+        }
+      });
     },
     function() {
-      $('.quiz-hover-menu', this).addClass('stop-anim').slideUp(400);
+      $('.quiz-hover-menu', this).addClass('stop-anim').stop(true, true).slideUp(300);
     }
   );
   
