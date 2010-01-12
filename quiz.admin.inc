@@ -2020,8 +2020,11 @@ function quiz_results_mr_form_submit($form, &$form_state) {
     if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
   }
   else {
-    $form_state['storage']['del'] = $form_state['values']['table']['name'];
+    if ($form_state['values']['bulk_action'] == 'del') {
+      $form_state['storage']['del'] = $form_state['values']['table']['name'];
+    }
   }
+  _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 }
 
 function _quiz_results_mr_get_hover($rid) {
