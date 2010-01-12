@@ -47,7 +47,7 @@ foreach ($form['name']['#options'] as $key => $value) {
   
   // The checkbox(without the title)
   $data = '<span class = "container-inline" style = white-space: nowrap;>'. drupal_render($full_options[$key]) . $value .'</span>'; //Always shown
-  $data .= '<div class = "quiz-hover-menu">'.$form['view'][$key]['#value'].'</div>';
+  $data .= '<div class = "quiz-hover-menu">'.$form['hover_menu'][$key]['#value'].'</div>';
   $cols[] = $data;
   
   $cols[] = $form['started'][$key]['#value'];

@@ -41,6 +41,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   })
   .hover(
     function() {
+      if ($(':checkbox', this).attr('disabled')) return;
       if (!$('.quiz-hover-menu', this).hasClass('q-timer')) {
         $('.quiz-hover-menu', this).removeClass('stop-anim');
       }
@@ -59,6 +60,14 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     }
   );
   
+  $('.hover-del'+ notDone)
+  .addClass(done)
+  .click(function(event) {
+    $('.quiz-results-browser-row:has(:checkbox:checked)').click();
+    $('#edit-bulk-action').val('del');
+    $('#edit-update').click();
+    event.preventDefault();
+  });
   // Filter row in the browser
   
   // Mark all button

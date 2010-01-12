@@ -1778,12 +1778,17 @@ function quiz_set_auto_title() {
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
+  $display = isset($_GET['del']) ? 'none' : 'block';
   $form['update'] = array(
     '#type' => 'fieldset',
     '#title' => t('Options'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
-    '#attributes' => array('class' => 'container-inline', 'id' => 'quiz-results-update'),
+    '#attributes' => array(
+      'class' => 'container-inline', 
+      'id' => 'quiz-results-update',
+      'style' => "display:$display;"
+    ),
   );
   $form['update']['bulk_action'] = array(
     '#type' => 'select',
@@ -1796,12 +1801,16 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'submit',
     '#value' => t('Update'),
   );
+  $display = isset($_GET['del']) ? 'block' : 'none';
   $form['confirm_delete'] = array(
     '#type' => 'fieldset',
     '#title' => t('Confirm deletion'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
-    '#attributes' => array('style' => 'display:none;', 'id' => 'quiz-results-confirm-delete')
+    '#attributes' => array(
+      'style' => "display:$display;",
+      'id' => 'quiz-results-confirm-delete'
+    ),
   );
   $form['confirm_delete']['help'] = array(
     '#type' => 'item',
@@ -1862,7 +1871,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   while ($res_o = db_fetch_object($res)) {
     $id = $res_o->nid .'-'. $res_o->result_id;
     $options[$id] = check_plain($res_o->name);
-    $browser['view'][$id]['#value'] = l(t('view'), $_GET['q'] .'/'. $res_o->result_id);
+    $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($res_o->result_id);
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
     $browser['finished'][$id]['#value'] = format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = _quiz_format_duration($res_o->duration);
@@ -1874,7 +1883,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'checkboxes',
     '#options' => $options,
     '#attributes' => array('class' => 'quiz-browser-checkbox'),
-    '#default_value' => array(),
+    '#default_value' => array($quiz->nid .'-'. $_GET['del']),
   );
   $browser['pager'] = array(
     '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 50) .'</DIV>',
@@ -2010,6 +2019,16 @@ function quiz_results_mr_form_submit($form, &$form_state) {
     }
     if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
   }
+}
+
+function _quiz_results_mr_get_hover($rid) {
+  $to_return = array(l(t('view'), $_GET['q'] .'/'. $rid));
+  if (user_access('delete any quiz results') || user_access('delete results for own quiz'))
+    $to_return[] = l(t('delete'), $_GET['q'], array(
+      'query' => array('del' => $rid),
+      'attributes' => array('class' => 'hover-del'),
+    ));
+  return implode(' | ', $to_return);
 }
 
 function _quiz_delete_result($rid) {
