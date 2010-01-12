@@ -149,6 +149,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       // We need to post the query string to drupal since we are using ajax.
       // The querystring will be added to $_REQUEST on the server.
       $('#edit-table-add-to-get').val(myUrl);
+      if ($(this).attr('myName') == 'name') $('#edit-table-filters-all').hide();
       $('#edit-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
       event.preventDefault();
     });
@@ -158,8 +159,9 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
   .addClass(done)
   .click(function(event){
-	var myUrl = $(this).attr('href').substr(2);
-	Quiz.updatePageInUrl(myUrl);
+	  var myUrl = $(this).attr('href').substr(2);
+	  Quiz.updatePageInUrl(myUrl);
+	  $('#edit-table-filters-all').hide();
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });
