@@ -40,10 +40,10 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   })
   .hover(
     function() {
-      $('.quiz-hover-menu', this).show();
+      $('.quiz-hover-menu', this).removeClass('stop-anim').animate({opacity:1}, 500, null, function() {if(!$(this).hasClass('stop-anim')) $(this).slideDown(400);});
     },
     function() {
-      $('.quiz-hover-menu', this).hide();
+      $('.quiz-hover-menu', this).addClass('stop-anim').slideUp(400);
     }
   );
   
