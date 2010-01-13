@@ -1884,6 +1884,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $browser['finished'][$id]['#value'] = format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = _quiz_format_duration($res_o->duration);
     $browser['score'][$id]['#value'] = check_plain($res_o->score) .' %';
+    $browser['pass_rate'][$id]['#value'] = $res_o->pass_rate;
   }
   $def = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
   unset($form_state['storage']['del']);

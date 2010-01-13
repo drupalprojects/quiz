@@ -53,7 +53,12 @@ foreach ($form['name']['#options'] as $key => $value) {
   $cols[] = $form['started'][$key]['#value'];
   $cols[] = $form['finished'][$key]['#value'];
   $cols[] = $form['duration'][$key]['#value'];
-  $cols[] = $form['score'][$key]['#value'];
+
+  if (!empty($form['pass_rate'][$key]['#value'])) {
+    $pre_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
+    $post_score = '</span>';
+  }
+  $cols[] = $pre_score . $form['score'][$key]['#value'] . $post_score;
   
   $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);
 }
