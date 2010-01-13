@@ -89,6 +89,14 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     });
   });
   
+  $('#edit-table-filters-best-results'+ notDone)
+  .addClass(done)
+  .click(function(event) {
+	$('#edit-table-filters-all').hide();
+	$('.quiz-results-browser-row').remove();
+	$('#edit-table-filters-name').trigger('doneTyping');
+  });
+  
   // started, finished, duration and score filters
   this.selector = '#edit-table-filters-started'+ notDone;
   this.selector += ', #edit-table-filters-finished'+ notDone;
@@ -168,9 +176,9 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
   .addClass(done)
   .click(function(event){
-	  var myUrl = $(this).attr('href').substr(2);
-	  Quiz.updatePageInUrl(myUrl);
-	  $('#edit-table-filters-all').hide();
+	var myUrl = $(this).attr('href').substr(2);
+	Quiz.updatePageInUrl(myUrl);
+	$('#edit-table-filters-all').hide();
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });

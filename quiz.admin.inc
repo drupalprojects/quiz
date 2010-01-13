@@ -1058,6 +1058,7 @@ function _quiz_results_mr_store_filters($filters) {
   $_SESSION[$pre .'finished'] = $filters['finished'];
   $_SESSION[$pre .'duration'] = $filters['duration'];
   $_SESSION[$pre .'score'] = $filters['score'];
+  $_SESSION[$pre .'best_results'] = $filters['best_results'];
 }
 
 /**
@@ -1834,6 +1835,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form['special_filters']['best_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('Only show each users best result'),
+    '#parents' => array('table', 'filters', 'best_results'),
   );
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
   $browser = &$form['table'];
@@ -1953,6 +1955,14 @@ function _quiz_results_mr_prepare_filter($quiz) {
   }
   if (isset($_SESSION[$pre .'score'])) {
     $filter['where'] .= $score_intervals[$_SESSION[$pre .'score']];
+  }
+  if ($_SESSION[$pre .'best_results'] == 1) {
+    $filter['join'] .= " INNER JOIN (
+                           SELECT qn.uid, MAX(qn.score) AS max_score
+                           FROM quiz_node_results qn
+                           GROUP BY uid
+                         ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.max_score";
+    $filter['group'] .= " GROUP BY qnrs.uid";
   }
   return $filter;
 }
