@@ -1857,10 +1857,6 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   //Build filter part of form:
   _quiz_results_mr_add_filter_fields($browser);
 
-  // Create filter part of sql.
-  $filter_params = array($quiz->nid);
-  $filter_sql = _quiz_results_mr_prepare_filter_sql($filter_params);
-
   // Add querystring recieved via ajax to the $_GET array...
   // $question_type_list = implode('\', \'', array_keys($question_types));
   _quiz_add_to_get($form_state['values']['table']['add_to_get']);
@@ -1874,7 +1870,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     array('data' => t('Score'), 'field' => 'score', 'class' => 'quiz-browser-header-score'),
   );
 
-  $res = _quiz_results_mr_data_provider($browser['#header'], $filter_params, $filter_sql);
+  $res = _quiz_results_mr_data_provider($browser['#header'], $quiz);
 
   // build data part of form
   $options = array();
@@ -1907,15 +1903,17 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   return $form;
 }
 
-function _quiz_results_mr_data_provider($header, $filter_params, $filter_sql) {
+function _quiz_results_mr_data_provider($header, $quiz) {
+  $filter = _quiz_results_mr_prepare_filter($quiz);
   $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
           INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
+          ". $filter['join'] ."
           WHERE n.type = 'quiz' 
-          AND qnrs.nid = %d $filter_sql ".tablesort_sql($header) .', qnrs.result_id DESC';
-  return pager_query(db_rewrite_sql($sql), 50, 0, NULL, $filter_params);
+          AND qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
+  return pager_query(db_rewrite_sql($sql), 50, 0, NULL, $filter['params']);
 }
 
 /**
@@ -1928,30 +1926,35 @@ function _quiz_results_mr_data_provider($header, $filter_params, $filter_sql) {
  * @return $filter_sql
  *   sql to be added to where statement in browser(string)
  */
-function _quiz_results_mr_prepare_filter_sql(&$filter_params) {
+function _quiz_results_mr_prepare_filter($quiz) {
   $pre = 'quiz_results_mr_';
   $started_intervals = _quiz_get_interval_timestamps('time_start');
   $finished_intervals = _quiz_get_interval_timestamps('time_end');
   $duration_intervals = _quiz_get_duration_intervals();
   $score_intervals = _quiz_get_score_intervals();
-  $filter_sql = '';
+  $filter = array(
+    'params' => array('nid' => $quiz->nid),
+    'join' => '',
+    'where' => '',
+    'group' => '',
+  );
   if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
-    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
-    $filter_params[] = $_SESSION[$pre .'name'];
+    $filter['where'] .= ' AND u.name LIKE \'%s%%\'';
+    $filter['params'][] = $_SESSION[$pre .'name'];
   }
   if (isset($_SESSION[$pre .'started'])) {
-    $filter_sql .= $started_intervals[$_SESSION[$pre .'started']]['sql'];
+    $filter['where'] .= $started_intervals[$_SESSION[$pre .'started']]['sql'];
   }
   if (isset($_SESSION[$pre .'finished'])) {
-    $filter_sql .= $finished_intervals[$_SESSION[$pre .'finished']]['sql'];
+    $filter['where'] .= $finished_intervals[$_SESSION[$pre .'finished']]['sql'];
   }
   if (isset($_SESSION[$pre .'duration'])) {
-    $filter_sql .= $duration_intervals[$_SESSION[$pre .'duration']];
+    $filter['where'] .= $duration_intervals[$_SESSION[$pre .'duration']];
   }
   if (isset($_SESSION[$pre .'score'])) {
-    $filter_sql .= $score_intervals[$_SESSION[$pre .'score']];
+    $filter['where'] .= $score_intervals[$_SESSION[$pre .'score']];
   }
-  return $filter_sql;
+  return $filter;
 }
 
 function _quiz_results_mr_add_filter_fields(&$browser) {
