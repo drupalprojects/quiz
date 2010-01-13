@@ -2038,7 +2038,10 @@ function quiz_results_mr_form_submit($form, &$form_state) {
         preg_match('/([0-9]+)-([0-9]+)/', $value, $matches);
         $res_nid = $matches[1];
         $res_rid = $matches[2];
-        _quiz_delete_result($res_rid);
+        if ($form_state['values']['table']['filters']['best_results'] == 1)
+          _quiz_delete_results($res_rid, $res_nid);
+        else 
+          _quiz_delete_results($res_rid);
       }
     }
     if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
@@ -2061,15 +2064,31 @@ function _quiz_results_mr_get_hover($rid) {
   return implode(' | ', $to_return);
 }
 
-function _quiz_delete_result($rid) {
-  $sql = 'SELECT question_nid, question_vid
+function _quiz_delete_results($rid, $nid = NULL) {
+  $rids = array();
+  if (isset($nid)) {
+    $sql = 'SELECT result_id
+            FROM {quiz_node_results}
+            WHERE nid = %d AND uid = (
+              SELECT uid 
+              FROM {quiz_node_results}
+              WHERE result_id = %d
+            )';
+    $res = db_query($sql, $nid, $rid);
+    while ($result = db_result($res)) {
+      $rids[] = intval($result);
+    }
+  }
+  else 
+    $rids[] = intval($rid);
+  $sql = 'SELECT result_id, question_nid, question_vid
           FROM {quiz_node_results_answers}
-          WHERE result_id = %d';
-  $res = db_query($sql, $rid);
+          WHERE result_id IN('. implode(', ', $rids) .')';
+  $res = db_query($sql);
   while ($res_o = db_fetch_object($res)) {
-    quiz_question_delete_result($rid, $res_o->question_nid, $res_o->question_vid);
-    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $rid);
-    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $rid);
+    quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
+    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $res_o->result_id);
+    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $res_o->result_id);
   }
 }
 /**

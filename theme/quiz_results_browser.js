@@ -203,14 +203,14 @@ $(document).ready(function () {
     $(this).click();
   });
   
-  /*$('#edit-update').click(function(event){
+  $('#edit-update').click(function(event){
     if ($('#edit-bulk-action').val() == 'del') {
       $('#quiz-results-update').css('display', 'none');
       $('#quiz-results-confirm-delete').css('display', 'block');
       $('input:not(#edit-confirm-delete), select').attr('DISABLED', true);
       event.preventDefault();
     }
-  });*/
+  });
   $('#quiz-results-cancel-delete').click(function(event){
 	  $('#quiz-results-update').css('display', 'block');
 	  $('#quiz-results-confirm-delete').css('display', 'none');
