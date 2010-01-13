@@ -1881,9 +1881,9 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $options[$id] = check_plain($res_o->name);
     $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($res_o->result_id);
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
-    $browser['finished'][$id]['#value'] = format_date($res_o->finished, 'small');
-    $browser['duration'][$id]['#value'] = _quiz_format_duration($res_o->duration);
-    $browser['score'][$id]['#value'] = check_plain($res_o->score) .' %';
+    $browser['finished'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : format_date($res_o->finished, 'small');
+    $browser['duration'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : _quiz_format_duration($res_o->duration);
+    $browser['score'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : check_plain($res_o->score) .' %';
     $browser['pass_rate'][$id]['#value'] = $res_o->pass_rate;
   }
   $def = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);

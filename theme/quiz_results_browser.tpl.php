@@ -54,7 +54,7 @@ foreach ($form['name']['#options'] as $key => $value) {
   $cols[] = $form['finished'][$key]['#value'];
   $cols[] = $form['duration'][$key]['#value'];
 
-  if (!empty($form['pass_rate'][$key]['#value'])) {
+  if (!empty($form['pass_rate'][$key]['#value']) && is_numeric($form['score'][$key]['#value'])) {
     $pre_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
     $post_score = '</span>';
   }
