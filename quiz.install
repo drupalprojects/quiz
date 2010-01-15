@@ -11,6 +11,17 @@
  * Implementation of hook_update_N().
  * Adding a new field to for whether to repeat questions until they're found correct
  */
+function quiz_update_6407() {
+  $result = array();
+  db_add_field($result, 'quiz_node_results', 'is_evaluated', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  $sql = ''; //TODO: ADD UPGRADE PATH HERE!
+  return $result;
+}
+
+/**
+ * Implementation of hook_update_N().
+ * Adding a new field to for whether to repeat questions until they're found correct
+ */
 function quiz_update_6406() {
   $result = array();
   db_add_field($result, 'quiz_node_properties', 'keep_results', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 2));
@@ -617,6 +628,13 @@ function quiz_schema() {
         'default' => 0,
       ),
       'is_invalid' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0
+      ),
+      'is_evaluated' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,

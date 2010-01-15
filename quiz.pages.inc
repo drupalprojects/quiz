@@ -99,6 +99,7 @@ function quiz_report_form_submit($form, &$form_state) {
     call_user_func($q_values['submit'], $q_values);
   }
   quiz_update_total_score_fast($rid, $quiz->vid);
+  _quiz_maintain_results($quiz, $rid);
   _quiz_remove_unscored_message();
 }
 
