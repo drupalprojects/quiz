@@ -1345,6 +1345,17 @@ function quiz_admin_settings() {
     '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
     '#default_value' => variable_get('quiz_autotitle_length', 50),
   );
+  
+  $form['quiz_global_settings']['quiz_keep_results'] = array(
+    '#type' => 'radios',
+    '#title' => t('These results should be stored for each user'),
+    '#options' => array(
+       t('The best'),
+       t('The newest'),
+       t('All'),
+    ),
+    '#default_value' => variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
+  );
 
   $target = array(
     'attributes' => array(
@@ -2076,20 +2087,12 @@ function _quiz_delete_results($rid, $nid = NULL) {
             )';
     $res = db_query($sql, $nid, $rid);
     while ($result = db_result($res)) {
-      $rids[] = intval($result);
+      $rids[] = $result;
     }
   }
   else 
-    $rids[] = intval($rid);
-  $sql = 'SELECT result_id, question_nid, question_vid
-          FROM {quiz_node_results_answers}
-          WHERE result_id IN('. implode(', ', $rids) .')';
-  $res = db_query($sql);
-  while ($res_o = db_fetch_object($res)) {
-    quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
-    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $res_o->result_id);
-    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $res_o->result_id);
-  }
+    $rids[] = $rid;
+  quiz_delete_results($rids);
 }
 /**
  * Recursive helper function to set the validated property. (Taken from the skip validation module.)

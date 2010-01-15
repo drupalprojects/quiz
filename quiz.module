@@ -50,6 +50,13 @@ define('QUIZ_FEEDBACK_QUESTION',        1);
 define('QUIZ_FEEDBACK_NEVER',           2);
 
 /**
+ * Define options for keeping results.
+ */
+define('QUIZ_KEEP_BEST',             0);
+define('QUIZ_KEEP_LATEST',        1);
+define('QUIZ_KEEP_ALL',           2);
+
+/**
  * Quiz perms.
  *
  * TODO: Simply adding the new quiz config perm for now - refactor other perms
@@ -680,7 +687,6 @@ function quiz_take($node) {
  * This is an admin form used to build a new quiz. It is called as part of the node edit form.
  */
 function quiz_form(&$node) {
-  dpm($node);
   $form = array();
   $form['title'] = array(
     '#type' => 'textfield',
@@ -803,18 +809,24 @@ function quiz_form(&$node) {
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
-  
-  $form['keep_results'] = array(
-    '#type' => 'radios',
-    '#title' => t('These results should be stored for each user'),
-    '#options' => array(
-       t('The best'),
-       t('The newest'),
-       t('All'),
-    ),
-    '#default_value' => isset($node->keep_results) ? $node->keep_results : '0',
-  );
-  
+  if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
+    $form['keep_results'] = array(
+      '#type' => 'radios',
+      '#title' => t('These results should be stored for each user'),
+      '#options' => array(
+         t('The best'),
+         t('The newest'),
+         t('All'),
+      ),
+      '#default_value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
+    );
+  }
+  else {
+    $form['keep_results'] = array(
+      '#type' => 'value',
+      '#value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
+    );
+  }
   $form['addons'] = array(
     '#type' => 'fieldset',
     '#title' => t('Quiz Addons Properties'),
@@ -1539,6 +1551,8 @@ function quiz_end_actions($quiz, $rid) {
   db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d", time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
   $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
 
+  _quiz_maintain_results($quiz, $rid);
+  
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
   // We will verify that there is an associated action with this quiz and then perform that action.
   if (!empty($quiz->aid)) {
@@ -3094,5 +3108,60 @@ function quiz_copy_questions($node) {
             (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
             VALUES(%d, %d, %d, %d, %d, %d, %d)';
     db_query($sql, $node->nid, $node->vid, $original_question->nid, $original_question->vid, $res_o->question_status, $res_o->weight, $res_o->max_score);
+  }
+}
+
+function _quiz_maintain_results($quiz, $rid) {
+  global $user;
+  switch ($quiz->keep_results) {
+    case QUIZ_KEEP_ALL:
+      return;
+    case QUIZ_KEEP_BEST: //I'm afraid of what this query might do to performance...
+      $sql = 'SELECT result_id 
+              FROM {quiz_node_results}
+              WHERE nid = %d AND uid = %d AND result_id != (
+                SELECT result_id
+                FROM {quiz_node_results}
+                WHERE score = (
+                  SELECT MAX(score)
+                  FROM {quiz_node_results}
+                  WHERE nid = %d AND uid = %d
+                )
+                AND nid = %d AND uid = %d LIMIT 1
+              )';
+      $res = db_query($sql, $quiz->nid, $user->uid, $quiz->nid, $user->uid, $quiz->nid, $user-uid);
+      $rids = array();
+      while ($rid2 = db_result($res)) {
+        $rids[] = $rid2;
+      }
+      quiz_delete_results($rids);
+      break;
+    case QUIZ_KEEP_LATEST:
+      $sql = 'SELECT result_id
+              FROM {quiz_node_results}
+              WHERE nid = %d AND uid = %d AND result_id != %d';
+      $res = db_query($sql, $quiz->nid, $user->uid, $rid);
+      $rids = array();
+      while ($rid2 = db_result($res)) {
+        $rids[] = $rid2;
+      }
+      quiz_delete_results($rids);
+      break;
+  }
+}
+
+function quiz_delete_results($rids) {
+  //security:
+  foreach ($rids as $key => $value) {
+    $rids[$key] = intval($value);
+  }
+  $sql = 'SELECT result_id, question_nid, question_vid
+          FROM {quiz_node_results_answers}
+          WHERE result_id IN('. implode(', ', $rids) .')';
+  $res = db_query($sql);
+  while ($res_o = db_fetch_object($res)) {
+    quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
+    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $res_o->result_id);
+    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $res_o->result_id);
   }
 }
