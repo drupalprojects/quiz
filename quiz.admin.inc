@@ -1058,6 +1058,7 @@ function _quiz_results_mr_store_filters($filters) {
   $_SESSION[$pre .'finished'] = $filters['finished'];
   $_SESSION[$pre .'duration'] = $filters['duration'];
   $_SESSION[$pre .'score'] = $filters['score'];
+  $_SESSION[$pre .'scored'] = $filters['scored'];
   $_SESSION[$pre .'best_results'] = $filters['best_results'];
 }
 
@@ -1881,6 +1882,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
     array('data' => t('Duration'), 'field' => 'duration', 'class' => 'quiz-browser-header-duration'),
     array('data' => t('Score'), 'field' => 'score', 'class' => 'quiz-browser-header-score'),
+    array('data' => t('Scored'), 'field' => 'scored', 'class' => 'quiz-browser-header-scored'),
   );
 
   $res = _quiz_results_mr_data_provider($browser['#header'], $quiz);
@@ -1895,6 +1897,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $browser['finished'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : _quiz_format_duration($res_o->duration);
     $browser['score'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : check_plain($res_o->score) .' %';
+    $browser['scored'][$id]['#value'] = $res_o->scored == 0 ? t('No') : t('Yes');
     $browser['pass_rate'][$id]['#value'] = $res_o->pass_rate;
   }
   $def = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
@@ -1919,7 +1922,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
 
 function _quiz_results_mr_data_provider($header, $quiz) {
   $filter = _quiz_results_mr_prepare_filter($quiz);
-  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
+  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS scored, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
           INNER JOIN {users} u ON u.uid = qnrs.uid
@@ -1967,6 +1970,12 @@ function _quiz_results_mr_prepare_filter($quiz) {
   }
   if (isset($_SESSION[$pre .'score'])) {
     $filter['where'] .= $score_intervals[$_SESSION[$pre .'score']];
+  }
+  if (isset($_SESSION[$pre .'scored'])) {
+    switch ($_SESSION[$pre .'scored']) {
+      case '0': $filter['where'] .= ' AND is_evaluated = 0'; break;
+      case '1': $filter['where'] .= ' AND is_evaluated = 1'; break;
+    }
   }
   if ($_SESSION[$pre .'best_results'] == 1) {
     $filter['join'] .= " INNER JOIN (
@@ -2032,6 +2041,16 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#type' => 'select',
     '#options' => _quiz_get_score_options(),
     '#default_value' => $_SESSION[$pre .'score'],
+    '#ahah' => array(
+      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'wrapper' => 'ahah-target',
+      'method' => 'replace',
+    ),
+  );
+  $filters['scored'] = array(
+    '#type' => 'select',
+    '#options' => array('def' => '', '1' => t('Yes'), '0' => t('No')),
+    '#default_value' => $_SESSION[$pre .'scored'],
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',

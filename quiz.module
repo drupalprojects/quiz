@@ -3117,13 +3117,17 @@ function quiz_copy_questions($node) {
 
 function _quiz_maintain_results($quiz, $rid) {
   global $user;
+  
+  // Do not delete results for anonymous users
+  if ($user->uid == 0) return; 
+  
   switch ($quiz->keep_results) {
     case QUIZ_KEEP_ALL:
       return;
     case QUIZ_KEEP_BEST: //I'm afraid of what this query might do to performance...
       $sql = 'SELECT result_id 
               FROM {quiz_node_results}
-              WHERE nid = %d AND uid = %d AND result_id != (
+              WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != (
                 SELECT result_id
                 FROM {quiz_node_results}
                 WHERE score = (
@@ -3143,7 +3147,7 @@ function _quiz_maintain_results($quiz, $rid) {
     case QUIZ_KEEP_LATEST:
       $sql = 'SELECT result_id
               FROM {quiz_node_results}
-              WHERE nid = %d AND uid = %d AND result_id != %d';
+              WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != %d';
       $res = db_query($sql, $quiz->nid, $user->uid, $rid);
       $rids = array();
       while ($rid2 = db_result($res)) {

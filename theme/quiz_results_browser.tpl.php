@@ -6,7 +6,7 @@
  *
  *
  * Variables available:
- * - $form
+ *  - $form
  */
 
 // Add js
@@ -33,6 +33,7 @@ $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['duration']);
 $cols[] = drupal_render($form['filters']['score']);
+$cols[] = drupal_render($form['filters']['scored']);
 $rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
 
 // We make the result rows
@@ -59,6 +60,7 @@ foreach ($form['name']['#options'] as $key => $value) {
     $post_score = '</span>';
   }
   $cols[] = $pre_score . $form['score'][$key]['#value'] . $post_score;
+  $cols[] = $form['scored'][$key]['#value'];
   
   $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);
 }
