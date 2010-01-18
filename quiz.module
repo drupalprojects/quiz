@@ -3163,6 +3163,8 @@ function quiz_delete_results($rids) {
   foreach ($rids as $key => $value) {
     $rids[$key] = intval($value);
   }
+  if (empty($rids))
+    return;
   $sql = 'SELECT result_id, question_nid, question_vid
           FROM {quiz_node_results_answers}
           WHERE result_id IN('. implode(', ', $rids) .')';

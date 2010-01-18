@@ -1823,7 +1823,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
     $browser['finished'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : _quiz_format_duration($res_o->duration);
-    $browser['score'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : check_plain($res_o->score) .' %';
+    $browser['score'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : check_plain($res_o->score);
     $browser['evaluated'][$id]['#value'] = $res_o->evaluated == 0 ? t('No') : t('Yes');
     $browser['pass_rate'][$id]['#value'] = $res_o->pass_rate;
   }
@@ -2003,7 +2003,7 @@ function _quiz_results_mr_get_hover($quiz, $rid) {
   if (user_access('delete any quiz results') || user_access('delete results for own quiz'))
     $to_return[] = l(t('delete'), 'admin/quiz/reports/results/'. $quiz->nid, array(
       'query' => array('del' => $rid),
-      'attributes' => array('class' => 'hover-del'),
+      'attributes' => array('class' => 'hover-del', 'id' => $quiz->nid .'-'. $rid .'-del'),
     ));
   return implode(' | ', $to_return);
 }
@@ -2027,6 +2027,7 @@ function _quiz_delete_results($rid, $nid = NULL) {
     $rids[] = $rid;
   quiz_delete_results($rids);
 }
+
 /**
  * Recursive helper function to set the validated property. (Taken from the skip validation module.)
  *

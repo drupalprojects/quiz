@@ -245,9 +245,9 @@ dl.quiz-report dd {
 }
 
 .quiz-passed {
-  color: #00ff00;
+  color: #00dd00;
 }
 
 .quiz-failed {
-  color: #ff0000;
+  color: #dd0000;
 }

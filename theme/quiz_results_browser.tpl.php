@@ -56,12 +56,18 @@ foreach ($form['name']['#options'] as $key => $value) {
     $data .= '<br><i>('. t('Duration') .': '. $form['duration'][$key]['#value'] .')</i>';
   
   $cols[] = array('data' => $data, 'valign' => 'top');
-
-  if (!empty($form['pass_rate'][$key]['#value']) && is_numeric($form['score'][$key]['#value'])) {
-    $pre_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
-    $post_score = '</span>';
+  
+  if (!is_numeric($form['score'][$key]['#value']))
+    $cols[] = array('data' => $form['score'][$key]['#value'], 'valign' => 'top');
+  elseif ($form['evaluated'][$key]['#value'] == t('No')) 
+    $cols[] = array('data' => t('Not evaluated'), 'valign' => 'top');
+  else {
+    if (!empty($form['pass_rate'][$key]['#value']) && is_numeric($form['score'][$key]['#value'])) {
+      $pre_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
+      $post_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ?' %<br><i>'. t('Passed') .'</i></span>' : ' %<br><i>'. t('Failed') .'</i></span>';
+    }
+    $cols[] = array('data' => $pre_score . $form['score'][$key]['#value'] . $post_score, 'valign' => 'top');
   }
-  $cols[] = array('data' => $pre_score . $form['score'][$key]['#value'] . $post_score, 'valign' => 'top');
   $cols[] = array('data' => $form['evaluated'][$key]['#value'], 'valign' => 'top');
   
   $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);

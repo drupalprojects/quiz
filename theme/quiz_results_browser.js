@@ -31,6 +31,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   
   // When the browser row is clicked toggle the selected class
   .click(function(event) {
+	if (typeof event.target.href == 'string') return;
     $(this).toggleClass('selected');
     $('.quiz-hover-menu', this).addClass('stop-anim');
     if (event.target.type !== 'checkbox') {
@@ -53,6 +54,8 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   .addClass(done)
   .click(function(event) {
     $('.quiz-results-browser-row:has(:checkbox:checked)').click();
+    var nidRid = Quiz.findNidRidString($(event.target).attr('id'));
+    $('#edit-table-name-' + nidRid).click();
     $('#edit-bulk-action').val('del');
     $('#edit-update').click();
     event.preventDefault();
