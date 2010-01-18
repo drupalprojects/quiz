@@ -100,6 +100,7 @@ function quiz_report_form_submit($form, &$form_state) {
   }
   quiz_update_total_score_fast($rid, $quiz->vid);
   _quiz_maintain_results($quiz, $rid);
+  db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid);
   _quiz_remove_unscored_message();
 }
 

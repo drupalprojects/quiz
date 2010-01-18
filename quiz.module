@@ -1549,9 +1549,8 @@ function quiz_end_actions($quiz, $rid) {
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
   }
-
   // Why is this using the $_SESSION's RID?
-  db_query("UPDATE {quiz_node_results} SET time_end = %d, score = %d WHERE result_id = %d", time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  db_query("UPDATE {quiz_node_results} SET is_evaluated = %d, time_end = %d, score = %d WHERE result_id = %d", time(), $score['is_evaluated'], $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
   $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
   
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.
@@ -1711,6 +1710,7 @@ function quiz_update_total_score($quiz, $rid) {
     // Call hook_quiz_scored().
     module_invoke_all('quiz_scored', $quiz, $score, $rid);
     _quiz_maintain_results($quiz, $rid);
+    db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid);
   }
   return $score['percentage_score'];
 }
