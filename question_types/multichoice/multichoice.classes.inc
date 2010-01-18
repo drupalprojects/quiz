@@ -202,21 +202,21 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-      		  WHERE result_id IN(
-      		  	SELECT result_id
-      		  	FROM {quiz_node_results}
-      		  	WHERE question_nid = %d AND question_vid = %d
-      		  )';
+            WHERE result_id IN(
+              SELECT result_id
+              FROM {quiz_node_results}
+              WHERE question_nid = %d AND question_vid = %d
+            )';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     else {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d', $this->node->nid);
       $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-      		  WHERE result_id IN(
-      		  	SELECT result_id
-      		  	FROM {quiz_node_results}
-      		  	WHERE question_nid = %d
-      		  )';
+            WHERE result_id IN(
+              SELECT result_id
+              FROM {quiz_node_results}
+              WHERE question_nid = %d
+            )';
       db_query($sql, $this->node->nid);
     }
   }
@@ -410,6 +410,7 @@ class MultichoiceQuestion extends QuizQuestion {
       '#title' => t('Settings'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      '#description' => t('Your settings will be remembered.'),
     );
     $default_settings = $this->getDefaultAltSettings();
     $form['alternatives']['settings']['choice_multi'] = array(
@@ -433,11 +434,6 @@ class MultichoiceQuestion extends QuizQuestion {
       '#default_value' => $default_settings['choice_boolean'],
       '#parents' => array('choice_boolean'),
     );
-    $form['alternatives']['settings']['desc'] = array(
-      '#type' => 'markup',
-      '#value' => t('Your settings will be remembered.'),
-    );
-    
     $form['alternatives']['input_format_all'] = array(
       '#type' => 'markup',
       '#value' => '<DIV id="input-all-ph"></DIV>',
@@ -465,7 +461,7 @@ class MultichoiceQuestion extends QuizQuestion {
           $correct_default = $short['correct'];
         else
           $correct_default = $short['score_if_chosen'] > $short['score_if_not_chosen'];
-      } 
+      }
       else {
         $correct_default = FALSE;
       }
@@ -529,9 +525,9 @@ class MultichoiceQuestion extends QuizQuestion {
           $default_value = $short['score_if_not_chosen'];
           if (!isset($default_value)) $default_value = '0';
           $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
-      	'#type' => 'textfield',
+        '#type' => 'textfield',
         '#title' => t('Score if not chosen'),
-      	'#size' => 4,
+        '#size' => 4,
         '#maxlength' => 4,
         '#default_value' => $default_value,
         '#description' => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
@@ -650,7 +646,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       }
     }
   }
-  
+
   public function isValid() {
     if ($this->question->choice_multi) return TRUE;
     if (empty($this->user_answer_ids)) return t('You must provide an answer');
@@ -684,7 +680,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
             )';
     db_query($sql, $this->nid, $this->question->vid, $this->rid);
     $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-    		WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
+        WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
   }
 
@@ -727,7 +723,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
   public function getResponse() {
     return $this->user_answer_ids;
   }
-  
+
   /**
    * Implementation of format report.
    *
@@ -760,7 +756,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
             if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
               $rowspan = 2;
             }
-            
+
             if ($this->question->choice_multi == 0) {
               if ($short['score_if_chosen'] < $max_score_if_chosen && $this->question->choice_boolean == 0) {
                 $row[] = array('data' => theme('image', "$p/theme/images/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score')), 'width' => 35, 'rowspan' => $rowspan);
@@ -780,7 +776,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
               $rowspan = 2;
               $not = '_not';
             }
-            if ($this->question->choice_multi == 1 || $short['score_if_chosen'] == $max_score_if_chosen) 
+            if ($this->question->choice_multi == 1 || $short['score_if_chosen'] == $max_score_if_chosen)
               $row[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
             else {
               $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
@@ -818,7 +814,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
       '#value' => $table,
     );
   }
-  
+
   private function orderAlternatives(array &$alternatives) {
     if (!$this->question->choice_random) return;
     $sql = "SELECT choice_order

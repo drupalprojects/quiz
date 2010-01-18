@@ -97,11 +97,11 @@ class TrueFalseQuestion extends QuizQuestion {
       '#type' => 'radios',
       '#title' => t('Choose one'),
       '#options' => array(
-	    1 => t('True'),
-	    0 => t('False')
-	  ),
+        1 => t('True'),
+        0 => t('False')
+      ),
     );
-   if (isset($rid)) {
+    if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
       $form['tries']['#default_value'] = $response->getResponse();
     }
@@ -183,12 +183,12 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
       $this->answer = $answer;
     }
   }
-  
+
   public function isValid() {
     if ($this->answer['answer'] === NULL) return t('You must provide an answer');
     else return TRUE;
   }
-  
+
   public function save() {
     $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->getScore());
@@ -211,7 +211,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     }
     return $this->answer;
   }
-  
+
   public function getCorrectAnswer() {
     $sql = "SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = %d AND result_id = %d";
     return db_fetch_object(db_query($sql, $this->question->vid, $this->rid));
@@ -227,7 +227,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }
-    
+
     if (empty($this->question->answers)) {
       return array(
         '#type' => 'markup',
@@ -242,7 +242,8 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     if ($showpoints) {
       $rows[0][] = ($correct_answer ? t('True') : t('False'));
     }
-    $rows[0][] = (($user_answer === NULL) ? '': ($user_anser ? t('True') : t('False')));
+    $rows[0][] = (($user_answer === NULL) ? '': ($user_answer ? t('True') : t('False')));
+
     if ($showfeedback && !empty($this->question->feedback)) {
       $rows[0][] = $this->question->feedback;
     }
