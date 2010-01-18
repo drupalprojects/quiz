@@ -679,6 +679,8 @@ function _quiz_get_duration_options() {
 function _quiz_get_score_options() {
   return array(
     'No filter',
+    t('Passed'),
+    t('Failed'),
     t('= 100 %'),
     t('> 90 %'),
     t('> 75 %'),
@@ -699,10 +701,12 @@ function _quiz_get_score_options() {
  * @return $changed_timestamps
  *   array of timestamps and sql filters
  */
-function _quiz_get_score_intervals() {
+function _quiz_get_score_intervals($quiz) {
 // Create datastructure to help create where clause in the sql for the changed filter...
   $scores = array(
     NULL,
+    '>= pass_rate',
+    '< pass_rate',
     '= 100',
     '> 90',
     '> 75',
@@ -1059,6 +1063,7 @@ function _quiz_results_mr_store_filters($filters) {
   $_SESSION[$pre .'score'] = $filters['score'];
   $_SESSION[$pre .'evaluated'] = $filters['evaluated'];
   $_SESSION[$pre .'best_results'] = $filters['best_results'];
+  $_SESSION[$pre .'not_in_progress'] = $filters['not_in_progress'];
 }
 
 /**
@@ -1718,6 +1723,8 @@ function quiz_set_auto_title() {
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
+  $pre = 'quiz_results_mr_';
+  if (!isset($_SESSION[$pre .'not_in_progress'])) $_SESSION[$pre .'not_in_progress'] = 1;
   $form['#action'] = url('admin/quiz/reports/results/'. $quiz->nid);
   $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
   $form['update'] = array(
@@ -1776,6 +1783,12 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'checkbox',
     '#title' => t('Only show each users best result'),
     '#parents' => array('table', 'filters', 'best_results'),
+  );
+  $form['special_filters']['not_in_progress'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Do not show quizzes in progress'),
+    '#parents' => array('table', 'filters', 'not_in_progress'),
+    '#default_value' => isset($_SESSION[$pre .'not_in_progress']) ? $_SESSION[$pre . 'not_in_progress'] : 1,
   );
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
   $browser = &$form['table'];
@@ -1875,7 +1888,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
   $started_intervals = _quiz_get_interval_timestamps('time_start');
   $finished_intervals = _quiz_get_interval_timestamps('time_end');
   $duration_intervals = _quiz_get_duration_intervals();
-  $score_intervals = _quiz_get_score_intervals();
+  $score_intervals = _quiz_get_score_intervals($quiz);
   $filter = array(
     'params' => array('nid' => $quiz->nid),
     'join' => '',
@@ -1908,6 +1921,9 @@ function _quiz_results_mr_prepare_filter($quiz) {
                            GROUP BY uid
                          ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.max_score";
     $filter['group'] .= " GROUP BY qnrs.uid";
+  }
+  if ($_SESSION[$pre .'not_in_progress'] == 1) {
+    $filter['where'] .= " AND time_end != 0";
   }
   return $filter;
 }

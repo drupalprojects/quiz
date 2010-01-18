@@ -81,7 +81,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     });
   });
   
-  $('#edit-table-filters-best-results'+ notDone)
+  $('#edit-table-filters-best-results'+ notDone + ', #edit-table-filters-not-in-progress' + notDone)
   .addClass(done)
   .click(function(event) {
 	$('#edit-table-filters-all').hide();
