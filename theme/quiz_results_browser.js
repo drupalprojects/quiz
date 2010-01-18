@@ -42,21 +42,10 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   .hover(
     function() {
       if ($(':checkbox', this).attr('disabled')) return;
-      if (!$('.quiz-hover-menu', this).hasClass('q-timer')) {
-        $('.quiz-hover-menu', this).removeClass('stop-anim');
-      }
-      $('.quiz-hover-menu', this)
-      .removeClass('stop-anim')
-      .addClass('q-timer')
-      .animate({opacity:1}, 700, null, function() {
-        $(this).removeClass('q-timer');
-        if(!$(this).hasClass('stop-anim')) { 
-          $(this).slideDown(300);
-        }
-      });
+      $('.quiz-hover-menu', this).css('opacity', 1);
     },
     function() {
-      $('.quiz-hover-menu', this).addClass('stop-anim').stop(true, true).slideUp(300);
+      $('.quiz-hover-menu', this).css('opacity', 0);
     }
   );
   
@@ -183,7 +172,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });
-  $('.quiz-hover-menu').hide();
+  $('.quiz-hover-menu').css('opacity', 0);
   $('#edit-table-filters-all').show();
 };
 

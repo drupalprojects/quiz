@@ -1056,7 +1056,6 @@ function _quiz_results_mr_store_filters($filters) {
   $_SESSION[$pre .'name'] = $filters['name'];
   $_SESSION[$pre .'started'] = $filters['started'];
   $_SESSION[$pre .'finished'] = $filters['finished'];
-  $_SESSION[$pre .'duration'] = $filters['duration'];
   $_SESSION[$pre .'score'] = $filters['score'];
   $_SESSION[$pre .'scored'] = $filters['scored'];
   $_SESSION[$pre .'best_results'] = $filters['best_results'];
@@ -1805,10 +1804,9 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
 
   // Browsers table header
   $browser['#header'] = array(
-    array('data' => t('Name'), 'field' => 'u.uid', 'class' => 'quiz-browser-header-name'),
+    array('data' => t('Username'), 'field' => 'u.uid', 'class' => 'quiz-browser-header-name'),
     array('data' => t('Started'), 'field' => 'started', 'class' => 'quiz-browser-header-started'),
     array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
-    array('data' => t('Duration'), 'field' => 'duration', 'class' => 'quiz-browser-header-duration'),
     array('data' => t('Score'), 'field' => 'score', 'class' => 'quiz-browser-header-score'),
     array('data' => t('Scored'), 'field' => 'scored', 'class' => 'quiz-browser-header-scored'),
   );
@@ -1893,9 +1891,6 @@ function _quiz_results_mr_prepare_filter($quiz) {
   if (isset($_SESSION[$pre .'finished'])) {
     $filter['where'] .= $finished_intervals[$_SESSION[$pre .'finished']]['sql'];
   }
-  if (isset($_SESSION[$pre .'duration'])) {
-    $filter['where'] .= $duration_intervals[$_SESSION[$pre .'duration']];
-  }
   if (isset($_SESSION[$pre .'score'])) {
     $filter['where'] .= $score_intervals[$_SESSION[$pre .'score']];
   }
@@ -1949,16 +1944,6 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#type' => 'select',
     '#options' => _quiz_get_time_interval_options(),
     '#default_value' => $_SESSION[$pre .'finished'],
-    '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
-      'wrapper' => 'ahah-target',
-      'method' => 'replace',
-    ),
-  );
-  $filters['duration'] = array(
-    '#type' => 'select',
-    '#options' => _quiz_get_duration_options(),
-    '#default_value' => $_SESSION[$pre .'duration'],
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',

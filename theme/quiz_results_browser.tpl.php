@@ -31,7 +31,6 @@ $cols = array();
 $cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
-$cols[] = drupal_render($form['filters']['duration']);
 $cols[] = drupal_render($form['filters']['score']);
 $cols[] = drupal_render($form['filters']['scored']);
 $rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
@@ -49,18 +48,21 @@ foreach ($form['name']['#options'] as $key => $value) {
   // The checkbox(without the title)
   $data = '<span class = "container-inline" style = white-space: nowrap;>'. drupal_render($full_options[$key]) . $value .'</span>'; //Always shown
   $data .= '<div class = "quiz-hover-menu">'.$form['hover_menu'][$key]['#value'].'</div>';
-  $cols[] = $data;
+  $cols[] = array('data' => $data, 'valign' => 'top');
   
-  $cols[] = $form['started'][$key]['#value'];
-  $cols[] = $form['finished'][$key]['#value'];
-  $cols[] = $form['duration'][$key]['#value'];
+  $cols[] = array('data' => $form['started'][$key]['#value'], 'valign' => 'top');
+  $data = $form['finished'][$key]['#value'];
+  if ($data != t('In progress'))
+    $data .= '<br><i>('. t('Duration') .': '. $form['duration'][$key]['#value'] .')</i>';
+  
+  $cols[] = array('data' => $data, 'valign' => 'top');
 
   if (!empty($form['pass_rate'][$key]['#value']) && is_numeric($form['score'][$key]['#value'])) {
     $pre_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ? '<span class = "quiz-passed">' : '<span class = "quiz-failed">';
     $post_score = '</span>';
   }
-  $cols[] = $pre_score . $form['score'][$key]['#value'] . $post_score;
-  $cols[] = $form['scored'][$key]['#value'];
+  $cols[] = array('data' => $pre_score . $form['score'][$key]['#value'] . $post_score, 'valign' => 'top');
+  $cols[] = array('data' => $form['scored'][$key]['#value'], 'valign' => 'top');
   
   $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);
 }
