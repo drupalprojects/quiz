@@ -32,7 +32,7 @@ $cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['score']);
-$cols[] = drupal_render($form['filters']['scored']);
+$cols[] = drupal_render($form['filters']['evaluated']);
 $rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
 
 // We make the result rows
@@ -62,7 +62,7 @@ foreach ($form['name']['#options'] as $key => $value) {
     $post_score = '</span>';
   }
   $cols[] = array('data' => $pre_score . $form['score'][$key]['#value'] . $post_score, 'valign' => 'top');
-  $cols[] = array('data' => $form['scored'][$key]['#value'], 'valign' => 'top');
+  $cols[] = array('data' => $form['evaluated'][$key]['#value'], 'valign' => 'top');
   
   $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);
 }

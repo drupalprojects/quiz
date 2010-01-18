@@ -91,7 +91,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   this.selector += ', #edit-table-filters-finished'+ notDone;
   this.selector += ', #edit-table-filters-duration'+ notDone;
   this.selector += ', #edit-table-filters-score'+ notDone;
-  this.selector += ', #edit-table-filters-scored'+ notDone;
+  this.selector += ', #edit-table-filters-evaluated'+ notDone;
   $(this.selector)
   .addClass(done)
   .change(function(event) {
