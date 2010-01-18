@@ -1718,6 +1718,7 @@ function quiz_set_auto_title() {
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
+  $form['#action'] = url('admin/quiz/reports/results/'. $quiz->nid);
   $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
   $form['update'] = array(
     '#type' => 'fieldset',
@@ -1818,7 +1819,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   while ($res_o = db_fetch_object($res)) {
     $id = $res_o->nid .'-'. $res_o->result_id;
     $options[$id] = check_plain($res_o->name);
-    $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($res_o->result_id);
+    $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($quiz, $res_o->result_id);
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
     $browser['finished'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : _quiz_format_duration($res_o->duration);
@@ -1997,10 +1998,10 @@ function quiz_results_mr_form_submit($form, &$form_state) {
   _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 }
 
-function _quiz_results_mr_get_hover($rid) {
-  $to_return = array(l(t('view'), $_GET['q'] .'/'. $rid));
+function _quiz_results_mr_get_hover($quiz, $rid) {
+  $to_return = array(l(t('view'), 'admin/quiz/reports/results/'. $quiz->nid .'/'. $rid));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz'))
-    $to_return[] = l(t('delete'), $_GET['q'], array(
+    $to_return[] = l(t('delete'), 'admin/quiz/reports/results/'. $quiz->nid, array(
       'query' => array('del' => $rid),
       'attributes' => array('class' => 'hover-del'),
     ));
