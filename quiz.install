@@ -12,10 +12,26 @@
  * Adding a new field to for whether to repeat questions until they're found correct
  */
 function quiz_update_6407() {
-  $result = array();
-  db_add_field($result, 'quiz_node_results', 'is_evaluated', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  $sql = ''; //TODO: ADD UPGRADE PATH HERE!
-  return $result;
+  $results = array();
+  db_add_field($results, 'quiz_node_results', 'is_evaluated', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  $sql = 'UPDATE {quiz_node_results}
+          SET is_evaluated = 1
+          WHERE time_end > 0';
+  $results[] = update_sql($sql);
+  $tables = array('quiz_short_answer_user_answers', 'quiz_long_answer_user_answers');
+  foreach ($tables as $table) {
+    if (db_table_exists($table)) {
+      $sql = 'UPDATE {quiz_node_results}
+              SET is_evaluated = 0
+              WHERE result_id IN (
+                SELECT result_id
+                FROM {'. $table .'} tbl
+                WHERE tbl.is_evaluated = 0
+              )';
+      $results[] = update_sql($sql);
+    }
+  }
+  return $results;
 }
 
 /**
