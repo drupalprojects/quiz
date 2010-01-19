@@ -1601,7 +1601,6 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   if (!$score['is_evaluated']) {
     drupal_set_message(t('This quiz has not been scored yet.'), 'error');
   }
-
   // Display overall result.
   $output = '';
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);

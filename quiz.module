@@ -2451,12 +2451,12 @@ function _quiz_get_summary_text($quiz, $score) {
   }
 
   $admin = (arg(3) == 'view');
-
+  $summary = '';
   if ($quiz->pass_rate > 0) {
     $score_result = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
   }
-  $summary = '';
-
+  $summary = $score_result;
+  
   // If we are using pass/fail, and they passed.
   if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
     // If we are coming from the admin view page.
