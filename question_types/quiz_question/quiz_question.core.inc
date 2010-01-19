@@ -227,7 +227,7 @@ abstract class QuizQuestion {
     global $user;
     $form = array();
 
-    $form['body'] = array(
+    $form['body_field']['body'] = array(
       '#type' => 'textarea',
       '#title' => t('Question'),
       '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
@@ -237,9 +237,9 @@ abstract class QuizQuestion {
     );
 
     // process up the filter format
-    $form['format'] = filter_form($this->node->format);
-    $form['format']['#weight'] = -14;
-
+    $form['body_field']['format'] = filter_form($this->node->format);
+    $form['body_field']['format']['#weight'] = -14;
+    $form['body_field']['#weight'] = -15;
     // First we do the basic title and text fields.
     // XXX: Should there be a way for question types to modify these (other than form alter hooks)?
 
