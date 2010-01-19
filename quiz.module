@@ -1111,6 +1111,9 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
  *  A quiz node object or FALSE if a load failed.
  */
 function quiz_type_access_load($arg) {
+  if (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
+    return (($node = node_load($arg, $_SESSION['quiz_'. $arg]['quiz_vid'])) && $node->type == 'quiz') ? $node : FALSE;
+  }
   // Simple verification/load of the node.
   return (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
 }
@@ -1300,6 +1303,7 @@ function quiz_take_quiz($quiz) {
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
+      $_SESSION['quiz_'. $quiz->nid]['quiz_vid'] = $quiz->vid;
     }
 
     else {
@@ -1333,7 +1337,7 @@ function quiz_take_quiz($quiz) {
     $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'] = $_SESSION['quiz_' . $quiz->nid]['result_id'];
     $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
     $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-    $former_question = node_load(array('nid' => $former_question_array['nid']));
+    $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
 
     // Call hook_evaluate_question().
     $types = _quiz_get_question_types();
@@ -1376,7 +1380,7 @@ function quiz_take_quiz($quiz) {
 
     // Load the last asked question.
     $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-    $former_question = node_load(array('nid' => $former_question_array['nid']));
+    $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
 
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
@@ -1392,7 +1396,10 @@ function quiz_take_quiz($quiz) {
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
     if (!is_string($q_passed_validation)) {
-      $question_node = node_load(array('nid' => $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']));
+      $question_node = node_load(
+        $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid'],
+        $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['vid']
+      );
       $question_node->rid = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'];
     } else {
       $question_node = $former_question;
@@ -1428,7 +1435,7 @@ function quiz_take_quiz($quiz) {
         while (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
           $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
           $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-          $former_question = node_load(array('nid' => $former_question_array['nid']));
+          $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
 
           // Call hook_skip_question().
           $module = quiz_question_module_for_type($former_question->type);
