@@ -156,9 +156,9 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   // Display links to create other questions.
   $form['additional_questions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Add new question'),
+    '#title' => t('Create new question'),
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   foreach ($types as $type => $info) {
