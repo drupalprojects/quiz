@@ -59,7 +59,7 @@ abstract class QuizQuestion {
 
   // Extra node properties
   public $nodeProperties = NULL;
-   /**
+  /**
    * Retrieve information relevant for viewing the node.
    *
    * (This data is generally added to the node's extra field.)
@@ -285,109 +285,116 @@ abstract class QuizQuestion {
 
     //Add question specific content
     $form = array_merge($form, $this->getCreationForm($form_state));
-
-    // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
-    $already = array();
-    $already_nids = array();
-    if (is_numeric($this->node->nid)) {
-      // Finding quizzes this question already belongs to.
-      $sql = 'SELECT n.nid, r.parent_vid AS vid, n.title
-              FROM {quiz_node_relationship} r
-              JOIN {node} n
-              ON n.nid = r.parent_nid
-              WHERE r.child_nid = %d AND r.child_vid = %d
-              ORDER BY r.parent_vid DESC';
-      $res = db_query($sql, $this->node->nid, $this->node->vid);
-      while ($res_o = db_fetch_object($res)) {
-        if (in_array($res_o->nid, $already_nids)) continue;
-        $already_nids[] = $res_o->nid;
-        $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
-      }
-    }
-    $found = implode(', ', $already_nids);
-    $latest = array();
-    $latest_nids = array();
-    // Finding the last quizzes the current user has been using
-    $sql = "SELECT quiz_nid, n.vid, title
-            FROM {quiz_question_latest_quizzes} lq
-            JOIN {node} n
-            ON n.nid = lq.quiz_nid
-            WHERE lq.uid = %d";
-    if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
-    $sql .= " ORDER BY lq.id DESC";
-    $res = db_query($sql, $user->uid);
-    while ($res_o = db_fetch_object($res)) {
-      $latest[$res_o->quiz_nid .'-'. $res_o->vid] = $res_o->title;
-      $latest_nids[] = $res_o->quiz_nid;
-    }
-    $found = implode(', ', array_merge($already_nids, $latest_nids));
-    if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
-      // Suplementing with other available quizzes...
-      $sql = "SELECT n.nid, n.vid, title
-            FROM {node} n
-            WHERE type = 'quiz'";
-      if (drupal_strlen($found) > 0) {
-        $sql .= " AND n.nid NOT IN ($found)";
-      }
-      $sql .= " ORDER BY changed LIMIT %d";
-      $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_N_O_LATEST - count($latest));
-      while ($res_o = db_fetch_object($res)) {
-        $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
-      }
-    }
-    // If we came from the manage questions tab...
-    $latest_default = array();
-    if (isset($quiz)) {
-      foreach ($latest as $key => $value) {
-        $latest_nid = preg_match('/^[0-9]+/', $key);
-        if ($latest_nid == $quiz->nid) {
-          unset($latest[$key]);
-          break;
+    $edit_access = user_access('edit any quiz') || user_access('edit own quiz');
+    if ($edit_access) {
+      $own_filter = user_access('edit any quiz') ? '' : 'AND n.uid = '. intval($user->uid);
+      // Fieldset allowing question makers to add questions to multiple quizzes when creating quizzes
+      $already = array();
+      $already_nids = array();
+      if (is_numeric($this->node->nid)) {
+        // Finding quizzes this question already belongs to.
+        $sql = "SELECT n.nid, r.parent_vid AS vid, n.title
+                FROM {quiz_node_relationship} r
+                JOIN {node} n
+                ON n.nid = r.parent_nid
+                WHERE r.child_nid = %d AND r.child_vid = %d $own_filter
+                ORDER BY r.parent_vid DESC";
+        $res = db_query($sql, $this->node->nid, $this->node->vid);
+        while ($res_o = db_fetch_object($res)) {
+          if (in_array($res_o->nid, $already_nids)) continue;
+          $already_nids[] = $res_o->nid;
+          $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
         }
       }
-      $sql = 'SELECT title
-              FROM {node_revisions}
-              WHERE vid = %d';
-      $res = db_query($sql, $quiz->vid);
-      $latest[$quiz->nid .'-'. $quiz->vid] = db_result($res);
-      $latest_default[] = $quiz->nid .'-'. $quiz->vid;
+      $found = implode(', ', $already_nids);
+      $latest = array();
+      $latest_nids = array();
+      // Finding the last quizzes the current user has been using
+      $sql = "SELECT quiz_nid, n.vid, title
+              FROM {quiz_question_latest_quizzes} lq
+              JOIN {node} n
+              ON n.nid = lq.quiz_nid
+              WHERE lq.uid = %d $own_filter";
+      if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
+      $sql .= " ORDER BY lq.id DESC";
+      $res = db_query($sql, $user->uid);
+      while ($res_o = db_fetch_object($res)) {
+        $latest[$res_o->quiz_nid .'-'. $res_o->vid] = $res_o->title;
+        $latest_nids[] = $res_o->quiz_nid;
+      }
+      $found = implode(', ', array_merge($already_nids, $latest_nids));
+      if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
+        // Suplementing with other available quizzes...
+        $sql = "SELECT n.nid, n.vid, title
+                FROM {node} n
+                WHERE type = 'quiz' $own_filter";
+        if (drupal_strlen($found) > 0) {
+          $sql .= " AND n.nid NOT IN ($found)";
+        }
+        $sql .= " ORDER BY changed LIMIT %d";
+        $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_N_O_LATEST - count($latest));
+        while ($res_o = db_fetch_object($res)) {
+          $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+        }
+      }
+      // If we came from the manage questions tab...
+      $latest_default = array();
+      if (isset($quiz)) {
+        foreach ($latest as $key => $value) {
+          $latest_nid = preg_match('/^[0-9]+/', $key);
+          if ($latest_nid == $quiz->nid) {
+            unset($latest[$key]);
+            break;
+          }
+        }
+        $sql = 'SELECT title
+                FROM {node_revisions}
+                WHERE vid = %d';
+        $res = db_query($sql, $quiz->vid);
+        $latest[$quiz->nid .'-'. $quiz->vid] = db_result($res);
+        $latest_default[] = $quiz->nid .'-'. $quiz->vid;
+      }
     }
-
-    $form['add_directly'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Add to quiz'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#weight' => -3,
-      '#tree' => TRUE,
-    );
-
-    if (count($already) > 0) {
-      $desc = 'If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. ';
-      $desc .= 'If the quiz has been answered a new revision of the quiz will be created automatically.';
-      $form['add_directly']['already'] = array(
-        '#type' => 'checkboxes',
-        '#title' => t('Quizzes this question already is a member of'),
-        '#description' => t($desc),
-        '#options' => $already,
-        '#default_value' => array_keys($already),
+    if ($edit_access || user_access('create quiz')) {
+      $form['add_directly'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Add to quiz'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#weight' => -3,
+        '#tree' => TRUE,
       );
     }
-    if (count($latest) > 0) {
-      $desc = t('If you check any of the checkboxes this question will be added to the corresponding quiz. If the quiz has been answered a new revision will be created automatically.');
-      $form['add_directly']['latest'] = array(
-        '#type' => 'checkboxes',
-        '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
-        '#description' => $desc,
-        '#options' => $latest,
-        '#default_value' => $latest_default,
+    if ($edit_access) {
+      if (count($already) > 0) {
+        $desc = 'If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. ';
+        $desc .= 'If the quiz has been answered a new revision of the quiz will be created automatically.';
+        $form['add_directly']['already'] = array(
+          '#type' => 'checkboxes',
+          '#title' => t('Quizzes this question already is a member of'),
+          '#description' => t($desc),
+          '#options' => $already,
+          '#default_value' => array_keys($already),
+        );
+      }
+      if (count($latest) > 0) {
+        $desc = t('If you check any of the checkboxes this question will be added to the corresponding quiz. If the quiz has been answered a new revision will be created automatically.');
+        $form['add_directly']['latest'] = array(
+          '#type' => 'checkboxes',
+          '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
+          '#description' => $desc,
+          '#options' => $latest,
+          '#default_value' => $latest_default,
+        );
+      }
+    }
+    if (user_access('create quiz')) {
+      $form['add_directly']['new'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Title for new quiz'),
+        '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
       );
     }
-    $form['add_directly']['new'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Title for new quiz'),
-      '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
-    );
     if ($this->hasBeenAnswered()) {
       $log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
       $this->node->revision = 1;
@@ -648,14 +655,14 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   function getScore($weight_adjusted = TRUE) {
     if (!isset($this->score)) $this->score = $this->score();
     if (isset($this->question->score_weight) && $weight_adjusted)
-      return round($this->score * $this->question->score_weight);
+    return round($this->score * $this->question->score_weight);
     return $this->score;
   }
-  
+
   public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) $this->question->max_score = $this->question->getMaximumScore();
     if (isset($this->question->score_weight) && $weight_adjusted)
-      return round($this->question->max_score * $this->question->score_weight);
+    return round($this->question->max_score * $this->question->score_weight);
     return $this->question->max_score;
   }
 
