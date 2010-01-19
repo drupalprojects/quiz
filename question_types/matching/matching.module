@@ -54,8 +54,8 @@ function matching_menu() {
 function matching_quiz_question_info() {
   return array(
     'matching' => array(
-      'name' => 'Matching',
-      'description' => 'Matching question type for quiz module. A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.',
+      'name' => t('Matching'),
+      'description' => t('Matching question type for quiz module. A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.'),
       'question provider' => 'MatchingQuestion',
       'response provider' => 'MatchingResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.

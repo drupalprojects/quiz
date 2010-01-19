@@ -26,8 +26,8 @@ function multichoice_help($path, $args) {
 function multichoice_quiz_question_info() {
   return array(
     'multichoice' => array(
-      'name' => 'Multiple choice question',
-      'description' => 'This provides multiple choice questions for use by the Quiz module. Under development. Do not use on production servers.',
+      'name' => t('Multiple choice question'),
+      'description' => t('This provides multiple choice questions for use by the Quiz module. Under development. Do not use on production servers.'),
       'question provider' => 'MultichoiceQuestion',
       'response provider' => 'MultichoiceResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.

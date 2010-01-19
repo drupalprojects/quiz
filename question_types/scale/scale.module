@@ -66,8 +66,8 @@ function scale_perm() {
 function scale_quiz_question_info() {
   return array(
     'scale' => array(
-      'name' => 'Scale question',
-      'description' => 'Quiz questions that allow a user to choose from a scale.',
+      'name' => t('Scale question'),
+      'description' => t('Quiz questions that allow a user to choose from a scale.'),
       'question provider' => 'ScaleQuestion',
       'response provider' => 'ScaleResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.

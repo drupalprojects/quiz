@@ -59,8 +59,8 @@ function long_answer_menu() {
 function long_answer_quiz_question_info() {
   return array(
     'long_answer' => array(
-      'name' => 'Long answer question',
-      'description' => 'Quiz questions that allow a user to enter multiple paragraphs of text.',
+      'name' => t('Long answer question'),
+      'description' => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
       'question provider' => 'LongAnswerQuestion',
       'response provider' => 'LongAnswerResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.

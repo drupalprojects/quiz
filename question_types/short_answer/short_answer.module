@@ -54,8 +54,8 @@ function short_answer_menu() {
 function short_answer_quiz_question_info() {
   return array(
     'short_answer' => array(
-      'name' => 'Short answer question',
-      'description' => 'Quiz questions that allow a user to enter a line of text.',
+      'name' => t('Short answer question'),
+      'description' => t('Quiz questions that allow a user to enter a line of text.'),
       'question provider' => 'ShortAnswerQuestion',
       'response provider' => 'ShortAnswerResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
