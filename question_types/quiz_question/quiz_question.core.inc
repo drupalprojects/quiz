@@ -137,7 +137,7 @@ abstract class QuizQuestion {
     if ($questions_kept && $this->node->revision) {
       unset($_REQUEST['destination']);
       unset($_REQUEST['edit']['destination']);
-      drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/'. revision_actions);
+      drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/revision_actions');
     }
   }
 
@@ -279,7 +279,7 @@ abstract class QuizQuestion {
 
       // TODO ask the node itself where to go after authoring a question
       if ($quiz->type == 'quiz') {
-        $form['#redirect'] = 'node/'. $collection->nid .'/questions';
+        $form['#redirect'] = 'node/'. $quiz->nid .'/questions';
       }
     }
 
