@@ -175,11 +175,11 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
       $sql = 'DELETE FROM {quiz_node_relationship}
               WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-      db_query($sql, $codes[0], (int)$codes[1]+(int)$chars[1], $form_state['values']['q_nid']);
+      db_query($sql, $quiz_node->nid, $quiz_node->vid, $form_state['values']['q_nid']);
       
       $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score)
               VALUES(%d, %d, %d, %d, %d)';
-      db_query($sql, $codes[0], $codes[1], $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
+      db_query($sql, $quiz_node->nid, $quiz_node->vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
     }
   }
 }

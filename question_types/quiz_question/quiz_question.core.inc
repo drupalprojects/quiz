@@ -135,9 +135,17 @@ abstract class QuizQuestion {
     $this->saveNodeProperties($is_new);
     $questions_kept = $this->saveRelationships();
     if ($questions_kept && $this->node->revision) {
-      unset($_REQUEST['destination']);
-      unset($_REQUEST['edit']['destination']);
-      drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/revision_actions');
+      if (user_access('manual quiz revisioning')) {
+        unset($_REQUEST['destination']);
+        unset($_REQUEST['edit']['destination']);
+        drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/revision_actions');
+      }
+      else {
+        $form_state = array();
+        $form_state['values']['op'] = t('Submit');
+        require_once(drupal_get_path('module', 'quiz_question') .'/quiz_question.pages.inc');
+        drupal_execute('quiz_question_revision_actions', $form_state, $this->node->nid, $this->node->vid);
+      }
     }
   }
 
@@ -226,7 +234,7 @@ abstract class QuizQuestion {
   public function getNodeForm(array $form_state = NULL) {
     global $user;
     $form = array();
-
+    $form['#quiz_check_revision_access'] = TRUE;
     $form['body_field']['body'] = array(
       '#type' => 'textarea',
       '#title' => t('Question'),

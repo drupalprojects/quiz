@@ -104,7 +104,10 @@ function quiz_perm() {
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
     'allow user titles',
     // Allow users to assign an action to be performed when a user has completed a quiz:
-    'assign any action to quiz events'
+    'assign any action to quiz events',
+    // Control revisioning, only assign this permission to users who understand who permissions work.
+    // REMEMBER: If a quiz or question is changed and not revisioned you will also change existing result reports!
+    'manual quiz revisioning',
   );
 }
 
@@ -492,6 +495,15 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
     // Remove preview button:
     unset($form['buttons']['preview']);
   }
+  if (isset($form['#quiz_check_revision_access'])) {
+    if (!user_access('manual quiz revisioning')) {
+      $form['revision_information']['revision']['#type'] = 'value';
+      $form['revision_information']['revision']['#value'] = $form['revision_information']['revision']['#default_value'];
+      $form['revision_information']['log']['#type'] = 'value';
+      $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
+      unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
+    }
+  }
 }
 
 /**
@@ -691,6 +703,7 @@ function quiz_take($node) {
  */
 function quiz_form(&$node) {
   $form = array();
+  $form['#quiz_check_revision_access'] = TRUE;
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),

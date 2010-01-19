@@ -427,13 +427,20 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
     $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
-
-  $form['new_revision'] = array(
-    '#type' => 'checkbox',
-    '#default_value' => $rev_default,
-    '#title' => t('New revision'),
-    '#description' => $rev_description,
-  );
+  if (user_access('manual quiz revisioning')) {
+    $form['new_revision'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $rev_default,
+      '#title' => t('New revision'),
+      '#description' => $rev_description,
+    );
+  }
+  else {
+    $form['new_revision'] = array(
+      '#type' => 'value',
+      '#value' => $rev_default,
+    );
+  }
 }
 /**
  * Creates the browser part of the quiz_questions_form
