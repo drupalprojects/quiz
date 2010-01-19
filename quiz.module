@@ -2604,7 +2604,22 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
  *  Array of question types.
  */
 function _quiz_get_question_types() {
-  return module_invoke_all('quiz_question_info');
+  $to_return = module_invoke_all('quiz_question_info');
+  $types = array();
+  $placeholders = array();
+  foreach ($to_return as $key => $value) {
+    $placeholders[] = "'%s'";
+    $types[] = $key;
+  }
+  $sql = 'SELECT type, name, description
+          FROM {node_type}
+          WHERE type IN ('.implode(',', $placeholders).')';
+  $res = db_query($sql, $types);
+  while ($res_o = db_fetch_object($res)) {
+    $to_return[$res_o->type]['name'] = check_plain($res_o->name);
+    $to_return[$res_o->type]['description'] = check_markup($res_o->description);
+  }
+  return $to_return;
 }
 
 /**
