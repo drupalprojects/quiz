@@ -19,6 +19,10 @@ function short_answer_help($path, $args) {
   }
 }
 
+function short_answer_perm() {
+  return array('use regex for short answer');
+}
+
 /**
  * Implementation of hook_menu().
  */

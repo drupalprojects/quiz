@@ -77,7 +77,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $res_a = db_fetch_array($res);
     if (is_array($res_a))
-      $props = array_merge($props, $res_a);
+    $props = array_merge($props, $res_a);
     $this->nodeProperties = $props;
     return $props;
   }
@@ -118,7 +118,7 @@ class ShortAnswerQuestion extends QuizQuestion {
        '#maxlength' => 256,
        '#required' => FALSE,
     );
-    
+
     if (isset($rid)) {
       $response = new ShortAnswerResponse($rid, $this->node);
       $form['tries']['#default_value'] = $response->getResponse();
@@ -129,14 +129,14 @@ class ShortAnswerQuestion extends QuizQuestion {
 
   public function getAdminForm(array $form_state = NULL) {
     /*
-    $form['short_answer_allow_regex'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Allow regular expression matching'),
-      '#description' => t('If this is checked, quiz creators can use regular expressions for matching criteria.'),
-      '#default_value' => variable_get('short_answer_allow_regex', TRUE),
-    );
-    return $form;
-    */
+     $form['short_answer_allow_regex'] = array(
+     '#type' => 'checkbox',
+     '#title' => t('Allow regular expression matching'),
+     '#description' => t('If this is checked, quiz creators can use regular expressions for matching criteria.'),
+     '#default_value' => variable_get('short_answer_allow_regex', TRUE),
+     );
+     return $form;
+     */
     $form['empty'] = array(
       '#type' => 'markup',
       '#value' => t('There are currently no available configuration options.'),
@@ -145,46 +145,51 @@ class ShortAnswerQuestion extends QuizQuestion {
 
 
   public function getCreationForm(array $form_state = NULL) {
-     $form['answer'] = array(
+    $form['answer'] = array(
        '#type' => 'fieldset',
        '#title' => t('Answer'),
        '#description' => t('Provide the answer and the method by which the answer will be evaluated.'),
        '#collapsible' => TRUE,
        '#collapsed' => FALSE,
        '#weight' => -4,
-     );
+    );
+     
+    $options = array(
+    self::ANSWER_MATCH => t('Exact match (answer must match case)'),
+    self::ANSWER_INSENSITIVE_MATCH => t('Case insensitive match (answer need not match case)'),
+    );
+    $access_regex = user_access('use regex for short answer');
+    if ($access_regex)
+      $options[self::ANSWER_REGEX] = t('Match against a regular expression (answer must match the supplied regular expression)');
+    $options[self::ANSWER_MANUAL] = t('Manually score matches (no automatic grading)');
 
     $form['answer']['correct_answer_evaluation'] = array(
-       '#type' => 'radios',
-       '#title' => t('Pick one'),
-       '#description' => t('Choose a matching type.'),
-       '#options' => array(
-         self::ANSWER_MATCH => t('Exact match (answer must match case)'),
-         self::ANSWER_INSENSITIVE_MATCH => t('Case insensitive match (answer need not match case)'),
-         self::ANSWER_REGEX => t('Match against a regular expression (answer must match the supplied regular expression)'),
-         self::ANSWER_MANUAL => t('Manually score matches (no automatic grading)'),
-       ),
-       '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_MATCH,
-       '#required' => FALSE,
-     );
+      '#type' => 'radios',
+      '#title' => t('Pick an evaluation method'),
+      '#description' => t('Choose a matching type.'),
+      '#options' => $options,
+      '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_MATCH,
+      '#required' => FALSE,
+    );
+    if ($access_regex) {
+      $form['answer']['regex_box'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('About regular expressions'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+      );
 
-     $form['answer']['regex_box'] = array(
-       '#type' => 'fieldset',
-       '#title' => t('About regular expressions'),
-       '#collapsible' => TRUE,
-       '#collapsed' => TRUE,
-     );
-
-     $form['answer']['regex_box']['regex_help'] = array(
-       '#type' => 'markup',
-       '#value' => '<p>' .
-         t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
+      $form['answer']['regex_box']['regex_help'] = array(
+        '#type' => 'markup',
+        '#value' => '<p>' .
+      t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
          '</p><p>' .
-         t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
+      t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
          '</p>',
-     );
+      );
+    }
 
-     $form['answer']['correct_answer'] = array(
+    $form['answer']['correct_answer'] = array(
        '#type' => 'textfield',
        '#title' => t('Answer'),
        '#description' => t('Specify the answer. If this question is manually scored, no answer need be supplied.'),
@@ -192,9 +197,9 @@ class ShortAnswerQuestion extends QuizQuestion {
        '#size' => 60,
        '#maxlength' => 256,
        '#required' => FALSE,
-     );
+    );
 
-     return $form;
+    return $form;
 
   }
   public function getMaximumScore() {
@@ -255,7 +260,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
             JOIN {node} n ON qnr.nid = n.nid
             WHERE is_evaluated = 0';
     if (!user_access('score any quiz'))
-      $sql .= ' AND n.uid = %d';
+    $sql .= ' AND n.uid = %d';
     $results = db_query_range(db_rewrite_sql($sql), $user->uid, $offset, $count);
     $unscored = array();
 
@@ -390,7 +395,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     else {
       $feedback = t('This answer has not yet been scored.') .
         '<br/>' .
-        t('Until the answer is scored, the total score will not be correct.');
+      t('Until the answer is scored, the total score will not be correct.');
     }
     if (!empty($feedback)) {
       $form['feedback'] = array(
