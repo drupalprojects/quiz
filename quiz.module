@@ -708,7 +708,7 @@ function quiz_form(&$node) {
     '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
-
+  
   $form['body_field']['body'] = array(
     '#type' => 'textarea',
     '#title' => t('Description'),
@@ -717,26 +717,60 @@ function quiz_form(&$node) {
     '#required' => FALSE,
     );
   $form['body_field']['format'] = filter_form($node->format);
-
-  $form['allow_skipping'] = array(
+  
+  $form['memory'] = array(
+    '#type' => 'item',
+    '#title' => t('Memory'),
+    '#value' => t('All options marked with a * will be remembered.')
+  );
+  
+  $form['taking'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Quiz taking options'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  );
+  $form['taking']['allow_skipping'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow Skipping questions'),
     '#default_value' => isset($node->allow_skipping) ? $node->allow_skipping : 0,
     '#description' => t('Whether to allow users to skip questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
+  
+  $form['taking']['backwards_navigation'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Backwards navigation'),
+    '#default_value' => $node->backwards_navigation,
+    '#description' => t('Whether to allow user to go back and revisit their answers'),
+  );
 
-  $form['shuffle'] = array(
+  $form['taking']['repeat_until_correct'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Repeat until correct'),
+    '#default_value' => $node->repeat_until_correct,
+    '#description' => t('Require the user to re-try the question until they answer it correctly.'),
+  );
+  
+  $form['taking']['shuffle'] = array(
     '#type' => 'checkbox',
     '#title' => t('Shuffle questions'),
     '#default_value' => isset($node->shuffle) ? $node->shuffle : 0,
     '#description' => t('Whether to shuffle the questions on the @quiz. This randomizes the order in which the questions are presented to the quiz taker.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['randomize'] = array(
+  $form['taking']['randomize'] = array(
     '#type' => 'checkbox',
     '#title' => t('Randomize questions'),
     '#default_value' => isset($node->randomize) ? $node->randomize : 0,
     '#description' => t('Whether to allow the @quiz to consist of randomly selected questions from a question pool. The quiz might consist of different questions each time the quiz is taken.', array('@quiz' => QUIZ_NAME)),
+  );
+
+  $form['taking']['feedback_time'] = array(
+    '#title' => t('Feedback Time'),
+    '#type' => 'radios',
+    '#default_value' => (isset($node->feedback_time) ? $node->feedback_time : QUIZ_FEEDBACK_END),
+    '#options' => _quiz_get_feedback_options(),
+    '#description' => t('Indicates at what point feedback for each question will be given to the user'),
   );
 
   /*
@@ -745,7 +779,7 @@ function quiz_form(&$node) {
    * a user completes the quiz.
    */
   if (user_access('assign any action to quiz events')) {
-    $form['aid'] = array(
+    $form['taking']['aid'] = array(
       '#title' => t('Assign Action'),
       '#description' => t('Select an action to be preformed after a user has completed this @quiz.', array('@quiz' => QUIZ_NAME)),
       '#type' => 'select',
@@ -762,34 +796,11 @@ function quiz_form(&$node) {
       '#default_value' => MD5($node->aid),
     );
   }
-
-  $form['backwards_navigation'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Backwards navigation'),
-    '#default_value' => $node->backwards_navigation,
-    '#description' => t('Whether to allow user to go back and revisit their answers'),
-  );
-
-  $form['repeat_until_correct'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Repeat until correct'),
-    '#default_value' => $node->repeat_until_correct,
-    '#description' => t('Require the user to re-try the question until they answer it correctly.'),
-  );
-
-  $form['feedback_time'] = array(
-    '#title' => t('Feedback Time'),
-    '#type' => 'radios',
-    '#default_value' => (isset($node->feedback_time) ? $node->feedback_time : QUIZ_FEEDBACK_END),
-    '#options' => _quiz_get_feedback_options(),
-    '#description' => t('Indicates at what point feedback for each question will be given to the user'),
-  );
-
   // Set up the availability options.
   $form['quiz_availability'] = array(
     '#type' => 'fieldset',
     '#title' => t('Availability options'),
-    '#collapsed' => FALSE,
+    '#collapsed' => TRUE,
     '#collapsible' => TRUE,
   );
   $form['quiz_availability']['quiz_always'] = array(
@@ -815,7 +826,13 @@ function quiz_form(&$node) {
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
   }
-  $form['takes'] = array(
+  $form['taking']['multiple_takes'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Multiple takes'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
     '#title' => t('Number of takes'),
     '#default_value' => $node->takes,
@@ -823,7 +840,7 @@ function quiz_form(&$node) {
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
-    $form['keep_results'] = array(
+    $form['taking']['multiple_takes']['keep_results'] = array(
       '#type' => 'radios',
       '#title' => t('These results should be stored for each user'),
       '#options' => array(
@@ -835,20 +852,20 @@ function quiz_form(&$node) {
     );
   }
   else {
-    $form['keep_results'] = array(
+    $form['taking']['multiple_takes']['keep_results'] = array(
       '#type' => 'value',
       '#value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
     );
   }
   
   if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
-    $form['addons'] = array(
+    $form['taking']['addons'] = array(
       '#type' => 'fieldset',
       '#title' => t('Quiz Addons Properties'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
-    $form['addons']['time_limit'] = array(
+    $form['taking']['addons']['time_limit'] = array(
       '#type' => 'textfield',
       '#title' => t(' Time Limit'),
       '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
@@ -856,7 +873,7 @@ function quiz_form(&$node) {
     );
   }
   else {
-    $form['addons']['time_limit'] = array(
+    $form['taking']['addons']['time_limit'] = array(
       '#type' => 'value',
       '#value' => 0,
     );
@@ -864,7 +881,7 @@ function quiz_form(&$node) {
 
 
   if (module_exists('userpoints') && variable_get('quiz_has_userpoints', 0)) {
-    $form['addons']['has_userpoints'] = array(
+    $form['has_userpoints'] = array(
       '#type' => 'checkbox',
       '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
       '#title' => t('Enable UserPoints Module Integration'),
@@ -877,7 +894,7 @@ function quiz_form(&$node) {
     '#type' => 'fieldset',
     '#title' => t('@quiz Summary Options', array('@quiz' => QUIZ_NAME)),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    '#collapsed' => TRUE,
   );
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
