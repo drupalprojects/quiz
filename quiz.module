@@ -1295,7 +1295,7 @@ function quiz_take_quiz($quiz) {
       if (count($questions) == 0) {
         drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.',
           array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/'. arg(1) .'/questions'))), 'error');
-        return array('body' => array('#value' => ''));
+        return array('body' => array('#value' => t('Please assign questions...')));
       }
 
       // Initialize session variables.
