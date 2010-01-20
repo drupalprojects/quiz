@@ -491,10 +491,6 @@ function quiz_theme() {
  * preview button on a quiz.
  */
 function quiz_form_alter(&$form, $form_state, $form_id) {
-  if ($form_id == 'quiz_node_form') {
-    // Remove preview button:
-    unset($form['buttons']['preview']);
-  }
   if (isset($form['#quiz_check_revision_access'])) {
     if (!user_access('manual quiz revisioning')) {
       $form['revision_information']['revision']['#type'] = 'value';
@@ -503,6 +499,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
     }
+    unset($form['buttons']['preview']);
   }
 }
 
@@ -843,15 +840,14 @@ function quiz_form(&$node) {
       '#value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
     );
   }
-  $form['addons'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Quiz Addons Properties'),
-    '#description' => t('Configure Quiz  !url and their Properties', array('!url' => l(t('Addons'), 'admin/quiz/settings', array('query' => array('destination' => $_GET['q']))))),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-  );
-
+  
   if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
+    $form['addons'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Quiz Addons Properties'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
     $form['addons']['time_limit'] = array(
       '#type' => 'textfield',
       '#title' => t(' Time Limit'),
