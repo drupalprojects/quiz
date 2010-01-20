@@ -56,6 +56,9 @@ class QuizDirectionsQuestion extends QuizQuestion {
     );
     return $form;
   }
+  public function getBodyFieldTitle() {
+    return t('Direction');
+  }
   public function getCreationForm(array $form_state = NULL) {
     return array();
   }
