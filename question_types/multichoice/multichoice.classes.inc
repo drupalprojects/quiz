@@ -85,8 +85,8 @@ class MultichoiceQuestion extends QuizQuestion {
     $this->forgive();
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_multichoice_properties}
-        (nid, vid, choice_multi, choice_random, choice_boolean)
-        VALUES (%d, %d, %d, %d, %d)';
+              (nid, vid, choice_multi, choice_random, choice_boolean)
+              VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         if (strlen($this->checkMarkup($i, 'answer')) > 0) {
@@ -96,8 +96,8 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     else {
       $sql = 'UPDATE {quiz_multichoice_properties}
-        SET choice_multi = %d, choice_random = %d, choice_boolean = %d
-        WHERE nid = %d AND vid = %d';
+              SET choice_multi = %d, choice_random = %d, choice_boolean = %d
+              WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean, $this->node->nid, $this->node->vid);
       $sql = 'SELECT id FROM {quiz_multichoice_answers}
               WHERE question_nid = %d AND question_vid = %d';
@@ -202,7 +202,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-            WHERE result_id IN(
+              WHERE result_id IN(
               SELECT result_id
               FROM {quiz_node_results}
               WHERE question_nid = %d AND question_vid = %d
@@ -212,7 +212,7 @@ class MultichoiceQuestion extends QuizQuestion {
     else {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d', $this->node->nid);
       $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-            WHERE result_id IN(
+              WHERE result_id IN(
               SELECT result_id
               FROM {quiz_node_results}
               WHERE question_nid = %d
@@ -680,7 +680,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
             )';
     db_query($sql, $this->nid, $this->question->vid, $this->rid);
     $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-        WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
+            WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
   }
 
