@@ -230,6 +230,10 @@ abstract class QuizQuestion {
   public function __construct(stdClass &$node) {
     $this->node = $node;
   }
+  
+  public function getBodyFieldTitle() {
+    return t('Question');
+  }
 
   public function getNodeForm(array $form_state = NULL) {
     global $user;
@@ -237,7 +241,7 @@ abstract class QuizQuestion {
     $form['#quiz_check_revision_access'] = TRUE;
     $form['body_field']['body'] = array(
       '#type' => 'textarea',
-      '#title' => t('Question'),
+      '#title' => $this->getBodyFieldTitle(),
       '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
       '#default_value' => $this->node->body,
       '#required' => TRUE,
