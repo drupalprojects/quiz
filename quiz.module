@@ -886,7 +886,7 @@ function quiz_form(&$node) {
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
     // New nodes get the default.
-    if (empty($node->pass_rate)) {
+    if (empty($node->pass_rate) && $node->pass_rate !== '0') {
       $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
     }
     $form['summaryoptions']['pass_rate'] = array(
@@ -2472,12 +2472,10 @@ function _quiz_get_summary_text($quiz, $score) {
     // Unscored quiz, return the proper result option.
     return $score['result_option'];
   }
-
   $admin = (arg(3) == 'view');
   $summary = '';
-  if ($quiz->pass_rate > 0) {
-    $score_result = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
-  }
+  $score_result = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
+  
   $summary = $score_result;
   
   // If we are using pass/fail, and they passed.
