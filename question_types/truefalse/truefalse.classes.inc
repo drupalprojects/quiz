@@ -117,6 +117,9 @@ class TrueFalseQuestion extends QuizQuestion {
     return $form;
   }
 
+  public function getBodyFieldTitle() {
+    return t('True/false statement');
+  }
 
   public function getCreationForm(array $form_state = NULL) {
     $form['correct_answer'] = array(
@@ -129,6 +132,7 @@ class TrueFalseQuestion extends QuizQuestion {
       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
       '#required' => TRUE,
       '#weight' => -4,
+      '#description' => t('Choose if the correct answer for this question is "true" or "false".')
     );
     $form['feedback_fields'] = array(
       '#type' => 'fieldset',
