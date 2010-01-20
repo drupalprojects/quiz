@@ -41,6 +41,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
 	var oldHeight = $(document).height();
 	if ($(this).hasClass('selected')) {
 	  // Show the question in the question list
+      $('#question-list').css('display', 'table');
+      $('#no-questions').hide();
       $('#q-' + idToShow).removeClass('hidden-question');
 	} else {
 	  // Hide the question in the question list

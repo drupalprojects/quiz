@@ -115,6 +115,12 @@ function quiz_questions_form($form_state, $quiz, $options) {
     // We are coming in fresh and fetches the questions currently on the quiz from the database...
     $questions = _quiz_get_questions($quiz->nid, $quiz->vid);
   }
+  
+  if (empty($questions))
+    $form['question_list']['no_questions'] = array(
+      '#type' => 'markup',
+      '#value' => '<div id = "no-questions">'. t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') .'</div>',
+    );
 
   // We add the browser and allows the browser to give us information on what questions are displayed in the browser...
   $hidden_questions = array();
@@ -1640,7 +1646,10 @@ function theme_question_selection_table($form) {
     unset($form['types'], $form['view_links'], $form['remove_links'], $form['stayers']);
     unset($form['max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories']);
   }
-  $table = theme('table', $headers, $rows, array('id' => 'question-list'));
+  $html_attr = array('id' => 'question-list');
+  if (isset($form['no_questions']))
+    $html_attr['style'] = "display:none;";
+  $table = theme('table', $headers, $rows, $html_attr);
   return drupal_render($form['num_random_questions']) . drupal_render($form['random_term_id']) . $table . drupal_render($form);
 }
 
