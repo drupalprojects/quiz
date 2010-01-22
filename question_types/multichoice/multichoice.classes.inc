@@ -386,12 +386,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $form = array();
     $type = node_get_types('type', $this->node);
 
-    $action = '/node/add/'. $type->type;
+    $action = url('/node/add/'. $type->type);
 
     if ($this->node->nid) {
       $action = url('/node/'. $this->node->nid. '/edit');
     }
-    $form['#action'] = "?q=$action";
+    $form['#action'] = $action;
     /*
      * Getting presets from the database
      */
