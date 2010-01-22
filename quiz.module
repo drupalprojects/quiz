@@ -2894,7 +2894,7 @@ function _quiz_get_answers($rid) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score
     FROM {quiz_node_results_answers} ra
-    LEFT JOIN {node} ON (question_nid = nid AND question_vid = vid)
+    LEFT JOIN {node} ON (question_nid = nid)
     LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
     LEFT JOIN {quiz_node_relationship} rs ON (question_vid = rs.child_vid)
     WHERE ra.result_id = %d
@@ -2911,7 +2911,6 @@ function _quiz_get_answers($rid) {
       $questions[$line->question_nid]->score_weight = $weight;
     }
   }
-
   return $questions;
 }
 
