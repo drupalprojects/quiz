@@ -507,6 +507,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  * Implementation of hook_insert().
  */
 function quiz_insert($node) {
+  _quiz_save_user_settings($node);
   if ($node->is_new && isset($node->translation_source))
     quiz_copy_questions($node);
   _quiz_common_presave_actions($node);
@@ -534,6 +535,7 @@ function quiz_insert($node) {
  * Implementation of hook_update().
  */
 function quiz_update($node) {
+  _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
   if ($node->revision) {
 
@@ -700,6 +702,8 @@ function quiz_take($node) {
  */
 function quiz_form(&$node) {
   $form = array();
+  if (!isset($node->nid))
+    _quiz_load_user_settings($node);
   $form['#quiz_check_revision_access'] = TRUE;
   $form['title'] = array(
     '#type' => 'textfield',
@@ -717,12 +721,6 @@ function quiz_form(&$node) {
     '#required' => FALSE,
     );
   $form['body_field']['format'] = filter_form($node->format);
-  
-  $form['memory'] = array(
-    '#type' => 'item',
-    '#title' => t('Memory'),
-    '#value' => t('All options marked with a * will be remembered.')
-  );
   
   $form['taking'] = array(
     '#type' => 'fieldset',
@@ -948,7 +946,7 @@ function quiz_form(&$node) {
   );
 
   $options = !empty($node->resultoptions) ? $node->resultoptions : array();
-  $num_options = max(3, (!empty($options)) ? count($options) : variable_get('quiz_max_result_options', 5));
+  $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
 
   for ($i=0; $i < $num_options; $i++) {
     $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
@@ -1113,6 +1111,18 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
   */
 }
 
+/**
+ * Implementation of hook user.
+ */
+function quiz_user($op, &$edit, &$account, $category = NULL) {
+  switch ($op) {
+    case 'delete':
+      $sql = 'DELETE FROM {quiz_user_settings}
+              WHERE uid = %d';
+      db_query($sql, $account->uid);
+    break;
+  }
+}
 // END HOOKS
 
 /**
@@ -3223,4 +3233,28 @@ function quiz_delete_results($rids) {
     db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $res_o->result_id);
     db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $res_o->result_id);
   }
+}
+
+function _quiz_load_user_settings(&$node) {
+  global $user;
+  $sql = "SELECT * FROM {quiz_user_settings} WHERE uid = %d";
+  $res = db_query($sql, $user->uid);
+  if ($res_o = db_fetch_object($res)) {
+    foreach ($res_o as $key => $value) {
+      if (!in_array($key, array('nid', 'vid', 'uid')))
+        $node->{$key} = $value;
+    }
+    $result_options = db_query('SELECT * FROM {quiz_node_result_options} WHERE nid = %d AND vid= %d', $res_o->nid, $res_o->vid);
+    while ($option = db_fetch_array($result_options)) {
+      $node->resultoptions[] = $option;
+    }
+  }
+}
+
+function _quiz_save_user_settings($node) {
+  global $user;
+  $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
+  $res = db_query($sql, $user->uid);
+  $update = db_result($res) ==  $user->uid ? array('uid') : array();
+  drupal_write_record('quiz_user_settings', $node, $update);
 }
