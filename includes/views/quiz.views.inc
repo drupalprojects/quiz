@@ -188,10 +188,10 @@ function quiz_views_data() {
       'sort' => array('handler' => 'views_handler_sort'),
     ),
     'shuffle' => array(
-      'title' => t('Shuffle'),
-      'help' => t('Indicates whether questions will be shuffled.'),
+      'title' => t('Randomization'),
+      'help' => t('Indicates how questions will be randomized.'),
       'field' => array(
-        'handler' => 'views_handler_field_boolean',
+        'handler' => 'views_handler_field_numeric',
         'click sortable' => TRUE,
       ),
     'sort' => array('handler' => 'views_handler_sort'),

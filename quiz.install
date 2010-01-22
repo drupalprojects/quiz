@@ -10,6 +10,22 @@
 function quiz_update_6408() {
   $results = array();
   db_create_table($results, 'quiz_user_settings', _quiz_user_settings_tbl());
+  db_add_field($results, 'quiz_node_properties', 'randomization', array(
+    'type' => 'int', 
+    'size' => 'small', 
+    'not null' => TRUE, 
+    'default' => 0
+  ));
+  $sql = 'UPDATE {quiz_node_properties}
+          SET randomization = 1
+          WHERE shuffle = 1';
+  $results[] = update_sql($sql);
+  db_drop_field($results, 'quiz_node_properties', 'shuffle');
+  $sql = 'UPDATE {quiz_node_properties}
+          SET randomization = 2
+          WHERE randomize = 1';
+  $results[] = update_sql($sql);
+  db_drop_field($results, 'quiz_node_properties', 'randomize');
   return $results;
 }
 
@@ -446,13 +462,7 @@ function quiz_schema() {
       'summary_default' => array(
         'type' => 'text',
       ),
-      'shuffle' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'randomize' => array(
+      'randomization' => array(
         'type' => 'int', 
         'size' => 'small', 
         'not null' => TRUE, 
@@ -849,13 +859,7 @@ function _quiz_user_settings_tbl() {
       'summary_default' => array(
         'type' => 'text',
       ),
-      'shuffle' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'randomize' => array(
+      'randomization' => array(
         'type' => 'int', 
         'size' => 'small', 
         'not null' => TRUE, 

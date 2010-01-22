@@ -519,11 +519,11 @@ function quiz_insert($node) {
   }
 
   $sql = "INSERT INTO {quiz_node_properties}
-    (vid, nid, aid, number_of_random_questions, shuffle, randomize,
+    (vid, nid, aid, number_of_random_questions, randomization,
       backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, time_limit, keep_results, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
+    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
   _quiz_check_num_random($node);
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
   _quiz_insert_resultoptions($node);
   if (!$node->auto_created && $node->revision == 0) {
     drupal_set_message("You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the \"edit\" tab.");
@@ -553,8 +553,7 @@ function quiz_update($node) {
     $sql = "UPDATE {quiz_node_properties}
       SET vid = %d,
         aid='%s',
-        shuffle = %d,
-        randomize = %d,
+        randomization = %d,
         backwards_navigation = %d,
         repeat_until_correct = %d,
         quiz_open = %d,
@@ -573,7 +572,7 @@ function quiz_update($node) {
       WHERE vid = %d
         AND nid = %d";
     _quiz_check_num_random($node);
-    $resource = db_query($sql, $node->vid, $node->aid, $node->shuffle, $node->randomize, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
+    $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
@@ -609,20 +608,19 @@ function _quiz_get_node_defaults() {
     'pass_rate' => 75,
     'summary_pass' => '',
     'summary_default' => '',
-    'shuffle' => 0,
-    'randomize' => 0,
-    'backwards_navigation' => 0,
+    'randomization' => 0,
+    'backwards_navigation' => 1,
     'repeat_until_correct' => 0,
     'feedback_time' => 0,
     'quiz_open' => 0,
     'quiz_close' => 0,
-    'takes' => 0,
+    'takes' => 1,
     'keep_results' => 0,
     'time_limit' => 0,
-    'quiz_always' => 0,
+    'quiz_always' => 1,
     'tid' => 0,
     'has_userpoints' => 0,
-    'allow_skipping' => 0,
+    'allow_skipping' => 1,
   );
 }
 
@@ -749,18 +747,15 @@ function quiz_form(&$node) {
     '#description' => t('Require the user to re-try the question until they answer it correctly.'),
   );
   
-  $form['taking']['shuffle'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Shuffle questions'),
-    '#default_value' => isset($node->shuffle) ? $node->shuffle : 0,
-    '#description' => t('Whether to shuffle the questions on the @quiz. This randomizes the order in which the questions are presented to the quiz taker.', array('@quiz' => QUIZ_NAME)),
-  );
-
-  $form['taking']['randomize'] = array(
-    '#type' => 'checkbox',
+  $form['taking']['randomization'] = array(
+    '#type' => 'radios',
     '#title' => t('Randomize questions'),
-    '#default_value' => isset($node->randomize) ? $node->randomize : 0,
-    '#description' => t('Whether to allow the @quiz to consist of randomly selected questions from a question pool. The quiz might consist of different questions each time the quiz is taken.', array('@quiz' => QUIZ_NAME)),
+    '#options' => array(
+      t('No randomization'),
+      t('Random order of questions'),
+      t('Random questions in random order'),
+    ),
+    '#default_value' => isset($node->randomization) ? $node->randomization : 0,
   );
 
   $form['taking']['feedback_time'] = array(
@@ -2060,7 +2055,7 @@ function quiz_build_question_list($quiz) {
   }
 
   // Shuffle questions if required.
-  if ($quiz->shuffle == 1) {
+  if ($quiz->randomization > 0) {
     shuffle($questions);
   }
   return $questions;
@@ -3120,7 +3115,7 @@ function quiz_has_been_answered($node) {
  *   quiz node
  */
 function _quiz_check_num_random(&$node) {
-  if ($node->randomize == 1) return;
+  if ($node->randomization > 0) return;
   $node->number_of_random_questions = 0;
   $sql = 'UPDATE {quiz_node_relationship}
           SET question_status = %d

@@ -185,7 +185,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
  *   The quiz node(object)
  */
 function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
-  if ($quiz->randomize) {
+  if ($quiz->randomization == 2) {
     $form['question_list']['num_random_questions'] = array(
       '#type' => 'textfield',
       '#size' => 3,
@@ -298,7 +298,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
     $cur_question->nid = $nid;
     $vids[] = $cur_question->vid = $vid;
     $cur_question->weight = 0;
-    $cur_question->question_status = ($quiz->randomize) ? QUESTION_RANDOM : QUESTION_ALWAYS;
+    $cur_question->question_status = ($quiz->randomization == 2) ? QUESTION_RANDOM : QUESTION_ALWAYS;
     $cur_question->staying = isset($form_state['values']['stayers'][$id]) ? $form_state['values']['stayers'][$id] === '1' : FALSE;
     $cur_questions[$cur_question->nid] = $cur_question;
   }
@@ -337,7 +337,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
   $form['question_list']['max_scores'] = array('#tree' => TRUE);
   $form['question_list']['stayers'] = array('#tree' => TRUE);
   $form['question_list']['revision'] = array('#tree' => TRUE);
-  if ($quiz->randomize) $form['question_list']['compulsories'] = array('#tree' => TRUE);
+  if ($quiz->randomization == 2) $form['question_list']['compulsories'] = array('#tree' => TRUE);
 
   $my_dest = $_GET['q'];
   foreach ($questions as $question) {
@@ -370,7 +370,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
       '#attributes' => array('class' => 'q-staying'),
     );
-    if ($quiz->randomize) {
+    if ($quiz->randomization) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
         '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
