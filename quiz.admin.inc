@@ -1552,14 +1552,27 @@ function quiz_admin_result_delete_form_submit($form, &$form_state) {
  */
 function theme_quiz_admin_quizzes($results) {
   $output = '';
+  $path_to_module_quiz = drupal_get_path('module', 'quiz'); 	 
+  $png = array(	 
+    'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')), 	 
+    'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')), 	 
+    'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')), 	 
+  );
   $rows = array();
-
+  
+  $exp = module_exists('results_export');
+  
   while (list($key, $result) = each($results)) {
-    $rows[] = array(
+    $cols = array(
       l($result['title'], 'admin/quiz/reports/results/'. $result['nid']),
       check_plain($result['name']),
       format_date($result['created'], 'small'),
     );
+    if ($exp)
+      $cols[] = l($png['html'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] .'/html', array('html' => TRUE)) 	 
+	          . l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/xml', array('html' => TRUE)) 	 
+	          . l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/csv', array('html' => TRUE));
+    $rows[] = $cols;
   }
 
   $header = array(
@@ -1567,6 +1580,9 @@ function theme_quiz_admin_quizzes($results) {
     t('Created by'),
     t('Created on')
   );
+  if ($exp) {
+    $header[] = t('Export');
+  }
   if (!user_access('view any quiz results'))
     $no_quizzes = '<p>' . t('No @quiz that you have created was found. You do not have permission to see any other results.', array('@quiz' => QUIZ_NAME)) .'</p>';
   else {
