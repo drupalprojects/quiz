@@ -1372,6 +1372,7 @@ function quiz_admin_settings() {
        t('The newest'),
        t('All'),
     ),
+    '#description' => t('This option can be overriden by quiz creators who has permission to delete results.'),
     '#default_value' => variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
   );
 

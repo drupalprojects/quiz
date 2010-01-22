@@ -794,32 +794,6 @@ function quiz_form(&$node) {
       '#default_value' => MD5($node->aid),
     );
   }
-  // Set up the availability options.
-  $form['quiz_availability'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Availability options'),
-    '#collapsed' => TRUE,
-    '#collapsible' => TRUE,
-  );
-  $form['quiz_availability']['quiz_always'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Always Available'),
-    '#default_value' => isset($node->quiz_always) ? $node->quiz_always : 1,
-    '#description' => t('Click this option to ignore the open and close dates.'),
-  );
-  $form['quiz_availability']['quiz_open'] = array(
-    '#type' => 'date',
-    '#title' => t('Open Date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_open),
-    '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['quiz_availability']['quiz_close'] = array(
-    '#type' => 'date',
-    '#title' => t('Close Date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
-    '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
-  );
-
   $options = array(t('Unlimited'));
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
@@ -886,11 +860,35 @@ function quiz_form(&$node) {
       '#description' => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
     );
   }
-
+  // Set up the availability options.
+  $form['quiz_availability'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Availability options'),
+    '#collapsed' => TRUE,
+    '#collapsible' => TRUE,
+  );
+  $form['quiz_availability']['quiz_always'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Always Available'),
+    '#default_value' => isset($node->quiz_always) ? $node->quiz_always : 1,
+    '#description' => t('Click this option to ignore the open and close dates.'),
+  );
+  $form['quiz_availability']['quiz_open'] = array(
+    '#type' => 'date',
+    '#title' => t('Open Date'),
+    '#default_value' => _quiz_form_prepare_date($node->quiz_open),
+    '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['quiz_availability']['quiz_close'] = array(
+    '#type' => 'date',
+    '#title' => t('Close Date'),
+    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
+    '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
+  );
   // Quiz summary options.
   $form['summaryoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('@quiz Summary Options', array('@quiz' => QUIZ_NAME)),
+    '#title' => t('@quiz pass/fail options', array('@quiz' => QUIZ_NAME)),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -939,7 +937,7 @@ function quiz_form(&$node) {
 
   $form['resultoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('!quiz Results', array('!quiz' => QUIZ_NAME)),
+    '#title' => t('!quiz Result Comments', array('!quiz' => QUIZ_NAME)),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#tree' => TRUE,
