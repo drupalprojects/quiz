@@ -731,14 +731,14 @@ function quiz_form(&$node) {
   $form['taking']['allow_skipping'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow Skipping questions'),
-    '#default_value' => isset($node->allow_skipping) ? $node->allow_skipping : 0,
+    '#default_value' => isset($node->allow_skipping) ? $node->allow_skipping : 1,
     '#description' => t('Whether to allow users to skip questions on the @quiz', array('@quiz' => QUIZ_NAME)),
   );
   
   $form['taking']['backwards_navigation'] = array(
     '#type' => 'checkbox',
     '#title' => t('Backwards navigation'),
-    '#default_value' => $node->backwards_navigation,
+    '#default_value' => isset($node->backwards_navigation) ? $node->backwards_navigation : 1,
     '#description' => t('Whether to allow user to go back and revisit their answers'),
   );
 
@@ -804,7 +804,7 @@ function quiz_form(&$node) {
   $form['quiz_availability']['quiz_always'] = array(
     '#type' => 'checkbox',
     '#title' => t('Always Available'),
-    '#default_value' => $node->quiz_always,
+    '#default_value' => isset($node->quiz_always) ? $node->quiz_always : 1,
     '#description' => t('Click this option to ignore the open and close dates.'),
   );
   $form['quiz_availability']['quiz_open'] = array(
@@ -833,7 +833,7 @@ function quiz_form(&$node) {
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
     '#title' => t('Number of takes'),
-    '#default_value' => $node->takes,
+    '#default_value' => isset($node->takes) ? $node->takes : 1,
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
