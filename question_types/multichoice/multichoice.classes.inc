@@ -405,14 +405,14 @@ class MultichoiceQuestion extends QuizQuestion {
       '#weight' => -4,
       '#tree' => TRUE,
     );
+    $default_settings = $this->getDefaultAltSettings();
     $form['alternatives']['settings'] = array(
       '#type' => 'fieldset',
       '#title' => t('Settings'),
       '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
+      '#collapsed' => $default_settings['collapsed'],
       '#description' => t('Your settings will be remembered.'),
     );
-    $default_settings = $this->getDefaultAltSettings();
     $form['alternatives']['settings']['choice_multi'] = array(
       '#type' => 'checkbox',
       '#title' => t('Multiple answers'),
@@ -557,18 +557,20 @@ class MultichoiceQuestion extends QuizQuestion {
     return $form;
   }
   private function getDefaultAltSettings() {
-    $settings = array();
     if (isset($this->node->nid)) {
       $settings['choice_multi'] = $this->node->choice_multi;
       $settings['choice_random'] = $this->node->choice_random;
       $settings['choice_boolean'] = $this->node->choice_boolean;
+      $settings['collapsed'] = TRUE;
     }
     elseif ($settings = $this->getUserSettings()) {
+      $settings['collapsed'] = TRUE;
     }
     else {
       $settings['choice_multi'] = 0;
       $settings['choice_random'] = 0;
       $settings['choice_boolean'] = 0;
+      $settings['collapsed'] = FALSE;
     }
     return $settings;
   }

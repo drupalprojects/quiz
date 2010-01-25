@@ -1363,7 +1363,17 @@ function quiz_admin_settings() {
     '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
     '#default_value' => variable_get('quiz_autotitle_length', 50),
   );
-  
+  $options = array(t('Unlimited'));
+  for ($i = 1; $i < 10; $i++) {
+    $options[$i] = $i;
+  }
+  $form['quiz_global_settings']['quiz_def_takes'] = array(
+    '#type' => 'select',
+    '#title' => t('Default number of takes'),
+    '#default_value' => variable_get('quiz_def_takes', 1),
+    '#options' => $options,
+    '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
   $form['quiz_global_settings']['quiz_keep_results'] = array(
     '#type' => 'radios',
     '#title' => t('These results should be stored for each user'),

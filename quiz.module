@@ -529,6 +529,7 @@ function quiz_insert($node) {
     drupal_set_message("You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the \"edit\" tab.");
     $_REQUEST['destination'] = url("node/$node->nid/questions");
   }
+  _quiz_redirect_if_empty($node);
 }
 
 /**
@@ -581,6 +582,7 @@ function quiz_update($node) {
     //       drupal_set_message('No quiz was found that could be modified.', 'status');
     //     }
   }
+  _quiz_redirect_if_empty($node);
 }
 
 function _quiz_common_presave_actions(&$node) {
@@ -614,7 +616,7 @@ function _quiz_get_node_defaults() {
     'feedback_time' => 0,
     'quiz_open' => 0,
     'quiz_close' => 0,
-    'takes' => 1,
+    'takes' => variable_get('quiz_def_takes', 1),
     'keep_results' => 0,
     'time_limit' => 0,
     'quiz_always' => 1,
@@ -802,7 +804,7 @@ function quiz_form(&$node) {
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
     '#title' => t('Number of takes'),
-    '#default_value' => isset($node->takes) ? $node->takes : 1,
+    '#default_value' => isset($node->takes) ? $node->takes : variable_get('quiz_def_takes', 1),
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
@@ -3249,4 +3251,12 @@ function _quiz_save_user_settings($node) {
   $res = db_query($sql, $user->uid);
   $update = db_result($res) ==  $user->uid ? array('uid') : array();
   drupal_write_record('quiz_user_settings', $node, $update);
+}
+function _quiz_redirect_if_empty($node) {
+  $sql = 'SELECT child_vid 
+          FROM {quiz_node_relationship}
+          WHERE parent_vid = %d';
+  $res = db_query($sql, $node->vid);
+  if (!$res_o = db_fetch_object($res))
+    $_REQUEST['destination'] = url("node/$node->nid/questions");
 }
