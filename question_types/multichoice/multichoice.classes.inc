@@ -399,7 +399,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     $form['alternatives'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Alternatives'),
+      '#title' => t('Answer'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#weight' => -4,

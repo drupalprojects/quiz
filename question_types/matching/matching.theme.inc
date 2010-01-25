@@ -18,7 +18,7 @@ function theme_matching_question_form($form) {
   $rows = array();
   $header = array(
     'question' => t('Question'),
-    'answer' => t('Answer'),
+    'answer' => t('Correct answer'),
     'feedback' => t('Feedback'),
   );
 

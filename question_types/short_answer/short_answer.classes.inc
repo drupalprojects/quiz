@@ -191,7 +191,7 @@ class ShortAnswerQuestion extends QuizQuestion {
 
     $form['answer']['correct_answer'] = array(
        '#type' => 'textfield',
-       '#title' => t('Answer'),
+       '#title' => t('Correct answer'),
        '#description' => t('Specify the answer. If this question is manually scored, no answer need be supplied.'),
        '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : '',
        '#size' => 60,

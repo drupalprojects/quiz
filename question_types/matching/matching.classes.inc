@@ -196,7 +196,7 @@ class MatchingQuestion extends QuizQuestion {
   public function getCreationForm(array $form_state = NULL) {
     $form['match'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Match Question'),
+      '#title' => t('Answer'),
       '#weight' => -4,
       '#tree' => TRUE,
       '#theme' => 'matching_question_form',
