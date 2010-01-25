@@ -155,13 +155,13 @@ class ShortAnswerQuestion extends QuizQuestion {
     );
      
     $options = array(
-    self::ANSWER_MATCH => t('Exact match (answer must match case)'),
-    self::ANSWER_INSENSITIVE_MATCH => t('Case insensitive match (answer need not match case)'),
+    self::ANSWER_MATCH => t('Automatic and case sensitive'),
+    self::ANSWER_INSENSITIVE_MATCH => t('Automatic. Not case sensitive'),
     );
     $access_regex = user_access('use regex for short answer');
     if ($access_regex)
       $options[self::ANSWER_REGEX] = t('Match against a regular expression (answer must match the supplied regular expression)');
-    $options[self::ANSWER_MANUAL] = t('Manually score matches (no automatic grading)');
+    $options[self::ANSWER_MANUAL] = t('Manual');
 
     $form['answer']['correct_answer_evaluation'] = array(
       '#type' => 'radios',
