@@ -1581,7 +1581,7 @@ function theme_quiz_admin_quizzes($results) {
     if ($exp)
       $cols[] = l($png['html'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] .'/html', array('html' => TRUE)) 	 
 	          . l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/xml', array('html' => TRUE)) 	 
-	          . l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $quiz['nid'] . '/csv', array('html' => TRUE));
+	          . l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/csv', array('html' => TRUE));
     $rows[] = $cols;
   }
 

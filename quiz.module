@@ -1591,7 +1591,7 @@ function quiz_end_actions($quiz, $rid) {
     $score['percentage_score'] = 0;
   }
   // Why is this using the $_SESSION's RID?
-  db_query("UPDATE {quiz_node_results} SET is_evaluated = %d, time_end = %d, score = %d WHERE result_id = %d", time(), $score['is_evaluated'], $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
+  db_query("UPDATE {quiz_node_results} SET is_evaluated = %d, time_end = %d, score = %d WHERE result_id = %d", $score['is_evaluated'], time(), $score['percentage_score'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
   $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
   
   // Lets piggy back here to perform the quiz defined action since were done with this quiz.

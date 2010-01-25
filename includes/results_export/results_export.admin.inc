@@ -51,6 +51,11 @@ function results_export_as_teaser_view($nid, $export_type) {
 	       'score' => ($result['time_end']) ? $result['score'] : t('--'), 	 
     );
   }
+  if (!isset($rows)) {
+    drupal_set_message(t('There are no results for this quiz'));
+    drupal_goto('admin/quiz/reports/results');
+    return;
+  }
   switch ($export_type) {
     case 'html':
       $output = qp(QueryPath::HTML_STUB)
