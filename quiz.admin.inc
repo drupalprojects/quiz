@@ -1645,8 +1645,11 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output = '';
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. check_markup($summary, $quiz->format) .'</div><br />'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div>'."\n";
+  if (isset($summary['passfail']))
+    $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
+  if (isset($summary['result']))
+    $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
   // Get the feedback for all questions.
   require_once(drupal_get_path('module', 'quiz') .'/quiz.pages.inc');
   $output .= drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE);

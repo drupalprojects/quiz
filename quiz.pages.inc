@@ -392,9 +392,12 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
       drupal_set_message($msg, 'error');
     }
     $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
-    $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div><br />'."\n";
+    $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div>'."\n";
   }
-  $output .= '<div id="quiz_summary">'. check_markup($summary) .'</div><br />'."\n";
+  if (isset($summary['passfail']))
+    $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
+  if (isset($summary['result']))
+    $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
   // Get the feedback for all questions.
   if (variable_get('quiz_display_feedback', 1)) {
     $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
@@ -430,8 +433,11 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   // Display overall result.
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div><br />'."\n";
-  $output .= '<div id="quiz_summary">'. check_markup($summary) .'</div><br />'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div>'."\n";
+  if (isset($summary['passfail']))
+    $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
+  if (isset($summary['result']))
+    $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
   // Get the feedback for all questions.
   $output .= drupal_get_form('quiz_report_form', $questions, FALSE, TRUE);
   return $output;
