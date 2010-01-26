@@ -2431,40 +2431,10 @@ function _quiz_insert_result_option($option) {
  *  The quiz node.
  */
 function _quiz_update_resultoptions($node) {
-  if (empty($node->resultoptions)) {
-    return;
-  }
-
-  foreach ($node->resultoptions as $option) {
-    // MPB: Added this when empty options started showing up.
-    // FIXME: Need to find the source of the empty options and remove it.
-    if (empty($option['option_name'])) {
-      return;
-    }
-    elseif (!empty($option['option_name']) && empty($option['option_id'])) {
-      // Oops, this is actually a new result option.
-      $option['nid'] = $node->nid;
-      $option['vid'] = $node->vid;
-      // ...so insert it.
-      _quiz_insert_result_option($option);
-    }
-    else {
-      // Update an existing result option.
-      $sql = "UPDATE {quiz_node_result_options}
-        SET option_name='%s', option_summary='%s', option_start = %d,  option_end = %d
-        WHERE nid=%d AND vid=%d AND option_id=%d";
-      $values = array(
-        $option['option_name'],
-        $option['option_summary'],
-        $option['option_start'],
-        $option['option_end'],
-        $node->nid,
-        $node->vid,
-        $option['option_id'],
-      );
-      db_query($sql, $values);
-    }
-  }
+  $sql = 'DELETE FROM {quiz_node_result_options}
+          WHERE vid = %d';
+  db_query($sql, $node->vid);
+  _quiz_insert_resultoptions($node);
 }
 
 /**
