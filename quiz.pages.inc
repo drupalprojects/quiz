@@ -491,6 +491,57 @@ function theme_quiz_single_question_node($node) {
   return $node->body;
 }
 
+/**
+ * 
+ * @param $node
+ *   The quiz node
+ */
+function theme_quiz_view_stats($node) {
+  $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
+  $stats = array(
+    array(
+      'title' => t('Questions'),
+      'data' => $node->number_of_questions,
+    ),
+    array(
+      'title' => t('Attempts'),
+      'data' => $takes,
+    ),
+  );
+  if ($node->quiz_always) {
+    $stats[] = array(
+      'title' => t('Available'),
+      'data' => t('Always'),
+    );
+  }
+  else {
+    $stats[] = array(
+      'title' => t('Opens'),
+      'data' => format_date($node->quiz_open, 'small'),
+    );
+    $stats[] = array(
+      'title' => t('Closes'),
+      'data' => format_date($node->quiz_close, 'small'),
+    );
+  }
+  if (!empty($node->pass_rate)) {
+    $stats[] = array(
+      'title' => t('Pass rate'),
+      'data' => $node->pass_rate .' %',
+    );
+  }
+  $stats[] = array(
+    'title' => t('Backwards navigation'),
+    'data' => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
+  );
+  $out = '<table id="quiz-view-table">';
+  foreach($stats as $stat) {
+    $out .= '<tr><td class="quiz-view-table-title"><strong>'. $stat['title'] .':</strong></td><td class="quiz-view-table-data"><em>'. $stat['data'] .'</em></td></tr>';
+  }
+  $out .= '</table>';
+  return $out;
+}
+
 /*
  * includes css and js for jQuery table sorter
  *
