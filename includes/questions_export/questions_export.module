@@ -33,8 +33,18 @@ function questions_export_perm() {
  *
  */
 function questions_export_menu() {
+  
+  $items['admin/quiz/import_export'] = array(
+    'title' => 'Import and export of quiz',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('export questions', 'import questions'),
+    'access callback' => 'quiz_access_multi_or',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
 
-  $items['admin/quiz/questions_export'] = array(
+  $items['admin/quiz/import_export/questions_export'] = array(
     'title' => t('Export Questions'),
     'description' => t('Export Questions is an addon for the Quiz module to export its questions into portable formats.'),
     'file' => 'questions_export.admin.inc',

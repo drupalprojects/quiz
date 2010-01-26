@@ -27,7 +27,7 @@ function short_answer_perm() {
  * Implementation of hook_menu().
  */
 function short_answer_menu() {
-  $items['admin/quiz/score-short-answer'] = array(
+  $items['admin/quiz/reports/score-short-answer'] = array(
     'title' => t('Score short-answer questions'),
     'description' => t('Score the answers from quizzes that use short answer questions.'),
     'page callback' => 'short_answer_view_unscored',
@@ -38,7 +38,7 @@ function short_answer_menu() {
     'file' => 'short_answer.admin.inc',
   );
   // Pass vid and rid to this path.
-  $items['admin/quiz/score-short-answer/%/%'] = array(
+  $items['admin/quiz/reports/score-short-answer/%/%'] = array(
     'title' => t('Score short-answer response'),
     'description' => t('Score a response to a short-answer question.'),
     'page callback' => 'short_answer_edit_score',

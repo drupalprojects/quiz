@@ -269,7 +269,7 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/reports'] = array(
-    'title' => t('@quiz reports', array('@quiz' => QUIZ_NAME)),
+    'title' => t('@quiz reports and scoring', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('view any quiz results', 'view results for own quiz'),

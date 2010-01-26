@@ -28,7 +28,7 @@ function long_answer_help($path, $arg) {
  * Implementation of hook_menu().
  */
 function long_answer_menu() {
-  $items['admin/quiz/score-long-answer'] = array(
+  $items['admin/quiz/reports/score-long-answer'] = array(
     'title' => t('Score long-answer questions'),
     'description' => t('Score the answers from quizzes that use long answer questions.'),
     'page callback' => 'long_answer_view_unscored',
@@ -39,7 +39,7 @@ function long_answer_menu() {
     'file' => 'long_answer.admin.inc',
   );
   // Pass vid and rid to this path.
-  $items['admin/quiz/score-long-answer/%/%'] = array(
+  $items['admin/quiz/reports/score-long-answer/%/%'] = array(
     'title' => t('Score long-answer response'),
     'description' => t('Score a response to a long-answer question.'),
     'page callback' => 'long_answer_edit_score',

@@ -150,7 +150,7 @@ function short_answer_score_form_submit($form, &$form_state) {
 
   if ($result == 1) {
     drupal_set_message("The score has been saved.");
-    $form_state['redirect'] = 'admin/quiz/score-short-answer';
+    $form_state['redirect'] = 'admin/quiz/reports/score-short-answer';
   }
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
@@ -179,7 +179,7 @@ function theme_short_answer_view_unscored($unscored) {
         $item->result_id,
         $item->title,
         date('Y-m-d H:i', $item->time_end),
-        l(t('score this response'), 'admin/quiz/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
 
