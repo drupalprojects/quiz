@@ -49,13 +49,6 @@ class QuizDirectionsQuestion extends QuizQuestion {
 
      return $form;
   }
-  public function getAdminForm(array $form_state = NULL) {
-    $form['settings'] = array(
-      '#type' => 'markup',
-      '#value' => t('There are no settings for this question type.'),
-    );
-    return $form;
-  }
   public function getBodyFieldTitle() {
     return t('Direction');
   }

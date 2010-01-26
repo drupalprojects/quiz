@@ -34,6 +34,17 @@ function multichoice_quiz_question_info() {
     ),
   );
 }
+/**
+ * 
+ */
+function multichoice_config() {
+  $form['multichoice_def_num_of_alts'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default number of alternatives'),
+    '#default_value' => variable_get('multichoice_def_num_of_alts', 2),
+  );
+  return $form;
+}
 
 function multichoice_menu() {
   $items['multichoice/add_alternative_js'] = array(
@@ -117,6 +128,7 @@ function multichoice_add_alternative_js() {
   $status = theme('status_messages');
   drupal_json(array('status' => TRUE, 'data' => $status . $output));
 }
+
 function multichoice_more_choices_submit($form, &$form_state) {
   // Set the form to rebuild and run submit handlers.
   node_form_submit_build_node($form, $form_state);

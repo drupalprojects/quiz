@@ -189,16 +189,6 @@ abstract class QuizQuestion {
   abstract public function getAnsweringForm(array $form_state = NULL, $rid);
 
   /**
-   * Get the form that contains admin settings for this question type.
-   *
-   * @param
-   *  FAPI form state
-   * @return
-   *  Must return a FAPI array.
-   */
-  abstract public function getAdminForm(array $form_state = NULL);
-
-  /**
    * Get the form used to create a new question.
    *
    * @param

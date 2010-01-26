@@ -47,18 +47,14 @@ function quiz_question_menu() {
   );
 
   // Menu items for admin view of each question type.
-  $types = _quiz_question_get_implementations();
-  foreach ($types as $type => $definition) {
-    $items['admin/quiz/' . str_replace('_', '-', $type)] = array(
-      'title' => '@name administration',
-      'title arguments' => array('@name' => $definition['name']),
-      'description' => t('Configure the @name question type.', array('@name' => $definition['name'])),
-      'page callback' => 'drupal_get_form',
-      'page arguments' => array('quiz_question_type_settings_form', $type),
-      'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
-      'type' => MENU_NORMAL_ITEM,
-    );
-  }
+  $items['admin/quiz/questions_settings'] = array(
+    'title' => 'Question configuration',
+    'description' => t('Configure the question types.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_question_type_settings_form', $type),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $items;
 }
 
@@ -351,9 +347,19 @@ function quiz_question_delete_result($rid, $nid, $vid) {
  * Get the admin settings form for a question type.
  */
 function quiz_question_type_settings_form($context, $type) {
-  $node = new stdClass();
-  $node->type = $type;
-  return _quiz_question_get_instance($node)->getAdminForm();
+  $q_types = _quiz_question_get_implementations();
+  $form = array();
+  foreach($q_types as $type => $values) {
+    $function = $type .'_config';
+    if ($admin_form = $function()) {
+      $form[$type] = $admin_form;
+      $form[$type]['#type'] = 'fieldset';
+      $form[$type]['#title'] = $values['name'];
+      $form[$type]['#collapsible'] = TRUE;
+      $form[$type]['#collapsed'] = TRUE;
+    }
+  }
+  return system_settings_form($form);
 }
 
 // NODE API

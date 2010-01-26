@@ -32,6 +32,10 @@ function quiz_directions_quiz_question_info() {
   );
 }
 
+function quiz_directions_config() {
+  return FALSE;
+}
+
 /**
  * Implementation of hook_autoload_info().
  */

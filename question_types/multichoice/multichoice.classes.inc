@@ -361,20 +361,6 @@ class MultichoiceQuestion extends QuizQuestion {
     $array = $newArray;
     return $toReturn;
   }
-  /**
-   * Implementation of getAdminForm
-   *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
-   */
-  public function getAdminForm(array $form_state = NULL) {
-    $form['multichoice_max_num_of_alts'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Maximum number of alternatives allowed'),
-      '#default_value' => variable_get('multichoice_max_num_of_alts', 2),
-    );
-    return system_settings_form($form);
-  }
 
   /**
    * Implementation of getCreation form
@@ -445,7 +431,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $choice_count = $form_state['choice_count'];
     }
     else {
-      $choice_count = max(variable_get('multichoice_max_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
+      $choice_count = max(variable_get('multichoice_def_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
     }
     for (; $i < $choice_count; $i++) {
       $short = $this->node->alternatives[$i];

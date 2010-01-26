@@ -166,29 +166,6 @@ class MatchingQuestion extends QuizQuestion {
     return array($matches, $select_option);
   }
 
-  public function getAdminForm(array $form_state = NULL) {
-    $form['matching'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Matching Settings'),
-      '#description' => t('Matching Questions Settings and Configuration'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-    $form['matching']['quiz_matching_form_size'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Match Question Size'),
-      '#description' => t('Number of question allowed to wrap under a match type question.'),
-      '#default_value' => variable_get('quiz_matching_form_size', 5),
-    );
-    $form['matching']['quiz_matching_shuffle_options'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Shuffle Matching Options'),
-      '#default_value' => variable_get('quiz_matching_shuffle_options', TRUE),
-      '#description' => t('If checked matching options will be shuffled'),
-    );
-    return system_settings_form($form);
-  }
-
   public function getBodyFieldTitle() {
     return t('Instruction');
   }

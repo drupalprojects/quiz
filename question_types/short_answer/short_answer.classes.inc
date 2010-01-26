@@ -127,23 +127,6 @@ class ShortAnswerQuestion extends QuizQuestion {
     return $form;
   }
 
-  public function getAdminForm(array $form_state = NULL) {
-    /*
-     $form['short_answer_allow_regex'] = array(
-     '#type' => 'checkbox',
-     '#title' => t('Allow regular expression matching'),
-     '#description' => t('If this is checked, quiz creators can use regular expressions for matching criteria.'),
-     '#default_value' => variable_get('short_answer_allow_regex', TRUE),
-     );
-     return $form;
-     */
-    $form['empty'] = array(
-      '#type' => 'markup',
-      '#value' => t('There are currently no available configuration options.'),
-    );
-  }
-
-
   public function getCreationForm(array $form_state = NULL) {
     $form['answer'] = array(
        '#type' => 'fieldset',

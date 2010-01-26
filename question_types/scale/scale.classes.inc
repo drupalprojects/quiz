@@ -326,25 +326,6 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Implementation of getAdminForm
-   *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getAdminForm()
-   */
-  public function getAdminForm(array $form_state = NULL) {
-    $form['manage'] = array(
-      '#type' => 'markup',
-      '#value' => l(t('Manage presets'), 'scale/collection/manage'),
-    );
-    $form['scale_max_num_of_alts'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Maximum number of alternatives allowed'),
-      '#default_value' => variable_get('scale_max_num_of_alts', 10),
-    );
-    return system_settings_form($form);
-  }//TODO: Add validation
-  
-  /**
    * Implementation of getCreation form
    *
    * (non-PHPdoc)

@@ -68,6 +68,10 @@ function long_answer_quiz_question_info() {
   );
 }
 
+function long_answer_config() {
+  return FALSE;
+}
+
 /**
  * Implementation of hook_autoload_info().
  */

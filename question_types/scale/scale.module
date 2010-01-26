@@ -74,6 +74,23 @@ function scale_quiz_question_info() {
     ),
   );
 }
+
+/**
+ *
+ */
+function scale_config() {
+  $form['manage'] = array(
+    '#type' => 'markup',
+    '#value' => l(t('Manage presets'), 'scale/collection/manage'),
+  );
+  $form['scale_max_num_of_alts'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum number of alternatives allowed'),
+    '#default_value' => variable_get('scale_max_num_of_alts', 10),
+  );
+  return $form;
+}//TODO: Add validation
+
 /**
  * Implementation of hook_autoload_info().
  */
