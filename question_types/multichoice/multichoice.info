@@ -1,7 +1,7 @@
 ; $Id$
 name = Quiz Multichoice
 package = Quiz Question
-description = This module is under development and should not be used on production servers yet.
+description = Multiple choice question type for quiz.
 core = 6.x
 php = 5
 dependencies[] = quiz
