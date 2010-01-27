@@ -101,6 +101,8 @@ function quiz_perm() {
     'score any quiz', 'score own quiz',
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz',
+    // Allow the user to see the correct answer, when viewed outside a quiz
+    'view any quiz question correct response',
     // Allows users to pick a name for their questions. Otherwise this is auto generated.
     'allow user titles',
     // Allow users to assign an action to be performed when a user has completed a quiz:
@@ -3030,14 +3032,10 @@ function quiz_get_quiz_options() {
  */
 function _quiz_is_taking_context() {
   $display_object = menu_get_object('quiz_type_access');
-  // in the AJAX Quiz there is no display object
-  if (empty($display_object)) {
-    return TRUE;
-  }
+  // display_object is empty for question views because 'quiz_type_access' doesn't load them
   if ($display_object->type == 'quiz') {
     return TRUE;
   }
-  // otherwise not quiz-taking
   return FALSE;
 }
 
