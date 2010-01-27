@@ -120,6 +120,7 @@ abstract class QuizQuestion {
    *  TRUE when the node is initially created.
    */
   public function save($is_new = FALSE) {
+  	$this->saveNodeProperties($is_new);
     $is_new_node = $is_new || $this->node->revision == 1;
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_question_properties}
@@ -132,7 +133,6 @@ abstract class QuizQuestion {
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
     }
-    $this->saveNodeProperties($is_new);
     $questions_kept = $this->saveRelationships();
     if ($questions_kept && $this->node->revision) {
       if (user_access('manual quiz revisioning')) {
@@ -667,7 +667,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) $this->question->max_score = $this->question->getMaximumScore();
     if (isset($this->question->score_weight) && $weight_adjusted)
-    return round($this->question->max_score * $this->question->score_weight);
+      return round($this->question->max_score * $this->question->score_weight);
     return $this->question->max_score;
   }
 
