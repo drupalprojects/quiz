@@ -679,11 +679,11 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
       '#value' => theme('quiz_view_stats', $node),
       '#weight' => -1,
     );
+    $node->content['take'] = array(
+      '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
+      '#weight' => 2,
+    );
   }
-  $node->content['take'] = array(
-    '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
-    '#weight' => 2,
-  );
   
   return $node;
 }
