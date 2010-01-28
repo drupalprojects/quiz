@@ -371,11 +371,13 @@ class MultichoiceQuestion extends QuizQuestion {
   public function getCreationForm(array $form_state = NULL) {
     $form = array();
     $type = node_get_types('type', $this->node);
-
-    $action = url('node/add/'. $type->type);
+    $options = array();
+    if (isset($_GET['destination']))
+      $options['query'] = array('destination' => $_GET['destination']);
+    $action = url('node/add/'. $type->type, $options);
 
     if ($this->node->nid) {
-      $action = url('node/'. $this->node->nid. '/edit');
+      $action = url('node/'. $this->node->nid. '/edit', $options);
     }
     $form['#action'] = $action;
     /*

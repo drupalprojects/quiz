@@ -150,10 +150,10 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
     if ($chars[1] == '1') {
       $quiz_node = node_load((int)$codes[0], (int)$codes[1]);
       $quiz_node->revision = 1;
-      $quiz_node->auto_created = true;
     }
     if (!isset($quiz_node) && $chars[2] != $codes[2])
       $quiz_node = node_load((int)$codes[0], (int)$codes[1]);
+    $quiz_node->auto_created = TRUE;
     if (isset($quiz_node)) {
       $quiz_node->status = $chars[2];
       node_save($quiz_node);
