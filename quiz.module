@@ -2854,7 +2854,7 @@ function _quiz_get_quizzes($uid = 0) {
             AND n.nid = qnp.nid
             AND u.uid = n.uid";
   */
-  $sql = "SELECT n.nid, n.title, n.uid, u.name, n.created
+  $sql = "SELECT n.nid, n.vid, n.title, n.uid, u.name, n.created
           FROM {node} n
           INNER JOIN {users} u
           ON u.uid = n.uid
@@ -2865,7 +2865,7 @@ function _quiz_get_quizzes($uid = 0) {
     $args[] = $uid;
   }
   $sql .= " ORDER BY n.nid DESC";
-  $dbresult = db_query($sql, $args);
+  $dbresult = db_query(db_rewrite_sql($sql), $args);
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['nid']] = $line;
   }

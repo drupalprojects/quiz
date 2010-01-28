@@ -260,12 +260,9 @@ function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
  * @return
  *   Imteger count of questions.
  */
-function _quiz_get_questions_count($vid, $uid = 0) {
+function _quiz_get_questions_count($vid) {
   $sql = "SELECT COUNT(child_nid) FROM {quiz_node_relationship} WHERE parent_vid = %d";
-  if ($uid != 0) {
-    $sql .= " AND uid = %d";
-  }
-  return db_result(db_query($sql, $vid, $uid));
+  return db_result(db_query($sql, $vid));
 }
 
 /*
@@ -283,7 +280,7 @@ function _quiz_get_questions_count($vid, $uid = 0) {
  *   been attended, can be filtered by uid optionally.
  */
 function _quiz_get_attempt_count($vid, $uid = 0) {
-  $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE vid = %d";
+  $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d";
   if ($uid != 0) {
     $sql .= " AND uid = %d";
   }
@@ -495,7 +492,7 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
       'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
-      'questions_count' => user_access('access author stats') ? _quiz_get_questions_count($result['nid']) : t(''),
+      'questions_count' => user_access('access author stats') ? _quiz_get_questions_count($result['vid']) : t(''),
       'attempt_count' => user_access('access author stats') ? _quiz_get_attempt_count($result['nid']) : t(''),
     );
   }
