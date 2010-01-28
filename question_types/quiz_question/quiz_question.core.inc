@@ -299,7 +299,7 @@ abstract class QuizQuestion {
                 FROM {quiz_node_relationship} r
                 JOIN {node} n
                 ON n.nid = r.parent_nid
-                WHERE r.child_nid = %d AND r.child_vid = %d $own_filter
+                WHERE r.child_nid = %d $own_filter
                 ORDER BY r.parent_vid DESC";
         $res = db_query($sql, $this->node->nid, $this->node->vid);
         while ($res_o = db_fetch_object($res)) {

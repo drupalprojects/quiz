@@ -153,10 +153,16 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
     }
     if (!isset($quiz_node) && $chars[2] != $codes[2])
       $quiz_node = node_load((int)$codes[0], (int)$codes[1]);
-    $quiz_node->auto_created = TRUE;
     if (isset($quiz_node)) {
+      $quiz_node->auto_created = TRUE;
       $quiz_node->status = $chars[2];
       node_save($quiz_node);
+      $quiz_nid = $quiz_node->nid;
+      $quiz_vid = $quiz_node->vid;
+    }
+    else {
+      $quiz_nid = (int)$codes[0];
+      $quiz_vid = (int)$codes[1];
     }
     if ($chars[0] == '1') {
       // TODO: This doesn't necessarily get the newest max_score...
@@ -164,7 +170,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
               FROM {quiz_node_relationship} 
               WHERE parent_vid = %d
               AND child_nid = %d';
-      $res = db_query($sql, $quiz_node->vid, $form_state['values']['q_nid']);
+      $res = db_query($sql, $quiz_vid, $form_state['values']['q_nid']);
       if ($max_score = db_result($res));
       else {
         $sql = 'SELECT max_score 
@@ -175,11 +181,11 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
       $sql = 'DELETE FROM {quiz_node_relationship}
               WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-      db_query($sql, $quiz_node->nid, $quiz_node->vid, $form_state['values']['q_nid']);
+      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
       
       $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score)
               VALUES(%d, %d, %d, %d, %d)';
-      db_query($sql, $quiz_node->nid, $quiz_node->vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
+      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
     }
   }
 }
