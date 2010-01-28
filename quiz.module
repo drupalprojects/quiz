@@ -1964,7 +1964,7 @@ function quiz_calculate_score($quiz, $rid) {
   */
   $sql = 'SELECT question_nid, question_vid, type, max_score
   FROM {quiz_node_results_answers} a
-  LEFT JOIN {node} n ON (question_nid = nid AND question_vid = vid)
+  LEFT JOIN {node} n ON (question_nid = nid)
   LEFT JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid)
   WHERE result_id = %d AND r.parent_vid = %d';
   $results = db_query($sql, $rid, $quiz->vid);
