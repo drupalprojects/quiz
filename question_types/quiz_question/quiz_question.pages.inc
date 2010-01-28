@@ -164,7 +164,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
               FROM {quiz_node_relationship} 
               WHERE parent_vid = %d
               AND child_nid = %d';
-      $res = db_query($sql, $codes[1], $form_state['values']['q_vid']);
+      $res = db_query($sql, $quiz_node->vid, $form_state['values']['q_nid']);
       if ($max_score = db_result($res));
       else {
         $sql = 'SELECT max_score 
