@@ -3270,6 +3270,8 @@ function _quiz_load_user_settings(&$node) {
 
 function _quiz_save_user_settings($node) {
   global $user;
+  if ($node->auto_created)
+    return FALSE;
   $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
   $res = db_query($sql, $user->uid);
   $update = db_result($res) ==  $user->uid ? array('uid') : array();

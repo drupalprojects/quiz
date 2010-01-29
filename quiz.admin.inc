@@ -953,9 +953,8 @@ function quiz_questions_form_submit($form, &$form_state) {
   }
 
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
-  if (module_exists('quiz_question')) quiz_question_refresh_latest_quizzes($quiz->nid);
-
   $is_new_revision = (bool) $form_state['values']['new_revision'];
+  if (module_exists('quiz_question') && !$is_new_revision) quiz_question_refresh_latest_quizzes($quiz->nid);
 
   _quiz_question_browser_submit($form, $form_state);
 
