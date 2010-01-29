@@ -2714,7 +2714,6 @@ function _quiz_taxonomy_select($value = 0) {
  *  An array of questions.
  */
 function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
-  $quiz         = node_load($quiz_nid);
   $filter_types = '';
   $questions    = array();
   $where_add    = array();
@@ -2729,8 +2728,8 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
   }
 
   if (!is_null($quiz_vid)) {
-    $where_add[] = 'qnr.parent_vid = '. (int) $quiz_vid;
-    $where_add[] = 'qnr.parent_nid = '. $quiz->nid;
+    $where_add[] = 'qnr.parent_vid = '. intval($quiz_vid);
+    $where_add[] = 'qnr.parent_nid = '. intval($quiz_nid);
   }
 
   // Only include published questions.
