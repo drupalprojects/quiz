@@ -32,7 +32,7 @@ foreach ($form as $key => $sub_form):
   if (!is_numeric($key) || $sub_form['#no_report'] === TRUE) continue;
   unset($form[$key]);
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
-  $skipped = $sub_form['#is_skipped'] ? '<span class="quiz-report-skipped">(question was skipped)</span>' : ''?>
+  $skipped = $sub_form['#is_skipped'] ? '<span class="quiz-report-skipped">'. t('(skipped)') .'</span>' : ''?>
 
 	<dt>
 	  <div class="quiz-report-score-container <?php print $c_class?>">
@@ -40,6 +40,7 @@ foreach ($form as $key => $sub_form):
 	      <?php print t('Score')?>
 		  <?php print drupal_render($sub_form['score'])?>
 		  <?php print t('of') .' '. $sub_form['max_score']['#value']?>
+		  <?php print '<br><em>'. $skipped .'</em>'?>
 		</span>
       </div>
 		
@@ -48,7 +49,7 @@ foreach ($form as $key => $sub_form):
 	</dt>
 	
     <dd>
-	  <p><strong><?php print t('Response')?>: </strong> <?php print $skipped?></p>
+	  <p><strong><?php print t('Response')?>: </strong></p>
 
 	
       <?php print drupal_render($sub_form['response']); ?>

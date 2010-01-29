@@ -220,6 +220,10 @@ dl.quiz-report dd {
   padding-left: 5px;
 }
 
+.quiz-report-skipped {
+  float: right;	
+}
+
 .q-correct {
   background-color: #DDFFDD;
 }
