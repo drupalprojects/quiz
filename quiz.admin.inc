@@ -370,7 +370,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
       '#attributes' => array('class' => 'q-staying'),
     );
-    if ($quiz->randomization) {
+    if ($quiz->randomization == 2) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
         '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
