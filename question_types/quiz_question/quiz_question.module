@@ -498,6 +498,10 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   static $question_instances = array();
   $using_dummy_node = FALSE;
   if (is_object($node)) {
+    $vid = $node->vid;
+    if ($use_cached && isset($question_instances[$vid])) {
+      return $question_instances[$vid];
+    }
     if (!isset($node->type)) {
       // To substanitally improve performance on the result page we avoid node_load()...
       $sql = 'SELECT n.type, r.nid, p.vid, r.title, r.body, max_score, r.format
@@ -512,22 +516,19 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
       $using_dummy_node = TRUE;
     }
     $name = $node->type;
-    $vid = $node->vid;
   }
   elseif (is_array($node)) {
     $name = $node['type'];
     $vid = $node['vid'];
+    if ($use_cached && isset($question_instances[$vid])) {
+      return $question_instances[$vid];
+    }
   }
   /*else { //TODO: Remove this if it passes testing phase...
     // TODO why is this condition permitted?  name is passed as arg to constructor?
     $name = $node;
   }*/
   
-  if ($use_cached) {
-    if (isset($question_instances[$vid])) {
-      return $question_instances[$vid];
-    }
-  }
   $info = _quiz_question_get_implementations();
   $constructor = $info[$name]['question provider'];
   if (empty($constructor)) throw new Exception("no constructor available for '$name' question type");
