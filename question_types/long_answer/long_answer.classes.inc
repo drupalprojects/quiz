@@ -17,9 +17,46 @@ class LongAnswerQuestion extends QuizQuestion{
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
+    if ($is_new || $this->node->revision == 1) {
+      $sql = "INSERT INTO {quiz_long_answer_node_properties}
+        (nid, vid, rubric)
+        VALUES (%d, %d, '%s')";
+      db_query($sql, $this->node->nid, $this->node->vid, $this->node->rubric);
+    }
+    else {
+      $sql = "UPDATE {quiz_long_answer_node_properties}
+        SET rubric = '%s'
+        WHERE nid = %d AND vid = %d";
+      db_query($sql, $this->node->rubric, $this->node->nid, $this->node->vid);
+    }
   }
 
   public function validateNode(array &$form) {
+  }
+
+  public function delete($only_this_version = FALSE) {
+    parent::delete($only_this_version);
+    if ($only_this_version) {
+      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
+    }
+    else {
+      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->node->nid);
+    }
+  }
+
+  public function getNodeProperties() {
+    if (isset($this->nodeProperties)) return $this->nodeProperties;
+    $props = parent::getNodeProperties();
+
+    $sql = 'SELECT rubric
+      FROM {quiz_long_answer_node_properties}
+      WHERE nid = %d AND vid = %d';
+    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $res_a = db_fetch_array($res);
+    if (is_array($res_a))
+    $props = array_merge($props, $res_a);
+    $this->nodeProperties = $props;
+    return $props;
   }
 
   // This is called whenever a question is rendered, either
@@ -45,7 +82,17 @@ class LongAnswerQuestion extends QuizQuestion{
   }
 
   public function getCreationForm(array $form_state = NULL) {
-    return array();
+    $form['rubric'] = array(
+       '#type' => 'textarea',
+       '#title' => t('Rubric'),
+       '#description' => t('Specify the criteria for grading the response.'),
+       '#default_value' => $this->node->rubric,
+       '#size' => 60,
+       '#maxlength' => 512,
+       '#required' => FALSE,
+    );
+    
+    return $form;
   }
 
   public function getMaximumScore() {
