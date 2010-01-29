@@ -836,7 +836,6 @@ function quiz_form(&$node) {
       ),
       '#default_value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
     );
-    dpm($node);
   }
   else {
     $form['taking']['multiple_takes']['keep_results'] = array(
