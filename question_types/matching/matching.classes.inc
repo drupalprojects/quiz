@@ -309,6 +309,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
   }
 
   public function getUserAnswers() {
+    if (isset($this->answer)) return $this->answer;
     $user_answers = array();
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
     $results = db_query("SELECT a.match_id, a.answer
@@ -320,6 +321,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     while ($result = db_fetch_object($results)) {
       $user_answers[$result->match_id] = $result->answer;
     }
+    $this->answer = $user_answers;
     return $user_answers;
   }
 
