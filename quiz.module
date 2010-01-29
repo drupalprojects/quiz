@@ -237,11 +237,12 @@ function quiz_init() {
 function quiz_menu() {
   
   // Take //
-  $items['node/%quiz_type_access/take'] = array(
+  $items['node/%node/take'] = array(
     'title' => t('Take'),
     'page callback' => 'quiz_take',
     'page arguments' => array(1),
-    'access arguments' => array('access quiz'),
+    'access callback' => 'quiz_type_confirm',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
   
@@ -334,12 +335,12 @@ function quiz_menu() {
   );
 
   // Menu item for adding questions to quiz.
-  $items['node/%quiz_type_access/questions'] = array(
+  $items['node/%node/questions'] = array(
     'title' => t('Manage questions'),
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
-    'access callback' => 'node_access',
-    'access arguments' => array('update', 1),
+    'access callback' => 'quiz_type_confirm',
+    'access arguments' => array(1, 'update'),
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.admin.inc',
   );
@@ -1170,6 +1171,12 @@ function quiz_type_access_load($arg) {
     $quiz_nodes[$arg] = $to_return;
   }
   return $to_return;
+}
+
+function quiz_type_confirm($node, $op = NULL) {
+  if ($node->type != 'quiz') return false;
+  if (isset($op)) return node_access($op, $node);
+  return user_access('access quiz');
 }
 
 /**

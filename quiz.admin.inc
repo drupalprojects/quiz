@@ -502,7 +502,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   _quiz_question_browser_add_filter_fields($browser, $question_types);
 
   // Create filter part of sql.
-  $filter_params = array($quiz->nid, $quiz->vid);
+  $filter_params = array($quiz->vid);
   $filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
 
   // Add querystring recieved via ajax to the $_GET array...
@@ -525,7 +525,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
         WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
           SELECT child_nid
           FROM {quiz_node_relationship}
-          WHERE parent_nid = %d AND parent_vid = %d
+          WHERE parent_vid = %d
         )'. $filter_sql . tablesort_sql($browser['#header']);
   $res = pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_params);
 
