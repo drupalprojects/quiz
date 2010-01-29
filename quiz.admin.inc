@@ -976,9 +976,9 @@ function quiz_questions_form_submit($form, &$form_state) {
     $assigned_random = 0;
 
     foreach ($questions as $question) {
-     if ($question->state == QUESTION_RANDOM) {
-       ++$assigned_random;
-     }
+      if ($question->state == QUESTION_RANDOM) {
+        ++$assigned_random;
+      }
     }
 
     // Adjust number of random questions downward to match number of selected questions..

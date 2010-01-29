@@ -1152,7 +1152,8 @@ function quiz_type_access_load($arg) {
   if (isset($quiz_nodes[$arg])) {
     return $quiz_nodes[$arg];
   }
-  $already_loaded = menu_get_object();
+  if (arg(0) == 'node' && is_numeric(arg(1)))
+    $already_loaded = menu_get_object(); 
   if (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
     if ($already_loaded->vid == $_SESSION['quiz_'. $arg]['quiz_vid'])
       $to_return = $already_loaded->type == 'quiz' ? $already_loaded : FALSE;
