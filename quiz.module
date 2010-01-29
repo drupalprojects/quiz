@@ -2661,6 +2661,9 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
  *  Array of question types.
  */
 function _quiz_get_question_types() {
+  static $to_return = array();
+  if (!empty($to_return)) 
+    return $to_return;
   $to_return = module_invoke_all('quiz_question_info');
   $types = array();
   $placeholders = array();
@@ -3072,12 +3075,14 @@ function quiz_get_quiz_options() {
  *   boolean
  */
 function _quiz_is_taking_context() {
+  return arg(2) == 'take';
+  /*
   $display_object = menu_get_object('quiz_type_access');
   // display_object is empty for question views because 'quiz_type_access' doesn't load them
   if ($display_object->type == 'quiz') {
     return TRUE;
   }
-  return FALSE;
+  return FALSE;*/
 }
 
 /**
