@@ -1149,11 +1149,20 @@ function quiz_user($op, &$edit, &$account, $category = NULL) {
  *  A quiz node object or FALSE if a load failed.
  */
 function quiz_type_access_load($arg) {
-  if (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
-    return (($node = node_load($arg, $_SESSION['quiz_'. $arg]['quiz_vid'])) && $node->type == 'quiz') ? $node : FALSE;
+  static $quiz_nodes = array();
+  if (isset($quiz_nodes[$arg])) {
+    return $quiz_nodes[$arg];
   }
-  // Simple verification/load of the node.
-  return (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
+  elseif (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
+    $to_return = (($node = node_load($arg, $_SESSION['quiz_'. $arg]['quiz_vid'])) && $node->type == 'quiz') ? $node : FALSE;
+  }
+  else {
+    $to_return = (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
+  }
+  if ($to_return) {
+    $quiz_nodes[$arg] = $to_return;
+  }
+  return $to_return;
 }
 
 /**
