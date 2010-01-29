@@ -1382,7 +1382,7 @@ function quiz_take_quiz($quiz) {
     }
     if ($quiz->repeat_until_correct) {
       // If the question was answered incorrectly, repeat it
-      if ($result && !$result->is_correct) {
+      if ($result && !$result->is_correct && $result->is_evaluated) {
         $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
         array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
         drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');

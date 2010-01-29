@@ -131,6 +131,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     }
     else {
       $this->answer = $answer;
+      $this->evaluated = FALSE;
     }
   }
 
