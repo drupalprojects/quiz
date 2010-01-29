@@ -548,7 +548,10 @@ function quiz_update($node) {
   if ($node->revision) {
 
     // Insert a new row in the quiz_node_properties table.
+    $old_auto = $node->auto_created;
+    $node->auto_created = TRUE;
     quiz_insert($node);
+    $node->auto_created = $old_auto;
 
     // Create new quiz-question relation entries in the quiz_node_relationship table.
     quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
