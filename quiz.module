@@ -640,7 +640,6 @@ function _quiz_get_node_defaults() {
  * Implementation of hook_load().
  */
 function quiz_load($node) {
-
   $default_additions = _quiz_get_node_defaults();
   $fields = implode(', ', array_keys($default_additions));
 
@@ -1153,11 +1152,18 @@ function quiz_type_access_load($arg) {
   if (isset($quiz_nodes[$arg])) {
     return $quiz_nodes[$arg];
   }
-  elseif (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
-    $to_return = (($node = node_load($arg, $_SESSION['quiz_'. $arg]['quiz_vid'])) && $node->type == 'quiz') ? $node : FALSE;
+  $already_loaded = menu_get_object();
+  if (arg(2) == 'take' && isset($_SESSION['quiz_'. $arg]['quiz_vid'])) {
+    if ($already_loaded->vid == $_SESSION['quiz_'. $arg]['quiz_vid'])
+      $to_return = $already_loaded->type == 'quiz' ? $already_loaded : FALSE;
+    else
+      $to_return = (($node = node_load($arg, $_SESSION['quiz_'. $arg]['quiz_vid'])) && $node->type == 'quiz') ? $node : FALSE;
   }
   else {
-    $to_return = (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
+    if ($already_loaded->nid == $arg)
+      $to_return = $already_loaded->type == 'quiz' ? $already_loaded : FALSE;
+    else 
+      $to_return = (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
   }
   if ($to_return) {
     $quiz_nodes[$arg] = $to_return;
