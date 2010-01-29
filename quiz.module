@@ -526,7 +526,7 @@ function quiz_insert($node) {
 
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, randomization,
-      backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, time_limit, keep_results, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
+      backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, keep_results, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
     VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
   _quiz_check_num_random($node);
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
@@ -649,7 +649,6 @@ function quiz_load($node) {
   $fetched_additions = db_fetch_array(db_query($sql, $fields, $quiz_vid, $node->nid));
 
   $additions = ($fetched_additions) ? (object)($fetched_additions += $default_additions) : NULL;
-
   /*
    * This doesn't appear to have ever worked.... It just adds an empty item to $additions->status.
    * Also, I can't find where this information is ever used, so there's probably no point in fixing it.
@@ -837,6 +836,7 @@ function quiz_form(&$node) {
       ),
       '#default_value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
     );
+    dpm($node);
   }
   else {
     $form['taking']['multiple_takes']['keep_results'] = array(
