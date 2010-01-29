@@ -1480,7 +1480,28 @@ function quiz_take_quiz($quiz) {
         // There is still time left, so let's go ahead and insert the countdown javascript.
         if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
           jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
-          drupal_add_js('function finished() { window.location = window.location.href; }', 'inline');
+          // These are the two button op values that are accepted for answering questions.
+          $button_op1 = drupal_to_js(t('Submit'));
+          $button_op2 = drupal_to_js(t('Next'));
+          $js = "
+            function finished() {
+              // Find all buttons with a name of 'op'.
+              var buttons = $('input[type=submit][name=op], button[type=submit][name=op]');
+              // Filter out the ones that don't have the right op value.
+              buttons = buttons.filter(function() {
+                return this.value == $button_op1 || this.value == $button_op2;
+              });
+              if (buttons.length == 1) {
+                // Since only one button was found, this must be it.
+                buttons.click();
+              }
+              else {
+                // Zero, or more than one buttons were found; fall back on a page refresh.
+                window.location = window.location.href;
+              }
+            }
+          ";
+          drupal_add_js($js, 'inline');
           //window.location.reload() method doesn't works here.
         }
       }
