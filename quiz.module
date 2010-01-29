@@ -720,7 +720,10 @@ function quiz_take($node) {
 function quiz_form(&$node) {
   $form = array();
   if (!isset($node->nid))
-    _quiz_load_user_settings($node);
+    $settings_loaded = _quiz_load_user_settings($node);
+  if (!$settings_loaded) {
+    drupal_set_message(t('This is the first time you create a quiz with Quiz 4. There are a lot of configuration options on this page. Do not despair. Each time you save a quiz most of the configuration will be remembered and restored next time you create a quiz!'));
+  }
   $form['#quiz_check_revision_access'] = TRUE;
   $form['title'] = array(
     '#type' => 'textfield',
@@ -742,7 +745,7 @@ function quiz_form(&$node) {
   $form['taking'] = array(
     '#type' => 'fieldset',
     '#title' => t('Quiz taking options'),
-    '#collapsed' => TRUE,
+    '#collapsed' => $settings_loaded,
     '#collapsible' => TRUE,
   );
   $form['taking']['allow_skipping'] = array(
@@ -3241,7 +3244,9 @@ function _quiz_load_user_settings(&$node) {
     while ($option = db_fetch_array($result_options)) {
       $node->resultoptions[] = $option;
     }
+    return TRUE;
   }
+  return FALSE;
 }
 
 function _quiz_save_user_settings($node) {
