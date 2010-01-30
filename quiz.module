@@ -722,8 +722,10 @@ function quiz_form(&$node) {
   if (!isset($node->nid))
     $settings_loaded = _quiz_load_user_settings($node);
   if (!$settings_loaded) {
-    drupal_set_message(t('This is the first time you create a quiz with Quiz 4. There are a lot of configuration options on this page. Do not despair. Each time you save a quiz most of the configuration will be remembered and restored next time you create a quiz!'));
+    drupal_set_message(t('Welcome to making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
+                         array('@quiz' => QUIZ_NAME) ));
   }
+  
   $form['#quiz_check_revision_access'] = TRUE;
   $form['title'] = array(
     '#type' => 'textfield',
