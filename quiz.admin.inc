@@ -518,16 +518,27 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     array('data' => t('Username'), 'field' => 'name', 'class' => 'quiz-browser-header-name'),
   );
 
-  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name
-        FROM {node} n
-        JOIN {users} u
-        ON n.uid = u.uid
-        WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
-          SELECT child_nid
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = %d
-        )'. $filter_sql . tablesort_sql($browser['#header']);
-  $res = pager_query(db_rewrite_sql($sql), 20, 0, NULL, $filter_params);
+  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name 
+          FROM {node} n
+          LEFT OUTER JOIN {users} u
+          ON n.uid = u.uid
+          WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
+            SELECT child_nid
+            FROM {quiz_node_relationship}
+            WHERE parent_vid = %d
+          )'. $filter_sql . tablesort_sql($browser['#header']);
+  $page = intval($_GET['page']);
+  $num = 20;
+  $pager_sql = 'SELECT COUNT(*) 
+          FROM (
+          SELECT nid FROM {node} n
+          WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
+            SELECT child_nid
+            FROM {quiz_node_relationship}
+            WHERE parent_vid = %d
+          )'. $filter_sql ." LIMIT 0, ". ($page * $num + $num * 10) .") tbl";
+  
+  $res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
 
   // build data part of form
   $options = array();
