@@ -277,3 +277,10 @@ dl.quiz-report dd {
 .quiz-view-table-data {
 
 }
+
+#browser-pager .pager-last {
+  display: none;
+}
+#browser-pager .pager-first {
+  display: none;
+}

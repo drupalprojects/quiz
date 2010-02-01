@@ -532,6 +532,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $pager_sql = 'SELECT COUNT(*) 
           FROM (
           SELECT nid FROM {node} n
+          LEFT OUTER JOIN {users} u ON n.uid = u.uid
           WHERE n.type IN (\''. $question_type_list .'\') AND n.nid NOT IN (
             SELECT child_nid
             FROM {quiz_node_relationship}
