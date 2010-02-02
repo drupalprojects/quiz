@@ -34,12 +34,7 @@ function quiz_question_schema() {
       'nid' , 'vid'
     ),
   );
-  $schema['quiz_question_latest_quizzes'] = _quiz_question_latest_quizzes_table();
-  return $schema;
-}
-
-function _quiz_question_latest_quizzes_table() {
-  return array(
+  $schema['quiz_question_latest_quizzes'] = array(
     'fields' => array(
       'quiz_nid' => array(
         'type' => 'int',
@@ -61,6 +56,7 @@ function _quiz_question_latest_quizzes_table() {
       'id',
     ),
   );
+  return $schema;
 }
 
 /**
@@ -85,7 +81,28 @@ function quiz_question_update_6401() {
 
 function quiz_question_update_6402() {
   $results = array();
-  db_create_table($results, 'quiz_question_latest_quizzes', _quiz_question_latest_quizzes_table());
+  db_create_table($results, 'quiz_question_latest_quizzes', array(
+    'fields' => array(
+      'quiz_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,  
+      ),
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE, 
+      ),
+    ),
+    'primary key' => array(
+      'id',
+    ),
+  ));
   return $results;
 }
 

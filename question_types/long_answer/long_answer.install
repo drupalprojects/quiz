@@ -35,7 +35,24 @@ function long_answer_uninstall() {
  */
 function long_answer_schema() {
   // Properties for a question nodes go in here:
-  $schema['quiz_long_answer_node_properties'] = _quiz_long_answer_node_properties_tbl();
+  $schema['quiz_long_answer_node_properties'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'rubric' => array(
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('nid', 'vid'),
+  );
 
   // User answers go in here.
   $schema['quiz_long_answer_user_answers'] = array(
@@ -86,27 +103,6 @@ function long_answer_schema() {
   return $schema;
 }
 
-function _quiz_long_answer_node_properties_tbl() {
-  return array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-    ),
-      'vid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'rubric' => array(
-        'type' => 'text',
-      ),
-    ),
-    'primary key' => array('nid', 'vid'),
-  );
-}
-
 function long_answer_update_6400() {
   $results = array();
   $spec = array(
@@ -121,7 +117,26 @@ function long_answer_update_6400() {
 
 function long_answer_update_6401() {
   $results = array();
-  db_create_table($results, 'quiz_long_answer_node_properties', _quiz_long_answer_node_properties_tbl());
+  if (db_table_exists('quiz_long_answer_node_properties')) 
+    db_drop_table($results, 'quiz_long_answer_node_properties');
+  db_create_table($results, 'quiz_long_answer_node_properties', array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'rubric' => array(
+        'type' => 'text',
+      ),
+    ),
+    'primary key' => array('nid', 'vid'),
+  ));
   $sql = "INSERT INTO quiz_long_answer_node_properties (nid, vid)
   SELECT nid, vid FROM node WHERE `type` = 'long_answer'";
   $results[] = update_sql($sql);
