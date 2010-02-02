@@ -1932,7 +1932,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
                 LEFT JOIN {users} u ON u.uid = qnrs.uid
                 LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
                 ". $filter['join'] ."
-                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . 'LIMIT 0, '. ($page * $num + $num * 10) .") tbl";
+                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . ' LIMIT 0, '. ($page * $num + $num * 10) .") tbl";
   
   return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
 }
