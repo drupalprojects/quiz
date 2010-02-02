@@ -1918,15 +1918,13 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
 
 function _quiz_results_mr_data_provider($header, $quiz) {
   $filter = _quiz_results_mr_prepare_filter($quiz);
-  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS evaluated, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
-          FROM {node} n
-          INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
-          INNER JOIN {users} u ON u.uid = qnrs.uid
-          INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
+  $sql = "SELECT u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS evaluated, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
+          FROM {quiz_node_results} qnrs
+          LEFT JOIN {users} u ON u.uid = qnrs.uid
+          LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           ". $filter['join'] ."
-          WHERE n.type = 'quiz' 
-          AND qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
-  return pager_query(db_rewrite_sql($sql), 50, 0, NULL, $filter['params']);
+          WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
+  return pager_query($sql, 50, 0, NULL, $filter['params']);
 }
 
 /**
