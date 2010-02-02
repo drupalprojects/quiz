@@ -1924,7 +1924,17 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           ". $filter['join'] ."
           WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
-  return pager_query($sql, 50, 0, NULL, $filter['params']);
+  $page = intval($_GET['page']);
+  $num = 50;
+  $pager_sql = "SELECT COUNT(*) FROM (
+                SELECT qnrs.result_id
+                FROM {quiz_node_results} qnrs
+                LEFT JOIN {users} u ON u.uid = qnrs.uid
+                LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
+                ". $filter['join'] ."
+                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . 'LIMIT 0, '. ($page * $num + $num * 10) .") tbl";
+  
+  return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
 }
 
 /**
