@@ -719,11 +719,12 @@ function quiz_take($node) {
  */
 function quiz_form(&$node) {
   $form = array();
-  if (!isset($node->nid))
+  if (!isset($node->nid)) {
     $settings_loaded = _quiz_load_user_settings($node);
-  if (!$settings_loaded) {
-    drupal_set_message(t('Welcome to making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
+    if (!$settings_loaded) {
+      drupal_set_message(t('You are making your @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
                          array('@quiz' => QUIZ_NAME) ));
+    }
   }
   
   $form['#quiz_check_revision_access'] = TRUE;
