@@ -241,7 +241,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
             INNER JOIN {node_revisions} r ON a.question_vid = r.vid
             INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
             JOIN {node} n ON qnr.nid = n.nid
-            WHERE is_evaluated = 0';
+            WHERE a.is_evaluated = 0';
     if (!user_access('score any quiz'))
     $sql .= ' AND n.uid = %d';
     $results = db_query_range(db_rewrite_sql($sql), $user->uid, $offset, $count);
