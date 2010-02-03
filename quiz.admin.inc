@@ -537,7 +537,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
             SELECT child_nid
             FROM {quiz_node_relationship}
             WHERE parent_vid = %d
-          )'. $filter_sql ." LIMIT 0, ". ($page * $num + $num * 10) .") tbl";
+          )'. $filter_sql ." LIMIT 0, ". max($page * $num + $num * 7, $num * 10) .") tbl";
   
   $res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
 
@@ -1932,7 +1932,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
                 LEFT JOIN {users} u ON u.uid = qnrs.uid
                 LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
                 ". $filter['join'] ."
-                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . ' LIMIT 0, '. ($page * $num + $num * 10) .") tbl";
+                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . ' LIMIT 0, '. max($page * $num + $num * 7, $num * 10) .") tbl";
   
   return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
 }
