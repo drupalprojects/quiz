@@ -19,7 +19,6 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $full_options[$key] = $form['titles'][$key];
   $full_options[$key]['#title'] = '';
 }
-
 // Print ahah targets
 print drupal_render($form['ahah_target_all']);
 print drupal_render($form['ahah_target']);

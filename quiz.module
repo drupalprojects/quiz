@@ -2144,9 +2144,10 @@ function quiz_get_num_questions($nid, $vid, $type) {
  * @return
  *  Question object
  */
-function quiz_node_map($node) {
+function quiz_node_map($node, $include_question = TRUE) {
   $new_question = new stdClass();
-  $new_question->question = check_markup($node->body, $node->format, FALSE);
+  if ($include_question)
+    $new_question->question = check_markup($node->body, $node->format, FALSE);
   $new_question->title = check_plain($node->title);
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
@@ -2733,7 +2734,7 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *  An array of questions.
  */
-function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE) {
+function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE) {
   $filter_types = '';
   $questions    = array();
   $where_add    = array();
@@ -2777,7 +2778,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
   // Create questions array.
   if ($nid_keys === FALSE) {
     while ($node = db_fetch_object($result)) {
-      $questions[] = quiz_node_map($node);
+      $questions[] = quiz_node_map($node, $include_question);
     }
   }
   else {
