@@ -63,7 +63,7 @@ print theme('table', $form['#header'], $rows, array('class' => 'browser-table'))
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
 
-print '<div id="before-pager"/>';
+print '<div id="before-pager"></div>';
 print $form['pager']['#value'];
 print drupal_render($form['add_to_get']);
 print drupal_render($form['ahah_target_all_end']);

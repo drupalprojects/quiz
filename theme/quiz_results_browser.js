@@ -86,6 +86,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   .click(function(event) {
 	$('#edit-table-filters-all').hide();
 	$('.quiz-results-browser-row').remove();
+	$('#browser-pager').remove();
 	$('#edit-table-filters-name').trigger('doneTyping');
   });
   
@@ -101,6 +102,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     $('.quiz-results-browser-row').each(function() { 
       $(this).remove();
     });
+    $('#browser-pager').remove();
   });
   
   //Username filters
@@ -116,6 +118,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       $('.quiz-results-browser-row').each(function() { 
         $(this).remove();
       });
+      $('#browser-pager').remove();
       $('#edit-table-filters-all').hide();
       $(quizClicked).trigger('doneTyping');
       clearInterval(quizRefreshId);
@@ -227,8 +230,9 @@ $(document).ready(function () {
  */
 Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   // Add the new rows to the browser and replace the pager
+  $('#no-results').remove();
   $('#quiz-question-browser-filters').after(rows);
-  $('#quiz-question-browser-pager').replaceWith(pager);
+  $('#before-pager').after(pager);
   
   // Change build id to the new id provided by the server(prevents validation error):
   $('[name="form_build_id"]').val(newBuildId);

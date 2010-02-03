@@ -76,8 +76,9 @@ foreach ($form['name']['#options'] as $key => $value) {
 print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
 
 if (count($form['name']['#options']) == 0)
-  print t('No results were found');
+  print '<div id="no-results">'. t('No results were found') .'</div>';
 
+print '<div id="before-pager"></div>';
 print $form['pager']['#value'];
 print drupal_render($form['add_to_get']);
 print drupal_render($form['ahah_target_all_end']);

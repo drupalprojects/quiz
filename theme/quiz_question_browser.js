@@ -235,7 +235,6 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   // The previous questions in the browser are added to the question list as invisible questions
   // Since they cannot be selected anymore we remove them here...
   $('.hidden-question').remove();
-  
   // Add the new rows to the browser and replace the pager
   $('#quiz-question-browser-filters').after(rows);
   $('#before-pager').after(pager);

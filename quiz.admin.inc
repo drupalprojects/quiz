@@ -528,7 +528,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
             WHERE parent_vid = %d
           )'. $filter_sql . tablesort_sql($browser['#header']);
   $page = intval($_GET['page']);
-  $num = 20;
+  $num = 25;
   $pager_sql = 'SELECT COUNT(*) 
           FROM (
           SELECT nid FROM {node} n
@@ -1210,7 +1210,7 @@ function quiz_results_mr_browser_ahah() {
   // Prepare to get the form from cache
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
   $form_id = $_POST['form_build_id'];
-
+  
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
     form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
