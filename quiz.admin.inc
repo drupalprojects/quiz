@@ -2201,6 +2201,8 @@ function _quiz_add_to_get($to_add){
   $pre = 'quiz_question_browser_';
   parse_str($to_add, $output);
   $vars = array('sort', 'order', 'page');
+  if (empty($to_add)) 
+    unset($_SESSION[$pre . 'page']);
   foreach ($vars as $value) {
     if (isset($_GET[$value])) continue;
     if (isset($output[$value])) {
