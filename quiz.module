@@ -676,12 +676,12 @@ function quiz_load($node) {
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   drupal_alter('quiz_view', $node, $teaser, $page);
   $node = node_prepare($node, $teaser);
-  if (!$teaser) {
-    $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->nid, $node->vid);
+  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->nid, $node->vid);
     $node->content['stats'] = array(
       '#value' => theme('quiz_view_stats', $node),
       '#weight' => -1,
     );
+  if (!$teaser) {
     $node->content['take'] = array(
       '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
       '#weight' => 2,
