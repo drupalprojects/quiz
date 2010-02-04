@@ -886,7 +886,7 @@ function quiz_schema() {
     ),
     'primary key' => array('option_id'),
     'indexes' => array(
-      'quiz_id' => array('vid, nid'),
+      'quiz_id' => array('vid', 'nid'),
     )
   );
   
