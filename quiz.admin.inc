@@ -2078,6 +2078,38 @@ function quiz_results_mr_form_submit($form, &$form_state) {
   _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 }
 
+function quiz_admin_node_form(&$form_state) {
+  $dummy_node = new stdClass();
+  $dummy_node->def_uid = variable_get('quiz_def_uid', NULL);
+  $form = quiz_form($dummy_node);
+  $form['direction'] = array(
+    '#type' => 'markup',
+    '#value' => t('Here you can change the default quiz settings for new users.'),
+    '#weight' => -10,
+  );
+  unset(
+    $form['#quiz_check_revision_access'],
+    $form['title'],
+    $form['body_field'],
+    $form['taking']['aid'],
+    $form['taking']['addons'],
+    $form['quiz_availability']['quiz_open'],
+    $form['quiz_availability']['quiz_close'],
+    $form['resultoptions'],
+    $form['number_of_random_questions']
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array('quiz_admin_node_form_submit'),
+  );
+  return $form;
+}
+function quiz_admin_node_form_submit($form, &$form_state) {
+  $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
+  _quiz_save_user_settings($form_state['values']);
+}
+
 function _quiz_results_mr_get_hover($quiz, $rid) {
   $to_return = array(l(t('view'), 'admin/quiz/reports/results/'. $quiz->nid .'/'. $rid));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz'))

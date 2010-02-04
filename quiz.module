@@ -262,10 +262,30 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/settings'] = array(
+    'title' => t('@quiz settings', array('@quiz' => QUIZ_NAME)),
+    'description' => t('Change @quiz settings.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  
+  $items['admin/quiz/settings/config'] = array(
     'title' => t('@quiz configuration', array('@quiz' => QUIZ_NAME)),
     'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_settings'),
+    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'type' => MENU_NORMAL_ITEM, // optional
+    'file' => 'quiz.admin.inc',
+  );
+  
+  $items['admin/quiz/settings/quiz_form'] = array(
+    'title' => t('@quiz node-form configuration', array('@quiz' => QUIZ_NAME)),
+    'description' => t('Configure @quiz node-form default values.', array('@quiz' => QUIZ_NAME)),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_admin_node_form'),
     'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
@@ -735,9 +755,11 @@ function quiz_form(&$node) {
   if (!isset($node->nid)) {
     $settings_loaded = _quiz_load_user_settings($node);
     if (!$settings_loaded) {
-      drupal_set_message(t('You are making your @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
+      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
                          array('@quiz' => QUIZ_NAME) ));
     }
+    $node->def_uid = variable_get('quiz_def_uid', 1);
+    _quiz_load_user_settings($node);
   }
   
   $form['#quiz_check_revision_access'] = TRUE;
@@ -3278,7 +3300,7 @@ function quiz_delete_results($rids) {
 function _quiz_load_user_settings(&$node) {
   global $user;
   $sql = "SELECT * FROM {quiz_user_settings} WHERE uid = %d";
-  $res = db_query($sql, $user->uid);
+  $res = db_query($sql, isset($node->def_uid) ? $node->def_uid : $user->uid);
   if ($res_o = db_fetch_object($res)) {
     foreach ($res_o as $key => $value) {
       if (!in_array($key, array('nid', 'vid', 'uid')))
@@ -3298,8 +3320,10 @@ function _quiz_save_user_settings($node) {
   if ($node->auto_created)
     return FALSE;
   $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
-  $res = db_query($sql, $user->uid);
-  $update = db_result($res) ==  $user->uid ? array('uid') : array();
+  $res = db_query($sql, isset($node['save_def_uid']) ? $node['save_def_uid'] : $user->uid);
+  $update = is_numeric(db_result($res)) ? array('uid') : array();
+  if (isset($node->save_def_uid))
+    $node['uid'] = $node['save_def_uid'];
   drupal_write_record('quiz_user_settings', $node, $update);
 }
 function _quiz_redirect_if_empty($node) {

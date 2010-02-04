@@ -7,6 +7,18 @@
  *
  */
 
+function quiz_update_6410() {
+  $results = array();
+  db_lock_table('users');
+  $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
+  $results[] = update_sql($sql);
+  $def_uid = db_last_insert_id('users', 'uid');
+  $results[] = update_sql('DELETE FROM {users} WHERE uid = '. intval($def_uid));
+  db_unlock_tables();
+  variable_set('quiz_def_uid', $def_uid);
+  return $results;
+}
+
 function quiz_update_6409() {
   $results = array();
   db_add_index($results, 'quiz_node_relationship', 'parent_id', array('parent_vid'));
@@ -523,6 +535,15 @@ function quiz_install() {
   variable_set('theme_settings', $temp_array);
   // Default the comment settings to disabled.
   variable_set('comment_quiz', '0');
+  
+  db_lock_table('users');
+  $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
+  db_query($sql);
+  $def_uid = db_last_insert_id('users', 'uid');
+  db_query('DELETE FROM {users} WHERE uid = '. intval($def_uid));
+  db_unlock_tables();
+  variable_set('quiz_def_uid', $def_uid);
+  
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Content Management -> Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
 }
 
@@ -928,7 +949,8 @@ function quiz_uninstall() {
     'quiz_remove_partial_quiz_record',
     'quiz_show_allowed_times',
     'quiz_autotitle_length',
-    'comment_quiz'
+    'comment_quiz',
+    'quiz_def_uid'
   );
   foreach ($var as $v) {
     variable_del($v);
