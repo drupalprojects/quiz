@@ -284,7 +284,7 @@ class ScaleQuestion extends QuizQuestion {
     $content = parent::getNodeView();
 
     //TODO: Consider changing this to something prettier...
-    $form = $this->getAnsweringForm();
+    $form = $this->getAnsweringForm(NULL, NULL);
     //$to_return = drupal_render($form['question']);
     $to_return .= drupal_render($form['tries']);
     foreach ($form['tries']['#options'] as $val) {
