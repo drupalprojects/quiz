@@ -282,6 +282,7 @@ abstract class QuizQuestion {
       // TODO ask the node itself where to go after authoring a question
       if ($quiz->type == 'quiz') {
         $form['#redirect'] = 'node/'. $quiz->nid .'/questions';
+        $form['#cancel_button'] = TRUE;
       }
     }
 
