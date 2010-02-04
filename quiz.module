@@ -687,6 +687,12 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
       '#weight' => 2,
     );
   }
+  else {
+    $node->content['take'] = array(
+      '#value' => '<p>'. l(t('Start quiz'), 'node/'. $node->nid .'/take') .'</p>',
+      '#weight' => 2,
+    );
+  }
   
   return $node;
 }
