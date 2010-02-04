@@ -627,8 +627,8 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
     }
     else {
       $sql = 'SELECT answer_id
-              FROM {quiz_multichoice_user_answer_multi} uam
-              JOIN {quiz_multichoice_user_answers} ua ON(uam.user_answer_id = ua.id)
+              FROM {quiz_multichoice_user_answers} ua
+              LEFT OUTER JOIN {quiz_multichoice_user_answer_multi} uam ON(uam.user_answer_id = ua.id)
               WHERE ua.result_id = %d AND ua.question_nid = %d AND ua.question_vid = %d';
       $res = db_query($sql, $result_id, $this->question->nid, $this->question->vid);
       while ($res_o = db_fetch_object($res)) {
