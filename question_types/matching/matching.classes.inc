@@ -311,11 +311,11 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     $user_answers = array();
     // answer_id  match_id  result_id   score   answer #{quiz_matching_user_answers} fields
     $results = db_query("SELECT a.match_id, a.answer
-               FROM {quiz_matching_user_answers} a
-               JOIN {quiz_matching_node} n
-               ON n.match_id = a.match_id
-               WHERE result_id = %d
-               AND vid = %d", $this->rid, $this->question->vid);
+                         FROM {quiz_matching_node} n
+                         JOIN {quiz_matching_user_answers} a
+                         ON n.match_id = a.match_id
+                         WHERE nid = %d AND vid = %d AND result_id = %d
+                         ", $this->question->nid, $this->question->vid, $this->rid);
     while ($result = db_fetch_object($results)) {
       $user_answers[$result->match_id] = $result->answer;
     }

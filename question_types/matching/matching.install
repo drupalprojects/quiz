@@ -6,6 +6,11 @@
  * matching schema file.
  */
 
+function matching_update_6400() {
+  $results = array();
+  db_add_index($results, 'quiz_matching_node', 'question_id', array('nid', 'vid'));
+  return $results;
+}
 
 /**
  * Implementation of hook_install().
@@ -67,6 +72,9 @@ function matching_schema() {
       ),
     ),
     'primary key' => array('match_id'),
+    'indexes' => array(
+      'question_id' => array('nid', 'vid'),
+    ),
   );
 
   // User answers go in here.

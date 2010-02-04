@@ -1270,7 +1270,7 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
  */
 function quiz_get_number_of_questions($vid, $nid) {
   $always_count = _quiz_get_num_always_questions($nid, $vid);
-  $rand_count = db_result(db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d', $vid));
+  $rand_count = db_result(db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE nid = %d AND vid = %d', $nid, $vid));
   return $always_count + (int)$rand_count;
 }
 
@@ -1388,6 +1388,7 @@ function quiz_take_quiz($quiz) {
     $quiz_id = 'quiz_' . $quiz->nid;
     $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
     array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
+    
   }
   // Check for answer submission.
   elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next')) {
@@ -2103,10 +2104,9 @@ function quiz_build_question_list($quiz) {
   $sql = "SELECT child_nid as nid, child_vid as vid
     FROM {quiz_node_relationship}
     WHERE parent_vid = %d
-      AND parent_nid = %d
       AND question_status = %d
     ORDER BY weight";
-  $result = db_query($sql, $quiz->vid, $quiz->nid, QUESTION_ALWAYS);
+  $result = db_query($sql, $quiz->vid, QUESTION_ALWAYS);
   while ($question_node = db_fetch_array($result)) {
     $questions[] = $question_node;
   }

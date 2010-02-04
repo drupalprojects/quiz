@@ -7,6 +7,13 @@
  *
  */
 
+function quiz_update_6409() {
+  $results = array();
+  db_add_index($results, 'quiz_node_relationship', 'parent_id', array('parent_vid'));
+  db_add_index($results, 'quiz_node_results_answers', 'result_id', array('result_id'));
+  return $results;
+}
+
 function quiz_update_6408() {
   $results = array();
   db_create_table($results, 'quiz_user_settings', array(
@@ -717,6 +724,9 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
+    'indexes' => array(
+      'parent_id' => array('parent_vid'),
+    ),
   );
 
   /**
@@ -840,7 +850,10 @@ function quiz_schema() {
         'not null' => TRUE,
       ),
     ),
-    'primary key' => array('result_id', 'question_nid', 'question_vid')
+    'primary key' => array('result_id', 'question_nid', 'question_vid'),
+    'indexes' => array(
+      'result_id' => array('result_id'),
+    ),
   );
 
   /**
