@@ -1464,6 +1464,11 @@ function quiz_admin_settings() {
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
 
+  $form['def_settings_link'] = array(
+    '#type' => 'markup',
+    '#value' => '<p>'. t('Default values for the quiz node-form can be edited '). l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
+  );
+  
   $form['#validate'][] = 'quiz_settings_form_validate';
   return system_settings_form($form);
 }
