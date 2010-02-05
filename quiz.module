@@ -812,9 +812,10 @@ function quiz_form(&$node) {
     '#title' => t('Randomize questions'),
     '#options' => array(
       t('No randomization'),
-      t('Random order of questions'),
-      t('Random questions in random order'),
+      t('Random order'),
+      t('Random questions'),
     ),
+    '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions.'),
     '#default_value' => isset($node->randomization) ? $node->randomization : 0,
   );
 
