@@ -2072,6 +2072,16 @@ function quiz_admin_node_form(&$form_state) {
   );
   return $form;
 }
+
+function quiz_admin_node_form_validate($form, &$form_state) {
+  $dummy_node = new stdClass();
+  foreach($form_state['values'] as $key => $value) {
+    $dummy_node->{$key} = $value;
+  }
+  $dummy_node->resultoptions = array();
+  quiz_validate($dummy_node);
+}
+
 function quiz_admin_node_form_submit($form, &$form_state) {
   $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
   _quiz_save_user_settings($form_state['values']);
