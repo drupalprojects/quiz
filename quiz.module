@@ -757,9 +757,9 @@ function quiz_form(&$node) {
     if (!$settings_loaded) {
       drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
                          array('@quiz' => QUIZ_NAME) ));
+      $node->def_uid = variable_get('quiz_def_uid', 1);
+      _quiz_load_user_settings($node);
     }
-    $node->def_uid = variable_get('quiz_def_uid', 1);
-    _quiz_load_user_settings($node);
   }
   
   $form['#quiz_check_revision_access'] = TRUE;
