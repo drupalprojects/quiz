@@ -43,9 +43,9 @@ function long_answer_menu() {
     'title' => t('Score long-answer response'),
     'description' => t('Score a response to a long-answer question.'),
     'page callback' => 'long_answer_edit_score',
-    'page arguments' => array(3, 4),
+    'page arguments' => array(4, 5),
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array(3, 4),
+    'access arguments' => array(4, 5),
     'access callback' => 'quiz_question_access_to_score',
     'file' => 'long_answer.admin.inc'
   );
