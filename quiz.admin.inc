@@ -1318,13 +1318,6 @@ function quiz_admin_settings() {
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
   );
 
-  $form['quiz_global_settings']['quiz_default_pass_rate'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default percentage needed to pass a @quiz', array('@quiz' => QUIZ_NAME)),
-    '#default_value' => variable_get('quiz_default_pass_rate', 75),
-    '#description' => t('Supply a number between 1 and 100 to set as the default percentage correct needed to pass a quiz. Set to 0 if you want to ignore pass/fail summary information by default.'),
-  );
-
   $form['quiz_global_settings']['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
@@ -1373,28 +1366,6 @@ function quiz_admin_settings() {
     '#maxlength' => 3,
     '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
     '#default_value' => variable_get('quiz_autotitle_length', 50),
-  );
-  $options = array(t('Unlimited'));
-  for ($i = 1; $i < 10; $i++) {
-    $options[$i] = $i;
-  }
-  $form['quiz_global_settings']['quiz_def_takes'] = array(
-    '#type' => 'select',
-    '#title' => t('Default number of takes'),
-    '#default_value' => variable_get('quiz_def_takes', 1),
-    '#options' => $options,
-    '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['quiz_global_settings']['quiz_keep_results'] = array(
-    '#type' => 'radios',
-    '#title' => t('These results should be stored for each user'),
-    '#options' => array(
-       t('The best'),
-       t('The newest'),
-       t('All'),
-    ),
-    '#description' => t('This option can be overriden by quiz creators who has permission to delete results.'),
-    '#default_value' => variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
   );
 
   $target = array(
@@ -1506,17 +1477,8 @@ function quiz_settings_form_validate($form, &$form_state) {
   if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
   }
-  if (!is_numeric($form_state['values']['quiz_default_pass_rate'])) {
-    form_set_error('quiz_default_pass_rate', t('The pass rate value must be a number between 0% and 100%.'));
-  }
   if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
     form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
-  }
-  if ($form_state['values']['quiz_default_pass_rate'] > 100) {
-    form_set_error('quiz_default_pass_rate', t('The pass rate value must not be more than 100%.'));
-  }
-  if ($form_state['values']['quiz_default_pass_rate'] < 0) {
-    form_set_error('quiz_default_pass_rate', t('The pass rate value must not be less than 0%.'));
   }
   if ($form_state['values']['quiz_autotitle_length'] > 128) {
     form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));

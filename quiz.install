@@ -7,6 +7,12 @@
  *
  */
 
+function quiz_update_6411() {
+  variable_del('quiz_default_pass_rate');
+  variable_del('quiz_keep_results');
+  variable_del('quiz_def_takes');
+}
+
 function quiz_update_6410() {
   $results = array();
   db_lock_table('users');
@@ -937,7 +943,6 @@ function quiz_uninstall() {
     'quiz_name',
     'quiz_default_close',
     'quiz_use_passfail',
-    'quiz_default_pass_rate',
     'quiz_action_type',
     'quiz_action_type',
     'quiz_email_results',

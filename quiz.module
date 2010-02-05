@@ -654,7 +654,7 @@ function _quiz_get_node_defaults() {
     'feedback_time' => 0,
     'quiz_open' => 0,
     'quiz_close' => 0,
-    'takes' => variable_get('quiz_def_takes', 1),
+    'takes' => 1,
     'keep_results' => 0,
     'time_limit' => 0,
     'quiz_always' => 1,
@@ -862,7 +862,7 @@ function quiz_form(&$node) {
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
     '#title' => t('Number of takes'),
-    '#default_value' => isset($node->takes) ? $node->takes : variable_get('quiz_def_takes', 1),
+    '#default_value' => isset($node->takes) ? $node->takes : 1,
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
   );
@@ -875,13 +875,13 @@ function quiz_form(&$node) {
          t('The newest'),
          t('All'),
       ),
-      '#default_value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
+      '#default_value' => isset($node->keep_results) ? $node->keep_results : QUIZ_KEEP_ALL,
     );
   }
   else {
     $form['taking']['multiple_takes']['keep_results'] = array(
       '#type' => 'value',
-      '#value' => isset($node->keep_results) ? $node->keep_results : variable_get('quiz_keep_results', QUIZ_KEEP_ALL),
+      '#value' => isset($node->keep_results) ? $node->keep_results : QUIZ_KEEP_ALL,
     );
   }
   
@@ -949,10 +949,6 @@ function quiz_form(&$node) {
   );
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
-    // New nodes get the default.
-    if (empty($node->pass_rate) && $node->pass_rate !== '0') {
-      $node->pass_rate = variable_get('quiz_default_pass_rate', 75);
-    }
     $form['summaryoptions']['pass_rate'] = array(
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
@@ -972,7 +968,7 @@ function quiz_form(&$node) {
   else {
     $form['summaryoptions']['pass_rate'] = array(
       '#type' => 'hidden',
-      '#value' => variable_get('quiz_default_pass_rate', 75),
+      '#value' => isset($node->pass_rate) ? $node->pass_rate : 75,
       '#required' => FALSE,
     );
   }
