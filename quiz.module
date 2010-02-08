@@ -782,7 +782,7 @@ function quiz_form(&$node) {
   
   $form['taking'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Quiz taking options'),
+    '#title' => t('Taking options'),
     '#collapsed' => $settings_loaded,
     '#collapsible' => TRUE,
   );
@@ -944,7 +944,7 @@ function quiz_form(&$node) {
   // Quiz summary options.
   $form['summaryoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('@quiz pass/fail options', array('@quiz' => QUIZ_NAME)),
+    '#title' => t('Pass/fail options'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -964,6 +964,7 @@ function quiz_form(&$node) {
       '#cols' => 60,
       '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
     );
+    $form['summaryoptions']['format'] = filter_form($node->format, NULL, array('summary_format'));
   }
   // If the pass/fail option is unchecked, use the default and hide it.
   else {
@@ -980,6 +981,7 @@ function quiz_form(&$node) {
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
   );
+  $form['summaryoptions']['def_format'] = filter_form($node->format, NULL, array('default_format'));
 
   $num_rand = (isset($node->number_of_random_questions)) ? $node->number_of_random_questions : 0;
   $form['number_of_random_questions'] = array(
@@ -989,7 +991,7 @@ function quiz_form(&$node) {
 
   $form['resultoptions'] = array(
     '#type' => 'fieldset',
-    '#title' => t('!quiz Result Comments', array('!quiz' => QUIZ_NAME)),
+    '#title' => t('Result Comments'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#tree' => TRUE,
@@ -1033,7 +1035,7 @@ function quiz_form(&$node) {
       '#default_value' => $option['option_summary'],
       '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
     );
-
+    $form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
     if ($option['option_id']) {
       $form['resultoptions'][$i]['option_id'] = array(
         '#type' => 'hidden',
