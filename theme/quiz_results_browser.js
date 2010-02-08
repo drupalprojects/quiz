@@ -175,6 +175,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
 	var myUrl = $(this).attr('href').substr(2);
 	Quiz.updatePageInUrl(myUrl);
 	$('#edit-table-filters-all').hide();
+	$('.quiz-results-browser-row').remove();
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
   });

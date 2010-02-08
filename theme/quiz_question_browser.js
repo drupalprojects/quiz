@@ -151,6 +151,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   .click(function(event){
 	var myUrl = $(this).attr('href').substr(2);
 	Quiz.updatePageInUrl(myUrl);
+	$('.quiz-question-browser-row').remove();
     $('#edit-browser-table-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
