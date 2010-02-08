@@ -159,6 +159,12 @@ function quiz_question_validate($node, &$form) {
   _quiz_question_get_instance($node)->validateNode($form);
 }
 
+function quiz_question_content_extra_fields_alter(&$extra, $type_name) {
+  $q_types = _quiz_question_get_implementations();
+  if (isset($q_types[$type_name]))
+    unset($extra['body_field']);
+}
+
 /**
  * Get the form to show to the quiz taker.
  */
