@@ -1580,6 +1580,11 @@ function theme_quiz_admin_quizzes($results) {
   return $output;
 }
 
+function theme_quiz_node_form($form) {
+  $path = drupal_get_path('module', 'quiz') .'/theme/quiz_node_form.js';
+  drupal_add_js($path);
+}
+
 /*
  * @param $time_in_sec
  *  Integers time in seconds

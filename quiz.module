@@ -508,6 +508,10 @@ function quiz_theme() {
       'path' => drupal_get_path('module', 'quiz') .'/theme',
       'template' => 'quiz_report_form',
     ),
+    'quiz_node_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'quiz.admin.inc',
+    ),
   );
 }
 
@@ -763,6 +767,7 @@ function quiz_form(&$node) {
   }
   
   $form['#quiz_check_revision_access'] = TRUE;
+  $form['theme']['#theme'] = 'quiz_node_form';
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
@@ -779,6 +784,7 @@ function quiz_form(&$node) {
     '#required' => FALSE,
     );
   $form['body_field']['format'] = filter_form($node->format);
+  _quiz_format_mod($form['body_field']['format']);
   
   $form['taking'] = array(
     '#type' => 'fieldset',
@@ -965,6 +971,7 @@ function quiz_form(&$node) {
       '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
     );
     $form['summaryoptions']['format'] = filter_form($node->format, NULL, array('summary_format'));
+    _quiz_format_mod($form['summaryoptions']['format']);
   }
   // If the pass/fail option is unchecked, use the default and hide it.
   else {
@@ -974,14 +981,15 @@ function quiz_form(&$node) {
       '#required' => FALSE,
     );
   }
-  $form['summaryoptions']['summary_default'] = array(
+  $form['summaryoptions']['helper']['summary_default'] = array(
     '#type' => 'textarea',
     '#title' => t('Default summary text'),
     '#default_value' => $node->summary_default,
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
   );
-  $form['summaryoptions']['def_format'] = filter_form($node->format, NULL, array('default_format'));
+  $form['summaryoptions']['helper']['format'] = filter_form($node->format, NULL, array('default_summary_format'));
+  _quiz_format_mod($form['summaryoptions']['helper']['format']);
 
   $num_rand = (isset($node->number_of_random_questions)) ? $node->number_of_random_questions : 0;
   $form['number_of_random_questions'] = array(
@@ -1036,6 +1044,7 @@ function quiz_form(&$node) {
       '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
     );
     $form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
+    _quiz_format_mod($form['resultoptions'][$i]['format']);
     if ($option['option_id']) {
       $form['resultoptions'][$i]['option_id'] = array(
         '#type' => 'hidden',
@@ -3339,4 +3348,17 @@ function _quiz_get_num_always_questions($nid, $vid) {
           FROM {quiz_node_relationship}
           WHERE parent_vid = %d AND question_status = %d';
   return db_result(db_query($sql, $vid, QUESTION_ALWAYS));
+}
+
+
+function _quiz_format_mod(&$format) {   
+  $format['#attributes']['class'] = 'quiz_filter';
+  if (isset($format['format'])) {
+    $format['format']['guidelines']['#value'] = ' ';
+    foreach ($format as $key => $value) {
+      if (is_numeric($key)) {
+        $format[$key]['#value'] = ' ';
+      }
+    }
+  }
 }
