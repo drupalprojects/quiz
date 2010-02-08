@@ -1413,23 +1413,14 @@ function quiz_take_quiz($quiz) {
   if (!isset($_POST['op'])) {
     // Starting new quiz... Do we need to show instructions here?
   }
-  // Navigate backwards
-  elseif ($_POST['op'] == t('Back')) {
-    unset($_POST['tries']);
-
     // We maintain two lists -- previous questions and upcomming questions.
     // When we go backward, we pop one from the previous and prepend it to
     // the upcomming.
     // TODO: This can be maintained more efficiently with a single array of
     // all questions and then a pointer to the current question. That makes
     // rewinding much easier.
-    $quiz_id = 'quiz_' . $quiz->nid;
-    $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
-    array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
-    
-  }
   // Check for answer submission.
-  elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next')) {
+  elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back')) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id']))
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
 
@@ -1464,7 +1455,13 @@ function quiz_take_quiz($quiz) {
         drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
       }
     }
- 
+    elseif($_POST['op'] == t('Back')) {
+      $quiz_id = 'quiz_' . $quiz->nid;
+      for ($i = 0; $i < 2 ; $i++) {
+        $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
+        array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
+      }
+    }
     // If anonymous user, refresh url with unique hash to prevent caching.
     if (!$user->uid) {
       //drupal_goto('node/'. $quiz->nid .'/quiz/start/'. md5(mt_rand() . time())); #460550
