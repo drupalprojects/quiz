@@ -941,12 +941,14 @@ function quiz_form(&$node) {
     '#title' => t('Open Date'),
     '#default_value' => _quiz_form_prepare_date($node->quiz_open),
     '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
+    '#after_build' => array('_quiz_limit_year_options'),
   );
   $form['quiz_availability']['quiz_close'] = array(
     '#type' => 'date',
     '#title' => t('Close Date'),
     '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
     '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
+    '#after_build' => array('_quiz_limit_year_options'),
   );
   // Quiz summary options.
   $form['summaryoptions'] = array(
@@ -3359,4 +3361,9 @@ function _quiz_format_mod(&$format) {
       }
     }
   }
+}
+
+function _quiz_limit_year_options($form_element) {
+  $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
+  return $form_element;
 }
