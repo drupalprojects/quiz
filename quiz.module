@@ -533,11 +533,12 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
     unset($form['buttons']['preview']);
     if ($form['#cancel_button']) {
       $form['buttons']['cancel'] = array(
-          '#type' => 'markup',
-          '#value' => l(t('Cancel'), $form['#redirect']),
-          '#weight' => 6,
-        );
+        '#type' => 'markup',
+        '#value' => l(t('Cancel'), $form['#redirect']),
+        '#weight' => 6,
+      );
     }
+    $form['buttons']['#weight'] = 50;
   }
 }
 
