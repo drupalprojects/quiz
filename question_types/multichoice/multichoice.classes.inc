@@ -89,7 +89,7 @@ class MultichoiceQuestion extends QuizQuestion {
               VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
-        if (strlen($this->checkMarkup($i, 'answer')) > 0) {
+        if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
           $this->insertAlternative($i);
         }
       }
@@ -108,7 +108,7 @@ class MultichoiceQuestion extends QuizQuestion {
       }
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (drupal_strlen($this->checkMarkup($i, 'answer')) > 0) {
+        if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
           if (!is_numeric($short['id'])) $this->insertAlternative($i);
           else {
             $this->updateAlternative($i);
