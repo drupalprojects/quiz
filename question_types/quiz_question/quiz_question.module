@@ -162,7 +162,7 @@ function quiz_question_validate($node, &$form) {
 function quiz_question_content_extra_fields_alter(&$extra, $type_name) {
   $q_types = _quiz_question_get_implementations();
   if (isset($q_types[$type_name]))
-    unset($extra['body_field']);
+    unset($extra['body_field'], $extra['title']);
 }
 
 /**
