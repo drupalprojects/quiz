@@ -32,3 +32,15 @@ function theme_matching_question_form($form) {
   // Theme output and display to screen.
   return theme('table', $header, $rows);
 }
+
+function theme_matching_answering_form($form) {
+  $out = '<table class = "matching-tbl">';
+  foreach($form as $key => $value) {
+    if(is_int($key)) {
+      $out .= '<tr><td class = "matching-question">'. $value['#question'];
+      $out .= '</td><td class = "matching-select">'. drupal_render($value) .'</td></tr>';
+    }
+  }
+  $out .= '</table>';
+  return $out;
+}

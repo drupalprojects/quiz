@@ -123,15 +123,17 @@ class MatchingQuestion extends QuizQuestion {
       $responses = $response->getResponse();
     }
     list($matches, $select_option) = $this->getSubquestions();
+    $form['subquestions']['#theme'] = 'matching_answering_form';
     foreach ($matches as $match) {
-      $title = $match['question'];
-      $form['subquestions']['tries[' . $match['match_id'] . ']'] = array(
+      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question']);
+      
+      $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $title,
         '#options' => $this->customShuffle($select_option),
       );
       if (isset($rid)) {
-        $form['subquestions']['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
+        $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
       }
     }
     $form['scoring_info'] = array(

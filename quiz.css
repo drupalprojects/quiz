@@ -284,3 +284,24 @@ dl.quiz-report dd {
 #browser-pager .pager-first {
   display: none;
 }
+
+.matching-tbl {
+  width: auto;
+  border-collapse: separate;
+  padding: 0px;
+  margin: 0px;
+  border: 0px;
+  line-height: 100%;
+}
+
+.matching-tbl p, .matching-tbl select, .matching-tbl div {
+  padding: 0px;
+  margin: 0px;
+  line-height: 100%;
+}
+
+.matching-tbl td {
+  padding: 2px;
+  margin: 2px;
+  line-height: 100%;
+}

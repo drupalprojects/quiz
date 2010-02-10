@@ -84,14 +84,10 @@ function matching_theme() {
       'arguments' => array('form' => NULL),
       'file' => 'matching.theme.inc',
     ),
-    /*'long_answer_feedback' => array(
-      'arguments' => array('quiz' => NULL, 'report' => NULL),
-      'file' => 'long_answer.theme.inc',
+    'matching_answering_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'matching.theme.inc',
     ),
-    'long_answer_view_unscored' => array(
-      'arguments' => array('unscored' => array()),
-      'file' => 'long_answer.admin.inc',
-    ),*/
   );
 }
 /*
