@@ -161,6 +161,12 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   
   // If js is active we use a link to remove questions from the question list
   $('.q-remove').css('display', 'inline');
+  
+  $('.handle-changes').click(function(event){
+    var proceed = confirm(Drupal.t('Any unsaved changes will be lost. Are you sure you want to proceed?'));
+    if (!proceed)
+      event.preventDefault();
+  });
 };
 
 /**

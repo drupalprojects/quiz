@@ -377,7 +377,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       );
     }
     $link_options = array(
-      'attributes' => array('target' => 'blank'),
+      'attributes' => array('class' => 'handle-changes'),
       'html' => TRUE,
     );
     $form[$fieldset]['titles'][$id] = array('#value' => l($question->title, 'node/'. $question->nid, $link_options));
@@ -390,7 +390,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         'node/'. $question->nid .'/edit',
         array(
           'query' => array('destination' => $my_dest),
-          'attributes' => array('target' => 'blank'),
+          'attributes' => array('class' => 'handle-changes'),
         )
       ),
     );
