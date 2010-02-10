@@ -114,6 +114,10 @@ class MatchingQuestion extends QuizQuestion {
   // to an administrator or to a quiz taker.
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = array();
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+    );
     if (isset($rid)) {
       $response = new MatchingResponse($rid, $this->node);
       $responses = $response->getResponse();
@@ -134,7 +138,7 @@ class MatchingQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => '<p><em>'. t('You loose points by selecting incorrect options. You may leave an option blank to avoid loosing points.') .'</em></p>',
     );
-    return variable_get('quiz_matching_shuffle_options', TRUE) ? array($this->customShuffle($form['subquestions']), $form['scoring_info']) : $form;
+    return variable_get('quiz_matching_shuffle_options', TRUE) ? array($form['question'], $this->customShuffle($form['subquestions']), $form['scoring_info']) : $form;
   }
 
   private function customShuffle(array $array = array()) {
