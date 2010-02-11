@@ -2224,8 +2224,8 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
-    node_save($quiz);
   }
+  node_save($quiz);
 
   // XXX: Should we be verifying here that the nodes submitted as $questions are actually
   // recognized question types? It adds quite a performance hit, but could be beneficial.

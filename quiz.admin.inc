@@ -854,10 +854,24 @@ function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
  * Validate that the supplied questions are real.
  */
 function quiz_questions_form_validate($form, $form_state) {
+  
+  if (is_numeric(arg(1)) && arg(1) >= 0) {
+    if (node_last_changed(intval(arg(1))) > $form_state['values']['timestamp']) {
+      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
+    }
+  }
+  else {
+    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
+    return;
+  }
+  
+  
   $question_types = array_keys(_quiz_get_question_types());
   $placeholders = db_placeholders($question_types, 'varchar');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
 
+  
+  
   $already_checked = array();
   $weight_map = $form_state['values']['weights'];
 
@@ -958,12 +972,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $
   */
 function quiz_questions_form_submit($form, &$form_state) {
   // Load the quiz node
-  if (is_numeric(arg(1)) && arg(1) >= 0)
-    $quiz = node_load((int)arg(1));
-  else {
-    drupal_set_message(t('A critical error was detected. Please pray that it will never happen again.'), 'error');
-    return;
-  }
+  $quiz = node_load(intval(arg(1)));
 
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
   $is_new_revision = (bool) $form_state['values']['new_revision'];
