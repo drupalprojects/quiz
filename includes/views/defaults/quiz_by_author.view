@@ -1,8 +1,8 @@
 <?php
 
 $view = new view;
-$view->name = 'quiz_by_teacher';
-$view->description = 'View of all the quizzes owned by a particular user (\'teacher\').';
+$view->name = 'quiz_by_author';
+$view->description = 'View of all the quizzes owned by a particular user (\'author\').';
 $view->tag = 'quiz';
 $view->view_php = '';
 $view->base_table = 'quiz_node_properties';
@@ -251,7 +251,7 @@ $handler->override_option('style_options', array(
   'default' => '-1',
 ));
 $handler = $view->new_display('page', 'Page', 'page_1');
-$handler->override_option('path', 'quiztest/byteacher/%');
+$handler->override_option('path', 'quiztest/byauthor/%');
 $handler->override_option('menu', array(
   'type' => 'none',
   'title' => '',

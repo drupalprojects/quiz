@@ -1,7 +1,7 @@
 <?php
 
 $view = new view;
-$view->name = 'quiz_by_user';
+$view->name = 'quiz_by_taker';
 $view->description = 'View of all the quizzes a user has taken';
 $view->tag = 'quiz';
 $view->view_php = '';
@@ -295,7 +295,7 @@ $handler->override_option('style_options', array(
   'default' => '-1',
 ));
 $handler = $view->new_display('page', 'Page', 'page_1');
-$handler->override_option('path', 'quiztest/byuser/%');
+$handler->override_option('path', 'quiztest/bytaker/%');
 $handler->override_option('menu', array(
   'type' => 'none',
   'title' => '',
