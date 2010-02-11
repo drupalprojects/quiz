@@ -58,6 +58,29 @@ class LongAnswerQuestion extends QuizQuestion{
     $this->nodeProperties = $props;
     return $props;
   }
+  
+
+  public function getNodeView() {
+    $content = parent::getNodeView();
+
+    if ($this->viewCanRevealCorrect()) {
+      $rubric_html = check_markup($this->node->rubric, $this->node->format, FALSE);
+      $content['answers'] = array('#type' => 'markup',
+      // TODO should use CSS instead, maybe across all quiz_question.module
+      '#value' => '<div style="background-color: lightgreen"><h3>Rubric</h3>'. $rubric_html .'</div>',
+      '#weight' => 1,
+      );
+    } else {
+      // TODO this should use CSS and be a theme chunk
+      $content['answers'] = array(
+      '#type' => 'markup',
+      '#value' => '<br /> <em>Answer hidden</em>.',
+      '#weight' => 2,
+      );
+    }
+
+    return $content;
+  }
 
   // This is called whenever a question is rendered, either
   // to an administrator or to a quiz taker.
