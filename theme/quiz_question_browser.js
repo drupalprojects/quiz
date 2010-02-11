@@ -163,9 +163,11 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.q-remove').css('display', 'inline');
   
   $('.handle-changes').click(function(event){
-    var proceed = confirm(Drupal.t('Any unsaved changes will be lost. Are you sure you want to proceed?'));
-    if (!proceed)
-      event.preventDefault();
+    if ($('#mq-fieldset .tabledrag-changed').length) {
+      var proceed = confirm(Drupal.t('Any unsaved changes will be lost. Are you sure you want to proceed?'));
+      if (!proceed)
+        event.preventDefault();
+    }
   });
 };
 

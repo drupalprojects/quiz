@@ -98,6 +98,7 @@ function quiz_questions_form($form_state, $quiz, $options) {
     '#title' => (isset($options['fieldset_always']['title'])) ? $options['fieldset_always']['title'] : t('Questions on this quiz'),
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
+    '#attributes' => array('id' => 'mq-fieldset'),
     'question_status' => array('#tree' => TRUE),
   );
 
