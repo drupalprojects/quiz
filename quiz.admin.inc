@@ -10,6 +10,250 @@
 
 // QUIZ ADMIN
 
+// Quiz Admin Settings
+
+/**
+ * Implementation of hook_settings().
+ *
+ * This builds the main settings form for the quiz module.
+ */
+function quiz_admin_settings() {
+  $form = array();
+
+  $form['quiz_global_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Global Configuration'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Control aspects of the Quiz module\'s display'),
+  );
+
+  $form['quiz_global_settings']['quiz_default_close'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
+    '#default_value' => variable_get('quiz_default_close', 30),
+    '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
+  );
+
+  $form['quiz_global_settings']['quiz_use_passfail'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_use_passfail', 1),
+    '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
+  );
+
+  $form['quiz_global_settings']['quiz_display_feedback'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display @quiz feedback.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_display_feedback', 1),
+    '#description' => t('List the user selected answer and correct answer at the end of the @quiz.', array('@quiz' => QUIZ_NAME)),
+  );
+
+  $form['quiz_global_settings']['quiz_max_result_options'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum Result Options'),
+    '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
+    '#default_value' => variable_get('quiz_max_result_options', 5),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => FALSE,
+  );
+
+  // Added for support of actions and allowing the user to filter the actions dropdown by a value.
+  $form['quiz_global_settings']['quiz_action_type'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default actions type'),
+    '#size' => 25,
+    '#default_value' => variable_get('quiz_action_type', 'all'),
+    '#description' => t('Filter the actions dropdown by a specific type.'),
+  );
+
+  $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
+    '#type' => 'select',
+    '#title' => t('Remove Incomplete Quiz Records (older than)'),
+    '#options' => quiz_remove_partial_quiz_record_value(),
+    '#description' => t('Number of days that you like to keep the incomplete quiz records'),
+    '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
+  );
+
+  $form['quiz_global_settings']['quiz_autotitle_length'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Length of automatically set question titles'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
+    '#default_value' => variable_get('quiz_autotitle_length', 50),
+  );
+
+  $target = array(
+    'attributes' => array(
+      'target' => '_blank'
+    ),
+  );
+
+  $links = array(
+    '!views' => l(t('Views'), 'http://drupal.org/project/views', $target),
+    '!cck' => l(t('CCK'), 'http://drupal.org/project/cck', $target),
+    '!jquery_countdown' => l(t('JQuery Countdown'), 'http://drupal.org/project/jquery_countdown', $target),
+    '!userpoints' => l(t('UserPoints'), 'http://drupal.org/project/userpoints', $target),
+    '@quiz' => QUIZ_NAME,
+  );
+
+  $form['quiz_addons'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Addons Configuration'),
+    '#description' => t('Quiz module can integrate with other d.o modules like !views, !cck, !userpoints, !jquery_countdown. Here you can configure the way quiz module integrates to other modules. Disabled checkbox indicates modules are not enabled/installed', $links),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+
+  $form['quiz_addons']['quiz_has_userpoints'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable UserPoints Module Integration'),
+    '#default_value' => variable_get('quiz_has_userpoints', 0),
+    '#description' => t('!userpoints an *optional* module for quiz, provides way for users to gain or lose points for performing certain actions on your site like attending @quiz.  you will need to install the !userpoints module to use this feature.', $links),
+    '#disabled' => !module_exists('userpoints'),
+  );
+
+  $form['quiz_addons']['quiz_has_timer'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display Timer for Timed Quiz'),
+    '#default_value' => variable_get('quiz_has_timer', 0),
+    '#description' => t('!jquery_countdown an *optional* module for quiz used for the timer to be displayed on the user\'s page, you will need to install the !jquery_countdown module. Without this timer, the user will not know how long he or she has to complete the @quiz', $links),
+    '#disabled' => !function_exists('jquery_countdown_add'),
+  );
+
+  $form['quiz_look_feel'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Look and Feel Settings'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Control aspects of the Quiz module\'s display'),
+  );
+
+  $form['quiz_look_feel']['quiz_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Display name'),
+    '#default_value' => QUIZ_NAME,
+    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>.',
+      array('@quiz' => QUIZ_NAME)),
+    '#required' => TRUE,
+  );
+
+  $form['quiz_look_feel']['quiz_show_allowed_times'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show allowed times'),
+    '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
+    '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
+
+  );
+
+  $form['quiz_email_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email Settings'),
+    '#description' => t('Allows to send results to quiz author/ attendee via e-mail and configuration e-mail subject and body.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  $form['quiz_email_settings']['quiz_email_results'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_email_results', 0),
+    '#description' => t('Check this to send users quiz results over E-mail at the end of quiz.')
+  );
+  $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('E-mail all users results to Quiz Author.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
+    '#description' => t('Check this to send users quiz results over E-mail to quiz author. (<em> it works only when the attendee is an anonymous user</em>).'),
+  );
+  $form['quiz_email_settings']['quiz_email_results_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Configure Email subject'),
+    '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
+    '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
+  );
+
+  $form['quiz_email_settings']['quiz_email_results_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Configure Email format'),
+    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
+    '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
+  );
+
+  $form['def_settings_link'] = array(
+    '#type' => 'markup',
+    '#value' => '<p>'. t('Default values for the quiz node-form can be edited '). l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
+  );
+  
+  $form['#validate'][] = 'quiz_settings_form_validate';
+  return system_settings_form($form);
+}
+
+/**
+  * Validation of the Form Settings form.
+  *
+  * Checks the values for the form administration form for quiz settings.
+  */
+function quiz_settings_form_validate($form, &$form_state) {
+  if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
+    form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
+  }
+  if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] > 128) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));
+  }
+  if ($form_state['values']['quiz_autotitle_length'] < 0) {
+    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be smaller than 0.'));
+  }
+}
+
+function quiz_admin_node_form(&$form_state) {
+  $dummy_node = new stdClass();
+  $dummy_node->def_uid = variable_get('quiz_def_uid', NULL);
+  $form = quiz_form($dummy_node);
+  $form['direction'] = array(
+    '#type' => 'markup',
+    '#value' => t('Here you can change the default quiz settings for new users.'),
+    '#weight' => -10,
+  );
+  unset(
+    $form['#quiz_check_revision_access'],
+    $form['title'],
+    $form['body_field'],
+    $form['taking']['aid'],
+    $form['taking']['addons'],
+    $form['quiz_availability']['quiz_open'],
+    $form['quiz_availability']['quiz_close'],
+    $form['resultoptions'],
+    $form['number_of_random_questions']
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#submit' => array('quiz_admin_node_form_submit'),
+  );
+  return $form;
+}
+
+function quiz_admin_node_form_validate($form, &$form_state) {
+  $dummy_node = new stdClass();
+  foreach($form_state['values'] as $key => $value) {
+    $dummy_node->{$key} = $value;
+  }
+  $dummy_node->resultoptions = array();
+  quiz_validate($dummy_node);
+}
+
+function quiz_admin_node_form_submit($form, &$form_state) {
+  $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
+  _quiz_save_user_settings($form_state['values']);
+}
+
+ // QUIZ RESULTS ADMIN
+
 /**
  * Displays the quizzes by title with a link to the appropriate results
  * for that specific quiz.
@@ -25,8 +269,6 @@ function quiz_admin_quizzes() {
   $results = _quiz_get_quizzes($uid);
   return theme('quiz_admin_quizzes', $results);
 }
-
- // QUIZ RESULTS ADMIN
 
  /**
   * Quiz Results Admin.
@@ -52,6 +294,115 @@ function quiz_admin_results($quiz, $rid) {
 }
 
 /**
+ * Store values for each browser filter in $_SESSION
+ *
+ * @param $filters
+ *   array holding the values for each filter
+ */
+function _quiz_results_mr_store_filters($filters) {
+  $pre = 'quiz_results_mr_';
+  $_SESSION[$pre .'name'] = $filters['name'];
+  $_SESSION[$pre .'started'] = $filters['started'];
+  $_SESSION[$pre .'finished'] = $filters['finished'];
+  $_SESSION[$pre .'score'] = $filters['score'];
+  $_SESSION[$pre .'evaluated'] = $filters['evaluated'];
+  $_SESSION[$pre .'best_results'] = $filters['best_results'];
+  $_SESSION[$pre .'not_in_progress'] = $filters['not_in_progress'];
+}
+
+/**
+ * AHAH handler for the results browser
+ */
+function quiz_results_mr_browser_ahah() {
+  // Prepare to get the form from cache
+  $form_state = array('storage' => NULL, 'submitted' => FALSE);
+  $form_id = $_POST['form_build_id'];
+  
+  // Make sure the form exists
+  if (!($form = form_get_cache($form_id, $form_state))) {
+    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
+    $output = theme('status_messages');
+    print drupal_to_js(array('status' => TRUE, 'data' => $output));
+    exit();
+  }
+  // If filter or pager has been used
+  $replace_all = drupal_strlen($_POST['table']['add_to_get']) > 0;
+
+  // Prepare to submit the form
+  $args = $form['#parameters'];
+  $form_id = array_shift($args);
+
+  // We will run some of the submit handlers so we need to disable redirecting.
+  $form['#redirect'] = FALSE;
+
+  // We need to process the form, prepare for that by setting a few internals
+  // variables.
+  $form['#post'] = $_POST;
+  $form['#programmed'] = FALSE;
+  $form_state['post'] = $_POST;
+
+  // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
+  foreach ($_POST as $key => $value) {
+    unset($_REQUEST[$key]);
+  }
+  $_POST = array();
+
+  // We don't want any validation errors to show up. This isn't a real submit.
+  _quiz_skip_validation($form);
+
+  _quiz_results_mr_store_filters($form_state['post']['table']['filters']);
+
+  // Build, validate and submit the form.
+  drupal_process_form($form_id, $form, $form_state);
+
+  //Remove any status messages the processing resulted in...
+  theme('status_messages');
+
+  // Get the form the ajax call resulted in
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+
+  // We store a copy of the browser part of the form, and remove it from the main form.
+  // This way we can render the form without the browser, and render the browser separatly
+  $b_form = $form['table'];
+  unset($form['table']);
+
+  /*
+   * $output is the string we will send to ajax, and that will be added to the page.
+   * We are doing this in a special way so we have to call javascript functions to
+   * update the DOM.
+   */
+  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
+
+  // We replace the entire browser. This is done when the browser is sorted
+  if ($replace_all) {
+    // Make sure the description and test is removed
+    unset($b_form['#type']);
+    unset($b_form['#value']);
+
+    $rendered_browser = drupal_render($b_form);
+    $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
+
+    // Have js(jQuery) replace the browser and change the form build id in the DOM
+    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
+  }
+  
+  // Only the question rows in the browser is replaced.
+  else {
+    // Send status messages, new build id for the form and the new question row to the javascript:
+    $b_rows = _quiz_get_browser_content(drupal_render($b_form), 'quiz-results-browser-row');
+    $b_pager = drupal_render($b_form['pager']);
+
+    $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
+    $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
+    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
+    $output .= ' </script>';
+    $output .= ' '. theme('status_messages');
+  }
+  drupal_json(array('status' => TRUE, 'data' => $output));
+}
+// MANAGE QUESTIONS
+
+/**
  * Creates a form for quiz questions.
  *
  * Handles the manage questions tab.
@@ -70,7 +421,6 @@ function quiz_questions($node) {
   return drupal_get_form('quiz_questions_form', $node, $options);
 }
 
-// EDIT QUIZ
 
 /**
  * Handles "manage questions" tab.
@@ -570,186 +920,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   return $form;
 }
 
-/**
- * Returns list of options for the changed select box
- *
- * @see _quiz_questions_browser_form()
- *
- * @return $changed_options
- *   Options for the changed select box.
- */
-function _quiz_get_time_interval_options() {
-  return array(
-    t('No filter'),
-    t('Today'),
-    t('Yesterday'),
-    t('Two days ago'),
-    t('This week'),
-    t('Last week'),
-    t('This month'),
-    t('Last month'),
-    t('This year'),
-    t('Last year'),
-    t('Long ago'),
-  );
-}
-
-/**
- * Returns an array with sql where clauses correscponding to the options in the time filters.
- *
- * @see _quiz_questions_browser_form()
- *
- * @return $changed_timestamps
- *   array of timestamps and sql filters
- */
-function _quiz_get_interval_timestamps($fieldname) {
-  // Create datastructure to help create where clause in the sql for the changed filter...
-  $now = time();
-  $one_day = 86400;
-  $one_week = 604800;
-  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
-  $weekday = date('N', $now);
-  $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
-  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
-  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
-  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
-  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
-  $changed_timestamps = array(
-    NULL,
-    array($timestamp_today, $now),
-    array($timestamp_today - $one_day * 1, $timestamp_today),
-    array($timestamp_today - $one_day * 2, $timestamp_today - $one_day * 1),
-    array($timestamp_week, $now),
-    array($timestamp_week - $one_week, $timestamp_week),
-    array($timestamp_month, $now),
-    array($timestamp_last_month, $timestamp_month),
-    array($timestamp_year, $now),
-    array($timestamp_last_year, $timestamp_year),
-    array(0, $timestamp_last_year),
-  );
-
-  foreach ($changed_timestamps as $key => &$val) {
-    if ($val == NULL) continue;
-    $val['sql'] = " AND $fieldname > ". $val[0] ." AND $fieldname < ". $val[1];
-  }
-  return $changed_timestamps;
-}
-
-/**
- * Returns an array with sql where clauses correscponding to the options in the time filters.
- *
- * @see _quiz_questions_browser_form()
- *
- * @return $changed_timestamps
- *   array of timestamps and sql filters
- */
-function _quiz_get_duration_intervals() {
-  // Create datastructure to help create where clause in the sql for the changed filter...
-  $durations = array(
-    NULL,
-    '> 60',
-    '> 300',
-    '> 600',
-    '> 3600',
-    '> 28800',
-    '> 86400',
-    '< 60',
-    '< 300',
-    '< 600',
-    '< 3600',
-    '< 28800',
-    '< 86400',
-  );
-
-  foreach ($durations as $key => &$val) {
-    if ($val == NULL) continue;
-    $durations[$key] = ' AND (time_end - time_start) '. $val;
-  }
-  return $durations;
-}
-
-/**
- * Returns an array with options for the time filters.
- *
- * @see _quiz_get_duration_intervals()
- *
- * @return $options
- *   array of options for the duration filter
- */
-function _quiz_get_duration_options() {
-  return array(
-    'No filter',
-    t('> 1 m'),
-    t('> 5 m'),
-    t('> 10 m'),
-    t('> 1 h'),
-    t('> 8 h'),
-    t('> 24 h'),
-    t('< 1 m'),
-    t('< 5 m'),
-    t('< 10 m'),
-    t('< 1 h'),
-    t('< 8 h'),
-    t('< 24 h'),
-  );
-}
-
-/**
- * Returns an array with options for the score filters.
- *
- * @see _quiz_get_score_intervals()
- *
- * @return $options
- *   array of options for the score filter
- */
-function _quiz_get_score_options() {
-  return array(
-    'No filter',
-    t('Passed'),
-    t('Failed'),
-    t('= 100 %'),
-    t('> 90 %'),
-    t('> 75 %'),
-    t('> 50 %'),
-    t('> 25 %'),
-    t('< 90 %'),
-    t('< 75 %'),
-    t('< 50 %'),
-    t('< 25 %'),
-  );
-}
-
-/**
- * Returns an array with sql where clauses correscponding to the options in the time filters.
- *
- * @see _quiz_questions_browser_form()
- *
- * @return $changed_timestamps
- *   array of timestamps and sql filters
- */
-function _quiz_get_score_intervals($quiz) {
-// Create datastructure to help create where clause in the sql for the changed filter...
-  $scores = array(
-    NULL,
-    '>= pass_rate',
-    '< pass_rate',
-    '= 100',
-    '> 90',
-    '> 75',
-    '> 50',
-    '> 25',
-    '< 90',
-    '< 75',
-    '< 50',
-    '< 25',
-  );
-
-  foreach ($scores as $key => &$val) {
-    if ($val == NULL) continue;
-    $scores[$key] = ' AND score '. $val;
-  }
-  return $scores;
-}
 
 /**
  * adds filter fields to the browser form
@@ -1083,22 +1253,7 @@ function _quiz_browser_store_filters($filters) {
   $_SESSION[$pre .'name'] = $filters['name'];
 }
 
-/**
- * Store values for each browser filter in $_SESSION
- *
- * @param $filters
- *   array holding the values for each filter
- */
-function _quiz_results_mr_store_filters($filters) {
-  $pre = 'quiz_results_mr_';
-  $_SESSION[$pre .'name'] = $filters['name'];
-  $_SESSION[$pre .'started'] = $filters['started'];
-  $_SESSION[$pre .'finished'] = $filters['finished'];
-  $_SESSION[$pre .'score'] = $filters['score'];
-  $_SESSION[$pre .'evaluated'] = $filters['evaluated'];
-  $_SESSION[$pre .'best_results'] = $filters['best_results'];
-  $_SESSION[$pre .'not_in_progress'] = $filters['not_in_progress'];
-}
+
 
 /**
  * AHAH handler for the question browser
@@ -1213,295 +1368,8 @@ function quiz_browser_ahah() {
   drupal_json(array('status' => TRUE, 'data' => $output));
 }
 
-/**
- * AHAH handler for the results browser
- */
-function quiz_results_mr_browser_ahah() {
-  // Prepare to get the form from cache
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_id = $_POST['form_build_id'];
-  
-  // Make sure the form exists
-  if (!($form = form_get_cache($form_id, $form_state))) {
-    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-    $output = theme('status_messages');
-    print drupal_to_js(array('status' => TRUE, 'data' => $output));
-    exit();
-  }
-  // If filter or pager has been used
-  $replace_all = drupal_strlen($_POST['table']['add_to_get']) > 0;
 
-  // Prepare to submit the form
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
 
-  // We will run some of the submit handlers so we need to disable redirecting.
-  $form['#redirect'] = FALSE;
-
-  // We need to process the form, prepare for that by setting a few internals
-  // variables.
-  $form['#post'] = $_POST;
-  $form['#programmed'] = FALSE;
-  $form_state['post'] = $_POST;
-
-  // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
-  foreach ($_POST as $key => $value) {
-    unset($_REQUEST[$key]);
-  }
-  $_POST = array();
-
-  // We don't want any validation errors to show up. This isn't a real submit.
-  _quiz_skip_validation($form);
-
-  _quiz_results_mr_store_filters($form_state['post']['table']['filters']);
-
-  // Build, validate and submit the form.
-  drupal_process_form($form_id, $form, $form_state);
-
-  //Remove any status messages the processing resulted in...
-  theme('status_messages');
-
-  // Get the form the ajax call resulted in
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-
-  // We store a copy of the browser part of the form, and remove it from the main form.
-  // This way we can render the form without the browser, and render the browser separatly
-  $b_form = $form['table'];
-  unset($form['table']);
-
-  /*
-   * $output is the string we will send to ajax, and that will be added to the page.
-   * We are doing this in a special way so we have to call javascript functions to
-   * update the DOM.
-   */
-  $output = '<script>var quizNewBuildId = '. drupal_to_js($form['#build_id']) .';';
-
-  // We replace the entire browser. This is done when the browser is sorted
-  if ($replace_all) {
-    // Make sure the description and test is removed
-    unset($b_form['#type']);
-    unset($b_form['#value']);
-
-    $rendered_browser = drupal_render($b_form);
-    $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
-
-    // Have js(jQuery) replace the browser and change the form build id in the DOM
-    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
-  }
-  
-  // Only the question rows in the browser is replaced.
-  else {
-    // Send status messages, new build id for the form and the new question row to the javascript:
-    $b_rows = _quiz_get_browser_content(drupal_render($b_form), 'quiz-results-browser-row');
-    $b_pager = drupal_render($b_form['pager']);
-
-    $output .= ' var quizBrowserRows = '. drupal_to_js($b_rows) .';';
-    $output .= ' var quizBrowserPager = '. drupal_to_js($b_pager) .';';
-    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
-    $output .= ' </script>';
-    $output .= ' '. theme('status_messages');
-  }
-  drupal_json(array('status' => TRUE, 'data' => $output));
-}
-// Quiz Admin Settings
-
-/**
- * Implementation of hook_settings().
- *
- * This builds the main settings form for the quiz module.
- */
-function quiz_admin_settings() {
-  $form = array();
-
-  $form['quiz_global_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Global Configuration'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#description' => t('Control aspects of the Quiz module\'s display'),
-  );
-
-  $form['quiz_global_settings']['quiz_default_close'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
-    '#default_value' => variable_get('quiz_default_close', 30),
-    '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
-  );
-
-  $form['quiz_global_settings']['quiz_use_passfail'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_use_passfail', 1),
-    '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
-  );
-
-  $form['quiz_global_settings']['quiz_display_feedback'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display @quiz feedback.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_display_feedback', 1),
-    '#description' => t('List the user selected answer and correct answer at the end of the @quiz.', array('@quiz' => QUIZ_NAME)),
-  );
-
-  $form['quiz_global_settings']['quiz_max_result_options'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Maximum Result Options'),
-    '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
-    '#default_value' => variable_get('quiz_max_result_options', 5),
-    '#size' => 2,
-    '#maxlength' => 2,
-    '#required' => FALSE,
-  );
-
-  // Added for support of actions and allowing the user to filter the actions dropdown by a value.
-  $form['quiz_global_settings']['quiz_action_type'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default actions type'),
-    '#size' => 25,
-    '#default_value' => variable_get('quiz_action_type', 'all'),
-    '#description' => t('Filter the actions dropdown by a specific type.'),
-  );
-
-  $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
-    '#type' => 'select',
-    '#title' => t('Remove Incomplete Quiz Records (older than)'),
-    '#options' => quiz_remove_partial_quiz_record_value(),
-    '#description' => t('Number of days that you like to keep the incomplete quiz records'),
-    '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
-  );
-
-  $form['quiz_global_settings']['quiz_autotitle_length'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Length of automatically set question titles'),
-    '#size' => 3,
-    '#maxlength' => 3,
-    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
-    '#default_value' => variable_get('quiz_autotitle_length', 50),
-  );
-
-  $target = array(
-    'attributes' => array(
-      'target' => '_blank'
-    ),
-  );
-
-  $links = array(
-    '!views' => l(t('Views'), 'http://drupal.org/project/views', $target),
-    '!cck' => l(t('CCK'), 'http://drupal.org/project/cck', $target),
-    '!jquery_countdown' => l(t('JQuery Countdown'), 'http://drupal.org/project/jquery_countdown', $target),
-    '!userpoints' => l(t('UserPoints'), 'http://drupal.org/project/userpoints', $target),
-    '@quiz' => QUIZ_NAME,
-  );
-
-  $form['quiz_addons'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Addons Configuration'),
-    '#description' => t('Quiz module can integrate with other d.o modules like !views, !cck, !userpoints, !jquery_countdown. Here you can configure the way quiz module integrates to other modules. Disabled checkbox indicates modules are not enabled/installed', $links),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
-  $form['quiz_addons']['quiz_has_userpoints'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable UserPoints Module Integration'),
-    '#default_value' => variable_get('quiz_has_userpoints', 0),
-    '#description' => t('!userpoints an *optional* module for quiz, provides way for users to gain or lose points for performing certain actions on your site like attending @quiz.  you will need to install the !userpoints module to use this feature.', $links),
-    '#disabled' => !module_exists('userpoints'),
-  );
-
-  $form['quiz_addons']['quiz_has_timer'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display Timer for Timed Quiz'),
-    '#default_value' => variable_get('quiz_has_timer', 0),
-    '#description' => t('!jquery_countdown an *optional* module for quiz used for the timer to be displayed on the user\'s page, you will need to install the !jquery_countdown module. Without this timer, the user will not know how long he or she has to complete the @quiz', $links),
-    '#disabled' => !function_exists('jquery_countdown_add'),
-  );
-
-  $form['quiz_look_feel'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Look and Feel Settings'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#description' => t('Control aspects of the Quiz module\'s display'),
-  );
-
-  $form['quiz_look_feel']['quiz_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Display name'),
-    '#default_value' => QUIZ_NAME,
-    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>.',
-      array('@quiz' => QUIZ_NAME)),
-    '#required' => TRUE,
-  );
-
-  $form['quiz_look_feel']['quiz_show_allowed_times'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show allowed times'),
-    '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
-    '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
-
-  );
-
-  $form['quiz_email_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Email Settings'),
-    '#description' => t('Allows to send results to quiz author/ attendee via e-mail and configuration e-mail subject and body.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-  $form['quiz_email_settings']['quiz_email_results'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_email_results', 0),
-    '#description' => t('Check this to send users quiz results over E-mail at the end of quiz.')
-  );
-  $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('E-mail all users results to Quiz Author.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
-    '#description' => t('Check this to send users quiz results over E-mail to quiz author. (<em> it works only when the attendee is an anonymous user</em>).'),
-  );
-  $form['quiz_email_settings']['quiz_email_results_subject'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Configure Email subject'),
-    '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
-    '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
-  );
-
-  $form['quiz_email_settings']['quiz_email_results_body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Configure Email format'),
-    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
-    '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
-  );
-
-  $form['def_settings_link'] = array(
-    '#type' => 'markup',
-    '#value' => '<p>'. t('Default values for the quiz node-form can be edited '). l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
-  );
-  
-  $form['#validate'][] = 'quiz_settings_form_validate';
-  return system_settings_form($form);
-}
-
-/**
-  * Validation of the Form Settings form.
-  *
-  * Checks the values for the form administration form for quiz settings.
-  */
-function quiz_settings_form_validate($form, &$form_state) {
-  if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
-    form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
-  }
-  if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
-    form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
-  }
-  if ($form_state['values']['quiz_autotitle_length'] > 128) {
-    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));
-  }
-  if ($form_state['values']['quiz_autotitle_length'] < 0) {
-    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be smaller than 0.'));
-  }
-}
 
 // THEME FUNCTIONS
 // Remember to updated quiz_theme() in quiz.module
@@ -1626,88 +1494,7 @@ function theme_question_selection_table($form) {
   return drupal_render($form['num_random_questions']) . drupal_render($form['random_term_id']) . $table . drupal_render($form);
 }
 
-function quiz_remove_partial_quiz_record_value() {
-  /*$list = array();
-  $list[0] = t('Never');
-  for ($i=1; $i<31; $i++) {
-    $list[$i * 86400] = $i . ' ' . t('Day(s)');
-  }
-  for ($i=35; $i<125; $i+=5) {
-    $list[$i * 86400] = $i . ' ' . t('Day(s)');
-  }*/
-  //return $list;
-  return array(
-    '0' => t('Never'),
-    '86400' => t('1 Day'),
-    '172800' => t('2 Days'),
-    '259200' => t('3 Days'),
-    '345600' => t('4 Days'),
-    '432000' => t('5 Days'),
-    '518400' => t('6 Days'),
-    '604800' => t('7 Days'),
-    '691200' => t('8 Days'),
-    '777600' => t('9 Days'),
-    '864000' => t('10 Days'),
-    '950400' => t('11 Days'),
-    '1036800' => t('12 Days'),
-    '1123200' => t('13 Days'),
-    '1209600' => t('14 Days'),
-    '1296000' => t('15 Days'),
-    '1382400' => t('16 Days'),
-    '1468800' => t('17 Days'),
-    '1555200' => t('18 Days'),
-    '1641600' => t('19 Days'),
-    '1728000' => t('20 Days'),
-    '1814400' => t('21 Days'),
-    '1900800' => t('22 Days'),
-    '1987200' => t('23 Days'),
-    '2073600' => t('24 Days'),
-    '2160000' => t('25 Days'),
-    '2246400' => t('26 Days'),
-    '2332800' => t('27 Days'),
-    '2419200' => t('28 Days'),
-    '2505600' => t('29 Days'),
-    '2592000' => t('30 Days'),
-    '3024000' => t('35 Days'),
-    '3456000' => t('40 Days'),
-    '3888000' => t('45 Days'),
-    '4320000' => t('50 Days'),
-    '4752000' => t('55 Days'),
-    '5184000' => t('60 Days'),
-    '5616000' => t('65 Days'),
-    '6048000' => t('70 Days'),
-    '6480000' => t('75 Days'),
-    '6912000' => t('80 Days'),
-    '7344000' => t('85 Days'),
-    '7776000' => t('90 Days'),
-    '8208000' => t('95 Days'),
-    '8640000' => t('100 Days'),
-    '9072000' => t('105 Days'),
-    '9504000' => t('110 Days'),
-    '9936000' => t('115 Days'),
-    '10368000' => t('120 Days'),
-  );
-}
-
-/*
- * Adds inline js to automatically set the question's node title.
- */
-function quiz_set_auto_title() {
-  drupal_add_js('
-  $(document).ready(function () {
-    function quizUpdateTitle() {
-      $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
-    }
-    $("#edit-body").keyup(quizUpdateTitle);
-    if($("#edit-title").val().length > 0){
-      $("#edit-body").unbind("keyup", quizUpdateTitle);
-    }
-    $("#edit-title").keyup(function() {
-      $("#edit-body").unbind("keyup", quizUpdateTitle);
-    });
-  });
-  ', 'inline');
-}
+// RESULT MANAGEMENT
 
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
@@ -2010,47 +1797,7 @@ function quiz_results_mr_form_submit($form, &$form_state) {
   _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 }
 
-function quiz_admin_node_form(&$form_state) {
-  $dummy_node = new stdClass();
-  $dummy_node->def_uid = variable_get('quiz_def_uid', NULL);
-  $form = quiz_form($dummy_node);
-  $form['direction'] = array(
-    '#type' => 'markup',
-    '#value' => t('Here you can change the default quiz settings for new users.'),
-    '#weight' => -10,
-  );
-  unset(
-    $form['#quiz_check_revision_access'],
-    $form['title'],
-    $form['body_field'],
-    $form['taking']['aid'],
-    $form['taking']['addons'],
-    $form['quiz_availability']['quiz_open'],
-    $form['quiz_availability']['quiz_close'],
-    $form['resultoptions'],
-    $form['number_of_random_questions']
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save'),
-    '#submit' => array('quiz_admin_node_form_submit'),
-  );
-  return $form;
-}
 
-function quiz_admin_node_form_validate($form, &$form_state) {
-  $dummy_node = new stdClass();
-  foreach($form_state['values'] as $key => $value) {
-    $dummy_node->{$key} = $value;
-  }
-  $dummy_node->resultoptions = array();
-  quiz_validate($dummy_node);
-}
-
-function quiz_admin_node_form_submit($form, &$form_state) {
-  $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
-  _quiz_save_user_settings($form_state['values']);
-}
 
 function _quiz_results_mr_get_hover($quiz, $rid) {
   $to_return = array(l(t('view'), 'admin/quiz/reports/results/'. $quiz->nid .'/'. $rid));
@@ -2081,6 +1828,8 @@ function _quiz_delete_results($rid, $nid = NULL) {
     $rids[] = $rid;
   quiz_delete_results($rids);
 }
+
+// HELPER FUNCTIONS
 
 /**
  * Recursive helper function to set the validated property. (Taken from the skip validation module.)
@@ -2201,4 +1950,260 @@ function _quiz_format_duration($time_in_sec) {
   if (strlen($min) == 1) $min = '0'. $min;
   if (strlen($sec) == 1) $sec = '0'. $sec;
   return "$hours:$min:$sec";
+}
+
+
+function quiz_remove_partial_quiz_record_value() {
+  return array(
+    '0' => t('Never'),
+    '86400' => t('1 Day'),
+    '172800' => t('2 Days'),
+    '259200' => t('3 Days'),
+    '345600' => t('4 Days'),
+    '432000' => t('5 Days'),
+    '518400' => t('6 Days'),
+    '604800' => t('7 Days'),
+    '691200' => t('8 Days'),
+    '777600' => t('9 Days'),
+    '864000' => t('10 Days'),
+    '950400' => t('11 Days'),
+    '1036800' => t('12 Days'),
+    '1123200' => t('13 Days'),
+    '1209600' => t('14 Days'),
+    '1296000' => t('15 Days'),
+    '1382400' => t('16 Days'),
+    '1468800' => t('17 Days'),
+    '1555200' => t('18 Days'),
+    '1641600' => t('19 Days'),
+    '1728000' => t('20 Days'),
+    '1814400' => t('21 Days'),
+    '1900800' => t('22 Days'),
+    '1987200' => t('23 Days'),
+    '2073600' => t('24 Days'),
+    '2160000' => t('25 Days'),
+    '2246400' => t('26 Days'),
+    '2332800' => t('27 Days'),
+    '2419200' => t('28 Days'),
+    '2505600' => t('29 Days'),
+    '2592000' => t('30 Days'),
+    '3024000' => t('35 Days'),
+    '3456000' => t('40 Days'),
+    '3888000' => t('45 Days'),
+    '4320000' => t('50 Days'),
+    '4752000' => t('55 Days'),
+    '5184000' => t('60 Days'),
+    '5616000' => t('65 Days'),
+    '6048000' => t('70 Days'),
+    '6480000' => t('75 Days'),
+    '6912000' => t('80 Days'),
+    '7344000' => t('85 Days'),
+    '7776000' => t('90 Days'),
+    '8208000' => t('95 Days'),
+    '8640000' => t('100 Days'),
+    '9072000' => t('105 Days'),
+    '9504000' => t('110 Days'),
+    '9936000' => t('115 Days'),
+    '10368000' => t('120 Days'),
+  );
+}
+
+/*
+ * Adds inline js to automatically set the question's node title.
+ */
+function quiz_set_auto_title() {
+  drupal_add_js('
+  $(document).ready(function () {
+    function quizUpdateTitle() {
+      $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
+    }
+    $("#edit-body").keyup(quizUpdateTitle);
+    if($("#edit-title").val().length > 0){
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
+    }
+    $("#edit-title").keyup(function() {
+      $("#edit-body").unbind("keyup", quizUpdateTitle);
+    });
+  });
+  ', 'inline');
+}
+
+/**
+ * Returns list of options for the changed select box
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_options
+ *   Options for the changed select box.
+ */
+function _quiz_get_time_interval_options() {
+  return array(
+    t('No filter'),
+    t('Today'),
+    t('Yesterday'),
+    t('Two days ago'),
+    t('This week'),
+    t('Last week'),
+    t('This month'),
+    t('Last month'),
+    t('This year'),
+    t('Last year'),
+    t('Long ago'),
+  );
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_interval_timestamps($fieldname) {
+  // Create datastructure to help create where clause in the sql for the changed filter...
+  $now = time();
+  $one_day = 86400;
+  $one_week = 604800;
+  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
+  $weekday = date('N', $now);
+  $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
+  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
+  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
+  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
+  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
+  $changed_timestamps = array(
+    NULL,
+    array($timestamp_today, $now),
+    array($timestamp_today - $one_day * 1, $timestamp_today),
+    array($timestamp_today - $one_day * 2, $timestamp_today - $one_day * 1),
+    array($timestamp_week, $now),
+    array($timestamp_week - $one_week, $timestamp_week),
+    array($timestamp_month, $now),
+    array($timestamp_last_month, $timestamp_month),
+    array($timestamp_year, $now),
+    array($timestamp_last_year, $timestamp_year),
+    array(0, $timestamp_last_year),
+  );
+
+  foreach ($changed_timestamps as $key => &$val) {
+    if ($val == NULL) continue;
+    $val['sql'] = " AND $fieldname > ". $val[0] ." AND $fieldname < ". $val[1];
+  }
+  return $changed_timestamps;
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_duration_intervals() {
+  // Create datastructure to help create where clause in the sql for the changed filter...
+  $durations = array(
+    NULL,
+    '> 60',
+    '> 300',
+    '> 600',
+    '> 3600',
+    '> 28800',
+    '> 86400',
+    '< 60',
+    '< 300',
+    '< 600',
+    '< 3600',
+    '< 28800',
+    '< 86400',
+  );
+
+  foreach ($durations as $key => &$val) {
+    if ($val == NULL) continue;
+    $durations[$key] = ' AND (time_end - time_start) '. $val;
+  }
+  return $durations;
+}
+
+/**
+ * Returns an array with options for the time filters.
+ *
+ * @see _quiz_get_duration_intervals()
+ *
+ * @return $options
+ *   array of options for the duration filter
+ */
+function _quiz_get_duration_options() {
+  return array(
+    'No filter',
+    t('> 1 m'),
+    t('> 5 m'),
+    t('> 10 m'),
+    t('> 1 h'),
+    t('> 8 h'),
+    t('> 24 h'),
+    t('< 1 m'),
+    t('< 5 m'),
+    t('< 10 m'),
+    t('< 1 h'),
+    t('< 8 h'),
+    t('< 24 h'),
+  );
+}
+
+/**
+ * Returns an array with options for the score filters.
+ *
+ * @see _quiz_get_score_intervals()
+ *
+ * @return $options
+ *   array of options for the score filter
+ */
+function _quiz_get_score_options() {
+  return array(
+    'No filter',
+    t('Passed'),
+    t('Failed'),
+    t('= 100 %'),
+    t('> 90 %'),
+    t('> 75 %'),
+    t('> 50 %'),
+    t('> 25 %'),
+    t('< 90 %'),
+    t('< 75 %'),
+    t('< 50 %'),
+    t('< 25 %'),
+  );
+}
+
+/**
+ * Returns an array with sql where clauses correscponding to the options in the time filters.
+ *
+ * @see _quiz_questions_browser_form()
+ *
+ * @return $changed_timestamps
+ *   array of timestamps and sql filters
+ */
+function _quiz_get_score_intervals($quiz) {
+// Create datastructure to help create where clause in the sql for the changed filter...
+  $scores = array(
+    NULL,
+    '>= pass_rate',
+    '< pass_rate',
+    '= 100',
+    '> 90',
+    '> 75',
+    '> 50',
+    '> 25',
+    '< 90',
+    '< 75',
+    '< 50',
+    '< 25',
+  );
+
+  foreach ($scores as $key => &$val) {
+    if ($val == NULL) continue;
+    $scores[$key] = ' AND score '. $val;
+  }
+  return $scores;
 }
