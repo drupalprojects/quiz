@@ -1503,40 +1503,6 @@ function quiz_settings_form_validate($form, &$form_state) {
   }
 }
 
- // DELETE QUIZ RESULTS
-
- /**
-  * Delete Result.
-  */
-function quiz_admin_result_delete() {
-  return drupal_get_form('quiz_admin_result_delete_form');
-}
-
-/**
- * Creates a form used for deleting a set of quiz results.
- */
-function quiz_admin_result_delete_form() {
-  $form['del_rid'] = array('#type' => 'value', '#value' => arg(2));
-  return confirm_form($form,
-    t('Are you sure you want to delete this @quiz result?', array('@quiz' => QUIZ_NAME)),
-    'admin/quiz/results',
-    t('This action cannot be undone.'),
-    t('Delete'),
-    t('Cancel')
-  );
-}
-
-function quiz_admin_result_delete_form_submit($form, &$form_state) {
-  $nid = db_result(db_query("SELECT nid FROM {quiz_node_results} WHERE result_id = %d",$form_state['values']['del_rid']));
-  db_query("DELETE FROM {quiz_node_results} WHERE result_id = %d", $form_state['values']['del_rid']);
-  db_query("DELETE FROM {quiz_node_results_answers} WHERE result_id = %d", $form_state['values']['del_rid']);
-  drupal_set_message(t('Result has been Deleted.'));
-  $form_state['redirect'] = 'admin/quiz/reports/results/'. intval($nid);
-  $form_state['nid'] = $nid;
-}
-
-
-
 // THEME FUNCTIONS
 // Remember to updated quiz_theme() in quiz.module
 

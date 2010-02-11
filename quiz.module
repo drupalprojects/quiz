@@ -333,15 +333,6 @@ function quiz_menu() {
     'access callback' => 'quiz_access_results',
   );
 
-  $items['admin/quiz/%/delete'] = array(
-    'title' => t('Delete @quiz', array('@quiz' => QUIZ_NAME)),
-    'page callback' => 'quiz_admin_result_delete',
-    'access arguments' => array(2),
-    'access callback' => 'quiz_access_delete_results',
-    'type' => MENU_CALLBACK,
-    'file' => 'quiz.admin.inc',
-  );
-
   // JSON callback
   $items['admin/quiz/listquestions'] = array(
     'title' => t('List Quiz Questions'),
