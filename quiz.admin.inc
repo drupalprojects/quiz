@@ -1561,22 +1561,6 @@ function theme_quiz_node_form($form) {
   drupal_add_js($path);
 }
 
-/*
- * @param $time_in_sec
- *  Integers time in seconds
- * @return
- *  String time in min : sec format
- */
-function _quiz_format_duration($time_in_sec) {
-  $hours = intval($time_in_sec / 3600);
-  $min = intval(($time_in_sec - $hours * 3600) / 60);
-  $sec = $time_in_sec % 60;
-  if (strlen($min) == 1) $min = '0'. $min;
-  if (strlen($sec) == 1) $sec = '0'. $sec;
-  return "$hours:$min:$sec";
-}
-
-
 /**
  * Theme the summary page for admins.
  *
@@ -2202,4 +2186,19 @@ function _quiz_add_to_get($to_add){
       $_GET[$value] = $_SESSION[$pre . $value];
     }
   }
+}
+
+/*
+ * @param $time_in_sec
+ *  Integers time in seconds
+ * @return
+ *  String time in min : sec format
+ */
+function _quiz_format_duration($time_in_sec) {
+  $hours = intval($time_in_sec / 3600);
+  $min = intval(($time_in_sec - $hours * 3600) / 60);
+  $sec = $time_in_sec % 60;
+  if (strlen($min) == 1) $min = '0'. $min;
+  if (strlen($sec) == 1) $sec = '0'. $sec;
+  return "$hours:$min:$sec";
 }
