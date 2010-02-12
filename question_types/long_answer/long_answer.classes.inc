@@ -239,7 +239,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
     return $this->answer;
   }
   
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
     if ($this->question && !empty($this->question->answers)) 
       $answer = (object) current($this->question->answers);
@@ -259,6 +259,13 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       $feedback = t('This answer has not yet been scored.') .
         '<br/>' .
         t('Until the answer is scored, the total score will not be correct.');
+    }
+    if (/*!_quiz_is_taking_context() && */$allow_scoring) {
+      $form['rubric'] = array(
+        '#type' => 'item',
+        '#title' => t('Rubric'),
+        '#value' => check_markup($this->question->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+      );
     }
     if (!empty($feedback)) {
       $form['feedback'] = array(

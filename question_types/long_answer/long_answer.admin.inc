@@ -92,17 +92,26 @@ function long_answer_score_form($context, $node, $answer) {
     '#title' => t('Question'),
     '#value' => check_markup($node->body, $node->format, FALSE),
   );
-  $form['answer'] = array(
+  $form['rubric'] = array(
     '#type' => 'item',
-    '#title' => t('Answer'),
-    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+    '#title' => t('Rubric'),
+    '#value' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
     '#value' => (int) $node->max_score,
   );
-  $form['score'] = array(
+  $form['score_answer'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Score answer'),
+  );
+  $form['score_answer']['answer'] = array(
+    '#type' => 'item',
+    '#title' => t('Answer'),
+    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+  );
+  $form['score_answer']['score'] = array(
     '#type' => 'textfield',
     '#title' => t('Score'),
     '#description' => t('The score for this essay, between 0 and @max', array('@max' => $node->max_score)) ,
@@ -111,7 +120,7 @@ function long_answer_score_form($context, $node, $answer) {
     '#default_value' => (int) $answer->score,
     '#required' => TRUE,
   );
-  $form['submit'] = array(
+  $form['score_answer']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),
   );

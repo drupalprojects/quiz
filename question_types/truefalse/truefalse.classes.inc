@@ -212,7 +212,7 @@ class TrueFalseResponse extends AbstractQuizQuestionResponse {
     return db_fetch_object(db_query($sql, $this->question->vid, $this->rid));
   }
 
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
 
     // Build the question answers header (add blank space for IE).
     if ($showpoints) {

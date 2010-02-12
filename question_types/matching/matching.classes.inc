@@ -329,7 +329,7 @@ class MatchingResponse extends AbstractQuizQuestionResponse {
     return $user_answers;
   }
 
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $rows = $innerheader = array();
     // Build the question answers header (add blank space for IE).
     $innerheader[] = t('Match');

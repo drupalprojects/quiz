@@ -353,7 +353,7 @@ class ShortAnswerResponse extends AbstractQuizQuestionResponse {
     return $this->answer;
   }
 
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
     if ($this->question && !empty($this->question->answers)) {
       $answer = (object) current($this->question->answers);

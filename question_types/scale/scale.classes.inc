@@ -579,7 +579,7 @@ class ScaleResponse extends AbstractQuizQuestionResponse {
    * @param $showfeedback
    * @return report as html
    */
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return array(
       '#type' => 'markup',
       '#value' => check_plain($this->answer),

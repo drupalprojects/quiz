@@ -97,7 +97,7 @@ class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
       '#no_report' => TRUE,
     );
   }
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return '';
   }
 }

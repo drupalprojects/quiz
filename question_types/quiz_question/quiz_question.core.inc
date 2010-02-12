@@ -738,7 +738,7 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->getMaxScore(),
     );
-    $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback);
+    $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback, $allow_scoring);
 
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
     $form['#is_correct'] = $this->isCorrect();
@@ -752,6 +752,10 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
       '#type' => 'markup',
       '#value' => check_markup($this->question->body, $this->question->format, FALSE),
     );
+  }
+  
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
+    return '';
   }
 
   public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {

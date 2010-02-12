@@ -721,7 +721,7 @@ class MultichoiceResponse extends AbstractQuizQuestionResponse {
    * @param $showfeedback
    * @return report as html
    */
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
     if ($this->question->choice_multi == 0) {
