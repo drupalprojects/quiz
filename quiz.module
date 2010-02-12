@@ -641,6 +641,7 @@ function _quiz_get_node_defaults() {
     'property_id' => NULL,
     'aid' => NULL,
     'number_of_random_questions' => 0,
+    'max_score_for_random' => 1,
     'pass_rate' => 75,
     'summary_pass' => '',
     'summary_default' => '',

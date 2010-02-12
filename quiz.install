@@ -7,6 +7,18 @@
  *
  */
 
+function quiz_update_6412() {
+  $results = array();
+  db_add_field($results, 'quiz_node_properties', 'max_score_for_random', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return $results;
+}
+
 function quiz_update_6411() {
   variable_del('quiz_default_pass_rate');
   variable_del('quiz_keep_results');
@@ -591,6 +603,13 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'max_score_for_random' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
       ),
       'pass_rate' => array(
         'type' => 'int',

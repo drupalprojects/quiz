@@ -537,7 +537,12 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
  */
 function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
   if ($quiz->randomization == 2) {
-    $form['question_list']['num_random_questions'] = array(
+    $form['question_list']['random_settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Settings for random questions'),
+      '#collapsible' => TRUE,
+    );
+    $form['question_list']['random_settings']['num_random_questions'] = array(
       '#type' => 'textfield',
       '#size' => 3,
       '#maxlength' => 3,
@@ -546,9 +551,17 @@ function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
       '#description' => t('The number of questions to be randomly selected each time someone takes this quiz'),
       '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
     );
+    $form['question_list']['random_settings']['max_score_for_random'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#maxlength' => 3,
+      '#weight' => -5,
+      '#title' => t('Max score for each random question'),
+      '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
+    );
     $terms =  _quiz_taxonomy_select($quiz->tid);
     if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
-      $form['question_list']['random_term_id'] = array(
+      $form['question_list']['random_settings']['random_term_id'] = array(
         '#type' => 'select',
         '#title' => t('Terms'),
         '#size' => 1,
@@ -1111,7 +1124,13 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $
     $question['nid'] = $nid;
     $question['vid'] = $vid;
     if (isset($compulsories)) {
-      $question['state'] = ($compulsories[$id] == 1) ? QUESTION_ALWAYS : QUESTION_RANDOM;
+      if ($compulsories[$id] == 1) {
+        $question['state'] = QUESTION_ALWAYS;
+      }
+      else {
+        $question['state'] = QUESTION_RANDOM;
+        $max_scores[$id] = $quiz->max_score_for_random;
+      }
     }
     else {
       $question['state'] = QUESTION_ALWAYS;
@@ -1156,12 +1175,13 @@ function quiz_questions_form_submit($form, &$form_state) {
   $stayers = $form_state['values']['stayers'];
   if (isset($form_state['values']['compulsories']))
     $compulsories = $form_state['values']['compulsories'];
+  $num_random = $form_state['values']['num_random_questions'];
+  $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random']: 1;
+  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
+    
 
   // Store what questions belong to the quiz
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $refreshes, $stayers, $compulsories);
-
-  $num_random = $form_state['values']['num_random_questions'];
-  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
 
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {
@@ -1191,8 +1211,8 @@ function quiz_questions_form_submit($form, &$form_state) {
   $success = true; // since we got this far
   if ($quiz->type == 'quiz') {
     // Update the quiz node properties.
-    $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, tid = %d WHERE vid = %d AND nid = %d";
-    $success = db_query($sql, $num_random, $term_id, $quiz->vid, $quiz->nid);
+    $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";
+    $success = db_query($sql, $num_random, $quiz->max_score_for_random, $term_id, $quiz->vid, $quiz->nid);
   }
 
   if ($success) {
@@ -1491,7 +1511,9 @@ function theme_question_selection_table($form) {
   if (isset($form['no_questions']))
     $html_attr['style'] = "display:none;";
   $table = theme('table', $headers, $rows, $html_attr);
-  return drupal_render($form['num_random_questions']) . drupal_render($form['random_term_id']) . $table . drupal_render($form);
+  return drupal_render($form['random_settings']) 
+       . $table 
+       . drupal_render($form);
 }
 
 // RESULT MANAGEMENT
