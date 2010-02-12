@@ -16,6 +16,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_field_takes' => array(
         'parent' => 'views_handler_field',
       ),
+      'quiz_views_handler_field_time' => array(
+        'parent' => 'views_handler_field',
+      ),
       'quiz_views_handler_field_question_status' => array(
         'parent' => 'views_handler_field',
       ),
@@ -228,7 +231,7 @@ function quiz_views_data() {
       'title' => t('Time limit'),
       'help' => t('The time limit on a quiz.'),
       'field' => array(
-        'handler' => 'views_handler_field_numeric',
+        'handler' => 'quiz_views_handler_field_time',
         'click sortable' => TRUE,
       ),
       'argument' => array(
