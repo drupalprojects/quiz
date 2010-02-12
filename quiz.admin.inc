@@ -1605,7 +1605,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   // build data part of form
   $options = array();
   while ($res_o = db_fetch_object($res)) {
-    $id = $res_o->nid .'-'. $res_o->result_id;
+    $id = $quiz->nid .'-'. $res_o->result_id;
     $options[$id] = check_plain($res_o->name);
     $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($quiz, $res_o->result_id);
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
