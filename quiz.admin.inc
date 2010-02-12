@@ -1065,6 +1065,14 @@ function quiz_questions_form_validate($form, $form_state) {
       form_set_error('num_random_questions', 'The number of random questions needs to be a positive number');
     }
   }
+  
+  // Make sure the max score for random questions is a positive number
+  if (isset($form_state['values']['max_score_for_random'])) {
+    if (!is_numeric($form_state['values']['max_score_for_random']) ||
+         $form_state['values']['max_score_for_random'] < 0) {
+      form_set_error('max_score_for_random', 'The max score for random questions needs to be a positive number');
+    }
+  }
 
   if (empty($weight_map)) {
     form_set_error('none', 'No questions were included.');
