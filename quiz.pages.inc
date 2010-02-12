@@ -530,6 +530,12 @@ function theme_quiz_view_stats($node) {
       'data' => $node->pass_rate .' %',
     );
   }
+  if (!empty($node->time_limit)) {
+    $stats[] = array(
+      'title' => t('Time limit'),
+      'data' => _quiz_format_duration($node->time_limit),
+    );
+  }
   $stats[] = array(
     'title' => t('Backwards navigation'),
     'data' => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),

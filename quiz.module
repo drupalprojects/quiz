@@ -3359,3 +3359,18 @@ function _quiz_limit_year_options($form_element) {
   $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
   return $form_element;
 }
+
+/*
+ * @param $time_in_sec
+ *  Integers time in seconds
+ * @return
+ *  String time in min : sec format
+ */
+function _quiz_format_duration($time_in_sec) {
+  $hours = intval($time_in_sec / 3600);
+  $min = intval(($time_in_sec - $hours * 3600) / 60);
+  $sec = $time_in_sec % 60;
+  if (strlen($min) == 1) $min = '0'. $min;
+  if (strlen($sec) == 1) $sec = '0'. $sec;
+  return "$hours:$min:$sec";
+}
