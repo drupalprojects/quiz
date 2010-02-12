@@ -3110,7 +3110,7 @@ function quiz_get_quiz_options() {
   // FIXME use the names set by the user config
   $results = db_query(db_rewrite_sql("SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = 'quiz'"));
   while ($result = db_fetch_object($results)) {
-    $options[$result->nid] = substr(check_plain($result->title), 0, 30);
+    $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
     // truncate the node title if its length is greater than 30 characters
   }
   return $options;
