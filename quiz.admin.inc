@@ -738,6 +738,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
         '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1: 0 : 0,
+        '#attributes' => array('class' => 'q-compulsory'),
       );
     }
     $link_options = array(

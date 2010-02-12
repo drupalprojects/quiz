@@ -149,9 +149,9 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
   .addClass(done)
   .click(function(event){
-	var myUrl = $(this).attr('href').substr(2);
-	Quiz.updatePageInUrl(myUrl);
-	$('.quiz-question-browser-row').remove();
+	  var myUrl = $(this).attr('href').substr(2);
+  	Quiz.updatePageInUrl(myUrl);
+	  $('.quiz-question-browser-row').remove();
     $('#edit-browser-table-filters-title').trigger('doneTyping');
     event.preventDefault();
   });
@@ -167,6 +167,21 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       var proceed = confirm(Drupal.t('Any unsaved changes will be lost. Are you sure you want to proceed?'));
       if (!proceed)
         event.preventDefault();
+    }
+  });
+  $('.q-compulsory').click(function(event){
+    var idToToggle = Quiz.findNidVidString(this.id);
+    if(this.checked) {
+      $('#edit-max-scores-' + idToToggle).show();
+    }
+    else {
+      $('#edit-max-scores-' + idToToggle).hide();
+    }
+  });
+  $('.q-compulsory').each(function(){
+    var idToToggle = Quiz.findNidVidString(this.id);
+    if(!this.checked) {
+      $('#edit-max-scores-' + idToToggle).hide();
     }
   });
 };
