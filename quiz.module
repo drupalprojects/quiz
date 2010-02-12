@@ -1546,7 +1546,7 @@ function quiz_take_quiz($quiz) {
       else {
         // There is still time left, so let's go ahead and insert the countdown javascript.
         if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished'));
+          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => true, 'layout' => t('Time left'). ': {hnn}{sep}{mnn}{sep}{snn}'));
           // These are the two button op values that are accepted for answering questions.
           $button_op1 = drupal_to_js(t('Submit'));
           $button_op2 = drupal_to_js(t('Next'));
