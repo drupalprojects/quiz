@@ -162,29 +162,6 @@ function quiz_get_user_results($user_id) {
 // THEME FUNCTIONS
 
 /**
- * Theme a message about the quiz's availability for quiz takers.
- *
- * @ingroup themeable
- */
-function theme_quiz_availability($node) {
-  $status = _quiz_availability($node);
-  $output = '<div class="quiz_availability"><p>';
-  switch ($status) {
-    case 'future':
-      $output .= t('This quiz will not be available until %time.', array('%time' => format_date($node->quiz_open)));
-      break;
-    case 'open':
-      $output .= t('This quiz closes %time.', array('%time' => format_date($node->quiz_close)));
-      break;
-    case 'closed':
-      $output .= t('This quiz is no longer available.');
-      break;
-  }
-  $output .= '</p></div>'."\n";
-  return $output;
-}
-
-/**
  * Theme the user results page.
  *
  * @param $results
@@ -219,70 +196,6 @@ function theme_quiz_get_user_results($results) {
   }
   else {
     $output .= t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
-  }
-  return $output;
-}
-
-/**
- * Theme the filtered question list.
- *
- * @ingroup themeable
- */
-function theme_quiz_filtered_questions($form) {
-  $quiz_id = is_numeric(arg(1)) ? arg(1) : NULL;
-  $header = array(t('Random'), t('Always'), t('Never'), t('Question'), t('Type'), t('Edit'));
-  $rows = array();
-  $output = '';
-
-  while (list($nid, $values) = each($form['question_status'])) {
-    if (is_numeric($nid)) {
-      $rows[] = array(
-        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_END]),
-        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_QUESTION]),
-        drupal_render($form['question_status'][$nid][QUIZ_FEEDBACK_NEVER]),
-        drupal_render($form['question'][$nid]),
-        drupal_render($form['type'][$nid]),
-        l(t('Edit'), 'node/'. $nid .'/edit/'. $quiz_id),
-      );
-    }
-  }
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No questions found.');
-  }
-  return $output;
-}
-
-/**
- * Theme a table containing array of questions and options.
- *
- * @param $questions
- *  Array of question nodes.
- * @return
- *  HTML for a table.
- *
- * @ingroup themeable
- */
-function theme_quiz_question_table($questions, $quiz_id = NULL) {
-  $output = '';
-  $rows = array();
-  $status_descriptions = array(t('Random'), t('Always'), t('Never'));
-  while (list($key, $question) = each($questions)) {
-    $rows[] = array(
-      $status_descriptions[$question->question_status],
-      $question->question,
-      $question->type,
-      l(t('Edit'), 'node/'. $question->nid .'/edit/'. $quiz_id));
-  }
-  $header = array(t('Status'), t('Question'), t('Type'), t('Edit'));
-
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No questions found.');
   }
   return $output;
 }
@@ -329,35 +242,6 @@ function theme_quiz_progress($question_number, $num_of_question) {
   $output .= t('Question %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
   $output .= '</div><br />'."\n";
   $output .= '<div class="countdown"></div>';
-  return $output;
-}
-
-/**
- * Theme a question page.
- *
- * @param $quiz
- *  The quiz node object.
- * @param $question_node
- *  The question node.
- * @return
- *  Themed html.
- *
- * @ingroup themeable
- *
- * @deprecated This should not be used. Rendering is now done through the standard node rendering system.
- */
-function theme_quiz_take_question($quiz, $question_node) {
-  //Calculation for quiz progress bar.
-  $number_of_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
-  $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-  $question_node->question_number = $question_number;
-  // Set the title here in case themers want to do something different.
-  drupal_set_title(check_plain($quiz->title));
-
-  // Return the elements of the page.
-  $output = '';
-  $output .= theme('quiz_progress', $question_number, $number_of_questions);
-  $output .= module_invoke($question_node->type, 'render_question', $question_node);
   return $output;
 }
 

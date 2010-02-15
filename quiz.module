@@ -367,28 +367,12 @@ function quiz_menu() {
  */
 function quiz_theme() {
   return array(
-    'quiz_availability' => array(
-      'arguments' => array('node' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
     'quiz_view_stats' => array(
       'arguments' => array('node' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_get_user_results' => array(
       'arguments' => array('results' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_question_table' => array(
-      'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_filtered_questions' => array(
-      'arguments' => array('form' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_take_question' => array(
-      'arguments' => array('quiz' => NULL, 'question_node' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_take_summary' => array(
@@ -413,10 +397,6 @@ function quiz_theme() {
     ),
     'quiz_progress' => array(
       'arguments' => array('question_number' => NULL, 'num_of_question' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_question_table' => array(
-      'arguments' => array('questions' => NULL, 'quiz_id' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_no_feedback' => array(
@@ -1465,7 +1445,6 @@ function quiz_take_quiz($quiz) {
       if (is_array($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']))
         array_shift($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
     }
-    //$output .= theme('quiz_take_question', $quiz, $question_node);
     // Start mods...
 
     $number_of_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
@@ -2881,24 +2860,6 @@ function _quiz_get_answers($rid) {
  */
 function _quiz_get_quiz_name() {
   return variable_get('quiz_name', 'Quiz');
-}
-
-/**
- * Determine quiz availability status.
- *
- * @return
- *  String representing status open, closed or future.
- */
-function _quiz_availability($node) {
-  $time = time();
-  if ($node->quiz_always || ($node->quiz_open < $time) && ($node->quiz_close > $time)) {
-    return 'open';
-  }
-  elseif ($node->quiz_open > $time) {
-    return 'future';
-  }
-
-  return 'closed';
 }
 
 /**
