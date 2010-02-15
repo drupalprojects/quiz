@@ -1,5 +1,3 @@
-/* @override http://qcommons-staging.local.funq.org:8888/sites/all/modules/quiz/quiz.css?R */
-
 /* $Id$ */
 
 /*
@@ -17,28 +15,8 @@
   font-size: 80%;
 }
 
-span.multichoice_answer_text p {
-  display: inline;
-}
-
-/*
- * Definitions that apply on the summary pages.
- */
-.quiz_question_bullet {
-  font-weight: bold;
-  font-size: 120%;
-}
-
 #quiz_score_possible, #quiz_score_percent {
   font-weight: bold;
-}
-
-.quiz_summary_question {
-  margin-bottom: 0.5em;
-}
-
-tr.quiz_summary_qrow {
-  background: transparent;
 }
 
 td.quiz_summary_qcell {
@@ -59,19 +37,8 @@ td.quiz_summary_qcell table td {
   font-style: italic;
 }
 
-.quiz_summary_header {
-  font-weight: bold;
-}
 .quiz_summary_text {
 
-}
-div.multichoice_answer_correct {
-  padding: 5px;
-  border: 1px solid green;
-}
-div.multichoice_answer_incorrect {
-  padding: 5px;
-  border: 1px solid red;
 }
 
 .add-questions {
@@ -79,22 +46,9 @@ div.multichoice_answer_incorrect {
   padding: 0 0 1em 2em;
 }
 
-#export-table {
-  text-align: right;
-}
-
-.multichoice_answer_correct {
-  background-color: lightgreen;
-}
-
 .hidden-question {
   display: none;
 }
-/*
-.quiz-question-browser-row, #quiz_question_browser_filters {
-  border: 0px solid #666;
-}
-*/
 
 .quiz-question-browser-row.odd {
   background-color: #e7e7e7;
@@ -108,7 +62,6 @@ div.multichoice_answer_incorrect {
   background-color: black;
 }
 #quiz-question-browser-filters td.active {
-/*  background-color: #202050; */
   background-color: #666;
 }
 
@@ -130,52 +83,6 @@ div.multichoice_answer_incorrect {
   margin-right: 8px;
 }
 
-.quiz-report-scoring {
-  float: right;
-}
-
-/* alpha 3 original CSS
-
-table.quiz-report-q-header {
-  border-style: none;
-  padding:0px;
-  margin:0px;
-  border:0px;
-  border-collapse: separate;
-}
-
-.quiz-report-score-cell {
-  width: 20%;
-  padding:0px;
-  margin:0px;
-  border:0px;
-}
-
-.quiz-report-q-cell, .quiz-report-score-cell div {
-  padding:0px;
-  margin:0px;
-  border:0px;
-}
-
-.quiz-report-score {
-  text-align: right;
-  margin: 0px;
-  padding: 0px;
-}
-
-.quiz-report-question {
-  margin-top: 0px;
-  margin-bottom: 40px;
-}
-
-.quiz-report-odd-td {
-  background-color:#f3f3f3;
-}
-.quiz-report-even-td {
-  background-color:#e9e9e9;
-}
-
-*/
 
 /*
  * Definitions that apply on the quiz report pages.
