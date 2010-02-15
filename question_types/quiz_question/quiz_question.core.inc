@@ -326,7 +326,7 @@ abstract class QuizQuestion {
         $latest_nids[] = $res_o->quiz_nid;
       }
       $found = implode(', ', array_merge($already_nids, $latest_nids));
-      if (count($latest) < QUIZ_QUESTION_N_O_LATEST) {
+      if (count($latest) < QUIZ_QUESTION_NUM_LATEST) {
         // Suplementing with other available quizzes...
         $sql = "SELECT n.nid, n.vid, title
                 FROM {node} n
@@ -335,7 +335,7 @@ abstract class QuizQuestion {
           $sql .= " AND n.nid NOT IN ($found)";
         }
         $sql .= " ORDER BY changed LIMIT %d";
-        $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_N_O_LATEST - count($latest));
+        $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_NUM_LATEST - count($latest));
         while ($res_o = db_fetch_object($res)) {
           $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
         }

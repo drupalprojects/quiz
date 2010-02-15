@@ -8,7 +8,7 @@
  * hooks, this module provides a framework that makes adding new types much easier.
  * @file
  */
-define(QUIZ_QUESTION_N_O_LATEST, 10);
+define(QUIZ_QUESTION_NUM_LATEST, 10);
 
 /**
  * Implementation of hook_help().
@@ -654,7 +654,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
           FROM {quiz_question_latest_quizzes}
           WHERE uid = %d';
   $count = db_result(db_query($sql, $user->uid));
-  $n_to_delete = (int)$count - QUIZ_QUESTION_N_O_LATEST;
+  $n_to_delete = (int)$count - QUIZ_QUESTION_NUM_LATEST;
   if ($n_to_delete > 0) {
     $sql = 'DELETE FROM {quiz_question_latest_quizzes}
             WHERE uid = %d
