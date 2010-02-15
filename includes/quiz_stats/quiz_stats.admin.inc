@@ -499,8 +499,6 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
   module_load_include('inc', 'quiz', 'quiz.pages');
   $cc = '<I>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</I>';
   // FIX IT need to get community feedback.
-  //quiz_add_table_sorter();
-  // quiz_add_table_sorter(); function defined in quiz.page.inc includes css and js for jQuery table sorter.
   return theme('table', $header, $rows, array('id' => 'tablesorter')) . $cc;
 }
 
