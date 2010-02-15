@@ -6,15 +6,35 @@
  * Theme functions for long_answer.
  */
 
+
 /**
- * Implementation of theme_$type_feedback().
- * This is basically useless for long answer questions.
+ * Theme the list of unscored long answer questions.
+ *
+ * @param $unscored
+ *  An array of objects, each with the quist_nid, question_vid, and result_id of an unscored question.
  */
-function theme_long_answer_feedback($quiz, $report) {
-  $output = '<div class="quiz_summary_text"><strong>' . t('Q:') . '</strong>'.
-    check_markup($report->body, $report->format) .
-    '<br /><em>'.
-    t('The answer to this question will be scored by hand.')
-    . '</em></div>';
+function theme_long_answer_view_unscored($unscored) {
+  $output = '';
+  $header = array(
+    t('Quiz ID'),
+    t('Question'),
+    t('Time Finished'),
+    t('Action')
+  );
+  $rows = array();
+
+  foreach ($unscored as $item) {
+    if ($item->time_end > 0) {
+      $rows[] = array(
+        $item->result_id,
+        $item->title,
+        date('Y-m-d H:i', $item->time_end),
+        l(t('score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
+      );
+    }
+
+  }
+
+  $output .= !empty($rows) ? theme('table', $header, $rows) : t('There are no unscored essays.');
   return $output;
 }

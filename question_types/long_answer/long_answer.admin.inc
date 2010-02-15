@@ -7,21 +7,6 @@
  */
 
 /**
- * Admin settings form.
- */
-function long_answer_admin_settings_form() {
-  $form['long_answer_default_maximum_score'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default Maximum Score'),
-    // 1 to match default multichoice score.
-    '#default_value' => variable_get('long_answer_default_maximum_score', 1),
-    '#description' => t('The default maximum score for a long-answer question.'),
-    '#required' => TRUE,
-  );
-  return system_settings_form($form);
-}
-
-/**
  * Generate a view of all unscored answer questions.
  *
  * @see theme_long_answer_view_unscored()
@@ -178,36 +163,4 @@ function long_answer_score_form_submit($form, &$form_state) {
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
   }
-}
-
-/**
- * Theme the list of unscored long answer questions.
- *
- * @param $unscored
- *  An array of objects, each with the quist_nid, question_vid, and result_id of an unscored question.
- */
-function theme_long_answer_view_unscored($unscored) {
-  $output = '';
-  $header = array(
-    t('Quiz ID'),
-    t('Question'),
-    t('Time Finished'),
-    t('Action')
-  );
-  $rows = array();
-
-  foreach ($unscored as $item) {
-    if ($item->time_end > 0) {
-      $rows[] = array(
-        $item->result_id,
-        $item->title,
-        date('Y-m-d H:i', $item->time_end),
-        l(t('score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
-      );
-    }
-
-  }
-
-  $output .= !empty($rows) ? theme('table', $header, $rows) : t('There are no unscored essays.');
-  return $output;
 }

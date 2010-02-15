@@ -28,6 +28,7 @@ function long_answer_uninstall() {
   // Clear the cache.
   cache_clear_all('variables', 'cache');
   drupal_set_message(t('The Long Answer module has been uninstalled and related data has been deleted.'));
+  
 }
 
 /**
