@@ -35,7 +35,9 @@ function multichoice_quiz_question_info() {
   );
 }
 /**
+ * Implementation of hook_config
  * 
+ * @return unknown_type
  */
 function multichoice_config() {
   $form['multichoice_def_num_of_alts'] = array(
