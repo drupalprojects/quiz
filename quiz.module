@@ -310,18 +310,6 @@ function quiz_menu() {
     'access callback' => 'quiz_access_results',
   );
 
-  // JSON callback
-  $items['admin/quiz/listquestions'] = array(
-    'title' => t('List Quiz Questions'),
-    'description' => t('Auto-completion question listing.'),
-    'page callback' => 'quiz_admin_list_questions_ac',
-    'page arguments' => array(''),
-    'type' => MENU_CALLBACK,
-    //'access callback' => 'user_access',
-    'access arguments' => array('create quiz'),
-    'file' => 'quiz.admin.inc'
-  );
-
   // Menu item for adding questions to quiz.
   $items['node/%node/questions'] = array(
     'title' => t('Manage questions'),
