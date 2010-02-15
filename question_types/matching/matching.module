@@ -48,7 +48,11 @@ function matching_quiz_question_info() {
   );
 }
 
-
+/**
+ * hook_config
+ * 
+ * @return FAPI array
+ */
 function matching_config() {
   $form['quiz_matching_form_size'] = array(
     '#type' => 'textfield',
@@ -89,27 +93,4 @@ function matching_theme() {
       'file' => 'matching.theme.inc',
     ),
   );
-}
-/*
-// Temporary holding place for list_questions hook
-function matching_list_questions() {
-  return array();
-}
-*/
-
-/*
- * @function
- * To generate a list of short answer questions node
- * @return
- * array containing nid as key and title as value
- */
-function matching_questions_list() {
-  $questions = array();
-  $type = 'matching';
-  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
-  $results = db_query($sql, $type);
-  while ($result = db_fetch_object($results)) {
-    $questions[$result->nid] = check_plain($result->title);
-  }
-  return $questions;
 }
