@@ -88,14 +88,14 @@ class ShortAnswerQuestion extends QuizQuestion {
     if ($this->viewCanRevealCorrect()) {
       $content['answers'] = array('#type' => 'markup',
       // TODO should use CSS instead, maybe across all quiz_question.module
-      '#value' => '<div style="background-color: lightgreen">'. $this->node->correct_answer .'</div>',
+      '#value' => '<div style="background-color: lightgreen">'. check_plain($this->node->correct_answer) .'</div>',
       '#weight' => 1,
       );
     } else {
       // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
       '#type' => 'markup',
-      '#value' => '<br /> <em>Answer hidden</em>.',
+      '#value' => '<br /> <em>'. t('Answer hidden') .'</em>',
       '#weight' => 2,
       );
     }
