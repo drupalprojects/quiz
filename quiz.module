@@ -176,30 +176,7 @@ function quiz_access_to_score($quiz_creator = NULL) {
     return TRUE;
 }
 
-/**
- * Helper function to determine if a user has access to delete a certain result...
- *
- * @param $rid
- *   Result id
- * @return boolean
- *   true if user has permission
- */
-function quiz_access_delete_results($rid) {
-  global $user;
-  if (user_access('delete any quiz results')) {
-    return TRUE;
-  }
-  if (user_access('delete results for own quiz')) {
-    $sql = 'SELECT n.uid
-            FROM {node} n
-            WHERE n.nid = (
-              SELECT nid
-              FROM {quiz_node_results}
-              WHERE result_id = %d
-            )';
-    return db_result(db_query($sql, $rid)) == $user->uid;
-  }
-}
+
 
 function quiz_access_multi_or() {
   $perms = func_get_args();
@@ -1891,24 +1868,7 @@ function quiz_get_answers($answers, $tried) {
   return $selected;
 }
 
-/**
- * Get an array of correct answer(s) for a question.
- *
- * @param $answers
- *  An array of question answers.
- * @return
- *  An array of correct answers.
- */
-function quiz_get_corrects($answers) {
-  if (is_array($answers)) {
-    foreach ($answers as $answer) {
-      if ($answer['is_correct'] > 0) {
-        $corrects[] = $answer;
-      }
-    }
-  }
-  return $corrects;
-}
+
 
 /**
  * Check a user/quiz combo to see if the user passed the given quiz.
@@ -2827,57 +2787,6 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
 
 
 /**
- * Retrieve list of published questions not assigned to quiz.
- *
- * @access public
- * @param integer $quiz_nid
- * @return array
- *  Array of questions objects.
- */
-// FIXME this isn't called anywhere.  do we need it?
-// (it's also horribly inefficient)
-/*
-function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
-  $quiz       = menu_get_object();
-  $types      = array_keys(_quiz_get_question_types());
-  $where_sql  = '';
-  $questions = array();
-
-  if (count($types) > 0) {
-    $where_sql = "AND question.type IN ('". implode("','", $types) ."')";
-  }
-
-  $result = db_query('SELECT question.nid, question.vid, question.type, nr.body, nr.format
-    FROM {node} question
-    LEFT JOIN {node_revisions} nr ON (question.nid = nr.nid)
-    WHERE question.status = 1
-    AND (question.vid NOT IN
-      (SELECT DISTINCT qnr.child_vid
-      FROM {quiz_node_relationship} qnr
-      WHERE qnr.parent_vid = %d
-      AND qnr.question_status != '. QUESTION_NEVER .'))
-    '. $where_sql, $quiz_vid
-  );
-
-  // Create questions array.
-  if ($nid_keys === FALSE) {
-    while ($node = db_fetch_object($result)) {
-      $questions[] = quiz_node_map($node);
-    }
-  }
-  else {
-    while ($node = db_fetch_object($result)) {
-      $n = quiz_node_map($node);
-      $questions[$n->nid] = $n;
-    }
-  }
-  return $questions;
-}
-*/
-
-
-
-/**
  * Get a full results list.
  *
  * @param $nid
@@ -2890,17 +2799,6 @@ function _quiz_get_unused_questions($quiz_vid = NULL, $nid_keys = FALSE) {
 function _quiz_get_results($nid = '', $uid = 0) {
   $results = array();
   $args = array();
-  /* This seems to have an unnecessary join in here:
-  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
-          FROM {node} n
-          INNER JOIN {quiz_node_properties} qnp
-          INNER JOIN {quiz_node_results} qnrs
-          INNER JOIN {users} u
-          WHERE n.type = 'quiz'
-            AND n.nid = qnp.nid
-            AND qnrs.nid = qnp.nid
-            AND u.uid = qnrs.uid";
-  */
   $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end, qnp.pass_rate
           FROM {node} n
           INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
