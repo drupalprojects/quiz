@@ -124,7 +124,7 @@ class LongAnswerQuestion extends QuizQuestion{
 
 }
 
-class LongAnswerResponse extends AbstractQuizQuestionResponse {
+class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Get all quiz scores that have not yet been evaluated.

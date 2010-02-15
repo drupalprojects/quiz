@@ -67,7 +67,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
  * node. However, there are a few behind-the-scenes tricks that
  * are done here to make the quiz-taking process a little easier.
  */
-class QuizDirectionsResponse extends AbstractQuizQuestionResponse {
+class QuizDirectionsResponse extends QuizQuestionResponse {
 
   public function save() {}
   public function delete() {}

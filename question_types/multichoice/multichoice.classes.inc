@@ -602,7 +602,7 @@ class MultichoiceQuestion extends QuizQuestion {
 /**
  * The short answer question response class.
  */
-class MultichoiceResponse extends AbstractQuizQuestionResponse {
+class MultichoiceResponse extends QuizQuestionResponse {
   /**
    * ID of the answers.
    */

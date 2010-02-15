@@ -535,8 +535,15 @@ abstract class QuizQuestion {
  * Each question type must store its own response data and be able to calculate a score for
  * that data.
  */
-interface QuizQuestionResponse {
+abstract class QuizQuestionResponse {
+  protected $rid = 0;
+  protected $is_correct = FALSE;
 
+  protected $evaluated = TRUE;
+  public $question = NULL;
+  protected $answer = NULL;
+  protected $score;
+  
   /**
    * Create a new user response.
    *
@@ -548,84 +555,6 @@ interface QuizQuestionResponse {
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($result_id, stdClass $question_node, $tries = NULL);
-
-  /**
-   * Save the current response.
-   */
-  public function save();
-  /**
-   * Delete the response.
-   */
-  public function delete();
-
-  /**
-   * Calculate the score for the response.
-   */
-  public function score();
-
-  /**
-   * Determine whether the score is a passing score.
-   */
-  public function isCorrect();
-
-  /**
-   * Indicate whether the response has been evaluated (scored) yet.
-   * Questions that require human scoring (e.g. essays) may need to manually
-   * toggle this.
-   */
-  public function isEvaluated();
-
-  /**
-   * Get the user's response.
-   */
-  public function getResponse();
-
-  /**
-   * Get data suitable for reporting a user's score on the question.
-   * This expects an object with the following attributes:
-   *
-   *  answer_id; // The answer ID
-   *  answer; // The full text of the answer
-   *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
-   *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
-   *  question_vid
-   *  question_nid
-   *  result_id
-   */
-  public function getReport();
-
-  /**
-   * Get the integer score.
-   */
-  public function getScore();
-
-  /**
-   * Repesent the response as a stdClass object.
-   *
-   * Convert data to an object that has the following properties:
-   * - $score
-   * - $rid
-   * - $nid
-   * - $vid
-   * - $is_correct
-   */
-  public function toBareObject();
-}
-
-/**
- * A base implementation of QuizQuestionResponse.
- *
- */
-abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
-  protected $rid = 0;
-  protected $is_correct = FALSE;
-
-  protected $evaluated = TRUE;
-  public $question = NULL;
-  protected $answer = NULL;
-  protected $score;
-
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     $this->rid = $result_id;
     $this->question = $question_node;
@@ -636,11 +565,16 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
     $res = db_query($sql, $result_id, $question_node->nid, $question_node->vid);
     $this->is_skipped = db_result($res);
   }
-
+  
   public function refreshQuestionNode($newNode) {
     $this->question = $newNode;
   }
-
+  
+  /**
+   * Indicate whether the response has been evaluated (scored) yet.
+   * Questions that require human scoring (e.g. essays) may need to manually
+   * toggle this.
+   */
   public function isEvaluated() {
     return (bool)$this->evaluated;
   }
@@ -671,7 +605,17 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
       return round($this->question->max_score * $this->question->score_weight);
     return $this->question->max_score;
   }
-
+  
+  /**
+   * Repesent the response as a stdClass object.
+   *
+   * Convert data to an object that has the following properties:
+   * - $score
+   * - $rid
+   * - $nid
+   * - $vid
+   * - $is_correct
+   */
   function toBareObject() {
     $obj = new stdClass();
     $obj->score = $this->getScore(); // This can be 0 for unscored.
@@ -688,7 +632,19 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   public function isValid() {
     return TRUE;
   }
-
+  
+  /**
+   * Get data suitable for reporting a user's score on the question.
+   * This expects an object with the following attributes:
+   *
+   *  answer_id; // The answer ID
+   *  answer; // The full text of the answer
+   *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
+   *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
+   *  question_vid
+   *  question_nid
+   *  result_id
+   */
   public function getReport() {
     // Basically, we encode internal information in a
     // legacy array format for Quiz.
@@ -776,5 +732,25 @@ abstract class AbstractQuizQuestionResponse implements QuizQuestionResponse {
   public function getReportFormTheme($showfeedback = TRUE, $showpoints = TRUE) {
     return FALSE;
   }
+  
+  /**
+   * Save the current response.
+   */
+  abstract public function save();
+  
+  /**
+   * Delete the response.
+   */
+  abstract public function delete();
+
+  /**
+   * Calculate the score for the response.
+   */
+  abstract public function score();
+  
+   /**
+   * Get the user's response.
+   */
+  abstract public function getResponse();
 }
 

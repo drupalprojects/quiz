@@ -486,7 +486,7 @@ class ScaleQuestion extends QuizQuestion {
 /**
  * The short answer question response class.
  */
-class ScaleResponse extends AbstractQuizQuestionResponse {
+class ScaleResponse extends QuizQuestionResponse {
   /**
    * ID of the answer.
    */

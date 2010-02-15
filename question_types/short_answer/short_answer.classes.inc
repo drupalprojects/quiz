@@ -221,7 +221,7 @@ class ShortAnswerQuestion extends QuizQuestion {
 /**
  * The short answer question response class.
  */
-class ShortAnswerResponse extends AbstractQuizQuestionResponse {
+class ShortAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Get all quiz scores that have not yet been evaluated.

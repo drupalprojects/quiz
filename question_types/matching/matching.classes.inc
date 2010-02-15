@@ -247,7 +247,7 @@ class MatchingQuestion extends QuizQuestion {
  * are done here to make the quiz-taking process a little easier.
  */
 
-class MatchingResponse extends AbstractQuizQuestionResponse {
+class MatchingResponse extends QuizQuestionResponse {
 
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);

@@ -163,7 +163,7 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 }
 
-class TrueFalseResponse extends AbstractQuizQuestionResponse {
+class TrueFalseResponse extends QuizQuestionResponse {
 
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
