@@ -172,7 +172,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
 }
 
 /**
- * Set the answer for a question.
+ * Get the answer for a question.
  *
  * This stores a score for a long answer question and marks that question as having been evaluated.
  * @param $nid
