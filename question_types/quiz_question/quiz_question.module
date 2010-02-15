@@ -530,10 +530,6 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
       return $question_instances[$vid];
     }
   }
-  /*else { //TODO: Remove this if it passes testing phase...
-    // TODO why is this condition permitted?  name is passed as arg to constructor?
-    $name = $node;
-  }*/
   
   $info = _quiz_question_get_implementations();
   $constructor = $info[$name]['question provider'];
@@ -604,30 +600,6 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
     }
   }
   return $info;
-}
-
-/**
- * Load a quiz question node and validate it.
- *
- * @param $arg
- *  The Node ID
- * @return
- *  A quiz question node object or FALSE if a load failed.
- */
-function quiz_question_type_access_load($arg) {
-  $node = node_load($arg);
-  if (!$node) {
-    return FALSE;
-  }
-
-  $qtypes = module_invoke_all('quiz_question_info');
-  $qtypes_key = array_keys($qtypes);
-
-  if (!in_array($node->type, $qtypes_key)) {
-    return FALSE;
-  }
-
-  return $node;
 }
 
 /**

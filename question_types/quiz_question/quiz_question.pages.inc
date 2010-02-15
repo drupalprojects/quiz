@@ -7,27 +7,6 @@
  */
 
 
-/**
- * @param $question_nid
- *
- * @return
- * a list of nodes that are parents to the question node
- */
-function _quiz_question_parents($question_node) {
-  $parents = array();
-  // Get all the questions (ignore `question_status`)
-  $sql = "SELECT DISTINCT parent_nid as nid
-    FROM {quiz_node_relationship}
-    WHERE child_vid = %d
-      AND child_nid = %d
-    ORDER BY weight";
-  $result = db_query($sql, $question_node->vid, $question_node->nid);
-  while ($parent_node_info = db_fetch_array($result)) { // nid, vid
-    $parent_nodes[] = node_load($parent_node_info['nid']);
-  }
-  return $parent_nodes;
-}
-
 function quiz_question_revision_actions($form_state, $nid, $vid) {
   if (!isset($_SESSION['quiz_question_kept']))
     drupal_goto('node/'. $nid);
