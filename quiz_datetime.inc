@@ -38,10 +38,15 @@ function quiz_translate_form_date(&$node, $date) {
  * 2. If user time zones are enabled, user time zone offset is applied
  * 3. If neither 1 nor 2 apply, the site time zone offset is applied
  *
- * @param $format The date() format to apply to the timestamp.
- * @param $timestamp The GMT timestamp value.
- * @param $offset Time zone offset to apply to the timestamp.
- * @return gmdate() formatted date value
+ * @param $hour
+ * @param $minute
+ * @param $second
+ * @param $month
+ * @param $day
+ * @param $year
+ * @param $offset 
+ *   Time zone offset to apply to the timestamp.
+ * @return timestamp
  */
 function _quiz_mktime($hour, $minute, $second, $month, $day, $year, $offset = NULL) {
   global $user;
@@ -66,9 +71,12 @@ function _quiz_mktime($hour, $minute, $second, $month, $day, $year, $offset = NU
  * 2. If user time zones are enabled, user time zone offset is applied
  * 3. If neither 1 nor 2 apply, the site time zone offset is applied
  *
- * @param $format The date() format to apply to the timestamp.
- * @param $timestamp The GMT timestamp value.
- * @param $offset Time zone offset to apply to the timestamp.
+ * @param $format 
+ *   The date() format to apply to the timestamp.
+ * @param $timestamp 
+ *   The GMT timestamp value.
+ * @param $offset 
+ *   Time zone offset to apply to the timestamp.
  * @return gmdate() formatted date value
  */
 function _quiz_date($format, $timestamp, $offset = NULL) {
