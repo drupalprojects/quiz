@@ -2,7 +2,21 @@ $Id$
 
 version 6.x-4.x
 ----------------
-- Started
+The goal is to make this version good enough to be used in a L(C)MS
+- User experience for quiz creators improved
+-- Improved question browser
+-- Can add a question to a quiz from the question node form
+-- Quiz settings are remembered
+-- Quiz defaults are customizable
+-- Random and compulsory questions are handled in a more intuitive way
+- Performance improved
+-- Question objects are cached statically
+-- Queries have been rewritten
+-- Indexes have been added
+- Statistics
+- Scale question-type
+- More advanced scoring
+- Improved stability
 
 version 6.x-3.0
 ---------------
