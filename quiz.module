@@ -3223,9 +3223,9 @@ function _quiz_format_duration($time_in_sec) {
 }
 
 function _quiz_is_natural($value, $zero_allowed = false) {
-  $return = ((string)$value === (string)(int)$value);
+  $to_return = ((string)$value === (string)(int)$value);
   $min = ($zero_allowed) ? 0 : 1;
-  if ($return && intval($val) < $min)
-    $return = false;
-  return $return;
+  if ($to_return && intval($val) < $min)
+    $to_return = false;
+  return $to_return;
 }
