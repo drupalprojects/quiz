@@ -145,7 +145,6 @@ function quiz_admin_settings() {
     '#title' => t('Show allowed times'),
     '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
     '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
-
   );
 
   $form['quiz_email_settings'] = array(
@@ -155,18 +154,21 @@ function quiz_admin_settings() {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
+  
   $form['quiz_email_settings']['quiz_email_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_email_results', 0),
     '#description' => t('Check this to send users quiz results over E-mail at the end of quiz.')
   );
+  
   $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail all users results to Quiz Author.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
     '#description' => t('Check this to send users quiz results over E-mail to quiz author. (<em> it works only when the attendee is an anonymous user</em>).'),
   );
+  
   $form['quiz_email_settings']['quiz_email_results_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Configure Email subject'),
@@ -177,7 +179,7 @@ function quiz_admin_settings() {
   $form['quiz_email_settings']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure Email format'),
-    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholder.'),
+    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholders.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
 
@@ -187,6 +189,7 @@ function quiz_admin_settings() {
   );
   
   $form['#validate'][] = 'quiz_settings_form_validate';
+  
   return system_settings_form($form);
 }
 
@@ -196,18 +199,20 @@ function quiz_admin_settings() {
   * Checks the values for the form administration form for quiz settings.
   */
 function quiz_settings_form_validate($form, &$form_state) {
-  if (!is_numeric($form_state['values']['quiz_default_close']) || $form_state['values']['quiz_default_close'] <= 0) {
+  if (!_quiz_is_int($form_state['values']['quiz_default_close'])) 
     form_set_error('quiz_default_close', t('The default number of days before a quiz is closed must be a number greater than 0.'));
-  }
-  if (!is_numeric($form_state['values']['quiz_autotitle_length'])) {
+  
+  if (!_quiz_is_int($form_state['values']['quiz_autotitle_length'], 0, 128)) 
     form_set_error('quiz_autotitle_length', t('The autotitle length value must be an integer between 0 and 128.'));
-  }
-  if ($form_state['values']['quiz_autotitle_length'] > 128) {
-    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be bigger than 128.'));
-  }
-  if ($form_state['values']['quiz_autotitle_length'] < 0) {
-    form_set_error('quiz_autotitle_length', t('The autotitle length value must not be smaller than 0.'));
-  }
+  
+  if (!_quiz_is_int($form_state['values']['quiz_max_result_options'], 0, 100)) 
+    form_set_error('quiz_max_result_options', t('The number of resultoptions must be an integer between 0 and 100.'));
+  
+  if(!_quiz_is_plain($form_state['values']['quiz_name']))
+    form_set_error('quiz_name', t('The quiz name must be plain text.'));
+    
+  if(!_quiz_is_plain($form_state['values']['quiz_action_type']))
+    form_set_error('quiz_action_type', t('The action type must be plain text.'));
 }
 
 function quiz_admin_node_form(&$form_state) {

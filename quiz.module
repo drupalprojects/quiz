@@ -3222,10 +3222,17 @@ function _quiz_format_duration($time_in_sec) {
   return "$hours:$min:$sec";
 }
 
-function _quiz_is_natural($value, $zero_allowed = false) {
+function _quiz_is_int($value, $min = 1, $max = NULL) {
   $to_return = ((string)$value === (string)(int)$value);
-  $min = ($zero_allowed) ? 0 : 1;
-  if ($to_return && intval($val) < $min)
-    $to_return = false;
+  if ($to_return && intval($value) < $min)
+    $to_return = FALSE;
+  if(isset($max)) {
+    if($to_return && intval($value) > $max)
+      $to_return = FALSE;
+  }
   return $to_return;
+}
+
+function _quiz_is_plain($value) {
+  return($value === check_plain($value));
 }
