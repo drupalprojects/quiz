@@ -215,15 +215,24 @@ function quiz_settings_form_validate($form, &$form_state) {
     form_set_error('quiz_action_type', t('The action type must be plain text.'));
 }
 
+/**
+ * Renders the quiz node form for the admin pages
+ * 
+ * This form is used to configure default values for the quiz node form
+ */
 function quiz_admin_node_form(&$form_state) {
+  // Create a dummy node to use as input for quiz_form
   $dummy_node = new stdClass();
+  // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
   $dummy_node->def_uid = variable_get('quiz_def_uid', NULL);
+  
   $form = quiz_form($dummy_node);
   $form['direction'] = array(
     '#type' => 'markup',
     '#value' => t('Here you can change the default quiz settings for new users.'),
     '#weight' => -10,
   );
+  // unset values we can't or won't let the user edit default values for
   unset(
     $form['#quiz_check_revision_access'],
     $form['title'],
@@ -235,6 +244,7 @@ function quiz_admin_node_form(&$form_state) {
     $form['resultoptions'],
     $form['number_of_random_questions']
   );
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -243,17 +253,37 @@ function quiz_admin_node_form(&$form_state) {
   return $form;
 }
 
+/**
+ * Validation function for the quiz_admin_node_form form
+ */
 function quiz_admin_node_form_validate($form, &$form_state) {
+  // Create dummy node for quiz_validate 
   $dummy_node = new stdClass();
   foreach($form_state['values'] as $key => $value) {
     $dummy_node->{$key} = $value;
   }
   $dummy_node->resultoptions = array();
+  
+  // We use quiz_validate to validate the default values
   quiz_validate($dummy_node);
 }
 
+/**
+ * Submit function for quiz_admin_node_form
+ * 
+ * The default values are saved as the user settings for the "default user"
+ * The default user is created when quiz is installed. He has a unique uid, but doesn't exist
+ * as a real user. 
+ * 
+ * Why?
+ * Default user settings can be loaded and saved using the same code and
+ * database tables as any other user settings, making the code a lot easier to maintain.
+ * Ref: http://en.wikipedia.org/wiki/Don%27t_repeat_yourself
+ */
 function quiz_admin_node_form_submit($form, &$form_state) {
+  // We add the uid for the "default user"
   $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
+  
   _quiz_save_user_settings($form_state['values']);
 }
 
