@@ -13,8 +13,6 @@
 // Quiz Admin Settings
 
 /**
- * Implementation of hook_settings().
- *
  * This builds the main settings form for the quiz module.
  */
 function quiz_admin_settings() {
@@ -32,6 +30,8 @@ function quiz_admin_settings() {
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
     '#default_value' => variable_get('quiz_default_close', 30),
+    '#size' => 4,
+    '#maxlength' => 4,
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
   );
 

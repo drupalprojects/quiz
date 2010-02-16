@@ -3221,3 +3221,11 @@ function _quiz_format_duration($time_in_sec) {
   if (strlen($sec) == 1) $sec = '0'. $sec;
   return "$hours:$min:$sec";
 }
+
+function _quiz_is_natural($value, $zero_allowed = false) {
+  $return = ((string)$value === (string)(int)$value);
+  $min = ($zero_allowed) ? 0 : 1;
+  if ($return && intval($val) < $min)
+    $return = false;
+  return $return;
+}
