@@ -52,17 +52,9 @@ define('QUIZ_FEEDBACK_NEVER',           2);
 /**
  * Define options for keeping results.
  */
-define('QUIZ_KEEP_BEST',             0);
-define('QUIZ_KEEP_LATEST',        1);
-define('QUIZ_KEEP_ALL',           2);
-
-/**
- * Quiz perms.
- *
- * TODO: Simply adding the new quiz config perm for now - refactor other perms
- * to constants in the future.
- */
-define('QUIZ_PERM_ADMIN_CONFIG', 'administer quiz configuration');
+define('QUIZ_KEEP_BEST', 0);
+define('QUIZ_KEEP_LATEST', 1);
+define('QUIZ_KEEP_ALL', 2);
 
 /**
  * Implementation of hook_help().
@@ -90,7 +82,7 @@ function quiz_views_api() {
 function quiz_perm() {
   return array(
     // Configure quiz:  
-    QUIZ_PERM_ADMIN_CONFIG,
+    'administer quiz configuration',
     // Managing quizzes:
     'access quiz', 'create quiz', 'edit own quiz', 'edit any quiz', 'delete any quiz', 'delete own quiz',
     // viewing results:
@@ -228,7 +220,7 @@ function quiz_menu() {
     'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
     'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG, 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
+    'access arguments' => array('administer quiz configuration', 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
@@ -242,7 +234,7 @@ function quiz_menu() {
     'title' => t('@quiz settings', array('@quiz' => QUIZ_NAME)),
     'description' => t('Change @quiz settings.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
@@ -253,7 +245,7 @@ function quiz_menu() {
     'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_settings'),
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
   );
@@ -263,7 +255,7 @@ function quiz_menu() {
     'description' => t('Configure @quiz node-form default values.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_node_form'),
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
   );

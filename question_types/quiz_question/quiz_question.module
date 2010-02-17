@@ -52,7 +52,7 @@ function quiz_question_menu() {
     'description' => t('Configure the question types.'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_type_settings_form', $type),
-    'access arguments' => array(QUIZ_PERM_ADMIN_CONFIG),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
   return $items;
