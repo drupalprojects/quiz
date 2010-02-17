@@ -128,13 +128,17 @@ function quiz_access($op, $node, $account) {
 /**
  * Helper function to determine if a user has access to the different results pages.
  *
- * @param $node
- * @param $account
+ * @param $quiz
+ *   The quiz node
+ * @param $rid
+ *   The result id of a result we are trying to access
  * @return boolean
  *   true if user has permission
  */
 function quiz_access_results($quiz, $rid = NULL) {
   global $user;
+  
+  // If rid is set we must make sure the result belongs to the quiz we are viewing results for
   if (isset($rid)) {
     $sql = 'SELECT qnr.nid
             FROM {quiz_node_results} qnr
@@ -168,8 +172,13 @@ function quiz_access_to_score($quiz_creator = NULL) {
     return TRUE;
 }
 
-
-
+/**
+ * Helper function to check if the user has any of a given list of permissions
+ * 
+ * @param args
+ *   Any number of permissions
+ * @return true if the user has access to any of the arguments given
+ */
 function quiz_access_multi_or() {
   $perms = func_get_args();
   foreach ($perms as $perm) 
@@ -222,12 +231,9 @@ function quiz_menu() {
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration', 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_NORMAL_ITEM, 
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
-    //'weight' => -1,
-    //'position' => 'right',
-    //'menu_name' => 'name of menu',
   );
 
   $items['admin/quiz/settings'] = array(
@@ -235,7 +241,7 @@ function quiz_menu() {
     'description' => t('Change @quiz settings.', array('@quiz' => QUIZ_NAME)),
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
   );
@@ -450,6 +456,7 @@ function quiz_theme() {
  * preview button on a quiz.
  */
 function quiz_form_alter(&$form, $form_state, $form_id) {
+  // Remove revision fieldset if user don't have access to revise quiz manually
   if (isset($form['#quiz_check_revision_access'])) {
     if (!user_access('manual quiz revisioning')) {
       $form['revision_information']['revision']['#type'] = 'value';
@@ -458,7 +465,10 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
     }
+    
     unset($form['buttons']['preview']);
+    
+    // Quiz questions might want to add a cancel button
     if ($form['#cancel_button']) {
       $form['buttons']['cancel'] = array(
         '#type' => 'markup',
@@ -475,8 +485,11 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  */
 function quiz_insert($node) {
   _quiz_save_user_settings($node);
+  
+  // Copy all the questions belonging to the quiz if this is a new translation
   if ($node->is_new && isset($node->translation_source))
     quiz_copy_questions($node);
+    
   _quiz_common_presave_actions($node);
 
   $tid = (isset($node->tid) ? $node->tid : 0);
@@ -486,16 +499,31 @@ function quiz_insert($node) {
   }
 
   $sql = "INSERT INTO {quiz_node_properties}
-    (vid, nid, aid, number_of_random_questions, randomization,
-      backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, keep_results, time_limit, pass_rate, summary_pass, summary_default, quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
-    VALUES(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d, %d, %d, %d)";
+    (vid, nid, aid, number_of_random_questions, randomization, 
+    backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, 
+    keep_results, time_limit, pass_rate, summary_pass, summary_default, 
+    quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
+    VALUES(%d, %d, '%s', %d, %d, 
+    %d, %d, %d, %d, %d, 
+    %d, %d, %d, '%s', '%s', 
+    %d, %d, %d, %d, %d)";
+  
+  // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
-  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
+  
+  db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, 
+    $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, 
+    $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, 
+    $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
+  
   _quiz_insert_resultoptions($node);
+  
   if (!$node->auto_created && $node->revision == 0) {
     drupal_set_message("You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the \"edit\" tab.");
     $_REQUEST['destination'] = url("node/$node->nid/questions");
   }
+  
+  // If the quiz don't have any questions and have been created manually jump to the manage questions tab
   if (!$node->auto_created)
     _quiz_redirect_if_empty($node);
 }
@@ -549,13 +577,17 @@ function quiz_update($node) {
       $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
-    // if (db_affected_rows($resource) == 0) {
-    //       drupal_set_message('No quiz was found that could be modified.', 'status');
-    //     }
   }
+  // If the node has no questions redirect to the manage questions tab
   _quiz_redirect_if_empty($node);
 }
 
+/**
+ * Common actions that need to be done before a quiz is inserted or updated
+ * 
+ * @param $node
+ *   Quiz node
+ */
 function _quiz_common_presave_actions(&$node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
@@ -566,11 +598,17 @@ function _quiz_common_presave_actions(&$node) {
  * Implementation of hook_delete().
  */
 function quiz_delete($node) {
-  // This first line should load all the vid's for the nid.
-  db_query('DELETE FROM {quiz_node_properties} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
+  $sql = 'SELECT result_id 
+          FROM {quiz_node_results}
+          WHERE nid = %d';
+  $res = db_query($sql, $node->nid);
+  $rids = array();
+  while ($rids[] = db_result($res)) {}
+  quiz_delete_results($rids);
+  db_query('DELETE FROM {quiz_node_properties} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
-  db_query('DELETE FROM {quiz_node_results} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
-  db_query('DELETE FROM {quiz_node_result_options} WHERE vid = %d AND nid = %d', $node->vid, $node->nid);
+  db_query('DELETE FROM {quiz_node_results} WHERE nid = %d', $node->nid);
+  db_query('DELETE FROM {quiz_node_result_options} WHERE nid = %d', $node->vid, $node->nid);
 }
 
 function _quiz_get_node_defaults() {
