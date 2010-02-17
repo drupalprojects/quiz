@@ -7,6 +7,10 @@
  *
  */
 
+/**
+ * Implementation of hook_update_N().
+ * Adding a new field to store the max score for random questions
+ */
 function quiz_update_6412() {
   $results = array();
   db_add_field($results, 'quiz_node_properties', 'max_score_for_random', array(
@@ -19,6 +23,10 @@ function quiz_update_6412() {
   return $results;
 }
 
+/**
+ * Implementation of hook_update_N().
+ * Deleting quiz variables not beeing used anymore
+ */
 function quiz_update_6411() {
   variable_del('quiz_default_pass_rate');
   variable_del('quiz_keep_results');
@@ -26,6 +34,10 @@ function quiz_update_6411() {
   return array();
 }
 
+/**
+ * Implementation of hook_update_N().
+ * Creating the variable quiz_def_uid. This artificial uid is used when storing the default quiz preferences.
+ */
 function quiz_update_6410() {
   $results = array();
   db_lock_table('users');
@@ -38,6 +50,10 @@ function quiz_update_6410() {
   return $results;
 }
 
+/**
+ * Implementation of hook_update_N().
+ * Adding indexes to improve performance
+ */
 function quiz_update_6409() {
   $results = array();
   db_add_index($results, 'quiz_node_relationship', 'parent_id', array('parent_vid'));
@@ -45,6 +61,11 @@ function quiz_update_6409() {
   return $results;
 }
 
+/**
+ * Implementation of hook_update_N().
+ * - Adding table for saving quiz user settings
+ * - Merging randomize and shuffle into randomization
+ */
 function quiz_update_6408() {
   $results = array();
   db_create_table($results, 'quiz_user_settings', array(
@@ -176,7 +197,7 @@ function quiz_update_6408() {
 
 /**
  * Implementation of hook_update_N().
- * Adding a new field to for whether to repeat questions until they're found correct
+ * Add field is_evaluated to the quiz_node_result, and make sure the values are correct
  */
 function quiz_update_6407() {
   $results = array();
@@ -203,7 +224,7 @@ function quiz_update_6407() {
 
 /**
  * Implementation of hook_update_N().
- * Adding a new field to for whether to repeat questions until they're found correct
+ * Adding a field to store what results are to be kept.
  */
 function quiz_update_6406() {
   $result = array();
@@ -213,7 +234,7 @@ function quiz_update_6406() {
 
 /**
  * Implementation of hook_update_N().
- * Adding a new field to for whether to repeat questions until they're found correct
+ * Adding a new field to store whether or not to repeat questions until they're found correct
  */
 function quiz_update_6405() {
   $result = array();
@@ -268,6 +289,8 @@ function quiz_update_6402() {
  *
  * Add a field to store max score for each question in a quiz.
  * Also store the total max score in the quiz_node_properties table
+ * 
+ * This function uses the batch feature
  */
 function quiz_update_6401(&$sandbox = NULL) {
   $result = array();
@@ -336,7 +359,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     }
     $sandbox['max'] = count($sandbox['question_types']) + 4;
   }
-  // Doing convertion for one questiontype at a time...
+  // Doing convertion for one questiontype at a time as a batch process
   if ($current_type = array_pop(array_keys($sandbox['question_types']))) {
     $tables = array_pop($sandbox['question_types']);
     switch ($current_type) {
@@ -410,6 +433,7 @@ function quiz_update_6401(&$sandbox = NULL) {
     }
     $sandbox['progress']++;
   }
+  // When we are done with all the question types.
   else {
     if (!isset($sandbox['quiz_directions_done'])) {
       $sql = 'INSERT INTO {quiz_question_properties}
@@ -548,6 +572,7 @@ function quiz_update_6300() {
 function quiz_install() {
   // Create Tables
   drupal_install_schema('quiz');
+  
   // Default the "Show Author and Date" for quiz nodes to OFF.
   $temp_array = variable_get('theme_settings', array());
   $temp_array['toggle_node_info_quiz'] = 0;
@@ -555,6 +580,7 @@ function quiz_install() {
   // Default the comment settings to disabled.
   variable_set('comment_quiz', '0');
   
+  // Create the quiz_def_uid variable holding an artificial uid to use when storing default settings.
   db_lock_table('users');
   $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
   db_query($sql);
@@ -576,6 +602,7 @@ function quiz_schema() {
    */
   // Create the quiz node properties table
   $schema['quiz_node_properties'] = array(
+    'description' => 'The base table for quiz nodes',
     'fields' => array(
       'property_id' => array(
         'type' => 'serial',
@@ -731,12 +758,13 @@ function quiz_schema() {
    */
   // Create the quiz node relationship table
   $schema['quiz_node_relationship'] = array(
+    'description' => 'Table storing what questions belong to what quizzes',
     'fields' => array(
       'parent_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'parent_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -781,6 +809,7 @@ function quiz_schema() {
    */
   // Create the quiz node results table
   $schema['quiz_node_results'] = array(
+    'description' => 'Table storing the total results for a quiz',
     'fields' => array(
       'result_id' => array(
         'type' => 'serial',
@@ -854,6 +883,7 @@ function quiz_schema() {
    * Information about a particular question in a result
    */
   $schema['quiz_node_results_answers'] = array(
+    'description' => 'Table storing information about the results for the questions',
     'fields' => array(
       'result_id' => array(
         'type' => 'int',
@@ -908,6 +938,7 @@ function quiz_schema() {
    */
   // Create the quiz node result options table
   $schema['quiz_node_result_options'] = array(
+    'description' => 'Table storing result options for quizzes. Several result options may belong to a single quiz.',
     'fields' => array(
       'option_id' => array(
         'type' => 'serial',
@@ -950,40 +981,8 @@ function quiz_schema() {
     )
   );
   
-  $schema['quiz_user_settings'] = _quiz_user_settings_tbl();
-  return $schema;
-}
-
-/**
- * Implementation of hook_uninstall()
- */
-function quiz_uninstall() {
-  drupal_uninstall_schema('quiz');
-  $var = array(
-    'quiz_name',
-    'quiz_default_close',
-    'quiz_use_passfail',
-    'quiz_action_type',
-    'quiz_action_type',
-    'quiz_email_results',
-    'quiz_email_results_body',
-    'quiz_email_results_subject',
-    'quiz_has_timer',
-    'quiz_has_userpoints',
-    'quiz_max_result_options',
-    'quiz_remove_partial_quiz_record',
-    'quiz_show_allowed_times',
-    'quiz_autotitle_length',
-    'comment_quiz',
-    'quiz_def_uid'
-  );
-  foreach ($var as $v) {
-    variable_del($v);
-  }
-}
-
-function _quiz_user_settings_tbl() {
-  return array(
+  $schema['quiz_user_settings'] = array(
+    'description' => 'Table storing the user settings for the quiz node form',
     'fields' => array(
       'uid' => array(
         'type' => 'int',
@@ -1091,4 +1090,33 @@ function _quiz_user_settings_tbl() {
     ),
     'primary key' => array('uid'),
   );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function quiz_uninstall() {
+  drupal_uninstall_schema('quiz');
+  $var = array(
+    'quiz_name',
+    'quiz_default_close',
+    'quiz_use_passfail',
+    'quiz_action_type',
+    'quiz_action_type',
+    'quiz_email_results',
+    'quiz_email_results_body',
+    'quiz_email_results_subject',
+    'quiz_has_timer',
+    'quiz_has_userpoints',
+    'quiz_max_result_options',
+    'quiz_remove_partial_quiz_record',
+    'quiz_show_allowed_times',
+    'quiz_autotitle_length',
+    'comment_quiz',
+    'quiz_def_uid'
+  );
+  foreach ($var as $v) {
+    variable_del($v);
+  }
 }
