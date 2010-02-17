@@ -1461,7 +1461,6 @@ function quiz_browser_ahah() {
 
 
 // THEME FUNCTIONS
-// Remember to updated quiz_theme() in quiz.module
 
 /**
  * Theme the admin quizzes table.
@@ -1473,6 +1472,8 @@ function quiz_browser_ahah() {
  */
 function theme_quiz_admin_quizzes($results) {
   $output = '';
+  
+  // The export images
   $path_to_module_quiz = drupal_get_path('module', 'quiz'); 	 
   $png = array(	 
     'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')), 	 
@@ -1489,6 +1490,7 @@ function theme_quiz_admin_quizzes($results) {
       check_plain($result['name']),
       format_date($result['created'], 'small'),
     );
+    // Add export links if the results export module is enabled
     if ($exp)
       $cols[] = l($png['html'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] .'/html', array('html' => TRUE)) 	 
 	          . l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/xml', array('html' => TRUE)) 	 
@@ -1504,6 +1506,7 @@ function theme_quiz_admin_quizzes($results) {
   if ($exp) {
     $header[] = t('Export');
   }
+  // Message if there are no quizzes available
   if (!user_access('view any quiz results'))
     $no_quizzes = '<p>' . t('No @quiz that you have created was found. You do not have permission to see any other results.', array('@quiz' => QUIZ_NAME)) .'</p>';
   else {
@@ -1513,6 +1516,14 @@ function theme_quiz_admin_quizzes($results) {
   return $output;
 }
 
+/**
+ * Theme the quiz node form
+ * 
+ * Adds js to enhance the ux.
+ * 
+ * @param $form
+ *   FAPI form array
+ */
 function theme_quiz_node_form($form) {
   $path = drupal_get_path('module', 'quiz') .'/theme/quiz_node_form.js';
   drupal_add_js($path);
@@ -1550,6 +1561,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
     $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
   if (isset($summary['result']))
     $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
+  
   // Get the feedback for all questions.
   require_once(drupal_get_path('module', 'quiz') .'/quiz.pages.inc');
   $output .= drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE);
@@ -1562,9 +1574,12 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
 function theme_question_selection_table($form) {
   drupal_add_tabledrag('question-list', 'order', 'sibling', 'question-list-weight', NULL, NULL, TRUE);
 
+  // Building headers
   $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'));
   if (isset($form['compulsories'])) $headers[] = t('Compulsory');
   $headers[] = t('Weight');
+  
+  // Building table body
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $id) {
@@ -1577,9 +1592,13 @@ function theme_question_selection_table($form) {
     unset($form['max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories']);
   }
   $html_attr = array('id' => 'question-list');
+  
+  // We hide the table if no questions have been added so that jQuery can show it the moment the first question is beeing added.
   if (isset($form['no_questions']))
     $html_attr['style'] = "display:none;";
+  
   $table = theme('table', $headers, $rows, $html_attr);
+  
   return drupal_render($form['random_settings']) 
        . $table 
        . drupal_render($form);
@@ -1587,11 +1606,28 @@ function theme_question_selection_table($form) {
 
 // RESULT MANAGEMENT
 
+/**
+ * Form for searching after and manipulating results for a quiz
+ * 
+ * @param $form_state
+ *   FAPI form_state
+ * @param $quiz
+ *   The quiz node
+ * @return 
+ *   FAPI-array
+ */
 function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form = array();
   $pre = 'quiz_results_mr_';
+  
+  /* not_in_progress is a filter to filter away questions that are in progress...
+     By default we don't want to show questions in progress... */
   if (!isset($_SESSION[$pre .'not_in_progress'])) $_SESSION[$pre .'not_in_progress'] = 1;
+  
+  // Specify action to avoid redirection issues when using ajax
   $form['#action'] = url('admin/quiz/reports/results/'. $quiz->nid);
+  
+  // We hide the update fieldset if we are to delete results
   $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
   $form['update'] = array(
     '#type' => 'fieldset',
@@ -1604,17 +1640,21 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
       'style' => "display:$display;"
     ),
   );
+  
   $form['update']['bulk_action'] = array(
     '#type' => 'select',
     '#options' => array(
       'def' => '',
       'del' => t('delete'),
+      // In later versions we will be adding score as a third option here
     ),
   );
   $form['update']['update'] = array(
     '#type' => 'submit',
     '#value' => t('Update'),
   );
+  
+  // We show the delete confirmation fieldset if we are to delete results
   $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'block' : 'none';
   $form['confirm_delete'] = array(
     '#type' => 'fieldset',
@@ -1639,6 +1679,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'markup',
     '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
   );
+  
   $form['special_filters'] = array(
     '#type' => 'fieldset',
     '#title' => t('Special filters'),
@@ -1649,6 +1690,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#type' => 'checkbox',
     '#title' => t('Only show each users best result'),
     '#parents' => array('table', 'filters', 'best_results'),
+    '#default_value' => isset($_SESSION[$pre .'best_results']) ? $_SESSION[$pre . 'best_results'] : 1,
   );
   $form['special_filters']['not_in_progress'] = array(
     '#type' => 'checkbox',
@@ -1656,30 +1698,30 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#parents' => array('table', 'filters', 'not_in_progress'),
     '#default_value' => isset($_SESSION[$pre .'not_in_progress']) ? $_SESSION[$pre . 'not_in_progress'] : 1,
   );
+  
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
   $browser = &$form['table'];
 
   // Ahah targets
-  $browser['ahah_target'] = array( // TODO: Needed?
+  $browser['ahah_target'] = array(
     '#type' => 'markup',
     '#value' => '<DIV ID = "ahah-target"></DIV>'
   );
-  $browser['ahah_target_all'] = array( // TODO: Needed?
+  $browser['ahah_target_all'] = array(
     '#type' => 'markup',
     '#value' => '<DIV ID = "all-ahah-target">'
   );
 
-  // Ajax use this field to send extra query strings to drupal
-  $browser['add_to_get'] = array( // TODO: Needed?
+  // js use this field to send extra query strings to drupal(sorting, paging etc)
+  $browser['add_to_get'] = array(
     '#type' => 'hidden',
     '#default_value' => '',
   );
 
-  //Build filter part of form:
+  // Build filter part of form:
   _quiz_results_mr_add_filter_fields($browser);
 
   // Add querystring recieved via ajax to the $_GET array...
-  // $question_type_list = implode('\', \'', array_keys($question_types));
   _quiz_add_to_get($form_state['values']['table']['add_to_get']);
 
   // Browsers table header
@@ -1697,8 +1739,14 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   $options = array();
   while ($res_o = db_fetch_object($res)) {
     $id = $quiz->nid .'-'. $res_o->result_id;
+    
+    // build options array for checkboxes for item
     $options[$id] = check_plain($res_o->name);
+    
+    // Build hover menu for users who want to act on a single result
     $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($quiz, $res_o->result_id);
+    
+    // Add data for the table columns
     $browser['started'][$id]['#value'] = format_date($res_o->started, 'small');
     $browser['finished'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : format_date($res_o->finished, 'small');
     $browser['duration'][$id]['#value'] = $res_o->finished == 0 ? t('In progress') : _quiz_format_duration($res_o->duration);
@@ -1706,15 +1754,19 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $browser['evaluated'][$id]['#value'] = $res_o->evaluated == 0 ? t('No') : t('Yes');
     $browser['pass_rate'][$id]['#value'] = $res_o->pass_rate;
   }
-  $def = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
+  
+  // We copy the checkboxes that have been chosen in the previous stage, and unset them to avoid having them loaded again.
+  $default_value = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
   unset($form_state['storage']['del']);
+  
   $browser['name'] = array(
     '#title' => t('Name'),
     '#type' => 'checkboxes',
     '#options' => $options,
     '#attributes' => array('class' => 'quiz-browser-checkbox'),
-    '#default_value' => $def,
+    '#default_value' => $default_value,
   );
+  
   $browser['pager'] = array(
     '#value' => '<DIV ID ="browser-pager">'. theme('pager', NULL, 50) .'</DIV>',
   );
@@ -1723,9 +1775,19 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#value' => '</DIV>'
   );
   $form['#submit'] = array('quiz_results_mr_form_submit');
+  
   return $form;
 }
 
+/**
+ * 
+ * @param $header
+ *   header array for theme_table
+ * @param $quiz
+ *   The quiz node
+ * @return
+ *   Query result set
+ */
 function _quiz_results_mr_data_provider($header, $quiz) {
   $filter = _quiz_results_mr_prepare_filter($quiz);
   $sql = "SELECT u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS evaluated, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
@@ -1734,6 +1796,9 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           ". $filter['join'] ."
           WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
+  
+  // We remove the links to the last page and use a custom query to fetch the number of pages
+  // Doing this we wastly improve performance
   $page = intval($_GET['page']);
   $num = 50;
   $pager_sql = "SELECT COUNT(*) FROM (
@@ -1748,7 +1813,8 @@ function _quiz_results_mr_data_provider($header, $quiz) {
 }
 
 /**
- * Returns sql to be added in where clause in the _quiz_results_mr_data_provider select statement
+ * Returns sql and parameters to be added in join, where and group clauses in the 
+ * _quiz_results_mr_data_provider select statement
  *
  * @see _quiz_results_mr_data_provider()
  *
@@ -1759,10 +1825,14 @@ function _quiz_results_mr_data_provider($header, $quiz) {
  */
 function _quiz_results_mr_prepare_filter($quiz) {
   $pre = 'quiz_results_mr_';
+  
+  // Get all the intervals we need
   $started_intervals = _quiz_get_interval_timestamps('time_start');
   $finished_intervals = _quiz_get_interval_timestamps('time_end');
   $duration_intervals = _quiz_get_duration_intervals();
   $score_intervals = _quiz_get_score_intervals($quiz);
+  
+  // Prepare the filter array
   $filter = array(
     'params' => array('nid' => $quiz->nid),
     'join' => '',
@@ -1802,6 +1872,12 @@ function _quiz_results_mr_prepare_filter($quiz) {
   return $filter;
 }
 
+/**
+ * Adds form items for the filters to the browser form.
+ * 
+ * @param $browser
+ *   FAPI form array
+ */
 function _quiz_results_mr_add_filter_fields(&$browser) {
   // Create options array for the changed filter
   $browser['filters'] = array();
@@ -1809,6 +1885,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['all'] = array(
     '#type' => 'checkbox',
   );
+  
   $pre = 'quiz_results_mr_';
   $filters['name'] = array(
     '#type' => 'textfield',
@@ -1818,7 +1895,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
       'method' => 'replace',
-      'event' => 'doneTyping',
+      'event' => 'doneTyping', // Custom event
     ),
   );
   $filters['started'] = array(
@@ -1863,7 +1940,12 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   );
 }
 
+/**
+ * Submit function for the result browser form
+ */
+
 function quiz_results_mr_form_submit($form, &$form_state) {
+  // If we are confirming the deltion of results.
   if ($form_state['values']['op'] == t('Delete all marked results')) {
     foreach ($form_state['values']['table']['name'] as $value) {
       if ($value !== 0) {
@@ -1872,6 +1954,7 @@ function quiz_results_mr_form_submit($form, &$form_state) {
         preg_match('/([0-9]+)-([0-9]+)/', $value, $matches);
         $res_nid = $matches[1];
         $res_rid = $matches[2];
+        // If we only showing the best results we still want to delete all results for this user
         if ($form_state['values']['table']['filters']['best_results'] == 1)
           _quiz_delete_results($res_rid, $res_nid);
         else 
@@ -1881,15 +1964,26 @@ function quiz_results_mr_form_submit($form, &$form_state) {
     if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
   }
   else {
+    // If we are deleting quizzes
     if ($form_state['values']['bulk_action'] == 'del') {
       $form_state['storage']['del'] = $form_state['values']['table']['name'];
     }
   }
+  // We remember the filters for the next time the same user visits the result browser
   _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 }
 
-
-
+/**
+ * Returns links to be placed on the quiz results browser.
+ * 
+ * The links will be made visible when the user hovers over them.
+ * 
+ * @param $quiz
+ *   The quiz node
+ * @param $rid
+ *   Result id
+ * @return Html string with links.
+ */
 function _quiz_results_mr_get_hover($quiz, $rid) {
   $to_return = array(l(t('view'), 'admin/quiz/reports/results/'. $quiz->nid .'/'. $rid));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz'))
@@ -1900,8 +1994,18 @@ function _quiz_results_mr_get_hover($quiz, $rid) {
   return implode(' | ', $to_return);
 }
 
+/**
+ * Delete a single result, or all results for a given user and a given quiz.
+ * 
+ * @param $rid
+ *   result if for the result to be deleted
+ * @param $nid
+ *   Node id for the quiz the result belongs to. If set all the users results for this quiz will be deleted.
+ */
 function _quiz_delete_results($rid, $nid = NULL) {
   $rids = array();
+  
+  // We are to delete all results for a certain user on a certain quiz.
   if (isset($nid)) {
     $sql = 'SELECT result_id
             FROM {quiz_node_results}
@@ -1915,6 +2019,7 @@ function _quiz_delete_results($rid, $nid = NULL) {
       $rids[] = $result;
     }
   }
+  // We are only to delete one specific result
   else 
     $rids[] = $rid;
   quiz_delete_results($rids);
@@ -1951,9 +2056,14 @@ function _quiz_skip_validation(&$elements) {
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#value'];
+  
+  // We add the class "hidden-class" to hide questions that haven't been added to the quiz yet.
   $hidden_class = ($sub_form['stayers'][$id]['#default_value'] === 0) ? ' hidden-question' : '';
+  
   $data_array = array(
+    // The checkbox and the title
     drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
+    
     $type,
     $sub_form['view_links'][$id]['#value'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | '. $sub_form['remove_links'][$id]['#value'] .'</SPAN>',
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
@@ -2005,6 +2115,8 @@ function _quiz_get_browser_content($table, $class) {
 
 /**
  * Adds variables from a querystring to $_GET
+ * 
+ * This is to help the pager system work with ajax
  *
  * @see quiz_browser_ahah()
  *
@@ -2028,6 +2140,13 @@ function _quiz_add_to_get($to_add){
   }
 }
 
+/**
+ * Helper function returning number of days as values and corresponding
+ * number of milliseconds as array keys.
+ * 
+ * @return 
+ *   array of options for when we want to delete partial quiz record values.
+ */
 function quiz_remove_partial_quiz_record_value() {
   return array(
     '0' => t('Never'),
@@ -2092,6 +2211,7 @@ function quiz_set_auto_title() {
       $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
     }
     $("#edit-body").keyup(quizUpdateTitle);
+    // Do not use auto title if a title already has been set
     if($("#edit-title").val().length > 0){
       $("#edit-body").unbind("keyup", quizUpdateTitle);
     }
@@ -2168,7 +2288,7 @@ function _quiz_get_interval_timestamps($fieldname) {
 }
 
 /**
- * Returns an array with sql where clauses correscponding to the options in the time filters.
+ * Returns an array with sql where clauses correscponding to the options in the duration filters.
  *
  * @see _quiz_questions_browser_form()
  *
@@ -2252,7 +2372,7 @@ function _quiz_get_score_options() {
 }
 
 /**
- * Returns an array with sql where clauses correscponding to the options in the time filters.
+ * Returns an array with sql where clauses correscponding to the options in the score filters.
  *
  * @see _quiz_questions_browser_form()
  *
