@@ -15,7 +15,7 @@ class ChoiceTestCase extends DrupalWebTestCase {
    * to be implemented.
    */
   public static function getInfo() {
-    return array (
+    return array(
       'name' => t('Choice unit test'),
       'description' => t('Unit test for true or false question type.'),
       'group' => t('Quiz'),

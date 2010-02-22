@@ -15,7 +15,7 @@ function quiz_question_revision_actions($form_state, $nid, $vid) {
   $form['q_vid'] = array('#type' => 'value', '#value' => $vid);
   $quiz_nids = array();
   $quiz_vids = array();
-  foreach($_SESSION['quiz_question_kept'] as $nid_vid) {
+  foreach ($_SESSION['quiz_question_kept'] as $nid_vid) {
     $temp = explode('-', $nid_vid);
     if (is_numeric($temp[0]) && is_numeric($temp[1])) {
       $quiz_nids[] = $temp[0];
@@ -71,15 +71,15 @@ function quiz_question_revision_actions($form_state, $nid, $vid) {
   return $form;
 }
 
-function _quiz_question_revision_options($published, $answered){
+function _quiz_question_revision_options($published, $answered) {
   $struct = array(
     'published' => array(
       'answered' => array(
         'options' => array(
-	      '110' => t('Update, revise and unpublish'),
-	      '111' => t('Update and revise'),
-	      '101' => t('Update'),
-	      '001' => t('Do nothing'),
+          '110' => t('Update, revise and unpublish'),
+          '111' => t('Update and revise'),
+          '101' => t('Update'),
+          '001' => t('Do nothing'),
         ),
         'default' => '111',   
       ),

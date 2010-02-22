@@ -1,5 +1,11 @@
 <?php 
 // $Id$
+/*
+ * @file
+ * Update for choice Questions type module.
+ *
+ */
+
 function _multichoice_update_6400(&$sandbox = NULL) {
   $to_return = array();
   $sandbox['current_step'] = isset($sandbox['current_step']) ? $sandbox['current_step'] : 0;
@@ -59,10 +65,10 @@ function _multichoice_move_old_answers(&$to_return, &$sandbox = NULL) {
   $res = db_query_range($sql, $sandbox['last_rid'], 0, 50);
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
-    if($res_o->question_nid == $sandbox['last_nid']
+    if ($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']
     && $res_o->result_id    == $sandbox['last_rid']) {
-      if($res_o->id > $sandbox['last_id']){
+      if ($res_o->id > $sandbox['last_id']) {
         $sql2 = 'DELETE FROM {quiz_multichoice_user_answers}
                  WHERE id = %d';
         db_query($sql2, $res_o->id);
@@ -189,7 +195,7 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
   $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 50);
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
-    if($res_o->question_nid == $sandbox['last_nid']
+    if ($res_o->question_nid == $sandbox['last_nid']
     && $res_o->question_vid == $sandbox['last_vid']) {
       if ($progress_to_add + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
         $sandbox['step_progress'] = $sandbox['step_max'];

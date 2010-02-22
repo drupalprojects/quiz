@@ -22,7 +22,7 @@ function quiz_stats_revision_selector_page($nid) {
   }
   if ($count < 1) 
     return t('Something went wrong. Please try again');
-  else if ($count == 1) {
+  elseif ($count == 1) {
     drupal_goto('admin/quiz/reports/stats/creator/'. $vids[0] .'/view');
   }
   else {
@@ -456,7 +456,7 @@ function theme_date_vs_takeup_count($days) {
   
   // The chart module has some bugs. If we have the time we should provide patches instead of tricking it to work...
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1] = array('|', chart_mixed_axis_label(t('Attempts')));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1] = array('|',chart_mixed_axis_label(t('Date')), '|');
+  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1] = array('|', chart_mixed_axis_label(t('Date')), '|');
   
   return chart_render($chart);
 }

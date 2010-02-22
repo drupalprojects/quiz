@@ -138,7 +138,7 @@ function long_answer_update_6401() {
     ),
     'primary key' => array('nid', 'vid'),
   ));
-  $sql = "INSERT INTO quiz_long_answer_node_properties (nid, vid)
+  $sql = "INSERT INTO {quiz_long_answer_node_properties} (nid, vid)
   SELECT nid, vid FROM node WHERE `type` = 'long_answer'";
   $results[] = update_sql($sql);
   return $results;

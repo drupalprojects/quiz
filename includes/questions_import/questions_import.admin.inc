@@ -202,12 +202,14 @@ function questions_import_form_validate($form, &$form_state) {
 
     if ($error_msg != '') {
       form_set_error('upload', $error_msg);
-    } else {
+    }
+    else {
       // assume upload file validates so keep it
       $success = file_set_status($file, FILE_STATUS_PERMANENT);
       if ($success) {
         $form_state['values']['validated_file'] = $file;
-      } else {
+      }
+      else {
         form_set_error('upload', "Failed to store file permanently");
       }
     }
@@ -293,7 +295,8 @@ function questions_import_form_submit(&$form, &$form_state) {
       default:
         drupal_goto("node/$destination_node->nid");
     }
-  } else {
+  }
+  else {
     drupal_set_message("No questions were imported.");
   }
 }
@@ -357,7 +360,7 @@ function questions_import_submit_moodle_format($destination_node, $format, $form
   return $import_count;
 }
 
-function _questions_import_moodle_create_node ($mq, $row, $import_id, &$node) {
+function _questions_import_moodle_create_node($mq, $row, $import_id, &$node) {
   $qmap_drupal_to_moodle = array(
     // Drupal => Moodle
     'long_answer' => 'essay',
@@ -390,7 +393,7 @@ function _questions_import_moodle_create_node ($mq, $row, $import_id, &$node) {
         $sub_answer = $mq->subanswers[$index];
 
         // TODO what about 'feedback' ?
-        $matching_pair = array('question'=>$sub_question, 'answer' => $sub_answer);
+        $matching_pair = array('question' => $sub_question, 'answer' => $sub_answer);
         $node->match[] = $matching_pair;
       }
       break;
@@ -498,11 +501,11 @@ function question_import_validate_size($file, $file_limit = 0, $user_limit = 0) 
   return $errors;
 }
 
-function _questions_import_record_item ($import_id, $question_nid, $index) {
+function _questions_import_record_item($import_id, $question_nid, $index) {
   db_query("INSERT INTO {quiz_questions_import_items} VALUES (%d, %d, %d)", $import_id, $question_nid, $index);
 }
 
-function _questions_import_generate_record ($file_id, $importer, $status = NULL) {
+function _questions_import_generate_record($file_id, $importer, $status = NULL) {
   // would be nice to make date a TIMESTAMP field so it's automatic, but that would bind it to MySQL
   db_query("INSERT INTO {quiz_questions_import_record} (file_id, datetime, status_array, importer) VALUES (%d, '%s', '%s', '%s')",
     $file_id,

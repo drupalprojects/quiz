@@ -41,7 +41,7 @@ function _questions_reimport_file_options() {
   $sql = "SELECT qqir.*, filename FROM {quiz_questions_import_record} qqir JOIN {files} f ON qqir.file_id = f.fid";
   $result = db_query($sql);
   while ($row = db_fetch_array($result)) {
-    $imports[$row['import_id']] = $row['filename'].' (uploaded '.$row['datetime'].')';
+    $imports[$row['import_id']] = $row['filename'] . ' (uploaded ' . $row['datetime'] . ')';
   }
   return $imports;
 }

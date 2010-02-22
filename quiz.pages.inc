@@ -425,7 +425,7 @@ function theme_quiz_view_stats($node) {
     'data' => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
   );
   $out = '<table id="quiz-view-table">';
-  foreach($stats as $stat) {
+  foreach ($stats as $stat) {
     $out .= '<tr><td class="quiz-view-table-title"><strong>'. $stat['title'] .':</strong></td><td class="quiz-view-table-data"><em>'. $stat['data'] .'</em></td></tr>';
   }
   $out .= '</table>';

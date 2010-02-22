@@ -120,14 +120,15 @@ abstract class QuizQuestion {
    *  TRUE when the node is initially created.
    */
   public function save($is_new = FALSE) {
-  	$this->saveNodeProperties($is_new);
+    $this->saveNodeProperties($is_new);
     $is_new_node = $is_new || $this->node->revision == 1;
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_question_properties}
               (nid, vid, max_score)
               VALUES(%d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore());
-    } else {
+    }
+    else {
       $sql = 'UPDATE {quiz_question_properties}
               SET max_score = %d
               WHERE nid = %d AND vid = %d';
@@ -429,7 +430,7 @@ abstract class QuizQuestion {
           if (quiz_has_been_answered($dummy_node)) {
             $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
             $temp_quiz_node->revision = 1;
-            $temp_quiz_node->auto_created = true;
+            $temp_quiz_node->auto_created = TRUE;
             node_save($temp_quiz_node);
             $nid_vid[1] = $temp_quiz_node->vid;
             $msg = 'New revision has been created for the quiz %n';
@@ -460,7 +461,7 @@ abstract class QuizQuestion {
           if (quiz_has_been_answered($dummy_node)) {
             $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
             $temp_quiz_node->revision = 1;
-            $temp_quiz_node->auto_created = true;
+            $temp_quiz_node->auto_created = TRUE;
             node_save($temp_quiz_node);
             $nid_vid[1] = $temp_quiz_node->vid;
             $msg = 'New revision has been created for the quiz %n';
@@ -506,7 +507,7 @@ abstract class QuizQuestion {
    *   true if there exists answers to the current question
    */
   public function hasBeenAnswered() {
-    if (!isset($this->node->nid)) return false;
+    if (!isset($this->node->nid)) return FALSE;
     $sql = 'SELECT *
             FROM {quiz_node_results_answers}
             WHERE question_nid = %d AND question_vid = %d
@@ -523,7 +524,7 @@ abstract class QuizQuestion {
   public function viewCanRevealCorrect() {
     // permission overrides the hook
     if (user_access('view any quiz question correct response'))
-      return true;
+      return TRUE;
     $results = module_invoke_all('answers_access', $node);
     $may_view_answers = in_array(true, $results);
     return $may_view_answers;

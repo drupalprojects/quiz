@@ -91,7 +91,8 @@ class ShortAnswerQuestion extends QuizQuestion {
       '#value' => '<div style="background-color: lightgreen">'. check_plain($this->node->correct_answer) .'</div>',
       '#weight' => 1,
       );
-    } else {
+    }
+    else {
       // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
       '#type' => 'markup',
@@ -301,7 +302,8 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     else {
       if (is_array($answer)) {
         $this->answer = $answer['answer'];
-      } else {
+      }
+      else {
         $this->answer = $answer;
       }
     }
@@ -362,7 +364,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       return $form;
     }
 
-    $header = array(t('Correct Answer') ,t('User Answer'));
+    $header = array(t('Correct Answer'), t('User Answer'));
     $row = array(array($this->question->correct_answer, $answer->answer));
     $form['answer'] = array(
       '#type' => 'markup',
@@ -409,13 +411,13 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   }
 
   public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
-  	if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == 2)
+    if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == 2)
       return $allow_scoring ? 'short_answer_report_submit' : FALSE;
-  	return FALSE;
+    return FALSE;
   }
 
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
-  	if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == 2)
+    if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == 2)
       return $allow_scoring ? 'short_answer_report_validate' : FALSE;
     return FALSE;
   }

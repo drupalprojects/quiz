@@ -14,7 +14,7 @@ class QuestionsImportTestCase extends DrupalWebTestCase {
    * to be implemented.
    */
   public static function getInfo() {
-    return array (
+    return array(
     'name' => t('Question importing unit test'),
     'description' => t('Test importing of questions in various formats.'),
     'group' => t('Quiz'),
@@ -79,7 +79,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
    */
   function quizHelper($import_questions = array(), $quiz_nid = 1) {
     $db_questions = $this->getQuizQuestionList($quiz_nid);
-    $this->assertEqual(count($import_questions), count($db_questions), "Checking right number of questions in database 2 (expected ".count($import_questions)." got ".count($db_questions).")");
+    $this->assertEqual(count($import_questions), count($db_questions), "Checking right number of questions in database 2 (expected " . count($import_questions) . " got " . count($db_questions) . ")");
 
     if (count($db_questions)!= count($import_questions)) return;
 
@@ -105,7 +105,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     switch ($import_q->type) {
       case 'multichoice':
         $mc = multichoice_load($node_obj);
-        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Matching number of options (expected ".count($import_q->answers).", got ".count($mc->answers).") ".print_r($mc, true).print_r($db_q, true));
+        $this->assertEqual(count($import_q->answers), count($mc->answers), "[multichoice] Matching number of options (expected " . count($import_q->answers) . ", got " . count($mc->answers) . ") " . print_r($mc, TRUE) . print_r($db_q, TRUE));
         foreach ($import_q->answers as $index => $import_answer) {
           $db_answer = $mc->answers[$index]['answer'];
           $this->assertEqual($import_answer, $db_answer,  "[multichoice] Matching option text (expected $import_answer, got $db_answer)");
@@ -123,16 +123,16 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
 
         $correct = ($tf->correct_answer == 0) ? 'false': 'true';
 
-        $this->assertEqual($import_q->answer, $correct, "[true_false] Matching right answer (expected ".$import_q->answer.", got ".$correct.")");
+        $this->assertEqual($import_q->answer, $correct, "[true_false] Matching right answer (expected " . $import_q->answer . ", got " . $correct . ")");
         break;
       case 'short_answer':
         $sa = quiz_question_load($node_obj);
 
         $correct = $sa->correct_answer;
 
-        $this->assertEqual($import_q->answer, $correct, "[short_answer] Checking right answer (expected ".$import_q->answer.", got ".$correct.")".print_r($sa, true));
-        $this->assertEqual($import_q->value, $sa->maximum_score, "[short_answer] Checking right score (expected ".$import_q->value.", got ".$sa->maximum_score.")");
-        $this->assertEqual($import_q->sat, $sa->correct_answer_evaluation, "[short_answer] Checking short answer evaluation type (expected ".$import_q->sat." (i.e.".$import_q->shortanswertype."), got ".$sa->correct_answer_evaluation.")");
+        $this->assertEqual($import_q->answer, $correct, "[short_answer] Checking right answer (expected " . $import_q->answer . ", got " . $correct . ")" . print_r($sa, TRUE));
+        $this->assertEqual($import_q->value, $sa->maximum_score, "[short_answer] Checking right score (expected " . $import_q->value . ", got ". $sa->maximum_score . ")");
+        $this->assertEqual($import_q->sat, $sa->correct_answer_evaluation, "[short_answer] Checking short answer evaluation type (expected " . $import_q->sat . " (i.e." . $import_q->shortanswertype . "), got " . $sa->correct_answer_evaluation . ")");
         break;
       case 'matching':
         $ma = quiz_question_load($node_obj);
@@ -153,30 +153,30 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case "aiken":
         switch ($question->type) {
           case "multichoice":
-            $write = $question->type."\r\n" .
-            $question->question."\r\n";
+            $write = $question->type . "\r\n" .
+            $question->question . "\r\n";
             for ($i = 0; $i < count($question->answers); $i++) {
               $write .= "{$char[$i]}: {$question->answers[$i]}\r\n nil \r\n";
             }
             $write .= "ANSWER: {$char[$question->answer]} \r\n \r\n";
             break;
           case "true_false":
-            $write = $question->type."\r\n" .
-            $question->question."\r\n" .
-            $question->answer."\r\n" .
-            $question->feedback."\r\n \r\n";
+            $write = $question->type . "\r\n" .
+            $question->question . "\r\n" .
+            $question->answer . "\r\n" .
+            $question->feedback . "\r\n \r\n";
             break;
           case "short_answer":
-            $write = $question->type."\r\n" .
-            $question->question."\r\n" .
-            $question->answer."\r\n" .
-            $question->value."\r\n" .
-            $question->shortanswertype."\r\n \r\n";
+            $write = $question->type . "\r\n" .
+            $question->question . "\r\n" .
+            $question->answer . "\r\n" .
+            $question->value . "\r\n" .
+            $question->shortanswertype . "\r\n \r\n";
             break;
           case "long_answer":
-            $write = $question->type."\r\n" .
-            $question->question."\r\n" .
-            $question->value."\r\n \r\n";
+            $write = $question->type . "\r\n" .
+            $question->question . "\r\n" .
+            $question->value . "\r\n \r\n";
             break;
         } break;
       case "csv":
@@ -213,7 +213,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
             break;
           case "long_answer":
             $write = $question->type . ', '.
-            $question->question. ', ' .
+            $question->question . ', ' .
             $question->value . "\r\n";
             break;
         } break;
@@ -230,7 +230,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
 
     $import_questions = array();
 
-    $filepath = file_create_filename($import_type.'_medly'.$filetype, file_directory_temp());
+    $filepath = file_create_filename($import_type . '_medly' . $filetype, file_directory_temp());
 
     $handle = fopen($filepath, "w+");
     for ($i = 0; $i < 30; $i++) {
@@ -244,9 +244,9 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
           $question->answer = mt_rand(0, $question->num_options - 1);
           $question->question = "Question #{$i}:";
           $question->type = "multichoice";
-          $question->answers = array ();
-          $write = $question->type."\r\n" .
-          $question->question."\r\n";
+          $question->answers = array();
+          $write = $question->type . "\r\n" .
+          $question->question . "\r\n";
           for ($j = 0; $j < $question->num_options; $j++) {
             $question->answers[$j] = "Option #{$j}";
           }
@@ -296,7 +296,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
     }
 
-    $filepath = file_create_filename($import_type.'_multichoice'.$filetype, file_directory_temp());
+    $filepath = file_create_filename($import_type . '_multichoice' . $filetype, file_directory_temp());
 
     $handle = fopen($filepath, "w+");
     for ($i = 0; $i < 30; $i++) {
@@ -306,7 +306,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       $question->answer = mt_rand(0, $question->num_options - 1);
       $question->question = "Question #{$i}:";
       $question->type = "multichoice";
-      $question->answers = array ();
+      $question->answers = array();
       for ($j = 0; $j < $question->num_options; $j++) {
         $question->answers[$j] = "Option #{$j}";
       }
@@ -336,7 +336,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
     }
 
-    $filepath = file_create_filename($import_type.'_matching'.$filetype, "sites/default/files");
+    $filepath = file_create_filename($import_type . '_matching' . $filetype, "sites/default/files");
 
     $handle = fopen($filepath, "w+");
     for ($i = 0; $i < 30; $i++) {
@@ -345,8 +345,8 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       $question->num_options = mt_rand(1, 10);
       $question->question = "Question #{$i}:";
       $question->type = "matching";
-      $question->matches = array ();
-      $question->answers = array ();
+      $question->matches = array();
+      $question->answers = array();
       for ($j = 0; $j < $question->num_options; $j++) {
         $question->matches[] = "Match #{$j}";
         $question->answers[] = "Answer #{$j}";
@@ -376,7 +376,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
     }
 
-    $filepath = file_create_filename($import_type.'_truefalse'.$filetype, file_directory_temp());
+    $filepath = file_create_filename($import_type . '_truefalse' . $filetype, file_directory_temp());
 
     $handle = fopen($filepath, "w+");
     for ($i = 0; $i < 50; $i++) {
@@ -413,7 +413,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
       case 'csv': $import_settings['import_type'] = 'native_csv'; $filetype = '.csv'; break;
     }
 
-    $filepath = file_create_filename($import_type.'_shortanswer'.$filetype, file_directory_temp());
+    $filepath = file_create_filename($import_type . '_shortanswer' . $filetype, file_directory_temp());
 
     $handle = fopen($filepath, "w+");
     for ($i = 0; $i < 20; $i++) {
@@ -458,7 +458,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $import_questions = array();
 
     for ($i = 0; $i < 6; $i++) {
-      $filepath = file_create_filename($import_type.'_multi_'.$i.$filetype, file_directory_temp());
+      $filepath = file_create_filename($import_type . '_multi_' . $i . $filetype, file_directory_temp());
 
       $handle = fopen($filepath, "w+");
       for ($j = $i * 5; $j < ($i + 1) * 5; $j++) {
@@ -496,7 +496,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $import_settings['quiz_node'] = '1';
     $import_settings['import_type'] = 'native_aiken';
     $import_settings['field_separator'] = ',';
-    $import_settings['files[upload]'] = realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_example.txt');
+    $import_settings['files[upload]'] = realpath(drupal_get_path('module', 'quiz') . '/Examples/questions_import/aiken_example.txt');
 
     $msg = $this->drupalPost('admin/quiz/questions_import', $import_settings, 'Import');
 
@@ -506,7 +506,7 @@ ORDER BY n.nid"; // FIXME shouldn't this be by qnr.weight?  how are questions or
     $this->drupalPost('admin/quiz/questions_export', $export_settings, 'Export');
 
     $h1 = file(file_directory_path() .'/Quiz.txt');
-    $h2 = file(realpath(drupal_get_path('module', 'quiz').'/Examples/questions_import/aiken_export.txt'));
+    $h2 = file(realpath(drupal_get_path('module', 'quiz') . '/Examples/questions_import/aiken_export.txt'));
 
     $this->assertEqual(count($h1), count($h2), "[Aiken roundtrip] Same number of lines");
 

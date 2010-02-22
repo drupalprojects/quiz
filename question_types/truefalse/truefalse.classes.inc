@@ -69,7 +69,8 @@ class TrueFalseQuestion extends QuizQuestion {
       // leave other values of 'answers' element from parent
       $content['answers']['#type'] = 'markup';
       $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
-    } else {
+    }
+    else {
       // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
       '#type' => 'markup',

@@ -89,7 +89,8 @@ class MatchingQuestion extends QuizQuestion {
       foreach ($matches as $match) {
         $rows[] = array($match['question'], $match['answer']);
       }
-    } else {
+    }
+    else {
       $header = array(t('Subquestion'), t('Random possible match'));
       // shuffle the answer column
       foreach ($matches as $match) {
@@ -304,7 +305,8 @@ class MatchingResponse extends QuizQuestionResponse {
       if ($key == $value) {
         $correct_answer++;
       }
-      elseif($value == 0 || $value == 'def') {}
+      elseif ($value == 0 || $value == 'def') {
+      }
       else {
         $wrong_answer++;
       } 

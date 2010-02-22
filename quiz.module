@@ -603,7 +603,8 @@ function quiz_delete($node) {
           WHERE nid = %d';
   $res = db_query($sql, $node->nid);
   $rids = array();
-  while ($rids[] = db_result($res)) {}
+  while ($rids[] = db_result($res)) {
+  }
   quiz_delete_results($rids);
   db_query('DELETE FROM {quiz_node_properties} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
@@ -1071,7 +1072,7 @@ function quiz_validate($node) {
   if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
     form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
   }
-  if(!empty($node->pass_rate)) {
+  if (!empty($node->pass_rate)) {
     if (!_quiz_is_int($node->pass_rate, 0, 100)) {
       form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
     }
@@ -1194,7 +1195,7 @@ function quiz_type_access_load($arg) {
  * @return unknown_type
  */
 function quiz_type_confirm($node, $op = NULL) {
-  if ($node->type != 'quiz') return false;
+  if ($node->type != 'quiz') return FALSE;
   if (isset($op)) return node_access($op, $node);
   return user_access('access quiz');
 }
@@ -1233,7 +1234,7 @@ function quiz_get_all_titles() {
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   // Validate that the nids are integers
   foreach ($nids as $key => $nid) {
-    if(!is_int($nid)) unset($nids[$key]);
+    if (!is_int($nid)) unset($nids[$key]);
   }
   if (empty($nids)) return array();
   
@@ -1427,7 +1428,7 @@ function quiz_take_quiz($quiz) {
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
       require_once($path .'/quiz.pages.inc');
-      $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form',array($report)));
+      $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form', array($report)));
     }
     
     if ($quiz->repeat_until_correct) {
@@ -1438,7 +1439,7 @@ function quiz_take_quiz($quiz) {
         drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
       }
     }
-    elseif($_POST['op'] == t('Back')) {
+    elseif ($_POST['op'] == t('Back')) {
       $quiz_id = 'quiz_' . $quiz->nid;
       // We jump back two times. From the next question to the current, and then from the current to the previous
       for ($i = 0; $i < 2 ; $i++) {
@@ -1482,7 +1483,8 @@ function quiz_take_quiz($quiz) {
       );
       $question_node->rid = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'];
     // We got an error message when trying to validate the previous answer
-    } else {
+    }
+    else {
       $question_node = $former_question;
       drupal_set_message($q_passed_validation, 'error');
       array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $former_question_array);
@@ -1525,7 +1527,7 @@ function quiz_take_quiz($quiz) {
       else {
         // There is still time left, so let's go ahead and insert the countdown javascript.
         if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => true, 'layout' => t('Time left'). ': {hnn}{sep}{mnn}{sep}{snn}'));
+          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
           // These are the two button op values that are accepted for answering questions.
           $button_op1 = drupal_to_js(t('Submit'));
           $button_op2 = drupal_to_js(t('Next'));
@@ -2693,7 +2695,7 @@ function _quiz_get_question_types() {
   }
   $sql = 'SELECT type, name, description
           FROM {node_type}
-          WHERE type IN ('.implode(',', $placeholders).')';
+          WHERE type IN ('. implode(',', $placeholders) . ')';
   $res = db_query($sql, $types);
   while ($res_o = db_fetch_object($res)) {
     $to_return[$res_o->type]['name'] = check_plain($res_o->name);
@@ -3039,7 +3041,7 @@ function quiz_make_new($title) {
   $new_node->status = 1;
   $new_node->quiz_open = _quiz_form_prepare_date();
   $new_node->quiz_close = _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30));
-  $new_node->auto_created = true;
+  $new_node->auto_created = TRUE;
   $new_node->uid = $user->uid;
   node_save($new_node);
   if (is_numeric($new_node->nid)) {
@@ -3061,7 +3063,7 @@ function quiz_get_quiz_from_menu() {
  *   true if there exists answers to the current question
  */
 function quiz_has_been_answered($node) {
-  if (!isset($node->nid)) return false;
+  if (!isset($node->nid)) return FALSE;
   $sql = 'SELECT *
           FROM {quiz_node_results}
           WHERE nid = %d AND vid = %d
@@ -3272,13 +3274,13 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
   $to_return = ((string)$value === (string)(int)$value);
   if ($to_return && intval($value) < $min)
     $to_return = FALSE;
-  if(isset($max)) {
-    if($to_return && intval($value) > $max)
+  if (isset($max)) {
+    if ($to_return && intval($value) > $max)
       $to_return = FALSE;
   }
   return $to_return;
 }
 
 function _quiz_is_plain($value) {
-  return($value === check_plain($value));
+  return ($value === check_plain($value));
 }

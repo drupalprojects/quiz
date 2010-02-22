@@ -185,7 +185,7 @@ function quiz_admin_settings() {
 
   $form['def_settings_link'] = array(
     '#type' => 'markup',
-    '#value' => '<p>'. t('Default values for the quiz node-form can be edited '). l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
+    '#value' => '<p>'. t('Default values for the quiz node-form can be edited ') . l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
   );
   
   $form['#validate'][] = 'quiz_settings_form_validate';
@@ -208,10 +208,10 @@ function quiz_settings_form_validate($form, &$form_state) {
   if (!_quiz_is_int($form_state['values']['quiz_max_result_options'], 0, 100)) 
     form_set_error('quiz_max_result_options', t('The number of resultoptions must be an integer between 0 and 100.'));
   
-  if(!_quiz_is_plain($form_state['values']['quiz_name']))
+  if (!_quiz_is_plain($form_state['values']['quiz_name']))
     form_set_error('quiz_name', t('The quiz name must be plain text.'));
     
-  if(!_quiz_is_plain($form_state['values']['quiz_action_type']))
+  if (!_quiz_is_plain($form_state['values']['quiz_action_type']))
     form_set_error('quiz_action_type', t('The action type must be plain text.'));
 }
 
@@ -259,7 +259,7 @@ function quiz_admin_node_form(&$form_state) {
 function quiz_admin_node_form_validate($form, &$form_state) {
   // Create dummy node for quiz_validate 
   $dummy_node = new stdClass();
-  foreach($form_state['values'] as $key => $value) {
+  foreach ($form_state['values'] as $key => $value) {
     $dummy_node->{$key} = $value;
   }
   $dummy_node->resultoptions = array();
@@ -561,7 +561,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     $url_type = str_replace('_', '-', $type);
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => '<div class="add-questions">' . l(check_plain($info['name']), 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('attributes' => array('title' => t('Go to @name administration', array('@name' => $info['name']))))) .'</div>',
+      '#value' => '<div class="add-questions">' . l($info['name'], 'node/add/'. $url_type .'/'. $quiz->nid .'/'. $quiz->vid, array('attributes' => array('title' => t('Go to @name administration', array('@name' => $info['name']))))) .'</div>',
     );
   }
 }
@@ -640,7 +640,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     $cur_question->weight = intval($value);
     $cur_question->staying = $form_state['post']['stayers'][$id] === '1';
     $cur_question->question_status = QUESTION_ALWAYS;
-    if($cur_question->staying == TRUE) {
+    if ($cur_question->staying == TRUE) {
       $questions_to_add[] = $id;
     }
     $cur_questions[$cur_question->nid] = $cur_question;
@@ -694,8 +694,8 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
 
     // If a question already exists in the $questions array we won't add a new one...
     $continue = FALSE;
-    foreach($questions as $question) {
-      if($question->vid == $vid) {
+    foreach ($questions as $question) {
+      if ($question->vid == $vid) {
         $continue = TRUE;
         break;
       }
@@ -816,8 +816,9 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#type' => 'markup',
         '#value' => t('<em>Up to date</em>'),
       );
-    } else {
-      $update_cell = array (
+    }
+    else {
+      $update_cell = array(
       '#type' => 'checkbox',
       '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')
                   .' of '.
@@ -888,8 +889,8 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#type' => 'fieldset',
     '#title' => t('Browse for questions to add'),
     '#description' => t('Mark all the questions you want to add.') .' '
-    .t('You can filter questions by using the textfields and select boxes.') .' '
-    .t('You can sort by pressing the table headers.'),
+    . t('You can filter questions by using the textfields and select boxes.') .' '
+    . t('You can sort by pressing the table headers.'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
@@ -1277,7 +1278,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     }
   }
 
-  $success = true; // since we got this far
+  $success = TRUE; // since we got this far
   if ($quiz->type == 'quiz') {
     // Update the quiz node properties.
     $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";
@@ -1286,7 +1287,8 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   if ($success) {
     drupal_set_message(t('Questions updated successfully.'));
-  } else {
+  }
+  else {
     drupal_set_message(t('There was an error updating the @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
   }
 }
@@ -1315,7 +1317,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
   if (is_array($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
-        if($form_state['values']['stayers'][$id] == 1) continue;
+        if ($form_state['values']['stayers'][$id] == 1) continue;
         $matches = array();
         preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
         $nid = $matches[1];
@@ -1425,7 +1427,7 @@ function quiz_browser_ahah() {
 
   // We pick the table rows holding the hidden questions
   $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
-  $output .= ' var qRowsHidden = '.drupal_to_js($q_rows_html).';';
+  $output .= ' var qRowsHidden = '. drupal_to_js($q_rows_html) .';';
 
   // We replace the entire browser. This is done when the browser is sorted
   if ($replace_all) {
@@ -1474,11 +1476,11 @@ function theme_quiz_admin_quizzes($results) {
   $output = '';
   
   // The export images
-  $path_to_module_quiz = drupal_get_path('module', 'quiz'); 	 
-  $png = array(	 
-    'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')), 	 
-    'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')), 	 
-    'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')), 	 
+  $path_to_module_quiz = drupal_get_path('module', 'quiz');
+  $png = array(
+    'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')),
+    'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')),
+    'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')),
   );
   $rows = array();
   
@@ -1492,9 +1494,9 @@ function theme_quiz_admin_quizzes($results) {
     );
     // Add export links if the results export module is enabled
     if ($exp)
-      $cols[] = l($png['html'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] .'/html', array('html' => TRUE)) 	 
-	          . l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/xml', array('html' => TRUE)) 	 
-	          . l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/csv', array('html' => TRUE));
+      $cols[] = l($png['html'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] .'/html', array('html' => TRUE))
+              . l($png['xml'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/xml', array('html' => TRUE))
+              . l($png['csv'], 'admin/quiz/results_export_teaser_view/'. $result['nid'] . '/csv', array('html' => TRUE));
     $rows[] = $cols;
   }
 
@@ -1795,7 +1797,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           LEFT JOIN {users} u ON u.uid = qnrs.uid
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           ". $filter['join'] ."
-          WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
+          WHERE qnrs.nid = %d ". $filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
   
   // We remove the links to the last page and use a custom query to fetch the number of pages
   // Doing this we wastly improve performance
@@ -1807,7 +1809,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
                 LEFT JOIN {users} u ON u.uid = qnrs.uid
                 LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
                 ". $filter['join'] ."
-                WHERE qnrs.nid = %d ".$filter['where'] . $filter['group'] . ' LIMIT 0, '. max($page * $num + $num * 7, $num * 10) .") tbl";
+                WHERE qnrs.nid = %d ". $filter['where'] . $filter['group'] . ' LIMIT 0, '. max($page * $num + $num * 7, $num * 10) .") tbl";
   
   return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
 }
@@ -1961,7 +1963,7 @@ function quiz_results_mr_form_submit($form, &$form_state) {
           _quiz_delete_results($res_rid);
       }
     }
-    if(isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
+    if (isset($res_rid)) drupal_set_message(t('Results have been deleted.'));
   }
   else {
     // If we are deleting quizzes
@@ -2073,7 +2075,7 @@ function _quiz_get_question_row($sub_form, $id) {
   $data_array[] = drupal_render($sub_form['weights'][$id]);
   return array(
     'class' => 'q-row draggable'. $hidden_class,
-    'id' => 'q-'.$id,
+    'id' => 'q-'. $id,
     'data' => $data_array
   );
 }
@@ -2123,7 +2125,7 @@ function _quiz_get_browser_content($table, $class) {
  * @param $to_add
  *   query string
  */
-function _quiz_add_to_get($to_add){
+function _quiz_add_to_get($to_add) {
   $pre = 'quiz_question_browser_';
   parse_str($to_add, $output);
   $vars = array('sort', 'order', 'page');
@@ -2259,13 +2261,13 @@ function _quiz_get_interval_timestamps($fieldname) {
   $now = time();
   $one_day = 86400;
   $one_week = 604800;
-  $timestamp_today = mktime(0,0,0,date('n'),date('j'),date('Y'));
+  $timestamp_today = mktime(0, 0, 0, date('n'), date('j'), date('Y'));
   $weekday = date('N', $now);
   $timestamp_week = $timestamp_today - ((int)$weekday-1) * $one_day;
-  $timestamp_month = mktime(0,0,0,date('n'),1,date('Y'));
-  $timestamp_last_month = mktime(0,0,0,date('n', $timestamp_month - 1),1,date('Y', $timestamp_month - 1));
-  $timestamp_year = mktime(0,0,0,1,1,date('Y'));
-  $timestamp_last_year = mktime(0,0,0,1,1,date('Y', $timestamp_year - 1));
+  $timestamp_month = mktime(0, 0, 0, date('n'), 1, date('Y'));
+  $timestamp_last_month = mktime(0, 0, 0, date('n', $timestamp_month - 1), 1, date('Y', $timestamp_month - 1));
+  $timestamp_year = mktime(0, 0, 0, 1, 1, date('Y'));
+  $timestamp_last_year = mktime(0, 0, 0, 1, 1, date('Y', $timestamp_year - 1));
   $changed_timestamps = array(
     NULL,
     array($timestamp_today, $now),

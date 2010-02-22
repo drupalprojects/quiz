@@ -40,7 +40,8 @@ class MultichoiceQuestion extends QuizQuestion {
           if ($short['correct'] == 1) {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
-          } else {
+          }
+          else {
 
             $short['score_if_chosen'] = 0;
             $short['score_if_not_chosen'] = 1;
@@ -64,7 +65,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   private function checkMarkup($alternativeIndex, $field, $check_user_access = TRUE) {
     $alternative = $this->node->alternatives[$alternativeIndex];
-    return check_markup($alternative[$field], $alternative[$field.'_format'], $check_user_access);
+    return check_markup($alternative[$field], $alternative[$field .'_format'], $check_user_access);
   }
 
   /**
@@ -100,7 +101,7 @@ class MultichoiceQuestion extends QuizQuestion {
               WHERE question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
       $ids_to_delete = array();
-      while($res_o = db_fetch_object($res)) {
+      while ($res_o = db_fetch_object($res)) {
         $ids_to_delete[] = $res_o->id;
       }
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
@@ -114,7 +115,7 @@ class MultichoiceQuestion extends QuizQuestion {
           }
         }
       }
-      foreach($ids_to_delete as $id_to_delete) {
+      foreach ($ids_to_delete as $id_to_delete) {
         if ($id_to_delete) {
           db_query('DELETE FROM {quiz_multichoice_answers} WHERE id = %d', $id_to_delete);
         }
@@ -160,7 +161,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen($this->checkMarkup($i,'answer')) < 1) continue;
+        if (strlen($this->checkMarkup($i, 'answer')) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
             //form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
@@ -258,7 +259,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     $content['answers'] = array();
 
-    $header = array('','');
+    $header = array('', '');
 
     foreach ($this->node->alternatives as $i => $short) {
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
@@ -326,7 +327,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_random) {
       $form['tries[choice_order]'] = array(
         '#type' => 'hidden',
-        '#value' => implode(',',$this->shuffle($form['tries[answer]']['#options'])),
+        '#value' => implode(',', $this->shuffle($form['tries[answer]']['#options'])),
       );
     }
     if ($this->node->choice_multi) {
@@ -334,7 +335,8 @@ class MultichoiceQuestion extends QuizQuestion {
       $form['tries[answer]']['#title'] = t('Choose');
       if (is_object($response))
         if (is_array($response->getResponse())) $form['tries[answer]']['#default_value'] = $response->getResponse();
-    } else {
+    }
+    else {
       $form['tries[answer]']['#type'] = 'radios';
       $form['tries[answer]']['#title'] = t('Choose one');
       if (is_object($response))
@@ -352,7 +354,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $newArray = array();
     $toReturn = array_keys($array);
     shuffle($toReturn);
-    foreach($toReturn as $key) {
+    foreach ($toReturn as $key) {
       $newArray[$key] = $array[$key];
     }
     $array = $newArray;
@@ -374,7 +376,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $action = url('node/add/'. $type->type, $options);
 
     if ($this->node->nid) {
-      $action = url('node/'. $this->node->nid. '/edit', $options);
+      $action = url('node/' . $this->node->nid . '/edit', $options);
     }
     $form['#action'] = $action;
     /*
@@ -436,7 +438,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $short = $this->node->alternatives[$i];
       $form['alternatives'][$i] = array(
         '#type' => 'fieldset',
-        '#title' => t('Alternative !i',array('!i' => ($i+1))),
+        '#title' => t('Alternative !i', array('!i' => ($i+1))),
         '#collapsible' => TRUE,
         '#collapsed' => !($i < 2 || isset($short['answer'])),
       );
@@ -468,7 +470,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#required' => $i < 2,
       );
 
-      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i,'answer_format'));
+      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i, 'answer_format'));
       $form['alternatives'][$i]['advanced'] = array(
         '#type' => 'fieldset',
         '#title' => t('Advanced options'),
@@ -482,7 +484,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen'],
       );
-      $form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i,'feedback_if_chosen_format'));
+      $form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_chosen_format'));
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
         '#type' => 'textarea',
         '#title' => t('Feedback if not chosen'),
@@ -490,7 +492,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen'],
       );
-      $form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives',$i,'feedback_if_not_chosen_format'));
+      $form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
       $default_value = $this->node->alternatives[$i]['score_if_chosen'];
       if (!isset($default_value)) $default_value = '0';
       $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
@@ -568,7 +570,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($arr = db_fetch_array($res)) {
       return $arr;
     }
-    else return false;
+    else return FALSE;
   }
   private function saveUserSettings() {
     global $user;
@@ -754,7 +756,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
               else {
                 $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
               }
-            } else {
+            }
+            else {
               $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
             }
           }
@@ -827,7 +830,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * @return HTML markup
    */
   private function checkMarkup($alternative, $format, $check_user_access = FALSE) {
-    if(drupal_strlen($alternative) == 0) return '';
+    if (drupal_strlen($alternative) == 0) return '';
     return check_markup($alternative, $format, $check_user_access);
   }
 }

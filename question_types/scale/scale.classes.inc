@@ -465,7 +465,7 @@ class ScaleQuestion extends QuizQuestion {
       if (is_array($collections[$col_id]->alternatives)) {
       $jsArray .= "scaleCollections[$col_id] = new Array();";
         foreach ($collections[$col_id]->alternatives as $alt_id => $text) {
-          $jsArray .= "scaleCollections[$col_id][$alt_id] = '".check_plain($text)."';";
+          $jsArray .= "scaleCollections[$col_id][$alt_id] = '". check_plain($text) ."';";
         }
       }
     }

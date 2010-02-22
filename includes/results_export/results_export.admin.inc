@@ -1,6 +1,9 @@
 <?php
 // $Id$
-
+/**
+ * @file Results export admin functions.
+ * 
+ */
 
 function results_export_as_full_view($rid, $export_type) {
   module_load_include('inc', 'quiz', 'quiz.admin');
@@ -41,14 +44,14 @@ function results_export_as_teaser_view($nid, $export_type) {
   $header = array(t('node ID'), t('Quiz Title'), t('Username'), t('Result ID'), t('Start Time'), t('End Time'), t('Time Taken'), t('Score'));
   while (list($key, $result) = each($results)) {
     $rows[] = array(
-	       'nid' => $result['nid'], 	 
-	       'title' => $result['title'], 	 
-	       'name' => check_plain($result['name']), 	 
-	       'result_id' => $result['result_id'], 	 
-	       'time_start' => format_date($result['time_start'], 'small'), 	 
-	       'time_end' => ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'), 	 
-	       'time_taken' => ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']), 	 
-	       'score' => ($result['time_end']) ? $result['score'] : t('--'), 	 
+           'nid' => $result['nid'],
+           'title' => $result['title'],
+           'name' => check_plain($result['name']),
+           'result_id' => $result['result_id'],
+           'time_start' => format_date($result['time_start'], 'small'),
+           'time_end' => ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+           'time_taken' => ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']),
+           'score' => ($result['time_end']) ? $result['score'] : t('--'),
     );
   }
   if (!isset($rows)) {
@@ -102,6 +105,6 @@ function results_export_as_teaser_view($nid, $export_type) {
       }
       break;
   }
-  $filename = str_replace(' ', '-', $quiz['title'].'.'.$export_type);
+  $filename = str_replace(' ', '-', $quiz['title'] . '.' . $export_type);
   results_export_invoke_file_transfer($filename, $output);
 }

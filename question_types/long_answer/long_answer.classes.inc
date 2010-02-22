@@ -70,7 +70,8 @@ class LongAnswerQuestion extends QuizQuestion{
       '#value' => '<div style="background-color: lightgreen"><h3>Rubric</h3>'. $rubric_html .'</div>',
       '#weight' => 1,
       );
-    } else {
+    }
+    else {
       // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
       '#type' => 'markup',
