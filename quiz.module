@@ -1722,9 +1722,8 @@ function quiz_quiz_finished($quiz, $score, $rid) {
    */
 
   if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 0)) {
-    $author = user_load($quiz->uid);
-    drupal_mail('quiz', 'notice', $author->mail, NULL, array($quiz,
-$score, $rid));
+    $author_mail = db_result(db_query('SELECT mail FROM {users} WHERE uid = %d', $quiz->uid));
+    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $rid));
   }
 
   /*
