@@ -209,6 +209,17 @@ function quiz_init() {
   drupal_add_css(drupal_get_path('module', 'quiz') .'/quiz.css', 'module', 'all');
 }
 
+/*
+ * Implementation of hook_cron()
+ */
+function quiz_cron() {
+  // Remove old quiz results that haven't been finished.
+  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
+  if ($rm_time) { // $time = 0 for never
+    db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
+  }
+}
+
 /**
  * Implementation of hook_menu().
  */
@@ -1704,7 +1715,7 @@ function quiz_end_actions($quiz, $rid) {
   return $score;
 }
 
-/*
+/**
  *
  * Implementation hook_quiz_finished()
  * performs actions like sending quiz results over email at the end of quiz.
@@ -1737,7 +1748,6 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   }
 
   //calls userpoints functions to credit user point based on number of correct answers
-  //print_r($quiz);exit;
   if ($quiz->has_userpoints) {
     $variables = array(
       '@title' => $quiz->title,
@@ -1753,7 +1763,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
 }
 
 
-/*
+/**
  *
  * Implementation of hook_mail
  * sends quiz result to user email
@@ -1782,23 +1792,18 @@ function quiz_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'notice':
-      $subject = variable_get('quiz_email_results_subject', quiz_email_results_format('subject'));
-      $body = variable_get('quiz_email_results_body', quiz_email_results_format('body'));
+      $subject = t(variable_get('quiz_email_results_subject', quiz_email_results_format('subject')), $substitutions, $user->language);
+      $body = t(variable_get('quiz_email_results_body', quiz_email_results_format('body')), $substitutions, $user->language);
 
-      foreach ($substitutions as $key => $value) {
-        $subject = str_replace($key, $value, $subject);
-        $body = str_replace($key, $value, $body);
-       }
       $message['subject'] = $subject;
       $message['body'] = $body;
     break;
   }
 }
 
-/*
+/**
  * This functions returns the default email subject and body format which will be used at the end of quiz
  */
-
 function quiz_email_results_format($type) {
   global $user;
   if ($type == 'subject') {
@@ -1843,52 +1848,10 @@ function quiz_update_total_score($quiz, $rid) {
 }
 
 /**
- * Get feedback for one question.
- *
- * Good for displaying feedback after every question instead of all at the end.
- *
- * @param $quiz
- *  The quiz node.
- * @param $report
- *  The question node and its calculated results.
- * @return
- *  Themed feedback for output.
- */
-function quiz_get_feedback($quiz, $report) {
-  return theme('quiz_single_question_feedback', $quiz, $report);
-}
-
-/**
- * Get answers the user actually tried.
- *
- * @param $answers
- *  The question answers.
- * @param $tried
- *  The user selected answers.
- * @return
- *  An array of user-selected answer keys.
- */
-function quiz_get_answers($answers, $tried) {
-  $selected = array();
-  if (is_array($answers)) {
-    foreach ($answers as $key => $answer) {
-      if (($key = array_search($answer['aid'], $tried)) !== FALSE) {
-        $selected[] = $answer;
-        // Correct answer was selected, so lets take that out the tried list.
-        unset($tried[$key]);
-      }
-    }
-  }
-  return $selected;
-}
-
-
-
-/**
  * Check a user/quiz combo to see if the user passed the given quiz.
- * A quiz is keyed by nid/vid, so you need both.
+ * 
  * This will return TRUE if the user has passed the quiz at least once, and
- * false otherwise. Note that a FALSE may simply indicate that the user has not
+ * FALSE otherwise. Note that a FALSE may simply indicate that the user has not
  * taken the quiz.
  * @param $uid
  *  The user ID.
@@ -1943,12 +1906,12 @@ function quiz_start_check($quiz) {
 
   // Check to see if this user is allowed to take the quiz again:
   if ($quiz->takes > 0) {
-    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = '%s' AND nid = '%s' AND vid = '%s'";
-    $taken = db_result(db_query($query, $user->uid, $quiz->nid, $quiz->vid));
+    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = %d AND nid = %d";
+    $taken = db_result(db_query($query, $user->uid, $quiz->nid));
     $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
     $taken_times   = format_plural($taken, '1 time', '@count times');
 
-    // The user has already taken this quiz (nid/vid combo).
+    // The user has already taken this quiz.
     if ($taken) {
       if ($user_is_admin) {
 
@@ -1966,19 +1929,10 @@ function quiz_start_check($quiz) {
     }
   }
 
-  // Check to see if the (a) user is registered, and (b) user alredy passed this quiz.
+  // Check to see if the user is registered, and user alredy passed this quiz.
   if ($user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
-      drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
+    drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
   }
-
-  // On error, we want to return before here to avoid creating an empty entry in quiz_node_results.
-  // Otherwise, we get fairly cluttered Quiz Results.
-
-  // Insert quiz_node_results record.
-  // $result = db_query(
-  //     "INSERT INTO {quiz_node_results} (result_id, nid, vid, uid, time_start) VALUES (%d, %d, %d, %d, %d)",
-  //     $rid, $quiz->nid, $quiz->vid, $user->uid, time()
-  //   );
 
   // Call hook_quiz_begin().
   module_invoke_all('quiz_begin', $quiz, $rid);
@@ -1986,6 +1940,14 @@ function quiz_start_check($quiz) {
   return TRUE;
 }
 
+/**
+ * Creates a unique id to be used when storing results for a quiz taker.
+ * 
+ * @param $quiz
+ *  The quiz node
+ * @return $rid
+ *  The result id
+ */
 function quiz_create_rid($quiz) {
   global $user;
   $result = db_query(
@@ -2015,24 +1977,16 @@ function quiz_create_rid($quiz) {
  *  Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $rid) {
-  //TODO: Consider removing total score and use database value instead...
-  // 1. Get each question for the quiz.
-  /*
-  $sql = 'SELECT qnr.child_nid, qnr.child_vid , n.type
-    FROM {quiz_node_relationship} qnr
-    INNER JOIN {node} n ON n.nid = qnr.child_nid
-    WHERE qnr.parent_nid = %d';
-  $results = db_query($sql, $quiz->nid);
-  */
-  $sql = 'SELECT question_nid, question_vid, type, max_score
+  // 1. Fetch all questions and their max scores
+  $sql = 'SELECT a.question_nid, a.question_vid, n.type, r.max_score
   FROM {quiz_node_results_answers} a
   LEFT JOIN {node} n ON (question_nid = nid)
   LEFT JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid)
   WHERE result_id = %d AND r.parent_vid = %d';
   $results = db_query($sql, $rid, $quiz->vid);
 
-
-  // 2. Callback into the modules and let them do the scoring.
+  // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
+  // Fetched from the db, not calculated....
   $scores = array();
   $count = 0;
   while ($question = db_fetch_object($results)) {
@@ -2044,6 +1998,8 @@ function quiz_calculate_score($quiz, $rid) {
 
     if (function_exists($function)) {
       $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
+      
+      // Allow for max score to be considered
       $score->attained = ($score->possible > 0) ? ($score->attained / $score->possible * $question->max_score) : 0;
       $score->possible = $question->max_score;
       $scores[] = $score;
@@ -2116,7 +2072,6 @@ function quiz_build_question_list($quiz) {
 
   // Get random questions for the remainder.
   if ($quiz->number_of_random_questions > 0) {
-    //$questions = array_merge($questions, _quiz_get_random_questions($quiz->number_of_random_questions, $quiz->tid));
     $questions = array_merge($questions, _quiz_get_random_questions($quiz));
     if ($quiz->number_of_random_questions > count($questions)) {
       // Unable to find enough requested random questions.
@@ -2132,24 +2087,26 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Gets the number questions of a given type for a quiz.
+ * Gets the number of questions of a given type for a quiz.
  *
  * @param $nid
  *  Node ID of the quiz.
- * @param $type
+ * @param $vid
+ *  Version ID for the quiz
+ * @param $question_status
  *  Status constant.
  * @return
  *  Number of questions that meet the criteria.
  */
-function quiz_get_num_questions($nid, $vid, $type) {
-  return db_result(db_query("SELECT COUNT('parent_vid') FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $vid, $nid, $type));
+function quiz_get_num_questions($nid, $vid, $question_status) {
+  return db_result(db_query("SELECT COUNT('parent_vid') FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $vid, $nid, $question_status));
 }
 
 /**
  * Map node properties to a question object.
  *
  * @param $node
- *  Node
+ *  The question node
  * @return
  *  Question object
  */
@@ -2172,11 +2129,11 @@ function quiz_node_map($node, $include_question = TRUE) {
  * Sets the questions that are assigned to a quiz.
  *
  * @param $quiz
- *   The quiz to modify.
+ *   The quiz(node) to modify.
  * @param $questions
  *   An array of questions.
- * @param $set_new_revision
- *   If TRUE, a new revision will be generated. Note that saving
+ * @param $set_new_revision 
+ *  If TRUE, a new revision will be generated. Note that saving
  *  quiz questions unmodified will still generate a new revision of the quiz if this
  *  is set to TRUE. Why? For a few reasons:
  *  - All of the questions are updated to their latest VID. That is supposed to be a feature.
@@ -2193,9 +2150,6 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
   node_save($quiz);
 
-  // XXX: Should we be verifying here that the nodes submitted as $questions are actually
-  // recognized question types? It adds quite a performance hit, but could be beneficial.
-
   // When node_save() calls all of the node API hooks, old quiz info is automatically
   // inserted into quiz_node_relationship. We could get clever and try to do strategic
   // updates/inserts/deletes, but that method has already proven error prone as the module
@@ -2208,17 +2162,17 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
 
   // Now we do an insert of everything in the quiz. (Note that we are using a subselect to get the most recent vid.)
+  $refresh_sql = "INSERT INTO {quiz_node_relationship} 
+                  (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
+                  VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d)";
 
-  $refresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-      VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d)";
-
-  $norefresh_sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-      VALUES (%d, %d, %d, %d, %d, %d, %d)";
+  $norefresh_sql = "INSERT INTO {quiz_node_relationship} 
+                    (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
+                    VALUES (%d, %d, %d, %d, %d, %d, %d)";
   $total_max_score = 0;
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
       if ($question->refresh) {
-        //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
         $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight, $question->max_score);
       }
       else {
@@ -2229,102 +2183,6 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
   $sql = 'UPDATE {quiz_node_properties} SET max_score = %d WHERE nid = %d AND vid = %d';
   db_query($sql, $total_max_score, $quiz->nid, $quiz->vid);
-  return TRUE;
-}
-
-/**
- * Updates the status of questions assigned to the quiz. Possible statuses
- * are 'random', 'always', 'never'.
- *
- * @access public
- * @param &$quiz
- *  The quiz node. This is modified internally.
- * @param $submitted_questions
- *  Array of submitted question statuses indexed (keyed) by the question nid. If this
- *  is empty, all of the quiz questions will be deleted from this quiz.
- * @return boolean
- *  True if update was a success, false if there was a problem.
- * @deprecated See quiz_set_questions() for the new version.
- */
-function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) {
-
-  // No questions to update, so return now.
-  if (empty($submitted_questions)) {
-    return FALSE; // This will cause an error message.
-  }
-
-  // Loop through all questions and determine whether an update needs to be made.
-  // As we go, we store the questions that will need to be updated.
-  $existing_questions = _quiz_get_questions($quiz->nid, $quiz->vid, TRUE, TRUE);
-  $existing_question_nids = array_keys($existing_questions);
-  $i_am_different = FALSE;
-  $questions = array(); // These are the questions that will be put into the Quiz.
-  foreach ($submitted_questions as $nid => $stat) {
-    $existing = in_array($nid, $existing_question_nids);// $existing_questions[$nid];
-    if ($stat != QUESTION_NEVER) {
-      if ($existing) {
-        $existing_question = $existing_questions[$nid];
-        // This appears to be comparing publishing status with question_status?
-        if ($existing_question->question_status != $stat) {
-          // Question's status has been changed.
-          $existing_question->question_status = $stat;
-          $i_am_different = TRUE;
-        }
-        // else This question is the same. Do nothing.
-        $questions[] = $existing_question;
-      }
-      else {
-        $new_question = node_load($nid);
-        $new_question->question_status = $stat;
-        $questions[] = $new_question;
-        // A new question was added to the quiz.
-        $i_am_different = TRUE;
-      }
-    }
-    // Question is marked never, but it was something else on the last version of the quiz.
-    elseif (!empty($existing) && $stat != $existing->question_status) {
-      // Delete items moved from ALWAYS or RANDOM to NEVER
-      $existing->question_status = $stat;
-      $questions[] = $existing;
-      $i_am_different = TRUE;
-    }
-    // else Question isn't on the quiz, and isn't marked for inclusion.
-    //else {
-      // Question isn't part of the quiz.
-    //}
-  }
-
-  if (!$i_am_different) {
-    // Nothing else to do.
-    return TRUE;
-  }
-
-  // If we get here, then we (may) need to create a new VID and then store the questions.
-
-  if ($revision) {
-    // Create a new Quiz VID
-    $quiz->revision = 1; // Need new vid.
-    node_save($quiz); // This updates the $quiz referent.
-  }
-
-  // When node_save() calls all of the node API hooks, old quiz info is automatically
-  // inserted into quiz_node_relationship. We could get clever and try to do strategic
-  // updates/inserts/deletes, but that method has already proven error prone as the module
-  // has gained complexity (See 5.x-2.0-RC2).
-  // So we go with the brute force method:
-  db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d AND parent_vid = %d', $quiz->nid, $quiz->vid);
-
-  // Now we do an insert of everything in the quiz.
-  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status)
-      VALUES (%d, %d, %d, %d, %d)";
-
-  foreach ($questions as $question) {
-    if ($question->question_status != QUESTION_NEVER) {
-      //drupal_set_message(t("Doing insert for %nid-%vid-%cnid-%cvid: %stat", array('%nid' => $quiz->nid, '%vid' => $quiz->vid, '%cnid' => $question->nid, '%cvid' => $question->vid, '%stat' => $question->status)));
-      $result = db_query($sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->question_status);
-    }
-  }
-
   return TRUE;
 }
 
@@ -2339,7 +2197,7 @@ function quiz_update_questions(&$quiz, $submitted_questions, $revision = FALSE) 
  * check that, though.
  *
  * @param $quiz
- *   The current quiz.
+ *   The current quiz(node).
  * @param $uid
  *   The ID of the current user.
  * @param $rid
@@ -2352,9 +2210,10 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
 
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
-
   $sql = "SELECT question_nid AS nid, question_vid AS vid
-    FROM {quiz_node_results_answers} WHERE result_id = %d ORDER BY answer_timestamp";
+          FROM {quiz_node_results_answers} 
+          WHERE result_id = %d 
+          ORDER BY answer_timestamp";
   $answered_questions = db_query($sql, $rid);
   while ($answered = db_fetch_object($answered_questions)) {
     foreach ($questions as $question) {
@@ -2363,7 +2222,8 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
       }
     }
   }
-
+  
+  // Adding data to the session
   reset($questions);
   $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = array();
   $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
@@ -2389,6 +2249,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
 }
 
 /**
+ * Delete quiz responses for quizzes that haven't been finished
  *
  * @param $quiz
  *   A quiz node where old in progress results shall be deleted
@@ -2396,24 +2257,16 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
  *   The userid of the user the old in progress results belong to
  */
 function _quiz_delete_old_in_progress($quiz, $uid) {
-  $sql = "DELETE FROM {quiz_node_results_answers}
-          WHERE question_nid = %d
-          AND question_vid < %d
-          AND result_id IN (
-            SELECT qnr.result_id
-            FROM {quiz_node_results} qnr
-            WHERE qnr.uid = %d
-            AND qnr.nid = %d
-            AND qnr.time_end = 0
-          )";
-  db_query($sql, $quiz->nid, $quiz->vid, $uid, $quiz_nid);
-
-  $sql = "DELETE FROM {quiz_node_results}
-          WHERE uid = %d
-          AND nid = %d
-          AND vid < %d
-          AND time_end = 0";
-  db_query($sql, $uid, $quiz->nid, $quiz->vid);
+  $sql = "SELECT qnr.result_id
+          FROM {quiz_node_results} qnr
+          WHERE qnr.uid = %d
+          AND qnr.nid = %d
+          AND qnr.time_end = 0";
+  $res = db_query($sql, $uid, $quiz->nid);
+  $rids = array();
+  while ($rids[] = db_result($res)) {
+  }
+  quiz_delete_results($rids);
 }
 
 /**
@@ -2439,14 +2292,15 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
     $now = time();
   }
 
-  // Get any quiz that is (a) open, (b) for this user, and (c) has not already
+  // Get any quiz that is open, for this user, and has not already
   // been completed.
   $sql = "SELECT result_id
-    FROM {quiz_node_results} qnr
-    INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
-    WHERE (qnp.quiz_always = 1 OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
-      AND qnr.vid = %d AND qnr.uid = %d
-      AND qnr.time_end = 0";
+          FROM {quiz_node_results} qnr
+          INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
+          WHERE (qnp.quiz_always = 1 OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
+          AND qnr.vid = %d 
+          AND qnr.uid = %d
+          AND qnr.time_end = 0";
   $rid = db_result(db_query($sql, $now, $vid, $uid));
   return (int)$rid;
 }
@@ -2463,7 +2317,7 @@ function _quiz_insert_resultoptions($node) {
   if (!$node->resultoptions) {
     return;
   }
-
+  // We insert the result options one by one
   foreach ($node->resultoptions as $id => $option) {
     if ($option['option_name']) {
       $option['nid'] = $node->nid;
@@ -2500,6 +2354,7 @@ function _quiz_insert_result_option($option) {
  *  The quiz node.
  */
 function _quiz_update_resultoptions($node) {
+  // Brute force method. Easier to get correct, and probably faster as well.
   $sql = 'DELETE FROM {quiz_node_result_options}
           WHERE vid = %d';
   db_query($sql, $node->vid);
@@ -2511,7 +2366,7 @@ function _quiz_update_resultoptions($node) {
  *
  * Summary is determined by whether we are using the
  * pass / fail options, how the user did, and
- * whether this is being called from admin/quiz/[quizid]/view.
+ * where the method is called from.
  *
  * TODO: Need better feedback for when a user is viewing
  * their quiz results from the results list (and possibily
@@ -2580,11 +2435,25 @@ function _quiz_get_summary_text($quiz, $score) {
  *  Summary text for the user's score.
  */
 function _quiz_pick_result_option($qnid, $qvid, $score) {
-  return db_result(db_query('SELECT option_summary FROM {quiz_node_result_options} WHERE nid = %d AND vid = %d AND %d BETWEEN option_start AND option_end', $qnid, $qvid, $score));
+  return db_result(
+    db_query(
+      'SELECT option_summary 
+       FROM {quiz_node_result_options} 
+       WHERE nid = %d 
+       AND vid = %d 
+       AND %d BETWEEN option_start AND option_end', 
+       $qnid, $qvid, $score));
 }
 
-function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
-
+/**
+ * Get an array list of random questions for a quiz
+ * 
+ * @param $quiz
+ *  The quiz node
+ * @return
+ *  Array of nid/vid combos for quiz questions
+ */
+function _quiz_get_random_questions($quiz) {
   if (!is_object($quiz)) {
     drupal_set_message(t('The question pool cannot be generated.'), 'error');
     watchdog('quiz', '_quiz_get_random_questions was called incorrectly.', array(), WATCHDOG_ERROR);
@@ -2597,33 +2466,13 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
   if ($num_random > 0) {
     if ($tid > 0) {
       $questions = _quiz_get_random_taxonomy_question_ids($tid, $num_random);
-      /*
-      // Select random questions by taxonomy.
-      $term = taxonomy_get_term($tid);
-      $tree = taxonomy_get_tree($term->vid, $term->tid);
-
-      // Flatten the taxonomy tree, and just keep term id's.
-      $term_ids[] = $term->tid;
-      if (is_array($tree)) {
-        foreach ($tree as $term) {
-          $term_ids[] = $term->tid;
-        }
-      }
-      $term_ids = implode(',', $term_ids);
-
-      // Get all published questions with one of the allowed term ids.
-      $result = db_query_range("SELECT n.nid, n.vid
-        FROM {node} n
-        INNER JOIN {term_node} tn USING (nid)
-        WHERE n.status = 1 AND tn.tid IN ($term_ids)
-        AND n.type IN ('"
-        . implode("','", _quiz_get_question_types())
-        . "') ORDER BY RAND()", 0, $num_random);
-      */
     }
     else {
       // Select random question from assigned pool.
-      $result = db_query_range("SELECT child_nid as nid, child_vid as vid FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
+      $result = db_query_range("SELECT child_nid as nid, child_vid as vid 
+                                FROM {quiz_node_relationship} 
+                                WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", 
+                                $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
       while ($question_node = db_fetch_array($result)) {
         $questions[] = $question_node;
       }
@@ -2635,6 +2484,7 @@ function _quiz_get_random_questions(/*$num_random, $tid*/ $quiz) {
 
 /**
  * Given a term ID, get all of the question nid/vids that have that ID.
+ * 
  * @param $tid
  *  Integer term ID.
  * @return
@@ -2665,7 +2515,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
     WHERE n.status = 1 AND tn.tid IN ($term_ids)
     AND n.type IN ('"
     . implode("','", array_keys(_quiz_get_question_types()))
-    . "') ORDER BY RAND()", 0, $num_random);
+    . "')", 0, $num_random);
 
   $questions = array();
   while ($question_node = db_fetch_array($result)) {
@@ -2683,9 +2533,13 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
  */
 function _quiz_get_question_types() {
   static $to_return = array();
+  // We vastly improves performance by statically caching the question types 
   if (!empty($to_return)) 
     return $to_return;
+  // Get question types from the modules that defines them..
   $to_return = module_invoke_all('quiz_question_info');
+  
+  // We must make sure names and descriptions are customizable and translationable
   $types = array();
   $placeholders = array();
   foreach ($to_return as $key => $value) {
@@ -2739,48 +2593,55 @@ function _quiz_taxonomy_select($value = 0) {
 
 /**
  * Retrieve list of published questions assigned to quiz.
- *
+ * 
+ * @param $quiz_nid
+ *  Quiz node id
+ * @param $quiz_vid
+ *  Quiz node version id
+ * @param $include_all_types
+ *  Shall the results be filtered on available question types? @todo: review this
+ * @param $nid_keys
+ *  Shall nid be used as keys in the array we return?
+ * @param $include_question
+ *  Shall the question(the node body) be included for the questions in the returned array?
  * @return
  *  An array of questions.
  */
 function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE) {
   $filter_types = '';
   $questions    = array();
-  $where_add    = array();
+  $wheres    = array();
   $where_sql    = '';
 
   if ($include_all_types === TRUE) {
     $types = array_keys(_quiz_get_question_types());
     if (count($types) > 0) {
     $str_types = "'". implode("','", $types) ."'";
-      $where_add[] = 'question.type IN ('. $str_types .')';
+      $wheres[] = 'n.type IN ('. $str_types .')';
     }
   }
 
   if (!is_null($quiz_vid)) {
-    $where_add[] = 'qnr.parent_vid = '. intval($quiz_vid);
-    $where_add[] = 'qnr.parent_nid = '. intval($quiz_nid);
+    $wheres[] = 'qnr.parent_vid = '. intval($quiz_vid);
+    $wheres[] = 'qnr.parent_nid = '. intval($quiz_nid);
   }
 
   // Only include published questions.
-  $where_add[] = 'question.status = 1';
+  $wheres[] = 'n.status = 1';
 
-  if (count($where_add)) {
+  // Create where filter to be added
+  if (count($wheres)) {
     $where_sql = ' WHERE ';
-
-    foreach ($where_add as $where) {
-      $where_sql .= $where .' AND ';
-    }
-
-    $where_sql = trim( $where_sql, ' AND ');
+    $where_sql .= implode(' AND ', $wheres);
   }
 
-  $result = db_query('SELECT question.nid, nr.vid, question.vid AS latest_vid, question.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
-    FROM {node} question
+  $result = db_query('SELECT n.nid, nr.vid, n.vid AS latest_vid, n.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
+    FROM {node} n
     INNER JOIN {node_revisions} nr ON question.nid = nr.nid
-    LEFT JOIN {quiz_node_relationship} qnr ON nr.vid = qnr.child_vid
-      AND qnr.parent_vid = %d
-      AND qnr.question_status != %d
+    LEFT JOIN {quiz_node_relationship} qnr 
+    ON nr.vid = qnr.child_vid
+    AND qnr.parent_vid = %d
+    AND qnr.question_status != %d
     '. $where_sql . ' ORDER BY weight', $quiz_vid, QUESTION_NEVER
   );
 
@@ -2792,7 +2653,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
   }
   else {
     while ($node = db_fetch_object($result)) {
-      $n = quiz_node_map($node);
+      $n = quiz_node_map($node, $include_question);
       $questions[$n->nid] = $n;
     }
   }
@@ -2801,7 +2662,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
 
 
 /**
- * Get a full results list.
+ * Get all results, or results for a given user and/or quiz.
  *
  * @param $nid
  *  Node ID for the quiz.
@@ -2828,7 +2689,7 @@ function _quiz_get_results($nid = '', $uid = 0) {
     $args[] = $uid;
   }
   $sql .= " ORDER BY qnrs.result_id DESC";
-  $dbresult = db_query($sql, $args);
+  $dbresult = db_query(db_rewrite_sql($sql), $args);
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['result_id']] = $line;
   }
@@ -2836,29 +2697,19 @@ function _quiz_get_results($nid = '', $uid = 0) {
 }
 
 /**
- * Get a full list of the quizzes.
+ * Get a list of all available quizzes.
  *
  * @param $uid
  *  An optional user ID. If supplied, only quizzes created by that user will be returned.
  * @return
- *  A list of all quizzes.
+ *  A list of quizzes.
  */
 function _quiz_get_quizzes($uid = 0) {
   $results = array();
   $args = array();
-  /* Not sure what the first inner join is supposed to do here. But as a negative
-   * side effect, it returns duplicates of every quiz that has multiple vids.
-  $sql = "SELECT n.nid, n.title, u.name, n.created
-          FROM {node} n
-          INNER JOIN {quiz_node_properties} qnp
-          INNER JOIN {users} u
-          WHERE n.type = 'quiz'
-            AND n.nid = qnp.nid
-            AND u.uid = n.uid";
-  */
   $sql = "SELECT n.nid, n.vid, n.title, n.uid, u.name, n.created
           FROM {node} n
-          INNER JOIN {users} u
+          LEFT JOIN {users} u
           ON u.uid = n.uid
           WHERE n.type = 'quiz'";
 
@@ -2874,25 +2725,34 @@ function _quiz_get_quizzes($uid = 0) {
   return $results;
 }
 
+/**
+ * Get answer data for a specific result
+ * 
+ * @param $rid
+ *  Result id
+ * @return 
+ *  Array of answers
+ */
 function _quiz_get_answers($rid) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score
-    FROM {quiz_node_results_answers} ra
-    LEFT JOIN {node} ON (question_nid = nid)
-    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
-    LEFT JOIN {quiz_node_relationship} rs ON (question_vid = rs.child_vid)
-    WHERE ra.result_id = %d
-    AND rs.parent_vid = r.vid
-    ORDER BY answer_timestamp", $rid);
+                   FROM {quiz_node_results_answers} ra
+                   LEFT JOIN {node} n ON (question_nid = nid)
+                   LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
+                   LEFT JOIN {quiz_node_relationship} rs ON (question_vid = rs.child_vid)
+                   WHERE ra.result_id = %d
+                   AND rs.parent_vid = r.vid
+                   ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     $module = quiz_question_module_for_type($line->type);
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    // Add max score info to the question.
     if (!isset($questions[$line->question_nid]->score_weight)) {
-      if ($questions[$line->question_nid]->max_score == 0) $weight = 0;
-      else $weight = $line->max_score / $questions[$line->question_nid]->max_score;
+      if ($questions[$line->question_nid]->max_score == 0) $score_weight = 0;
+      else $score_weight = $line->max_score / $questions[$line->question_nid]->max_score;
       $questions[$line->question_nid]->qnr_max_score = $line->max_score;
-      $questions[$line->question_nid]->score_weight = $weight;
+      $questions[$line->question_nid]->score_weight = $score_weight;
     }
   }
   return $questions;
@@ -2906,6 +2766,7 @@ function _quiz_get_answers($rid) {
  *  Quiz name variable.
  */
 function _quiz_get_quiz_name() {
+  // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
   return variable_get('quiz_name', 'Quiz');
 }
 
@@ -2922,8 +2783,6 @@ function _quiz_get_feedback_options() {
     QUIZ_FEEDBACK_NEVER => t('Do not show'),
   );
 }
-
-
 
 /**
  * Takes a time element and prepares to send it to form_date().
@@ -2984,28 +2843,17 @@ function quiz_action_options($type = 'all') {
   }
 }
 
-/*
- * Implementation of hook_cron()
- */
-
-function quiz_cron() {
-  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
-  if ($rm_time) { // $time = 0 for never
-    db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', time(), $rm_time);
-  }
-}
-
 /**
+ * Returns an array with quiz titles keyed with quiz node ids.
+ * 
  * @return array
  *  options suitable for a form, in which the value is nid
  */
 function quiz_get_quiz_options() {
   $options = array();
-  // FIXME use the names set by the user config
   $results = db_query(db_rewrite_sql("SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = 'quiz'"));
   while ($result = db_fetch_object($results)) {
     $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
-    // truncate the node title if its length is greater than 30 characters
   }
   return $options;
 }
@@ -3017,13 +2865,6 @@ function quiz_get_quiz_options() {
  */
 function _quiz_is_taking_context() {
   return arg(2) == 'take';
-  /*
-  $display_object = menu_get_object('quiz_type_access');
-  // display_object is empty for question views because 'quiz_type_access' doesn't load them
-  if ($display_object->type == 'quiz') {
-    return TRUE;
-  }
-  return FALSE;*/
 }
 
 /**
@@ -3049,10 +2890,18 @@ function quiz_make_new($title) {
   return $new_node;
 }
 
+/**
+ * Retrieves the quiz node from the menu router
+ * 
+ * @return
+ *  - Quiz node if found
+ *  - FALSE if quiz node can't be retrieved from the menu router.
+ */
 function quiz_get_quiz_from_menu() {
-  if ($to_return = menu_get_object('quiz_type_access'))
+  if ($to_return = menu_get_object('quiz_type_access', 4))
     return $to_return;
-  return menu_get_object('quiz_type_access', 4);
+  $node = menu_get_object();
+  return $node->type == 'quiz' ? $node : FALSE;
 }
 
 /**
@@ -3082,8 +2931,8 @@ function _quiz_check_num_random(&$node) {
   $node->number_of_random_questions = 0;
   $sql = 'UPDATE {quiz_node_relationship}
           SET question_status = %d
-          WHERE parent_nid = %d AND parent_vid = %d';
-  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid);
+          WHERE parent_nid = %d AND parent_vid = %d AND question_status != %d';
+  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid, QUESTION_NEVER);
 }
 
 /**
@@ -3109,7 +2958,7 @@ function quiz_copy_questions($node) {
   while ($res_o = db_fetch_object($res)) {
     $original_question = node_load($res_o->child_nid);
     
-    // Unset variables we can't or won't carry with us to the translated node...
+    // Set variables we can't or won't carry with us to the translated node to NULL...
     $original_question->nid = $original_question->vid = $original_question->created = $original_question->changed = NULL;
     $original_question->revision_timestamp = $original_question->menu = $original_question->path = NULL;
     $original_question->files = array();
@@ -3130,6 +2979,14 @@ function quiz_copy_questions($node) {
   }
 }
 
+/**
+ * Deletes results for a quiz according to the keep results setting
+ * 
+ * @param $quiz
+ *  The quiz node to be maintained
+ * @param $rid
+ *  The result id of the latest result for the current user
+ */
 function _quiz_maintain_results($quiz, $rid) {
   global $user;
   
@@ -3139,7 +2996,7 @@ function _quiz_maintain_results($quiz, $rid) {
   switch ($quiz->keep_results) {
     case QUIZ_KEEP_ALL:
       return;
-    case QUIZ_KEEP_BEST: //I'm afraid of what this query might do to performance...
+    case QUIZ_KEEP_BEST: //I'm afraid of what this might do to performance...
       $sql = 'SELECT result_id 
               FROM {quiz_node_results}
               WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != (
@@ -3173,6 +3030,12 @@ function _quiz_maintain_results($quiz, $rid) {
   }
 }
 
+/**
+ * Delete quiz results
+ * 
+ * @param $rids
+ *  Result ids for the results to be deleted
+ */
 function quiz_delete_results($rids) {
   //security:
   foreach ($rids as $key => $value) {
@@ -3180,20 +3043,31 @@ function quiz_delete_results($rids) {
   }
   if (empty($rids))
     return;
+  $rids_string = implode(', ', $rids);
   $sql = 'SELECT result_id, question_nid, question_vid
           FROM {quiz_node_results_answers}
-          WHERE result_id IN('. implode(', ', $rids) .')';
+          WHERE result_id IN('. $rids_string .')';
   $res = db_query($sql);
   while ($res_o = db_fetch_object($res)) {
     quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
-    db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id = %d', $res_o->result_id);
-    db_query('DELETE FROM {quiz_node_results} WHERE result_id = %d', $res_o->result_id);
   }
+  db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id IN (' . $rids_string . ')');
+  db_query('DELETE FROM {quiz_node_results} WHERE result_id IN (' . $rids_string . ')');
 }
 
+/**
+ * Aplly the users default settings to a quiz node.
+ * 
+ * @param $node
+ *  Quiz node
+ * @return 
+ *  - TRUE if success
+ *  - FALSE if not success
+ */
 function _quiz_load_user_settings(&$node) {
   global $user;
   $sql = "SELECT * FROM {quiz_user_settings} WHERE uid = %d";
+  // Def uid is the default user id. It is used if there are no settings store for the current user...
   $res = db_query($sql, isset($node->def_uid) ? $node->def_uid : $user->uid);
   if ($res_o = db_fetch_object($res)) {
     foreach ($res_o as $key => $value) {
@@ -3209,17 +3083,36 @@ function _quiz_load_user_settings(&$node) {
   return FALSE;
 }
 
+/**
+ * Fetch settings from a node and save them as the users default settings.
+ * 
+ * @param $node
+ *  Quiz node
+ */
 function _quiz_save_user_settings($node) {
   global $user;
+  // We do not save settings if the node has been created by the system
   if ($node->auto_created)
     return FALSE;
+  
+  // Are we updating or inserting?
   $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
   $res = db_query($sql, is_array($node) ? (isset($node['save_def_uid']) ? $node['save_def_uid'] : $user->uid) : $user->uid);
   $update = is_numeric(db_result($res)) ? array('uid') : array();
+  
+  // Are we saving the default settings?
   if (isset($node->save_def_uid))
     $node['uid'] = $node['save_def_uid'];
+  
   drupal_write_record('quiz_user_settings', $node, $update);
 }
+
+/**
+ * Redirects to the manage questions tab if the quiz has no questions.
+ * 
+ * @param $node
+ *  Quiz node
+ */
 function _quiz_redirect_if_empty($node) {
   $sql = 'SELECT child_vid 
           FROM {quiz_node_relationship}
@@ -3229,6 +3122,16 @@ function _quiz_redirect_if_empty($node) {
     $_REQUEST['destination'] = url("node/$node->nid/questions");
 }
 
+/**
+ * Get the number of compulsory questions for a quiz
+ * 
+ * @param $nid
+ *  Quiz node id
+ * @param $vid
+ *  Quiz node version id
+ * @return
+ *  Number of compulsory questions
+ */
 function _quiz_get_num_always_questions($nid, $vid) {
   $sql = 'SELECT count(*) 
           FROM {quiz_node_relationship}
@@ -3236,7 +3139,14 @@ function _quiz_get_num_always_questions($nid, $vid) {
   return db_result(db_query($sql, $vid, QUESTION_ALWAYS));
 }
 
-
+/**
+ * Modifies the format fieldset.
+ * 
+ * Adds a class and removes some text. Used when there are multiple format selectors on one page.
+ * 
+ * @param $format
+ *  The format fieldset
+ */
 function _quiz_format_mod(&$format) {   
   $format['#attributes']['class'] = 'quiz_filter';
   if (isset($format['format'])) {
@@ -3249,12 +3159,25 @@ function _quiz_format_mod(&$format) {
   }
 }
 
+/**
+ * Limit the year options to the years 1970 - 2030 for form items of type date
+ * 
+ * Some systems don't support all the dates the forms api lets you choose from. This function limits the options
+ * to dates most systems support.
+ * 
+ * @param $form_element
+ *  Form element of type date
+ * @return 
+ *  Form element with a more limited set of years to choose from
+ */
 function _quiz_limit_year_options($form_element) {
   $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
   return $form_element;
 }
 
-/*
+/**
+ * Format a number of seconds to a hh:mm:ss format
+ * 
  * @param $time_in_sec
  *  Integers time in seconds
  * @return
@@ -3269,17 +3192,45 @@ function _quiz_format_duration($time_in_sec) {
   return "$hours:$min:$sec";
 }
 
+/**
+ * Helper function used when validating integers
+ * 
+ * @param $value
+ *  The value to be validated
+ * @param $min
+ *  The minimum value $value is allowed to be
+ * @param $max
+ *  The maximum value $value is allowed to be
+ * @return
+ *  - TRUE if integer in the allowed range
+ *  - FALSE otherwise
+ */
 function _quiz_is_int($value, $min = 1, $max = NULL) {
   $to_return = ((string)$value === (string)(int)$value);
-  if ($to_return && intval($value) < $min)
-    $to_return = FALSE;
+  // $value is not an integer
+  if (!$to_return)
+    return FALSE;
+  // $value is too small
+  if ($value < $min)
+    return FALSE;
+  // $value is too big
   if (isset($max)) {
-    if ($to_return && intval($value) > $max)
-      $to_return = FALSE;
+    if ($value > $max)
+      return FALSE;
   }
-  return $to_return;
+  // $value is an integer in the allowed range
+  return TRUE;
 }
 
+/**
+ * Helper function used when validating plain text
+ *
+ * @param $value
+ *  The value to be validated
+ * @return
+ *  - TRUE if plain text
+ *  - FALSE otherwise
+ */
 function _quiz_is_plain($value) {
   return ($value === check_plain($value));
 }
