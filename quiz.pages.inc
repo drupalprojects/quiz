@@ -6,17 +6,20 @@
  * @file
  */
 
-/*
- * Quiz Results User.
+/**
+ * Show result page for a given result id
+ * 
+ * @param $result_id
+ *  Result id
  */
 function quiz_user_results($result_id) {
   global $user;
-
+  
   $sql = 'SELECT qnp.nid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
     WHERE qnrs.result_id = %d';
-  $result = db_fetch_object(db_query( $sql, $result_id));
+  $result = db_fetch_object(db_query($sql, $result_id));
   if ($result->nid) {
 
     // User can view own results (quiz_menu sets access to 'own results').
@@ -40,17 +43,22 @@ function quiz_user_results($result_id) {
 /**
  * Form for showing feedback, and for editing the feedback if necessary...
  *
+ * @param $form_state
+ *   FAPI form state(array)
  * @param $questions
  *   array of questions to inclide in the report
  * @param $showpoints
  *   Should points be included in the report? (Boolean)
  * @param $showfeedback
  *   Should feedback be included in the report? (Boolean)
+ * @param $allow_scoring
+ *   Should we allow the user to score results that needs manual scoring? (Boolean)
  * @return $form
  *   FAPI form array
  */
 function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE, $allow_scoring = FALSE) {
   $form = array();
+  // The submit button is only shown if one or more of the questions has input elements
   $show_submit = FALSE;
   foreach ($questions as $question) {
     $module = quiz_question_module_for_type($question->type);
@@ -75,42 +83,71 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
   return $form;
 }
 
+/**
+ * Validate the report form
+ */
 function quiz_report_form_validate($form, &$form_state) {
+  /* We go through the form state values and validates all
+   * questiontypes with validation functions declared.
+   */
   foreach ($form_state['values'] as $key => $q_values) {
+    // Questions has numeric keys in the report form
     if (!is_numeric($key)) continue;
+    // Questions store the name of the validation function with the key 'validate'
     if (!isset($q_values['validate'])) continue;
+    // The validation function must exist
     if (!function_exists($q_values['validate'])) continue;
+    // We call the validation function provided by the question
     call_user_func($q_values['validate'], $q_values, $key);
   }
 }
 
+/**
+ * Submit the report form
+ */
 function quiz_report_form_submit($form, &$form_state) {
+  /* We go through the form state values and submit all
+   * questiontypes with validation functions declared.
+   */
   foreach ($form_state['values'] as $key => $q_values) {
+    // Questions has numeric keys in the report form
     if (!is_numeric($key)) continue;
+    // Questions store the name of the validation function with the key 'submit'
     if (!isset($q_values['submit'])) continue;
+    // The submit function must exist
     if (!function_exists($q_values['submit'])) continue;
-    if (!isset($quiz)) {
-      $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-      $result = db_fetch_object(db_query($sql, $q_values['rid']));
-      $quiz = node_load($result->nid, $result->vid);
-      $rid = $q_values['rid'];
-    }
+    
+    // Load the quiz
+    $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
+    $result = db_fetch_object(db_query($sql, $q_values['rid']));
+    $quiz = node_load($result->nid, $result->vid);
+    $rid = $q_values['rid'];
     $q_values['quiz'] = $quiz;
+    
+    // We call the validation function provided by the question
     call_user_func($q_values['submit'], $q_values);
   }
+  // Scores may have been changed. We take the necessary actions
   quiz_update_total_score_fast($rid, $quiz->vid);
   _quiz_maintain_results($quiz, $rid);
   db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid);
+  
+  // A message saying the quiz is unscored has already been set. We unset it here...
   _quiz_remove_unscored_message();
 }
 
+/**
+ * Helper function to remove the message saying the quiz haven't been scored
+ */
 function _quiz_remove_unscored_message() {
   if (is_array($_SESSION['messages']['error'])) {
+    // Search for the message, and remove it if we find it.
     foreach ($_SESSION['messages']['error'] as $key => $val) {
       if ($val == t('This quiz has not been scored yet.')) {
         unset($_SESSION['messages']['error'][$key]);
       }
     }
+    // Clean up if the message array was left empty
     if (empty($_SESSION['messages']['error'])) {
       unset($_SESSION['messages']['error']);
       if (empty($_SESSION['messages'])) {
@@ -120,6 +157,14 @@ function _quiz_remove_unscored_message() {
   }
 }
 
+/**
+ * Updates the total score using only one mySql query.
+ * 
+ * @param $rid
+ *  Result id
+ * @param $quiz_vid
+ *  Quiz node version id
+ */
 function quiz_update_total_score_fast($rid, $quiz_vid) {
   $sql = 'UPDATE {quiz_node_results} r
           SET score = (
