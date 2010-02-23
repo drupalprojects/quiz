@@ -30,8 +30,7 @@ function long_answer_view_unscored() {
  */
 function long_answer_edit_score($vid, $rid) {
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
-  // and we need to be able to access old nodes in node_revisions.vid. (BTW... why is node singular
-  // and node_revisions plural?).
+  // and we need to be able to access old nodes in node_revisions.vid. 
   $nid = db_result(db_query("SELECT nid FROM {node_revisions} WHERE vid = %d", $vid));
   if (!$nid) {
     drupal_not_found();
@@ -64,7 +63,7 @@ function long_answer_edit_score($vid, $rid) {
  * @return
  *  The form (as a FAPI array).
  */
-function long_answer_score_form($context, $node, $answer) {
+function long_answer_score_form($node, $answer) {
 
   if (!$node || $node->type != 'long_answer' || !$answer) {
     drupal_not_found();
@@ -131,19 +130,21 @@ function long_answer_score_form($context, $node, $answer) {
   return $form;
 }
 
+/**
+ * Validates the long answer score form
+ */
 function long_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
   $max = (int)$form_state['values']['max_score'];
-  $given = (int)$form_state['values']['score'];
+  $given = $form_state['values']['score'];
 
-  if ($given > $max || $given < 0) {
+  if (_quiz_is_int($given, 0, $max)) {
     $args = array('@score' => $given, '@max' => $max);
-    form_error($form['score'], t('The given score (@score) is higher than the maximum allowed score (@max)', $args));
+    form_error($form['score'], t('The given score (@score) must be an integer between 0 and @max', $args));
   }
 }
 
 function long_answer_score_form_submit($form, &$form_state) {
-
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
   $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));
 

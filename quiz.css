@@ -212,3 +212,8 @@ dl.quiz-report dd {
   margin: 2px;
   line-height: 100%;
 }
+
+.quiz-solution {
+  border-left: solid 5px #00ff00;
+  padding-left: 3px;
+}

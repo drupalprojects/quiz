@@ -5,6 +5,7 @@
  * Long answer classes.
  *
  * @file
+ *  Classes modelling the long answer question and the long answer question response
  */
 
 
@@ -12,7 +13,11 @@
  * Implementation of QuizQuestion.
  */
 class LongAnswerQuestion extends QuizQuestion{
-
+  /**
+   * Implementation of saveNodeProperties
+   * 
+   * @see QuizQuestion#saveNodeProperties($is_new)
+   */
   public function saveNodeProperties($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
@@ -30,10 +35,20 @@ class LongAnswerQuestion extends QuizQuestion{
       db_query($sql, $this->node->rubric, $this->node->nid, $this->node->vid);
     }
   }
-
+  
+  /**
+   * Implementation of validateNode
+   * 
+   * @see QuizQuestion#validateNode($form)
+   */
   public function validateNode(array &$form) {
   }
 
+  /**
+   * Implementation of delete
+   * 
+   * @see QuizQuestion#delete($only_this_version)
+   */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
     if ($only_this_version) {
@@ -44,6 +59,11 @@ class LongAnswerQuestion extends QuizQuestion{
     }
   }
 
+  /**
+   * Implementation of getNodeProperties
+   * 
+   * @see QuizQuestion#getNodeProperties()
+   */
   public function getNodeProperties() {
     if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
@@ -59,32 +79,37 @@ class LongAnswerQuestion extends QuizQuestion{
     return $props;
   }
   
-
+  /**
+   * Implementation of getNodeView
+   * 
+   * @see QuizQuestion#getNodeView()
+   */
   public function getNodeView() {
     $content = parent::getNodeView();
 
     if ($this->viewCanRevealCorrect()) {
       $rubric_html = check_markup($this->node->rubric, $this->node->format, FALSE);
       $content['answers'] = array('#type' => 'markup',
-      // TODO should use CSS instead, maybe across all quiz_question.module
-      '#value' => '<div style="background-color: lightgreen"><h3>Rubric</h3>'. $rubric_html .'</div>',
-      '#weight' => 1,
+        '#value' => '<div class="quiz-solution"><h3>Rubric</h3>'. $rubric_html .'</div>',
+        '#weight' => 1,
       );
     }
     else {
-      // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
-      '#type' => 'markup',
-      '#value' => '<br /> <em>Answer hidden</em>.',
-      '#weight' => 2,
+        '#type' => 'markup',
+        '#value' => '<br /> <em>Answer hidden</em>.',
+        '#weight' => 1,
       );
     }
 
     return $content;
   }
 
-  // This is called whenever a question is rendered, either
-  // to an administrator or to a quiz taker.
+  /**
+   * Implementation of getAnweringForm
+   * 
+   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
       '#type' => 'markup',
@@ -96,7 +121,7 @@ class LongAnswerQuestion extends QuizQuestion{
       '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
       '#rows' => 15,
       '#cols' => 60,
-      '#required' => FALSE,
+      '#required' => FALSE, // See isValid() in LongAnswerResponse
     );
     if (isset($rid)) {
       $response = new LongAnswerResponse($rid, $this->node);
@@ -104,7 +129,12 @@ class LongAnswerQuestion extends QuizQuestion{
     }
     return $form;
   }
-
+  
+  /**
+   * Implementation of getCreationForm
+   * 
+   * @see QuizQuestion#getCreationForm($form_state)
+   */
   public function getCreationForm(array $form_state = NULL) {
     $form['rubric'] = array(
        '#type' => 'textarea',
@@ -115,20 +145,27 @@ class LongAnswerQuestion extends QuizQuestion{
        '#maxlength' => 512,
        '#required' => FALSE,
     );
-    
     return $form;
   }
-
+  
+  /**
+   * Implementation of getMaximumScore
+   * 
+   * @see QuizQuestion#getMaximumScore()
+   */
   public function getMaximumScore() {
     return 10;
   }
 
 }
 
+/**
+ * Implementation of QuizQuestionResponse
+ */
 class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
-   * Get all quiz scores that have not yet been evaluated.
+   * Get all scores that have not yet been evaluated.
    *
    * @param $count
    *  Number of items to return (default: 50).
@@ -155,6 +192,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
     return $unscored;
   }
+  
   /**
    * Given a quiz, return a list of all of the unscored answers.
    *
@@ -171,7 +209,12 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *  Indexed array of result IDs that need to be scored.
    */
   public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
-    $results = db_query_range('SELECT result_id FROM {quiz_long_answer_user_answers} WHERE is_evaluated = 0 AND question_nid = %d AND question_vid = %d', $nid, $vid, $offset, $count);
+    $results = db_query_range('SELECT result_id 
+      FROM {quiz_long_answer_user_answers} 
+      WHERE is_evaluated = 0 
+      AND question_nid = %d 
+      AND question_vid = %d', 
+      $nid, $vid, $offset, $count);
     $unscored = array();
     foreach (db_fetch_object($results) as $row) {
       $unscored[] = $row->result_id;
@@ -184,10 +227,14 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   protected $answer_id = 0;
 
+  /**
+   * Constructor
+   */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
 
     if (!isset($answer)) {
+      // Question has been answered allready. We fetch the answer data from the database.
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_long_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
@@ -206,40 +253,81 @@ class LongAnswerResponse extends QuizQuestionResponse {
     }
   }
 
+  /**
+   * Implementation of isValid
+   * 
+   * @see QuizQuestionResponse#isValid()
+   */
   public function isValid() {
     if (empty($this->answer)) return t('You must provide an answer');
     return TRUE;
   }
   
+  /**
+   * Implementation of save
+   * 
+   * @see QuizQuestionResponse#save()
+   */
   public function save() {
-    $sql = "INSERT INTO {quiz_long_answer_user_answers} (answer, question_nid, question_vid, result_id) VALUES ('%s', %d, %d, %d)";
+    $sql = "INSERT INTO {quiz_long_answer_user_answers} 
+            (answer, question_nid, question_vid, result_id) 
+            VALUES ('%s', %d, %d, %d)";
     db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
 
+  /**
+   * Implementation of save
+   * 
+   * @see QuizQuestionResponse#delete()
+   */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
+    $sql = 'DELETE FROM {quiz_long_answer_user_answers} 
+            WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
 
+  /**
+   * Implementation of score
+   * 
+   * @see QuizQuestionResponse#score()
+   */
   public function score() {
-    $sql = "SELECT score FROM {quiz_long_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
+    $sql = "SELECT score 
+            FROM {quiz_long_answer_user_answers} 
+            WHERE result_id = %d AND question_vid = %d";
     $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
     return $score;
   }
 
+  /**
+   * Implementation of isCorrect
+   * 
+   * @see QuizQuestionResponse#isCorrect()
+   */
   public function isCorrect() {
     $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
     $actual = $this->getScore();
     // To prevent Division by zero warning
     $possible = ($possible == 0) ? 1 : $possible;
+    // We consider the answer to be correct if it has recieved a score above 50 %...
     return (($actual / $possible) * 100 > 50);
   }
 
+  /**
+   * Implementation of getResponse
+   * 
+   * @see QuizQuestionResponse#getResponse()
+   */
   public function getResponse() {
     return $this->answer;
   }
   
+  /**
+   * Implementation of getReportFormResponse
+   * 
+   * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
+   */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
     if ($this->question && !empty($this->question->answers)) 
@@ -261,7 +349,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '<br/>' .
         t('Until the answer is scored, the total score will not be correct.');
     }
-    if (/*!_quiz_is_taking_context() && */$allow_scoring) {
+    if ($allow_scoring) {
       $form['rubric'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
@@ -271,14 +359,21 @@ class LongAnswerResponse extends QuizQuestionResponse {
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
-        '#value' => '<I>'. $feedback .'</I>',
+        '#value' => '<em>'. $feedback .'</em>',
       );
     }
     return $form;
   }
   
+  /**
+   * Implementation of getReportFormScore
+   * 
+   * @see QuizQuestionResponse#getReportFormScore($showpoints, $showfeedback, $allow_scoring)
+   */
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
+    // The score will be shown as a questionmark if the question haven't been scored already
     $score = ($this->isEvaluated()) ? $this->getScore() : '?';
+    // We show a textfield if the quiz shall be scored. Markup otherwise
     if (quiz_access_to_score() && $allow_scoring) {
       return array(
         '#type' => 'textfield',
@@ -295,16 +390,23 @@ class LongAnswerResponse extends QuizQuestionResponse {
       );
     }
   }
+  
+  /**
+   * Implementation of getReportFormSubmit
+   * 
+   * @see QuizQuestionResponse#getReportFormSubmit($showfeedback, $showpoints, $allow_scoring)
+   */
   public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return $allow_scoring ? 'long_answer_report_submit' : FALSE;
   }
   
+  /**
+   * Implementation of getReportFormValidate
+   * 
+   * @see QuizQuestionResponse#getReportFormValidate($showfeedback, $showpoints, $allow_scoring)
+   */
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return $allow_scoring ? 'long_answer_report_validate' : FALSE;
-  }
-  
-  public function formatReport($showfeedback = TRUE, $showpoints = TRUE) {
-    return '';
   }
 }
 

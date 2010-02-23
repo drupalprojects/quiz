@@ -104,6 +104,11 @@ function long_answer_schema() {
   return $schema;
 }
 
+/**
+ * Implementation of hook_update_N
+ * 
+ * Use float instead of int on the score field. This is to better suit the use of max score...
+ */
 function long_answer_update_6400() {
   $results = array();
   $spec = array(
@@ -115,6 +120,14 @@ function long_answer_update_6400() {
   db_change_field($results, 'quiz_long_answer_user_answers', 'score', 'score', $spec);
   return $results;
 }
+
+/**
+ * Implementation of hook_update_N
+ * 
+ * Add a table for storing the rubric
+ * 
+ * @return 
+ */
 
 function long_answer_update_6401() {
   $results = array();
