@@ -15,12 +15,14 @@ MySQL 5
 
 The module consists of two types of modules: the Quiz module itself 
 (quiz.module), and various question types (example: multichoice.module). The 
-main Quiz module and at least one question type module are required to be both
-installed and enabled for this module to function properly.
+main Quiz module, the Quiz Question module and at least one question type module 
+are required to be both installed and enabled for this module to function properly.
 
 
 Features
 --------
+This list isn't complete(not even close)
+
  - Administrative features:
     o Assign feedback to responses to help point out places for further study
     o Supports multiple answers to quiz questions (on supporting question types)
@@ -39,6 +41,7 @@ Installation
 ------------
 Please refer to the INSTALL file for installation directions.
 
+
 Support
 -------
 - Visit the Quiz group at http://groups.drupal.org/quiz
@@ -49,7 +52,8 @@ Credits
 - Specification:      Robert Douglass
 - Original author:    Károly Négyesi
 - Update to Drupal 5: Wim Mostrey and riverfr0zen
-- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji, turadg
+- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji, turadg, falcon
+
 
 Acknowledgements
 ----------------
