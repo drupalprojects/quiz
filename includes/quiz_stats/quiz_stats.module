@@ -8,17 +8,7 @@
  * Module creates a report to analyse and compare the results of quiz attendees.
  */
 
-/*
- * @function
- * Implementation of hook_init().
- * includes the CSS file
- */
-function quiz_stats_init() {
-  drupal_add_css(drupal_get_path('module', 'quiz_stats') .'/quiz_stats.css', 'theme');
-}
-
 /**
- * @function
  * Implementation of hook_help().
  */
 
@@ -29,23 +19,15 @@ function quiz_stats_help($path, $arg) {
 }
 
 /**
- * @function
  * Implementation of hook_perm()
- * Valid permissions for this module
- *
- * @return
- * array of valid permissions.
  */
 function quiz_stats_perm() {
   $permission = array('access user stats', 'access author stats');
-  // access user dashborad - will allow access to invidual users stats.
-  // access author stats - will allow access to all users stats.
   return $permission;
 
 }
 
 /**
- * @function
  * Implementation of hook_menu()
  */
 function quiz_stats_menu() {
@@ -100,7 +82,6 @@ function quiz_stats_menu() {
 
 
 /**
- * @function
  * Implementation of hook_theme().
  */
 function quiz_stats_theme() {

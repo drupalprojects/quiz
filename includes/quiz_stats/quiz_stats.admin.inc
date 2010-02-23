@@ -71,6 +71,7 @@ function quiz_stats_get_basic_stats($uid = 0) {
  */
 function quiz_stats_get_adv_stats($vid, $uid = 0) {
   $charts = array();
+  drupal_add_css(drupal_get_path('module', 'quiz_stats') .'/quiz_stats.css', 'theme');
   $charts['takeup'] = _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
   $charts['status'] = _get_quiz_status_chart($vid, $uid);
