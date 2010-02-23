@@ -67,6 +67,9 @@ function long_answer_quiz_question_info() {
   );
 }
 
+/**
+ * Implementation of hook_config
+ */
 function long_answer_config() {
   return FALSE;
 }
@@ -111,6 +114,8 @@ function long_answer_theme() {
  *  Result ID for the quiz results.
  * @param $score
  *  The numeric score to assign the result.
+ * @param $update_total
+ *  Shall the total score be updated?
  *
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
