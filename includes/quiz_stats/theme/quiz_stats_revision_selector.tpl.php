@@ -1,6 +1,6 @@
 <?php 
 // $Id$
-print '<p>'. $content['explanation'] .'</p>';
+print '<p>' . $content['explanation'] . '</p>' . "\n";
 print '<p>';
 $counter = 1;
 foreach ($content['links'] as $key => $value) {

@@ -23,7 +23,9 @@
 if (!function_exists('_quiz_stats_print_chart')) {
   function _quiz_stats_print_chart(&$chart) {
     if (is_array($chart)) {
-      print '<h2 class="quiz-charts-title">'. $chart['title'] .'</h2>'. $chart['chart'] . $chart['explanation'];
+      echo '<h2 class="quiz-charts-title">' . $chart['title'] . '</h2>' . "\n"
+         . $chart['chart']. "\n"
+         . $chart['explanation'] . "\n";
       $chart_found = TRUE; 
     }
   }
@@ -33,6 +35,6 @@ _quiz_stats_print_chart($charts['top_scorers']);
 _quiz_stats_print_chart($charts['status']);
 _quiz_stats_print_chart($charts['grade_range']);
 if (!$chart_found) {
-  print t("There aren't enough data to generate statistics for this quiz.");
+  echo t("There aren't enough data to generate statistics for this quiz.");
 }
 ?>
