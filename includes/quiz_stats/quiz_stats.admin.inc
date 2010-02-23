@@ -8,9 +8,14 @@
  *
  */
 
-// Callback function
-
-
+/**
+ * Page for selecting between several quiz revisions
+ * 
+ * @param $nid
+ *  Quiz node id
+ * @return
+ *  Themed html 
+ */
 function quiz_stats_revision_selector_page($nid) {
   $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
   $res = db_query($sql, $nid);
@@ -23,6 +28,7 @@ function quiz_stats_revision_selector_page($nid) {
   if ($count < 1) 
     return t('Something went wrong. Please try again');
   elseif ($count == 1) {
+    // If there is only one revision we jump directly to that revision
     drupal_goto('admin/quiz/reports/stats/creator/'. $vids[0] .'/view');
   }
   else {
@@ -38,38 +44,32 @@ function quiz_stats_revision_selector_page($nid) {
   } 
 }
 
-/*
- * @function
- *   callback function
+/**
+ * Returns statistics for all available quizzes
  *
  * @param $uid
- *   uid of user whose results statistics need to generated and displayed
- *
- * @see quiz.module
- *
+ *   User id
  * @return
- *   HTML table containing quiz node title, link to report, questions count
- *   and attempt count
+ *   HTML table
  */
 function quiz_stats_get_basic_stats($uid = 0) {
-  $results = _quiz_get_quizzes();
+  $results = _quiz_get_quizzes($uid);
   return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', $results);
 }
 
-/*
- * @function
- *   callback function
+/**
+ * Get stats for a single quiz. Maybe also for a single user.
  *
  * @param $vid
  *   quiz revision id
  *
  * @param $uid
- *   uid of user whose results statistics need to generated and displayed
+ *   User id
  *
  * @return
  *   HTML page with charts/graphs
  */
-function quiz_stats_get_adv_stats($vid = 0, $uid = 0) {
+function quiz_stats_get_adv_stats($vid, $uid = 0) {
   $charts = array();
   $charts['takeup'] = _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
@@ -81,25 +81,18 @@ function quiz_stats_get_adv_stats($vid = 0, $uid = 0) {
   return theme('quiz_stats_charts', $charts);
 }
 
-// End callback function
-
-// model function generates data structure from table and invokes theming functions
-
-/*
- * @function
- *   generates grade range chart
+/**
+ * Generates grade range chart
  *
  * @param $uid
- *   uid of user whose results statistics need to generated and displayed
- *
+ *   User id
  * @param $vid
  *   revision id of quiz node
- *
  * @return
- *   HTML to render to chart/graph
+ *   array with chart and metadata
  */
-function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
-  // ToDo make the range configurable
+function _get_quiz_grade_range_chart($vid, $uid = 0) {
+  // @todo: make the ranges configurable
   $sql = "SELECT SUM(score >= 0 && score < 20) AS zero_to_twenty,
     SUM(score >= 20 && score < 40) AS twenty_to_fourty,
     SUM(score >= 40 && score < 60) AS fourty_to_sixty,
@@ -115,9 +108,11 @@ function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   if ($count < 2) {
     return FALSE;
   }
+  // Get the charts
   $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
   $chart .= theme('quiz_grade_range', $range);
   $chart .= '</div>';
+  // Return the chart with some meta data
   return array(
     'chart' => $chart, 
     'title' => t('Distribution'),
@@ -125,20 +120,19 @@ function _get_quiz_grade_range_chart($vid = 0, $uid = 0) {
   );
 }
 
-/*
- * @function
- *   generates chart containing top 10 users name and their score
+/**
+ * Generates the top scorers chart
  *
  * @param $vid
  *   revision id of quiz node
  *
  * @param $uid
- *   uid of user whose results statistics need to generated and displayed
+ *   User id
  *
  * @return
- *   HTML to render to chart/graph
+ *   array with chart and metadata
  */
-function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
+function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   $top_scorers = array();
   $sql = 'SELECT name, score FROM {quiz_node_results} qnr
     LEFT JOIN {users} u ON (u.uid = qnr.uid)
@@ -163,20 +157,19 @@ function _get_quiz_top_scorers_chart($vid = 0, $uid = 0) {
   );
 }
 
-/*
- * @function
- *   generates a chart based on user's quiz status pass, fail, progress
+/**
+ * Generates a chart showing the status for all registered responses to a quiz
  *
  * @param $vid
  *   revision id of quiz node
  *
  * @param $uid
- *   uid of user whose results statistics need to generated and displayed *
+ *   User id
  *
  * @return
  *   HTML to render to chart/graph
  */
-function _get_quiz_status_chart($vid = 0, $uid = 0) {
+function _get_quiz_status_chart($vid, $uid = 0) {
   // get the pass rate of the given quiz by vid
   $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = %d", intval($vid)));
   // get the count value of results row above and below pass rate
@@ -196,20 +189,17 @@ function _get_quiz_status_chart($vid = 0, $uid = 0) {
   );
 }
 
-/*
- * @function
- *   generates quiz takeup count vs date chart
+/**
+ * Generates chart showing how often the quiz has been taken the last days 
  *
  * @param $uid
  *   user id
- *
  * @param $vid
  *   revision id of quiz
- *
  * @return
  *   HTML to display chart
  */
-function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
+function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
   $start = 0;
   $end = 30;
   $takeup = array();
@@ -246,38 +236,16 @@ function _get_date_vs_takeup_count_chart($vid = 0, $uid = 0) {
   );
 }
 
-/*
- * @function
- *   computes the number of questions been assigned
- *   to a quiz node.
+/**
+ * Computes quiz attempt count
  *
  * @param $vid
  *   quiz revision id
- *
  * @param $uid
- *   user id for filtering based on author optionally
- *
- * @return
- *   Imteger count of questions.
- */
-function _quiz_get_questions_count($vid) {
-  $sql = "SELECT COUNT(child_nid) FROM {quiz_node_relationship} WHERE parent_vid = %d";
-  return db_result(db_query($sql, $vid));
-}
-
-/*
- * @function
- *   computes quiz attempt count
- *
- * @param $vid
- *   quiz revision id
- *
- * @param $uid
- *   user id of user for filtering
- *
+ *   user id for filtering
  * @return
  *   Integer containing number of times that a quiz has
- *   been attended, can be filtered by uid optionally.
+ *   been attended, can be filtered by uid.
  */
 function _quiz_get_attempt_count($vid, $uid = 0) {
   $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d";
@@ -287,14 +255,10 @@ function _quiz_get_attempt_count($vid, $uid = 0) {
   return db_result(db_query($sql, $vid, $uid));
 }
 
-// End model functions
-
 // Theme functions
 
-/*
- * @function
- *   Theme function for quiz grade range chart
- *   generates Chart using CHART API function
+/**
+ * Theme function for quiz grade range chart generates Chart using CHART API function
  *
  * @param $range
  *   array containg quiz results data structure
@@ -308,7 +272,6 @@ function theme_quiz_grade_range($range) {
 
   $chart = array(
     '#chart_id' => 'quiz_grade_range',
-    //'#title' => t('Quiz Grade Range'),
     '#type' => CHART_TYPE_BAR_V_GROUPED,
     '#size' => chart_size($chart_width, $chart_height),
     '#grid_lines' => chart_grid_lines(10, 10),
@@ -348,9 +311,8 @@ function theme_quiz_grade_range($range) {
   return chart_render($chart);
 }
 
-/*
- * @function
- *   generates a chart of quiz top scorers
+/**
+ * generates a chart of quiz top scorers
  *
  * @param $attendees
  *   array containing quiz data structure
@@ -378,9 +340,8 @@ function theme_quiz_top_scorers($attendees) {
   return chart_render($chart);
 }
 
-/*
- * @function
- *   generates quiz status chart number of pass, fail, incomplete
+/**
+ * generates quiz status chart number of pass, fail, incomplete
  *
  * @param $quiz
  *   array of quiz data structure
@@ -408,7 +369,6 @@ function theme_get_quiz_status_chart($quiz) {
     'fail' => 'ff0000',
   );
   ini_set('precision', '3');
-  // FIX IT deprecated.
   $chart['#legends'] = array(
     'pass' => ($quiz['no_pass'] / $quiz['total']) * 100 . t('% pass'),
     'incomplete' => ($quiz['no_incomplete'] / $quiz['total']) * 100 . t('% incomplete'),
@@ -417,13 +377,11 @@ function theme_get_quiz_status_chart($quiz) {
   return chart_render($chart);
 }
 
-/*
- * @function
- *   generates date vs takeup count chart
+/**
+ * Generates date vs takeup count chart
  *
  * @param $takeup
  *   Array quiz data structure
- *
  * @return
  *   HTML to render/display chart
  */
@@ -432,7 +390,6 @@ function theme_date_vs_takeup_count($days) {
   $max_count = 0;
   $chart = array(
     '#chart_id' => 'test_chart',
-    //'#title' => t('Date vs Quiz Takeup'),
     '#type' => CHART_TYPE_LINE,
     '#size' => chart_size(600, 400),
     //'#chart_fill' => chart_fill('c', 'eeeeee'),
@@ -461,23 +418,20 @@ function theme_date_vs_takeup_count($days) {
   return chart_render($chart);
 }
 
-/*
- * @function
- *   generates table of results from quiz data structure.
+/**
+ * Generates table of results from quiz data structure.
  *
  * @param @results
  *   Array containing quiz results data structure
- *
  * @return
  *   HTML table containing quiz title, author, questions count, attempt count
  */
 function theme_quiz_stats_get_basic_stats($results = array()) {
-  $header = $rows = array();
-  //$title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/'. $result['vid'] .'/view' : 'user/%/stats/%/view'; .
-  $title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/' : 'user/'. arg(1) .'/stats/';
   if (empty($results)) {
     return '<p>' . t('No questions were found.') . '</p>';
   }
+  $header = $rows = array();
+  $title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/' : 'user/'. arg(1) .'/stats/';
   $header = array(
     'title' => t('Quiz'),
     'creator' => t('Author'),
@@ -492,16 +446,23 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
       'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
-      'questions_count' => user_access('access author stats') ? _quiz_get_questions_count($result['vid']) : t(''),
+      'questions_count' => user_access('access author stats') ? quiz_get_number_of_questions($result['nid'], $result['vid']) : t(''),
       'attempt_count' => user_access('access author stats') ? _quiz_get_attempt_count($result['nid']) : t(''),
     );
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
-  $cc = '<I>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</I>';
-  // FIX IT need to get community feedback.
+  $cc = '<em>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</em>';
   return theme('table', $header, $rows, array('id' => 'tablesorter')) . $cc;
 }
 
+/**
+ * Get the timestamps for the last days
+ * 
+ * @param $num_days
+ *  How many of the last days we need timestamps for
+ * @return
+ *  Array of objects with timestamp and value. The value has '0' as its default value.
+ */
 function _quiz_get_last_days($num_days) {
   $to_return = array();
   $now = time();
