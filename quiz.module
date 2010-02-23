@@ -396,14 +396,6 @@ function quiz_theme() {
       'arguments' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
       'file' => 'quiz.pages.inc',
     ),
-    'quiz_single_question_feedback' => array(
-      'arguments' => array('quiz' => NULL, 'report' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_questions' => array(
-        'arguments' => array('form' => NULL),
-        'file' => 'quiz.pages.inc',
-    ),
     'quiz_progress' => array(
       'arguments' => array('question_number' => NULL, 'num_of_question' => NULL),
       'file' => 'quiz.pages.inc',

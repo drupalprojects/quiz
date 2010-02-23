@@ -182,6 +182,8 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
 /**
  * Displays all the quizzes the user has taken part in.
  *
+ * @param $user_id
+ *  User id
  * @return
  *  HTML output for page.
  */
@@ -196,7 +198,7 @@ function quiz_get_user_results($user_id) {
       AND u.uid = %d
     ORDER BY qnrs.result_id ASC";
 
-  $dbresult = db_query(db_rewrite_sql($sql), $user_id);
+  $dbresult = db_query($sql, $user_id);
   // Create an array out of the results.
   while ($line = db_fetch_array($dbresult)) {
     $results[$line['result_id']] = $line;
@@ -286,6 +288,7 @@ function theme_quiz_progress($question_number, $num_of_question) {
   $output .= '<div id="quiz_progress">';
   $output .= t('Question %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
   $output .= '</div><br />'."\n";
+  // Add div to be used by jQuery countdown
   $output .= '<div class="countdown"></div>';
   return $output;
 }
@@ -313,8 +316,6 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   // Display overall result.
   $output = '';
 
-  // Only display scoring information if this is not a personality test:
-  //if ($score['percentage_score']) {
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
@@ -373,38 +374,6 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
 }
 
 /**
- * Theme feedback for one question.
- *
- * @param $quiz
- *  Quiz node (may not be needed).
- * @param $question_node
- *  The question node giving feedback for.
- * @param $answer
- *  User's response to previous question.
- * @return
- *  Themed html.
- *
- * @ingroup themeable
- */
-function theme_quiz_single_question_feedback($quiz, $report) {
-  $output = '<div class="quiz-summary-question">';
-  $output .= theme($report->type .'_feedback', $quiz, $report);
-  $output .= '</div><br class="clear" />';
-  return $output;
-}
-
-/**
- * Allow the option to theme the questions form.
- *
- * @ingroup themeable
- */
-function theme_quiz_questions($form) {
-  $output = '';
-  $output .= drupal_render($form);
-  return $output;
-}
-
-/**
  * Theme the "no feedback" option.
  *
  * @return
@@ -416,16 +385,28 @@ function theme_quiz_no_feedback() {
   return t('Thanks for taking the quiz!');
 }
 
+/**
+ * Theme the single question node
+ * 
+ * @param $node
+ *  The question node
+ * @return 
+ *  Themed html feedback
+ */
 function theme_quiz_single_question_node($node) {
+  // This might seem meaningless, but it is designed this way to allow themes to add more
+  // meaningful stuff here...
   return $node->body;
 }
 
 /**
+ * Theme the stats on the views page
  * 
  * @param $node
  *   The quiz node
  */
 function theme_quiz_view_stats($node) {
+  // Fetch data
   $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
   $stats = array(
     array(
@@ -469,10 +450,11 @@ function theme_quiz_view_stats($node) {
     'title' => t('Backwards navigation'),
     'data' => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
   );
-  $out = '<table id="quiz-view-table">';
+  // Format and output the data
+  $out = '<table id="quiz-view-table">' . "\n";
   foreach ($stats as $stat) {
-    $out .= '<tr><td class="quiz-view-table-title"><strong>'. $stat['title'] .':</strong></td><td class="quiz-view-table-data"><em>'. $stat['data'] .'</em></td></tr>';
+    $out .= '<tr><td class="quiz-view-table-title"><strong>'. $stat['title'] .':</strong></td><td class="quiz-view-table-data"><em>'. $stat['data'] .'</em></td></tr>' . "\n";
   }
-  $out .= '</table>';
+  $out .= '</table>' . "\n";
   return $out;
 }
