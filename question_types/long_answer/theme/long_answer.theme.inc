@@ -11,14 +11,14 @@
  * Theme the list of unscored long answer questions.
  *
  * @param $unscored
- *  An array of objects, each with the quist_nid, question_vid, and result_id of an unscored question.
+ *  An array of objects, each with the question_nid, question_vid, and result_id of an unscored question.
  */
 function theme_long_answer_view_unscored($unscored) {
   $output = '';
   $header = array(
     t('Quiz ID'),
     t('Question'),
-    t('Time Finished'),
+    t('Finished'),
     t('Action')
   );
   $rows = array();
@@ -27,14 +27,12 @@ function theme_long_answer_view_unscored($unscored) {
     if ($item->time_end > 0) {
       $rows[] = array(
         $item->result_id,
-        $item->title,
+        check_plain($item->title),
         date('Y-m-d H:i', $item->time_end),
-        l(t('score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('Score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
-
   }
-
   $output .= !empty($rows) ? theme('table', $header, $rows) : t('There are no unscored essays.');
   return $output;
 }

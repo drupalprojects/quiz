@@ -2629,7 +2629,7 @@ function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_ty
 
   $result = db_query('SELECT n.nid, nr.vid, n.vid AS latest_vid, n.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
     FROM {node} n
-    INNER JOIN {node_revisions} nr ON question.nid = nr.nid
+    INNER JOIN {node_revisions} nr ON n.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr 
     ON nr.vid = qnr.child_vid
     AND qnr.parent_vid = %d
