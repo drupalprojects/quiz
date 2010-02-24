@@ -8,8 +8,7 @@
  */
 
 /**
- * @function
- *   Themes matching question form.
+ * Theme the matching question form.
  *
  * @param $form
  *   drupal form array
@@ -33,6 +32,9 @@ function theme_matching_question_form($form) {
   return theme('table', $header, $rows);
 }
 
+/**
+ * Theme the answering form
+ */
 function theme_matching_answering_form($form) {
   $out = '<table class = "matching-tbl">';
   foreach ($form as $key => $value) {

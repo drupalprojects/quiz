@@ -9,15 +9,6 @@
  * with another
  */
 
-
-/**
- * Implementation of hook_node().
- */
-/*
-function matching_node_info() {
-  return array('matching' => array('name' => t('matching'), 'base' => 'matching'));
-}*/
-
 /**
  * Implementation of hook_help().
  */

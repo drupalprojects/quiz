@@ -156,7 +156,7 @@ class MatchingQuestion extends QuizQuestion {
     list($matches, $select_option) = $this->getSubquestions();
     $form['subquestions']['#theme'] = 'matching_answering_form';
     foreach ($matches as $match) {
-      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question']);
+      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question'], FILTER_FORMAT_DEFAULT, FALSE);
       
       $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
