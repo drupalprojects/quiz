@@ -20,20 +20,18 @@
  */
 
 /**
- * TODO: Security on the new revision actions page
- * TODO: Make sure security is ensured in the new api functions for certify
- * TODO: There were error messages when updating from 3.x to 4.x.
- */
-
-/**
  * Implementation of QuizQuestion.
  */
 class MultichoiceQuestion extends QuizQuestion {
 
+  /**
+   * Forgive some possible logical flaws in the user input.
+   */
   private function forgive() {
     if ($this->node->choice_multi == 1) {
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
+        // If the scoring data doesn't make sense, use the data from the "correct" checkbox to set the score data
         if ($short['score_if_chosen'] == $short['score_if_not_chosen']
         || !is_numeric($short['score_if_chosen'])
         || !is_numeric($short['score_if_not_chosen'])) {
@@ -42,7 +40,6 @@ class MultichoiceQuestion extends QuizQuestion {
             $short['score_if_not_chosen'] = 0;
           }
           else {
-
             $short['score_if_chosen'] = 0;
             $short['score_if_not_chosen'] = 1;
           }
@@ -50,6 +47,8 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     else {
+      // For questions with one, and only one, correct answer, there will be no points awarded for alternatives
+      // not chosen.
       for ($i = 0;is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
         $short['score_if_not_chosen'] = 0;
@@ -60,7 +59,11 @@ class MultichoiceQuestion extends QuizQuestion {
   /**
    * Run check_markup() on the field of the specified choice alternative
    * @param $alternativeIndex
+   *  The index of the alternative in the alternatives array.
    * @param $field
+   *  The name of the field we want to check markup on
+   * @param $check_user_access
+   *  Whether or not to check for user access to the filter we're trying to apply
    * @return HTML markup
    */
   private function checkMarkup($alternativeIndex, $field, $check_user_access = TRUE) {
@@ -78,8 +81,8 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function saveNodeProperties($is_new = FALSE) {
-
     $is_new_node = $is_new || $this->node->revision == 1;
+    // Before we save we forgive some possible user errors
     $this->forgive();
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_multichoice_properties}
@@ -97,19 +100,28 @@ class MultichoiceQuestion extends QuizQuestion {
               SET choice_multi = %d, choice_random = %d, choice_boolean = %d
               WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean, $this->node->nid, $this->node->vid);
+      
+      // We fetch ids for the existing answers belonging to this question 
+      // We need to figure out if an existing alternative has been changed or deleted.
       $sql = 'SELECT id FROM {quiz_multichoice_answers}
               WHERE question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $this->node->nid, $this->node->vid);
+      
+      // We start by assuming that all existing alternatives needs to be deleted
       $ids_to_delete = array();
       while ($res_o = db_fetch_object($res)) {
         $ids_to_delete[] = $res_o->id;
       }
+      
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
         if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
+          // If new alternative
           if (!is_numeric($short['id'])) $this->insertAlternative($i);
+          // If existing alternative
           else {
             $this->updateAlternative($i);
+            // Make sure this alternative isn't deleted
             $key = array_search($short['id'], $ids_to_delete);
             $ids_to_delete[$key] = FALSE;
           }
@@ -124,6 +136,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $this->saveUserSettings();
   }
 
+  /**
+   * Helper function. Saves new alternatives
+   * 
+   * @param $i
+   *  The alternative index
+   */
   private function insertAlternative($i) {
     $sql = 'INSERT INTO {quiz_multichoice_answers}
             (answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
@@ -137,6 +155,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $short['score_if_not_chosen'], $this->node->nid, $this->node->vid);
   }
 
+  /**
+   * Helper function. Updates existing alternatives
+   * 
+   * @param $i
+   *  The alternative index
+   */
   private function updateAlternative($i) {
     $sql = 'UPDATE {quiz_multichoice_answers}
             SET answer = \'%s\', answer_format = %d, feedback_if_chosen = \'%s\',
@@ -153,18 +177,17 @@ class MultichoiceQuestion extends QuizQuestion {
   /**
    * Implementation of validate
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
+   * QuizQuestion#validate()
    */
   public function validateNode(array &$form) {
     if ($this->node->choice_multi == 0) {
       $found_one_correct = FALSE;
       for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (strlen($this->checkMarkup($i, 'answer')) < 1) continue;
+        if (drupal_strlen($this->checkMarkup($i, 'answer')) < 1) continue;
         if ($short['correct'] == 1) {
           if ($found_one_correct) {
-            //form_set_error("choice_multi", t('You have several alternatives marked as correct. If this is done intentionally you must must allow multiple alternatives to be correct.'));
+            // We don't display an error message here since we allow alternatives to be partially correct
           }
           else {
             $found_one_correct = TRUE;
@@ -188,47 +211,39 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
   }
+  
   /**
    * Implementation of delete
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#delete()
+   * @see QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
 
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-      $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-              WHERE result_id IN(
-              SELECT result_id
-              FROM {quiz_node_results}
-              WHERE question_nid = %d AND question_vid = %d
-            )';
+      $sql = 'DELETE FROM {quiz_multichoice_answers}
+              WHERE question_nid = %d AND question_vid = %d';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     else {
       db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d', $this->node->nid);
-      $sql = 'DELETE FROM {quiz_multichoice_user_answers}
-              WHERE result_id IN(
-              SELECT result_id
-              FROM {quiz_node_results}
-              WHERE question_nid = %d
-            )';
+      $sql = 'DELETE FROM {quiz_multichoice_answers}
+              WHERE question_nid = %d';
       db_query($sql, $this->node->nid);
     }
   }
 
   /**
-   * Implementation of load
+   * Implementation of getNodeProperties
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
+   * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
     if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
 
+    // Load the properties
     $sql = 'SELECT choice_multi, choice_random, choice_boolean
             FROM {quiz_multichoice_properties}
             WHERE nid = %d AND vid = %d';
@@ -237,6 +252,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if (is_array($res_a))
       $props = array_merge($props, $res_a);
 
+    // Load the answers
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_multichoice_answers}
@@ -251,8 +267,9 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of view
-   *
+   * Implementation of getNodeView
+   * 
+   * @see QuizQuestion#getNodeView()
    */
   public function getNodeView() {
     $content = parent::getNodeView();
@@ -263,10 +280,14 @@ class MultichoiceQuestion extends QuizQuestion {
 
     foreach ($this->node->alternatives as $i => $short) {
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
+      
+      // Find the is_correct status
       $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
       $p = drupal_get_path('module', 'multichoice');
       $image = $is_correct ? 'correct' : 'wrong';
       if (!$this->viewCanRevealCorrect()) $image = 'unknown';
+      
+      // Prepare the view as a table @todo: Make this themable
       $rows[] = array(
         array(
           'data' => theme('image',
@@ -297,7 +318,6 @@ class MultichoiceQuestion extends QuizQuestion {
    * This is called whenever a question is rendered, either
    * to an administrator or to a quiz taker.
    */
-
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
       '#type' => 'markup',
@@ -310,17 +330,11 @@ class MultichoiceQuestion extends QuizQuestion {
     if (isset($rid)) {
       $response = new MultichoiceResponse($rid, $this->node);
     }
-    $form['tries[answer]']['#taking_quiz'] = _quiz_is_taking_context();
     $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
       if (drupal_strlen($answer_markup) > 0) {
-        if (! $form['tries[answer]']['#taking_quiz']) {
-          // displaying outside a quiz-taking context
-          $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
-          $form['tries[answer]']['#correct_choice'][$short['id']] = $is_correct;
-        }
         $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
       }
     }
@@ -343,10 +357,6 @@ class MultichoiceQuestion extends QuizQuestion {
         if (is_array($response->getResponse())) $form['tries[answer]']['#default_value'] = array_pop($response->getResponse());
     }
 
-    if (!$form['tries[answer]']['#taking_quiz']) {
-      unset($form['tries[answer]']['#title']);
-      $form['tries[answer]']['#disabled'] = TRUE;
-    }
     return $form;
   }
 

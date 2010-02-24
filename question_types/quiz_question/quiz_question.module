@@ -41,7 +41,7 @@ function quiz_question_menu() {
     'title' => 'Revision actions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_revision_actions', 1, 2),
-    'access arguments' => array('create quiz'),
+    'access arguments' => array('manual quiz revisioning'),
     'file' => 'quiz_question.pages.inc',
     'type' => MENU_NORMAL_ITEM,
   );
