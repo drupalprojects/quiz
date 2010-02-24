@@ -323,14 +323,18 @@ class MultichoiceQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
     );
+    /* We use an array looking key to be able to store multiple answers in tries.
+     * At the moment all user answers have to be stored in tries. This is something we plan
+     * to fix in quiz 5.x. 
+     */ 
     $form['tries[answer]'] = array(
       '#options' => array(),
       '#theme' => 'multichoice_alternative',
     );
     if (isset($rid)) {
+      // This question has already been answered. We load the answer.
       $response = new MultichoiceResponse($rid, $this->node);
     }
-    $form['tries[answer]']['#correct_choice'] = array();
     for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
@@ -339,6 +343,7 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     if ($this->node->choice_random) {
+      // We save the choice order so that the order will be the same in the answer report
       $form['tries[choice_order]'] = array(
         '#type' => 'hidden',
         '#value' => implode(',', $this->shuffle($form['tries[answer]']['#options'])),
@@ -360,6 +365,12 @@ class MultichoiceQuestion extends QuizQuestion {
     return $form;
   }
 
+  /**
+   * Custom shuffle function. It keeps the array key - value relationship intact
+   * 
+   * @param array $array
+   * @return unknown_type
+   */
   private function shuffle(array &$array) {
     $newArray = array();
     $toReturn = array_keys($array);
@@ -372,10 +383,9 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getCreation form
+   * Implementation of getCreationForm
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
+   * @see QuizQuestion#getCreationForm()
    */
   public function getCreationForm(array $form_state = NULL) {
     $form = array();
