@@ -1,11 +1,16 @@
 <?php
 // $Id$
 
-/*
+/**
  * @file
- * matching schema file.
+ * matching install file.
  */
 
+/**
+ * Implementation of hook_update_N
+ * 
+ * Add index to improve performance
+ */
 function matching_update_6400() {
   $results = array();
   db_add_index($results, 'quiz_matching_node', 'question_id', array('nid', 'vid'));
