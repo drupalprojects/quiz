@@ -21,28 +21,26 @@ CONTENTS
 
 ----
 1. Introduction
-TODO: UPDATE ME!
-This module is an attempt to make it easy to construct surveys using the quiz module.
+This module is an attempt to make it easy to multiple choice questions using the quiz module.
 
-The Scale module lets the quiz creator store preset answer collections, enabling rapid
-creation of survey questions.
+The multichoice module lets the user create single answer questions and multiple answer questions.
+Advanced feedback and scoring options are also available.
 
-The scale module is based on the OO framework of the quiz project.
+The multichoice module is based on the OO framework of the quiz project.
 
 ----
 2. Installation
 
 To install, unpack the module to your modules folder, and simply enable the module at Admin > Build > Modules.
 
-Several database tables prefixed with quiz_scale are installed to have a separate storage for this module.
+Several database tables prefixed with quiz_multichoice are installed to have a separate storage for this module.
 
 ----
 3.  Configuration
-Settings are to be found here: admin/quiz/scale
+Settings are to be found here: admin/quiz/questions_settings
 
-Preset answer collections can be configured at: scale/collection/manage
-Here you can change and delete presets(answer collections).
-
-You can give roles the 'Edit global presets' permission in the permission administration(admin/user/permissions)
-With this permission users can make presets available to all users, and not only themselves.
+The only available setting is the number of default alternatives. This decides how many alternatives
+will be shown on the node-form by default. The question creator can add more by pushing the
+add more alternatives button, and he can always leave some alternatives blank if not all the shown
+alternatives are needed.
 
