@@ -56,6 +56,7 @@ function multichoice_schema() {
       'answer_id' => array('result_id', 'question_nid', 'question_vid'),
     ),
   );
+  
   $schema['quiz_multichoice_user_answer_multi'] = array(
     'fields' => array(
       'user_answer_id' => array(
@@ -109,6 +110,7 @@ function multichoice_schema() {
       'nid', 'vid'
     ),
   );
+  
   /*
    * Holds each answer in the answer_collections.
    */
@@ -168,6 +170,7 @@ function multichoice_schema() {
       'quiz_id' => array('question_nid', 'question_vid'),
     )
   );
+  
   $schema['quiz_multichoice_user_settings'] = array(
     'fields' => array(
       'uid' => array(
@@ -201,6 +204,9 @@ function multichoice_schema() {
   return $schema;
 }
 
+/**
+ * Implementation of hook_update_N
+ */
 function multichoice_update_6300() {
   $ret = array();
   $spec = array('type' => 'text');
@@ -208,17 +214,25 @@ function multichoice_update_6300() {
   return $ret;
 }
 /**
- * The multichoice has been changed alot in quiz 6.4...
+ * Implementation of hook_update_N
  * 
- * @return unknown_type
+ * Multichoice has been rewritten to extend quiz question for quiz 4.x
+ * This update hook converts the database
  */
 
 function multichoice_update_6400(&$sandbox = NULL) {
   $path = drupal_get_path('module', 'multichoice');
+  // This is a big update. We have put it in its own file to avoid cluttering 
+  // this install file
   require_once("$path/multichoice_update_6400.inc");
   return _multichoice_update_6400($sandbox);
 }
 
+/**
+ * Implementation of hook_update_N
+ * 
+ * Change how we store the user settings
+ */
 function multichoice_update_6401(&$sandbox = NULL) {
   $results = array();
   db_drop_field($results, 'quiz_multichoice_user_settings', 'last_nid');
@@ -244,6 +258,11 @@ function multichoice_update_6401(&$sandbox = NULL) {
   return $results;
 }
 
+/**
+ * Implementation of hook_update_N
+ * 
+ * Add indexes to improve performance
+ */
 function multichoice_update_6402() {
   $results = array();
   db_add_index($results, 'quiz_multichoice_answers', 'quiz_id', array('question_nid', 'question_vid'));
