@@ -12,7 +12,7 @@
  */
 
 /**
- * Implementation of QuizQuestion.
+ * Extension of QuizQuestion.
  */
 class MatchingQuestion extends QuizQuestion {
   
@@ -311,7 +311,7 @@ class MatchingQuestion extends QuizQuestion {
 }
 
 /**
- * Implementation of QuizQuestionResponse
+ * Extension of QuizQuestionResponse
  */
 class MatchingResponse extends QuizQuestionResponse {
 

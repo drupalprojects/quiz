@@ -10,7 +10,7 @@
 
 
 /**
- * Implementation of QuizQuestion.
+ * Extension of QuizQuestion.
  */
 class LongAnswerQuestion extends QuizQuestion{
   /**
@@ -160,7 +160,7 @@ class LongAnswerQuestion extends QuizQuestion{
 }
 
 /**
- * Implementation of QuizQuestionResponse
+ * Extension of QuizQuestionResponse
  */
 class LongAnswerResponse extends QuizQuestionResponse {
 
