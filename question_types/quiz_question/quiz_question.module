@@ -4,9 +4,12 @@
 /**
  * Quiz Question module.
  * This module provides the basic facilities for adding quiz question types to a quiz.
- * While you can create standard Quiz question types simply by implementing the appropriate
- * hooks, this module provides a framework that makes adding new types much easier.
  * @file
+ */
+
+/*
+ * The system remembers what quizzes a user has been involved in lately. This constant determines
+ * how many quizzes the system will remember for each user
  */
 define(QUIZ_QUESTION_NUM_LATEST, 10);
 
@@ -36,7 +39,7 @@ function quiz_question_autoload_info() {
  * Implementation of hook_menu().
  */
 function quiz_question_menu() {
-  
+  $items = array();
   $items['quiz_question/%/%/revision_actions'] = array(
     'title' => 'Revision actions',
     'page callback' => 'drupal_get_form',
@@ -45,7 +48,6 @@ function quiz_question_menu() {
     'file' => 'quiz_question.pages.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-
   // Menu items for admin view of each question type.
   $items['admin/quiz/questions_settings'] = array(
     'title' => 'Question configuration',
@@ -83,7 +85,6 @@ function quiz_question_node_info() {
   $info = array();
   $defaults = array(
     'module' => 'quiz_question',
-  //'help' => t('Add the question text and set a score for this question.'),
     'has_body' => TRUE,
     'has_title' => TRUE,
     'body_label' => t('Question'),
@@ -118,6 +119,16 @@ function quiz_question_access($op, $node, $account) {
   }
 }
 
+/**
+ * Figure out if a user has access to score a certain result
+ * 
+ * @param $vid
+ *  Question version id
+ * @param $rid
+ *  Result id
+ * @return
+ *  True if the user has access to score the result
+ */
 function quiz_question_access_to_score($vid, $rid) {
   global $user;
   $sql = 'SELECT * 
@@ -139,6 +150,7 @@ function quiz_question_access_to_score($vid, $rid) {
     return db_result(db_query($sql, $rid)) == $user->uid;
   }
 }
+
 /**
  * Implementation of hook_form().
  */
@@ -159,6 +171,9 @@ function quiz_question_validate($node, &$form) {
   _quiz_question_get_instance($node)->validateNode($form);
 }
 
+/**
+ * Implementation of the cck hook hook_content_extra_fields_alter
+ */
 function quiz_question_content_extra_fields_alter(&$extra, $type_name) {
   $q_types = _quiz_question_get_implementations();
   if (isset($q_types[$type_name]))
@@ -171,7 +186,9 @@ function quiz_question_content_extra_fields_alter(&$extra, $type_name) {
 function quiz_question_answering_form($form_state, $node) {
   $question = _quiz_question_get_instance($node);
   $form = $question->getAnsweringForm($form_state, $node->rid);
+  
   $quiz = quiz_type_access_load(arg(1));
+  
   if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
     $form['back'] = array(
       '#type' => 'submit',
@@ -180,7 +197,6 @@ function quiz_question_answering_form($form_state, $node) {
   }
 
   // Add navigation at the bottom:
-  // Submit button
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
@@ -195,15 +211,13 @@ function quiz_question_answering_form($form_state, $node) {
   return $form;
 }
 
-// TODO eliminate this function somehow, with a theme?
-function _quiz_question_info($node) {
-  $question = _quiz_question_get_instance($node, TRUE);
-  $content = $question->getNodeView();
-  return $content;
-}
-
 /**
  * Form for teaser display
+ * 
+ * @param $node
+ *  The question node
+ * @return 
+ *  Content array
  */
 function _quiz_question_teaser_content($node) {
   $content['question'] = array(
@@ -224,14 +238,19 @@ function _quiz_question_teaser_content($node) {
 /**
  * Implementation of Quiz's hook_evaluate_question().
  *
+ * @param $question
+ *  The question node
+ * @param $result_id
+ *  Result id
+ * @param $answer
+ *  The users answer to the question
  * @return
  *  Object with nid, vid, rid, score, is_correct flags set.
  */
 function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
   if (empty($answer)) {
-    // FIXME this use of POST array is hacky
+    // FIXME this use of POST array is hacky. We will try to use FAPI mor accurately in Quiz 5.x
     $answer = $_POST['tries']; 
-    //$answer = is_array($_POST['tries']) ? $_POST['tries'] : array($_POST['tries']);
   }
   unset($_POST['tries']);
   $response = _quiz_question_response_get_instance($result_id, $question, $answer);
@@ -426,7 +445,8 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
     $form_markup = drupal_get_form('quiz_question_answering_form', $node);
   } else {
     // normal node view
-    $content = _quiz_question_info($node);
+    $question = _quiz_question_get_instance($node, TRUE);
+    $content = $question->getNodeView();
   }
 
   // put it into the node->content
