@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file
- * Handles the layout of the choice creation form.
+ * Handles the layout of the multichoice answering form
  *
  *
  * Variables available:
@@ -13,6 +13,8 @@
 <?php 
 $p = drupal_get_path('module', 'multichoice');
 drupal_add_css($p .'/theme/multichoice.css', 'module', 'all');
+
+// Add script for using the entire alternative row as a button
 print "
 <SCRIPT type='text/javascript'>Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
   $('.multichoice_row')
@@ -34,6 +36,7 @@ print "
   });
 };</SCRIPT>";
 
+// We want to have the checkbox in one table cell, and the title in the next. We store the checkbox and the titles
 $options = $form['#options'];
 $fullOptions = array();
 $titles = array();
@@ -46,10 +49,10 @@ foreach ($options as $key => $value) {
 unset($form['#options']);
 print drupal_render($form);
 
+// We use the stored checkboxes and titles to generate a table for the alternatives
 foreach ($titles as $key => $value) {
   $row = array();
   $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
-  
   $row[] = $value;
   $rows[] = array('data' => $row, 'class' => 'multichoice_row');
 }
