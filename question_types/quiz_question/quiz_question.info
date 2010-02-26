@@ -2,7 +2,7 @@
 
 name = Quiz Question
 package = Quiz Core
-description = Provides support for base-level question types.
+description = Helper module for all quiz question types
 core = 6.x
 php = 5.2
 dependencies[] = autoload
