@@ -17,60 +17,106 @@
  */
 
 /**
- * Implementation of QuizQuestion.
+ * Extension of QuizQuestion.
  */
 class QuizDirectionsQuestion extends QuizQuestion {
 
+  /**
+   * Constructor
+   */
   public function __construct(stdClass $node) {
     parent::__construct($node);
     $this->node->no_skip_button = TRUE; // No skip button
     $this->node->not_a_question = TRUE;
   }
 
+  /**
+   * Implementation of validateNode
+   * 
+   * @see QuizQuestion#validateNode($form)
+   */
   public function validateNode(array &$form) {}
+  
+  /**
+   * Implementation of saveNodeProperties
+   *
+   * @see QuizQuestion#saveNodeProperties($is_new)
+   */
   public function saveNodeProperties($is_new = FALSE) {}
 
-  // This is called whenever a question is rendered, either
-  // to an administrator or to a quiz taker.
+  /**
+   * Implementation of getAnsweringForm 
+   *
+   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['question'] = array(
-       '#type' => 'markup',
-       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-     );
-     $form['tries'] = array(
-       '#type' => 'hidden',
-       '#value' => 0,
-     );
-
-     $form['empty_space'] = array(
-       '#type' => 'markup',
-       '#value' => '<br/>',
-     );
-
-     return $form;
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+    );
+    $form['tries'] = array(
+      '#type' => 'hidden',
+      '#value' => 0,
+    );
+    $form['empty_space'] = array(
+      '#type' => 'markup',
+      '#value' => '<br/>',
+    );
+    return $form;
   }
+  
+  /**
+   * Implementation of getBodyFieldTitle 
+   *
+   * @see QuizQuestion#getBodyFieldTitle()
+   */
   public function getBodyFieldTitle() {
     return t('Direction');
   }
+  
+  /**
+   * Implementation of getCreationForm
+   *
+   * @see QuizQuestion#getCreationForm($form_state)
+   */
   public function getCreationForm(array $form_state = NULL) {
     return array();
   }
+  
+  /**
+   * Implementation of getMaximumScore 
+   *
+   * @see QuizQuestion#getMaximumScore()
+   */
   public function getMaximumScore() {
     return 0;
   }
-
 }
 
 /**
- * Class that describes a "Directions question response". For
- * the most part, no real scoring takes place for a direction
- * node. However, there are a few behind-the-scenes tricks that
- * are done here to make the quiz-taking process a little easier.
+ * Extension of QuizQuestionResponse
  */
 class QuizDirectionsResponse extends QuizQuestionResponse {
 
+  /**
+   * Implementation of save 
+   *
+   * @see QuizQuestionResponse#save()
+   */
   public function save() {}
+  
+  /**
+   * Implementation of delete
+   *
+   * @see QuizQuestionResponse#delete()
+   */
   public function delete() {}
+  
+  /**
+   * Implementation of score
+   *
+   * @see QuizQuestionResponse#score()
+   */
   public function score() {
     // First, due to popular demand, if the directions are at the beginning of
     // the quiz, we restart the timer after the user has read the question.
@@ -86,19 +132,34 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
     $this->score = 0;
     return 0;
   }
+  
+  /**
+   * Implementation of isCorrect
+   *
+   * @see QuizQuestionResponse#isCorrect()
+   */
   public function isCorrect() {
     return TRUE;
   }
+  
+  /**
+   * Implementation of getResponse
+   *
+   * @see QuizQuestionResponse#getResponse()
+   */
   public function getResponse() {
     return $this->answer;
   }
+  
+  /**
+   * Implementation of getReportForm
+   *
+   * @see QuizQuestionResponse#getReportForm($showpoints, $showfeedback, $allow_scoring)
+   */
   public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
     return array(
       '#no_report' => TRUE,
     );
-  }
-  public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    return '';
   }
 }
 
