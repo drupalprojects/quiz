@@ -3140,7 +3140,7 @@ function _quiz_get_num_always_questions($nid, $vid) {
  *  The format fieldset
  */
 function _quiz_format_mod(&$format) {   
-  $format['#attributes']['class'] = 'quiz_filter';
+  $format['#attributes']['class'] = 'quiz-filter';
   if (isset($format['format'])) {
     $format['format']['guidelines']['#value'] = ' ';
     foreach ($format as $key => $value) {
