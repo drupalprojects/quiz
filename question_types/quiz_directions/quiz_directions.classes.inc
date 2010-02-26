@@ -10,7 +10,7 @@
  * of times into a quiz. Example uses may include:
  *
  * - Initial quiz-wide directions
- * - Section directions, e.g. "The next five questions are multiple choice, please..."
+ * - Section directions, e.g. "The next five questions are multiple choice, please..." (Won't work if the question order is randomized)
  * - Final confirmation, e.g. "You have answered all questions. Click submit to submit this quiz."
  *
  * @file
