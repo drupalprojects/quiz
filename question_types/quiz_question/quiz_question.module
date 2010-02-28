@@ -65,10 +65,6 @@ function quiz_question_menu() {
  */
 function quiz_question_theme() {
   return array(
-    'quiz_question_report' => array(
-      'arguments' => array('question' => NULL, 'show_points' => NULL, 'show_feedback' => NULL),
-      'file' => 'quiz_question.theme.inc',
-    ),
     'quiz_question_creation_form' => array(
       'arguments' => array('form' => NULL),
       'file' => 'quiz_question.theme.inc',
