@@ -22,12 +22,10 @@ CONTENTS
 ----
 1. Introduction
 
-This module is an attempt to make it easy to construct surveys using the quiz module.
+This module is an attempt to make it easy to create simple surveys using the quiz module.
 
 The Scale module lets the quiz creator store preset answer collections, enabling rapid
 creation of survey questions.
-
-The scale module is based on the OO framework of the quiz project.
 
 ----
 2. Installation
@@ -38,11 +36,10 @@ Several database tables prefixed with quiz_scale are installed to have a separat
 
 ----
 3.  Configuration
-Settings are to be found here: admin/quiz/scale
+Settings are to be found here: admin/quiz/questions_settings
 
 Preset answer collections can be configured at: scale/collection/manage
 Here you can change and delete presets(answer collections).
 
 You can give roles the 'Edit global presets' permission in the permission administration(admin/user/permissions)
 With this permission users can make presets available to all users, and not only themselves.
-
