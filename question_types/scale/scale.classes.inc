@@ -1,11 +1,10 @@
 <?php
-
 // $Id$
 
 /**
  * The main classes for the scale question type.
  *
- * These inherit or implement code found in quiz_question.classes.inc.
+ * These extend code found in quiz_question.classes.inc.
  *
  * Sponsored by: Norwegian Centre for Telemedicine
  * Code: falcon
@@ -16,25 +15,21 @@
  *
  *
  * @file
- * Question type, enabling rapid creation of surveys using the quiz framework.
- */
-
-/*
- *
- * In the quiz framework:
- * TODO: Make it possible to generate links to a survey taking page.
+ * Question type, enabling rapid creation of simple surveys using the quiz framework.
  */
 
 /**
  * Implementation of QuizQuestion.
  */
 class ScaleQuestion extends QuizQuestion {
-
-  protected $util = FALSE; //The class is used only as a utility.
+  // $util will be set to true if an instance of this class is used only as a utility
+  protected $util = FALSE; 
+  
+  // (answer)Collection id
   protected $col_id = NULL;
 
   /**
-   * Tells the object that it is beeing used as a utility.
+   * Tells the instance that it is beeing used as a utility.
    *
    * @param $c_id - answer collection id
    */
@@ -44,18 +39,14 @@ class ScaleQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of save
+   * Implementation of saveNodeProperties
    *
-   * Stores the question in the database.
-   *
-   * @param is_new if - if the node is a new node...
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
+   * @see QuizQuestion#saveNodeProperties()
    */
   public function saveNodeProperties($is_new = FALSE) {
-
     $is_new_node = $is_new || $this->node->revision == 1;
     $answer_collection_id = $this->saveAnswerCollection($is_new_node);
+    // Save the answer collection as a preset if the save preset option is checked
     if ($this->node->save == 1) {
       $this->setPreset($answer_collection_id);
     }
@@ -92,7 +83,8 @@ class ScaleQuestion extends QuizQuestion {
    * @param $is_new_node - the question is beeing inserted(not updated)
    * @param $alt_input - the alternatives array to be saved.
    * @param $preset - 1 | 0 = preset | not preset
-   * @return unknown_type
+   * @return
+   *  Answer collection id
    */
   public function saveAnswerCollection($is_new_node, array $alt_input = NULL, $preset = NULL) {
     global $user;
