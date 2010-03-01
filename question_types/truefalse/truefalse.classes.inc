@@ -9,10 +9,15 @@
  */
 
 /**
- * Implementation of QuizQuestion.
+ * Extension of QuizQuestion.
  */
 class TrueFalseQuestion extends QuizQuestion {
 
+  /**
+   * Implementation of saveNodeProperties
+   *
+   * @see QuizQuestion#saveNodeProperties($is_new)
+   */
   public function saveNodeProperties($is_new = FALSE) {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
@@ -29,10 +34,20 @@ class TrueFalseQuestion extends QuizQuestion {
     }
   }
 
+  /**
+   * Implementation of validateNode 
+   *
+   * @see QuizQuestion#validateNode($form)
+   */
   public function validateNode(array &$form) {
     // This space intentionally left blank. :)
   }
 
+  /**
+   * Implementation of delete
+   *
+   * @see QuizQuestion#delete($only_this_version)
+   */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
 
@@ -48,6 +63,11 @@ class TrueFalseQuestion extends QuizQuestion {
     }
   }
 
+  /**
+   * Implementation of getNodeProperties
+   *
+   * @see QuizQuestion#getNodeProperties()
+   */
   public function getNodeProperties() {
     if (isset($this->nodeProperties)) return $this->nodeProperties;
     $props = parent::getNodeProperties();
@@ -61,32 +81,35 @@ class TrueFalseQuestion extends QuizQuestion {
     return $props;
   }
 
+  /**
+   * Implementation of getNodeView 
+   *
+   * @see QuizQuestion#getNodeView()
+   */
   public function getNodeView() {
     $content = parent::getNodeView();
 
     if ($this->viewCanRevealCorrect()) {
       $answer = ($this->node->correct_answer) ? t('True') : t('False');
-      // leave other values of 'answers' element from parent
       $content['answers']['#type'] = 'markup';
       $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
     }
     else {
-      // TODO this should use CSS and be a theme chunk
       $content['answers'] = array(
       '#type' => 'markup',
-      '#value' => '<br /> <em>Answer hidden</em>.',
+      '#value' => '<br /> <em>' . t('Answer hidden') . '</em>.',
       '#weight' => 2,
       );
     }
-
     return $content;
   }
 
-
-  // This is called whenever a question is rendered, either
-  // to an administrator or to a quiz taker.
+  /**
+   * Implementation of getAnsweringForm
+   *
+   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-
     // Question first
     $form['question'] = array(
       '#type' => 'markup',
@@ -109,10 +132,20 @@ class TrueFalseQuestion extends QuizQuestion {
     return $form;
   }
 
+  /**
+   * Implementation of getBodyFieldTitle 
+   *
+   * @see QuizQuestion#getBodyFieldTitle()
+   */
   public function getBodyFieldTitle() {
     return t('True/false statement');
   }
 
+  /**
+   * Implementation of getCreationForm 
+   *
+   * @see QuizQuestion#getCreationForm($form_state)
+   */
   public function getCreationForm(array $form_state = NULL) {
     $form['correct_answer'] = array(
       '#type' => 'radios',
@@ -147,7 +180,11 @@ class TrueFalseQuestion extends QuizQuestion {
     return $form;
   }
 
-
+  /**
+   * Implementation of getMaximumScore 
+   *
+   * @see QuizQuestion#getMaximumScore()
+   */
   public function getMaximumScore() {
     return 1;
   }
@@ -164,8 +201,14 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 }
 
+/**
+ * Extension of QuizQuestionResponse
+ */
 class TrueFalseResponse extends QuizQuestionResponse {
 
+  /**
+   * Constructor
+   */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
@@ -180,26 +223,51 @@ class TrueFalseResponse extends QuizQuestionResponse {
     }
   }
 
+  /**
+   * Implementation of isValid 
+   *
+   * @see QuizQuestionResponse#isValid()
+   */
   public function isValid() {
     if ($this->answer['answer'] === NULL) return t('You must provide an answer');
     else return TRUE;
   }
 
+  /**
+   * Implementation of save 
+   *
+   * @see QuizQuestionResponse#save()
+   */
   public function save() {
     $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->getScore());
   }
 
+  /**
+   * Implementation of delete 
+   *
+   * @see QuizQuestionResponse#delete()
+   */
   public function delete() {
     $sql = "DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
 
+  /**
+   * Implementation of score
+   *
+   * @see QuizQuestionResponse#score()
+   */
   public function score() {
     $tfQuestion = new TrueFalseQuestion($this->question);
     return ($this->getResponse() == $tfQuestion->getCorrectAnswer()) ? 1 : 0;
   }
 
+  /**
+   * Implementation of getResponse
+   *
+   * @see QuizQuestionResponse#getResponse()
+   */
   public function getResponse() {
     if (!isset($this->answer)) {
       $correct_answer = $this->getCorrectAnswer();
@@ -208,11 +276,19 @@ class TrueFalseResponse extends QuizQuestionResponse {
     return $this->answer;
   }
 
+  /**
+   * Implementation of getCorrectAnswer
+   */
   public function getCorrectAnswer() {
     $sql = "SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = %d AND result_id = %d";
     return db_fetch_object(db_query($sql, $this->question->vid, $this->rid));
   }
 
+  /**
+   * Implementation of getReportFormResponse 
+   *
+   * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
+   */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
 
     // Build the question answers header (add blank space for IE).
