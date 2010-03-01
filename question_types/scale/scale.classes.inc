@@ -18,8 +18,10 @@
  * Question type, enabling rapid creation of simple surveys using the quiz framework.
  */
 
+// @todo: We mix the names answer_collection and alternatives. Use either alternative or answer consistently
+
 /**
- * Implementation of QuizQuestion.
+ * Extension of QuizQuestion.
  */
 class ScaleQuestion extends QuizQuestion {
   // $util will be set to true if an instance of this class is used only as a utility
@@ -78,7 +80,10 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Stores the answer collection to the database, or reuses an excisting collection.
+   * Stores the answer collection to the database, or identifies an existing collection.
+   *
+   * We try to reuse answer collections as much as possible to minimize the amount of rows in the database,
+   * and thereby improving performance when surveys are beeing taken.
    *
    * @param $is_new_node - the question is beeing inserted(not updated)
    * @param $alt_input - the alternatives array to be saved.
@@ -90,13 +95,15 @@ class ScaleQuestion extends QuizQuestion {
     global $user;
     if (!isset($alt_input)) $alt_input = get_object_vars($this->node);
     if (!isset($preset)) $preset = $this->node->save;
+    
     $alternatives = array();
-    // Fetching alternatives
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (strlen($alt_input['alternative'. $i]) > 0) {
+      if (drupal_strlen($alt_input['alternative'. $i]) > 0) {
         $alternatives[] = $alt_input['alternative'. $i];
       }
     }
+    
+    // If an identical answer collection already exists
     if ($answer_collection_id = $this->excistingCollection($alternatives)) {
       if ($preset == 1) {
         $this->setPreset($answer_collection_id);
@@ -104,19 +111,24 @@ class ScaleQuestion extends QuizQuestion {
       if (!$is_new_node || $this->util) {
         $col_to_delete = $this->util ? $this->col_id : $this->node->{0}->answer_collection_id;
         if ($col_to_delete != $answer_collection_id) {
+          // We try to delete the old answer collection
           $this->deleteCollectionIfNotUsed($col_to_delete, 1);
         }
       }
       return $answer_collection_id;
     }
+    // Register a new answer collection
     db_query('INSERT INTO {quiz_scale_answer_collection} () VALUES ()');
     $answer_collection_id = db_last_insert_id('quiz_scale_answer_collection', 'id');
+    
+    // Save as preset if checkbox for preset has been checked
     if ($preset == 1) {
       $sql = 'INSERT INTO {quiz_scale_user}
               (uid, answer_collection_id)
               VALUES (%d, %d)';
       db_query($sql, $user->uid, $answer_collection_id);
     }
+    // Save the alternatives in the answer collection 
     db_lock_table('quiz_scale_answer');
     for ($i = 0; $i < count($alternatives); $i++) {
       $this->saveAlternative($alternatives[$i], $answer_collection_id);
@@ -142,24 +154,33 @@ class ScaleQuestion extends QuizQuestion {
    * Deletes an answer collection if it isn't beeing used.
    *
    * @param $answer_collection_id
-   * @param $accept - if collection is used more than this many times we keep it.
-   * @return true if deleted, false if not deleted.
+   * @param $accept
+   *  If collection is used more than this many times we keep it.
+   * @return 
+   *  true if deleted, false if not deleted.
    */
   public function deleteCollectionIfNotUsed($answer_collection_id, $accept = 0) {
+    // Check if the collection is someones preset. If it is we can't delete it.
     $sql = 'SELECT COUNT(*)
     		FROM {quiz_scale_user}
     		WHERE answer_collection_id = %d';
     $results = db_fetch_array(db_query($sql, $answer_collection_id));
-    if ($results['COUNT(*)'] > 0) return;
+    if ($results['COUNT(*)'] > 0) return FALSE;
+    
+    // Check if the collection is a global preset. If it is we can't delete it.
     $sql = 'SELECT for_all
     		FROM {quiz_scale_answer_collection}
     		WHERE id = %d';
     $results = db_fetch_object(db_query($sql, $answer_collection_id));
-    if ($results->for_all == 1) return;
+    if ($results->for_all == 1) return FALSE;
+    
+    // Check if the collection is used in an existing question. If it is we can't delete it.
     $sql = 'SELECT COUNT(*)
     		FROM {quiz_scale_node_properties}
     		WHERE answer_collection_id = %d';
     $results = db_fetch_array(db_query($sql, $answer_collection_id));
+    
+    // We delete the answer collection if it isnt beeing used by enough questions
     if ($results['COUNT(*)'] <= $accept) {
       $sql = 'DELETE FROM {quiz_scale_answer_collection}
       		  WHERE id = %d';
@@ -173,22 +194,35 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Finds out if a collection allready exists.
+   * Finds out if a collection already exists.
    *
-   * @param $alternatives - this is the collection that will be compared with the database.
-   * @param $answer_collection_id - if we are matching a set of alternatives with a given collection.
+   * @param $alternatives
+   *  This is the collection that will be compared with the database.
+   * @param $answer_collection_id
+   *  If we are matching a set of alternatives with a given collection that exists in the database.
    * @param $last_id - The id of the last alternative we compared with.
-   * @return unknown_type
+   * @return
+   *  TRUE if the collection exists
+   *  FALSE otherwise
    */
   private function excistingCollection(array $alternatives, $answer_collection_id = NULL, $last_id = NULL) {
     $my_alts = isset($answer_collection_id) ? $alternatives : array_reverse($alternatives);
+    
+    // Find all answers identical to the next answer in $alternatives
     $sql = 'SELECT id, answer_collection_id
     		FROM {quiz_scale_answer}
     		WHERE answer = \'%s\'';
+    // Filter on collection id
     if (isset($answer_collection_id)) $sql .= ' AND answer_collection_id = %d';
+    // Filter on alternative id(If we are investigating a specific collection, the alternatives needs to be in a correct order)
     if (isset($last_id)) $sql .= ' AND id = %d';
     $res = db_query($sql, array_pop($my_alts), $answer_collection_id, ($last_id + 1));
     if (!$res_o = db_fetch_object($res)) return FALSE;
+    
+    /*
+     * If all alternatives has matched make sure the collection we are comparing against in the database
+     * doesn't have more alternatives.
+     */ 
     if (count($my_alts) == 0) {
       $sql = 'SELECT * FROM {quiz_scale_answer}
               WHERE answer_collection_id = %d
@@ -196,6 +230,8 @@ class ScaleQuestion extends QuizQuestion {
       $res_o2 = db_fetch_object(db_query($sql, $answer_collection_id, ($last_id + 2)));
       return ($res_o2 == FALSE) ? $answer_collection_id : FALSE;
     }
+    
+    // Do a recursive call to this function on all answer collection candidates
     do {
       $col_id = $this->excistingCollection($my_alts, $res_o->answer_collection_id, $res_o->id);
       if ($col_id) return $col_id;
@@ -204,10 +240,9 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Implementation of validate
+   * Implementation of validateNode
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#validate()
+   * @see QuizQuestion#validate()
    */
   public function validateNode(array &$form) {
   }
@@ -215,40 +250,24 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Implementation of delete
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#delete()
+   * @see QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
 
     if ($only_this_version) {
       db_query('DELETE FROM {quiz_scale_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-      $sql = 'DELETE FROM {quiz_scale_user_answers}
-      		  WHERE result_id IN(
-      		  	SELECT result_id
-      		  	FROM {quiz_node_results}
-      		  	WHERE nid = %d AND vid = %d
-      		  )';
-      db_query($sql, $this->node->nid, $this->node->vid);
     }
     else {
       db_query('DELETE FROM {quiz_scale_node_properties} WHERE nid = %d', $this->node->nid);
-      $sql = 'DELETE FROM {quiz_scale_user_answers}
-      		  WHERE result_id IN(
-      		  	SELECT result_id
-      		  	FROM {quiz_node_results}
-      		  	WHERE nid = %d
-      		  )';
-      db_query($sql, $this->node->nid);
     }
     $this->deleteCollectionIfNotUsed($this->node->{0}->answer_collection_id, 0);
   }
 
   /**
-   * Implementation of load
+   * Implementation of getNodeProperties
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#load()
+   * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
     if (isset($this->nodeProperties)) return $this->nodeProperties;
@@ -267,17 +286,15 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Implementation of view
+   * Implementation of getNodeView
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#view()
+   * @see QuizQuestion#view()
    */
   public function getNodeView() {
     $content = parent::getNodeView();
 
-    //TODO: Consider changing this to something prettier...
+    //@todo: Consider changing this to something prettier...
     $form = $this->getAnsweringForm(NULL, NULL);
-    //$to_return = drupal_render($form['question']);
     $to_return .= drupal_render($form['tries']);
     foreach ($form['tries']['#options'] as $val) {
       $radio = array('#type' => 'radio', '#title' => $val, '#value' => 0);
@@ -288,12 +305,10 @@ class ScaleQuestion extends QuizQuestion {
   }
 
   /**
-   * Generates the question form.
+   * Implementation of getAnsweringForm 
    *
-   * This is called whenever a question is rendered, either
-   * to an administrator or to a quiz taker.
+   * @see getAnsweringForm($form_state, $rid)
    */
-
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
@@ -318,10 +333,9 @@ class ScaleQuestion extends QuizQuestion {
   }
   
   /**
-   * Implementation of getCreation form
+   * Implementation of getCreationForm
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#getCreationForm()
+   * @see QuizQuestion#getCreationForm()
    */
   public function getCreationForm(array $form_state = NULL) {
     $form = array();
@@ -330,7 +344,10 @@ class ScaleQuestion extends QuizQuestion {
      */
     $collections = $this->getPresetCollections(TRUE);
     $options = $this->makeOptions($collections);
-    $options['d'] = '-';
+    $options['d'] = '-'; // Default
+    
+    // We need to add the available preset collections as javascript so that the alternatives can be populated instantly
+    // when a
     $jsArray = $this->makeJSArray($collections);
 
     $form['answer'] = array(
@@ -352,7 +369,7 @@ class ScaleQuestion extends QuizQuestion {
     );
     $form['jsArray'] = array(
       '#type' => 'markup',
-      '#value' => "<SCRIPT type='text/javascript'>$jsArray</SCRIPT>",
+      '#value' => "<script type='text/javascript'>$jsArray</script>",
     );
     $form['answer']['alternatives'] = array(
       '#type' => 'fieldset',
@@ -370,7 +387,7 @@ class ScaleQuestion extends QuizQuestion {
         '#required' => $i < 2,
       );
     }
-    $form['answer']['alternatives']['save'] = array(
+    $form['answer']['alternatives']['save'] = array( // @todo: Rename save to save_as_preset or something
       '#type' => 'checkbox',
       '#title' => t('Save as a new preset'),
       '#description' => t('Current alternatives will be saved as a new preset'),
@@ -387,15 +404,16 @@ class ScaleQuestion extends QuizQuestion {
    * Get all available presets for the current user.
    *
    * @param $with_defaults
-   * @return array holding all the preset collections as an array of objects.
-   *         each object in the array has the following properties:
-   *           ->alternatives(array)
-   *           ->name(string)
-   *           ->for_all(int, 0|1)
+   * @return 
+   *  array holding all the preset collections as an array of objects.
+   *  each object in the array has the following properties:
+   *   ->alternatives(array)
+   *   ->name(string)
+   *   ->for_all(int, 0|1)
    */
   public function getPresetCollections($with_defaults = FALSE) {
     global $user;
-    $collections = array(); //option array for select form element.
+    $collections = array(); // array holding data for each collection
     $scale_element_names = array();
     $sql = 'SELECT DISTINCT ac.id AS answer_collection_id, a.answer, ac.for_all
             FROM {quiz_scale_user} au
@@ -408,17 +426,22 @@ class ScaleQuestion extends QuizQuestion {
     $sql .= ' ORDER BY au.answer_collection_id';
     $res = db_query($sql, $user->uid);
     $col_id;
+    
+    // Populate the $collections array
     while (true) {
       if (!($res_o = db_fetch_object($res)) || ($res_o->answer_collection_id != $col_id)) {
         /*
-         * We have gone through alle elements for one answer collection,
-         * and needs to store the answer collections name and id in the options array...
+         * We have gone through all elements for one answer collection,
+         * and needs to store the answer collection name and id in the options array...
          */
         if (isset($col_id)) {
           $num_scale_elements = count($collections[$col_id]->alternatives);
           $collections[$col_id]->name = check_plain($collections[$col_id]->alternatives[0] .' - '. $collections[$col_id]->alternatives[$num_scale_elements-1] .' ('. $num_scale_elements .')');
         }
+        // Break the loop if there are no more answer collections to process
         if (!$res_o) break;
+        
+        // Init the next collection in the $collections array
         $col_id = $res_o->answer_collection_id;
         if (!isset($collections[$col_id])) {
           $collections[$col_id] = new stdClass();
@@ -434,8 +457,10 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Makes options array for form elements.
    *
-   * @param $collections - collections array, from getPresetCollections() for instance...
-   * @return options array.
+   * @param $collections
+   *  collections array, from getPresetCollections() for instance...
+   * @return 
+   *  #options array.
    */
   private function makeOptions(array $collections = NULL) {
     $options = array();
@@ -448,8 +473,10 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Makes a javascript constructing an answer collection array.
    *
-   * @param $collections - collections array, from getPresetCollections() for instance...
-   * @return javascript(string)
+   * @param $collections
+   *  collections array, from getPresetCollections() for instance...
+   * @return 
+   *  javascript(string)
    */
   private function makeJSArray(array $collections = NULL) {
     $jsArray = 'scaleCollections = new Array();';
@@ -467,16 +494,17 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Implementation of getMaximumScore.
    *
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-DRUPAL-6--4/question_types/quiz_question/QuizQuestion#getMaximumScore()
+   * @see QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
+    // In some use-cases we want to reward users for answering a survey question.
+    // This is why 1 is returned and not zero.
     return 1;
   }
 }
 
 /**
- * The short answer question response class.
+ * Extension of QuizQuestionResponse
  */
 class ScaleResponse extends QuizQuestionResponse {
   /**
@@ -486,28 +514,23 @@ class ScaleResponse extends QuizQuestionResponse {
 
   /**
    * Constructor
-   *
-   * @param $rid - response_id
-   * @param $question - as an object
-   * @param $answer - answer_id
    */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
-    if (isset($answer)) $this->answer_id = $answer;
+    
+    if (isset($answer)) $this->answer_id = intval($answer);
     else {
       $sql = 'SELECT answer_id
               FROM {quiz_scale_user_answers}
               WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
       $res = db_query($sql, $result_id, $this->question->nid, $this->question->vid);
-      $res_o = db_fetch_object($res);
-      $this->answer_id = $res_o->answer_id;
+      $this->answer_id = db_result($res);
     }
     $sql = 'SELECT answer
             FROM {quiz_scale_answer}
             WHERE id = %d';
     $res = db_query($sql, $this->answer_id);
-    $res_o = db_fetch_object($res);
-    $this->answer = check_plain($res_o->answer);
+    $this->answer = check_plain(db_result($res));
   }
 
 
@@ -518,6 +541,8 @@ class ScaleResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of save
+   *
+   * @see QuizQuestionResponse#save()
    */
   public function save() {
     $sql = "INSERT INTO {quiz_scale_user_answers}
@@ -526,9 +551,10 @@ class ScaleResponse extends QuizQuestionResponse {
     db_query($sql, $this->answer_id, $this->rid, $this->question->vid, $this->question->nid);
   }
 
-
   /**
    * Implementation of delete
+   *
+   * @see QuizQuestionResponse#delete()
    */
   public function delete() {
     $sql = 'DELETE FROM {quiz_scale_user_answers}
@@ -538,9 +564,9 @@ class ScaleResponse extends QuizQuestionResponse {
 
 
   /**
-   * Implementation of score
+   * Implementation of score 
    *
-   * @return 0 - this question type is never scored.
+   * @see QuizQuestionResponse#score()
    */
   public function score() {
     return $this->isValid() ? 1 : 0;
@@ -549,27 +575,25 @@ class ScaleResponse extends QuizQuestionResponse {
   /**
    * Implementation of isCorrect
    *
-   * @return 0 - this question type is never scored
-   * (non-PHPdoc)
-   * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/AbstractQuizQuestionResponse#isCorrect()
+   * @see QuizQuestionResponse#isCorrect()
    */
   public function isCorrect() {
     return TRUE;
   }
+  
   /**
    * Implementation of getResponse
    *
-   * @return answer
+   * @see QuizQuestionResponse#getResponse()
    */
   public function getResponse() {
     return $this->answer_id;
   }
+  
   /**
-   * Implementation of format report.
+   * Implementation of getReportFormResponse
    *
-   * @param $showpoints
-   * @param $showfeedback
-   * @return report as html
+   * @see getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return array(
