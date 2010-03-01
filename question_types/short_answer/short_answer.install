@@ -123,10 +123,15 @@ function short_answer_schema() {
       'ids' => array('result_id', 'question_nid', 'question_vid'),
     ),
   );
-
   return $schema;
 }
 
+/**
+ * Implementation of hook_update_N
+ * 
+ * Convert the score columt to be of type float. This is to fit the new scoring system with different max
+ * scores in different quizzes.
+ */
 function short_answer_update_6400() {
   $to_return = array();
   $spec = array(
