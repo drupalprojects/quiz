@@ -10,7 +10,7 @@
  * Theme the list of unscored short answer questions.
  *
  * @param $unscored
- *  An array of objects, each with the quist_nid, question_vid, and result_id of an unscored question.
+ *  An array of objects with information about the unscored questions
  */
 function theme_short_answer_view_unscored($unscored) {
   $output = '';
@@ -31,7 +31,6 @@ function theme_short_answer_view_unscored($unscored) {
         l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
-
   }
 
   if (!empty($rows)) {
