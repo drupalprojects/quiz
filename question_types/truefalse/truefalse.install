@@ -11,9 +11,7 @@
  * Implementation of hook_install().
  */
 function truefalse_install() {
-  if (!db_table_exists('quiz_truefalse_node') && !db_table_exists('quiz_truefalse_user_answers')) {
-    drupal_install_schema('truefalse');
-  }
+  drupal_install_schema('truefalse');
   variable_set('node_options_true_false', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
@@ -37,7 +35,6 @@ function truefalse_schema() {
   // Extensions to nodes for T/F
   $schema['quiz_truefalse_node'] = array(
     'fields' => array(
-      // Nid/vid of the question
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -48,8 +45,8 @@ function truefalse_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      // The correct answer for the user to give. 1 for true.
       'correct_answer' => array(
+        'description' => 'The correct answer for the user to give. 1 for true.',
         'type' => 'int',
         'unsigned' => TRUE,
         'size' => 'tiny',
@@ -63,10 +60,10 @@ function truefalse_schema() {
       'vid', 'nid'
     ),
   );
+  
   // Place to store user answers for T/F questions
   $schema['quiz_truefalse_user_answers'] = array(
     'fields' => array(
-      // Nid/vid of the question
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -77,13 +74,11 @@ function truefalse_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      // User's result set
       'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      // The actual answer the user gave. True or false.
       'answer' => array(
         'type' => 'int',
         'unsigned' => TRUE,

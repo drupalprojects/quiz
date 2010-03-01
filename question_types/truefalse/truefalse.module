@@ -5,8 +5,7 @@
  * @file
  * TrueFalse question type for quiz module
  *
- * Allows the creation of true or false questions, which associate one term
- * with another
+ * Allows the creation of "True or False" questions
  */
 
 
@@ -32,7 +31,7 @@ function truefalse_quiz_question_info() {
   return array(
     'truefalse' => array(
       'name' => t('True/false question'),
-      'description' => t('Quiz questions that allow a user to select true or false (yes/no).'),
+      'description' => t('Quiz questions that allow a user to select "true" or "false" as his response to a statement.'),
       'question provider' => 'TrueFalseQuestion',
       'response provider' => 'TrueFalseResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
@@ -40,6 +39,9 @@ function truefalse_quiz_question_info() {
   );
 }
 
+/**
+ * Implementation of the quiz_question hook_config
+ */
 function truefalse_config() {
   return FALSE;
 }
