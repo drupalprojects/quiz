@@ -367,9 +367,10 @@ class ScaleQuestion extends QuizQuestion {
       '#description' => t('Select a set of alternatives'),
       '#attributes' => array('onchange' => 'refreshAlternatives(this)'),
     );
+    $max_num_alts = variable_get('scale_max_num_of_alts', 10);
     $form['jsArray'] = array(
       '#type' => 'markup',
-      '#value' => "<script type='text/javascript'>$jsArray</script>",
+      '#value' => "<script type='text/javascript'>$jsArray var scale_max_num_of_alts = $max_num_alts;</script>",
     );
     $form['answer']['alternatives'] = array(
       '#type' => 'fieldset',
@@ -377,7 +378,7 @@ class ScaleQuestion extends QuizQuestion {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
-    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
+    for ($i = 0; $i < $max_num_alts; $i++) {
       $form['answer']['alternatives']["alternative$i"] = array(
         '#type' => 'textfield',
         '#title' => t('Alternative !i', array('!i' => ($i+1))),

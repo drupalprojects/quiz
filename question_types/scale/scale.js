@@ -1,4 +1,4 @@
-// $id$
+// $Id$
 /**
  * @file
  * Javascript functions for the scale question type.
@@ -8,6 +8,7 @@
  * Refreshes alternatives when a preset is selected.
  * 
  * @param selection
+ *  The select item used to select answer collection
  */
 function refreshAlternatives(selection) {
   clearAlternatives();
@@ -18,8 +19,11 @@ function refreshAlternatives(selection) {
   }
 }
 
+/**
+ * Clears all the alternatives on the scale node form
+ */
 function clearAlternatives() {
-  for ( var i = 0; i < 10; i++) {
+  for ( var i = 0; i < scale_max_num_of_alts; i++) {
 	$('#edit-alternative' + (i)).val('');
   }
 }
