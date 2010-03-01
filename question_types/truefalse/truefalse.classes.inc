@@ -125,6 +125,7 @@ class TrueFalseQuestion extends QuizQuestion {
         0 => t('False')
       ),
     );
+    
     if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
       $form['tries']['#default_value'] = $response->getResponse();
@@ -167,7 +168,7 @@ class TrueFalseQuestion extends QuizQuestion {
       '#collapsed' => TRUE,
       '#weight' => -3,
     );
-    $form['feedback_fields']['feedback'] = array(
+    $form['feedback_fields']['feedback'] = array( // @todo: Does this make sense?
       '#type' => 'textarea',
       '#title' => t('Feedback Text'),
       '#description' => t('Text to be displayed when the results are displayed'),
@@ -176,7 +177,6 @@ class TrueFalseQuestion extends QuizQuestion {
       '#required' => FALSE,
       '#default_value' => isset($this->node->feedback) ? $this->node->feedback : '',
     );
-
     return $form;
   }
 
