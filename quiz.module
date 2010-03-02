@@ -505,11 +505,13 @@ function quiz_insert($node) {
     (vid, nid, aid, number_of_random_questions, randomization, 
     backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, 
     keep_results, time_limit, pass_rate, summary_pass, summary_default, 
-    quiz_always, feedback_time, tid, has_userpoints, allow_skipping)
+    quiz_always, feedback_time, display_feedback, tid, has_userpoints, 
+    allow_skipping)
     VALUES(%d, %d, '%s', %d, %d, 
     %d, %d, %d, %d, %d, 
     %d, %d, %d, '%s', '%s', 
-    %d, %d, %d, %d, %d)";
+    %d, %d, %d, %d, %d,
+    %d)";
   
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
@@ -517,7 +519,8 @@ function quiz_insert($node) {
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, 
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, 
     $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, 
-    $node->quiz_always, $node->feedback_time, $node->has_userpoints, $tid, $node->allow_skipping);
+    $node->quiz_always, $node->feedback_time, $node->display_feedback, $node->has_userpoints, $tid, 
+    $node->allow_skipping);
   
   _quiz_insert_resultoptions($node);
   
@@ -569,6 +572,7 @@ function quiz_update($node) {
         summary_default = '%s',
         quiz_always = %d,
         feedback_time = %d,
+        display_feedback = %d,
         number_of_random_questions = %d,
         has_userpoints = %d,
         allow_skipping = %d
@@ -577,7 +581,7 @@ function quiz_update($node) {
     _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
-      $node->feedback_time, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
+      $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
@@ -634,6 +638,7 @@ function _quiz_get_node_defaults() {
     'backwards_navigation' => 1,
     'repeat_until_correct' => 0,
     'feedback_time' => 0,
+    'display_feedback' => 1,
     'quiz_open' => 0,
     'quiz_close' => 0,
     'takes' => 1,
@@ -834,6 +839,12 @@ function quiz_form(&$node) {
     '#default_value' => $node->feedback_time,
     '#options' => _quiz_get_feedback_options(),
     '#description' => t('Indicates at what point feedback for each question will be given to the user'),
+  );
+  $form['taking']['display_feedbadk'] = array (
+    '#title' => t('Display solution'),
+    '#type' => 'checkbox',
+    '#default_value' => $node->display_feedback,
+    '#description' => t('Display the users answers and the correct answers for all questions along with the score for each question.')
   );
 
   /*

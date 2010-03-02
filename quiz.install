@@ -14,7 +14,6 @@
  */
 function quiz_update_6413() {
   $results = array();
-  variable_del('quiz_display_feedback');
   db_add_field($results, 'quiz_node_properties', 'display_feedback', array(
     'type' => 'int',
     'size' => 'tiny',
@@ -22,6 +21,20 @@ function quiz_update_6413() {
     'not null' => TRUE,
     'default' => 1,
   ));
+  if (variable_get('quiz_display_feedback', 1) == 0) {
+    $results[] = update_sql('
+      UPDATE {quiz_node_properties} 
+      SET quiz_display_feedback = 0');
+  }
+  variable_del('quiz_display_feedback');
+  db_add_field($results, 'quiz_user_settings', 'display_feedback', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return $results;
 }
 
 /**
@@ -1079,6 +1092,13 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'display_feedback' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
       ),
       'takes' => array(
         'type' => 'int',
