@@ -1990,7 +1990,7 @@ function quiz_calculate_score($quiz, $rid) {
 
     if (function_exists($function)) {
       $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
-      
+
       // Allow for max score to be considered
       $score->attained = ($score->possible > 0) ? ($score->attained / $score->possible * $question->max_score) : 0;
       $score->possible = $question->max_score;

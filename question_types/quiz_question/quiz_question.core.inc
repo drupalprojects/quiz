@@ -667,7 +667,7 @@ abstract class QuizQuestionResponse {
   function getScore($weight_adjusted = TRUE) {
     if (!isset($this->score)) $this->score = $this->score();
     if (isset($this->question->score_weight) && $weight_adjusted)
-    return round($this->score * $this->question->score_weight);
+      return round($this->score * $this->question->score_weight);
     return $this->score;
   }
 

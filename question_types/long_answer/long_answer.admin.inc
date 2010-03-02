@@ -29,6 +29,7 @@ function long_answer_view_unscored() {
  *  Text to display.
  */
 function long_answer_edit_score($vid, $rid) {
+  
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
   // and we need to be able to access old nodes in node_revisions.vid. 
   $nid = db_result(db_query("SELECT nid FROM {node_revisions} WHERE vid = %d", $vid));
@@ -48,7 +49,12 @@ function long_answer_edit_score($vid, $rid) {
     drupal_not_found();
     return;
   }
-  
+  if ($node->max_score > 0) {
+    $answer->rel_score = round($answer->score * $answer->rel_max_score / $node->max_score);
+  }
+  else {
+    $answer->rel_score = 0;
+  } 
   drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
   return drupal_get_form('long_answer_score_form', $node, $answer);
 }
@@ -63,13 +69,12 @@ function long_answer_edit_score($vid, $rid) {
  * @return
  *  The form (as a FAPI array).
  */
-function long_answer_score_form($node, $answer) {
-
+function long_answer_score_form($form_state, $node, $answer) {
   if (!$node || $node->type != 'long_answer' || !$answer) {
     drupal_not_found();
     return;
   }
-
+  
   // Set up the form
   $form['question'] = array(
     '#type' => 'item',
@@ -84,7 +89,7 @@ function long_answer_score_form($node, $answer) {
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
-    '#value' => (int) $node->max_score,
+    '#value' => (int) $answer->rel_max_score,
   );
   $form['score_answer'] = array(
     '#type' => 'fieldset',
@@ -98,10 +103,10 @@ function long_answer_score_form($node, $answer) {
   $form['score_answer']['score'] = array(
     '#type' => 'textfield',
     '#title' => t('Score'),
-    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $node->max_score)) ,
-    '#size' => 6,
-    '#maxlength' => 6,
-    '#default_value' => (int) $answer->score,
+    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)) ,
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
   $form['score_answer']['submit'] = array(
@@ -113,6 +118,10 @@ function long_answer_score_form($node, $answer) {
   $form['max_score'] = array(
     '#type' => 'value',
     '#value' => $node->max_score,
+  );
+  $form['rel_max_score'] = array(
+    '#type' => 'value',
+    '#value' => $answer->rel_max_score,
   );
   $form['question_nid'] = array(
     '#type' => 'value',
@@ -135,15 +144,17 @@ function long_answer_score_form($node, $answer) {
  */
 function long_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
-  $max = (int)$form_state['values']['max_score'];
+  $max = (int)$form_state['values']['rel_max_score'];
   $given = $form_state['values']['score'];
-
-  if (_quiz_is_int($given, 0, $max)) {
+  if (!_quiz_is_int($given, 0, $max)) {
     $args = array('@score' => $given, '@max' => $max);
-    form_error($form['score'], t('The given score (@score) must be an integer between 0 and @max', $args));
+    form_set_error('score', t('The given score (@score) must be an integer between 0 and @max', $args));
   }
 }
 
+/**
+ * Submit handler for the long answer score form
+ */
 function long_answer_score_form_submit($form, &$form_state) {
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
   $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));

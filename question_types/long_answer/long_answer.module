@@ -200,9 +200,11 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
-    FROM {quiz_long_answer_user_answers}
-    WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
+  $sql = "SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score
+    FROM {quiz_long_answer_user_answers} la
+    JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
+    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)  
+    WHERE question_nid = %d AND question_vid = %d AND la.result_id = %d";
   $results = db_query($sql, $question_nid, $question_vid, $result_id);
 
   if (!$results) {
