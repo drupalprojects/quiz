@@ -168,7 +168,7 @@ abstract class QuizQuestion {
                 ON n.nid = r.parent_nid
                 WHERE r.child_vid = %d $own_filter
                 ORDER BY r.parent_vid DESC";
-        $res = db_query($sql, $this->node->vid);
+        $res = db_query(db_rewrite_sql($sql), $this->node->vid);
         
         // Store the results
         while ($res_o = db_fetch_object($res)) {
@@ -192,7 +192,7 @@ abstract class QuizQuestion {
               WHERE lq.uid = %d $own_filter";
       if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
       $sql .= " ORDER BY lq.id DESC";
-      $res = db_query($sql, $user->uid);
+      $res = db_query(db_rewrite_sql($sql), $user->uid);
       
       while ($res_o = db_fetch_object($res)) {
         // Array to use as #option in form element
