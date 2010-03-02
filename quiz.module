@@ -1365,7 +1365,7 @@ function quiz_take_quiz($quiz) {
   }
   
   // Make sure we use the same revision of the quiz throughout the quiz taking session.
-  if(isset($_SESSION['quiz_'. $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_'. $quiz->nid]['quiz_vid']) {
+  if (isset($_SESSION['quiz_'. $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_'. $quiz->nid]['quiz_vid']) {
     $quiz = node_load($quiz->nid, $_SESSION['quiz_'. $quiz->nid]['quiz_vid']);
   }
 
@@ -1407,7 +1407,7 @@ function quiz_take_quiz($quiz) {
     }
 
     else {
-      return array('body' => array('#value' => ''));
+      return array('body' => array('#value' => t('This quiz is closed')));
     }
   }
   if (!quiz_is_available($quiz)) {

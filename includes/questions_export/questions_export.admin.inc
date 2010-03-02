@@ -194,7 +194,7 @@ function _as_moodle_questions($drupal_questions) {
     $mq->options->answers = array();
 
     // set the Moodle qtype
-    $qtypeMap = array(
+    $qtype_map = array(
     // Drupal to Moodle
       'long_answer' => 'essay',
       'short_answer' => 'shortanswer',
@@ -203,7 +203,7 @@ function _as_moodle_questions($drupal_questions) {
       'quiz_directions' => 'description',
       'matching' => 'match',
     );
-    $mq->qtype = $qtypeMap[$dq->type];
+    $mq->qtype = $qtype_map[$dq->type];
 
     // include answers, if allowed
     $results = module_invoke_all('answers_access', $dq);

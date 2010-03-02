@@ -382,7 +382,7 @@ function quiz_question_config($context, $type) {
   $q_types = _quiz_question_get_implementations();
   $form = array();
   // Go through all question types and merge their config forms
-  foreach($q_types as $type => $values) {
+  foreach ($q_types as $type => $values) {
     $function = $type .'_config';
     if ($admin_form = $function()) {
       $form[$type] = $admin_form;
@@ -453,13 +453,15 @@ function quiz_question_insert(stdClass $node) {
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if ($teaser) {
     $content = _quiz_question_teaser_content($node);
-  } else if (_quiz_is_taking_context()) {
+  } 
+  elseif (_quiz_is_taking_context()) {
     /*
      * @todo: I see no reason why this should be a part of view anymore.
      * In quiz 5 we should stop using hook_view to view the answering form
      */
     $form_markup = drupal_get_form('quiz_question_answering_form', $node);
-  } else {
+  } 
+  else {
     // normal node view
     $question = _quiz_question_get_instance($node, TRUE);
     $content = $question->getNodeView();
@@ -469,7 +471,8 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if (!empty($content)) {
     if ($node->content) {
       $node->content += $content;
-    } else {
+    } 
+    else {
       $node->content = $content;
     }
   }
@@ -507,7 +510,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
   try {
     _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
   }
-  catch(Exception $e) {}
+  catch (Exception $e) {}
 
   // FIXME QuizQuestion class makes these relationships, so it should handle their 'deletion' too
   // FIXME alternately, move the relationship handling out of QuizQuestion class
@@ -517,7 +520,8 @@ function _quiz_delete_question(&$node, $only_this_version) {
   $base_sql = "UPDATE {quiz_node_relationship} SET question_status = ". QUESTION_NEVER;
   if ($only_this_version) {
     db_query($base_sql .' WHERE child_nid = %d AND child_vid = %d', $node->nid, $node->vid);
-  } else {
+  } 
+  else {
     db_query($base_sql .' WHERE child_nid = %d', $node->nid);
   }
 }
@@ -594,7 +598,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   // If we're using a dummy node we have to run getNodeProperties, and populate the node with those properties
   if ($using_dummy_node) {
     $props = $to_return->getNodeProperties();
-    foreach($props as $key => $value) {
+    foreach ($props as $key => $value) {
       $to_return->node->{$key} = $value;
     }
   }
