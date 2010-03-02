@@ -390,6 +390,8 @@ function quiz_question_config($context, $type) {
       $form[$type]['#title'] = $values['name'];
       $form[$type]['#collapsible'] = TRUE;
       $form[$type]['#collapsed'] = TRUE;
+      if (isset($admin_form['#validate']))
+        $form['#validate'][] = $admin_form['#validate'];
     }
   }
   return system_settings_form($form);

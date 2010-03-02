@@ -43,7 +43,16 @@ function multichoice_config() {
     '#title' => t('Default number of alternatives'),
     '#default_value' => variable_get('multichoice_def_num_of_alts', 2),
   );
+  $form['#validate'] = 'multichoice_config_validate';
   return $form;
+}
+
+/**
+ * Validate the multichoice config form values
+ */
+function multichoice_config_validate($form, $form_state) {
+  if (!_quiz_is_int($form_state['values']['multichoice_def_num_of_alts'], 2, 50)) 
+    form_set_error('multichoice_def_num_of_alts', t('The default number of alternatives must be between 2 and 50'));
 }
 
 /**

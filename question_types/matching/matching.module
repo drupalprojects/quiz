@@ -48,7 +48,7 @@ function matching_config() {
   $form['quiz_matching_form_size'] = array(
     '#type' => 'textfield',
     '#title' => t('Match Question Size'),
-    '#description' => t('Number of question allowed to wrap under a match type question.'),
+    '#description' => t('Number of questions allowed to wrap under a matching type question.'),
     '#default_value' => variable_get('quiz_matching_form_size', 5),
   );
   $form['quiz_matching_shuffle_options'] = array(
@@ -57,7 +57,16 @@ function matching_config() {
     '#default_value' => variable_get('quiz_matching_shuffle_options', TRUE),
     '#description' => t('If checked matching options will be shuffled'),
   );
+  $form['#validate'] = 'matching_config_validate';
   return $form;
+}
+
+/**
+ * Validate the matching config form values
+ */
+function matching_config_validate($form, $form_state) {
+  if (!_quiz_is_int($form_state['values']['quiz_matching_form_size'], 2, 50)) 
+    form_set_error('quiz_matching_form_size', t('The number of questions must be between 2 and 50'));
 }
 
 /**
