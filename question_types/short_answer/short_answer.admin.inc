@@ -47,6 +47,13 @@ function short_answer_edit_score($vid, $rid) {
     return;
   }
 
+  if ($node->max_score > 0) {
+    $answer->rel_score = round($answer->score * $answer->rel_max_score / $node->max_score);
+  }
+  else {
+    $answer->rel_score = 0;
+  }
+   
   drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
 
   return drupal_get_form('short_answer_score_form', $node, $answer);
@@ -83,15 +90,15 @@ function short_answer_score_form($context, $node, $answer) {
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
-    '#value' => (int) $node->max_score,
+    '#value' => (int) $answer->rel_max_score,
   );
   $form['score'] = array(
     '#type' => 'textfield',
     '#title' => t('Score'),
-    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $node->max_score)) ,
+    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)) ,
     '#size' => 3,
     '#maxlength' => 3,
-    '#default_value' => (int) $answer->score,
+    '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
   $form['submit'] = array(
@@ -103,6 +110,10 @@ function short_answer_score_form($context, $node, $answer) {
   $form['max_score'] = array(
     '#type' => 'value',
     '#value' => $node->max_score,
+  );
+  $form['rel_max_score'] = array(
+    '#type' => 'value',
+    '#value' => $answer->rel_max_score,
   );
   $form['question_nid'] = array(
     '#type' => 'value',
@@ -125,7 +136,7 @@ function short_answer_score_form($context, $node, $answer) {
  */
 function short_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
-  $max = (int)$form_state['values']['max_score'];
+  $max = (int)$form_state['values']['rel_max_score'];
   $given = (int)$form_state['values']['score'];
 
   if (!_quiz_is_int($form_state['values']['score'], 0, $max)) {

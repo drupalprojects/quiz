@@ -206,9 +206,11 @@ function short_answer_report_submit($values) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
-    FROM {quiz_short_answer_user_answers}
-    WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
+  $sql = "SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score
+    FROM {quiz_short_answer_user_answers} sa
+    JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
+    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid) 
+    WHERE sa.question_nid = %d AND sa.question_vid = %d AND sa.result_id = %d";
   $results = db_query($sql, $question_nid, $question_vid, $result_id);
 
   if (!$results) {
