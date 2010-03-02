@@ -8,6 +8,23 @@
  */
 
 /**
+ * Implementation of hook_update_N
+ * 
+ * Make display feedback a quiz option, and not a global variable
+ */
+function quiz_update_6413() {
+  $results = array();
+  variable_del('quiz_display_feedback');
+  db_add_field($results, 'quiz_node_properties', 'display_feedback', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+}
+
+/**
  * Implementation of hook_update_N().
  * Adding a new field to store the max score for random questions
  */
@@ -680,6 +697,13 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'display_feedback' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
       ),
       'quiz_open' => array(
         'type' => 'int',

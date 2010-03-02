@@ -329,7 +329,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   if (isset($summary['result']))
     $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
   // Get the feedback for all questions.
-  if (variable_get('quiz_display_feedback', 1)) {
+  if ($quiz->display_feedback) {
     $output .= drupal_get_form('quiz_report_form', $questions, ($quiz->pass_rate > 0), TRUE);
   }
   return $output;
