@@ -323,7 +323,7 @@ function quiz_admin_results($quiz, $rid) {
   $summary = _quiz_get_summary_text($quiz, $score);
   
   // Lets add the quiz title to the breadcrumb array.
-  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/'. $rid .'/'. $result->nid);
+  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . $quiz->nid);
   drupal_set_breadcrumb($breadcrumb);
   return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
 }
