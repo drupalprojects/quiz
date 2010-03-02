@@ -683,17 +683,25 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
     '#weight' => -1,
   );
   
-  // Add a link to the take tab as a button if this isn't a teaser view
-  if (!$teaser) {
-    $node->content['take'] = array(
-      '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
-      '#weight' => 2,
-    );
+  if (quiz_is_available($node)) {
+    // Add a link to the take tab as a button if this isn't a teaser view
+    if (!$teaser) {
+      $node->content['take'] = array(
+        '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
+        '#weight' => 2,
+      );
+    }
+    // Add a link to the take tab if this is a teaser view
+    else {
+      $node->content['take'] = array(
+        '#value' => '<p>'. l(t('Start quiz'), 'node/'. $node->nid .'/take') .'</p>',
+        '#weight' => 2,
+      );
+    }
   }
-  // Add a link to the take tab if this is a teaser view
   else {
     $node->content['take'] = array(
-      '#value' => '<p>'. l(t('Start quiz'), 'node/'. $node->nid .'/take') .'</p>',
+      '#value' => '<p>' . t('This quiz is closed') . '</p>',
       '#weight' => 2,
     );
   }
@@ -1402,13 +1410,17 @@ function quiz_take_quiz($quiz) {
       return array('body' => array('#value' => ''));
     }
   }
+  if (!quiz_is_available($quiz)) {
+    drupal_set_message(t('This quiz is not available anymore.'), 'error');
+    return array('body' => array('#value' => t('This quiz is closed')));
+  }
   if (!isset($_POST['op'])) {
     // Starting new quiz... Do we need to show instructions here?
   }
     // We maintain two lists -- previous questions and upcomming questions.
     // When we go backward, we pop one from the previous and prepend it to
     // the upcomming.
-    // TODO: This can be maintained more efficiently with a single array of
+    // @todo: This can be maintained more efficiently with a single array of
     // all questions and then a pointer to the current question. That makes
     // rewinding much easier.
   // Check for answer submission.
@@ -1934,6 +1946,20 @@ function quiz_start_check($quiz) {
   // Call hook_quiz_begin().
   module_invoke_all('quiz_begin', $quiz, $rid);
 
+  return TRUE;
+}
+
+function quiz_is_available($quiz) {
+  $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
+  if ($user_is_admin || $quiz->quiz_always == 1)
+    return TRUE;
+
+  // Compare current GMT time to the open and close dates (which should still be in GMT time).
+  $now = gmmktime();
+
+  if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
+    return FALSE;
+  }
   return TRUE;
 }
 
