@@ -1355,6 +1355,11 @@ function quiz_take_quiz($quiz) {
   if (!$quiz->name && arg(4) == NULL) {
     drupal_goto('node/'. $quiz->nid .'/take/'. md5(mt_rand() . time()));
   }
+  
+  // Make sure we use the same revision of the quiz throughout the quiz taking session.
+  if(isset($_SESSION['quiz_'. $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_'. $quiz->nid]['quiz_vid']) {
+    $quiz = node_load($quiz->nid, $_SESSION['quiz_'. $quiz->nid]['quiz_vid']);
+  }
 
   // If the session has no data for this quiz
   if (!isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
