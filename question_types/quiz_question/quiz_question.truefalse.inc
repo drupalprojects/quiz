@@ -89,7 +89,7 @@ class TrueFalseQuestion implements QuizQuestion {
         0 => t('False'),
       ),
       //'#default_value' => 1,
-      '#required' => TRUE,
+      '#required' => FALSE,
     );
 
 
