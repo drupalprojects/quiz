@@ -1798,7 +1798,6 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           ". $filter['join'] ."
           WHERE qnrs.nid = %d ". $filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
-  
   // We remove the links to the last page and use a custom query to fetch the number of pages
   // Doing this we wastly improve performance
   $page = intval($_GET['page']);
@@ -1809,7 +1808,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
                 LEFT JOIN {users} u ON u.uid = qnrs.uid
                 LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
                 ". $filter['join'] ."
-                WHERE qnrs.nid = %d ". $filter['where'] . $filter['group'] . ' LIMIT 0, '. max($page * $num + $num * 7, $num * 10) .") tbl";
+                WHERE  qnrs.nid = %d ". $filter['where'] . $filter['group'] . ' LIMIT 0, '. max($page * $num + $num * 7, $num * 10) .") tbl";
   
   return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
 }
@@ -1836,7 +1835,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
   
   // Prepare the filter array
   $filter = array(
-    'params' => array('nid' => $quiz->nid),
+    'params' => array($quiz->nid),
     'join' => '',
     'where' => '',
     'group' => '',
@@ -1860,16 +1859,23 @@ function _quiz_results_mr_prepare_filter($quiz) {
       case '1': $filter['where'] .= ' AND is_evaluated = 1'; break;
     }
   }
-  if ($_SESSION[$pre .'best_results'] == 1) {
-    $filter['join'] .= " INNER JOIN (
-                           SELECT qn.uid, MAX(qn.score) AS max_score
-                           FROM quiz_node_results qn
-                           GROUP BY uid
-                         ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.max_score";
-    $filter['group'] .= " GROUP BY qnrs.uid";
-  }
   if ($_SESSION[$pre .'not_in_progress'] == 1) {
     $filter['where'] .= " AND time_end != 0";
+  }
+  if ($_SESSION[$pre .'best_results'] == 1) {
+    $filter['join'] .= " INNER JOIN (
+                           SELECT qnrs.uid, MAX(qnrs.score) AS top_score
+                           FROM {quiz_node_results} qnrs
+                           LEFT JOIN {users} u ON u.uid = qnrs.uid
+                           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
+                           WHERE qnrs.nid = %d " . $filter['where'] . "
+                           GROUP BY qnrs.uid
+                         ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.top_score";
+    $filter['group'] .= " GROUP BY qnrs.uid";
+    $filter['params'][] = $filter['params'][0];
+    if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+      $filter['params'][] = $_SESSION[$pre .'name'];
+    }
   }
   return $filter;
 }
@@ -2385,8 +2391,8 @@ function _quiz_get_score_intervals($quiz) {
 // Create datastructure to help create where clause in the sql for the changed filter...
   $scores = array(
     NULL,
-    '>= pass_rate',
-    '< pass_rate',
+    '>= qnp.pass_rate',
+    '< qnp.pass_rate',
     '= 100',
     '> 90',
     '> 75',
