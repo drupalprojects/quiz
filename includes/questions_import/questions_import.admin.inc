@@ -143,6 +143,7 @@ function questions_import_type() {
   //'moodle_hotpot' => t('Hotpotatoes 6.0 and 6.0 (by Moodle)'),
     'moodle_learnwise' => t('Learnwise (by Moodle)'),
     'moodle_webct' => t('WebCT (by Moodle)'),
+    'moodle_xml' => t('Moodle XML format (untested)'),
   // TODO fix HotPotatoes, ExamView and Blackboard
   );
   return $type;
