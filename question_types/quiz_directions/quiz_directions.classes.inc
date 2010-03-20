@@ -28,8 +28,8 @@ class QuizDirectionsQuestion implements QuizQuestion {
 
   public function __construct($node) {
     $this->node = $node;
-    $this->node->no_skip_button = TRUE; // No skip button
-    $this->node->not_a_question = TRUE;
+    //$this->node->no_skip_button = TRUE; // No skip button
+    //$this->node->not_a_question = TRUE;
   }
 
   public function save($is_new = FALSE) {}
