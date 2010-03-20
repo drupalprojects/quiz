@@ -3153,7 +3153,7 @@ function _quiz_redirect_if_empty($node) {
           WHERE parent_vid = %d';
   $res = db_query($sql, $node->vid);
   if (!$res_o = db_fetch_object($res))
-    $_REQUEST['destination'] = url("node/$node->nid/questions");
+    $_REQUEST['destination'] = 'node/' . $node->nid . '/questions';
 }
 
 /**
