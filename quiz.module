@@ -840,7 +840,7 @@ function quiz_form(&$node) {
     '#options' => _quiz_get_feedback_options(),
     '#description' => t('Indicates at what point feedback for each question will be given to the user'),
   );
-  $form['taking']['display_feedbadk'] = array (
+  $form['taking']['display_feedback'] = array (
     '#title' => t('Display solution'),
     '#type' => 'checkbox',
     '#default_value' => $node->display_feedback,
