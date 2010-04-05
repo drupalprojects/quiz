@@ -575,6 +575,7 @@ function quiz_admin_settings() {
     '#type' => 'select',
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
+    '#default_value' => variable_get('quiz_remove_partial_quiz_record', '0'),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
   );
 
