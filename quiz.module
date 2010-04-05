@@ -1278,7 +1278,7 @@ function quiz_store_question_result($result, $options) {
 
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
-      drupal_set_message('Last question skipped.', 'status');
+      drupal_set_message(t('Last question skipped.'));
     }
     $result->is_correct = FALSE;
     $result->score = 0;
