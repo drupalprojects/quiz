@@ -519,7 +519,7 @@ function quiz_insert($node) {
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, 
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, 
     $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, 
-    $node->quiz_always, $node->feedback_time, $node->display_feedback, $node->has_userpoints, $tid, 
+    $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, $node->has_userpoints, 
     $node->allow_skipping);
   
   _quiz_insert_resultoptions($node);
