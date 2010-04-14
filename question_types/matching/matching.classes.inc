@@ -15,10 +15,10 @@
  * Extension of QuizQuestion.
  */
 class MatchingQuestion extends QuizQuestion {
-  
+
   /**
    * Constructor
-   * 
+   *
    * @param $node
    *  matching node
    */
@@ -29,40 +29,47 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Implementation of saveNodeProperties
-   * 
+   *
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
     // Loop through each question-answer combination
     foreach ($this->node->match as $match) {
-      if (empty($match['question']) || empty($match['answer'])) {
-        continue;
-      }
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
-      if ($is_new || $this->node->revision == 1) {
-        $sql = "INSERT INTO {quiz_matching_node} (nid, vid, question, answer, feedback) VALUES (%d, %d, '%s', '%s', '%s')";
-        db_query($sql, $this->node->nid, $this->node->vid, $match['question'], $match['answer'], $match['feedback']);
+      // match_id is not so it is a new question.
+      if (empty($match['match_id'])) {
+        if (!empty($match['question']) && !empty($match['answer'])) {
+          $sql = "INSERT INTO {quiz_matching_node} (nid, vid, question, answer, feedback) VALUES (%d, %d, '%s', '%s', '%s')";
+          db_query($sql, $this->node->nid, $this->node->vid, $match['question'], $match['answer'], $match['feedback']);
+        }
       }
+      // match_id is set, user may remove or update existing question.
       else {
-        // TODO: Will this work when adding more question-alternative combos?
-        $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
-        db_query($sql, $match['question'], $match['answer'], $match['feedback'], $match['match_id']);
+        if (empty($match['question']) && empty($match['answer'])) {
+          // remove sub question.
+          db_query("DELETE FROM {quiz_matching_node} WHERE match_id = %d", $match['match_id']);
+        }
+        else {
+          // update sub question.
+          $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
+          db_query($sql, $match['question'], $match['answer'], $match['feedback'], $match['match_id']);
+        }
       }
     }
   }
 
   /**
    * Implementation of validateNode
-   * 
+   *
    * @see QuizQuestion#validateNode($form)
    */
   public function validateNode(array &$form) {
-    // This space intentionally left blank. :)
+
   }
 
   /**
    * Implementation of delete
-   * 
+   *
    * @see QuizQuestion#delete($only_this_version)
    */
   public function delete($only_this_version = FALSE) {
@@ -81,7 +88,7 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Implementation of getNodeProperties
-   * 
+   *
    * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
@@ -104,7 +111,7 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Implementation of getNodeView
-   * 
+   *
    * @see QuizQuestion#getNodeView()
    */
   public function getNodeView() {
@@ -139,7 +146,7 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Implementation of getAnsweringForm
-   * 
+   *
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
@@ -157,7 +164,7 @@ class MatchingQuestion extends QuizQuestion {
     $form['subquestions']['#theme'] = 'matching_answering_form';
     foreach ($matches as $match) {
       $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question'], FILTER_FORMAT_DEFAULT, FALSE);
-      
+
       $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
         '#title' => $title,
@@ -174,10 +181,10 @@ class MatchingQuestion extends QuizQuestion {
     );
     return variable_get('quiz_matching_shuffle_options', TRUE) ? array($form['question'], $this->customShuffle($form['subquestions']), $form['scoring_info']) : $form;
   }
-  
+
   /**
    * Shuffles an array, but keeps the keys, and makes sure the first element is the default element
-   * 
+   *
    * @param $array
    *  Array to be shuffled
    * @return
@@ -196,7 +203,7 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Helper function to fetch subquestions
-   * 
+   *
    * @return
    *  Array with two arrays, matches and selected options
    */
@@ -215,19 +222,19 @@ class MatchingQuestion extends QuizQuestion {
     }
     return array($matches, $select_option);
   }
-  
+
   /**
    * Implementation of getBodyFieldTitle
-   * 
+   *
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
     return t('Instruction');
   }
-  
+
   /**
    * Implementation of getCreationForm
-   * 
+   *
    * @see QuizQuestion#getCreationForm($form_state)
    */
   public function getCreationForm(array $form_state = NULL) {
@@ -270,7 +277,7 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Implementation of getMaximumScore
-   * 
+   *
    * @see QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
@@ -287,16 +294,16 @@ class MatchingQuestion extends QuizQuestion {
 
   /**
    * Get the correct answers for this question
-   * 
+   *
    * @return
    *  Array of correct answers
    */
   public function getCorrectAnswer() {
     $correct_answers = array();
 
-    $results = db_query("SELECT match_id, question, answer 
-      FROM {quiz_matching_node} 
-      WHERE nid = %d AND vid = %d", 
+    $results = db_query("SELECT match_id, question, answer
+      FROM {quiz_matching_node}
+      WHERE nid = %d AND vid = %d",
       $this->node->nid, $this->node->vid);
 
     while ($result = db_fetch_object($results)) {
@@ -337,7 +344,7 @@ class MatchingResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of isValid
-   * 
+   *
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
@@ -348,7 +355,7 @@ class MatchingResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of save
-   * 
+   *
    * @see QuizQuestionResponse#save()
    */
   public function save() {
@@ -363,23 +370,23 @@ class MatchingResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of delete
-   * 
+   *
    * @see QuizQuestionResponse#delete()
    */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_matching_user_answers} 
+    $sql = 'DELETE FROM {quiz_matching_user_answers}
             WHERE match_id IN (
-              SELECT match_id 
+              SELECT match_id
               FROM {quiz_matching_node}
               WHERE nid = %d AND vid = %d
-            ) 
+            )
             AND result_id = %d';
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
 
   /**
    * Implementation of score
-   * 
+   *
    * @see QuizQuestionResponse#score()
    */
   public function score() {
@@ -394,7 +401,7 @@ class MatchingResponse extends QuizQuestionResponse {
       }
       else {
         $wrong_answer++;
-      } 
+      }
     }
     $score = $correct_answer - $wrong_answer;
     return $score < 0 ? 0 : $score;
@@ -402,7 +409,7 @@ class MatchingResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of getResponse
-   * 
+   *
    * @see QuizQuestionResponse#getResponse()
    */
   public function getResponse() {
@@ -411,7 +418,7 @@ class MatchingResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of getReportFormResponse
-   * 
+   *
    * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
@@ -425,11 +432,11 @@ class MatchingResponse extends QuizQuestionResponse {
     if ($showfeedback) {
       $innerheader[] = '&nbsp;';
     }
-    
+
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
-    
+
     foreach ($correct_answers as $correct_answer) {
       $cols = array();
       $id = $user_answers[$correct_answer['match_id']];
