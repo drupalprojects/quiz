@@ -40,7 +40,7 @@ class LongAnswerQuestion implements QuizQuestion {
   public function validate($node, &$form) {
     // Check to make sure that the maximum score is greater-than or equal-to 0.
     $maximum_score = $node->maximum_score;
-    if (!ctype_digit($maximum_score) || intval($maximum_score) < 0) {
+    if (((int) $maximum_score != $maximum_score) || ((int) $maximum_score < 0)) {
       form_set_error('maximum_score', t('Score must be a positive integer (0 or higher).'));
     }
   }
