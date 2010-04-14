@@ -4,7 +4,7 @@
 /**
  * Sponsored by: Norwegian Centre for Telemedicine
  * Code: falcon
- * 
+ *
  * @file
  * Scale Install (a quiz question type)
  */
@@ -19,13 +19,14 @@ function scale_install() {
   _scale_insert_collection(array('Excellent', 'Very good', 'Good', 'Ok', 'Poor', 'Very poor'));
   _scale_insert_collection(array('Totally agree', 'Agree', 'Not sure', 'Disagree', 'Totally disagree'));
   _scale_insert_collection(array('Very important', 'Important', 'Moderately important', 'Less important' , 'unimportant'));
+  variable_set('node_options_scale', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
 
 /**
  * Implementation of hook_schema().
  */
-function scale_schema() { 
+function scale_schema() {
   $schema['quiz_scale_node_properties'] = array(
     'description' => 'Properties specific to this question type. Holds information about what answer collection this node uses',
     'fields' => array(
@@ -56,22 +57,22 @@ function scale_schema() {
       'answer_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,  
+        'not null' => TRUE,
       ),
       'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
-      ), 
+        'not null' => TRUE,
+      ),
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
+        'not null' => TRUE,
       ),
       'question_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE, 
+        'not null' => TRUE,
       ),
     ),
     'primary key' => array(
@@ -99,20 +100,20 @@ function scale_schema() {
       'id',
     ),
   );
-  
+
   $schema['quiz_scale_user'] = array(
     'description' => 'User settings, store what answer collections the user have as presets',
     'fields' => array(
       'uid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,  
+        'not null' => TRUE,
       ),
       'answer_collection_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-      ),      
+      ),
     ),
     'primary key' => array(
       'uid', 'answer_collection_id'
@@ -146,8 +147,8 @@ function scale_schema() {
 }
 
 /**
- * Implementation of hook_update_N
- * 
+ * Implementation of hook_update_N().
+ *
  * NOTE: We shouldn't create update hooks for rebuilding the theme registry, but since this is already here we can't remove it...
  */
 function scale_update_6400() {
@@ -156,19 +157,19 @@ function scale_update_6400() {
 }
 
 /**
- * Implementation of hook_update_N
- * 
+ * Implementation of hook_update_N().
+ *
  * Update max score for the scale questions in the database
  */
 function scale_update_6401() {
   $sql = 'UPDATE {quiz_question_properties} qqp
           SET max_score = 1
           WHERE qqp.nid IN(
-            SELECT n.nid 
+            SELECT n.nid
             FROM {node} n
             WHERE n.type = \'scale\'
           )';
-  $to_return = array();          
+  $to_return = array();
   $to_return[] = update_sql($sql);
   return $to_return;
 }
@@ -185,22 +186,22 @@ function scale_uninstall() {
 
 /**
  * Inserts answer collections into the database
- * 
+ *
  * @param $answers
  *  Array of answers to include in the answer collection
  */
 function _scale_insert_collection($answers) {
   // Save the collection as a global preset
   $sql = 'INSERT INTO {quiz_scale_answer_collection}
-         (for_all) VALUES(1)'; 
+         (for_all) VALUES(1)';
   db_query($sql);
-  
+
   // Save the collections as a preset collection for user 1
   $collection_id = db_last_insert_id('{quiz_scale_answer_collection}', 'id');
   $sql = 'INSERT INTO {quiz_scale_user}
-         (uid, answer_collection_id) VALUES(%d, %d)'; 
+         (uid, answer_collection_id) VALUES(%d, %d)';
   db_query($sql, 1, $collection_id);
-  
+
   // Save the answers belonging to the collection
   for ($i = 0; $i < count($answers); $i++) {
     $sql = 'INSERT INTO {quiz_scale_answer}

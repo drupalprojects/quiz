@@ -127,8 +127,8 @@ function short_answer_schema() {
 }
 
 /**
- * Implementation of hook_update_N
- * 
+ * Implementation of hook_update_N()
+ *
  * Convert the score columt to be of type float. This is to fit the new scoring system with different max
  * scores in different quizzes.
  */

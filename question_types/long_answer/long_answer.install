@@ -28,7 +28,7 @@ function long_answer_uninstall() {
   // Clear the cache.
   cache_clear_all('variables', 'cache');
   drupal_set_message(t('The Long Answer module has been uninstalled and related data has been deleted.'));
-  
+
 }
 
 /**
@@ -105,8 +105,8 @@ function long_answer_schema() {
 }
 
 /**
- * Implementation of hook_update_N
- * 
+ * Implementation of hook_update_N()
+ *
  * Use float instead of int on the score field. This is to better suit the use of max score...
  */
 function long_answer_update_6400() {
@@ -122,16 +122,16 @@ function long_answer_update_6400() {
 }
 
 /**
- * Implementation of hook_update_N
- * 
+ * Implementation of hook_update_N()
+ *
  * Add a table for storing the rubric
- * 
- * @return 
+ *
+ * @return
  */
 
 function long_answer_update_6401() {
   $results = array();
-  if (db_table_exists('quiz_long_answer_node_properties')) 
+  if (db_table_exists('quiz_long_answer_node_properties'))
     db_drop_table($results, 'quiz_long_answer_node_properties');
   db_create_table($results, 'quiz_long_answer_node_properties', array(
     'fields' => array(

@@ -12,7 +12,7 @@
  */
 function truefalse_install() {
   drupal_install_schema('truefalse');
-  variable_set('node_options_true_false', array('status'));
+  variable_set('node_options_truefalse', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
 
@@ -60,7 +60,7 @@ function truefalse_schema() {
       'vid', 'nid'
     ),
   );
-  
+
   // Place to store user answers for T/F questions
   $schema['quiz_truefalse_user_answers'] = array(
     'fields' => array(
