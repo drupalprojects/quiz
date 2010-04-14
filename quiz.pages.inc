@@ -8,13 +8,13 @@
 
 /**
  * Show result page for a given result id
- * 
+ *
  * @param $result_id
  *  Result id
  */
 function quiz_user_results($result_id) {
   global $user;
-  
+
   $sql = 'SELECT qnp.nid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
@@ -116,14 +116,14 @@ function quiz_report_form_submit($form, &$form_state) {
     if (!isset($q_values['submit'])) continue;
     // The submit function must exist
     if (!function_exists($q_values['submit'])) continue;
-    
+
     // Load the quiz
     $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
     $result = db_fetch_object(db_query($sql, $q_values['rid']));
     $quiz = node_load($result->nid, $result->vid);
     $rid = $q_values['rid'];
     $q_values['quiz'] = $quiz;
-    
+
     // We call the validation function provided by the question
     call_user_func($q_values['submit'], $q_values);
   }
@@ -131,7 +131,7 @@ function quiz_report_form_submit($form, &$form_state) {
   quiz_update_total_score_fast($rid, $quiz->vid);
   _quiz_maintain_results($quiz, $rid);
   db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid);
-  
+
   // A message saying the quiz is unscored has already been set. We unset it here...
   _quiz_remove_unscored_message();
 }
@@ -152,14 +152,14 @@ function _quiz_remove_unscored_message() {
       unset($_SESSION['messages']['error']);
       if (empty($_SESSION['messages'])) {
         unset($_SESSION['messages']);
-      } 
+      }
     }
   }
 }
 
 /**
  * Updates the total score using only one mySql query.
- * 
+ *
  * @param $rid
  *  Result id
  * @param $quiz_vid
@@ -189,7 +189,7 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
  */
 function quiz_get_user_results($user_id) {
   $results = array();
-  $sql = "SELECT n.nid, n.title, u.name, qnrs.result_id, qnrs.time_start, qnrs.time_end
+  $sql = "SELECT n.nid, n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
     INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
@@ -219,31 +219,35 @@ function quiz_get_user_results($user_id) {
  * @ingroup themeable
  */
 function theme_quiz_get_user_results($results) {
-  $output = '';
   $rows = array();
+
   while (list($key, $result) = each($results)) {
+    $interval = _quiz_format_duration($result['time_end'] - $result['time_start']);
+    $grade = ($result['score'] >= $result['pass_rate']) ? '<span class="quiz-passed">' . t('Pass') . '</span>' : '<span class="quiz-failed">' . t('Fail') . '</span>';
+
     $rows[] = array(
-      l(t('view'), 'user/quiz/'. $result['result_id'] .'/userresults'),
-      check_plain($result['title']),
-      check_plain($result['name']),
-      format_date($result['time_start'], 'small'),
-      ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+      'title'       => l($result['title'], 'user/quiz/'. $result['result_id'] .'/userresults'),
+      'time_start'  => format_date($result['time_start'], 'small'),
+      'time_end'    =>($result['time_end'] > 0) ? format_date($result['time_end'], 'small') . '<br />' . t('Duration :  @value', array('@value' => $interval)) : t('In Progress'),
+      'score'       => $result['score'] . '<br />' . t('Grade : !name', array('!name' => $grade)),
+      'evaluated'   => $result['is_evaluated'] ? t('Yes') : t('No'),
     );
   }
 
-  $header = array(
-    t('Action'),
-    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
-    t('Username'),
-    t('Time Started'),
-    t('Finished?'));
+  if (empty($rows)) {
+    return t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
+  }
 
-  if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
-  }
-  else {
-    $output .= t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
-  }
+  $header = array(
+    t('@quiz Title', array('@quiz' => QUIZ_NAME)),
+    t('Time Started'),
+    t('Finished?'),
+    t('Score (%)'),
+    t('Evaluated?'),
+  );
+
+  $output = theme('table', $header, $rows);
+  $output .= '<p><em>' . t('@quiz that are not evaluated may have different score and grade when it is done.', array('@quiz' => QUIZ_NAME)) . '</em></p>';
   return $output;
 }
 
@@ -387,10 +391,10 @@ function theme_quiz_no_feedback() {
 
 /**
  * Theme the single question node
- * 
+ *
  * @param $node
  *  The question node
- * @return 
+ * @return
  *  Themed html feedback
  */
 function theme_quiz_single_question_node($node) {
@@ -401,7 +405,7 @@ function theme_quiz_single_question_node($node) {
 
 /**
  * Theme the stats on the views page
- * 
+ *
  * @param $node
  *   The quiz node
  */
