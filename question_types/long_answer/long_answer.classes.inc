@@ -124,7 +124,7 @@ class LongAnswerResponse extends AbstractQuizQuestionResponse {
       FROM {quiz_long_answer_user_answers} AS a
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
       INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
-      WHERE is_evaluated = 0';
+      WHERE a.is_evaluated = 0';
     $results = db_query_range($sql, $offset, $count);
     $unscored = array();
 
