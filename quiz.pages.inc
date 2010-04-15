@@ -56,7 +56,7 @@ function quiz_user_results($result_id) {
  * @return $form
  *   FAPI form array
  */
-function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = FALSE, $allow_scoring = FALSE) {
+function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
   $form = array();
   // The submit button is only shown if one or more of the questions has input elements
   $show_submit = FALSE;

@@ -301,16 +301,17 @@ class MatchingQuestion extends QuizQuestion {
   public function getCorrectAnswer() {
     $correct_answers = array();
 
-    $results = db_query("SELECT match_id, question, answer
+    $results = db_query('SELECT match_id, question, answer, feedback
       FROM {quiz_matching_node}
-      WHERE nid = %d AND vid = %d",
+      WHERE nid = %d AND vid = %d',
       $this->node->nid, $this->node->vid);
 
     while ($result = db_fetch_object($results)) {
       $correct_answers[$result->match_id] = array(
-        'match_id' => $result->match_id,
-        'question' => $result->question,
-        'answer' => $result->answer
+        'match_id'  => $result->match_id,
+        'question'  => $result->question,
+        'answer'    => $result->answer,
+        'feedback'  => $result->feedback,
       );
     }
     return $correct_answers;
@@ -363,7 +364,7 @@ class MatchingResponse extends QuizQuestionResponse {
     // to prevent warning : Invalid argument supplied for foreach()
     foreach ((array)$user_answers as $key => $value) {
       $score = ($key == $value)? 1 : 0;
-      $sql = "INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)";
+      $sql = 'INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)';
       db_query($sql, $key, $this->rid, (int)$value, $score);
     }
   }
@@ -430,7 +431,7 @@ class MatchingResponse extends QuizQuestionResponse {
     }
     $innerheader[] = t('Response');
     if ($showfeedback) {
-      $innerheader[] = '&nbsp;';
+      $innerheader[] = t('Feedback');
     }
 
     $MatchingQuestion = new MatchingQuestion($this->question);
@@ -445,16 +446,16 @@ class MatchingResponse extends QuizQuestionResponse {
       if ($showpoints)
         $cols[] = $correct_answer['answer'];
       $cols[] = $correct_answers[$id]['answer'];
-      if ($showfeedback)
+      if ($showfeedback) {
+        $cols[] = check_markup($correct_answer['feedback']);
         $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
-
+      }
       $rows[] = $cols;
-    }
-    // Add the cell with the question and the answers.
-    $table = theme('table', $innerheader, $rows) .'<br />';
+    }   
+    
     return array(
       '#type' => 'markup',
-      '#value' => $table,
+      '#value' => theme('table', $innerheader, $rows) . '<br />',
     );
   }
 }
