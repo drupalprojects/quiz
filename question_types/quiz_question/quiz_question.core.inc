@@ -397,7 +397,7 @@ abstract class QuizQuestion {
     $sql = 'SELECT result_id
             FROM {quiz_node_results_answers}
             WHERE question_nid = %d';
-    if ($only_this_version) $sql .= ' AND vid = %d';
+    if ($only_this_version) $sql .= ' AND question_vid = %d';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $rids = array();
     while ($rids[] = db_result($res)) {}
