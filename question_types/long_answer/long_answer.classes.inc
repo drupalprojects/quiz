@@ -15,7 +15,7 @@
 class LongAnswerQuestion extends QuizQuestion{
   /**
    * Implementation of saveNodeProperties
-   * 
+   *
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
@@ -35,10 +35,10 @@ class LongAnswerQuestion extends QuizQuestion{
       db_query($sql, $this->node->rubric, $this->node->nid, $this->node->vid);
     }
   }
-  
+
   /**
    * Implementation of validateNode
-   * 
+   *
    * @see QuizQuestion#validateNode($form)
    */
   public function validateNode(array &$form) {
@@ -46,7 +46,7 @@ class LongAnswerQuestion extends QuizQuestion{
 
   /**
    * Implementation of delete
-   * 
+   *
    * @see QuizQuestion#delete($only_this_version)
    */
   public function delete($only_this_version = FALSE) {
@@ -61,7 +61,7 @@ class LongAnswerQuestion extends QuizQuestion{
 
   /**
    * Implementation of getNodeProperties
-   * 
+   *
    * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
@@ -78,10 +78,10 @@ class LongAnswerQuestion extends QuizQuestion{
     $this->nodeProperties = $props;
     return $props;
   }
-  
+
   /**
    * Implementation of getNodeView
-   * 
+   *
    * @see QuizQuestion#getNodeView()
    */
   public function getNodeView() {
@@ -107,7 +107,7 @@ class LongAnswerQuestion extends QuizQuestion{
 
   /**
    * Implementation of getAnweringForm
-   * 
+   *
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
@@ -129,10 +129,10 @@ class LongAnswerQuestion extends QuizQuestion{
     }
     return $form;
   }
-  
+
   /**
    * Implementation of getCreationForm
-   * 
+   *
    * @see QuizQuestion#getCreationForm($form_state)
    */
   public function getCreationForm(array $form_state = NULL) {
@@ -147,10 +147,10 @@ class LongAnswerQuestion extends QuizQuestion{
     );
     return $form;
   }
-  
+
   /**
    * Implementation of getMaximumScore
-   * 
+   *
    * @see QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
@@ -180,7 +180,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
       FROM {quiz_long_answer_user_answers} AS a
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
       INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
-      WHERE is_evaluated = 0';
+      WHERE a.is_evaluated = 0';
     $results = db_query_range($sql, $offset, $count);
     $unscored = array();
 
@@ -192,7 +192,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
     return $unscored;
   }
-  
+
   /**
    * Given a quiz, return a list of all of the unscored answers.
    *
@@ -209,11 +209,11 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *  Indexed array of result IDs that need to be scored.
    */
   public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
-    $results = db_query_range('SELECT result_id 
-      FROM {quiz_long_answer_user_answers} 
-      WHERE is_evaluated = 0 
-      AND question_nid = %d 
-      AND question_vid = %d', 
+    $results = db_query_range('SELECT result_id
+      FROM {quiz_long_answer_user_answers}
+      WHERE is_evaluated = 0
+      AND question_nid = %d
+      AND question_vid = %d',
       $nid, $vid, $offset, $count);
     $unscored = array();
     foreach (db_fetch_object($results) as $row) {
@@ -255,22 +255,22 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of isValid
-   * 
+   *
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
     if (empty($this->answer)) return t('You must provide an answer');
     return TRUE;
   }
-  
+
   /**
    * Implementation of save
-   * 
+   *
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    $sql = "INSERT INTO {quiz_long_answer_user_answers} 
-            (answer, question_nid, question_vid, result_id) 
+    $sql = "INSERT INTO {quiz_long_answer_user_answers}
+            (answer, question_nid, question_vid, result_id)
             VALUES ('%s', %d, %d, %d)";
     db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid);
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
@@ -278,23 +278,23 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of save
-   * 
+   *
    * @see QuizQuestionResponse#delete()
    */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_long_answer_user_answers} 
+    $sql = 'DELETE FROM {quiz_long_answer_user_answers}
             WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
     db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
   }
 
   /**
    * Implementation of score
-   * 
+   *
    * @see QuizQuestionResponse#score()
    */
   public function score() {
-    $sql = "SELECT score 
-            FROM {quiz_long_answer_user_answers} 
+    $sql = "SELECT score
+            FROM {quiz_long_answer_user_answers}
             WHERE result_id = %d AND question_vid = %d";
     $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
     return $score;
@@ -302,7 +302,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of isCorrect
-   * 
+   *
    * @see QuizQuestionResponse#isCorrect()
    */
   public function isCorrect() {
@@ -316,21 +316,21 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
    * Implementation of getResponse
-   * 
+   *
    * @see QuizQuestionResponse#getResponse()
    */
   public function getResponse() {
     return $this->answer;
   }
-  
+
   /**
    * Implementation of getReportFormResponse
-   * 
+   *
    * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
-    if ($this->question && !empty($this->question->answers)) 
+    if ($this->question && !empty($this->question->answers))
       $answer = (object) current($this->question->answers);
     else
       return $form;
@@ -364,10 +364,10 @@ class LongAnswerResponse extends QuizQuestionResponse {
     }
     return $form;
   }
-  
+
   /**
    * Implementation of getReportFormScore
-   * 
+   *
    * @see QuizQuestionResponse#getReportFormScore($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormScore($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
@@ -390,19 +390,19 @@ class LongAnswerResponse extends QuizQuestionResponse {
       );
     }
   }
-  
+
   /**
    * Implementation of getReportFormSubmit
-   * 
+   *
    * @see QuizQuestionResponse#getReportFormSubmit($showfeedback, $showpoints, $allow_scoring)
    */
   public function getReportFormSubmit($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return $allow_scoring ? 'long_answer_report_submit' : FALSE;
   }
-  
+
   /**
    * Implementation of getReportFormValidate
-   * 
+   *
    * @see QuizQuestionResponse#getReportFormValidate($showfeedback, $showpoints, $allow_scoring)
    */
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
