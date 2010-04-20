@@ -229,15 +229,32 @@ function theme_quiz_get_user_results($results) {
 
   while (list($key, $result) = each($results)) {
     $interval = _quiz_format_duration($result['time_end'] - $result['time_start']);
-    $grade = ($result['score'] >= $result['pass_rate']) ? '<span class="quiz-passed">' . t('Pass') . '</span>' : '<span class="quiz-failed">' . t('Fail') . '</span>';
-
+    $passed = $result['score'] >= $result['pass_rate'];
+    $grade = $passed ? t('Passed') : t('Failed');
+    $passed_class = $passed ? 'quiz-passed' : 'quiz-failed';
+    if (!is_numeric($result['score']))
+      $score = t('In progress');
+    elseif (!$result['is_evaluated']) 
+      $score = t('Not evaluated');
+    else {
+      if (!empty($result['pass_rate']) && is_numeric($result['score'])) {
+        $pre_score = '<span class = "' . $passed_class . '">';
+        $post_score = ' %<br><em>'. $grade .'</em></span>';
+      }
+      else {
+        $post_score = ' %';
+      }
+      $score = $pre_score . $result['score'] . $post_score;
+    }
     $rows[] = array(
       'title'       => l($result['title'], 'user/quiz/'. $result['result_id'] .'/userresults'),
       'time_start'  => format_date($result['time_start'], 'small'),
       'time_end'    =>($result['time_end'] > 0) ? format_date($result['time_end'], 'small') . '<br />' . t('Duration :  @value', array('@value' => $interval)) : t('In Progress'),
-      'score'       => $result['score'] . '<br />' . t('Grade : !name', array('!name' => $grade)),
+      
+      'score'       => $score,
       'evaluated'   => $result['is_evaluated'] ? t('Yes') : t('No'),
     );
+  
   }
 
   if (empty($rows)) {
@@ -246,10 +263,10 @@ function theme_quiz_get_user_results($results) {
 
   $header = array(
     t('@quiz Title', array('@quiz' => QUIZ_NAME)),
-    t('Time Started'),
-    t('Finished?'),
-    t('Score (%)'),
-    t('Evaluated?'),
+    t('Started'),
+    t('Finished'),
+    t('Score'),
+    t('Evaluated'),
   );
 
   $output = theme('table', $header, $rows);
