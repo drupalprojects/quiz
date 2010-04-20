@@ -3021,6 +3021,8 @@ function quiz_copy_questions($node) {
  *  The quiz node to be maintained
  * @param $rid
  *  The result id of the latest result for the current user
+ * @return
+ *  TRUE if results where deleted.
  */
 function _quiz_maintain_results($quiz, $rid) {
   global $user;
@@ -3030,7 +3032,7 @@ function _quiz_maintain_results($quiz, $rid) {
   
   switch ($quiz->keep_results) {
     case QUIZ_KEEP_ALL:
-      return;
+      return FALSE;
     case QUIZ_KEEP_BEST: //I'm afraid of what this might do to performance...
       $sql = 'SELECT result_id 
               FROM {quiz_node_results}
@@ -3050,7 +3052,7 @@ function _quiz_maintain_results($quiz, $rid) {
         $rids[] = $rid2;
       }
       quiz_delete_results($rids);
-      break;
+      return !empty($rids);
     case QUIZ_KEEP_LATEST:
       $sql = 'SELECT result_id
               FROM {quiz_node_results}
@@ -3061,7 +3063,7 @@ function _quiz_maintain_results($quiz, $rid) {
         $rids[] = $rid2;
       }
       quiz_delete_results($rids);
-      break;
+      return !empty($rids);
   }
 }
 

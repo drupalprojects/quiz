@@ -129,11 +129,17 @@ function quiz_report_form_submit($form, &$form_state) {
   }
   // Scores may have been changed. We take the necessary actions
   quiz_update_total_score_fast($rid, $quiz->vid);
-  _quiz_maintain_results($quiz, $rid);
   db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid);
+  $results_got_deleted = _quiz_maintain_results($quiz, $rid);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
   _quiz_remove_unscored_message();
+  
+  // Notify the user if results got deleted as a result of him scoring an answer.
+  $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
+    
+  drupal_set_message(t('The scoring data you provided have been saved.') . $add);
+  $form_state['redirect'] = 'admin/quiz/reports/results/' . $quiz->nid;
 }
 
 /**
