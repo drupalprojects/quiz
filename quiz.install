@@ -8,6 +8,23 @@
  */
 
 /**
+ * Implementation of hood_update_N
+ * 
+ * Allow negative score values.
+ */
+function quiz_update_6414() {
+  $results = array();
+  db_change_field($results, 'quiz_node_results_answers', 'points_awarded', 'points_awarded', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  return $results;
+}
+
+/**
  * Implementation of hook_update_N
  * 
  * Make display feedback a quiz option, and not a global variable
@@ -954,7 +971,7 @@ function quiz_schema() {
       'points_awarded' => array(
         'type' => 'int',
         'size' => 'tiny',
-        'unsigned' => TRUE,
+        'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 0,
       ),
