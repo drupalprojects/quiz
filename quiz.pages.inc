@@ -138,7 +138,7 @@ function quiz_report_form_submit($form, &$form_state) {
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
     
-  drupal_set_message(t('The scoring data you provided have been saved.') . $add);
+  drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   $form_state['redirect'] = 'admin/quiz/reports/results/' . $quiz->nid;
 }
 

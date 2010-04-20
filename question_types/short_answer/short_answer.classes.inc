@@ -334,6 +334,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       }
       else {
         $this->answer = $answer;
+        $this->evaluated = $this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL;
       }
     }
   }
