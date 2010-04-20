@@ -57,6 +57,33 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   /**
+   * Warn the user about possible user errors
+   */
+  private function warn() {
+    // Count the number of correct answers
+    $num_corrects = 0;
+    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      $alt = &$this->node->alternatives[$i];
+      if ($alt['score_if_chosen'] > $alt['score_if_not_chosen']) {
+        $num_corrects++;
+      }
+    }
+    if ($num_corrects == 1 && $this->node->choice_multi == 1 || $num_corrects > 1 && $this->node->choice_multi == 0) {
+      $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit');
+      if ($num_corrects == 1)
+        drupal_set_message(
+          t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', 
+            array('!go_back' => $go_back)),
+          'warning');
+      else
+        drupal_set_message(
+          t('Your question doesn\'t allow multiple answers. More than one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', 
+            array('!go_back' => $go_back)),
+          'warning');
+    }
+  }
+  
+  /**
    * Run check_markup() on the field of the specified choice alternative
    * @param $alternativeIndex
    *  The index of the alternative in the alternatives array.
@@ -82,8 +109,13 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function saveNodeProperties($is_new = FALSE) {
     $is_new_node = $is_new || $this->node->revision == 1;
+    
     // Before we save we forgive some possible user errors
     $this->forgive();
+    
+    // We also add warnings on other possible user errors
+    $this->warn();
+    
     if ($is_new_node) {
       $sql = 'INSERT INTO {quiz_multichoice_properties}
               (nid, vid, choice_multi, choice_random, choice_boolean)
