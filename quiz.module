@@ -1462,8 +1462,7 @@ function quiz_take_quiz($quiz) {
       require_once($path .'/quiz.pages.inc');
       $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form', array($report)));
     }
-    
-    if ($quiz->repeat_until_correct) {
+    if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
       // If the question was answered incorrectly, repeat it
       if ($result && !$result->is_correct && $result->is_evaluated) {
         $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
@@ -1508,7 +1507,7 @@ function quiz_take_quiz($quiz) {
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
     // If we got no error when validating the question
-    if (!is_string($q_passed_validation)) {
+    if (!is_string($q_passed_validation) || $_POST['op'] == t('Back')) {
       $question_node = node_load(
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid'],
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['vid']

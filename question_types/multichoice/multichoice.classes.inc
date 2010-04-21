@@ -739,6 +739,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function isValid() {
     if ($this->question->choice_multi) return TRUE;
     if (empty($this->user_answer_ids)) return t('You must provide an answer');
+    return TRUE;
   }
 
   /**
