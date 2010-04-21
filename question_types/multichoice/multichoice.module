@@ -59,10 +59,13 @@ function multichoice_config_validate($form, $form_state) {
  * Implementation of hook_menu
  */
 function multichoice_menu() {
+  $dummy_node = new stdClass();
+  $dummy_node->type = 'multichoice';
   $items['multichoice/add_alternative_js'] = array(
     'page callback' => 'multichoice_add_alternative_js',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
+    'access callback' => 'node_access',
+    'access arguments' => array('create', $dummy_node),
   );
   return $items;
 }
