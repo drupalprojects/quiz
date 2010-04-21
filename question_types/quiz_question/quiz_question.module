@@ -189,6 +189,7 @@ function quiz_question_answering_form($form_state, $node) {
     $form['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
+      '#attributes' => array('class' => 'q-back-button'),
     );
   }
 

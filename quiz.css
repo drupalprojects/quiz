@@ -143,10 +143,22 @@ dl.quiz-report dd {
   background-color: #FFFFDD;
 }
 
+.q-back-button {
+  background: 0 none;
+  border: 0 none;
+  color: #0000ff;
+}
+
+.q-back-button:hover {
+  color: #009999;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 .q-skip-button {
   background: 0 none;
   border: 0 none;
-  color: #bb0000;
+  color: #aa0000;
 }
 
 .q-skip-button:hover {
