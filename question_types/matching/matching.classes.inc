@@ -120,9 +120,9 @@ class MatchingQuestion extends QuizQuestion {
     list($matches, $select_option) = $this->getSubquestions();
 
     if ($this->viewCanRevealCorrect()) {
-      $header = array(t('Subquestion'), t('Correct match'));
+      $header = array(t('Subquestion'), t('Correct match'), t('Feedback'));
       foreach ($matches as $match) {
-        $rows[] = array($match['question'], $match['answer']);
+        $rows[] = array($match['question'], $match['answer'], $match['feedback']);
       }
     }
     else {
