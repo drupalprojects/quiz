@@ -52,7 +52,7 @@ function quiz_admin_settings() {
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
-    '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz).'),
+    '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz). Set to 0 to disable result options.'),
     '#default_value' => variable_get('quiz_max_result_options', 5),
     '#size' => 2,
     '#maxlength' => 2,

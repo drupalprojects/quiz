@@ -1024,59 +1024,61 @@ function quiz_form(&$node) {
     '#value' => $max_score_for_random,
   );
 
-  $form['resultoptions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Result Comments'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#tree' => TRUE,
-  );
-
   $options = !empty($node->resultoptions) ? $node->resultoptions : array();
   $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
 
-  for ($i=0; $i < $num_options; $i++) {
-    $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
-    $form['resultoptions'][$i] = array(
+  if ($num_options > 0) {
+    $form['resultoptions'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Result Option ') . ($i + 1),
+      '#title' => t('Result Comments'),
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#collapsed' => TRUE,
+      '#tree' => TRUE,
     );
-    $form['resultoptions'][$i]['option_name'] = array(
-      '#type' => 'textfield',
-      '#title' => t('The name of the result'),
-      '#default_value' => $option['option_name'],
-      '#maxlength' => 40,
-      '#size' => 40,
-    );
-    $form['resultoptions'][$i]['option_start'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Percentage Start Range'),
-      '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-      '#default_value' => $option['option_start'],
-      '#size' => 5,
-    );
-    $form['resultoptions'][$i]['option_end'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Percentage End Range'),
-      '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-      '#default_value' => $option['option_end'],
-      '#size' => 5,
-    );
-    $form['resultoptions'][$i]['option_summary'] = array(
-      '#type' => 'textarea',
-      '#title' => t('Display text for the result'),
-      '#default_value' => $option['option_summary'],
-      '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
-    );
-    $form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
-    _quiz_format_mod($form['resultoptions'][$i]['format']);
-    if ($option['option_id']) {
-      $form['resultoptions'][$i]['option_id'] = array(
-        '#type' => 'hidden',
-        '#value' => $option['option_id'],
+  
+    for ($i=0; $i < $num_options; $i++) {
+      $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
+      $form['resultoptions'][$i] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Result Option ') . ($i + 1),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
       );
+      $form['resultoptions'][$i]['option_name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('The name of the result'),
+        '#default_value' => $option['option_name'],
+        '#maxlength' => 40,
+        '#size' => 40,
+      );
+      $form['resultoptions'][$i]['option_start'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Percentage Start Range'),
+        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
+        '#default_value' => $option['option_start'],
+        '#size' => 5,
+      );
+      $form['resultoptions'][$i]['option_end'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Percentage End Range'),
+        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
+        '#default_value' => $option['option_end'],
+        '#size' => 5,
+      );
+      $form['resultoptions'][$i]['option_summary'] = array(
+        '#type' => 'textarea',
+        '#title' => t('Display text for the result'),
+        '#default_value' => $option['option_summary'],
+        '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
+      );
+      $form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
+      _quiz_format_mod($form['resultoptions'][$i]['format']);
+      if ($option['option_id']) {
+        $form['resultoptions'][$i]['option_id'] = array(
+          '#type' => 'hidden',
+          '#value' => $option['option_id'],
+        );
+      }
     }
   }
   if (quiz_has_been_answered($node)) {
@@ -1107,40 +1109,42 @@ function quiz_validate($node) {
     }
   }
 
-  $taken_values = array();
-  $num_options = 0;
-  foreach ($node->resultoptions as $option) {
-    if (!empty($option['option_name'])) {
-      $num_options++;
-      if (empty($option['option_summary'])) {
-        form_set_error('option_summary', t('Option has no summary text.'));
-      }
-      if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
-
-        // Check for a number between 0-100.
-        foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
-          if (!_quiz_is_int($option[$bound], 0, 100)) {
-            form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
+  if (isset($node->resultoptions) && count($node->resultoptions) > 0) {
+    $taken_values = array();
+    $num_options = 0;
+    foreach ($node->resultoptions as $option) {
+      if (!empty($option['option_name'])) {
+        $num_options++;
+        if (empty($option['option_summary'])) {
+          form_set_error('option_summary', t('Option has no summary text.'));
+        }
+        if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
+  
+          // Check for a number between 0-100.
+          foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
+            if (!_quiz_is_int($option[$bound], 0, 100)) {
+              form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
+            }
+          }
+  
+          // Check that range end >= start.
+          if ($option['option_start'] > $option['option_end']) {
+            form_set_error('option_start', t('The start must be less than the end of the range.'));
+          }
+  
+          // Check that range doesn't collide with any other range.
+          $option_range = range($option['option_start'], $option['option_end']);
+          if ($intersect = array_intersect($taken_values, $option_range)) {
+            form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
+          }
+          else {
+            $taken_values = array_merge($taken_values, $option_range);
           }
         }
-
-        // Check that range end >= start.
-        if ($option['option_start'] > $option['option_end']) {
-          form_set_error('option_start', t('The start must be less than the end of the range.'));
-        }
-
-        // Check that range doesn't collide with any other range.
-        $option_range = range($option['option_start'], $option['option_end']);
-        if ($intersect = array_intersect($taken_values, $option_range)) {
-          form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
-        }
-        else {
-          $taken_values = array_merge($taken_values, $option_range);
-        }
       }
-    }
-    elseif (!empty($option['option_summary'])) {
+      elseif (!empty($option['option_summary'])) {
         form_set_error('option_summary', t('Option has a summary, but no name.'));
+      }
     }
   }
 }
