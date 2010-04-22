@@ -227,7 +227,7 @@ function quiz_menu() {
   
   // Take //
   $items['node/%node/take'] = array(
-    'title' => t('Take'),
+    'title' => 'Take',
     'page callback' => 'quiz_take',
     'page arguments' => array(1),
     'access callback' => 'quiz_type_confirm',
@@ -237,8 +237,9 @@ function quiz_menu() {
   
   // ADMIN //
   $items['admin/quiz'] = array(
-    'title' => t('@quiz management', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View @quiz results, score tests, run reports.', array('@quiz' => QUIZ_NAME)),
+    'title' => '@quiz management',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'View results, score answers, run reports and edit configurations.',
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration', 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
@@ -248,8 +249,9 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/settings'] = array(
-    'title' => t('@quiz settings', array('@quiz' => QUIZ_NAME)),
-    'description' => t('Change @quiz settings.', array('@quiz' => QUIZ_NAME)),
+    'title' => '@quiz settings',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'Change settings for the all Quiz project modules.',
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM,
@@ -258,8 +260,9 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/settings/config'] = array(
-    'title' => t('@quiz configuration', array('@quiz' => QUIZ_NAME)),
-    'description' => t('Configure @quiz options.', array('@quiz' => QUIZ_NAME)),
+    'title' => '@quiz configuration',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'Configure the Quiz module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_settings'),
     'access arguments' => array('administer quiz configuration'),
@@ -268,8 +271,9 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/settings/quiz_form'] = array(
-    'title' => t('@quiz node-form configuration', array('@quiz' => QUIZ_NAME)),
-    'description' => t('Configure @quiz node-form default values.', array('@quiz' => QUIZ_NAME)),
+    'title' => '@quiz node-form configuration',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'Configure Quiz node-form default values.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_node_form'),
     'access arguments' => array('administer quiz configuration'),
@@ -278,8 +282,9 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/reports'] = array(
-    'title' => t('@quiz reports and scoring', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View @quiz reports.', array('@quiz' => QUIZ_NAME)),
+    'title' => 'Quiz reports and scoring',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'View reports and score answers.',
     'page callback' => 'system_admin_menu_block_page',
     'access arguments' => array('view any quiz results', 'view results for own quiz'),
     'access callback' => 'quiz_access_multi_or',
@@ -289,7 +294,8 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/reports/results'] = array(
-    'title' => t('@quiz results', array('@quiz' => QUIZ_NAME)),
+    'title' => '@quiz results',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
     'description' => 'View results.',
     'page callback' => 'quiz_admin_quizzes',
     'access arguments' => array('view any quiz results', 'view results for own quiz'),
@@ -299,7 +305,8 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/reports/results/%quiz_type_access'] = array(
-    'title' => t('Results for @quiz', array('@quiz' => QUIZ_NAME)),
+    'title arguments' => array(4),
+    'title callback' => 'quiz_title_callback',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_results_manage_results_form', 4),
     'access arguments' => array(4),
@@ -309,11 +316,11 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/reports/results/%quiz_type_access/%'] = array(
-    'title' => t('View @quiz', array('@quiz' => QUIZ_NAME)),
-    'description' => t('View results for the given quiz.'),
+    'title arguments' => array(4),
+    'title callback' => 'quiz_title_callback',
     'page callback' => 'quiz_admin_results',
     'page arguments' => array(4, 5),
-    'type' => MENU_NORMAL_ITEM, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+    'type' => MENU_CALLBACK, // MENU_CALLBACK, MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
     'file' => 'quiz.admin.inc',
     'access arguments' => array(4, 5),
     'access callback' => 'quiz_access_results',
@@ -321,7 +328,7 @@ function quiz_menu() {
 
   // Menu item for adding questions to quiz.
   $items['node/%node/questions'] = array(
-    'title' => t('Manage questions'),
+    'title' => 'Manage questions',
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
     'access callback' => 'quiz_type_confirm',
@@ -332,7 +339,7 @@ function quiz_menu() {
 
   // USER //
   $items['user/%/myresults'] = array(
-    'title' => t('My results'),
+    'title' => 'My results',
     'page callback' => 'quiz_get_user_results',
     'page arguments' => array(1),
     'access callback' => '_quiz_user_results_access',
@@ -342,7 +349,7 @@ function quiz_menu() {
   );
 
   $items['user/quiz/%/userresults'] = array(
-    'title' => t('User results'),
+    'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(2),
     'access arguments' => array('view own quiz results'),
@@ -351,8 +358,8 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/browser/ahah'] = array( //TODO: Add node access instead of user access...
-    'title' => t('Filter browser content'),
-    'description' => t('AHAH Callback for filtering browser content'),
+    'title' => 'Filter browser content',
+    'description' => 'AHAH Callback for filtering browser content',
     'page callback' => 'quiz_browser_ahah',
     'type' => MENU_CALLBACK,
     'access arguments' => array('create quiz'),
@@ -360,8 +367,8 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/reports/results/browser_ahah'] = array( //TODO: Add node access instead of user access...
-    'title' => t('Filter browser content'),
-    'description' => t('AHAH Callback for filtering browser content'),
+    'title' => 'Filter browser content',
+    'description' => 'AHAH Callback for filtering browser content',
     'page callback' => 'quiz_results_mr_browser_ahah',
     'type' => MENU_CALLBACK,
     'access arguments' => array('create quiz'),
@@ -587,6 +594,10 @@ function quiz_update($node) {
   }
   // If the node has no questions redirect to the manage questions tab
   _quiz_redirect_if_empty($node);
+}
+
+function quiz_title_callback($quiz_node) {
+  return t('Results for "@quiz_title"', array('@quiz_title' => $quiz_node->title));
 }
 
 /**

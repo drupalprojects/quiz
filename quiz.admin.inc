@@ -1553,8 +1553,8 @@ function theme_quiz_node_form($form) {
  * @ingroup themeable
  */
 function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
-  // Set the title here so themers can adjust.
-  drupal_set_title(check_plain($quiz->title));
+  // To adjust the title uncomment and edit the line below:
+  // drupal_set_title(check_plain($quiz->title));
 
   if (!$score['is_evaluated']) {
     drupal_set_message(t('This quiz has not been scored yet.'), 'error');
