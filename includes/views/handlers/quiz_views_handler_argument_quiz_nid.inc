@@ -148,7 +148,6 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
         $where .= ($use_group_by) ? ' GROUP BY qnp.nid' : '';
 
         $result = db_query("SELECT $operation(qnp.vid) AS vid $from $where", $this->value);
-        $this->nid_field = $this->vid_field;
         break;
 
       case 'all':
@@ -156,6 +155,8 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
         break;
     }
 
+    $this->nid_field = $this->vid_field;
+    
     $this->corresponding_vids = array();
     while ($item = db_fetch_object($result)) {
       $this->corresponding_vids[] = $item->vid;
