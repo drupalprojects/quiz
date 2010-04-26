@@ -175,6 +175,7 @@ function quiz_admin_settings() {
   );
   
   $form['#validate'][] = 'quiz_settings_form_validate';
+  $form['#submit'][] = 'quiz_settings_form_submit';
   
   return system_settings_form($form);
 }
@@ -197,8 +198,19 @@ function quiz_settings_form_validate($form, &$form_state) {
   if (!_quiz_is_plain($form_state['values']['quiz_name']))
     form_set_error('quiz_name', t('The quiz name must be plain text.'));
     
-  if (!_quiz_is_plain($form_state['values']['quiz_action_type']))
-    form_set_error('quiz_action_type', t('The action type must be plain text.'));
+  /*if (!_quiz_is_plain($form_state['values']['quiz_action_type']))
+    form_set_error('quiz_action_type', t('The action type must be plain text.'));*/
+}
+
+/**
+  * Submit the admin settings form
+  */
+function quiz_settings_form_submit($form, &$form_state) {
+  if (QUIZ_NAME != $form_state['values']['quiz_name']) {
+    variable_set('quiz_name', $form_state['values']['quiz_name']);
+    define(QUIZ_NAME, $form_state['values']['quiz_name']);
+    menu_rebuild();
+  }
 }
 
 /**
