@@ -51,7 +51,7 @@ function quiz_question_menu() {
   // Menu items for admin view of each question type.
   $items['admin/quiz/settings/questions_settings'] = array(
     'title' => 'Question configuration',
-    'description' => t('Configure the question types.'),
+    'description' => 'Configure the question types.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_config', $type),
     'access arguments' => array('administer quiz configuration'),

@@ -45,8 +45,8 @@ function questions_export_menu() {
   );
 
   $items['admin/quiz/import_export/questions_export'] = array(
-    'title' => t('Export Questions'),
-    'description' => t('Export Questions is an addon for the Quiz module to export its questions into portable formats.'),
+    'title' => 'Export Questions',
+    'description' => 'Export Questions is an addon for the Quiz module to export its questions into portable formats.',
     'file' => 'questions_export.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_export_form'),
@@ -56,8 +56,8 @@ function questions_export_menu() {
 
   // Menu item to download item collection in a portable format
   $items['node/%quiz_type_access_load/download'] = array(
-    'title' => t('Download'),
-    'description' => t('Download this quiz into a portable format.'),
+    'title' => 'Download',
+    'description' => 'Download this quiz into a portable format.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_export_download_form'),
     'access callback' => 'user_access',

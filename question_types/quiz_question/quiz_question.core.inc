@@ -514,8 +514,7 @@ abstract class QuizQuestion {
             $temp_quiz_node->auto_created = TRUE;
             node_save($temp_quiz_node);
             $nid_vid[1] = $temp_quiz_node->vid;
-            $msg = 'New revision has been created for the quiz %n';
-            drupal_set_message(t($msg, array('%n' => $temp_quiz_node->title)));
+            drupal_set_message(t('New revision has been created for the quiz %n', array('%n' => $temp_quiz_node->title)));
           }
           // We build one sql query to insert multiple rows into the relationship table
           if (count($insert_values) > 0) $to_insert .= ',';

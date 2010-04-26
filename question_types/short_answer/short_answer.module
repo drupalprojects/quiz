@@ -31,8 +31,8 @@ function short_answer_perm() {
  */
 function short_answer_menu() {
   $items['admin/quiz/reports/score-short-answer'] = array(
-    'title' => t('Score short-answer questions'),
-    'description' => t('Score the answers from quizzes that use short answer questions.'),
+    'title' => 'Score short-answer questions',
+    'description' => 'Score the answers from quizzes that use short answer questions.',
     'page callback' => 'short_answer_view_unscored',
     'access arguments' => array('score any quiz', 'score own quiz'),
     'access callback' => 'quiz_access_multi_or',
@@ -41,8 +41,8 @@ function short_answer_menu() {
   );
   // Pass vid and rid to this path.
   $items['admin/quiz/reports/score-short-answer/%/%'] = array(
-    'title' => t('Score short-answer response'),
-    'description' => t('Score a response to a short-answer question.'),
+    'title' => 'Score short-answer response',
+    'description' => 'Score a response to a short-answer question.',
     'page callback' => 'short_answer_edit_score',
     'page arguments' => array(4, 5),
     'type' => MENU_NORMAL_ITEM,

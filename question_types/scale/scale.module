@@ -27,7 +27,7 @@ function scale_help($path, $args) {
  */
 function scale_menu() {
   $items['scale/collection/manage'] = array(
-    'title' => t('Manage your preset collections'),
+    'title' => 'Manage your preset collections',
     'access callback' => 'user_access',
     'access arguments' => array('create quiz'),
     'type' => MENU_SUGGESTED_ITEM,

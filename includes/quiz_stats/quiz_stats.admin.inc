@@ -437,9 +437,11 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
     'title' => t('Quiz'),
     'creator' => t('Author'),
     'created' => t('Created'),
-    'questions_count' => user_access('access author stats') ? t('Questions') : '',
-    'attempt_count' => user_access('access author stats') ? t('Attempts') : '',
   );
+  if (user_access('access author stats')) {
+    $header['questions_count'] = t('Questions');
+    $header['attempt_count'] = t('Attempts');
+  }
   $p = drupal_get_path('module', 'quiz_stats');
   $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
   foreach ($results as $result) {
@@ -447,9 +449,11 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
       'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
-      'questions_count' => user_access('access author stats') ? quiz_get_number_of_questions($result['nid'], $result['vid']) : t(''),
-      'attempt_count' => user_access('access author stats') ? _quiz_get_attempt_count($result['nid']) : t(''),
     );
+    if (user_access('access author stats')) {
+      $rows['questions_count'] = quiz_get_number_of_questions($result['nid'], $result['vid']);
+      $rows['attempt_count'] = _quiz_get_attempt_count($result['nid']);
+    }
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
   $cc = '<em>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</em>';

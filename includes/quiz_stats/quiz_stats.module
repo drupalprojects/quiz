@@ -34,16 +34,16 @@ function quiz_stats_menu() {
   global $user;
   $items = array();
   $items['admin/quiz/reports/stats/creator'] = array(
-    'title' => t('Quiz Statistics'),
-    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'title' => 'Quiz Statistics',
+    'description' => 'Generates a report on quiz results for quiz creators.',
     'file' => 'quiz_stats.admin.inc',
     'page callback' => 'quiz_stats_get_basic_stats',
     'access arguments' => array('access author stats'),
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/quiz/reports/stats/creator/%/revisions'] = array(
-    'title' => t('Quiz Statistics'),
-    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'title' => 'Quiz Statistics',
+    'description' => 'Generates a report on quiz results for quiz creators.',
     'file' => 'quiz_stats.admin.inc',
     'page callback' => 'quiz_stats_revision_selector_page',
     'page arguments' => array(5),
@@ -51,8 +51,8 @@ function quiz_stats_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
   $items['admin/quiz/reports/stats/creator/%/view'] = array(
-    'title' => t('Quiz Statistics'),
-    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'title' => 'Quiz Statistics',
+    'description' => 'Generates a report on quiz results for quiz creators.',
     'file' => 'quiz_stats.admin.inc',
     'page callback' => 'quiz_stats_get_adv_stats',
     'page arguments' => array(5),
@@ -60,8 +60,8 @@ function quiz_stats_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
   $items['user/%/stats'] = array(
-    'title' => t('Result Statistics'),
-    'description' => t('Generates a report on quiz results for quiz creators.'),
+    'title' => 'Result Statistics',
+    'description' => 'Generates a report on quiz results for quiz creators.',
     'file' => 'quiz_stats.admin.inc',
     'page callback' => 'quiz_stats_get_basic_stats',
     'page arguments' => array(1),
@@ -69,8 +69,7 @@ function quiz_stats_menu() {
     'type' => MENU_LOCAL_TASK,
   );
   $items['user/%/stats/%/view'] = array(
-    'title' => t('Result Statistics'),
-    //'description' => t('Generates a report on quiz results for quiz creators.'),
+    'title' => 'Result Statistics',
     'file' => 'quiz_stats.admin.inc',
     'page callback' => 'quiz_stats_get_adv_stats',
     'page arguments' => array(3, 1),

@@ -32,7 +32,7 @@ function results_export_perm() {
  */
 function results_export_menu() {
   $items['admin/quiz/results_export_teaser_view/%/%'] = array(
-    'title' => t('Export Quiz Results (Teaser View)'),
+    'title' => 'Export Quiz Results (Teaser View)',
     'file' => 'results_export.admin.inc',
     'page callback' => 'results_export_as_teaser_view',
     'page arguments' => array(3, 4),
@@ -40,7 +40,7 @@ function results_export_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/quiz/results_export_full_view/%/%'] = array(
-    'title' => t('Export Quiz Results (Full view)'),
+    'title' => 'Export Quiz Results (Full view)',
     'file' => 'results_export.admin.inc',
     'page callback' => 'results_export_as_full_view',
     'page arguments' => array(3, 4),

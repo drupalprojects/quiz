@@ -44,8 +44,8 @@ function questions_import_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
   $items['admin/quiz/import_export/questions_import'] = array(
-    'title' => t('Import Quiz Questions'),
-    'description' => t('Import Questions is an addon for quiz module. It allows to create a bulk of quiz questions from files. Allowed file formats are CSV, Moodle Aiken and QTI format.'),
+    'title' => 'Import Quiz Questions',
+    'description' => 'Import Questions is an addon for quiz module. It allows to create a bulk of quiz questions from files. Allowed file formats are CSV, Moodle Aiken and QTI format.',
     'file' => 'questions_import.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_import_form'),
@@ -54,8 +54,8 @@ function questions_import_menu() {
   );
   
   $items['admin/quiz/import_export/questions_reimport'] = array(
-    'title' => t('Reimport Quiz Questions'),
-    'description' => t('Reimport Questions is an addon for quiz module. It allows to reload a previous import file.'),
+    'title' => 'Reimport Quiz Questions',
+    'description' => 'Reimport Questions is an addon for quiz module. It allows to reload a previous import file.',
     'file' => 'questions_reimport.admin.inc',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('questions_reimport_form'),

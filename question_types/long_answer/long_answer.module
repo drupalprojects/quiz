@@ -29,8 +29,8 @@ function long_answer_help($path, $arg) {
  */
 function long_answer_menu() {
   $items['admin/quiz/reports/score-long-answer'] = array(
-    'title' => t('Score long-answer questions'),
-    'description' => t('Score the answers from quizzes that use long answer questions.'),
+    'title' => 'Score long-answer questions',
+    'description' => 'Score the answers from quizzes that use long answer questions.',
     'page callback' => 'long_answer_view_unscored',
     'access arguments' => array('score any quiz', 'score own quiz'),
     'access callback' => 'quiz_access_multi_or',
@@ -39,8 +39,8 @@ function long_answer_menu() {
   );
   // Pass vid and rid to this path.
   $items['admin/quiz/reports/score-long-answer/%/%'] = array(
-    'title' => t('Score long-answer response'),
-    'description' => t('Score a response to a long-answer question.'),
+    'title' => 'Score long-answer response',
+    'description' => 'Score a response to a long-answer question.',
     'page callback' => 'long_answer_edit_score',
     'page arguments' => array(4, 5),
     'type' => MENU_NORMAL_ITEM,
