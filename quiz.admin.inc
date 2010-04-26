@@ -140,13 +140,6 @@ function quiz_admin_settings() {
     '#required' => TRUE,
   );
 
-  $form['quiz_look_feel']['quiz_show_allowed_times'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show allowed times'),
-    '#description' => t('When a user begins a new quiz, show the user the number of times they may take the test, and how many times they have already taken the test.'),
-    '#default_value' => variable_get('quiz_show_allowed_times', TRUE),
-  );
-
   $form['quiz_email_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Email Settings'),

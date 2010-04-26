@@ -434,17 +434,19 @@ function theme_quiz_single_question_node($node) {
  */
 function theme_quiz_view_stats($node) {
   // Fetch data
-  $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
   $stats = array(
     array(
       'title' => t('Questions'),
       'data' => $node->number_of_questions,
     ),
-    array(
-      'title' => t('Attempts'),
-      'data' => $takes,
-    ),
   );
+  if ($node->show_attempt_stats) {
+    $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
+    $stats[] = array(
+      'title' => t('Attempts allowed'),
+      'data' => $takes,
+    );
+  }
   if ($node->quiz_always) {
     $stats[] = array(
       'title' => t('Available'),

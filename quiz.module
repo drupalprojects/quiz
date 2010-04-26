@@ -527,23 +527,23 @@ function quiz_insert($node) {
   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, randomization, 
     backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes, 
-    keep_results, time_limit, pass_rate, summary_pass, summary_default, 
-    quiz_always, feedback_time, display_feedback, tid, has_userpoints, 
-    allow_skipping)
+    show_attempt_stats, keep_results, time_limit, pass_rate, summary_pass, 
+    summary_default, quiz_always, feedback_time, display_feedback, tid, 
+    has_userpoints, allow_skipping)
     VALUES(%d, %d, '%s', %d, %d, 
     %d, %d, %d, %d, %d, 
-    %d, %d, %d, '%s', '%s', 
-    %d, %d, %d, %d, %d,
-    %d)";
+    %d, %d, %d, %d, '%s', 
+    '%s', %d, %d, %d, %d, 
+    %d, %d)";
   
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
   
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, 
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, 
-    $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, 
-    $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, $node->has_userpoints, 
-    $node->allow_skipping);
+    $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, 
+    $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, 
+    $node->has_userpoints, $node->allow_skipping);
   
   _quiz_insert_resultoptions($node);
   
@@ -591,6 +591,7 @@ function quiz_update($node) {
         quiz_open = %d,
         quiz_close = %d,
         takes = %d,
+        show_attempt_stats = %d
         keep_results = %d,
         time_limit = '%d',
         pass_rate = %d,
@@ -606,7 +607,7 @@ function quiz_update($node) {
         AND nid = %d";
     _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
-      $node->takes, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
+      $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
@@ -673,6 +674,7 @@ function _quiz_get_node_defaults() {
     'quiz_open' => 0,
     'quiz_close' => 0,
     'takes' => 1,
+    'show_attempt_stats' => 0,
     'keep_results' => 0,
     'time_limit' => 0,
     'quiz_always' => 1,
@@ -906,10 +908,16 @@ function quiz_form(&$node) {
   );
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
-    '#title' => t('Number of takes'),
+    '#title' => t('Allowed number of attempts'),
     '#default_value' => $node->takes,
     '#options' => $options,
     '#description' => t('The number of times a user is allowed to take the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['taking']['multiple_takes']['show_attempt_stats'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display allowed number of attempts'),
+    '#default_value' => $node->show_attempt_stats,
+    '#description' => t('Display the allowed number of attempts on the starting page for this quiz.'),
   );
   
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
@@ -1990,7 +1998,7 @@ function quiz_start_check($quiz) {
       }
       // If the user has taken the quiz more than once, see if we should report
       // this.
-      elseif (variable_get('quiz_show_allowed_times', TRUE)) {
+      elseif ($quiz->show_attempt_stats) {
         drupal_set_message(t("You can only take this quiz @allowed. You have taken it @really.", array('@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
       }
     }
