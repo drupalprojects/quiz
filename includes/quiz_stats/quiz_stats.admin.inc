@@ -16,9 +16,9 @@
  * @return
  *  Themed html 
  */
-function quiz_stats_revision_selector_page($nid) {
+function quiz_stats_revision_selector_page($quiz) {
   $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
-  $res = db_query($sql, $nid);
+  $res = db_query($sql, $quiz->nid);
   $count = 0; //uses this variable to slightly increase performance
   $vids = array();
   while ($res_o = db_fetch_object($res)) {
@@ -38,7 +38,7 @@ function quiz_stats_revision_selector_page($nid) {
     Because of this you have to choose the revision you want to see statistics from.', array('!num' => $count));
     $content['links'] = array();
     foreach ($vids as $key => $value) {
-      $content['links'][] = 'admin/quiz/reports/stats/creator/'. $value .'/view';
+      $content['links'][] = 'node/' . $quiz->nid . '/statistics/' . $value;
     }
     return theme('quiz_stats_revision_selector', $content);
   } 
@@ -432,7 +432,6 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
     return '<p>' . t('No questions were found.') . '</p>';
   }
   $header = $rows = array();
-  $title_link = user_access('access author stats') ? 'admin/quiz/reports/stats/creator/' : 'user/'. arg(1) .'/stats/';
   $header = array(
     'title' => t('Quiz'),
     'creator' => t('Author'),
@@ -445,15 +444,17 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
   $p = drupal_get_path('module', 'quiz_stats');
   $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
   foreach ($results as $result) {
-    $rows[] = array(
-      'title' => l($chart_icon .' '. $result['title'], $title_link . $result['nid'] .'/revisions', array('html' => TRUE)),
+    $title_link = user_access('access author stats') ? 'node/' . $result['nid'] . '/statistics' : 'user/'. arg(1) .'/stats/';
+    $row = array(
+      'title' => l($chart_icon .' '. $result['title'], $title_link, array('html' => TRUE)),
       'creator' => l($result['name'], 'user/'. $result['uid']),
       'created' => format_date($result['created'], 'small'),
     );
     if (user_access('access author stats')) {
-      $rows['questions_count'] = quiz_get_number_of_questions($result['nid'], $result['vid']);
-      $rows['attempt_count'] = _quiz_get_attempt_count($result['nid']);
+      $row['questions_count'] = quiz_get_number_of_questions($result['nid'], $result['vid']);
+      $row['attempt_count'] = _quiz_get_attempt_count($result['nid']);
     }
+    $rows[] = $row;
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
   $cc = '<em>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</em>';

@@ -324,7 +324,7 @@ function quiz_admin_results($quiz, $rid) {
   
   // Lets add the quiz title to the breadcrumb array.
   $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . $quiz->nid);
-  drupal_set_breadcrumb($breadcrumb);
+  //drupal_set_breadcrumb($breadcrumb);
   return theme('quiz_admin_summary', $quiz, $questions, $score, $summary);
 }
 
@@ -1493,7 +1493,7 @@ function theme_quiz_admin_quizzes($results) {
   
   while (list($key, $result) = each($results)) {
     $cols = array(
-      l($result['title'], 'admin/quiz/reports/results/'. $result['nid']),
+      l($result['title'], 'node/' . $result['nid'] . '/results'),
       check_plain($result['name']),
       format_date($result['created'], 'small'),
     );
@@ -1998,7 +1998,7 @@ function quiz_results_mr_form_submit($form, &$form_state) {
  * @return Html string with links.
  */
 function _quiz_results_mr_get_hover($quiz, $rid) {
-  $to_return = array(l(t('view'), 'admin/quiz/reports/results/'. $quiz->nid .'/'. $rid));
+  $to_return = array(l(t('view'), 'node/'. $quiz->nid .'/results/'. $rid));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz'))
     $to_return[] = l(t('delete'), 'admin/quiz/reports/results/'. $quiz->nid, array(
       'query' => array('del' => $rid),
