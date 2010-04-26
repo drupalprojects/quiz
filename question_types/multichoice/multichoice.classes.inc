@@ -69,7 +69,11 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     if ($num_corrects == 1 && $this->node->choice_multi == 1 || $num_corrects > 1 && $this->node->choice_multi == 0) {
-      $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit');
+      $link_options = array();
+      if (isset($_GET['destination'])) {
+        $link_options['query'] = array('destination' => $_GET['destination']);
+      }
+      $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit', $link_options);
       if ($num_corrects == 1)
         drupal_set_message(
           t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', 
