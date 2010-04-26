@@ -16,7 +16,6 @@
 function theme_long_answer_view_unscored($unscored) {
   $output = '';
   $header = array(
-    t('Quiz ID'),
     t('Question'),
     t('Finished'),
     t('Action')
@@ -26,7 +25,6 @@ function theme_long_answer_view_unscored($unscored) {
   foreach ($unscored as $item) {
     if ($item->time_end > 0) {
       $rows[] = array(
-        $item->result_id,
         check_plain($item->title),
         date('Y-m-d H:i', $item->time_end),
         l(t('Score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),

@@ -15,7 +15,6 @@
 function theme_short_answer_view_unscored($unscored) {
   $output = '';
   $header = array(
-    t('Quiz ID'),
     t('Question'),
     t('Time Finished'),
     t('Action')
@@ -25,7 +24,6 @@ function theme_short_answer_view_unscored($unscored) {
   foreach ($unscored as $item) {
     if ($item->time_end > 0) {
       $rows[] = array(
-        $item->result_id,
         $item->title,
         date('Y-m-d H:i', $item->time_end),
         l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id),

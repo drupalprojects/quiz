@@ -171,7 +171,7 @@ function quiz_admin_settings() {
 
   $form['def_settings_link'] = array(
     '#type' => 'markup',
-    '#value' => '<p>'. t('Default values for the quiz node-form can be edited ') . l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
+    '#value' => '<p>'. t('Default values for the quiz creation form can be edited ') . l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
   );
   
   $form['#validate'][] = 'quiz_settings_form_validate';

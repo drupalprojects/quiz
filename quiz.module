@@ -286,9 +286,9 @@ function quiz_menu() {
   );
   
   $items['admin/quiz/settings/quiz_form'] = array(
-    'title' => '@quiz node-form configuration',
+    'title' => '@quiz form configuration',
     'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'Configure Quiz node-form default values.',
+    'description' => 'Configure default values for the quiz creation form.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_admin_node_form'),
     'access arguments' => array('administer quiz configuration'),
