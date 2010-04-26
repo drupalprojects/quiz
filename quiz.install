@@ -14,14 +14,15 @@
  */
 function quiz_update_6415() {
   $results = array();
-  $def = variable_get('quiz_show_allowed_times', 1);
+  $def_attempts = variable_get('quiz_show_allowed_times', 1);
   variable_del('quiz_show_allowed_times');
+  variable_del('quiz_display_feedback');
   db_add_field($results, 'quiz_node_properties', 'show_attempt_stats', array(
     'type' => 'int',
     'size' => 'tiny',
     'unsigned' => FALSE,
     'not null' => TRUE,
-    'default' => $def,
+    'default' => $def_attempts,
   ));
   db_add_field($results, 'quiz_user_settings', 'show_attempt_stats', array(
     'type' => 'int',

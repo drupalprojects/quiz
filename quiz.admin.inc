@@ -42,13 +42,6 @@ function quiz_admin_settings() {
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
-  $form['quiz_global_settings']['quiz_display_feedback'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display @quiz feedback.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_display_feedback', 1),
-    '#description' => t('List the user selected answer and correct answer at the end of the @quiz.', array('@quiz' => QUIZ_NAME)),
-  );
-
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
