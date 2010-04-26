@@ -60,13 +60,13 @@ function quiz_admin_settings() {
   );
 
   // Added for support of actions and allowing the user to filter the actions dropdown by a value.
-  $form['quiz_global_settings']['quiz_action_type'] = array(
+  /*$form['quiz_global_settings']['quiz_action_type'] = array(
     '#type' => 'textfield',
     '#title' => t('Default actions type'),
     '#size' => 25,
     '#default_value' => variable_get('quiz_action_type', 'all'),
     '#description' => t('Filter the actions dropdown by a specific type.'),
-  );
+  );*/
 
   $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
     '#type' => 'select',
