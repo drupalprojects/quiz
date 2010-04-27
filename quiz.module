@@ -791,8 +791,10 @@ function quiz_form(&$node) {
   if (!isset($node->nid)) {
     $settings_loaded = _quiz_load_user_settings($node);
     if (!$settings_loaded) {
-      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
-                         array('@quiz' => QUIZ_NAME) ));
+      if (arg(0) == 'node') {
+        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
+                           array('@quiz' => QUIZ_NAME) ));
+      }
       
       // The user had no settins stored. We load the settings for the default
       // user.

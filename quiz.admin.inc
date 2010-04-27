@@ -39,7 +39,7 @@ function quiz_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_use_passfail', 1),
-    '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage set below, uncheck this option.', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
@@ -51,15 +51,6 @@ function quiz_admin_settings() {
     '#maxlength' => 2,
     '#required' => FALSE,
   );
-
-  // Added for support of actions and allowing the user to filter the actions dropdown by a value.
-  /*$form['quiz_global_settings']['quiz_action_type'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default actions type'),
-    '#size' => 25,
-    '#default_value' => variable_get('quiz_action_type', 'all'),
-    '#description' => t('Filter the actions dropdown by a specific type.'),
-  );*/
 
   $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
     '#type' => 'select',
@@ -74,7 +65,7 @@ function quiz_admin_settings() {
     '#title' => t('Length of automatically set question titles'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can deside how long the autotitle can be.'),
+    '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can decide how long the autotitle can be.'),
     '#default_value' => variable_get('quiz_autotitle_length', 50),
   );
 
@@ -95,7 +86,7 @@ function quiz_admin_settings() {
   $form['quiz_addons'] = array(
     '#type' => 'fieldset',
     '#title' => t('Addons Configuration'),
-    '#description' => t('Quiz module can integrate with other d.o modules like !views, !cck, !userpoints, !jquery_countdown. Here you can configure the way quiz module integrates to other modules. Disabled checkbox indicates modules are not enabled/installed', $links),
+    '#description' => t('Quiz can integrate with other d.o modules like !views, !cck, !userpoints and !jquery_countdown. Here you can configure the way Quiz integrates with other modules. Disabled checkboxes indicates that modules are not enabled/installed', $links),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -104,7 +95,7 @@ function quiz_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Enable UserPoints Module Integration'),
     '#default_value' => variable_get('quiz_has_userpoints', 0),
-    '#description' => t('!userpoints an *optional* module for quiz, provides way for users to gain or lose points for performing certain actions on your site like attending @quiz.  you will need to install the !userpoints module to use this feature.', $links),
+    '#description' => t('!userpoints is an <strong>optional</strong> module for Quiz. It provides ways for users to gain or lose points for performing certain actions on your site like attending @quiz. You will need to install the !userpoints module to use this feature.', $links),
     '#disabled' => !module_exists('userpoints'),
   );
 
@@ -112,7 +103,7 @@ function quiz_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Display Timer for Timed Quiz'),
     '#default_value' => variable_get('quiz_has_timer', 0),
-    '#description' => t('!jquery_countdown an *optional* module for quiz used for the timer to be displayed on the user\'s page, you will need to install the !jquery_countdown module. Without this timer, the user will not know how long he or she has to complete the @quiz', $links),
+    '#description' => t("!jquery_countdown is an <strong>optional</strong> module for Quiz. It is used to display a timer when taking a quiz. Without this timer, the user will not know how long he or she has left to complete the @quiz", $links),
     '#disabled' => !function_exists('jquery_countdown_add'),
   );
 
@@ -136,7 +127,7 @@ function quiz_admin_settings() {
   $form['quiz_email_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Email Settings'),
-    '#description' => t('Allows to send results to quiz author/ attendee via e-mail and configuration e-mail subject and body.'),
+    '#description' => t('Send results to quiz author/attendee via e-mail. Configure e-mail subject and body.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -145,33 +136,33 @@ function quiz_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('E-mail users their quiz results at the end of a quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
     '#default_value' => variable_get('quiz_email_results', 0),
-    '#description' => t('Check this to send users quiz results over E-mail at the end of quiz.')
+    '#description' => t('Check this to send users their results at the end of a quiz.')
   );
   
   $form['quiz_email_settings']['quiz_results_to_quiz_author'] = array(
     '#type' => 'checkbox',
-    '#title' => t('E-mail all users results to Quiz Author.', array('@quiz' => strtolower(QUIZ_NAME))),
+    '#title' => t('E-mail all results to quiz author.'),
     '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
-    '#description' => t('Check this to send users quiz results over E-mail to quiz author. (<em> it works only when the attendee is an anonymous user</em>).'),
+    '#description' => t('Check this to send quiz results for all users to the quiz author. (<em> this only works when the attendee is an anonymous user</em>).'),
   );
   
   $form['quiz_email_settings']['quiz_email_results_subject'] = array(
     '#type' => 'textfield',
-    '#title' => t('Configure Email subject'),
-    '#description' => t('This format will be used to send Email to notify results at the end of quiz.'),
+    '#title' => t('Configure E-mail Subject'),
+    '#description' => t('This format will be used when sending quiz results at the end of a quiz.'),
     '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject')),
   );
 
   $form['quiz_email_settings']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
-    '#title' => t('Configure Email format'),
-    '#description' => t('This format will be used to send Email to notify results at the end of quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholders.'),
+    '#title' => t('Configure E-mail Format'),
+    '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title !sitename !username !date  !desc !correct !total !percentage !url are placeholders.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body')),
   );
 
   $form['def_settings_link'] = array(
     '#type' => 'markup',
-    '#value' => '<p>'. t('Default values for the quiz creation form can be edited ') . l(t('here'), 'admin/quiz/settings/quiz_form') .'</p>',
+    '#value' => '<p>' . t('Default values for the quiz creation form can be edited <a href="!url">here</a>', array('!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
   );
   
   $form['#validate'][] = 'quiz_settings_form_validate';
