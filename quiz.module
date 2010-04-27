@@ -96,7 +96,7 @@ function quiz_perm() {
     'view any quiz question correct response',
     // Allows users to pick a name for their questions. Otherwise this is auto
     // generated.
-    'allow user titles',
+    'edit question titles',
     // Allow users to assign an action to be performed when a user has completed
     // a quiz:
     'assign any action to quiz events',

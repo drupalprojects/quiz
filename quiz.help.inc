@@ -42,7 +42,7 @@ function _quiz_help($path, $arg) {
     <dd>Can create feedback when creating a new multichoice question.</dd>
     <dt><strong>allow multiple correct answers</strong></dt>
     <dd></dd>
-    <dt><strong>allow user titles</strong></dt>
+    <dt><strong>edit question titles</strong></dt>
     <dd>Allows users to pick a name for their questions. Otherwise this is auto generated. The question name is never seen on the @quiz.</dd>
     <dt><strong>create multichoice</strong></dt>
     <dd>users can create multichoice questions</dd>

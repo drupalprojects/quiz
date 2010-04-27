@@ -109,7 +109,7 @@ abstract class QuizQuestion {
     $form['body_field']['#weight'] = -15;
 
     // Allow user to set title?
-    if (user_access('allow user titles')) {
+    if (user_access('edit question titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
       $form['title'] = array(
         '#type' => 'textfield',
