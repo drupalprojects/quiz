@@ -1,0 +1,126 @@
+<?php
+
+class QuestionsImportTaxonomyTestCase extends DrupalWebTestCase {
+
+  public function getInfo() {
+    return array(
+      'name' => t('Questions Import Taxonomy'),
+      'description' => t('Test taxonomy support in Quiz questions import.'),
+      'group' => t('Quiz'),
+    );
+  }
+
+  public function setUp() {
+    parent::setUp('taxonomy', 'quiz', 'querypath', 'question', 'multichoice', 'questions_import');
+
+    //Create an adminsitrative user
+    $this->admin_user = $this->drupalCreateUser(array('administer nodes', 'access administration pages', 'administer taxonomy', 'import questions', 'access content', 'create quiz'));
+    $this->drupalLogin($this->admin_user);
+
+    $this->drupalPost('node/add/quiz', array(
+      'title' => $this->randomName(),
+      'body' => $this->randomString(25),
+    ), 'Save');
+  }
+
+  public function tearDown() {
+    parent::tearDown();
+    unset($this->admin_user);
+  }
+
+  public function testDefault() {
+    $default = $this->createVocabulary();
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'quiz_node' => 1,
+      'taxonomy[1]' => 1,
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assertText('1 questions were imported successfully', 'Question imported');
+    $this->clickLink('View', 1);
+    $this->assertTermLink(1);
+  }
+
+  public function testTags() {
+    $default = $this->createVocabulary(array('tags' => 1));
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'quiz_node' => 1,
+      'taxonomy[tags][1]' => taxonomy_get_term(1)->name,
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assertText('1 questions were imported successfully', 'Question imported');
+    $this->clickLink('View', 1);
+    $this->assertTermLink(1);
+  }
+
+  public function testMultiple() {
+    $default = $this->createVocabulary(array('multiple' => 1));
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'quiz_node' => 1,
+      'taxonomy[1][]' => array(1, 3),
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assertText('1 questions were imported successfully', 'Question imported');
+    $this->clickLink('View', 1);
+    $this->assertTermLink(1);
+    $this->assertTermLink(3);
+  }
+
+  public function testRequired() {
+    $default = $this->createVocabulary(array('required' => 1));
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'quiz_node' => 1,
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assert('field is required', 'Import fomr reports missing value for required Taxonomy.');
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'quiz_node' => 1,
+      'taxonomy[1]' => 1,
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assertText('1 questions were imported successfully', 'Question imported');
+    $this->clickLink('View', 1);
+    $this->assertTermLink(1);
+  }
+
+  public function testImportWithoutNode() {
+    $this->drupalPost('admin/quiz/questions_import', array(
+      'files[upload]' => dirname(__FILE__).'/aiken.txt',
+      'import_type' => 'aiken'
+    ), 'import');
+    $this->assertText('1 questions were imported successfully', 'Question imported');
+    $this->assertTitle('Import Quiz Questions', 'Successfully import without quiz node redirect to import form');
+  }
+
+  protected function assertTermLink($tid, $index = 0) {
+    $this->assertRaw('taxonomy/term/'.$tid, "Found link to $tid term page.");
+  }
+
+  private function createVocabulary($settings = array()) {
+    $vocabulary = array_merge(array(
+      'name' => $this->randomName(),
+      'multiple' => 0,
+      'required' => 0,
+      'tags' => 0,
+      'hierarchy' => 1,
+      'relations' => 0,
+      'module' => 'questions_import',
+      'nodes' => array('multichoice' => 1),
+    ), $settings);
+    taxonomy_save_vocabulary($vocabulary);
+
+    for ($i = 0; $i < 15; $i++) {
+      $term = array(
+        'name' => $this->randomName(),
+        'vid' => $vocabulary['vid']
+      );
+      taxonomy_save_term($term);
+    }
+
+    return $vocabulary;
+  }
+}
