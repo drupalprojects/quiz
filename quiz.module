@@ -837,7 +837,7 @@ function quiz_form(&$node) {
     '#type' => 'checkbox',
     '#title' => t('Allow Skipping questions'),
     '#default_value' => $node->allow_skipping,
-    '#description' => t('Whether to allow users to skip questions on the @quiz', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('Whether to allow users to skip questions in the @quiz', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['backwards_navigation'] = array(
     '#type' => 'checkbox',

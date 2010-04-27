@@ -463,10 +463,10 @@ function quiz_questions_form($form_state, $quiz) {
   $types = _quiz_get_question_types();
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
 
-  // Display questions on this quiz.
+  // Display questions in this quiz.
   $form['question_list'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Questions on this quiz'),
+    '#title' => t('Questions in this quiz'),
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     '#attributes' => array('id' => 'mq-fieldset'),
