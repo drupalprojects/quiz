@@ -1647,7 +1647,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   if (!isset($_SESSION[$pre .'not_in_progress'])) $_SESSION[$pre .'not_in_progress'] = 1;
   
   // Specify action to avoid redirection issues when using ajax
-  $form['#action'] = url('admin/quiz/reports/results/'. $quiz->nid);
+  $form['#action'] = url('node/'. $quiz->nid .'/results');
   
   // We hide the update fieldset if we are to delete results
   $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
