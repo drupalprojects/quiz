@@ -1808,16 +1808,16 @@ function quiz_quiz_finished($quiz, $score, $rid) {
 
   // For personality kind of quizzes if the user is an anonymous and configured
   // to send user result to author send e-mail to author's e-mail address.
-  if ($user->uid == 0 && variable_get('quiz_results_to_quiz_author', 0)) {
+  if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_result(db_query('SELECT mail FROM {users} WHERE uid = %d', $quiz->uid));
-    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $rid));
+    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $rid, 'author'));
   }
 
   // For e-Learning kind of quizzes if quiz has pass/fail, configured to send
   // results to attendee and attendee is NOT an anonymous send result to his/her
   // e-mail ID.
   if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $user->uid != 0) {
-    drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid));
+    drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid, 'taker'));
     drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
@@ -1843,28 +1843,32 @@ function quiz_quiz_finished($quiz, $score, $rid) {
  */
 function quiz_mail($key, &$message, $params) {
   global $user;
-  list($quiz, $score, $rid) = $params;
+  list($quiz, $score, $rid, $target) = $params;
   $substitutions = array(
     '!title' => $quiz->title,
     '!sitename' => variable_get('site_name', 'Quiz'),
-    '!username' => ($user->uid) ? $user->name : $quiz->name,
-    // If the user is anonymous user use quiz author's name else use quiz
-    // attendee's name.
-    '!user' => ($user->uid) ? 'You have' : 'Anonymous user has',
-    '!title' => $quiz->title,
+    '!taker' => $user->name,
+    '!author' => $quiz->name,
+    '!title' => check_plain($quiz->title),
     '!date' => date("F j, Y, g:i a"),
-    '!desc' => $quiz->body,
+    '!desc' => check_plain($quiz->body),
     '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
     '!total' => $score['question_count'],
     '!percentage' => $score['percentage_score'],
     '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
-    '!time' => db_result(db_query("SELECT floor((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = '%d' AND time_end", $rid))
+    '!minutes' => db_result(db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = '%d' AND time_end", $rid))
   );
 
   switch ($key) {
     case 'notice':
-      $subject = t(variable_get('quiz_email_results_subject', quiz_email_results_format('subject')), $substitutions, $user->language);
-      $body = t(variable_get('quiz_email_results_body', quiz_email_results_format('body')), $substitutions, $user->language);
+      if ($target == 'author') {
+        $subject = t(variable_get('quiz_email_results_subject', quiz_email_results_format('subject', 'author')), $substitutions, $user->language);
+        $body = t(variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')), $substitutions, $user->language);
+      }
+      else {
+        $subject = t(variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')), $substitutions, $user->language);
+        $body = t(variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')), $substitutions, $user->language);
+      }
 
       $message['subject'] = $subject;
       $message['body'] = $body;
@@ -1876,17 +1880,31 @@ function quiz_mail($key, &$message, $params) {
  * This functions returns the default email subject and body format which will
  * be used at the end of quiz.
  */
-function quiz_email_results_format($type) {
+function quiz_email_results_format($type, $target) {
   global $user;
   if ($type == 'subject') {
-    return t('!title Results Notice from !sitename');
+    if ($target == 'author') {
+      return t('!title Results Notice from !sitename');
+    }
+    if ($target == 'taker') {
+      return t('!title Results Notice from !sitename');
+    }
   }
   if ($type == 'body') {
-    return t('Dear !username') . "\n\n" .
-      t('!user attended a !title quiz on !date') . "\n" .
-      t('Test Description : !desc') . "\n" .
-      t('!user got !correct out of !total in !time min percentage is !percentage') . "\n" .
-      t('You can access your result here !url') . "\n";
+    if ($target == 'author') {
+      return t('Dear !author') . "\n\n" .
+        t('!taker attended the quiz !title on !date') . "\n" .
+        t('Test Description : !desc') . "\n" .
+        t('!taker got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
+        t('You can access the result here !url') . "\n";
+    }
+    if ($target == 'taker') {
+      return t('Dear !taker') . "\n\n" .
+        t('You attended the quiz !title on !date') . "\n" .
+        t('Test Description : !desc') . "\n" .
+        t('You got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
+        t('You can access the result here !url') . "\n";
+    }
   }
 }
 
