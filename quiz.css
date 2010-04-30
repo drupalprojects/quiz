@@ -184,7 +184,17 @@ dl.quiz-report dd {
   border: thin solid #555555;
   padding: 0px;
   margin: 0px;
+  margin-bottom: 20px;
 }
+#quiz-start-quiz-button-form div {
+  padding: 0px;
+  margin: 0px;
+}
+
+#quiz-start-quiz-button-form input {
+  margin: 0px;
+}
+
 #quiz-view-table td {
   padding: 0px 3px 0px 3px;
   margin: 0px;

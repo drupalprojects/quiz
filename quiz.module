@@ -732,14 +732,14 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
     // Add a link to the take tab if this is a teaser view.
     else {
       $node->content['take'] = array(
-        '#value' => '<p>'. l(t('Start quiz'), 'node/'. $node->nid .'/take') .'</p>',
+        '#value' =>  l(t('Start quiz'), 'node/'. $node->nid .'/take') ,
         '#weight' => 2,
       );
     }
   }
   else {
     $node->content['take'] = array(
-      '#value' => '<p>' . t('This quiz is closed') . '</p>',
+      '#value' => t('This quiz is closed'),
       '#weight' => 2,
     );
   }
