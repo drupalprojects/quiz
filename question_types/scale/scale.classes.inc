@@ -310,6 +310,8 @@ class ScaleQuestion extends QuizQuestion {
    * @see getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
+    $form = array();
+    $form['#theme'] = 'scale_answering_form';
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       if (drupal_strlen($this->node->{$i}->answer)>0) {

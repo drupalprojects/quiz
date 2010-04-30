@@ -94,6 +94,13 @@ function long_answer_theme() {
       'path' => drupal_get_path('module', 'long_answer') .'/theme',
       'file' => 'long_answer.theme.inc',
     ),
+    'long_answer_answering_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'long_answer') .'/theme',
+      'template' => 'long-answer-answering-form',
+    ),
   );
 }
 

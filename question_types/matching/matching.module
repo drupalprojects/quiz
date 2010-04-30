@@ -86,11 +86,20 @@ function matching_theme() {
   return array(
     'matching_question_form' => array(
       'arguments' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'file' => 'matching.theme.inc',
+    ),
+    'matching_subquestion_form' => array(
+      'arguments' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'matching') .'/theme',
       'file' => 'matching.theme.inc',
     ),
     'matching_answering_form' => array(
-      'arguments' => array('form' => NULL),
-      'file' => 'matching.theme.inc',
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'template' => 'matching-answering-form',
     ),
   );
 }

@@ -151,6 +151,7 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = array();
+    $form['#theme'] = 'matching_answering_form';
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),
@@ -161,7 +162,7 @@ class MatchingQuestion extends QuizQuestion {
       $responses = $response->getResponse();
     }
     list($matches, $select_option) = $this->getSubquestions();
-    $form['subquestions']['#theme'] = 'matching_answering_form';
+    $form['subquestions']['#theme'] = 'matching_subquestion_form';
     foreach ($matches as $match) {
       $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question'], FILTER_FORMAT_DEFAULT, FALSE);
 
@@ -179,7 +180,10 @@ class MatchingQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => '<p><em>'. t('You loose points by selecting incorrect options. You may leave an option blank to avoid loosing points.') .'</em></p>',
     );
-    return variable_get('quiz_matching_shuffle_options', TRUE) ? array($form['question'], $this->customShuffle($form['subquestions']), $form['scoring_info']) : $form;
+    if (variable_get('quiz_matching_shuffle_options', TRUE)) {
+      $form['subquestions'] = $this->customShuffle($form['subquestions']);
+    }
+    return $form;
   }
 
   /**

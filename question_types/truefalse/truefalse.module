@@ -55,3 +55,18 @@ function truefalse_autoload_info() {
     'TrueFalseResponse' => array('file' => 'truefalse.classes.inc'),
   );
 }
+
+/**
+ * Implementation of hook_theme().
+ */
+function truefalse_theme() {
+  return array(
+    'truefalse_answering_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'truefalse') .'/theme',
+      'template' => 'truefalse-answering-form',
+    ),
+  );
+}

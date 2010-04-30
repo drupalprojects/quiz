@@ -35,7 +35,7 @@ function theme_matching_question_form($form) {
 /**
  * Theme the answering form
  */
-function theme_matching_answering_form($form) {
+function theme_matching_subquestion_form($form) {
   $out = '<table class = "matching-tbl">';
   foreach ($form as $key => $value) {
     if (is_int($key)) {

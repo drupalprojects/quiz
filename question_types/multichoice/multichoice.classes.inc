@@ -355,7 +355,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * to an administrator or to a quiz taker.
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form['#theme'] = 'multichoice_answering';
+    $form['#theme'] = 'multichoice_answering_form';
     
     $form['question'] = array(
       '#type' => 'markup',

@@ -109,6 +109,9 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
+    $form = array();
+    $form['#theme'] = 'truefalse_answering_form';
+    
     // Question first
     $form['question'] = array(
       '#type' => 'markup',

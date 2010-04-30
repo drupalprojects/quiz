@@ -47,6 +47,13 @@ function scale_theme($existing, $type, $theme, $path) {
         'form' => NULL,
       ),
     ),
+    'scale_answering_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'template' => 'scale-answering-form',
+    ),
   );
 }
 

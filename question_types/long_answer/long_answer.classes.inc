@@ -111,6 +111,8 @@ class LongAnswerQuestion extends QuizQuestion{
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
+    $form = array();
+    $form['#theme'] = 'long_answer_answering_form';
     $form['question'] = array(
       '#type' => 'markup',
       '#value' => check_markup($this->node->body, $this->node->format, FALSE),

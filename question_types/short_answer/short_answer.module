@@ -96,6 +96,13 @@ function short_answer_theme() {
       'path' => drupal_get_path('module', 'short_answer') .'/theme',
       'file' => 'short_answer.theme.inc',
     ),
+    'short_answer_answering_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'short_answer') .'/theme',
+      'template' => 'short-answer-answering-form',
+    ),
   );
 }
 

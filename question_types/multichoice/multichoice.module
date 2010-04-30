@@ -99,12 +99,12 @@ function multichoice_theme($existing, $type, $theme, $path) {
       'path' => drupal_get_path('module', 'multichoice') .'/theme',
       'template' => 'multichoice-alternative-creation',
     ),
-    'multichoice_answering' => array(
+    'multichoice_answering_form' => array(
       'arguments' => array(
         'form' => NULL,
       ),
       'path' => drupal_get_path('module', 'multichoice') .'/theme',
-      'template' => 'multichoice-answering',
+      'template' => 'multichoice-answering-form',
     ),
     'multichoice_alternative' => array(
       'arguments' => array(

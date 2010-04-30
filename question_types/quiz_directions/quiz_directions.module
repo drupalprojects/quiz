@@ -48,3 +48,18 @@ function quiz_directions_autoload_info() {
     'QuizDirectionsResponse' => array('file' => 'quiz_directions.classes.inc'),
   );
 }
+
+/**
+ * Implementation of hook_theme().
+ */
+function quiz_directions_theme() {
+  return array(
+    'quiz_directions_answering_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'quiz_directions') .'/theme',
+      'template' => 'quiz-directions-answering-form',
+    ),
+  );
+}
