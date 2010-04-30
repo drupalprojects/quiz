@@ -69,6 +69,10 @@ function quiz_question_theme() {
       'arguments' => array('form' => NULL),
       'file' => 'quiz_question.theme.inc',
     ),
+    'quiz_question_navigation_form' => array(
+      'arguments' => array('form' => NULL),
+      'file' => 'quiz_question.theme.inc',
+    ),
   );
 }
 
@@ -185,8 +189,9 @@ function quiz_question_answering_form($form_state, $node) {
   
   $quiz = quiz_type_access_load(arg(1));
   
+  $form['navigation']['#theme'] = 'quiz_question_navigation_form';
   if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
-    $form['back'] = array(
+    $form['navigation']['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
       '#attributes' => array('class' => 'q-back-button'),
@@ -194,12 +199,12 @@ function quiz_question_answering_form($form_state, $node) {
   }
 
   // Add navigation at the bottom:
-  $form['submit'] = array(
+  $form['navigation']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Next'),
   );
   if ($node->allow_skipping) {
-    $form['op']  = array(
+    $form['navigation']['op']  = array(
       '#type' => 'submit',
       '#value' => t('Skip'),
       '#attributes' => array('class' => 'q-skip-button'),
