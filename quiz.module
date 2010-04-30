@@ -451,21 +451,21 @@ function quiz_theme() {
         'form' => NULL,
       ),
       'path' => drupal_get_path('module', 'quiz') .'/theme',
-      'template' => 'quiz_question_browser',
+      'template' => 'quiz-question-browser',
     ),
     'quiz_results_browser' => array(
       'arguments' => array(
         'form' => NULL,
       ),
       'path' => drupal_get_path('module', 'quiz') .'/theme',
-      'template' => 'quiz_results_browser',
+      'template' => 'quiz-results-browser',
     ),
     'quiz_report_form' => array(
       'arguments' => array(
         'form' => NULL,
       ),
       'path' => drupal_get_path('module', 'quiz') .'/theme',
-      'template' => 'quiz_report_form',
+      'template' => 'quiz-report-form',
     ),
     'quiz_node_form' => array(
       'arguments' => array('form' => NULL),
