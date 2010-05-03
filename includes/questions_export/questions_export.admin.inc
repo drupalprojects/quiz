@@ -207,7 +207,8 @@ function _as_moodle_questions($drupal_questions) {
 
     // include answers, if allowed
     $results = module_invoke_all('answers_access', $dq);
-    $may_view_answers = in_array(true, $results);
+    // if some module returned TRUE, or none are active (allow by default)
+    $may_view_answers = in_array(true, $results) || empty($results);
     if ($may_view_answers) {
       _fill_moodle_item_answers($dq, $mq);
     }
