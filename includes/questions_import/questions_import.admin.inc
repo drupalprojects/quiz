@@ -504,7 +504,7 @@ function questions_import_submit_aiken(&$form, &$form_state) {
           'feedback' => '', //No feedback option as of now
         );
       }
-      node_save(questions_import_node_save_static_data(&$node));
+      node_save(questions_import_node_save_static_data($node));
       ++$row;
     }
   }
@@ -554,7 +554,7 @@ function questions_import_submit_csv(&$form, &$form_state) {
           'feedback' => '',
         );
       }
-      node_save(questions_import_node_save_static_data(&$node));
+      node_save(questions_import_node_save_static_data($node));
       ++$row;
     }
   }
