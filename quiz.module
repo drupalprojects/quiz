@@ -862,14 +862,20 @@ function quiz_form(&$node) {
     '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions.'),
     '#default_value' => $node->randomization,
   );
-  $form['taking']['feedback_time'] = array(
+   $form['taking']['feedback'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Feedback'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+  );
+  $form['taking']['feedback']['feedback_time'] = array(
     '#title' => t('Feedback Time'),
     '#type' => 'radios',
     '#default_value' => $node->feedback_time,
     '#options' => _quiz_get_feedback_options(),
     '#description' => t('Indicates at what point feedback for each question will be given to the user'),
   );
-  $form['taking']['display_feedback'] = array (
+  $form['taking']['feedback']['display_feedback'] = array (
     '#title' => t('Display solution'),
     '#type' => 'checkbox',
     '#default_value' => $node->display_feedback,
