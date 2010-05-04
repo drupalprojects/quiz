@@ -2639,7 +2639,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
     WHERE n.status = 1 AND tn.tid IN ($term_ids)
     AND n.type IN ('"
     . implode("','", array_keys(_quiz_get_question_types()))
-    . "')", 0, $num_random);
+    . "') ORDER BY RAND()", 0, $num_random);
 
   $questions = array();
   while ($question_node = db_fetch_array($result)) {
