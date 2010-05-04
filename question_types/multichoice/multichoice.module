@@ -92,6 +92,14 @@ function multichoice_theme($existing, $type, $theme, $path) {
       'path' => drupal_get_path('module', 'multichoice') .'/theme',
       'file' => 'multichoice.theme.inc',
     ),
+    'multichoice_answer_node_view' => array(
+      'arguments' => array(
+        'alternatives' => NULL,
+        'show_correct' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'file' => 'multichoice.theme.inc',
+    ),
     'multichoice_alternative_creation' => array(
       'arguments' => array(
         'form' => NULL,

@@ -94,6 +94,11 @@ function matching_theme() {
       'path' => drupal_get_path('module', 'matching') .'/theme',
       'file' => 'matching.theme.inc',
     ),
+    'matching_match_node_view' => array(
+      'arguments' => array('subquestions' => NULL),
+      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'file' => 'matching.theme.inc',
+    ),
     'matching_answering_form' => array(
       'arguments' => array(
         'form' => NULL,
@@ -101,5 +106,6 @@ function matching_theme() {
       'path' => drupal_get_path('module', 'matching') .'/theme',
       'template' => 'matching-answering-form',
     ),
+    
   );
 }

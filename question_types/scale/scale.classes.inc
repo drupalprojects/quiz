@@ -292,15 +292,13 @@ class ScaleQuestion extends QuizQuestion {
    */
   public function getNodeView() {
     $content = parent::getNodeView();
-
-    //@todo: Consider changing this to something prettier...
-    $form = $this->getAnsweringForm(NULL, NULL);
-    $to_return .= drupal_render($form['tries']);
-    foreach ($form['tries']['#options'] as $val) {
-      $radio = array('#type' => 'radio', '#title' => $val, '#value' => 0);
-      $to_return .= drupal_render($radio);
+    $alternatives = array();
+    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
+      if (drupal_strlen($this->node->{$i}->answer)>0) {
+        $alternatives[] = check_plain($this->node->{$i}->answer);
+      }
     }
-    $content['answer'] = array('#type' => 'markup', '#value' => $to_return);
+    $content['answer'] = array('#type' => 'markup', '#value' => theme('scale_answer_node_view', $alternatives));
     return $content;
   }
 

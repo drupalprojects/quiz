@@ -91,12 +91,12 @@ class TrueFalseQuestion extends QuizQuestion {
     if ($this->viewCanRevealCorrect()) {
       $answer = ($this->node->correct_answer) ? t('True') : t('False');
       $content['answers']['#type'] = 'markup';
-      $content['answers']['#value'] = '<div class="quiz answers" style="background-color: lightgreen">'. $answer .'</div>';
+      $content['answers']['#value'] = '<div class="quiz-solution">'. $answer .'</div>';
     }
     else {
       $content['answers'] = array(
       '#type' => 'markup',
-      '#value' => '<br /> <em>' . t('Answer hidden') . '</em>.',
+      '#value' => '<div class="quiz-answer-hidden">Answer hidden</div>',
       '#weight' => 2,
       );
     }

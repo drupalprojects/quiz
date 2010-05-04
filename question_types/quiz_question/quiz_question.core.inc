@@ -300,7 +300,7 @@ abstract class QuizQuestion {
     );
     $content['question'] = array(
       '#type'  => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#value' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, FALSE) . '</div>',
       '#weight' => -1,
     );
     return $content;

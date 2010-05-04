@@ -310,38 +310,8 @@ class MultichoiceQuestion extends QuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
 
-    $content['answers'] = array();
-
-    $header = array('', '');
-
-    foreach ($this->node->alternatives as $i => $short) {
-      $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
-      
-      // Find the is_correct status
-      $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
-      $p = drupal_get_path('module', 'multichoice');
-      $image = $is_correct ? 'correct' : 'wrong';
-      if (!$this->viewCanRevealCorrect()) $image = 'unknown';
-      
-      // Prepare the view as a table @todo: Make this themable
-      $rows[] = array(
-        array(
-          'data' => theme('image',
-            "$p/theme/images/$image.png",
-            t($image),
-            t('Score if chosen: @sc Score if not chosen: @nc', array(
-              '@sc' => $short['score_if_chosen'],
-              '@nc' => $short['score_if_not_chosen'])
-            )
-          ),
-          'width' => 35
-        ),
-        $answer_markup
-      );
-    }
-
     $content['answers'] = array(
-       '#value' => theme('table', $header, $rows),
+       '#value' => theme('multichoice_answer_node_view', $this->node->alternatives, $this->viewCanRevealCorrect()),
        '#weight' => 2,
     );
 

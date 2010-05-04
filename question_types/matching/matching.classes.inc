@@ -118,15 +118,17 @@ class MatchingQuestion extends QuizQuestion {
     $content = parent::getNodeView();
 
     list($matches, $select_option) = $this->getSubquestions();
-
+    $subquestions = array();
     if ($this->viewCanRevealCorrect()) {
-      $header = array(t('Subquestion'), t('Correct match'), t('Feedback'));
       foreach ($matches as $match) {
-        $rows[] = array($match['question'], $match['answer'], $match['feedback']);
+        $subquestions[] = array(
+          'question' =>$match['question'], 
+          'correct' => $match['answer'], 
+          'feedback' => $match['feedback']
+        );
       }
     }
     else {
-      $header = array(t('Subquestion'), t('Random possible match'));
       // shuffle the answer column
       foreach ($matches as $match) {
         $sub_qs[] = $match['question'];
@@ -134,11 +136,14 @@ class MatchingQuestion extends QuizQuestion {
       }
       shuffle($sub_as);
       foreach ($sub_qs as $i => $sub_q) {
-        $rows[] = array($sub_q, $sub_as[$i]);
+        $subquestions[] = array(
+          'question' => $sub_q, 
+          'random' => $sub_as[$i],
+        );
       }
     }
     $content['answers'] = array(
-       '#value' => theme('table', $header, $rows),
+       '#value' => theme('matching_match_node_view', $subquestions),
        '#weight' => 2,
     );
     return $content;

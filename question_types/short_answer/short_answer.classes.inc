@@ -103,7 +103,8 @@ class ShortAnswerQuestion extends QuizQuestion {
     $content = parent::getNodeView();
 
     if ($this->viewCanRevealCorrect()) {
-      $content['answers'] = array('#type' => 'markup',
+      $content['answers'] = array(
+        '#type' => 'markup',
         '#value' => '<div class="quiz-solution">'. check_plain($this->node->correct_answer) .'</div>',
         '#weight' => 1,
       );
@@ -111,7 +112,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     else {
       $content['answers'] = array(
         '#type' => 'markup',
-        '#value' => '<br /> <em>'. t('Answer hidden') .'</em>',
+        '#value' => '<div class="quiz-answer-hidden">Answer hidden</div>',
         '#weight' => 2,
       );
     }

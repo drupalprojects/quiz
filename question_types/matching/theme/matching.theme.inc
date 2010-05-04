@@ -46,3 +46,21 @@ function theme_matching_subquestion_form($form) {
   $out .= '</table>';
   return $out;
 }
+
+/**
+ * Theme the answer part of the node view
+ * 
+ * @param $subquestions
+ *  Array with all the data in the subquestions.
+ */
+function theme_matching_match_node_view($subquestions) {
+  // We know the correct answer for each subquestion
+  if (isset($subquestions[0]['correct'])) {
+    $header = array(t('Subquestion'), t('Correct match'), t('Feedback'));
+  }
+  // We do not know the correct answer for each subquestion
+  else {
+    $header = array(t('Subquestion'), t('Possible match'));
+  }
+  return theme('table', $header, $subquestions);
+}

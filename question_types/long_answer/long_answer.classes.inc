@@ -89,15 +89,17 @@ class LongAnswerQuestion extends QuizQuestion{
 
     if ($this->viewCanRevealCorrect()) {
       $rubric_html = check_markup($this->node->rubric, $this->node->format, FALSE);
-      $content['answers'] = array('#type' => 'markup',
-        '#value' => '<div class="quiz-solution"><h3>Rubric</h3>'. $rubric_html .'</div>',
+      $content['answers'] = array(
+        '#type' => 'item',
+        '#title' => t('Rubric'),
+        '#value' => '<div class="quiz-solution">' . $rubric_html .'</div>',
         '#weight' => 1,
       );
     }
     else {
       $content['answers'] = array(
         '#type' => 'markup',
-        '#value' => '<br /> <em>Answer hidden</em>.',
+        '#value' => '<div class="quiz-answer-hidden">Answer hidden</div>',
         '#weight' => 1,
       );
     }
