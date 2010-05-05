@@ -337,7 +337,6 @@ class MatchingResponse extends QuizQuestionResponse {
    */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
-    $this->is_correct = $this->isCorrect();
     if (!isset($answer)) {
       $sql = 'SELECT ua.answer, score, ua.match_id
               FROM {quiz_matching_user_answers} ua
@@ -350,6 +349,7 @@ class MatchingResponse extends QuizQuestionResponse {
         $this->answer[$obj->match_id] = $obj->answer;
       }
     }
+    $this->is_correct = $this->isCorrect();
   }
 
   /**
