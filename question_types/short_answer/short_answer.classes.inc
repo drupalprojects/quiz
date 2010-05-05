@@ -397,19 +397,6 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
     return $score;
   }
-  
-  /**
-   * Implementation of isCorrect 
-   *
-   * @see QuizQuestionResponse#isCorrect()
-   */
-  public function isCorrect() {
-    $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->getScore();
-    // To prevent Division by zero warning
-    $possible = ($possible == 0) ? 1 : $possible;
-    return ($possible > 0) ? (($actual / $possible) > 0.5) : 0;
-  }
 
   /**
    * Implementation of getResponse 
