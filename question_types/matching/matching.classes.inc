@@ -253,7 +253,7 @@ class MatchingQuestion extends QuizQuestion {
       '#weight' => -4,
       '#tree' => TRUE,
       '#theme' => 'matching_question_form',
-      '#description' => t('Write you pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
+      '#description' => t('Write your pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
     );
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
       $form['match'][$i] = array(
