@@ -3253,14 +3253,15 @@ function _quiz_save_user_settings($node) {
   if ($node->auto_created)
     return FALSE;
   
+  $node = (object)$node;
   // Are we updating or inserting?
   $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
-  $res = db_query($sql, is_array($node) ? (isset($node['save_def_uid']) ? $node['save_def_uid'] : $user->uid) : $user->uid);
+  $res = db_query($sql, $node->save_def_uid ? $node->save_def_uid : $user->uid);
   $update = is_numeric(db_result($res)) ? array('uid') : array();
   
   // Are we saving the default settings?
   if (isset($node->save_def_uid))
-    $node['uid'] = $node['save_def_uid'];
+    $node->uid = $node->save_def_uid;
   
   drupal_write_record('quiz_user_settings', $node, $update);
 }
