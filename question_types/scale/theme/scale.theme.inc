@@ -37,3 +37,13 @@ function theme_scale_answer_node_view($alternatives) {
   }
   return theme('table', $header, $rows);
 }
+
+/**
+ * Theme the scale response form
+ * 
+ * @param $form
+ *  The response form
+ */
+function theme_scale_response_form($form) {
+  return drupal_render($form);
+}

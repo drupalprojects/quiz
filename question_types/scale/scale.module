@@ -49,6 +49,13 @@ function scale_theme($existing, $type, $theme, $path) {
       'path' => drupal_get_path('module', 'scale') .'/theme',
       'file' => 'scale.theme.inc',
     ),
+    'scale_response_form' => array(
+      'arguments' => array(
+        'form' => NULL,
+      ),
+      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'file' => 'scale.theme.inc',
+    ),
     'scale_answer_node_view' => array(
       'arguments' => array(
         'alternatives' => NULL,

@@ -597,9 +597,12 @@ class ScaleResponse extends QuizQuestionResponse {
    * @see getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    return array(
+    $form = array();
+    $form['#theme'] = 'scale_response_form';
+    $form['answer'] = array(
       '#type' => 'markup',
       '#value' => check_plain($this->answer),
     );
+    return $form;
   }
 }
