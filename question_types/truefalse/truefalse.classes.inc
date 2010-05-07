@@ -292,21 +292,21 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-
-    // Build the question answers header (add blank space for IE).
-    if ($showpoints) {
-      $innerheader[] = t('Correct Answer');
-    }
-    $innerheader[] = t('Response');
-    if ($showfeedback) {
-      $innerheader[] = '&nbsp;';
-    }
-
     if (empty($this->question->answers)) {
       return array(
         '#type' => 'markup',
         '#value' => t('Missing question.'),
       );
+    }
+    $metadata = array();
+    $data = array();
+    // Build the question answers header (add blank space for IE).
+    if ($showpoints) {
+      $metadata[] = t('Correct Answer');
+    }
+    $metadata[] = t('User answer');
+    if ($showfeedback) {
+      $metadata[] = '&nbsp;';
     }
 
     $answer = $this->question->answers[0];
@@ -314,19 +314,18 @@ class TrueFalseResponse extends QuizQuestionResponse {
     $user_answer = $answer['answer'];
 
     if ($showpoints) {
-      $rows[0][] = ($correct_answer ? t('True') : t('False'));
+      $data[0]['correct_answer'] = ($correct_answer ? t('True') : t('False'));
     }
-    $rows[0][] = (($user_answer === NULL) ? '': ($user_answer ? t('True') : t('False')));
+    $data[0]['user_answer'] = (($user_answer === NULL) ? '': ($user_answer ? t('True') : t('False')));
 
     if ($showfeedback && !empty($this->question->feedback)) {
-      $rows[0][] = $this->question->feedback;
+      $data[0]['feedback'] = $this->question->feedback;
     }
 
-    // Add the cell with the question and the answers.
-    $table = theme('table', $innerheader, $rows);
+    // Return themed output
     return array(
       '#type' => 'markup',
-      '#value' => $table,
+      '#value' => theme('truefalse_response', $metadata, $data),
     );
   }
 }
