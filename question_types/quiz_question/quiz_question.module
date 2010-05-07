@@ -189,6 +189,7 @@ function quiz_question_answering_form($form_state, $node) {
   
   $quiz = quiz_type_access_load(arg(1));
   
+  $is_last = _quiz_is_last_question();
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
   if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
     $form['navigation']['back'] = array(
@@ -196,12 +197,15 @@ function quiz_question_answering_form($form_state, $node) {
       '#value' => t('Back'),
       '#attributes' => array('class' => 'q-back-button'),
     );
+    if ($is_last) {
+      drupal_set_message('This is the last question. If you would like to go back and check some of your answers, click "Back", otherwise click the "Finish" button.', 'status', FALSE);
+    }
   }
-
+  
   // Add navigation at the bottom:
   $form['navigation']['submit'] = array(
     '#type' => 'submit',
-    '#value' => t('Next'),
+    '#value' => $is_last ? t('Finish') : t('Next'),
   );
   if ($node->allow_skipping) {
     $form['navigation']['op']  = array(

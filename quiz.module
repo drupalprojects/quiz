@@ -1499,7 +1499,7 @@ function quiz_take_quiz($quiz) {
   //   questions and then a pointer to the current question. That makes
   //   rewinding much easier.
   // Check for answer submission.
-  elseif ($_POST['op'] == t('Submit') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back')) {
+  elseif ($_POST['op'] == t('Finish') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back')) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }
@@ -1628,7 +1628,7 @@ function quiz_take_quiz($quiz) {
           jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
           // These are the two button op values that are accepted for answering
           // questions.
-          $button_op1 = drupal_to_js(t('Submit'));
+          $button_op1 = drupal_to_js(t('Finish'));
           $button_op2 = drupal_to_js(t('Next'));
           $js = "
             function finished() {
@@ -3402,4 +3402,11 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
  */
 function _quiz_is_plain($value) {
   return ($value === check_plain($value));
+}
+
+/**
+ * Check if this is the last question of the quiz
+ */
+function _quiz_is_last_question() {
+  return count($_SESSION['quiz_'. intval(arg(1))]['quiz_questions']) < 2;
 }
