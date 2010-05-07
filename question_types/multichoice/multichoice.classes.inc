@@ -806,6 +806,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
+    
+    // Find the alternative with the highest score
     if ($this->question->choice_multi == 0) {
       $max_score_if_chosen = -999;
       while (is_array($this->question->alternatives[$i])) {
@@ -815,76 +817,53 @@ class MultichoiceResponse extends QuizQuestionResponse {
       }
       $i = 0;
     }
+    
+    // Fetch all data for the report
+    $data = array();
     while (is_array($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
       if (drupal_strlen($this->checkMarkup($short['answer'], $short->answer_format)) > 0) {
-        $row = array();
+        $alternative = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
-        $p = drupal_get_path('module', 'multichoice');
-        $rowspan = 1;
-        $not = '';
-        if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
-          if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
-              $rowspan = 2;
-            }
-
-            if ($this->question->choice_multi == 0) {
-              if ($short['score_if_chosen'] < $max_score_if_chosen && $this->question->choice_boolean == 0) {
-                $row[] = array('data' => theme('image', "$p/theme/images/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score')), 'width' => 35, 'rowspan' => $rowspan);
-              }
-              elseif ($short['score_if_chosen'] < $max_score_if_chosen && $this->question->choice_boolean == 1) {
-                $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose a wrong answer')), 'width' => 35, 'rowspan' => $rowspan);
-              }
-              else {
-                $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
-              }
+        
+        // Did the user choose the alternative?
+        $alternative['is_chosen'] = in_array($short['id'], $this->user_answer_ids);
+        
+        // Questions where multiple answers isn't allowed are scored differently...
+        if ($this->question->choice_multi == 0) {
+          
+          if ($this->question->choice_boolean == 0) {
+            if ($short['score_if_chosen'] > $short['score_if_not_chosen']) {
+              $alternative['is_correct'] = $short['score_if_chosen'] < $max_score_if_chosen ? 1 : 2;
             }
             else {
-              $row[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('You chose !the correct answer', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
+              $alternative['is_correct'] = 0;
             }
           }
+          
           else {
-            if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
-              $rowspan = 2;
-              $not = '_not';
-            }
-            if ($this->question->choice_multi == 1 || $short['score_if_chosen'] == $max_score_if_chosen)
-              $row[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t('This is !the correct answer, but you didn\'t choose it', array('!the' => $the))), 'width' => 35, 'rowspan' => $rowspan);
-            else {
-              $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
-            }
+            $alternative['is_correct'] = $short['score_if_chosen'] > $short['score_if_not_chosen'] ? 2 : 0;
           }
         }
+        
+        // Questions where multiple answers are allowed
         else {
-          if (in_array($short['id'], $this->user_answer_ids)) {
-            if (drupal_strlen($this->checkMarkup($short['feedback_if_chosen'], $short['feedback_if_chosen_format'])) > 0) {
-              $rowspan = 2;
-            }
-            $row[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('You chose a wrong answer')), 'width' => 35, 'rowspan' => $rowspan);
-          }
-          else {
-            if (drupal_strlen($this->checkMarkup($short['feedback_if_not_chosen'], $short['feedback_if_not_chosen_format'])) > 0) {
-              $rowspan = 2;
-              $not = '_not';
-            }
-            $row[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
-          }
+          $alternative['is_correct'] = $short['score_if_chosen'] > $short['score_if_not_chosen'] ? 2 : 0;
         }
-        $row[] = $this->checkMarkup($short['answer'], $short['answer_format'], FALSE);
-        $rows[] = $row;
-        if ($rowspan > 1) {
-          $feedback = $this->checkMarkup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
-          $rows[] = array("<b>Feedback:</b><div class=\"quiz_answer_feedback\">$feedback</div>");
-        }
+        
+        $alternative['answer'] = $this->checkMarkup($short['answer'], $short['answer_format'], FALSE);
+        
+        $not = $alternative['is_chosen'] ? '' : '_not';
+        $alternative['feedback'] = $this->checkMarkup($short['feedback_if'. $not .'_chosen'], $short['feedback_if'. $not .'_chosen_format'], FALSE);
+        $data[] = $alternative;
       }
       $i++;
     }
-    $table = theme('table', NULL, $rows);
-
+    
+    // Return themed report
     return array(
       '#type' => 'markup',
-      '#value' => $table,
+      '#value' => theme('multichoice_response', $data),
     );
   }
 

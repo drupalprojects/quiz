@@ -100,6 +100,13 @@ function multichoice_theme($existing, $type, $theme, $path) {
       'path' => drupal_get_path('module', 'multichoice') .'/theme',
       'file' => 'multichoice.theme.inc',
     ),
+    'multichoice_response' => array(
+      'arguments' => array(
+        'data' => array(),
+      ),
+      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'file' => 'multichoice.theme.inc',
+    ),
     'multichoice_alternative_creation' => array(
       'arguments' => array(
         'form' => NULL,

@@ -45,3 +45,13 @@ function theme_short_answer_user_answer($answer, $correct) {
   $row = array(array($correct, $answer));
   return theme('table', $header, $row);
 }
+
+/**
+ * Theme the short_answer response form
+ * 
+ * @param $form
+ *  The response form
+ */
+function theme_short_answer_response_form($form) {
+  return drupal_render($form);
+}

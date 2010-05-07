@@ -71,3 +71,46 @@ function theme_multichoice_answer_node_view($alternatives, $show_correct) {
     }
   return theme('table', $header, $rows);
 }
+
+/**
+ * Theme function for the multichoice report
+ * 
+ * @param $data
+ *  Array of data to be presented in the report
+ */
+function theme_multichoice_response($data) {
+  $rows = array();
+  foreach($data as $id => $alternative) {
+    $cols = array();
+    $p = drupal_get_path('module', 'multichoice');
+    $rowspan = drupal_strlen($alternative['feedback']) > 0 ? 2: 1;
+    $not = '';
+    if ($alternative['is_chosen']) {
+      switch ($alternative['is_correct']) {
+        case 0:
+          $cols[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('This answer is wrong')), 'width' => 35, 'rowspan' => $rowspan);
+          break;
+        case 1:
+          $cols[] = array('data' => theme('image', "$p/theme/images/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score')), 'width' => 35, 'rowspan' => $rowspan);
+          break;
+        case 2:
+          $cols[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('This answer is correct')), 'width' => 35, 'rowspan' => $rowspan);
+          break;
+      }
+    }
+    else {
+      if ($alternative['is_correct'] == 2) {
+        $cols[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t("This answer is correct, but you didn't choose it")), 'width' => 35, 'rowspan' => $rowspan);
+      }
+      else {
+        $cols[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
+      }
+    }
+    $cols[] = $alternative['answer'];
+    $rows[] = $cols;
+    if ($rowspan == 2) {
+      $rows[] = array('<strong>Feedback:</strong><div class="quiz_answer_feedback">' . $alternative['feedback'] . '</div>');
+    }
+  }
+  return theme('table', NULL, $rows);
+}
