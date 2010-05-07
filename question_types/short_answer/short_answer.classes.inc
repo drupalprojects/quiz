@@ -414,6 +414,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
+    $form['#theme'] = 'short_answer_response_form';
     if ($this->question && !empty($this->question->answers)) {
       $answer = (object) current($this->question->answers);
     }
@@ -421,11 +422,9 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       return $form;
     }
 
-    $header = array(t('Correct Answer'), t('User Answer'));
-    $row = array(array($this->question->correct_answer, $answer->answer));
     $form['answer'] = array(
       '#type' => 'markup',
-      '#value' => theme('table', $header, $row),
+      '#value' => theme('short_answer_user_answer', $answer->answer, $this->question->correct_answer),
     );
 
     if ($answer->is_evaluated == 1) {
@@ -442,7 +441,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
-        '#value' => '<em>'. $feedback .'</em>',
+        '#value' => '<span class="quiz_answer_feedback">' . $feedback . '</span>',
       );
     }
     return $form;

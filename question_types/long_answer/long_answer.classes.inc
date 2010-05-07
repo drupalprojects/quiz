@@ -334,6 +334,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
+    $form['#theme'] = 'long_answer_response_form';
     if ($this->question && !empty($this->question->answers))
       $answer = (object) current($this->question->answers);
     else
@@ -363,7 +364,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
-        '#value' => '<em>'. $feedback .'</em>',
+        '#value' => '<span class="quiz_answer_feedback">' . $feedback . '</span>',
       );
     }
     return $form;

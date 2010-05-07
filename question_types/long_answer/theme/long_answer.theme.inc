@@ -34,3 +34,13 @@ function theme_long_answer_view_unscored($unscored) {
   $output .= !empty($rows) ? theme('table', $header, $rows) : t('There are no unscored essays.');
   return $output;
 }
+
+/**
+ * Theme the long_answer response form
+ * 
+ * @param $form
+ *  The response form
+ */
+function theme_long_answer_response_form($form) {
+  return drupal_render($form);
+}

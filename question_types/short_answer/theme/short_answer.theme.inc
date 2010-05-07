@@ -39,3 +39,9 @@ function theme_short_answer_view_unscored($unscored) {
   }
   return $output;
 }
+
+function theme_short_answer_user_answer($answer, $correct) {
+  $header = array(t('Correct Answer'), t('User Answer'));
+  $row = array(array($correct, $answer));
+  return theme('table', $header, $row);
+}
