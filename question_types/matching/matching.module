@@ -89,6 +89,11 @@ function matching_theme() {
       'path' => drupal_get_path('module', 'matching') .'/theme',
       'file' => 'matching.theme.inc',
     ),
+    'matching_response' => array(
+      'arguments' => array('metadata' => NULL, 'data' => NULL),
+      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'file' => 'matching.theme.inc',
+    ),
     'matching_subquestion_form' => array(
       'arguments' => array('form' => NULL),
       'path' => drupal_get_path('module', 'matching') .'/theme',

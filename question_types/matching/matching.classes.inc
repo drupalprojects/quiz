@@ -432,15 +432,15 @@ class MatchingResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#getReportFormResponse($showpoints, $showfeedback, $allow_scoring)
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    $rows = $innerheader = array();
+    $data = $metadata = array();
     // Build the question answers header (add blank space for IE).
-    $innerheader[] = t('Match');
+    $metadata[] = t('Match');
     if ($showpoints) {
-      $innerheader[] = t('Correct Answer');
+      $metadata[] = t('Correct Answer');
     }
-    $innerheader[] = t('Response');
+    $metadata[] = t('User answer');
     if ($showfeedback) {
-      $innerheader[] = t('Feedback');
+      $metadata[] = t('Feedback');
     }
 
     $MatchingQuestion = new MatchingQuestion($this->question);
@@ -448,23 +448,23 @@ class MatchingResponse extends QuizQuestionResponse {
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
 
     foreach ($correct_answers as $correct_answer) {
-      $cols = array();
+      $answer_data = array();
       $id = $user_answers[$correct_answer['match_id']];
-      $theme = ($correct_answer['answer'] == $correct_answers[$id]['answer']) ? 'quiz_score_correct' : 'quiz_score_incorrect';
-      $cols[] = $correct_answer['question'];
+      $correct = $correct_answer['answer'] == $correct_answers[$id]['answer'];
+      $answer_data['question'] = $correct_answer['question'];
       if ($showpoints)
-        $cols[] = $correct_answer['answer'];
-      $cols[] = $correct_answers[$id]['answer'];
+        $answer_data['correct_answer'] = $correct_answer['answer'];
+      $answer_data['user_answer'] = $correct_answers[$id]['answer'];
       if ($showfeedback) {
-        $cols[] = check_markup($correct_answer['feedback']);
-        $cols[] = array('data' => theme($theme), 'class' => 'quiz_summary_qcell');
+        $answer_data['feedback'] = check_markup($correct_answer['feedback']);
+        $answer_data['is_correct'] = $correct;
       }
-      $rows[] = $cols;
+      $data[] = $answer_data;
     }   
     
     return array(
       '#type' => 'markup',
-      '#value' => theme('table', $innerheader, $rows) . '<br />',
+      '#value' => theme('matching_response', $metadata, $data),
     );
   }
 }

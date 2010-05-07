@@ -64,3 +64,24 @@ function theme_matching_match_node_view($subquestions) {
   }
   return theme('table', $header, $subquestions);
 }
+
+/**
+ * Theme the contents of the matching response form
+ * 
+ * @param $metadata
+ *  Can be used as a table header
+ * @param $data 
+ *  Can be used as table rows
+ */
+function theme_matching_response($metadata, $data) {
+  if (isset($data[0]['is_correct'])) {
+    foreach ($data as $id => $match_data) {
+      $theme = $match_data['is_correct'] ? 'quiz_score_correct' : 'quiz_score_incorrect';
+      $data[$id]['is_correct'] = array(
+        'data' => theme($theme),
+        'class' => 'quiz_summary_qcell',
+      );
+    }
+  }
+  return theme('table', $metadata, $data);
+}
