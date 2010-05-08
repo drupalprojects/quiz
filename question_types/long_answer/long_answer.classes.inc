@@ -305,20 +305,6 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of isCorrect
-   *
-   * @see QuizQuestionResponse#isCorrect()
-   */
-  public function isCorrect() {
-    $possible = _quiz_question_get_instance($this->question)->getMaximumScore();
-    $actual = $this->getScore();
-    // To prevent Division by zero warning
-    $possible = ($possible == 0) ? 1 : $possible;
-    // We consider the answer to be correct if it has recieved a score above 50 %...
-    return (($actual / $possible) * 100 > 50);
-  }
-
-  /**
    * Implementation of getResponse
    *
    * @see QuizQuestionResponse#getResponse()

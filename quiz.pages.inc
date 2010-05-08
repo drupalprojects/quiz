@@ -174,15 +174,13 @@ function _quiz_remove_unscored_message() {
 function quiz_update_total_score_fast($rid, $quiz_vid) {
   $sql = 'UPDATE {quiz_node_results} r
           SET score = (
-            SELECT ROUND(100*SUM(points_awarded/p.max_score*r.max_score)/SUM(r.max_score))
+            SELECT ROUND(100*SUM(a.points_awarded)/SUM(r.max_score))
             FROM {quiz_node_results_answers} a
-            JOIN {quiz_question_properties} p
-            ON p.vid = a.question_vid
             JOIN {quiz_node_relationship} r
-            ON r.child_vid = p.vid
+            ON r.child_vid = a.question_vid AND r.parent_vid = %d
             WHERE a.result_id = %d)
           WHERE result_id = %d';
-  db_query($sql, $rid, $rid);
+  db_query($sql, $quiz_vid, $rid, $rid);
 }
 
 /**

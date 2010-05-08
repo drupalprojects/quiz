@@ -171,7 +171,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
       $points_awarded = 0; 
     }
     else {
-      $is_correct = (($score * 100) / $max > 50) ? 1 : 0;
+      $is_correct = $score == $max ? 1 : 0;
       $points_awarded = $score;
     }
 
