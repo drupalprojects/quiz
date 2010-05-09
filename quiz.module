@@ -3222,7 +3222,12 @@ function quiz_delete_results($rids) {
           WHERE result_id IN('. $rids_string .')';
   $res = db_query($sql);
   while ($res_o = db_fetch_object($res)) {
-    quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
+    try {
+      quiz_question_delete_result($res_o->result_id, $res_o->question_nid, $res_o->question_vid);
+    }
+    catch(Exception $e) {
+      watchdog('quiz', "Couldn't find a constructor for question with nid %nid and vid %vid", array('%nid' => $res_o->question_nid, '%vid' => $res_o->question_vid));
+    }
   }
   db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id IN (' . $rids_string . ')');
   db_query('DELETE FROM {quiz_node_results} WHERE result_id IN (' . $rids_string . ')');
