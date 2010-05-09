@@ -364,7 +364,7 @@ abstract class QuizQuestion {
     
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
-    if ($questions_kept && $this->node->revision) {
+    if ($quizzes_kept && $this->node->revision) {
       if (user_access('manual quiz revisioning')) {
         unset($_REQUEST['destination']);
         unset($_REQUEST['edit']['destination']);
@@ -518,16 +518,31 @@ abstract class QuizQuestion {
           }
           // We build one sql query to insert multiple rows into the relationship table
           if (count($insert_values) > 0) $to_insert .= ',';
-          $to_insert .= ' (%d, %d, %d, %d, %d)';
+          $to_insert .= ' (%d, %d, %d, %d, %d, %d, %d)';
           $nid_vid = explode('-', $checked);
           $insert_values[] = $nid_vid[0];
           $insert_values[] = $nid_vid[1];
-          $delete_values[] = $nid_vid[1];
-          $delete_values[] = $this->node->nid;
-          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)';
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
           $insert_values[] = $this->getMaximumScore();
+          $insert_values[] = 1 + db_result(
+            db_query('
+              SELECT MAX(weight)
+              FROM {quiz_node_relationship}
+              WHERE parent_vid = %d
+            ', $nid_vid[1]));
+          $randomization = db_result(
+            db_query('
+              SELECT randomization
+              FROM {quiz_node_properties}
+              WHERE nid = %d AND vid = %d
+            ', $nid_vid[0], $nid_vid[1]));
+          $insert_values[] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+          
+          // We also delete multiple rows from the table...
+          $delete_values[] = $nid_vid[1];
+          $delete_values[] = $this->node->nid;
+          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)';
         }
       }
       if (count($insert_values) > 0) {
@@ -536,7 +551,7 @@ abstract class QuizQuestion {
                 WHERE '. implode(' OR ', $delete_sqls);
         db_query($sql, $delete_values);
         $sql = 'INSERT INTO {quiz_node_relationship}
-                (parent_nid, parent_vid, child_nid, child_vid, max_score)
+                (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
                 '. $to_insert;
         db_query($sql, $insert_values);
       }

@@ -206,16 +206,34 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
         $max_score = db_result($res);
       }
       
-      // Make sure old revsions of the question is removed from the quiz
-      $sql = 'DELETE FROM {quiz_node_relationship}
-              WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
       
+      $sql = 'SELECT weight, question_status 
+              FROM {quiz_node_relationship}
+              WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
+      $res = db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
+      if ($res_o = db_fetch_object($res)) {
+        // Remove old revsions of the question from the quiz
+        $sql = 'DELETE FROM {quiz_node_relationship}
+                WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
+        db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
+        $weight = $res_o->weight;
+        $question_status = $res_o->question_status;
+      }
+      else {
+        $weight = 1 + db_result(
+          db_query('SELECT MAX(weight)
+                    FROM {quiz_node_relationship}
+                    WHERE parent_vid = %d'));
+        $quiz_randomization = db_result(
+          db_query('SELECT randomization
+                    FROM quiz_node_properties
+                    WHERE nid = %d AND vid = %d'));
+        $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+      }
       // Insert the newest revision of the question into the quiz
-      // TODO: Add weight and question_status
-      $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score)
-              VALUES(%d, %d, %d, %d, %d)';
-      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score);
+      $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
+              VALUES(%d, %d, %d, %d, %d, %d, %d)';
+      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score, $weight, $question_status);
     }
   }
 }
