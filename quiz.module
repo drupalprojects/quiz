@@ -1403,8 +1403,8 @@ function quiz_get_pass_rate($nid, $vid) {
  *   The quiz node id.
  */
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
-  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, max_score)
-          SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status, src.max_score
+  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
+          SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status, src.weight, src.max_score
           FROM {quiz_node_relationship} AS src
           WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
   db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER);
