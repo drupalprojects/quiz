@@ -185,7 +185,7 @@ abstract class QuizQuestion {
       $latest_nids = array();
       
       // Finding the last quizzes the current user has been using
-      $sql = "SELECT quiz_nid, n.vid, title
+      $sql = "SELECT quiz_nid, n.vid, title, lq.id
               FROM {quiz_question_latest_quizzes} lq
               JOIN {node} n
               ON n.nid = lq.quiz_nid
@@ -204,7 +204,7 @@ abstract class QuizQuestion {
       if (count($latest) < QUIZ_QUESTION_NUM_LATEST) {
         // Suplementing with other available quizzes...
         $found = implode(', ', array_merge($already_nids, $latest_nids));
-        $sql = "SELECT n.nid, n.vid, title
+        $sql = "SELECT n.nid, n.vid, title, changed
                 FROM {node} n
                 WHERE type = 'quiz' $own_filter";
         if (drupal_strlen($found) > 0) {
