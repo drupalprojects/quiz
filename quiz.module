@@ -3046,6 +3046,14 @@ function quiz_make_new($title) {
   $new_node->status = 1;
   $new_node->quiz_open = _quiz_form_prepare_date();
   $new_node->quiz_close = _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30));
+  
+  // Get default settings
+  $settings_loaded = _quiz_load_user_settings($new_node);
+  if (!$settings_loaded) {
+    $new_node->def_uid = variable_get('quiz_def_uid', 1);
+    _quiz_load_user_settings($new_node);
+  }
+  
   $new_node->auto_created = TRUE;
   $new_node->uid = $user->uid;
   node_save($new_node);
