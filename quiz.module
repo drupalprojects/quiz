@@ -1847,6 +1847,18 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   // Calls userpoints functions to credit user point based on number of correct
   // answers.
   if ($quiz->has_userpoints) {
+    
+    //Looking up the tid of the selected Userpoint vocabulary
+    $selected_tid = db_result(
+      db_query("SELECT tid FROM {term_node}
+                WHERE nid = %d AND vid = %d AND tid IN (
+                  SELECT tid
+                  FROM {term_data}
+                  WHERE vid LIKE (
+                    SELECT vid FROM {vocabulary} WHERE module='userpoints'
+                  )
+                );",$quiz->nid, $quiz->vid));
+    
     $variables = array(
       '@title' => $quiz->title,
       '@quiz' => variable_get('quiz_name', QUIZ_NAME),
@@ -1855,6 +1867,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
     $params = array(
       'points' => $score['numeric_score'],
       'description' => t('Attened @title @quiz on @time', $variables),
+      'tid' => $selected_tid,
     );
     userpoints_userpointsapi($params);
   }
