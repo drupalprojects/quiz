@@ -309,7 +309,9 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function getNodeView() {
     $content = parent::getNodeView();
-
+    if ($this->node->choice_random) { 
+      $this->shuffle($this->node->alternatives); 
+    }
     $content['answers'] = array(
        '#value' => theme('multichoice_answer_node_view', $this->node->alternatives, $this->viewCanRevealCorrect()),
        '#weight' => 2,
