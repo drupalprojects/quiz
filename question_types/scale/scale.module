@@ -18,7 +18,7 @@
  */
 function scale_help($path, $args) {
   if ($path == 'admin/help#scale') {
-    return t('This module provides a scale question type for Quiz.');
+    return t('This module provides a scale question type for Quiz. It may be used to construct surveys.');
   }
 }
 

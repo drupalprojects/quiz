@@ -17,7 +17,22 @@
  */
 function multichoice_help($path, $args) {
   if ($path == 'admin/help#multichoice') {
-    return t('This module provides a multiple choice question type for Quiz.');
+    return t("
+      <p>This module provides a multiple choice question type for Quiz.</p>
+
+      <p>The module has three settings. 
+      <em>Multiple answers</em> allows the quiz taker to select more than one alternative
+      (it also allows for the possibility that none of the alternatives are correct). 
+      Alternatives are selected using checkboxes instead of radio buttons.
+      <em>Random order</em> displays the alternatives in random order when quiz is beeing taken.
+      <em>Simple scoring</em> gives max score if everything is correct. Zero points otherwise.</p>
+      
+      <p>The scoring system in multichoice is a bit complex. With multiple answers each alternative adds a given number of points to
+      the total score if it is chosen, and another number of points is added if the alternative isn't chosen. Both <em>score if chosen</em> and 
+      <em>score if not chosen</em> may be edited for each alternative by the question creator.
+      If multiple answers isn't allowed the score will be set to the <em>score if chosen</em> of the alternative that has been chosen.
+      The question is considered correct if the quiz taker gets the maximum amount of points possible for the question.</p>      
+    ");
   }
 }
 /**

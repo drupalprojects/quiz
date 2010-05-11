@@ -15,10 +15,10 @@
 function truefalse_help($path, $args) {
   switch ($path) {
     case 'admin/modules#description':
-      return t('TrueFalse question type for quiz module.');
+      return t('TrueFalse question type for the quiz module.');
     case 'node/add#truefalse':
     case 'admin/help#truefalse':
-      return t('A question type for the quiz module: allows you to create truefalse type questions, which connect terms with one another.');
+      return t('A question type for the quiz module. A simplified version of multichoice where "true" and "false" are the alternatives.');
     default:
       break;
   }
