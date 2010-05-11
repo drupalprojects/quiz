@@ -292,7 +292,8 @@ class MultichoiceQuestion extends QuizQuestion {
     $sql = 'SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_multichoice_answers}
-            WHERE question_nid = %d AND question_vid = %d';
+            WHERE question_nid = %d AND question_vid = %d
+            ORDER BY id';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = db_fetch_array($res)) {
@@ -750,7 +751,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
               SELECT id FROM {quiz_multichoice_user_answers}
               WHERE question_nid = %d AND question_vid = %d AND result_id = %d
             )';
-    db_query($sql, $this->nid, $this->question->vid, $this->rid);
+    db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
     $sql = 'DELETE FROM {quiz_multichoice_user_answers}
             WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
     db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
