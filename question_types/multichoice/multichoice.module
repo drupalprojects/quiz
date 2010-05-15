@@ -660,7 +660,7 @@ function multichoice_load($node) {
   $question_vid = $node->vid;
   $additions->properties = db_fetch_array(db_query("SELECT * FROM {quiz_node_question_properties} WHERE nid = %d AND vid = %d", $node->nid, $question_vid));
   $answers = array();
-  $result = db_query("SELECT * FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d", $node->nid, $question_vid);
+  $result = db_query("SELECT *, is_correct AS correct FROM {quiz_multichoice_answers} WHERE nid = %d AND vid = %d", $node->nid, $question_vid);
   while ($line = db_fetch_array($result)) {
     $answers[] = $line;
   }
