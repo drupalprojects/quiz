@@ -32,13 +32,13 @@ class quiz_views_handler_argument_user_uid_nullable extends views_handler_argume
     $where = "$this->table_alias.$this->real_field $operator %d";
     if ($this->options['allow_null']) {
       $group = $this->query->set_where_group('AND', 'qnr_user');
-      $where .= " OR ISNULL($this->table_alias.$this->real_field)";
+      $where .= " OR $this->table_alias.$this->real_field IS NULL";
     }
     else {
       $group = 0;
     }
 
-    // By adding the ISNULL, joins can properly inform us about quiz state
+    // By adding the IS NULL, joins can properly inform us about quiz state
     $this->query->add_where($group, $where, $this->argument);
   }
 }
