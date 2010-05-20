@@ -492,7 +492,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
     }
     
     unset($form['buttons']['preview']);
-    
+    $form['buttons']['submit']['#access'] = TRUE;
     // Quiz questions might want to add a cancel button.
     if ($form['#cancel_button']) {
       $form['buttons']['cancel'] = array(
