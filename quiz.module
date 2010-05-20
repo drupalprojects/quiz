@@ -2381,6 +2381,18 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
         continue; 
       }
     }
+    // This question was answered, but wasn't in $questions, so we need
+    // to replace an unanswered question in $questions with it.
+    if (!in_array($answered->vid, $already_answered)) {
+      foreach ($questions as $key => $question) {
+        if (!in_array($question['vid'],$already_answered) && $question['random'] === TRUE) {
+          $questions[$key]['vid'] = $answered->vid;
+          $questions[$key]['nid'] = $answered->nid;
+          $already_answered[] = $answered->vid;
+          continue;
+        }
+      }
+    }  
   }
   
   // Adding data to the session.
@@ -2635,6 +2647,7 @@ function _quiz_get_random_questions($quiz) {
                                 WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", 
                                 $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
       while ($question_node = db_fetch_array($result)) {
+        $question_node['random'] = TRUE;
         $questions[] = $question_node;
       }
     }
@@ -2681,6 +2694,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
 
   $questions = array();
   while ($question_node = db_fetch_array($result)) {
+    $question_node['random'] = TRUE;
     $questions[] = $question_node;
   }
 
