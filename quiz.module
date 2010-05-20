@@ -1672,7 +1672,7 @@ function quiz_take_quiz($quiz) {
   }
   // If we're at the end of the quiz.
   if (!empty($quiz_end)) {
-    $score = quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    $score = quiz_end_scoring($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
    
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
       $content['body']['#value'] = theme('quiz_no_feedback');
@@ -1690,6 +1690,7 @@ function quiz_take_quiz($quiz) {
 
     // Remove session variables.
     unset($_SESSION['quiz_'. $quiz->nid]);
+    quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id'], $score);
   }
   return $content;
 }
@@ -1779,9 +1780,9 @@ function quiz_store_question_result($quiz, $result, $options) {
 }
 
 /**
- * Actions to take at the end of a quiz.
+ * Score a completed quiz.
  */
-function quiz_end_actions($quiz, $rid) {
+function quiz_end_scoring($quiz, $rid) {
   global $user;
   $score = quiz_calculate_score($quiz, $rid);
   if (!isset($score['percentage_score'])) {
@@ -1796,7 +1797,19 @@ function quiz_end_actions($quiz, $rid) {
             time(), 
             $score['percentage_score'], $rid);
   $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
-  
+}
+
+/**
+ * Actions to take at the end of a quiz
+ * 
+ * @param $quiz
+ *  The quiz node
+ * @param $rid
+ *  Result id
+ * @param $score
+ *  Score as a number
+ */
+function quiz_end_actions($quiz, $rid, $score) {
   // Lets piggy back here to perform the quiz defined action since were done
   // with this quiz.
   // We will verify that there is an associated action with this quiz and then
