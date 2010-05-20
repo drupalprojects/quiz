@@ -1858,12 +1858,12 @@ function quiz_quiz_finished($quiz, $score, $rid) {
                     SELECT vid FROM {vocabulary} WHERE module='userpoints'
                   )
                 );",$quiz->nid, $quiz->vid));
-    
     $variables = array(
       '@title' => $quiz->title,
       '@quiz' => variable_get('quiz_name', QUIZ_NAME),
       '@time' => date('l jS \of F Y h:i:s A'),
     );
+    dpm($quiz);
     $params = array(
       'points' => $score['numeric_score'],
       'description' => t('Attened @title @quiz on @time', $variables),
