@@ -2377,6 +2377,8 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
     foreach ($questions as $question) {
       if ($question['vid'] == $answered->vid) {
         $already_answered[] = $answered->vid;
+        // we found it, no need to continue the foreach loop
+        continue; 
       }
     }
   }
