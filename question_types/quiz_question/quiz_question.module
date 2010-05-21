@@ -340,6 +340,11 @@ function quiz_question_get_report($nid, $vid, $rid) {
   return $response_instance->question;
 }
 
+function quiz_question_has_been_answered($node) {
+  $question_instance = _quiz_question_get_instance($node, true);
+  return $question_instance->hasBeenAnswered();
+}
+
 /**
  * Implementation of hook_quiz_question_score().
  */

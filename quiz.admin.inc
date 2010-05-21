@@ -26,6 +26,13 @@ function quiz_admin_settings() {
     '#description' => t('Control aspects of the Quiz module\'s display'),
   );
 
+  $form['quiz_global_settings']['quiz_auto_revisioning'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Auto revisioning'),
+    '#default_value' => variable_get('quiz_auto_revisioning', 1),
+    '#description' => t('It is strongly recommended that auto revisioning is always on. It makes sure that when a question or quiz is changed a new revision is created if the current revision has been answered. If this feature is switched off result reports might be broken because a users saved answer might be connected to a wrong version of the quiz and/or question she was answering. All sorts of errors might appear.'),
+  );
+  
   $form['quiz_global_settings']['quiz_default_close'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
@@ -868,7 +875,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
     $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
-  if (user_access('manual quiz revisioning')) {
+  if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
     $form['new_revision'] = array(
       '#type' => 'checkbox',
       '#default_value' => $rev_default,
@@ -1255,7 +1262,12 @@ function quiz_questions_form_submit($form, &$form_state) {
   $quiz = node_load(intval(arg(1)));
 
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
-  $is_new_revision = (bool) $form_state['values']['new_revision'];
+  if (variable_get('quiz_auto_revisioning', 1)) {
+    $is_new_revision = quiz_has_been_answered($quiz);
+  }
+  else {
+    $is_new_revision = (bool) $form_state['values']['new_revision'];
+  }
 
   _quiz_question_browser_submit($form, $form_state);
 

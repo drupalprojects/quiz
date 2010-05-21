@@ -141,6 +141,12 @@ abstract class QuizQuestion {
         '#type' => 'value',
         '#value' => $quiz->vid,
       );
+      
+      // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
+      $form['is_quiz_question'] = array(
+        '#type' => 'value',
+        '#value' => TRUE
+      );
 
       // If coming from quiz view, go back there on submit.
       if ($quiz->type == 'quiz') {
@@ -319,6 +325,7 @@ abstract class QuizQuestion {
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
     $props['max_score'] = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    $props['is_quiz_question'] = TRUE;
     $this->nodeProperties = $props;
     return $props;
   }

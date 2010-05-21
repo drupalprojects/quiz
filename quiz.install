@@ -1219,7 +1219,8 @@ function quiz_uninstall() {
     'quiz_show_allowed_times',
     'quiz_autotitle_length',
     'comment_quiz',
-    'quiz_def_uid'
+    'quiz_def_uid',
+    'quiz_auto_revisioning',
   );
   foreach ($var as $v) {
     variable_del($v);
