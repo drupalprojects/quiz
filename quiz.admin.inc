@@ -1723,17 +1723,24 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
+  if (!isset($_SESSION[$pre .'best_results'])) {
+    $_SESSION[$pre . 'best_results'] = 1;
+  }
   $form['special_filters']['best_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('Only show each users best result'),
     '#parents' => array('table', 'filters', 'best_results'),
-    '#default_value' => isset($_SESSION[$pre .'best_results']) ? $_SESSION[$pre . 'best_results'] : 1,
+    '#default_value' => $_SESSION[$pre . 'best_results'],
   );
+  
+  if (!isset($_SESSION[$pre .'not_in_progress'])) {
+    $_SESSION[$pre . 'not_in_progress'] = 1;
+  }
   $form['special_filters']['not_in_progress'] = array(
     '#type' => 'checkbox',
     '#title' => t('Do not show quizzes in progress'),
     '#parents' => array('table', 'filters', 'not_in_progress'),
-    '#default_value' => isset($_SESSION[$pre .'not_in_progress']) ? $_SESSION[$pre . 'not_in_progress'] : 1,
+    '#default_value' => $_SESSION[$pre . 'not_in_progress'],
   );
   
   $form['table'] = array('#theme' => 'quiz_results_browser', '#tree' => TRUE);
