@@ -674,8 +674,8 @@ function _quiz_get_node_defaults() {
     'quiz_open' => 0,
     'quiz_close' => 0,
     'takes' => 1,
-    'show_attempt_stats' => 0,
-    'keep_results' => 0,
+    'show_attempt_stats' => 1,
+    'keep_results' => 2,
     'time_limit' => 0,
     'quiz_always' => 1,
     'tid' => 0,
@@ -3093,6 +3093,10 @@ function quiz_make_new($title) {
   $new_node->title = $title;
   $new_node->type = 'quiz';
   $new_node->status = 1;
+  $additions = _quiz_get_node_defaults();
+  foreach ($additions as $key => $value) {
+    $new_node->{$key} = $value;
+  }
   $new_node->quiz_open = _quiz_form_prepare_date();
   $new_node->quiz_close = _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30));
   
