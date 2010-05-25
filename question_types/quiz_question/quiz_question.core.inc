@@ -604,11 +604,13 @@ abstract class QuizQuestion {
    *   true iff the view may include the correct answers to the question
    */
   public function viewCanRevealCorrect() {
+    global $user;
     // permission overrides the hook
-    if (user_access('view any quiz question correct response'))
+    if (user_access('view any quiz question correct response')
+    || $user->uid == $this->node->uid)
       return TRUE;
     $results = module_invoke_all('answers_access', $node);
-    $may_view_answers = in_array(true, $results);
+    $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
   }
 
