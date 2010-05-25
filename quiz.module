@@ -1807,6 +1807,7 @@ function quiz_end_scoring($quiz, $rid) {
             time(), 
             $score['percentage_score'], $rid);
   $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
+  return $score;
 }
 
 /**

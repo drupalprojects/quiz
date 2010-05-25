@@ -340,7 +340,6 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
 
   // Display overall result.
   $output = '';
-
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
