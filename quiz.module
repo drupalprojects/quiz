@@ -1469,11 +1469,11 @@ function quiz_take_quiz($quiz) {
     elseif (quiz_start_check($quiz)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
-
+      
       if ($questions === FALSE) {
         drupal_set_message(t('Not enough random questions were found. Please !add_more_questions before trying to take this @quiz.',
           array('@quiz' => QUIZ_NAME, '!add_more_questions' => l(t('add more questions'), 'node/'. arg(1) .'/questions'))), 'error');
-        return array('body' => array('#value' => ''));
+        return array('body' => array('#value' => ' '));
       }
 
       if (count($questions) == 0) {
@@ -2239,8 +2239,9 @@ function quiz_build_question_list($quiz) {
 
   // Get random questions for the remainder.
   if ($quiz->number_of_random_questions > 0) {
-    $questions = array_merge($questions, _quiz_get_random_questions($quiz));
-    if ($quiz->number_of_random_questions > count($questions)) {
+    $random_questions = _quiz_get_random_questions($quiz);
+    $questions = array_merge($questions, $random_questions);
+    if ($quiz->number_of_random_questions > count($random_questions)) {
       // Unable to find enough requested random questions.
       return FALSE;
     }
@@ -2665,7 +2666,7 @@ function _quiz_get_random_questions($quiz) {
       $result = db_query_range("SELECT child_nid as nid, child_vid as vid 
                                 FROM {quiz_node_relationship} 
                                 WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d ORDER BY RAND()", 
-                                $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $quiz->number_of_random_questions);
+                                $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $num_random);
       while ($question_node = db_fetch_array($result)) {
         $question_node['random'] = TRUE;
         $questions[] = $question_node;
