@@ -1466,7 +1466,7 @@ function quiz_take_quiz($quiz) {
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
     }
     // First time running through quiz.
-    elseif ($rid = quiz_start_check($quiz)) {
+    elseif (quiz_start_check($quiz)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
 
@@ -1483,6 +1483,7 @@ function quiz_take_quiz($quiz) {
       }
 
       // Initialize session variables.
+      $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
       $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
@@ -1509,10 +1510,6 @@ function quiz_take_quiz($quiz) {
   //   rewinding much easier.
   // Check for answer submission.
   elseif ($_POST['op'] == t('Finish') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back')) {
-    if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
-      $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
-    }
-
     // Previous quiz questions: Questions that have been asked already. We save
     // a record of all of them so that a user can navigate backward all the way
     // to the beginning of the quiz.

@@ -372,7 +372,7 @@ abstract class QuizQuestion {
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
     if ($quizzes_kept && $this->node->revision) {
-      if (user_access('manual quiz revisioning')) {
+      if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
         unset($_REQUEST['destination']);
         unset($_REQUEST['edit']['destination']);
         drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/revision_actions');
@@ -574,18 +574,26 @@ abstract class QuizQuestion {
   }
 
   /**
-   * Finds out if a question has been answered or not...
+   * Finds out if a question has been answered or not
+   * 
+   * This function also returns TRUE if a quiz that this question belongs to have been answered.
+   * Even if the question itself haven't been answered. This is because the question might have
+   * been rendered and a user is about to answer it...
    *
    * @return
-   *   true if there exists answers to the current question
+   *   true if question has been answered or is about to be answered...
    */
   public function hasBeenAnswered() {
-    if (!isset($this->node->nid)) return FALSE;
+    if (!isset($this->node->vid)) return FALSE;
     $sql = 'SELECT *
-            FROM {quiz_node_results_answers}
-            WHERE question_nid = %d AND question_vid = %d
+            FROM {quiz_node_results}
+            WHERE vid IN (
+              SELECT parent_vid
+              FROM {quiz_node_relationship}
+              WHERE child_vid = %d
+            )
             LIMIT 1';
-    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $res = db_query($sql, $this->node->vid);
     return db_fetch_object($res) ? TRUE : FALSE;
   }
 
