@@ -111,13 +111,17 @@ function quiz_perm() {
  * Implementation of hook_access().
  */
 function quiz_access($op, $node, $account) {
-  if (!user_access('access quiz', $account) || ($account->uid == 0 && $node->takes > 0)) {
+  if (!user_access('access quiz', $account)) {
     // If users can't access, they'll get Nothing. Otherwise, we allow further
     // permission checking.
     return FALSE;
   }
 
   switch ($op) {
+    case 'take':
+      if ($account->uid == 0 && $node->takes > 0) {
+        return FALSE;
+      }
     case 'create':
       return user_access('create quiz', $account);
     case 'update':
@@ -245,7 +249,7 @@ function quiz_menu() {
     'page callback' => 'quiz_take',
     'page arguments' => array(1),
     'access callback' => 'quiz_type_confirm',
-    'access arguments' => array(1, 'view'),
+    'access arguments' => array(1, 'take'),
     'type' => MENU_LOCAL_TASK,
     
   );
@@ -721,7 +725,8 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
     '#weight' => -1,
   );
   
-  if (quiz_is_available($node)) {
+  $available = quiz_availability($node);
+  if ($available === TRUE) {
     // Add a link to the take tab as a button if this isn't a teaser view.
     if (!$teaser) {
       $node->content['take'] = array(
@@ -730,7 +735,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
       );
     }
     // Add a link to the take tab if this is a teaser view.
-    elseif (node_access('view', $node)) {
+    else {
       $node->content['take'] = array(
         '#value' =>  l(t('Start quiz'), 'node/'. $node->nid .'/take') ,
         '#weight' => 2,
@@ -739,7 +744,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   }
   else {
     $node->content['take'] = array(
-      '#value' => t('This quiz is closed'),
+      '#value' => '<div class="quiz-not-available">' . $available . '</div>',
       '#weight' => 2,
     );
   }
@@ -1282,7 +1287,7 @@ function quiz_type_confirm($node, $op = NULL) {
     return FALSE;
   }
   if (isset($op)) {
-    $node_ops = array('view', 'update', 'delete', 'create');
+    $node_ops = array('take', 'view', 'update', 'delete', 'create');
     if (in_array($op, $node_ops)) {
       return node_access($op, $node);
     }
@@ -1495,7 +1500,7 @@ function quiz_take_quiz($quiz) {
       return array('body' => array('#value' => t('This quiz is closed')));
     }
   }
-  if (!quiz_is_available($quiz)) {
+  if (quiz_availability($quiz) !== TRUE) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
     return array('body' => array('#value' => t('This quiz is closed')));
   }
@@ -2091,7 +2096,14 @@ function quiz_start_check($quiz) {
   return TRUE;
 }
 
-function quiz_is_available($quiz) {
+function quiz_availability($quiz) {
+  global $user;
+  
+  if ($user->uid == 0 && $quiz->takes > 0) {
+    return t('This quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.', 
+      array('%num_attempts' => $quiz->takes));
+  }
+  
   $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
   if ($user_is_admin || $quiz->quiz_always == 1)
     return TRUE;
@@ -2101,7 +2113,7 @@ function quiz_is_available($quiz) {
   $now = gmmktime();
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-    return FALSE;
+    return t('This quiz is closed');
   }
   return TRUE;
 }
