@@ -31,19 +31,21 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   
   // When the browser row is clicked toggle the selected class
   .click(function(event) {
-	if (typeof event.target.href == 'string') return;
+    if (typeof event.target.href == 'string') return;
+    if ($(':checkbox', this).attr('DISABLED')) return;
     $(this).toggleClass('selected');
     $('.quiz-hover-menu', this).addClass('stop-anim');
     if (event.target.type !== 'checkbox') {
       $(':checkbox', this).attr('checked', function() {
-    	  return !this.checked;
+        return !this.checked;
       });
     }
   })
   .hover(
     function() {
       if ($(':checkbox', this).attr('disabled')) return;
-      $('.quiz-hover-menu', this).css('opacity', 1);
+      $('.quiz-hover-menu', this)
+      .css('opacity', 1);
     },
     function() {
       $('.quiz-hover-menu', this).css('opacity', 0);
@@ -206,6 +208,7 @@ $(document).ready(function () {
       $('#quiz-results-confirm-delete').css('display', 'block');
       $('input:not(#edit-confirm-delete), select').attr('DISABLED', true);
       event.preventDefault();
+      $('.quiz-hover-menu').hide();
     }
   });
   $('#quiz-results-cancel-delete').click(function(event){
@@ -213,6 +216,7 @@ $(document).ready(function () {
 	  $('#quiz-results-confirm-delete').css('display', 'none');
 	  $('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
 	  event.preventDefault();
+	  $('.quiz-hover-menu').show();
   });
   $('#edit-confirm-delete').click(function(event){
     $('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
