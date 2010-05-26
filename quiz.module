@@ -1543,7 +1543,7 @@ function quiz_take_quiz($quiz) {
     quiz_store_question_result($quiz, $result, array('set_msg' => TRUE));
 
     // Stash feedback in the session, since the $_POST gets cleared.
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back')) {
       // Invoke hook_get_report().
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
