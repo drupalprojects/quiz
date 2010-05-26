@@ -112,7 +112,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function saveNodeProperties($is_new = FALSE) {
-    $is_new_node = $is_new || $this->node->revision == 1;
+    $is_new = $is_new || $this->node->revision == 1;
     
     // Before we save we forgive some possible user errors
     $this->forgive();
@@ -120,7 +120,7 @@ class MultichoiceQuestion extends QuizQuestion {
     // We also add warnings on other possible user errors
     $this->warn();
     
-    if ($is_new_node) {
+    if ($is_new) {
       $sql = 'INSERT INTO {quiz_multichoice_properties}
               (nid, vid, choice_multi, choice_random, choice_boolean)
               VALUES (%d, %d, %d, %d, %d)';

@@ -37,7 +37,7 @@ class MatchingQuestion extends QuizQuestion {
     foreach ($this->node->match as $match) {
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
       // match_id is not so it is a new question.
-      if (empty($match['match_id'])) {
+      if (empty($match['match_id']) || $this->node->revision) {
         if (!empty($match['question']) && !empty($match['answer'])) {
           $sql = "INSERT INTO {quiz_matching_node} (nid, vid, question, answer, feedback) VALUES (%d, %d, '%s', '%s', '%s')";
           db_query($sql, $this->node->nid, $this->node->vid, $match['question'], $match['answer'], $match['feedback']);

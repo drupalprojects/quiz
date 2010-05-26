@@ -376,7 +376,6 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
     $score->possible = $response->getMaxScore();
     $score->is_evaluated = $response->isEvaluated();
   }
-
   return $score;
 }
 
