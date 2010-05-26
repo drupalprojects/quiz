@@ -118,10 +118,6 @@ function quiz_access($op, $node, $account) {
   }
 
   switch ($op) {
-    case 'take':
-      if ($account->uid == 0 && $node->takes > 0) {
-        return FALSE;
-      }
     case 'create':
       return user_access('create quiz', $account);
     case 'update':
@@ -248,8 +244,8 @@ function quiz_menu() {
     'title' => 'Take',
     'page callback' => 'quiz_take',
     'page arguments' => array(1),
-    'access callback' => 'quiz_type_confirm',
-    'access arguments' => array(1, 'take'),
+    'access callback' => 'quiz_take_access',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     
   );
@@ -790,6 +786,16 @@ function quiz_take($node) {
 }  
 
 /**
+ * Does the current user have access to take the quiz?
+ * 
+ * @param $node
+ *  The quiz node
+ */
+function quiz_take_access($node) {
+  return node_access('view', $node) && quiz_availability($node) === TRUE;
+}
+
+/**
  * Implementation of hook_form().
  *
  * This is an admin form used to build a new quiz. It is called as part of the
@@ -1293,7 +1299,7 @@ function quiz_type_confirm($node, $op = NULL) {
     return FALSE;
   }
   if (isset($op)) {
-    $node_ops = array('take', 'view', 'update', 'delete', 'create');
+    $node_ops = array('view', 'update', 'delete', 'create');
     if (in_array($op, $node_ops)) {
       return node_access($op, $node);
     }
@@ -2102,6 +2108,15 @@ function quiz_start_check($quiz) {
   return TRUE;
 }
 
+/**
+ * Find out if a quiz is available for taking or not
+ * 
+ * @param $quiz
+ *  The quiz node
+ * @return
+ *  TRUE if available
+ *  Error message(String) if not available
+ */
 function quiz_availability($quiz) {
   global $user;
   
