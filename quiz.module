@@ -397,6 +397,12 @@ function quiz_menu() {
   return $items;
 }
 
+// Temporary fix, ref: http://drupal.org/node/777408
+// TODO: Remove this if and when autoload adds a fix
+function quiz_enable() {
+  db_query("UPDATE {system} SET weight = -282828 WHERE name = 'autoload' AND type = 'module'");
+}
+
 /**
  * Implementation of hook_theme().
  */

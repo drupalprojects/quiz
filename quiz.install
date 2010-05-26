@@ -8,7 +8,22 @@
  */
 
 /**
- * Implementation of hood_update_N
+ * Implementation of hook_update_N
+ * 
+ * Remove number_of_random_questions from the user settings
+ */
+function quiz_update_6416() {
+  $results = array();
+  db_drop_field(&$results, 'quiz_user_settings', 'number_of_random_questions');
+  
+  // Temporary fix, ref: http://drupal.org/node/777408
+  // TODO: Remove this if and when autoload adds a fix
+  $results[] = update_sql("UPDATE {system} SET weight = -282828 WHERE name = 'autoload' AND type = 'module'");
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
  * 
  * Move setting for showing allowed number of attempts to the quiz node form.
  */
@@ -1093,13 +1108,6 @@ function quiz_schema() {
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
-      ),
-      'number_of_random_questions' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
       ),
       'pass_rate' => array(
         'type' => 'int',
