@@ -3373,14 +3373,14 @@ function _quiz_save_user_settings($node) {
     return FALSE;
   
   $node = (object)$node;
+  
+  // We're going to use drupal_write_record so we have to set the uid correctly first.
+  // This is just temporary. We're not changing the nodes stored uid!
+  $node->uid = isset($node->save_def_uid) ? $node->save_def_uid : $user->uid;
   // Are we updating or inserting?
   $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
-  $res = db_query($sql, $node->save_def_uid ? $node->save_def_uid : $user->uid);
-  $update = is_numeric(db_result($res)) ? array('uid') : array();
-  
-  // Are we saving the default settings?
-  if (isset($node->save_def_uid))
-    $node->uid = $node->save_def_uid;
+  $res = db_query($sql, $node->uid);
+  $update = is_numeric(db_result($res)) ? array('uid') : array(); 
   
   drupal_write_record('quiz_user_settings', $node, $update);
 }
