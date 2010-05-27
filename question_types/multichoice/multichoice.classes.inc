@@ -684,14 +684,16 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function __construct($result_id, stdClass $question_node, $tries = NULL) {
     parent::__construct($result_id, $question_node, $tries);
-    
     $this->user_answer_ids = array();
     // tries is the tries part of the post data
     if (is_array($tries)) {
       $this->choice_order = $tries['choice_order'];
       unset($tries['choice_order']);
       if (is_array($tries['answer'])) {
-        foreach ($tries['answer'] as $answer_id) $this->user_answer_ids[] = $answer_id;
+        foreach ($tries['answer'] as $answer_id) {
+          $this->user_answer_ids[] = $answer_id;
+          $this->answer = $this->user_answer_ids;//@todo: Stop using user_answer_ids and only use answer instead...
+        }
       }
       elseif (isset($tries['answer'])) {
         $this->user_answer_ids[] = $tries['answer'];
