@@ -1261,9 +1261,10 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $
   * Updates from the "manage questions" tab.
   */
 function quiz_questions_form_submit($form, &$form_state) {
+  if ($form_state['#from_ahah']) return;
+  
   // Load the quiz node
   $quiz = node_load(intval(arg(1)));
-
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
   if (variable_get('quiz_auto_revisioning', 1)) {
     $is_new_revision = quiz_has_been_answered($quiz);
@@ -1411,7 +1412,8 @@ function quiz_browser_ahah() {
   $form['#post'] = $_POST;
   $form['#programmed'] = FALSE;
   $form_state['post'] = $_POST;
-
+  $form_state['#from_ahah'] = TRUE;
+  
   // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
   foreach ($_POST as $key => $value) {
     unset($_REQUEST[$key]);
@@ -1427,7 +1429,7 @@ function quiz_browser_ahah() {
   drupal_process_form($form_id, $form, $form_state);
 
   //Remove any status messages the processing resulted in...
-  theme('status_messages');
+  //theme('status_messages');
 
   // Get the form the ajax call resulted in
   $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
