@@ -2250,7 +2250,11 @@ function quiz_question_module_for_type($type) {
 }
 
 /**
- * Retrieves a question list for a given quiz.
+ * Retrieves a list of questions (to be taken) for a given quiz.
+ * 
+ * If the quiz has random questions this function only returns a random
+ * selection of those questions. This function should be used to decide
+ * what questions a quiz taker should answer.
  *
  * @param $quiz
  *   Quiz node.
@@ -2830,6 +2834,9 @@ function _quiz_taxonomy_select($value = 0) {
 
 /**
  * Retrieve list of published questions assigned to quiz.
+ * 
+ * This function should be used for question browsers and similiar... It should not be used to decide what questions
+ * a user should answer when taking a quiz. quiz_build_question_list is written for that purpose.
  * 
  * @param $quiz_nid
  *   Quiz node id.
