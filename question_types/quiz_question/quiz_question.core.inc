@@ -159,9 +159,9 @@ abstract class QuizQuestion {
     $form = array_merge($form, $this->getCreationForm($form_state));
     
     // If access to edit quizzes we add the add to quiz fieldset
-    $edit_access = user_access('edit any quiz') || user_access('edit own quiz');
+    $edit_access = quiz_access_multi_or('edit any quiz', 'edit own quiz', 'administer nodes');
     if ($edit_access) {
-      $own_filter = user_access('edit any quiz') ? '' : 'AND n.uid = '. intval($user->uid);
+      $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = '. intval($user->uid);
       
       // Fieldset allowing question makers to add questions to multiple quizzes when creating or editing a question
       $already = array();
@@ -243,7 +243,7 @@ abstract class QuizQuestion {
         $latest_default[] = $quiz->nid .'-'. $quiz->vid;
       }
     }
-    if ($edit_access || user_access('create quiz')) {
+    if ($edit_access || quiz_access_multi_or('create quiz', 'administer nodes')) {
       $form['add_directly'] = array(
         '#type' => 'fieldset',
         '#title' => t('Add to quiz'),
@@ -274,7 +274,7 @@ abstract class QuizQuestion {
         );
       }
     }
-    if (user_access('create quiz')) {
+    if (quiz_access_multi_or('create quiz', 'administer nodes')) {
       $form['add_directly']['new'] = array(
         '#type' => 'textfield',
         '#title' => t('Title for new quiz'),
