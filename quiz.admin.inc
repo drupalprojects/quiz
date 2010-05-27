@@ -2184,10 +2184,10 @@ function _quiz_add_to_get($to_add) {
   if (empty($to_add)) 
     unset($_SESSION[$pre . 'page']);
   foreach ($vars as $value) {
-    if (isset($_GET[$value])) continue;
     if (isset($output[$value])) {
       $_GET[$value] = $_SESSION[$pre . $value] = $output[$value];
     }
+    elseif (isset($_GET[$value])) continue;
     elseif (isset($_SESSION[$pre . $value])) {
       $_GET[$value] = $_SESSION[$pre . $value];
     }

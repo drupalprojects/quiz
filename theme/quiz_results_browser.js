@@ -144,11 +144,11 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       event: 'change'
     },
     {
-      name: 'duration',
+      name: 'score',
       event: 'change'
     },
     {
-      name: 'score',
+      name: 'evaluated',
       event: 'change'
     }
   ];
@@ -159,7 +159,8 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     .attr('myName', toSort[i].name)
     .attr('myEvent', toSort[i].event)
     .click(function(event) {
-      var myUrl = $(this).attr('href').substr(2);
+      var myUrl = $(this).attr('href');
+      myUrl = myUrl.slice(myUrl.indexOf('?') + 1);
       // add-to-get is the query string used by drupals tablesort api.
       // We need to post the query string to drupal since we are using ajax.
       // The querystring will be added to $_REQUEST on the server.

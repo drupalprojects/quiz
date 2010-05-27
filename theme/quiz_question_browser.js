@@ -34,19 +34,19 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     $(this).toggleClass('selected');
     if (event.target.type !== 'checkbox') {
       $(':checkbox', this).attr('checked', function() {
-    	return !this.checked;
+        return !this.checked;
       });
     }
 	var idToShow = Quiz.findNidVidString(this.id);
 	var oldHeight = $(document).height();
 	if ($(this).hasClass('selected')) {
 	  // Show the question in the question list
-      $('#question-list').css('display', 'table');
-      $('#no-questions').hide();
-      $('#q-' + idToShow).removeClass('hidden-question');
+    $('#question-list').css('display', 'table');
+    $('#no-questions').hide();
+    $('#q-' + idToShow).removeClass('hidden-question');
 	} else {
 	  // Hide the question in the question list
-      $('#q-' + idToShow).addClass('hidden-question');
+    $('#q-' + idToShow).addClass('hidden-question');
 	}
 	$('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
     Quiz.fixColorAndWeight($('#q-' + idToShow));
@@ -135,7 +135,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     .attr('myName', toSort[i].name)
     .attr('myEvent', toSort[i].event)
     .click(function(event) {
-      var myUrl = $(this).attr('href').substr(2);
+      var myUrl = $(this).attr('href');
+      myUrl = myUrl.slice(myUrl.indexOf('?') + 1);
       // add-to-get is the query string used by drupals tablesort api.
       // We need to post the query string to drupal since we are using ajax.
       // The querystring will be added to $_REQUEST on the server.
