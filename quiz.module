@@ -2310,6 +2310,8 @@ function quiz_get_num_questions($nid, $vid, $question_status) {
  *
  * @param $node
  *  The question node.
+ * @param $include_question
+ *  Should the question(the question nodes body) be included?
  *
  * @return
  *  Question object.
@@ -2834,18 +2836,18 @@ function _quiz_taxonomy_select($value = 0) {
  * @param $quiz_vid
  *   Quiz node version id.
  * @param $include_all_types
- *   Shall the results be filtered on available question types?
+ *   Should the results be filtered on available question types?
  *   @todo: review this.
  * @param $nid_keys
- *   Shall nid be used as keys in the array we return?
+ *   Should nid be used as keys in the array we return?
  * @param $include_question
- *   Shall the question(the node body) be included for the questions in the
+ *   Should the question(the node body) be included for the questions in the
  *   returned array?
  *
  * @return
  *   An array of questions.
  */
-function _quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE) {
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE) {
   $filter_types = '';
   $questions    = array();
   $wheres    = array();
