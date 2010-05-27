@@ -632,6 +632,7 @@ abstract class QuizQuestionResponse {
   
   protected $answer = NULL;
   protected $score;
+  public $is_skipped;
   
   /**
    * Create a new user response.
@@ -911,6 +912,14 @@ abstract class QuizQuestionResponse {
    */
   public function getReportFormTheme($showfeedback = TRUE, $showpoints = TRUE) {
     return FALSE;
+  }
+  
+  /**
+   * Saves the quiz result. This is not used when a question is skipped!
+   */
+  public function saveResult() {
+    $this->is_skipped = FALSE;
+    $this->save();
   }
   
   /**

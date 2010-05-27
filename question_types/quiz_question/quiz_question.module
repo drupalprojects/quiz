@@ -273,7 +273,7 @@ function quiz_question_evaluate_question($question, $result_id, $answer = NULL) 
     // the case where the user has not gone back (since there will be no entries
     // to delete). So we always run the delete.
     $response->delete();
-    $response->save();
+    $response->saveResult();
   }
 
   // Convert the response to a bare object.
