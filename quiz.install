@@ -14,7 +14,7 @@
  */
 function quiz_update_6416() {
   $results = array();
-  db_drop_field(&$results, 'quiz_user_settings', 'number_of_random_questions');
+  db_drop_field($results, 'quiz_user_settings', 'number_of_random_questions');
   
   // Temporary fix, ref: http://drupal.org/node/777408
   // TODO: Remove this if and when autoload adds a fix
