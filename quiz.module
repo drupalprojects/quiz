@@ -1711,10 +1711,11 @@ function quiz_take_quiz($quiz) {
       _quiz_maintain_results($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     }
 
-    // Remove session variables.
+    // Remove session variables, save $rid
+    $rid = $_SESSION['quiz_'. $quiz->nid]['result_id'];
     unset($_SESSION['quiz_'. $quiz->nid]);
     // NOTE: End actions might redirect the user somewhere. Code below this line might not get executed...
-    quiz_end_actions($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id'], $score);
+    quiz_end_actions($quiz, $rid, $score);
   }
   return $content;
 }
