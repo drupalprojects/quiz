@@ -7,22 +7,68 @@
 
 function results_export_as_full_view($rid, $export_type) {
   module_load_include('inc', 'quiz', 'quiz.admin');
-  $sql = "SELECT n.title FROM {node} n LEFT JOIN {quiz_node_results} as qnr ON n.nid = qnr.nid WHERE qnr.result_id = %d";
-  $quiz_title = ($quiz_nid) ? check_plain(t('Quiz Result')) : db_result(db_query($sql, $rid));
+
+  $output = '';
+
+  $results = _quiz_get_results($rid);
+  $quiz = current($results);
+  
+  $header = array(
+	           t('node ID'), t('Quiz Title'), t('Username'), t('Quiz Result ID'), t('Quiz Start Time'), t('Quiz End Time'), t('Quiz Time Taken'), t('Quiz Score'),
+	           t('Question Title'), t('Question Max Score'), t('Question Format'), t('Question Correct'), t('Question Qnr Max Score'), t('Question Score Weight'), t('Question'), t('Answer(s)'),
+	        );
+
+  while (list($key, $result) = each($results)) {
+
+	$questions = _quiz_get_answers($result['result_id']);
+	
+	foreach ($questions as $key => $question) {
+
+        foreach ($question->answers as $key) {
+          $answers[] = str_replace(array("\r", "\r\n", "\n", "\t", ","), '', check_plain($question->answers[$key['answer_id']]['answer']));
+        }
+
+        $rows[] = array(
+            'nid' => $result['nid'],
+            'quiz_title' => str_replace(array("\r", "\r\n", "\n", "\t", ","), '', check_plain($quiz['title'])),
+            'name' => check_plain($result['name']),
+            'quiz_result_id' => $result['result_id'],
+            'quiz_time_start' => format_date($result['time_start'], 'small'),
+            'quiz_time_end' => ($result['time_end'] > 0) ? format_date($result['time_end'], 'small') : t('In Progress'),
+            'quiz_time_taken' => ($result['time_end'] > 0) ? ($result['time_end'] - $result['time_start']) : (time() - $result['time_start']),
+            'quiz_score' => ($result['time_end']) ? $result['score'] : t('--'),
+            'question_title' => str_replace(array("\r", "\r\n", "\n", "\t", ","), '', check_plain($question->title)),
+            'max_score' => $question->max_score,
+            'format' => $question->format,
+            'correct' => $question->correct,
+            'qnr_max_score' => $question->qnr_max_score,
+            'score_weight' => $question->score_weight,
+            'question' => str_replace(array("\r", "\r\n", "\n", "\t", ","), '', check_plain($question->body)),
+            'answers' => implode(';', $answers),
+        );
+
+        unset ($answers);
+    }
+  
+  }
+  if (!isset($rows)) {
+    drupal_set_message(t('There are no results for this quiz'));
+    drupal_goto('admin/quiz/reports/results');
+    return;
+  }
+
   switch ($export_type) {
-    case 'html':
-      $output = qp(QueryPath::HTML_STUB)
-      ->find('title')
-      ->text($quiz_title)
-      ->find(':root body')
-      ->append(str_replace('&nbsp;', '', quiz_admin_results($rid)))
-      ->find('table')
-      ->attr('border', 1)
-      ->top()
-      ->html();
+    case 'csv':
+      $output = implode(',', $header);
+      foreach ($rows as $row) {
+        $output .= "\n" . implode(',', $row);
+      }
       break;
   }
-  $filename = str_replace(' ', '-', "$quiz_title Result ID $rid.$export_type");
+
+
+  $filename = str_replace(' ', '-', $quiz['title'] . '.' . $export_type);
+
   results_export_invoke_file_transfer($filename, $output);
 }
 
