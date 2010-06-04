@@ -792,11 +792,11 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
     $sql = 'SELECT qnr.max_score 
-            FROM quiz_node_relationship qnr
+            FROM {quiz_node_relationship} qnr
             WHERE qnr.child_vid = %d
             AND qnr.parent_vid = (
               SELECT vid 
-              FROM quiz_node_results
+              FROM {quiz_node_results}
               WHERE result_id = %d
             )';
     $qnr_max_score = db_result(db_query($sql, $question->vid, $answer['result_id']));
