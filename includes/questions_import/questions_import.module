@@ -35,9 +35,9 @@ function questions_import_perm() {
 function questions_import_menu() {
   $items = array();
   $items['admin/quiz/import_export'] = array(
-    'title' => 'Import and export of quiz',
+    'title' => 'Import and export',
     'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('export questions', 'import questions'),
+    'access arguments' => array('export questions', 'import questions', 'export results'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',

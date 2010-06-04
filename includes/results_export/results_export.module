@@ -47,5 +47,23 @@ function results_export_menu() {
     'access arguments' => array('export results'),
     'type' => MENU_CALLBACK,
   );
+  $items['admin/quiz/import_export'] = array(
+    'title' => 'Import and export',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('export questions', 'import questions', 'export results'),
+    'access callback' => 'quiz_access_multi_or',
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
+  $items['admin/quiz/import_export/results_export'] = array(
+    'title' => 'Export @quiz results',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'page callback' => 'quiz_admin_quizzes',
+    'access arguments' => array('export results'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'quiz.admin.inc',
+    'file path' => drupal_get_path('module', 'quiz'),
+  );
   return $items;
 }
