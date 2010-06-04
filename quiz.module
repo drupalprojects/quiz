@@ -1588,7 +1588,7 @@ function quiz_take_quiz($quiz) {
 
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
-    if (!$module) return array();
+    if (!$module) return array('body' => array('#value' => ' '));
     $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
     // Store that the question was skipped:
@@ -1620,6 +1620,11 @@ function quiz_take_quiz($quiz) {
     $question_node->question_number = $question_number;
     $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions);
     $content['progress']['#weight'] = -50;
+    if (count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
+      drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
+      unset($_SESSION['quiz_'. $quiz->nid]);
+      drupal_goto('node/'. $quiz->nid .'/take');
+    }
 
     if ($_SESSION['quiz_'. $quiz->nid]['question_duration']) {
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
@@ -1636,7 +1641,7 @@ function quiz_take_quiz($quiz) {
 
           // Call hook_skip_question().
           $module = quiz_question_module_for_type($former_question->type);
-          if (!$module) return array();
+          if (!$module) return array('body' => array('#value' => ' '));
           $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
           quiz_store_question_result($quiz, $result, array('set_mesg' => FALSE));
