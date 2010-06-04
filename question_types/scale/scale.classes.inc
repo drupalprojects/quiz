@@ -572,15 +572,6 @@ class ScaleResponse extends QuizQuestionResponse {
   public function score() {
     return $this->isValid() ? 1 : 0;
   }
-
-  /**
-   * Implementation of isCorrect
-   *
-   * @see QuizQuestionResponse#isCorrect()
-   */
-  public function isCorrect() {
-    return TRUE;
-  }
   
   /**
    * Implementation of getResponse
