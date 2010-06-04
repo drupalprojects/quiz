@@ -62,6 +62,7 @@ function quiz_report_form($form_state, $questions, $showpoints = TRUE, $showfeed
   $show_submit = FALSE;
   foreach ($questions as $question) {
     $module = quiz_question_module_for_type($question->type);
+    if (!$module) return array();
     $function = $module .'_report_form';
     $form_to_add = $function($question, $showpoints, $showfeedback, $allow_scoring);
     if (isset($form_to_add['submit']))

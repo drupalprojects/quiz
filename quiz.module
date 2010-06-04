@@ -1587,6 +1587,7 @@ function quiz_take_quiz($quiz) {
 
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
+    if (!$module) return array();
     $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
     // Store that the question was skipped:
@@ -1634,6 +1635,7 @@ function quiz_take_quiz($quiz) {
 
           // Call hook_skip_question().
           $module = quiz_question_module_for_type($former_question->type);
+          if (!$module) return array();
           $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
 
           quiz_store_question_result($quiz, $result, array('set_mesg' => FALSE));
@@ -2195,6 +2197,7 @@ function quiz_calculate_score($quiz, $rid) {
     // We don't use module_invoke() because (1) we don't necessarily want to wed
     // quiz type to module, and (2) this is more efficient (no NULL checks).
     $mod = quiz_question_module_for_type($question->type);
+    if (!$mod) continue;
     $function = $mod . '_quiz_question_score';
 
     if (function_exists($function)) {
@@ -2246,6 +2249,10 @@ function quiz_calculate_score($quiz, $rid) {
  */
 function quiz_question_module_for_type($type) {
   $types = _quiz_get_question_types();
+  if (!isset($types[$type])) {
+    drupal_set_message(t('The module for the questiontype %type is not enabled', array('%type' => $type)), 'warning');
+    return FALSE;
+  }
   return $types[$type]['module'];
 }
 
@@ -2999,6 +3006,7 @@ function _quiz_get_answers($rid) {
                    ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
     $module = quiz_question_module_for_type($line->type);
+    if (!$module) continue;
     // Invoke hook_get_report().
     $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
     // Add max score info to the question.
