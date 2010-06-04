@@ -2778,7 +2778,10 @@ function _quiz_get_question_types() {
 
   // Get question types from the modules that defines them..
   $to_return = module_invoke_all('quiz_question_info');
-  
+  if (empty($to_return)) {
+    drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
+    return array();
+  }
   // We must make sure names and descriptions are customizable and
   // translationable
   $types = array();
