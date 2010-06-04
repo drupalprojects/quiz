@@ -1543,7 +1543,7 @@ function quiz_take_quiz($quiz) {
     quiz_store_question_result($quiz, $result, array('set_msg' => TRUE));
 
     // Stash feedback in the session, since the $_POST gets cleared.
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back')) {
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
       // Invoke hook_get_report().
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
@@ -1556,6 +1556,7 @@ function quiz_take_quiz($quiz) {
         $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
         array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
         drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
+        unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
       }
     }
     elseif ($_POST['op'] == t('Back')) {
