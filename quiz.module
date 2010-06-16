@@ -792,6 +792,9 @@ function quiz_take($node) {
  *  The quiz node
  */
 function quiz_take_access($node) {
+  if ($node->type != 'quiz') {
+    return FALSE;
+  }
   return node_access('view', $node) && quiz_availability($node) === TRUE;
 }
 
