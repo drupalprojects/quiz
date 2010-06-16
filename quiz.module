@@ -616,7 +616,7 @@ function quiz_update($node) {
     _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
-      $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, $node->has_userpoints, $node->allow_skipping,
+      $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
