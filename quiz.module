@@ -2571,7 +2571,7 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
  *   The quiz node.
  */
 function _quiz_insert_resultoptions($node) {
-  if (!$node->resultoptions) {
+  if (!isset($node->resultoptions)) {
     return;
   }
   // We insert the result options one by one.
