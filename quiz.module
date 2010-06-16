@@ -1912,10 +1912,8 @@ function quiz_quiz_finished($quiz, $score, $rid) {
                 WHERE nid = %d AND vid = %d AND tid IN (
                   SELECT tid
                   FROM {term_data}
-                  WHERE vid LIKE (
-                    SELECT vid FROM {vocabulary} WHERE module='userpoints'
-                  )
-                );",$quiz->nid, $quiz->vid));
+                  WHERE vid = %d
+                )", $quiz->nid, $quiz->vid, userpoints_get_vid()));
     $variables = array(
       '@title' => $quiz->title,
       '@quiz' => variable_get('quiz_name', QUIZ_NAME),
@@ -2813,12 +2811,11 @@ function _quiz_get_question_types() {
   $types = array();
   $placeholders = array();
   foreach ($to_return as $key => $value) {
-    $placeholders[] = "'%s'";
     $types[] = $key;
   }
   $sql = 'SELECT type, name, description
           FROM {node_type}
-          WHERE type IN ('. implode(',', $placeholders) . ')';
+          WHERE type IN ('. implode(', ', $types) . ')';
   $res = db_query($sql, $types);
   while ($res_o = db_fetch_object($res)) {
     $to_return[$res_o->type]['name'] = check_plain($res_o->name);
@@ -3343,7 +3340,7 @@ function _quiz_maintain_results($quiz, $rid) {
  *   Result ids for the results to be deleted.
  */
 function quiz_delete_results($rids) {
-  // Security.
+  // Security. We avoid db_placeholders to slightly improve performance.
   foreach ($rids as $key => $value) {
     $rids[$key] = intval($value);
   }

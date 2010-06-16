@@ -1167,7 +1167,7 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 
   $question_types = array_keys(_quiz_get_question_types());
-  $placeholders = db_placeholders($question_types, 'varchar');
+  $placeholders = db_placeholders($question_types, 'text');
   $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
   foreach ($weight_map as $id => $weight) {
     if ($form_state['values']['stayers'][$id] == 0) continue; // The question isn't to be added...
