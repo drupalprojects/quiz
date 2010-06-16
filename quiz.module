@@ -2813,9 +2813,9 @@ function _quiz_get_question_types() {
   foreach ($to_return as $key => $value) {
     $types[] = $key;
   }
-  $sql = 'SELECT type, name, description
+  $sql = "SELECT type, name, description
           FROM {node_type}
-          WHERE type IN ('. implode(', ', $types) . ')';
+          WHERE type IN ('". implode("', '", $types) . "')";
   $res = db_query($sql, $types);
   while ($res_o = db_fetch_object($res)) {
     $to_return[$res_o->type]['name'] = check_plain($res_o->name);

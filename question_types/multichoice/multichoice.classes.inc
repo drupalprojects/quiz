@@ -149,7 +149,7 @@ class MultichoiceQuestion extends QuizQuestion {
         $ids_to_delete[] = $res_o->id;
       }
       
-      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
         if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
           // If new alternative
