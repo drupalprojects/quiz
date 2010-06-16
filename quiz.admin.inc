@@ -1263,7 +1263,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $is_new_revision, $
   * Updates from the "manage questions" tab.
   */
 function quiz_questions_form_submit($form, &$form_state) {
-  if ($form_state['#from_ahah']) return;
+  if (isset($form_state['#from_ahah'])) return;
   
   // Load the quiz node
   $quiz = node_load(intval(arg(1)));
@@ -1279,7 +1279,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 
   $weight_map = $form_state['values']['weights'];
   $max_scores = $form_state['values']['max_scores'];
-  $refreshes = $form_state['values']['revision'];
+  $refreshes = isset($form_state['values']['revision']) ? $form_state['values']['revision'] : NULL;
   $stayers = $form_state['values']['stayers'];
   if (isset($form_state['values']['compulsories']))
     $compulsories = $form_state['values']['compulsories'];
@@ -2267,10 +2267,16 @@ function quiz_remove_partial_quiz_record_value() {
  * Adds inline js to automatically set the question's node title.
  */
 function quiz_set_auto_title() {
+  $max_length = variable_get('quiz_autotitle_length', 50);
   drupal_add_js('
   $(document).ready(function () {
     function quizUpdateTitle() {
-      $("#edit-title").val($("#edit-body").val().substring(0, '. variable_get('quiz_autotitle_length', 50) .'));
+      if ($("#edit-body").val().length > '. $max_length .') {
+        $("#edit-title").val($("#edit-body").val().substring(0, '. $max_length .' - 3) + "...");
+      }
+      else {
+        $("#edit-title").val($("#edit-body").val().substring(0, '. $max_length .'));
+      }
     }
     $("#edit-body").keyup(quizUpdateTitle);
     // Do not use auto title if a title already has been set
