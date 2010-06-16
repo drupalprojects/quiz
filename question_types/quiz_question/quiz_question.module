@@ -11,7 +11,7 @@
  * The system remembers what quizzes a user has been involved in lately. This constant determines
  * how many quizzes the system will remember for each user
  */
-define(QUIZ_QUESTION_NUM_LATEST, 10);
+define('QUIZ_QUESTION_NUM_LATEST', 10);
 
 /**
  * Implementation of hook_help().

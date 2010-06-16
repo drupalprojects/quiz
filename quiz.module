@@ -1245,7 +1245,7 @@ function quiz_nodeapi(&$node, $op, $a3 = NULL, $a4 = NULL) {
         break;
     }
   }
-  if ($node->is_quiz_question) {
+  if (isset($node->is_quiz_question)) {
     if (variable_get('quiz_auto_revisioning', 1)) {
       $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
     }
@@ -1515,6 +1515,9 @@ function quiz_take_quiz($quiz) {
       return array('body' => array('#value' => t('This quiz is closed')));
     }
   }
+  
+  $q_passed_validation = FALSE;
+  
   if (quiz_availability($quiz) !== TRUE) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
     return array('body' => array('#value' => t('This quiz is closed')));
