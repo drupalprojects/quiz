@@ -9,20 +9,31 @@
  * @param checkbox
  *  The checkbox that was clicked
  */
-function refreshScores(checkbox) {
+function refreshScores(checkbox, scoring) {
   var prefix = '#' + getCorrectIdPrefix(checkbox.id);
   if (checkbox.checked) {
     $(prefix + 'score-if-chosen').val('1');
     $(prefix + 'score-if-not-chosen').val('0');
   }
   else {
-	  $(prefix + 'score-if-chosen').val('0');
-	  if ($('#edit-choice-multi').attr('checked')) {
-	    $(prefix + 'score-if-not-chosen').val('1');
-	  } 
-	  else {
-	    $(prefix + 'score-if-not-chosen').val('0');
-	  }
+    if (scoring == 0) {
+      $(prefix + 'score-if-not-chosen').val('0');
+      if ($('#edit-choice-multi').attr('checked')) {
+        $(prefix + 'score-if-chosen').val('-1');
+      } 
+      else {
+        $(prefix + 'score-if-chosen').val('0');
+      }
+    }
+    else if (scoring == 1) {
+	    $(prefix + 'score-if-chosen').val('0');
+	    if ($('#edit-choice-multi').attr('checked')) {
+	      $(prefix + 'score-if-not-chosen').val('1');
+	    } 
+	    else {
+	      $(prefix + 'score-if-not-chosen').val('0');
+	    }
+    }
   }
 }
 

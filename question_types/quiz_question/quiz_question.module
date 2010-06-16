@@ -397,7 +397,7 @@ function quiz_question_delete_result($rid, $nid, $vid) {
 /**
  * Get the configuration form for all enabled question types.
  */
-function quiz_question_config($context, $type) {
+function quiz_question_config($context) {
   $q_types = _quiz_question_get_implementations();
   $form = array();
   // Go through all question types and merge their config forms

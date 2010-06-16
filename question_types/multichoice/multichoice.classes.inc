@@ -40,8 +40,14 @@ class MultichoiceQuestion extends QuizQuestion {
             $short['score_if_not_chosen'] = 0;
           }
           else {
-            $short['score_if_chosen'] = 0;
-            $short['score_if_not_chosen'] = 1;
+            if (variable_get('multichoice_def_scoring', 0) == 0) {
+              $short['score_if_chosen'] = -1;
+              $short['score_if_not_chosen'] = 0;
+            }
+            elseif (variable_get('multichoice_def_scoring', 0) == 1) {
+              $short['score_if_chosen'] = 0;
+              $short['score_if_not_chosen'] = 1;
+            }
           }
         }
       }
@@ -494,7 +500,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'checkbox',
         '#title' => t('Correct'),
         '#default_value' => $correct_default,
-        '#attributes' => array('onchange' => 'refreshScores(this)'),
+        '#attributes' => array('onchange' => 'refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
       );
       // We add id to be able to update the correct alternatives if the node is updated, without destroying
       // existing answer reports
