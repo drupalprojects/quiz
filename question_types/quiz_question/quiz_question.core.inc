@@ -166,7 +166,7 @@ abstract class QuizQuestion {
       // Fieldset allowing question makers to add questions to multiple quizzes when creating or editing a question
       $already = array();
       $already_nids = array();
-      if (is_numeric($this->node->nid)) {
+      if (isset($this->node->nid) && is_numeric($this->node->nid)) {
         // Finding quizzes this question already belongs to.
         $sql = "SELECT n.nid, r.parent_vid AS vid, n.title
                 FROM {quiz_node_relationship} r
@@ -476,7 +476,7 @@ abstract class QuizQuestion {
      * If the question already is part of quizzes we might have to remove some
      * relationships
      */
-    if (is_array($this->node->add_directly['already'])) {
+    if (isset($this->node->add_directly['already']) && is_array($this->node->add_directly['already'])) {
       foreach ($this->node->add_directly['already'] as $key => $checked) {
         if ($checked == 0) {
           $nid_vid = explode('-', $key);
@@ -511,6 +511,7 @@ abstract class QuizQuestion {
       $insert_values = array();
       foreach ($this->node->add_directly['latest'] as $nid => $checked) {
         if ($checked != 0) {
+          $nid_vid = explode('-', $checked);
           $dummy_node = new stdClass();
           $dummy_node->nid = $nid_vid[0];
           $dummy_node->vid = $nid_vid[1];
@@ -526,7 +527,6 @@ abstract class QuizQuestion {
           // We build one sql query to insert multiple rows into the relationship table
           if (count($insert_values) > 0) $to_insert .= ',';
           $to_insert .= ' (%d, %d, %d, %d, %d, %d, %d)';
-          $nid_vid = explode('-', $checked);
           $insert_values[] = $nid_vid[0];
           $insert_values[] = $nid_vid[1];
           $insert_values[] = $this->node->nid;

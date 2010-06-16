@@ -144,7 +144,7 @@ class LongAnswerQuestion extends QuizQuestion{
        '#type' => 'textarea',
        '#title' => t('Rubric'),
        '#description' => t('Specify the criteria for grading the response.'),
-       '#default_value' => $this->node->rubric,
+       '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
        '#size' => 60,
        '#maxlength' => 512,
        '#required' => FALSE,

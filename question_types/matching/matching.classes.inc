@@ -173,7 +173,6 @@ class MatchingQuestion extends QuizQuestion {
 
       $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
-        '#title' => $title,
         '#options' => $this->customShuffle($select_option),
       );
       if (isset($rid)) {
@@ -450,11 +449,11 @@ class MatchingResponse extends QuizQuestionResponse {
     foreach ($correct_answers as $correct_answer) {
       $answer_data = array();
       $id = $user_answers[$correct_answer['match_id']];
-      $correct = $correct_answer['answer'] == $correct_answers[$id]['answer'];
+      $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
       $answer_data['question'] = $correct_answer['question'];
       if ($showpoints)
         $answer_data['correct_answer'] = $correct_answer['answer'];
-      $answer_data['user_answer'] = $correct_answers[$id]['answer'];
+      $answer_data['user_answer'] = isset($correct_answers[$id]) ? $correct_answers[$id]['answer'] : NULL;
       if ($showfeedback) {
         $answer_data['feedback'] = check_markup($correct_answer['feedback']);
         $answer_data['is_correct'] = $correct;

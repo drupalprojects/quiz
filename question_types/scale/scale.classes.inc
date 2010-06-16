@@ -384,7 +384,7 @@ class ScaleQuestion extends QuizQuestion {
         '#title' => t('Alternative !i', array('!i' => ($i+1))),
         '#size' => 60,
         '#maxlength' => 256,
-        '#default_value' => $this->node->{$i}->answer,
+        '#default_value' => isset($this->node->{$i}->answer) ? $this->node->{$i}->answer : '',
         '#required' => $i < 2,
       );
     }
@@ -426,7 +426,7 @@ class ScaleQuestion extends QuizQuestion {
     }
     $sql .= ' ORDER BY au.answer_collection_id';
     $res = db_query($sql, $user->uid);
-    $col_id;
+    $col_id = NULL;
     
     // Populate the $collections array
     while (true) {

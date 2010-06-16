@@ -955,7 +955,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $question_type_list = implode('\', \'', array_keys($question_types));
   
   // Add querystring recieved via ajax to the $_GET array...
-  _quiz_add_to_get($form_state['values']['browser']['table']['add_to_get']);
+  if (isset($form_state['values'])) {
+    _quiz_add_to_get($form_state['values']['browser']['table']['add_to_get']);
+  }
 
   // Browsers table header
   $browser['#header'] = array(
@@ -979,7 +981,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   
   /* We use a custom query for the pager to vastly improve performance if there are lots of db hits...
      This custom query doesn't find the total number of hits, thus the "last" link in the pager is hidden. */
-  $page = intval($_GET['page']);
+  $page = isset($_GET['page']) ? intval($_GET['page']) : 0;
   $num = 25;
   $pager_sql = 'SELECT COUNT(*) 
           FROM (
@@ -1770,7 +1772,9 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   _quiz_results_mr_add_filter_fields($browser);
 
   // Add querystring recieved via ajax to the $_GET array...
-  _quiz_add_to_get($form_state['values']['table']['add_to_get']);
+  if (isset($form_state['values'])) {
+    _quiz_add_to_get($form_state['values']['table']['add_to_get']);
+  }
 
   // Browsers table header
   $browser['#header'] = array(
@@ -1804,7 +1808,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   }
   
   // We copy the checkboxes that have been chosen in the previous stage, and unset them to avoid having them loaded again.
-  $default_value = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. $_GET['del']);
+  $default_value = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid .'-'. (isset($_GET['del']) ? $_GET['del'] : ''));
   unset($form_state['storage']['del']);
   
   $browser['name'] = array(
@@ -1846,7 +1850,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           WHERE qnrs.nid = %d ". $filter['where'] . $filter['group'] . tablesort_sql($header) .', qnrs.result_id DESC';
   // We remove the links to the last page and use a custom query to fetch the number of pages
   // Doing this we wastly improve performance
-  $page = intval($_GET['page']);
+  $page = isset($_GET['page']) ? intval($_GET['page']) : 0;
   $num = 50;
   $pager_sql = "SELECT COUNT(*) FROM (
                 SELECT qnrs.result_id
@@ -1887,7 +1891,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
     'where' => '',
     'group' => '',
   );
-  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+  if (isset($_SESSION[$pre .'name']) && drupal_strlen($_SESSION[$pre .'name']) > 0) {
     $filter['where'] .= ' AND u.name LIKE \'%s%%\'';
     $filter['params'][] = $_SESSION[$pre .'name'];
   }
@@ -1923,7 +1927,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
       $filter['group'] .= " GROUP BY qnrs.uid, u.uid, u.name, qnrs.result_id, qnrs.score, qnrs.is_evaluated, qnrs.time_start, qnrs.time_end, qnp.pass_rate";
     }
     $filter['params'][] = $filter['params'][0];
-    if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+    if (isset($_SESSION[$pre .'name']) && drupal_strlen($_SESSION[$pre .'name']) > 0) {
       $filter['params'][] = $_SESSION[$pre .'name'];
     }
   }
@@ -1948,7 +1952,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 12,
-    '#default_value' => $_SESSION[$pre .'name'],
+    '#default_value' => isset($_SESSION[$pre .'name']) ? $_SESSION[$pre .'name'] : '',
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
@@ -1959,7 +1963,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['started'] = array(
     '#type' => 'select',
     '#options' => _quiz_get_time_interval_options(),
-    '#default_value' => $_SESSION[$pre .'started'],
+    '#default_value' => isset($_SESSION[$pre .'started']) ? $_SESSION[$pre .'started'] : '',
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
@@ -1969,7 +1973,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['finished'] = array(
     '#type' => 'select',
     '#options' => _quiz_get_time_interval_options(),
-    '#default_value' => $_SESSION[$pre .'finished'],
+    '#default_value' => isset($_SESSION[$pre .'finished']) ? $_SESSION[$pre .'finished'] : '',
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
@@ -1979,7 +1983,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['score'] = array(
     '#type' => 'select',
     '#options' => _quiz_get_score_options(),
-    '#default_value' => $_SESSION[$pre .'score'],
+    '#default_value' => isset($_SESSION[$pre .'score']) ? $_SESSION[$pre .'score'] : '',
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',
@@ -1989,7 +1993,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
   $filters['evaluated'] = array(
     '#type' => 'select',
     '#options' => array('def' => t('No filter'), '1' => t('Yes'), '0' => t('No')),
-    '#default_value' => $_SESSION[$pre .'evaluated'],
+    '#default_value' => isset($_SESSION[$pre .'evaluated']) ? $_SESSION[$pre .'evaluated'] : '',
     '#ahah' => array(
       'path' => 'admin/quiz/reports/results/browser_ahah',
       'wrapper' => 'ahah-target',

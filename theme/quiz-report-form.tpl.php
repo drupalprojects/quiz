@@ -23,13 +23,13 @@ $p = drupal_get_path('module', 'quiz') .'/theme/';
 $q_image = $p. 'question_bg.png';
 ?>
 
-<h2><?php print format_plural(count($questions), 'Question Result', 'Question Results');?></h2>
+<h2><?php print t('Question Results');?></h2>
 
 <dl class="quiz-report">
 
 <?php
 foreach ($form as $key => $sub_form):
-  if (!is_numeric($key) || $sub_form['#no_report'] === TRUE) continue;
+  if (!is_numeric($key) || isset($sub_form['#no_report'])) continue;
   unset($form[$key]);
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
   $skipped = $sub_form['#is_skipped'] ? '<span class="quiz-report-skipped">'. t('(skipped)') .'</span>' : ''?>

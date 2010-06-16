@@ -29,7 +29,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   private function forgive() {
     if ($this->node->choice_multi == 1) {
-      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
         // If the scoring data doesn't make sense, use the data from the "correct" checkbox to set the score data
         if ($short['score_if_chosen'] == $short['score_if_not_chosen']
@@ -49,7 +49,7 @@ class MultichoiceQuestion extends QuizQuestion {
     else {
       // For questions with one, and only one, correct answer, there will be no points awarded for alternatives
       // not chosen.
-      for ($i = 0;is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
         $short['score_if_not_chosen'] = 0;
       }
@@ -62,7 +62,7 @@ class MultichoiceQuestion extends QuizQuestion {
   private function warn() {
     // Count the number of correct answers
     $num_corrects = 0;
-    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+    for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $alt = &$this->node->alternatives[$i];
       if ($alt['score_if_chosen'] > $alt['score_if_not_chosen']) {
         $num_corrects++;
@@ -125,7 +125,7 @@ class MultichoiceQuestion extends QuizQuestion {
               (nid, vid, choice_multi, choice_random, choice_boolean)
               VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $this->node->nid, $this->node->vid, $this->node->choice_multi, $this->node->choice_random, $this->node->choice_boolean);
-      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
           $this->insertAlternative($i);
         }
@@ -235,7 +235,7 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     else {
-      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
         if (strlen($this->checkMarkup($i, 'answer')) < 1) continue;
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
@@ -346,7 +346,7 @@ class MultichoiceQuestion extends QuizQuestion {
       // This question has already been answered. We load the answer.
       $response = new MultichoiceResponse($rid, $this->node);
     }
-    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+    for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
       $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
       if (drupal_strlen($answer_markup) > 0) {
@@ -363,13 +363,13 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_multi) {
       $form['tries[answer]']['#type'] = 'checkboxes';
       $form['tries[answer]']['#title'] = t('Choose');
-      if (is_object($response))
+      if (isset($response))
         if (is_array($response->getResponse())) $form['tries[answer]']['#default_value'] = $response->getResponse();
     }
     else {
       $form['tries[answer]']['#type'] = 'radios';
       $form['tries[answer]']['#title'] = t('Choose one');
-      if (is_object($response))
+      if (isset($response))
         if (is_array($response->getResponse())) $form['tries[answer]']['#default_value'] = array_pop($response->getResponse());
     }
 
@@ -406,7 +406,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if (isset($_GET['destination']))
       $options['query'] = array('destination' => $_GET['destination']);
     $action = url('node/add/'. $type->type, $options);
-    if ($this->node->nid) {
+    if (isset($this->node->nid)) {
       $action = url('node/' . $this->node->nid . '/edit', $options);
     }
     $form['#action'] = $action;
@@ -466,11 +466,11 @@ class MultichoiceQuestion extends QuizQuestion {
       $choice_count = $form_state['choice_count'];
     }
     else {
-      $choice_count = max(variable_get('multichoice_def_num_of_alts', 2), is_array($this->node->alternatives) ? count($this->node->alternatives) : 0);
+      $choice_count = max(variable_get('multichoice_def_num_of_alts', 2), isset($this->node->alternatives) ? count($this->node->alternatives) : 0);
     }
     
     for (; $i < $choice_count; $i++) {
-      $short = $this->node->alternatives[$i];
+      $short = isset($this->node->alternatives[$i]) ? $this->node->alternatives[$i] : NULL;
       $form['alternatives'][$i] = array(
         '#type' => 'fieldset',
         '#title' => t('Alternative !i', array('!i' => ($i+1))),
@@ -536,7 +536,7 @@ class MultichoiceQuestion extends QuizQuestion {
       );
       $form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
       
-      $default_value = $this->node->alternatives[$i]['score_if_chosen'];
+      $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
       if (!isset($default_value)) $default_value = '0';
       $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
         '#type' => 'textfield',
@@ -656,7 +656,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_boolean) return 1;
     
     $max = 0;
-    for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+    for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
       if ($this->node->choice_multi) {
         $max += max($short['score_if_chosen'], $short['score_if_not_chosen']);
@@ -687,7 +687,9 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $this->user_answer_ids = array();
     // tries is the tries part of the post data
     if (is_array($tries)) {
-      $this->choice_order = $tries['choice_order'];
+      if (isset($tries['choice_order'])) {
+        $this->choice_order = $tries['choice_order'];
+      }
       unset($tries['choice_order']);
       if (is_array($tries['answer'])) {
         foreach ($tries['answer'] as $answer_id) {
@@ -825,9 +827,9 @@ class MultichoiceResponse extends QuizQuestionResponse {
     
     // Fetch all data for the report
     $data = array();
-    while (is_array($this->question->alternatives[$i])) {
+    while (isset($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
-      if (drupal_strlen($this->checkMarkup($short['answer'], $short->answer_format)) > 0) {
+      if (drupal_strlen($this->checkMarkup($short['answer'], $short['answer_format'])) > 0) {
         $alternative = array();
         $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         

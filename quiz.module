@@ -500,7 +500,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
     unset($form['buttons']['preview']);
     $form['buttons']['submit']['#access'] = TRUE;
     // Quiz questions might want to add a cancel button.
-    if ($form['#cancel_button']) {
+    if (isset($form['#cancel_button'])) {
       $form['buttons']['cancel'] = array(
         '#type' => 'markup',
         '#value' => l(t('Cancel'), $form['#redirect']),
@@ -549,18 +549,18 @@ function quiz_insert($node) {
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, 
     $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, 
     $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, 
-    $node->has_userpoints, $node->allow_skipping);
+    isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping);
   
   _quiz_insert_resultoptions($node);
   
-  if (!$node->auto_created && $node->revision == 0) {
+  if (!isset($node->auto_created) && $node->revision == 0) {
     drupal_set_message("You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the \"edit\" tab.");
     $_REQUEST['destination'] = url("node/$node->nid/questions");
   }
   
   // If the quiz don't have any questions and have been created manually jump to
   // the manage questions tab.
-  if (!$node->auto_created) {
+  if (!isset($node->auto_created)) {
     _quiz_redirect_if_empty($node);
   }
 }
@@ -574,10 +574,12 @@ function quiz_update($node) {
   if ($node->revision) {
 
     // Insert a new row in the quiz_node_properties table.
-    $old_auto = $node->auto_created;
+    $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
     quiz_insert($node);
-    $node->auto_created = $old_auto;
+    if (!$old_auto) {
+      unset($node->auto_created);
+    }
 
     // Create new quiz-question relation entries in the quiz_node_relationship
     // table.
@@ -782,7 +784,8 @@ function quiz_start_quiz_button_form(&$form_state, $node) {
 function quiz_take($node) {
   drupal_alter('quiz_take', $node);
   // Load the questions in the view page.
-  return drupal_render(quiz_take_quiz($node));
+  $to_be_rendered = quiz_take_quiz($node);
+  return drupal_render($to_be_rendered);
 }  
 
 /**
@@ -850,7 +853,7 @@ function quiz_form(&$node) {
   $form['taking'] = array(
     '#type' => 'fieldset',
     '#title' => t('Taking options'),
-    '#collapsed' => $settings_loaded,
+    '#collapsed' => isset($settings_loaded) ? $settings_loaded : FALSE,
     '#collapsible' => TRUE,
   );
   $form['taking']['allow_skipping'] = array(
@@ -1486,7 +1489,7 @@ function quiz_take_quiz($quiz) {
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
     }
     // First time running through quiz.
-    elseif (quiz_start_check($quiz)) {
+    elseif (quiz_start_check($quiz, $rid)) {
       // Create question list.
       $questions = quiz_build_question_list($quiz);
       
@@ -1505,6 +1508,7 @@ function quiz_take_quiz($quiz) {
       // Initialize session variables.
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
       $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = $questions;
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = array();
       $_SESSION['quiz_'. $quiz->nid]['question_number'] = 0;
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] = $quiz->time_limit;
@@ -1609,7 +1613,8 @@ function quiz_take_quiz($quiz) {
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid'],
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['vid']
       );
-      $question_node->rid = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'];
+      if (isset($_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid']))
+        $question_node->rid = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['rid'];
     // We got an error message when trying to validate the previous answer
     }
     else {
@@ -2059,11 +2064,13 @@ function quiz_is_passed($uid, $nid, $vid) {
  *
  * @param $quiz
  *   The quiz node.
+ * @param $rid
+ *   The result ID
  *
  * @return
  *   Return quiz_node_results result_id, or FALSE if there is an error.
  */
-function quiz_start_check($quiz) {
+function quiz_start_check($quiz, $rid) {
   global $user;
 
   $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
@@ -3073,8 +3080,7 @@ function _quiz_get_feedback_options() {
 function _quiz_form_prepare_date($time = '', $offset = 0) {
   // If this is empty, get the current time.
   if ($time == '') {
-    $time = time();
-    $time = strtotime("+$offset days", $time);
+    $time = time() + $offset * 86400;
   }
   // If we are previewing, $time will be an array so just pass it through.
   $time_array = array();
@@ -3402,7 +3408,7 @@ function _quiz_load_user_settings(&$node) {
 function _quiz_save_user_settings($node) {
   global $user;
   // We do not save settings if the node has been created by the system.
-  if ($node->auto_created)
+  if (isset($node->auto_created))
     return FALSE;
   
   $node = (object)$node;
