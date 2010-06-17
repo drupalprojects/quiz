@@ -595,7 +595,7 @@ function quiz_views_data() {
       'title' => t('Score'),
       'help' => t('Score on the Quiz.'),
       'field' => array(
-        'handler' => 'views_handler_field',
+        'handler' => 'views_handler_field_numeric',
         'click sortable' => TRUE,
       ),
       'argument' => array(
