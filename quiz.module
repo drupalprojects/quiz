@@ -1334,6 +1334,26 @@ function quiz_get_all_titles() {
 }
 
 /**
+ * Returns the titles for all quizzes the user has access to.
+ *
+ * @return quizzes
+ *   Array with nids as keys and (array with vid as key and title as value) as values.
+ *   Like this: array($nid => array($vid => $title))
+ */
+function quiz_get_all_version_titles() {
+  $sql = "SELECT r.nid, r.vid, r.title
+          FROM {node_revisions} r
+          LEFT JOIN {node} n ON n.nid = r.nid
+          WHERE n.type = 'quiz'";
+  $res = db_query(db_rewrite_sql($sql));
+  $to_return = array();
+  while ($res_o = db_fetch_object($res)) {
+    $to_return[$res_o->nid][$res_o->vid] = $res_o->title;
+  }
+  return $to_return;
+}
+
+/**
  * Return score data for given quizzes.
  *
  * @param $nids
@@ -1360,17 +1380,17 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
           FROM {node} n
           JOIN {quiz_node_properties} p
           ON n.vid = p.vid
-          JOIN {quiz_node_results} r
-          ON r.nid = n.nid
-          JOIN (
+          LEFT OUTER JOIN {quiz_node_results} r
+          ON r.nid = n.nid AND r.uid = %d
+          LEFT OUTER JOIN (
             SELECT nid, max(score) as highest_score
             FROM {quiz_node_results}
             GROUP BY nid
           ) rm
           ON n.nid = rm.nid AND r.score = rm.highest_score
           WHERE n.nid in ('. implode(', ', $nids) .')
-          AND r.uid = %d';
-  $res = db_query(db_rewrite_sql($sql), $uid);
+          ';
+  $res = db_query($sql, $uid);
   while ($res_o = db_fetch_object($res)) {
     if (!$include_num_questions) unset($res_o->num_random_questions);
     $to_return[$res_o->vid] = $res_o;
