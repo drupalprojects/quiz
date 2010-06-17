@@ -622,6 +622,7 @@ function quiz_views_data() {
       'real field' => 'score',
       'field' => array(
         'handler' => 'quiz_views_handler_field_score_aggregate',
+        'float' => TRUE,
         'group field' => 'nid',
       ),
     ),
