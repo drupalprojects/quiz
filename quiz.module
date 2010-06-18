@@ -620,6 +620,7 @@ function quiz_update($node) {
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
+  quiz_update_max_score_properties(array($node->vid));
   // If the node has no questions redirect to the manage questions tab
   _quiz_redirect_if_empty($node);
 }
@@ -2049,7 +2050,16 @@ function quiz_update_total_score($quiz, $rid) {
   return $score['percentage_score'];
 }
 
+/**
+ * Updates the max_score property on the specified quizzes
+ * 
+ * @param $quizzes_to_update
+ *  Array with the vid's of the quizzes to update
+ */
 function quiz_update_max_score_properties($quizzes_to_update) {
+  if (empty($quizzes_to_update)) {
+    return;
+  }
   $sql = "UPDATE {quiz_node_properties} qnp
           SET max_score = max_score_for_random * number_of_random_questions + (
             SELECT SUM(max_score)
@@ -2449,7 +2459,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   $norefresh_sql = "INSERT INTO {quiz_node_relationship} 
                     (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
                     VALUES (%d, %d, %d, %d, %d, %d, %d)";
-  $total_max_score = 0;
+
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
       if ($question->refresh) {
@@ -2459,10 +2469,8 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
         $result = db_query($norefresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight, $question->max_score);
       }
     }
-    $total_max_score += $question->max_score;
   }
-  $sql = 'UPDATE {quiz_node_properties} SET max_score = %d WHERE nid = %d AND vid = %d';
-  db_query($sql, $total_max_score, $quiz->nid, $quiz->vid);
+  quiz_update_max_score_properties(array($quiz->vid));  
   return TRUE;
 }
 
@@ -2920,7 +2928,7 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *   An array of questions.
  */
-function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE) {
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {
   $filter_types = '';
   $questions    = array();
   $wheres    = array();
@@ -2948,15 +2956,21 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
     $where_sql .= implode(' AND ', $wheres);
   }
 
+  if ($include_random) {
+    $on_filter = 'AND qnr.question_status != ' . QUESTION_NEVER;
+  }
+  else {
+    $on_filter = 'AND qnr.question_status = ' . QUESTION_ALWAYS;
+  }
+  
   $result = db_query('SELECT n.nid, nr.vid, n.vid AS latest_vid, n.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
     FROM {node} n
     INNER JOIN {node_revisions} nr ON n.nid = nr.nid
     LEFT JOIN {quiz_node_relationship} qnr 
     ON nr.vid = qnr.child_vid
     AND qnr.parent_vid = %d
-    AND qnr.question_status != %d
-    '. $where_sql . ' ORDER BY weight', $quiz_vid, QUESTION_NEVER
-  );
+    ' . $on_filter . '
+    '. $where_sql . ' ORDER BY weight', $quiz_vid);
 
   // Create questions array.
   if ($nid_keys === FALSE) {
@@ -3267,12 +3281,8 @@ function quiz_has_been_answered($node) {
  *   Quiz node.
  */
 function _quiz_check_num_random(&$node) {
-  if ($node->randomization > 0) return;
+  if ($node->randomization == 2) return;
   $node->number_of_random_questions = 0;
-  $sql = 'UPDATE {quiz_node_relationship}
-          SET question_status = %d
-          WHERE parent_nid = %d AND parent_vid = %d AND question_status != %d';
-  db_query($sql, QUESTION_ALWAYS, $node->nid, $node->vid, QUESTION_NEVER);
 }
 
 /**

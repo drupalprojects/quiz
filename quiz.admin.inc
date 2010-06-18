@@ -521,7 +521,8 @@ function quiz_questions_form($form_state, $quiz) {
   }
   else {
     // We are coming in fresh and fetches the questions currently on the quiz from the database...
-    $questions = quiz_get_questions($quiz->nid, $quiz->vid, TRUE, FALSE, FALSE);
+    $include_random = $quiz->randomization == 2;
+    $questions = quiz_get_questions($quiz->nid, $quiz->vid, TRUE, FALSE, FALSE, $include_random);
   }
   
   if (empty($questions))
