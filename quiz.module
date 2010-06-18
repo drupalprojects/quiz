@@ -1084,7 +1084,7 @@ function quiz_form(&$node) {
     '#value' => $num_rand,
   );
   $max_score_for_random = (isset($node->max_score_for_random)) ? $node->max_score_for_random : 0;
-  $form['number_of_random_questions'] = array(
+  $form['max_score_for_random'] = array(
     '#type' => 'value',
     '#value' => $max_score_for_random,
   );
@@ -3282,7 +3282,10 @@ function quiz_has_been_answered($node) {
  */
 function _quiz_check_num_random(&$node) {
   if ($node->randomization == 2) return;
-  $node->number_of_random_questions = 0;
+  $sql = 'DELETE FROM {quiz_node_relationship} 
+          WHERE question_status = %d 
+          AND parent_vid = %d';
+  db_query($sql, QUESTION_RANDOM, $node->vid);
 }
 
 /**
