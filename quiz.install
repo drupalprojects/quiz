@@ -10,6 +10,24 @@
 /**
  * Implementation of hook_update_N
  * 
+ * Make sure all the max_scores in the database are updated.
+ */
+function quiz_update_6417() {
+  $results = array();
+  $sql = "UPDATE {quiz_node_properties} qnp
+          SET max_score = max_score_for_random * number_of_random_questions + (
+            SELECT SUM(max_score)
+            FROM {quiz_node_relationship} qnr
+            WHERE qnr.question_status = 1
+            AND parent_vid = qnp.vid
+          )";
+  $results[] = update_sql($sql);
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
+ * 
  * Remove number_of_random_questions from the user settings
  */
 function quiz_update_6416() {

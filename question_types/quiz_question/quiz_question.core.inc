@@ -476,6 +476,7 @@ abstract class QuizQuestion {
      * If the question already is part of quizzes we might have to remove some
      * relationships
      */
+    $quizzes_to_update = array();
     if (isset($this->node->add_directly['already']) && is_array($this->node->add_directly['already'])) {
       foreach ($this->node->add_directly['already'] as $key => $checked) {
         if ($checked == 0) {
@@ -492,6 +493,7 @@ abstract class QuizQuestion {
             $nid_vid[1] = $temp_quiz_node->vid;
             drupal_set_message(t('New revision has been created for the quiz %n', array('%n' => $temp_quiz_node->title)));
           }
+          $quizzes_to_update[] = $nid_vid[1];
           $sql = 'DELETE FROM {quiz_node_relationship}
                   WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
           db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid);
@@ -516,7 +518,6 @@ abstract class QuizQuestion {
           $dummy_node->nid = $nid_vid[0];
           $dummy_node->vid = $nid_vid[1];
           if (quiz_has_been_answered($dummy_node)) {
-            
             $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
             $temp_quiz_node->revision = 1;
             $temp_quiz_node->auto_created = TRUE;
@@ -524,6 +525,7 @@ abstract class QuizQuestion {
             $nid_vid[1] = $temp_quiz_node->vid;
             drupal_set_message(t('New revision has been created for the quiz %n', array('%n' => $temp_quiz_node->title)));
           }
+          $quizzes_to_update[] = $nid_vid[1];
           // We build one sql query to insert multiple rows into the relationship table
           if (count($insert_values) > 0) $to_insert .= ',';
           $to_insert .= ' (%d, %d, %d, %d, %d, %d, %d)';
@@ -553,7 +555,6 @@ abstract class QuizQuestion {
         }
       }
       if (count($insert_values) > 0) {
-        // TODO: Make sure this deletion don't mess up any stored results...
         $sql = 'DELETE FROM {quiz_node_relationship}
                 WHERE '. implode(' OR ', $delete_sqls);
         db_query($sql, $delete_values);
@@ -569,7 +570,9 @@ abstract class QuizQuestion {
               (parent_nid, parent_vid, child_nid, child_vid, max_score)
               VALUES (%d, %d, %d, %d, %d)';
       db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore());
+      $quizzes_to_update[] = $new_node->vid;
     }
+    quiz_update_max_score_properties($quizzes_to_update);
     return $quizzes_kept;
   }
 

@@ -294,6 +294,12 @@ function multichoice_update_6403() {
  */
 function multichoice_uninstall() {
   drupal_uninstall_schema('multichoice');
-  cache_clear_all('variables', 'cache');
+  $var = array(
+    'multichoice_def_scoring',
+    'multichoice_def_num_of_alts',
+  );
+  foreach ($var as $v) {
+    variable_del($v);
+  }
   drupal_set_message(t("The multichoice module has been uninstalled. multichoice nodes may still exist, but they will not function properly."));
 }

@@ -2049,6 +2049,26 @@ function quiz_update_total_score($quiz, $rid) {
   return $score['percentage_score'];
 }
 
+function quiz_update_max_score_properties($quizzes_to_update) {
+  $sql = "UPDATE {quiz_node_properties} qnp
+          SET max_score = max_score_for_random * number_of_random_questions + (
+            SELECT SUM(max_score)
+            FROM {quiz_node_relationship} qnr
+            WHERE qnr.question_status = " . QUESTION_ALWAYS . "
+            AND parent_vid = qnp.vid
+          )
+          WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
+  db_query($sql, $quizzes_to_update);
+  $sql = "UPDATE {node_revisions}
+          SET timestamp = NOW()
+          WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
+  db_query($sql, $quizzes_to_update);
+  $sql = "UPDATE {node}
+          SET changed = NOW()
+          WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
+  db_query($sql, $quizzes_to_update);
+}
+
 /**
  * Check a user/quiz combo to see if the user passed the given quiz.
  * 
