@@ -554,7 +554,7 @@ function quiz_insert($node) {
   _quiz_insert_resultoptions($node);
   
   if (!isset($node->auto_created) && $node->revision == 0) {
-    drupal_set_message("You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the \"edit\" tab.");
+    drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
     $_REQUEST['destination'] = url("node/$node->nid/questions");
   }
   
