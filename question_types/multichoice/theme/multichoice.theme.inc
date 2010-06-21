@@ -109,7 +109,7 @@ function theme_multichoice_response($data) {
     $cols[] = $alternative['answer'];
     $rows[] = $cols;
     if ($rowspan == 2) {
-      $rows[] = array('<strong>Feedback:</strong><div class="quiz_answer_feedback">' . $alternative['feedback'] . '</div>');
+      $rows[] = array('<strong>' . t('Feedback:') . '</strong><div class="quiz_answer_feedback">' . $alternative['feedback'] . '</div>');
     }
   }
   return theme('table', NULL, $rows);
