@@ -2399,7 +2399,7 @@ function _quiz_get_duration_intervals() {
  */
 function _quiz_get_duration_options() {
   return array(
-    'No filter',
+    t('No filter'),
     t('> 1 m'),
     t('> 5 m'),
     t('> 10 m'),
@@ -2425,7 +2425,7 @@ function _quiz_get_duration_options() {
  */
 function _quiz_get_score_options() {
   return array(
-    'No filter',
+    t('No filter'),
     t('Passed'),
     t('Failed'),
     t('= 100 %'),
