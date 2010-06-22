@@ -856,6 +856,7 @@ function quiz_form(&$node) {
     '#title' => t('Taking options'),
     '#collapsed' => isset($settings_loaded) ? $settings_loaded : FALSE,
     '#collapsible' => TRUE,
+    '#attributes' => array('id' => 'taking-fieldset'),
   );
   $form['taking']['allow_skipping'] = array(
     '#type' => 'checkbox',
@@ -1007,6 +1008,7 @@ function quiz_form(&$node) {
     '#title' => t('Availability options'),
     '#collapsed' => TRUE,
     '#collapsible' => TRUE,
+    '#attributes' => array('id' => 'availability-fieldset'),
   );
   $form['quiz_availability']['quiz_always'] = array(
     '#type' => 'checkbox',
@@ -1035,6 +1037,7 @@ function quiz_form(&$node) {
     '#title' => t('Pass/fail options'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
+    '#attributes' => array('id' => 'summaryoptions-fieldset'),
   );
   // If pass/fail option is checked, present the form elements.
   if (variable_get('quiz_use_passfail', 1)) {
@@ -1099,6 +1102,7 @@ function quiz_form(&$node) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#tree' => TRUE,
+      '#attributes' => array('id' => 'resultoptions-fieldset'),
     );
   
     for ($i=0; $i < $num_options; $i++) {
