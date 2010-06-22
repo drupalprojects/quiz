@@ -222,6 +222,12 @@ function multichoice_update_6300() {
  */
 
 function multichoice_update_6400(&$sandbox = NULL) {
+  if (!module_exists('autoload')) {
+    drupal_install_modules(array('autoload' ,'quiz_question'));
+    if (!module_exists('autoload')) {
+      return array('#abort' => array('success' => FALSE, 'query' => 'The <a href="http://drupal.org/project/autoload">Autoload</a> module is missing. You need to <a href="http://drupal.org/project/autoload">download</a> and enable autoload before you run update.php.'));
+    }
+  }
   $path = drupal_get_path('module', 'multichoice');
   // This is a big update. We have put it in its own file to avoid cluttering
   // this install file

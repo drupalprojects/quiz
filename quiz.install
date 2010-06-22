@@ -414,30 +414,33 @@ function quiz_update_6401(&$sandbox = NULL) {
       'not null' => TRUE,
       'default' => 0,
     ));
+    
     // THIS IS UGLY! But it needs to be installed here because we don't know in what order the updater
     // Will execute the update hooks...
-    db_create_table($result, 'quiz_question_properties', array(
-      'fields' => array(
-        'nid' => array(
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'not null' => TRUE,
+    if (!db_table_exists('quiz_question_properties')) {
+      db_create_table($result, 'quiz_question_properties', array(
+        'fields' => array(
+          'nid' => array(
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+          ),
+          'vid' => array(
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'not null' => TRUE,
+          ),
+          'max_score' => array(
+            'type' => 'int',
+            'unsigned' => TRUE,
+            'default' => 0,
+          ),
         ),
-        'vid' => array(
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'not null' => TRUE,
+        'primary key' => array(
+          'nid' , 'vid'
         ),
-        'max_score' => array(
-          'type' => 'int',
-          'unsigned' => TRUE,
-          'default' => 0,
-        ),
-      ),
-      'primary key' => array(
-        'nid' , 'vid'
-      ),
-    ));
+      ));
+    }
     $sandbox['tables_changed'] = TRUE;
     $sandbox['progress'] = 0;
   
@@ -593,6 +596,10 @@ function quiz_update_6401(&$sandbox = NULL) {
  * it is not beeing used at all, and therefore we remove it.
  */
 function quiz_update_6400() {
+  drupal_install_modules(array('autoload' ,'quiz_question'));
+  if (!module_exists('autoload')) 
+    return array('#abort' => array('success' => FALSE, 'query' => 'The <a href="http://drupal.org/project/autoload">Autoload</a> module is missing. You need to <a href="http://drupal.org/project/autoload">download</a> and enable autoload before you run update.php.'));
+ 
   $result = array();
   db_drop_table($result, 'quiz_node_question_properties');
   return $result;

@@ -98,7 +98,7 @@ function _multichoice_move_old_answers(&$to_return, &$sandbox = NULL) {
           FROM {quiz_multichoice_user_answers}
           WHERE result_id >= %d
           ORDER BY result_id, question_nid, question_vid, answer_id';
-  $res = db_query_range($sql, $sandbox['last_rid'], 0, 50);
+  $res = db_query_range($sql, $sandbox['last_rid'], 0, 500);
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
     if ($res_o->question_nid == $sandbox['last_nid']
@@ -269,7 +269,7 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
           FROM {quiz_multichoice_answers}
           WHERE question_nid >= %d AND question_vid >= %d
           ORDER BY question_nid, question_vid';
-  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 50);
+  $res = db_query_range($sql, $sandbox['last_nid'], $sandbox['last_vid'], 0, 500);
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
     if ($res_o->question_nid == $sandbox['last_nid']
@@ -290,8 +290,8 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
       // Store the format for this node
       $sql = 'SELECT format
               FROM {node_revisions}
-              WHERE nid = %d AND vid = %d';
-      $res2 = db_query($sql, $res_o->question_nid, $res_o->question_vid);
+              WHERE vid = %d';
+      $res2 = db_query($sql, $res_o->question_vid);
       $sandbox['last_format'] = db_result($res2);
       $sql = 'INSERT INTO {quiz_multichoice_properties}
               (nid, vid, choice_boolean)
@@ -312,9 +312,9 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
     // Update all the formats
     $sql = 'UPDATE {quiz_multichoice_answers}
             SET answer_format = %d, feedback_if_chosen_format = %d, feedback_if_not_chosen_format = %d
-            WHERE question_nid = %d AND question_vid = %d';
+            WHERE question_vid = %d'; // This table haven't been indexed yet, making this query very slow... :/
     $lf = $sandbox['last_format'];
-    db_query($sql, $lf, $lf, $lf, $res_o->question_nid, $res_o->question_vid);
+    db_query($sql, $lf, $lf, $lf, $res_o->question_vid);
     $progress_to_add++;
   }
   $sandbox['step_progress'] += $progress_to_add;
