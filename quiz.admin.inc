@@ -1521,7 +1521,7 @@ function theme_quiz_admin_quizzes($results) {
     'html' => theme('image', $path_to_module_quiz . '/images/html.png', t('Export as HTML'), t('Export as HTML')),
     'xml' => theme('image', $path_to_module_quiz . '/images/xml.png', t('Export as XML'), t('Export as XML')),
     'csv' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export as CSV'), t('Export as CSV')),
-	'csv_full' => theme('image', $path_to_module_quiz . '/images/csv.png', t('Export full data as CSV'), t('Export full data as CSV')),
+	'csv_full' => theme('image', $path_to_module_quiz . '/images/csv_complete.png', t('Export full data as CSV'), t('Export full data as CSV')),
   );
   $rows = array();
   
