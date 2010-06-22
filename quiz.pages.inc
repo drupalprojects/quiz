@@ -353,7 +353,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
     $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
   if (isset($summary['result']))
     $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
-  // Get the feedback for all questions.
+  // Get the feedback for all questions. These are included here to provide maximum flexibility for themers
   if ($quiz->display_feedback) {
     $output .= drupal_get_form('quiz_report_form', $questions);
   }
