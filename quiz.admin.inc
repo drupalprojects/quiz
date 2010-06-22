@@ -2273,12 +2273,16 @@ function quiz_set_auto_title() {
   $max_length = variable_get('quiz_autotitle_length', 50);
   drupal_add_js('
   $(document).ready(function () {
+    function quizStripTags(str) {
+      return str.replace(/<\/?[^>]+>/gi, \'\');
+    }
+    
     function quizUpdateTitle() {
-      if ($("#edit-body").val().length > '. $max_length .') {
-        $("#edit-title").val($("#edit-body").val().substring(0, '. $max_length .' - 3) + "...");
+      if (quizStripTags($("#edit-body").val()).length > '. $max_length .') {
+        $("#edit-title").val(quizStripTags($("#edit-body").val()).substring(0, '. $max_length .' - 3) + "...");
       }
       else {
-        $("#edit-title").val($("#edit-body").val().substring(0, '. $max_length .'));
+        $("#edit-title").val(quizStripTags($("#edit-body").val()).substring(0, '. $max_length .'));
       }
     }
     $("#edit-body").keyup(quizUpdateTitle);
