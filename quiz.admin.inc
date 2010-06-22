@@ -270,6 +270,9 @@ function quiz_admin_node_form(&$form_state) {
     $form['number_of_random_questions']
   );
   
+  $form['remember_settings']['#type'] = 'value';
+  $form['remember_settings']['#default_value'] = TRUE;
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save'),
@@ -308,7 +311,6 @@ function quiz_admin_node_form_validate($form, &$form_state) {
 function quiz_admin_node_form_submit($form, &$form_state) {
   // We add the uid for the "default user"
   $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
-  
   _quiz_save_user_settings($form_state['values']);
 }
 

@@ -816,7 +816,7 @@ function quiz_form(&$node) {
     $settings_loaded = _quiz_load_user_settings($node);
     if (!$settings_loaded) {
       if (arg(0) == 'node') {
-        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which will be remembered for the future. On the next screen you can add questions.',
+        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.',
                            array('@quiz' => QUIZ_NAME) ));
       }
       
@@ -1146,6 +1146,12 @@ function quiz_form(&$node) {
       }
     }
   }
+  $form['remember_settings'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Remember my settings'),
+    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
+    '#weight' => 49,
+  );
   if (quiz_has_been_answered($node)) {
     $node->revision = 1;
     $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
@@ -3457,11 +3463,13 @@ function _quiz_load_user_settings(&$node) {
  */
 function _quiz_save_user_settings($node) {
   global $user;
-  // We do not save settings if the node has been created by the system.
-  if (isset($node->auto_created))
+  // We do not save settings if the node has been created by the system, 
+  // or if the user haven't requested it
+  $node = (object)$node;
+  if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings)
     return FALSE;
   
-  $node = (object)$node;
+  
   
   // We're going to use drupal_write_record so we have to set the uid correctly first.
   // This is just temporary. We're not changing the nodes stored uid!
@@ -3472,6 +3480,7 @@ function _quiz_save_user_settings($node) {
   $update = is_numeric(db_result($res)) ? array('uid') : array(); 
   
   drupal_write_record('quiz_user_settings', $node, $update);
+  drupal_set_message(t('Default settings have been saved'));
 }
 
 /**

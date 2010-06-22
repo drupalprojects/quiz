@@ -433,7 +433,7 @@ class MultichoiceQuestion extends QuizQuestion {
       '#type' => 'fieldset',
       '#title' => t('Settings'),
       '#collapsible' => TRUE,
-      '#collapsed' => $default_settings['collapsed'],
+      '#collapsed' => FALSE,
       '#description' => t('Your settings will be remembered.'),
     );
     $form['alternatives']['settings']['choice_multi'] = array(
@@ -608,18 +608,15 @@ class MultichoiceQuestion extends QuizQuestion {
       $settings['choice_multi'] = $this->node->choice_multi;
       $settings['choice_random'] = $this->node->choice_random;
       $settings['choice_boolean'] = $this->node->choice_boolean;
-      $settings['collapsed'] = TRUE;
     }
     // We try to fetch the users settings
     elseif ($settings = $this->getUserSettings()) {
-      $settings['collapsed'] = TRUE;
     }
     // The user is creating his first multichoice node
     else {
       $settings['choice_multi'] = 0;
       $settings['choice_random'] = 0;
       $settings['choice_boolean'] = 0;
-      $settings['collapsed'] = FALSE;
     }
     return $settings;
   }
