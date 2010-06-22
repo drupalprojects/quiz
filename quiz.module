@@ -1611,7 +1611,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
-  elseif ($_POST['op'] == t('Skip') && $allow_skipping) {
+  elseif (($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }

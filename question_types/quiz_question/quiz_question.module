@@ -215,7 +215,7 @@ function quiz_question_answering_form($form_state, $node) {
   if ($node->allow_skipping) {
     $form['navigation']['op']  = array(
       '#type' => 'submit',
-      '#value' => t('Skip'),
+      '#value' => $is_last ? t('Skip and finish') : t('Skip'),
       '#attributes' => array('class' => 'q-skip-button'),
     );
   }
