@@ -345,7 +345,7 @@ function quiz_admin_results($quiz, $rid) {
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
 
   // Get all the data we need.  
-  $questions = _quiz_get_answers($rid);
+  $questions = _quiz_get_answers($quiz, $rid);
   $score = quiz_calculate_score($quiz, $rid);
   $summary = _quiz_get_summary_text($quiz, $score);
   
@@ -1594,7 +1594,6 @@ function theme_quiz_node_form($form) {
 function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));
-
   if (!$score['is_evaluated']) {
     drupal_set_message(t('This quiz has not been scored yet.'), 'error');
   }
@@ -1602,7 +1601,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output = '';
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Total score: @score%', array('@score' => $score['percentage_score'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Total score: @score %', array('@score' => $score['percentage_score'])) .'</div>'."\n";
   if (isset($summary['passfail']))
     $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
   if (isset($summary['result']))

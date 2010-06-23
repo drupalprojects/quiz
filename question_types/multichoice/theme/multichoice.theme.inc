@@ -82,28 +82,52 @@ function theme_multichoice_response($data) {
   $rows = array();
   foreach($data as $id => $alternative) {
     $cols = array();
-    $p = drupal_get_path('module', 'multichoice');
+    $p = drupal_get_path('module', 'multichoice') . '/theme/images';
     $rowspan = drupal_strlen($alternative['feedback']) > 0 ? 2: 1;
     $not = '';
     if ($alternative['is_chosen']) {
       switch ($alternative['is_correct']) {
         case 0:
-          $cols[] = array('data' => theme('image', "$p/theme/images/wrong.png", t('Wrong'), t('This answer is wrong')), 'width' => 35, 'rowspan' => $rowspan);
+          $cols[] = array(
+            'data' => theme('image', "$p/wrong.png", t('Wrong'), t('This answer is wrong'), array('class' => 'feedback-icon')), 
+            'width' => 35, 
+            'rowspan' => $rowspan,
+            'class' => 'selector-td',
+          );
           break;
         case 1:
-          $cols[] = array('data' => theme('image', "$p/theme/images/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score')), 'width' => 35, 'rowspan' => $rowspan);
+          $cols[] = array('data' => theme('image', "$p/almost.png", t('Almost correct'), t('This answer is correct, but there is an answer that gives a higher score'), array('class' => 'feedback-icon')), 
+            'width' => 35, 
+            'rowspan' => $rowspan,
+            'class' => 'selector-td',
+          );
           break;
         case 2:
-          $cols[] = array('data' => theme('image', "$p/theme/images/correct.png", t('Correct'), t('This answer is correct')), 'width' => 35, 'rowspan' => $rowspan);
+          $cols[] = array(
+            'data' => theme('image', "$p/correct.png", t('Correct'), t('This answer is correct'), array('class' => 'feedback-icon')), 
+            'width' => 35, 
+            'rowspan' => $rowspan,
+            'class' => 'selector-td',
+          );
           break;
       }
     }
     else {
       if ($alternative['is_correct'] == 2) {
-        $cols[] = array('data' => theme('image', "$p/theme/images/should.png", t('Should have chosen'), t("This answer is correct, but you didn't choose it")), 'width' => 35, 'rowspan' => $rowspan);
+        $cols[] = array(
+          'data' => theme('image', "$p/should.png", t('Should have chosen'), t("This answer is correct, but you didn't choose it"), array('class' => 'feedback-icon')), 
+          'width' => 35, 
+          'rowspan' => $rowspan,
+          'class' => 'selector-td',
+        );
       }
       else {
-        $cols[] = array('data' => '', 'width' => 35, 'rowspan' => $rowspan);
+        $cols[] = array(
+          'data' => '', 
+          'width' => 35, 
+          'rowspan' => $rowspan,
+          'class' => 'selector-td',
+        );
       }
     }
     $cols[] = $alternative['answer'];

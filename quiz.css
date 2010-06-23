@@ -1,5 +1,7 @@
 /* $Id$ */
 
+
+
 /*
  * Definitions that apply while viewing questions
  */
@@ -39,6 +41,10 @@ td.quiz_summary_qcell table td {
 
 .quiz_summary_text {
 
+}
+
+.feedback-icon {
+  display: inline;
 }
 
 .add-questions {

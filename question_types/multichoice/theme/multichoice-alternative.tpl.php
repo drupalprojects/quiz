@@ -52,7 +52,7 @@ print drupal_render($form);
 // We use the stored checkboxes and titles to generate a table for the alternatives
 foreach ($titles as $key => $value) {
   $row = array();
-  $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35);
+  $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35, 'class' => 'selector-td');
   $row[] = $value;
   $rows[] = array('data' => $row, 'class' => 'multichoice_row');
 }

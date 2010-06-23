@@ -437,11 +437,11 @@ function quiz_question_nodeapi(&$node, $op) {
     foreach ($q_types as $q_type => $info) {
       if ($node->type == $q_type) {
         if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
-          if (drupal_strlen(strip_tags($node->body)) > variable_get('quiz_autotitle_length', 50)) {
-            $node->title = drupal_substr(strip_tags($node->body), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
+          if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
+            $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
           }
           else {
-            $node->title = strip_tags($node->body);
+            $node->title = strip_tags(check_markup($node->body, $node->format, FALSE));
           }
         }
       }

@@ -15,7 +15,7 @@
 function quiz_user_results($result_id) {
   global $user;
 
-  $sql = 'SELECT qnp.nid, qnrs.uid
+  $sql = 'SELECT qnp.nid, qnp.vid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
     WHERE qnrs.result_id = %d';
@@ -29,8 +29,8 @@ function quiz_user_results($result_id) {
       return;
     }
 
-    $quiz = node_load($result->nid);
-    $questions = _quiz_get_answers($result_id);
+    $quiz = node_load($result->nid, $result->vid);
+    $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
     return theme('quiz_user_summary', $quiz, $questions, $score, $summary);
@@ -347,7 +347,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
       drupal_set_message($msg, 'error');
     }
     $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
-    $output .= '<div id="quiz_score_percent">'. t('Your score: %score%', array('%score' => $score['percentage_score'])) .'</div>'."\n";
+    $output .= '<div id="quiz_score_percent">'. t('Your score: %score %', array('%score' => $score['percentage_score'])) .'</div>'."\n";
   }
   if (isset($summary['passfail']))
     $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
@@ -388,7 +388,7 @@ function theme_quiz_user_summary($quiz, $questions, $score, $summary) {
   // Display overall result.
   $output = '';
   $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
-  $output .= '<div id="quiz_score_percent">'. t('Your score was: @score%', array('@score' => $score['percentage_score'])) .'</div>'."\n";
+  $output .= '<div id="quiz_score_percent">'. t('Your score was: @score %', array('@score' => $score['percentage_score'])) .'</div>'."\n";
   if (isset($summary['passfail']))
     $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
   if (isset($summary['result']))
