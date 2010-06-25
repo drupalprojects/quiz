@@ -938,6 +938,7 @@ function quiz_form(&$node) {
     '#title' => t('Multiple takes'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
+    '#attributes' => array('id' => 'multiple-takes-fieldset'),
   );
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
