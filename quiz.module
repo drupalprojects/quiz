@@ -2085,12 +2085,13 @@ function quiz_update_max_score_properties($quizzes_to_update) {
           )
           WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
   db_query($sql, $quizzes_to_update);
+  // No need to use db_placeholders for time()...
   $sql = "UPDATE {node_revisions}
-          SET timestamp = NOW()
+          SET timestamp = " . time() . " 
           WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
   db_query($sql, $quizzes_to_update);
   $sql = "UPDATE {node}
-          SET changed = NOW()
+          SET changed = " . time() . "
           WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
   db_query($sql, $quizzes_to_update);
 }
