@@ -10,6 +10,18 @@
 /**
  * Implementation of hook_update_N
  * 
+ * Change the primary key of the quiz_node_properties table to something more useful...
+ */
+function quiz_update_6418() {
+  $results = array();
+  db_drop_field($results, 'quiz_node_properties', 'property_id');
+  db_add_primary_key($results, 'quiz_node_properties', array('vid'));
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
+ * 
  * Make sure all the max_scores in the database are updated.
  */
 function quiz_update_6417() {
@@ -718,11 +730,6 @@ function quiz_schema() {
   $schema['quiz_node_properties'] = array(
     'description' => 'The base table for quiz nodes',
     'fields' => array(
-      'property_id' => array(
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -870,7 +877,7 @@ function quiz_schema() {
         'default' => 0,
       ),
     ),
-    'primary key' => array('property_id'),
+    'primary key' => array('vid'),
     // 'unique keys' => array('vid'),
     'indexes' => array('quiz_id' => array('vid', 'nid')),
   );

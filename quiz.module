@@ -668,7 +668,6 @@ function quiz_delete($node) {
  */
 function _quiz_get_node_defaults() {
   return array(
-    'property_id' => NULL,
     'aid' => NULL,
     'number_of_random_questions' => 0,
     'max_score_for_random' => 1,
@@ -702,7 +701,7 @@ function quiz_load($node) {
   $fields = implode(', ', array_keys($default_additions));
 
   // Fetching node settings.
-  $sql = 'SELECT %s FROM {quiz_node_properties} WHERE vid = %d AND nid = %d ORDER BY property_id DESC';
+  $sql = 'SELECT %s FROM {quiz_node_properties} WHERE vid = %d AND nid = %d';
   $fetched_additions = db_fetch_array(db_query($sql, $fields, $node->vid, $node->nid));
   $additions = ($fetched_additions) ? (object)($fetched_additions += $default_additions) : NULL;
 
@@ -723,7 +722,7 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $node = node_prepare($node, $teaser);
   
   // Number of questions is needed on the statistics page.
-  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->nid, $node->vid);
+  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
   
   $node->content['stats'] = array(
     '#value' => theme('quiz_view_stats', $node),
@@ -1442,9 +1441,9 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
  * @return
  *   Returns the number of quiz questions.
  */
-function quiz_get_number_of_questions($vid, $nid) {
-  $always_count = _quiz_get_num_always_questions($nid, $vid);
-  $rand_count = db_result(db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE nid = %d AND vid = %d', $nid, $vid));
+function quiz_get_number_of_questions($vid) {
+  $always_count = _quiz_get_num_always_questions($vid);
+  $rand_count = db_result(db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = %d', $vid));
   return $always_count + (int)$rand_count;
 }
 
@@ -1663,7 +1662,7 @@ function quiz_take_quiz($quiz) {
     }
 
     // Aded the progress info to the view.
-    $number_of_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
+    $number_of_questions = quiz_get_number_of_questions($quiz->vid);
     $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
     $question_node->question_number = $question_number;
     $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions);
@@ -1924,24 +1923,19 @@ function quiz_end_actions($quiz, $rid, $score) {
 function quiz_quiz_finished($quiz, $score, $rid) {
   global $user;
 
-  // For personality kind of quizzes if the user is an anonymous and configured
-  // to send user result to author send e-mail to author's e-mail address.
   if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_result(db_query('SELECT mail FROM {users} WHERE uid = %d', $quiz->uid));
     drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $rid, 'author'));
   }
 
-  // For e-Learning kind of quizzes if quiz has pass/fail, configured to send
-  // results to attendee and attendee is NOT an anonymous send result to his/her
-  // e-mail ID.
-  if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $user->uid != 0) {
+  if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $user->uid != 0 && $score['is_evaluated']) {
     drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid, 'taker'));
     drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
   // Calls userpoints functions to credit user point based on number of correct
   // answers.
-  if ($quiz->has_userpoints) {
+  if ($quiz->has_userpoints && $user->uid != 0 && $score['is_evaluated']) {
     
     //Looking up the tid of the selected Userpoint vocabulary
     $selected_tid = db_result(
@@ -1965,6 +1959,44 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   }
 }
 
+/**
+ * Implementation hook_quiz_evaluated().
+ *
+ * Performs actions like sending quiz results over email at the end of quiz.
+ */
+function quiz_quiz_scored($quiz, $score, $rid) {
+  global $user;
+  
+  if (variable_get('quiz_email_results', 0) && $user->uid != 0 && $score['is_evaluated']) {
+    drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid, 'taker'));
+    drupal_set_message(t('The results has been sent to the users e-mail address.'));
+  }
+
+  // Calls userpoints functions to credit user point based on number of correct
+  // answers.
+  if ($quiz->has_userpoints && $user->uid != 0 && $score['is_evaluated']) {
+    
+    //Looking up the tid of the selected Userpoint vocabulary
+    $selected_tid = db_result(
+      db_query("SELECT tid FROM {term_node}
+                WHERE nid = %d AND vid = %d AND tid IN (
+                  SELECT tid
+                  FROM {term_data}
+                  WHERE vid = %d
+                )", $quiz->nid, $quiz->vid, userpoints_get_vid()));
+    $variables = array(
+      '@title' => $quiz->title,
+      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
+      '@time' => date('l jS \of F Y h:i:s A'),
+    );
+    $params = array(
+      'points' => $score['numeric_score'],
+      'description' => t('Attened @title @quiz on @time', $variables),
+      'tid' => $selected_tid,
+    );
+    userpoints_userpointsapi($params);
+  }
+}
 
 /**
  * Implementation of hook_mail().
@@ -2386,23 +2418,6 @@ function quiz_build_question_list($quiz) {
     shuffle($questions);
   }
   return $questions;
-}
-
-/**
- * Gets the number of questions of a given type for a quiz.
- *
- * @param $nid
- *   Node ID of the quiz.
- * @param $vid
- *   Version ID for the quiz
- * @param $question_status
- *   Status constant.
- *
- * @return
- *   Number of questions that meet the criteria.
- */
-function quiz_get_num_questions($nid, $vid, $question_status) {
-  return db_result(db_query("SELECT COUNT('parent_vid') FROM {quiz_node_relationship} WHERE parent_vid = %d AND parent_nid = %d AND question_status = %d", $vid, $nid, $question_status));
 }
 
 /**
@@ -3529,7 +3544,7 @@ function _quiz_redirect_if_empty($node) {
  * @return
  *   Number of compulsory questions.
  */
-function _quiz_get_num_always_questions($nid, $vid) {
+function _quiz_get_num_always_questions($vid) {
   $sql = 'SELECT count(*) 
           FROM {quiz_node_relationship}
           WHERE parent_vid = %d AND question_status = %d';

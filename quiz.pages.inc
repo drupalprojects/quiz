@@ -119,13 +119,16 @@ function quiz_report_form_submit($form, &$form_state) {
     if (!function_exists($q_values['submit'])) continue;
 
     // Load the quiz
-    $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-    $result = db_fetch_object(db_query($sql, $q_values['rid']));
-    $quiz = node_load($result->nid, $result->vid);
-    $rid = $q_values['rid'];
+    if (!isset($quiz)) {
+      $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
+      $result = db_fetch_object(db_query($sql, $q_values['rid']));
+      $quiz = node_load($result->nid, $result->vid);
+      $rid = $q_values['rid'];
+    }
+    
     $q_values['quiz'] = $quiz;
 
-    // We call the validation function provided by the question
+    // We call the submit function provided by the question
     call_user_func($q_values['submit'], $q_values);
   }
   // Scores may have been changed. We take the necessary actions
@@ -138,7 +141,10 @@ function quiz_report_form_submit($form, &$form_state) {
   
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
-    
+  
+  $score_data = quiz_get_score_array($rid, $quiz_vid, TRUE);
+  module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
+  
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   $form_state['redirect'] = 'node/' . $quiz->nid . '/results';
 }
@@ -174,14 +180,46 @@ function _quiz_remove_unscored_message() {
  */
 function quiz_update_total_score_fast($rid, $quiz_vid) {
   $sql = 'UPDATE {quiz_node_results} r
-          SET score = (
-            SELECT ROUND(100*SUM(a.points_awarded)/SUM(r.max_score))
-            FROM {quiz_node_results_answers} a
-            JOIN {quiz_node_relationship} r
-            ON r.child_vid = a.question_vid AND r.parent_vid = %d
-            WHERE a.result_id = %d)
+          SET r.score = ROUND(
+            100 * (
+              SELECT SUM(a.points_awarded)
+              FROM {quiz_node_results_answers} a
+              WHERE a.result_id = %d
+            ) / (
+              SELECT max_score
+              FROM {quiz_node_properties} qnp
+              WHERE vid = %d
+            )
+          )
+          WHERE r.result_id = %d';
+  db_query($sql, $rid, $quiz_vid, $rid);
+}
+
+/**
+ * Returns an array of score information for a quiz
+ * 
+ * @param unknown_type $rid
+ * @param unknown_type $quiz_vid
+ * @param unknown_type $is_evaluated
+ */
+function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
+  $sql = 'SELECT max_score, number_of_random_questions
+          FROM {quiz_node_properties}
+          WHERE vid = %d';
+  $properties = db_fetch_object(db_query($sql, $quiz_vid)); 
+  
+  $sql = 'SELECT SUM(points_awarded)
+          FROM (quiz_node_results_answers)
           WHERE result_id = %d';
-  db_query($sql, $quiz_vid, $rid, $rid);
+  $total_score = db_result(db_query($sql, $rid));
+  
+  return array(
+    'question_count' => $res_o->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
+    'possible_score' => $res_o->max_score,
+    'numeric_score' => $total_score,
+    'percentage_score' => ($res_o->max_score == 0) ? 0 : round(($total_score * 100) / $res_o->max_score),
+    'is_evaluated' => $is_evaluated,
+  );
 }
 
 /**

@@ -95,23 +95,6 @@ function quiz_views_data() {
     ),
 
     // Field definitions
-    'property_id' => array(
-      'title' => t('Quiz node property ID'),
-      'help' => 'The unique ID for a property.',
-      'argument' => array(
-        'handler' => 'views_handler_argument_numeric',
-        //'name_field' => 'title',
-        'numeric' => TRUE,
-        'validate type' => 'nid',
-      ),
-      'sort' => array('handler' => 'views_handler_sort'),
-      'relationship' => array(
-        'handler' => 'views_handler_relationship',
-        'base' => 'node',
-        'field' => 'nid',
-        'label' => t('node'),
-      ),
-    ),
     'nid' => array(
       'title' => t('Quiz Node NID'),
       'help' => t('The ID of the Quiz Node.'),
