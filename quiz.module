@@ -1960,7 +1960,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
 }
 
 /**
- * Implementation hook_quiz_evaluated().
+ * Implementation hook_quiz_scored().
  *
  * Performs actions like sending quiz results over email at the end of quiz.
  */
