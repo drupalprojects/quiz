@@ -2804,7 +2804,6 @@ function _quiz_get_random_questions($quiz) {
   }
   $num_random = $quiz->number_of_random_questions;
   $tid = $quiz->tid;
-  dpm($quiz);
   $questions = array();
   if ($num_random > 0) {
     if ($tid > 0) {
