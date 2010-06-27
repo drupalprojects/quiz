@@ -27,7 +27,15 @@ function truefalse_update_6400() {
  * Implementation of hook_install().
  */
 function truefalse_install() {
-  drupal_install_schema('truefalse');
+  if (!db_table_exists('quiz_truefalse_node')) {
+    drupal_install_schema('truefalse');
+  }
+  else {
+    db_query("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'");
+    db_query("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'");
+    db_query("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'");
+    db_query("UPDATE {vocabulary_node_types} SET type = 'truefalse' WHERE type = 'true_false'");
+  }
   variable_set('node_options_truefalse', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
