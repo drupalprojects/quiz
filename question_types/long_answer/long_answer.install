@@ -131,28 +131,31 @@ function long_answer_update_6400() {
 
 function long_answer_update_6401() {
   $results = array();
-  if (db_table_exists('quiz_long_answer_node_properties'))
-    db_drop_table($results, 'quiz_long_answer_node_properties');
-  db_create_table($results, 'quiz_long_answer_node_properties', array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+  if (db_table_exists('quiz_long_answer_node_properties') && !db_column_exists('quiz_long_answer_node_properties', 'rubric')) {
+    db_add_field($results, 'quiz_long_answer_node_properties', 'rubric', array('type' => 'text'));
+  }
+  else {
+    db_create_table($results, 'quiz_long_answer_node_properties', array(
+      'fields' => array(
+        'nid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'vid' => array(
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+        ),
+        'rubric' => array(
+          'type' => 'text',
+        ),
       ),
-      'vid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'rubric' => array(
-        'type' => 'text',
-      ),
-    ),
-    'primary key' => array('nid', 'vid'),
-  ));
-  $sql = "INSERT INTO {quiz_long_answer_node_properties} (nid, vid)
-  SELECT nid, vid FROM node WHERE `type` = 'long_answer'";
-  $results[] = update_sql($sql);
+      'primary key' => array('nid', 'vid'),
+    ));
+    $sql = "INSERT INTO {quiz_long_answer_node_properties} (nid, vid)
+            SELECT nid, vid FROM node WHERE `type` = 'long_answer'";
+    $results[] = update_sql($sql);
+  }
   return $results;
 }
