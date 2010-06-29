@@ -1324,9 +1324,17 @@ function quiz_questions_form_submit($form, &$form_state) {
     // Update the quiz node properties.
     $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";
     $success = db_query($sql, $num_random, $quiz->max_score_for_random, $term_id, $quiz->vid, $quiz->nid);
+    
+    $sql = "UPDATE {quiz_node_properties} SET max_score = max_score_for_random  * number_of_random_questions + (
+              SELECT COALESCE(SUM(max_score), 0)
+              FROM {quiz_node_relationship}
+              WHERE parent_vid = %d AND question_status = %d
+            )
+            WHERE vid = %d";
+    $success2 = db_query($sql, $quiz->vid, QUESTION_ALWAYS, $quiz->vid);
   }
 
-  if ($success) {
+  if ($success && $success2) {
     drupal_set_message(t('Questions updated successfully.'));
   }
   else {

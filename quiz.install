@@ -10,6 +10,25 @@
 /**
  * Implementation of hook_update_N
  * 
+ * Makes sure max_score is correct in the quiz_node_properties
+ */
+function quiz_update_6419() {
+  $results = array();
+  $sql = "UPDATE {quiz_node_properties} p
+          LEFT OUTER JOIN (
+            SELECT parent_vid, COALESCE(SUM(max_score), 0) AS ms
+            FROM {quiz_node_relationship} r 
+            WHERE r.question_status = 1
+            GROUP BY parent_vid
+          ) t ON t.parent_vid = p.vid
+          SET p.max_score = p.max_score_for_random  * p.number_of_random_questions + COALESCE(t.ms, 0)";
+  $results[] = update_sql($sql);
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
+ * 
  * Change the primary key of the quiz_node_properties table to something more useful...
  */
 function quiz_update_6418() {
