@@ -2303,7 +2303,6 @@ function quiz_calculate_score($quiz, $rid) {
   LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = %d 
   WHERE result_id = %d';
   $results = db_query($sql, $quiz->vid, $rid);
-
   // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
   // Fetched from the db, not calculated....
   $scores = array();

@@ -344,6 +344,11 @@ function quiz_admin_results($quiz, $rid) {
   $breadcrumb = drupal_get_breadcrumb();
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
 
+  // Make sure we have the right version of the quiz
+  $vid = db_result(db_query('SELECT vid FROM {quiz_node_results} WHERE result_id = %d', $rid));
+  if ($quiz->vid != $vid) 
+    $quiz = node_load($quiz->nid, $vid);
+  
   // Get all the data we need.  
   $questions = _quiz_get_answers($quiz, $rid);
   $score = quiz_calculate_score($quiz, $rid);
