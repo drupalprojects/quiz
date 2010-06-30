@@ -37,18 +37,18 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
         return !this.checked;
       });
     }
-	var idToShow = Quiz.findNidVidString(this.id);
-	var oldHeight = $(document).height();
-	if ($(this).hasClass('selected')) {
-	  // Show the question in the question list
-    $('#question-list').css('display', 'table');
-    $('#no-questions').hide();
-    $('#q-' + idToShow).removeClass('hidden-question');
-	} else {
-	  // Hide the question in the question list
-    $('#q-' + idToShow).addClass('hidden-question');
-	}
-	$('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
+	  var idToShow = Quiz.findNidVidString(this.id);
+	  var oldHeight = $(document).height();
+	  if ($(this).hasClass('selected')) {
+	    // Show the question in the question list
+      $('#question-list').css('display', 'table');
+      $('#no-questions').hide();
+      $('#q-' + idToShow).removeClass('hidden-question');
+	  } else {
+	    // Hide the question in the question list
+      $('#q-' + idToShow).addClass('hidden-question');
+	  }
+	  $('#edit-stayers-' + idToShow).attr('checked', ($('#q-' + idToShow).hasClass('hidden-question')) ? false : true);
     Quiz.fixColorAndWeight($('#q-' + idToShow));
     var toScroll = $(document).height() - oldHeight;
     window.scrollBy(0, toScroll);

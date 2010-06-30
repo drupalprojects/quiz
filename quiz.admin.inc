@@ -445,7 +445,7 @@ function quiz_results_mr_browser_ahah() {
     $output .= ' var renderedBrowser = '. drupal_to_js(theme('status_messages') . $rendered_browser) .';';
 
     // Have js(jQuery) replace the browser and change the form build id in the DOM
-    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
+    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId); </script>';
   }
   
   // Only the question rows in the browser is replaced.

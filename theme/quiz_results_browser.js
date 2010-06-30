@@ -239,7 +239,7 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   $('#no-results').remove();
   $('#quiz-question-browser-filters').after(rows);
   $('#before-pager').after(pager);
-  
+
   // Change build id to the new id provided by the server(prevents validation error):
   $('[name="form_build_id"]').val(newBuildId);
   
@@ -257,7 +257,7 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
 Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
   // Change build id to the new id provided by the server:
   $('[name="form_build_id"]').val(newBuildId);
-   
+  
   var $this = $('#all-ahah-target'); 
   var par = $this.parent(); 
   var sib = $this.prev(); 
