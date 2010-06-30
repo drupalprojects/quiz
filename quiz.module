@@ -496,8 +496,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
     }
-    
-    unset($form['buttons']['preview']);
+    unset($form['buttons']['preview'], $form['buttons']['preview_changes']);
     $form['buttons']['submit']['#access'] = TRUE;
     // Quiz questions might want to add a cancel button.
     if (isset($form['#cancel_button'])) {
@@ -783,7 +782,8 @@ function quiz_start_quiz_button_form(&$form_state, $node) {
  */
 function quiz_take($node) {
   drupal_alter('quiz_take', $node);
-  // Load the questions in the view page.
+  if (isset($node->rendered_content))
+    return $node->rendered_content;
   $to_be_rendered = quiz_take_quiz($node);
   return drupal_render($to_be_rendered);
 }  
