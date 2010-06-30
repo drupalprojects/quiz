@@ -9,7 +9,7 @@
  */
 
 // The quiz object
-var Quiz = Quiz || {};
+var Quiz = Quiz || {inputEnabled:true};
 
 /**
  * Adding behavior. Behaviors are called everytime a page is refreshed fully or through ahah.
@@ -86,10 +86,11 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   $('#edit-table-filters-best-results'+ notDone + ', #edit-table-filters-not-in-progress' + notDone)
   .addClass(done)
   .click(function(event) {
-	$('#edit-table-filters-all').hide();
-	$('.quiz-results-browser-row').remove();
-	$('#browser-pager').remove();
-	$('#edit-table-filters-name').trigger('doneTyping');
+	  $('#edit-table-filters-all').hide();
+	  $('.quiz-results-browser-row').remove();
+	  $('#browser-pager').remove();
+	  $('#edit-table-filters-name').trigger('doneTyping');
+	  Quiz.setInputEnabled(false);
   });
   
   // started, finished, duration and score filters
@@ -105,6 +106,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       $(this).remove();
     });
     $('#browser-pager').remove();
+    Quiz.setInputEnabled(false);
   });
   
   //Username filters
@@ -114,8 +116,8 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   .addClass(done)
   // triggering custom event "doneTyping" one second after the last key up in the text fields...
   .keyup(function(event) {
-	clearInterval(quizRefreshId);
-	var quizClicked = this;
+	  clearInterval(quizRefreshId);
+	  var quizClicked = this;
     quizRefreshId = setInterval(function(){
       $('.quiz-results-browser-row').each(function() { 
         $(this).remove();
@@ -124,6 +126,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       $('#edit-table-filters-all').hide();
       $(quizClicked).trigger('doneTyping');
       clearInterval(quizRefreshId);
+      Quiz.setInputEnabled(false);
     }, 1000);
   });
   
@@ -159,6 +162,10 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
     .attr('myName', toSort[i].name)
     .attr('myEvent', toSort[i].event)
     .click(function(event) {
+      if (!Quiz.inputEnabled) {
+        event.preventDefault();
+        return;
+      }
       var myUrl = $(this).attr('href');
       myUrl = myUrl.slice(myUrl.indexOf('?') + 1);
       // add-to-get is the query string used by drupals tablesort api.
@@ -167,6 +174,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
       $('#edit-table-add-to-get').val(myUrl);
       if ($(this).attr('myName') == 'name') $('#edit-table-filters-all').hide();
       $('#edit-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
+      Quiz.setInputEnabled(false);
       event.preventDefault();
     });
   }
@@ -174,13 +182,18 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   // Pager
   $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
   .addClass(done)
-  .click(function(event){
-	var myUrl = $(this).attr('href').substr(2);
-	Quiz.updatePageInUrl(myUrl);
-	$('#edit-table-filters-all').hide();
-	$('.quiz-results-browser-row').remove();
+  .click(function(event) {
+    if (!Quiz.inputEnabled) {
+      event.preventDefault();
+      return;
+    }
+	  var myUrl = $(this).attr('href').substr(2);
+	  Quiz.updatePageInUrl(myUrl);
+	  $('#edit-table-filters-all').hide();
+	  $('.quiz-results-browser-row').remove();
     $('#edit-table-filters-name').trigger('doneTyping');
     event.preventDefault();
+    Quiz.setInputEnabled(false);
   });
   $('.quiz-hover-menu').css('opacity', 0);
   $('#edit-table-filters-all').show();
@@ -244,6 +257,7 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   $('[name="form_build_id"]').val(newBuildId);
   
   Drupal.behaviors.quizResultsBrowserBehavior();
+  Quiz.setInputEnabled(true);
 };
 
 /**
@@ -269,6 +283,7 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
     par.prepend(renderedBrowser); 
 
   Drupal.attachBehaviors($('#all-ahah-target'));
+  Quiz.setInputEnabled(true);
 };
 
 /**
@@ -301,3 +316,19 @@ Quiz.findNidRidString = function(str) {
   var pattern = new RegExp('[0-9]+-[0-9]+');
   return pattern.exec(str);
 };
+
+/**
+ * Turn all input elements on or off
+ * 
+ * @param on
+ *   Should the inputs be swithced on or off?
+ */
+Quiz.setInputEnabled = function(enabled) {
+  Quiz.inputEnabled = enabled;
+  if (enabled) {
+    $('.quizResultsBrowserBehavior-processed').removeAttr('disabled');
+  }
+  else {
+    $('.quizResultsBrowserBehavior-processed').attr('disabled', true);
+  }
+}

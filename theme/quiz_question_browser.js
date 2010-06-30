@@ -9,7 +9,7 @@
  */
 
 // The quiz object
-var Quiz = Quiz || {};
+var Quiz = Quiz || {inputEnabled:true};
 
 /**
  * Adding behavior. Behaviors are called everytime a page is refreshed fully or through ahah.
@@ -85,6 +85,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       $(this).remove();
     });
     $('#browser-pager').remove();
+    Quiz.setInputEnabled(false);
   });
   
   //Title and username filters
@@ -95,8 +96,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   .addClass(done)
   // triggering custom event "doneTyping" one second after the last key up in the text fields...
   .keyup(function(event) {
-	clearInterval(quizRefreshId);
-	var quizClicked = this;
+	  clearInterval(quizRefreshId);
+	  var quizClicked = this;
     quizRefreshId = setInterval(function(){
       $('.quiz-question-browser-row').each(function() { 
         $(this).remove();
@@ -104,6 +105,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       $('#browser-pager').remove();
       $(quizClicked).trigger('doneTyping');
       clearInterval(quizRefreshId);
+      Quiz.setInputEnabled(false);
     }, 1000);
   });
   
@@ -135,6 +137,10 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
     .attr('myName', toSort[i].name)
     .attr('myEvent', toSort[i].event)
     .click(function(event) {
+      if (!Quiz.inputEnabled) {
+        event.preventDefault();
+        return;
+      }
       var myUrl = $(this).attr('href');
       myUrl = myUrl.slice(myUrl.indexOf('?') + 1);
       // add-to-get is the query string used by drupals tablesort api.
@@ -143,6 +149,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
       $('#edit-browser-table-add-to-get').val(myUrl);
       $('#edit-browser-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
       event.preventDefault();
+      Quiz.setInputEnabled(false);
     });
   }
   
@@ -150,11 +157,16 @@ Drupal.behaviors.quizQuestionBrowserBehavior = function(context) {
   $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
   .addClass(done)
   .click(function(event){
+    if (!Quiz.inputEnabled) {
+      event.preventDefault();
+      return;
+    }
 	  var myUrl = $(this).attr('href').substr(2);
   	Quiz.updatePageInUrl(myUrl);
 	  $('.quiz-question-browser-row').remove();
     $('#edit-browser-table-filters-title').trigger('doneTyping');
     event.preventDefault();
+    Quiz.setInputEnabled(false);
   });
   
   // If js is active we don't want to show a checkbox for selecting questions
@@ -269,6 +281,7 @@ Quiz.addBrowserRows = function(rows, newBuildId, pager) {
   $('[name="form_build_id"]').val(newBuildId);
   
   Drupal.behaviors.quizQuestionBrowserBehavior();
+  Quiz.setInputEnabled(true);
 };
 
 /**
@@ -295,6 +308,7 @@ Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
     par.prepend(renderedBrowser); 
 
   Drupal.attachBehaviors($('#all-ahah-target'));
+  Quiz.setInputEnabled(true);
 };
 
 /**
@@ -400,3 +414,19 @@ Quiz.addQuestions = function (rowHtml) {
   
   Drupal.attachBehaviors(table.table);
 };
+
+/**
+ * Turn all input elements on or off
+ * 
+ * @param enabled
+ *   Should the inputs be swithced on or off?
+ */
+Quiz.setInputEnabled = function(enabled) {
+  Quiz.inputEnabled = enabled;
+  if (enabled) {
+    $('.quizQuestionBrowserBehavior-processed').removeAttr('disabled');
+  }
+  else {
+    $('.quizQuestionBrowserBehavior-processed').attr('disabled', true);
+  }
+}
