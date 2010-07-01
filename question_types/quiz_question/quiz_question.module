@@ -338,7 +338,10 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
  */
 function quiz_question_get_report($nid, $vid, $rid) {
   $response_instance = _quiz_question_response_get_instance($rid, NULL, NULL, $nid, $vid);
-  
+  if (!$response_instance) {
+    drupal_set_message(t('Unable to load question with nid %nid and vid %vid', array('%nid' => $nid, '%vid' => $vid)), 'warning');
+    return FALSE;
+  }
   $result = $response_instance->getReport();
   $response_instance->question->answers[$result['answer_id']] = $result;
   $response_instance->question->correct = $result['is_correct'];
@@ -365,6 +368,9 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   
   $question = _quiz_question_get_instance($dummy_node, TRUE);
 
+  if (!$question)
+    return FALSE;
+  
   $score = new stdClass();
   $score->possible = $question->getMaximumScore();
   $score->question_nid = $question->node->nid;
@@ -593,13 +599,13 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
     // If $node don't have a type it is a dummy node
     if (!isset($node->type)) {
       // To substanitally improve performance(especially on the result page) we avoid node_load()...
-      $sql = 'SELECT n.type, r.nid, p.vid, r.title, r.body, max_score, r.format
-            FROM {node_revisions} r 
-            JOIN {node} n
-            ON r.nid = n.nid
-            JOIN {quiz_question_properties} p
-            ON r.vid = p.vid
-            WHERE r.vid = %d';
+      $sql = 'SELECT n.type, r.nid, r.vid, r.title, r.body, max_score, r.format
+              FROM {node_revisions} r 
+              JOIN {node} n
+              ON r.nid = n.nid
+              JOIN {quiz_question_properties} p
+              ON r.vid = p.vid
+              WHERE r.vid = %d';
       $res = db_query($sql, $node->vid);
       $node = db_fetch_object($res);
       $using_dummy_node = TRUE;
@@ -617,7 +623,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   // No cached instance of QuizQuestion has been returned. We construct a new instance
   $info = _quiz_question_get_implementations();
   $constructor = $info[$name]['question provider'];
-  if (empty($constructor)) throw new Exception("no constructor available for '$name' question type");
+  if (empty($constructor)) return FALSE;
   
   // We create a new instance of QuizQuestion
   $to_return = new $constructor($node);
@@ -683,7 +689,7 @@ function _quiz_question_response_get_instance($rid, $question, $answer = NULL, $
     $dummy_node->vid = $vid;
     $question = _quiz_question_get_instance($dummy_node, TRUE)->node;
   }
-  
+  if (!$question) return FALSE;
   $info = _quiz_question_get_implementations();
   $constructor = $info[$question->type]['response provider'];
   $to_return = new $constructor($rid, $question, $answer);

@@ -1594,7 +1594,8 @@ function quiz_take_quiz($quiz) {
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_'. $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
       require_once($path .'/quiz.pages.inc');
-      $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form', array($report)));
+      if ($report)
+        $_SESSION['quiz_'. $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form', array($report)));
     }
     if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
       // If the question was answered incorrectly, repeat it
@@ -3117,7 +3118,11 @@ function _quiz_get_answers($quiz, $rid) {
     $module = quiz_question_module_for_type($line->type);
     if (!$module) continue;
     // Invoke hook_get_report().
-    $questions[$line->question_nid] = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    if (!$report) {
+      continue;
+    }
+    $questions[$line->question_nid] = $report;
     // Add max score info to the question.
     if (!isset($questions[$line->question_nid]->score_weight)) {
       if ($questions[$line->question_nid]->max_score == 0) $score_weight = 0;
