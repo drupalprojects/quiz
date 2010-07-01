@@ -686,7 +686,6 @@ abstract class QuizQuestionResponse {
   function isCorrect() {
     $possible = $this->getMaxScore();
     $actual = $this->getScore();
-    assert($actual <= $possible);
 
     return ($possible == $actual);
   }

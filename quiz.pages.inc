@@ -155,14 +155,14 @@ function quiz_report_form_submit($form, &$form_state) {
 function _quiz_remove_unscored_message() {
   if (is_array($_SESSION['messages']['error'])) {
     // Search for the message, and remove it if we find it.
-    foreach ($_SESSION['messages']['error'] as $key => $val) {
+    foreach ($_SESSION['messages']['warning'] as $key => $val) {
       if ($val == t('This quiz has not been scored yet.')) {
-        unset($_SESSION['messages']['error'][$key]);
+        unset($_SESSION['messages']['warning'][$key]);
       }
     }
     // Clean up if the message array was left empty
-    if (empty($_SESSION['messages']['error'])) {
-      unset($_SESSION['messages']['error']);
+    if (empty($_SESSION['messages']['warning'])) {
+      unset($_SESSION['messages']['warning']);
       if (empty($_SESSION['messages'])) {
         unset($_SESSION['messages']);
       }
@@ -382,7 +382,7 @@ function theme_quiz_take_summary($quiz, $questions, $score, $summary) {
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
-      drupal_set_message($msg, 'error');
+      drupal_set_message($msg, 'warning');
     }
     $output .= '<div id="quiz_score_possible">'. t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .'</div>'."\n";
     $output .= '<div id="quiz_score_percent">'. t('Your score: %score %', array('%score' => $score['percentage_score'])) .'</div>'."\n";

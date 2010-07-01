@@ -339,7 +339,7 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
 function quiz_question_get_report($nid, $vid, $rid) {
   $response_instance = _quiz_question_response_get_instance($rid, NULL, NULL, $nid, $vid);
   if (!$response_instance) {
-    drupal_set_message(t('Unable to load question with nid %nid and vid %vid', array('%nid' => $nid, '%vid' => $vid)), 'warning');
+    drupal_set_message(t('Unable to load question with nid %nid and vid %vid', array('%nid' => $nid, '%vid' => $vid)), 'error');
     return FALSE;
   }
   $result = $response_instance->getReport();

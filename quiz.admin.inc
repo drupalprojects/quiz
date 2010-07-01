@@ -1608,7 +1608,7 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));
   if (!$score['is_evaluated']) {
-    drupal_set_message(t('This quiz has not been scored yet.'), 'error');
+    drupal_set_message(t('This quiz has not been scored yet.'), 'warning');
   }
   // Display overall result.
   $output = '';
