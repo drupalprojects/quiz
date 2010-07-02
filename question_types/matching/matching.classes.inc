@@ -64,7 +64,8 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#validateNode($form)
    */
   public function validateNode(array &$form) {
-
+    // No validation is required
+    // The first two pairs are required in the form, if there are other errors we forgive them
   }
 
   /**
@@ -266,12 +267,14 @@ class MatchingQuestion extends QuizQuestion {
       $form['match'][$i]['question'] = array(
         '#type' => 'textarea',
         '#rows' => 2,
-        '#default_value' => isset($this->node->match[$i-1]['question']) ? $this->node->match[$i-1]['question'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['question']) ? $this->node->match[$i-1]['question'] : '',
+        '#required' => $i < 3,
       );
       $form['match'][$i]['answer'] = array(
         '#type' => 'textarea',
         '#rows' => 2,
-        '#default_value' => isset($this->node->match[$i-1]['answer']) ? $this->node->match[$i-1]['answer'] : ''
+        '#default_value' => isset($this->node->match[$i-1]['answer']) ? $this->node->match[$i-1]['answer'] : '',
+        '#required' => $i < 3,
       );
 
       $form['match'][$i]['feedback'] = array(
