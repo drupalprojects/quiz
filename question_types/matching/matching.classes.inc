@@ -158,10 +158,8 @@ class MatchingQuestion extends QuizQuestion {
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = array();
     $form['#theme'] = 'matching_answering_form';
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-    );
+    $form['question'] = $this->getStandardQuestionBody();
+    
     if (isset($rid)) {
       // The question has already been answered. We load the answers
       $response = new MatchingResponse($rid, $this->node);

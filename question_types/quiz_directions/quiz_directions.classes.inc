@@ -54,10 +54,8 @@ class QuizDirectionsQuestion extends QuizQuestion {
     
     $form['#theme'] = 'quiz_directions_answering_form';
     
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-    );
+    $form['question'] = $this->getStandardQuestionBody();
+    
     $form['tries'] = array(
       '#type' => 'hidden',
       '#value' => 0,

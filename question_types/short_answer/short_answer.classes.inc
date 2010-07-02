@@ -128,10 +128,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     $form = array();
     $form['#theme'] = 'short_answer_answering_form';
     
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-    );
+    $form['question'] = $this->getStandardQuestionBody();
 
     $form['tries'] = array(
       '#type' => 'textfield',

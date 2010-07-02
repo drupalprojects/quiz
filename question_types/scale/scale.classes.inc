@@ -316,10 +316,8 @@ class ScaleQuestion extends QuizQuestion {
         $options[$this->node->{$i}->id] = check_plain($this->node->{$i}->answer);
       }
     }
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-    );
+    $form['question'] = $this->getStandardQuestionBody();
+    
     $form['tries'] = array(
       '#type' => 'radios',
       '#title' => t('Choose one'),

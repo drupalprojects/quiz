@@ -617,6 +617,20 @@ abstract class QuizQuestion {
     return $may_view_answers;
   }
 
+  /**
+   * This function is used by most question types for the form body.
+   * 
+   * @return 
+   *  A form array for a standard question body
+   */
+  public function getStandardQuestionBody() { 
+    return array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#prefix' => '<div class="quiz-question-body">',
+      '#suffix' => '</div>',
+    );
+  }
 }
 
 /**

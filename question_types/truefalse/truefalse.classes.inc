@@ -113,10 +113,7 @@ class TrueFalseQuestion extends QuizQuestion {
     $form['#theme'] = 'truefalse_answering_form';
     
     // Question first
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE)
-    );
+    $form['question'] = $this->getStandardQuestionBody();
 
     // 'tries' is unfortunately required by quiz.module
     $form['tries'] = array(

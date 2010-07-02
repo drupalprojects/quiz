@@ -336,10 +336,8 @@ class MultichoiceQuestion extends QuizQuestion {
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form['#theme'] = 'multichoice_answering_form';
     
-    $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-    );
+    $form['question'] = $this->getStandardQuestionBody();
+    
     /* We use an array looking key to be able to store multiple answers in tries.
      * At the moment all user answers have to be stored in tries. This is something we plan
      * to fix in quiz 5.x. 
