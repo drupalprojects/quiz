@@ -77,11 +77,25 @@ class MatchingQuestion extends QuizQuestion {
     parent::delete($only_this_version);
 
     if ($only_this_version) {
+      $sql = 'DELETE FROM {quiz_matching_user_answers} 
+              WHERE match_id IN(
+                SELECT match_id
+                FROM {quiz_matching_node}
+                WHERE nid = %d AND vid = %d
+              )';
+      db_query($sql, $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_matching_node} WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     // Delete all versions of this question.
     else {
+      $sql = 'DELETE FROM {quiz_matching_user_answers} 
+              WHERE match_id IN(
+                SELECT match_id
+                FROM {quiz_matching_node}
+                WHERE nid = %d
+              )';
+      db_query($sql, $this->node->nid);
       $sql = 'DELETE FROM {quiz_matching_node} WHERE nid = %d';
       db_query($sql, $this->node->nid, $this->node->vid);
     }

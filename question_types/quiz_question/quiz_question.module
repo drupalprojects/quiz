@@ -396,7 +396,12 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
  */
 function quiz_question_delete_result($rid, $nid, $vid) {
   $response = _quiz_question_response_get_instance($rid, NULL, NULL, $nid, $vid);
-  $response->delete();
+  if ($response) {
+    $response->delete();
+  }
+  else {
+    drupal_set_message(t('Unable to delete result. A constructor could not be found for the question-type'), 'error');
+  }
 }
 
 /**
@@ -537,10 +542,7 @@ function quiz_question_delete(&$node) {
  */
 function _quiz_delete_question(&$node, $only_this_version) {
   // let each question class delete its own stuff
-  try {
-    _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
-  }
-  catch (Exception $e) {}
+  _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
 
   // FIXME QuizQuestion class makes these relationships, so it should handle their 'deletion' too
   // FIXME alternately, move the relationship handling out of QuizQuestion class
@@ -598,7 +600,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
     // If $node don't have a type it is a dummy node
     if (!isset($node->type)) {
       // To substanitally improve performance(especially on the result page) we avoid node_load()...
-      $sql = 'SELECT n.type, r.nid, r.vid, r.title, r.body, max_score, r.format
+      $sql = 'SELECT n.type, r.nid, r.vid, r.title, r.body, p.max_score, r.format
               FROM {node_revisions} r 
               JOIN {node} n
               ON r.nid = n.nid
@@ -622,7 +624,9 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   // No cached instance of QuizQuestion has been returned. We construct a new instance
   $info = _quiz_question_get_implementations();
   $constructor = $info[$name]['question provider'];
-  if (empty($constructor)) return FALSE;
+  if (empty($constructor)) {
+    return FALSE; 
+  }
   
   // We create a new instance of QuizQuestion
   $to_return = new $constructor($node);

@@ -260,20 +260,26 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
-    parent::delete($only_this_version);
-
+    $delete_properties = 'DELETE FROM {quiz_multichoice_properties} WHERE nid = %d';
+    $delete_answers = 'DELETE FROM {quiz_multichoice_answers} WHERE question_nid = %d'; 
+    $delete_multi_results = 'DELETE FROM {quiz_multichoice_user_answer_multi} 
+                             WHERE user_answer_id IN(
+                               SELECT id 
+                               FROM {quiz_multichoice_user_answers}
+                               WHERE question_nid = %d' . ($only_this_version ? ' AND question_vid = %d' : '') .' 
+                             )';
+    $delete_results = 'DELETE FROM {quiz_multichoice_user_answers} WHERE question_nid = %d';
     if ($only_this_version) {
-      db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
-      $sql = 'DELETE FROM {quiz_multichoice_answers}
-              WHERE question_nid = %d AND question_vid = %d';
-      db_query($sql, $this->node->nid, $this->node->vid);
+      $delete_properties .= ' AND vid = %d';
+      $delete_answers .= ' AND question_vid = %d';
+      $delete_results .= ' AND question_vid = %d';
     }
-    else {
-      db_query('DELETE FROM {quiz_multichoice_properties} WHERE nid = %d', $this->node->nid);
-      $sql = 'DELETE FROM {quiz_multichoice_answers}
-              WHERE question_nid = %d';
-      db_query($sql, $this->node->nid);
-    }
+    db_query($delete_properties, $this->node->nid, $this->node->vid);
+    db_query($delete_answers, $this->node->nid, $this->node->vid);
+    db_query($delete_multi_results, $this->node->nid, $this->node->vid);
+    db_query($delete_results, $this->node->nid, $this->node->vid);
+    
+    parent::delete($only_this_version);
   }
 
   /**

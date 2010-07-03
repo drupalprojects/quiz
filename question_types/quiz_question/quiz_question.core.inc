@@ -401,14 +401,9 @@ abstract class QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     // Delete results
-    $sql = 'SELECT result_id
-            FROM {quiz_node_results_answers}
-            WHERE question_nid = %d';
-    if ($only_this_version) $sql .= ' AND question_vid = %d';
-    $res = db_query($sql, $this->node->nid, $this->node->vid);
-    $rids = array();
-    while ($rids[] = db_result($res)) {}
-    quiz_delete_results($rids);
+    db_query('DELETE FROM quiz_node_results_answers
+              WHERE question_nid = %d' . ($only_this_version ? ' AND question_vid = %d' : ''), 
+              $this->node->nid, $this->node->vid);
     
     // Delete properties
     $sql = 'DELETE FROM {quiz_question_properties}
@@ -416,7 +411,7 @@ abstract class QuizQuestion {
     if ($only_this_version) $sql .= ' AND vid = %d';
     db_query($sql, $this->node->nid, $this->node->vid);
   }
-
+  
   /**
    * Provides validation for question before it is created.
    *

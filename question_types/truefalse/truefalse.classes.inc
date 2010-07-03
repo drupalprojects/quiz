@@ -52,11 +52,15 @@ class TrueFalseQuestion extends QuizQuestion {
 
     // Only delete a nid/vid.
     if ($only_this_version) {
+      $sql = 'DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d AND question_vid = %d';
+      db_query($sql, $this->node->nid, $this->node->vid);
       $sql = 'DELETE FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
     // Delete all versions of the quiz question.
     else {
+      $sql = 'DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d';
+      db_query($sql, $this->node->nid);
       $sql = 'DELETE FROM {quiz_truefalse_node} WHERE nid = %d';
       db_query($sql, $this->node->nid, $this->node->vid);
     }
