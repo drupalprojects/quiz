@@ -2551,7 +2551,6 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   $already_answered = array();
-
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
   $sql = "SELECT question_nid AS nid, question_vid AS vid
@@ -2619,8 +2618,9 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
           FROM {quiz_node_results} qnr
           WHERE qnr.uid = %d
           AND qnr.nid = %d
-          AND qnr.time_end = 0";
-  $res = db_query($sql, $uid, $quiz->nid);
+          AND qnr.time_end = 0
+          AND qnr.vid < %d";
+  $res = db_query($sql, $uid, $quiz->nid, $quiz->vid);
   $rids = array();
   while ($rids[] = db_result($res)) {
   }
