@@ -278,7 +278,8 @@ class ScaleQuestion extends QuizQuestion {
     $sql = 'SELECT id, answer, a.answer_collection_id
             FROM {quiz_scale_node_properties} p
             JOIN {quiz_scale_answer} a ON (p.answer_collection_id = a.answer_collection_id)
-            WHERE nid = %d AND vid = %d';
+            WHERE nid = %d AND vid = %d
+            ORDER BY a.id';
     $res = db_query($sql, $this->node->nid, $this->node->vid);
     while ($res_o = db_fetch_object($res)) {
       $props[] = $res_o;
@@ -424,7 +425,7 @@ class ScaleQuestion extends QuizQuestion {
     if ($with_defaults) {
       $sql .= ' OR ac.for_all = 1';
     }
-    $sql .= ' ORDER BY au.answer_collection_id';
+    $sql .= ' ORDER BY au.answer_collection_id, a.id';
     $res = db_query($sql, $user->uid);
     $col_id = NULL;
     

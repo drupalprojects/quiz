@@ -2127,7 +2127,8 @@ function quiz_update_max_score_properties($quizzes_to_update) {
           SET changed = " . time() . "
           WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
   db_query($sql, $quizzes_to_update);
-  // TODO: Update percent scores?
+  
+  // Update percent scores
   $sql = 'UPDATE {quiz_node_results} r
           SET r.score = ROUND(
             100 * (
