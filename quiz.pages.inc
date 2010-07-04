@@ -142,7 +142,7 @@ function quiz_report_form_submit($form, &$form_state) {
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
   
-  $score_data = quiz_get_score_array($rid, $quiz_vid, TRUE);
+  $score_data = quiz_get_score_array($rid, $quiz->vid, TRUE);
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
   
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
@@ -214,10 +214,10 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
   $total_score = db_result(db_query($sql, $rid));
   
   return array(
-    'question_count' => $res_o->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
-    'possible_score' => $res_o->max_score,
+    'question_count' => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
+    'possible_score' => $properties->max_score,
     'numeric_score' => $total_score,
-    'percentage_score' => ($res_o->max_score == 0) ? 0 : round(($total_score * 100) / $res_o->max_score),
+    'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),
     'is_evaluated' => $is_evaluated,
   );
 }

@@ -139,7 +139,7 @@ function quiz_admin_settings() {
     '#collapsed' => TRUE,
   );
   
-  $form['quiz_email_settings']['user'] = array(
+  $form['quiz_email_settings']['taker'] = array(
     '#type' => 'fieldset',
     '#title' => t('E-mail for Quiz Takers'),
     '#collapsible' => FALSE,

@@ -2014,7 +2014,7 @@ function quiz_mail($key, &$message, $params) {
     '!date' => date("F j, Y, g:i a"),
     '!desc' => check_plain($quiz->body),
     '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
-    '!total' => $score['question_count'],
+    '!total' => $score['possible_score'],
     '!percentage' => $score['percentage_score'],
     '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
     '!minutes' => db_result(db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = '%d' AND time_end", $rid))
@@ -2030,7 +2030,6 @@ function quiz_mail($key, &$message, $params) {
         $subject = t(variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')), $substitutions, $user->language);
         $body = t(variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')), $substitutions, $user->language);
       }
-
       $message['subject'] = $subject;
       $message['body'] = $body;
     break;
