@@ -153,7 +153,7 @@ function quiz_report_form_submit($form, &$form_state) {
  * Helper function to remove the message saying the quiz haven't been scored
  */
 function _quiz_remove_unscored_message() {
-  if (is_array($_SESSION['messages']['error'])) {
+  if (is_array($_SESSION['messages']['warning'])) {
     // Search for the message, and remove it if we find it.
     foreach ($_SESSION['messages']['warning'] as $key => $val) {
       if ($val == t('This quiz has not been scored yet.')) {
