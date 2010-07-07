@@ -1616,7 +1616,7 @@ function quiz_take_quiz($quiz) {
       }
     }
     // If anonymous user, refresh url with unique hash to prevent caching.
-    if (!$user->uid) {
+    if (!$user->uid  && $q_passed_validation === TRUE) {
       drupal_goto('node/'. $quiz->nid .'/take', array('quizkey' => md5(mt_rand() . time())));
     }
   }
@@ -1660,6 +1660,9 @@ function quiz_take_quiz($quiz) {
       array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $former_question_array);
       if (is_array($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']))
         array_shift($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+      if (!$user->uid) {
+        drupal_goto('node/'. $quiz->nid .'/take', array('quizkey' => md5(mt_rand() . time())));
+      }
     }
 
     // Aded the progress info to the view.
