@@ -921,7 +921,7 @@ function quiz_form(&$node) {
       //   when creating a quiz and selecting an action from the dropdown.  You
       //   setup your actions with type 'quiz' and then add in that variable
       //   into the function and it will automatically filter and show only
-      //   thosespecific actions.  @note:  In doing this you loose your default
+      //   thosespecific actions.  @note:  In doing this you lose your default
       //   "Choose an Action" option.  Review actions and the
       //   quiz_action_options() function for further explaination.
       '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
