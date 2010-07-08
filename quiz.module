@@ -2416,7 +2416,7 @@ function quiz_build_question_list($quiz) {
   $questions = array();
 
   // Get required questions first.
-  $sql = "SELECT child_nid as nid, child_vid as vid
+  $sql = "SELECT child_nid as nid, child_vid as vid, max_score as relative_max_score
     FROM {quiz_node_relationship}
     WHERE parent_vid = %d
       AND question_status = %d
@@ -2840,6 +2840,7 @@ function _quiz_get_random_questions($quiz) {
                                 $quiz->vid, $quiz->nid, QUESTION_RANDOM, 0, $num_random);
       while ($question_node = db_fetch_array($result)) {
         $question_node['random'] = TRUE;
+        $question_node['relative_max_score'] = $quiz->max_score_for_random;
         $questions[] = $question_node;
       }
     }

@@ -728,6 +728,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function isValid() {
     if ($this->question->choice_multi) return TRUE;
     if (empty($this->user_answer_ids)) return t('You must provide an answer');
+    // Perform extra check since FAPI isn't beeing used:
+    if (count($this->user_answer_ids) > 1) return t('You are only allowed to select one answer');
     return TRUE;
   }
 
