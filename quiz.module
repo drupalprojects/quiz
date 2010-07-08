@@ -1565,6 +1565,9 @@ function quiz_take_quiz($quiz) {
   if (!isset($_POST['op'])) {
     // @todo Starting new quiz... Do we need to show instructions here?
   }
+  elseif ($_POST['question_nid'] != $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid']) {
+    // The user has pressed the navigation buttons multiple times...
+  }
   // We maintain two lists: previous questions and upcomming questions.
   // When we go backward, we pop one from the previous and prepend it to the
   // upcomming.

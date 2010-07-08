@@ -113,11 +113,8 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = array();
+    $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'truefalse_answering_form';
-    
-    // Question first
-    $form['question'] = $this->getStandardQuestionBody();
 
     // 'tries' is unfortunately required by quiz.module
     $form['tries'] = array(

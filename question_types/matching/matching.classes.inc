@@ -170,9 +170,8 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = array();
+    $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'matching_answering_form';
-    $form['question'] = $this->getStandardQuestionBody();
     
     if (isset($rid)) {
       // The question has already been answered. We load the answers

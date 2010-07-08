@@ -435,7 +435,22 @@ abstract class QuizQuestion {
    *  user response must have a key named "tries". (This is a Quiz 3.x legacy AFAIK. I'm
    *  not thrilled about it...)
    */
-  abstract public function getAnsweringForm(array $form_state = NULL, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $rid) {
+    $form = array();
+    $form['question_nid'] = array(
+      '#type' => 'hidden',
+      '#value' => $this->node->nid,
+    );
+    
+    $form['question'] = array(
+      '#type' => 'markup',
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#prefix' => '<div class="quiz-question-body">',
+      '#suffix' => '</div>',
+    );
+    
+    return $form;
+  }
 
   /**
    * Get the form used to create a new question.
@@ -610,21 +625,6 @@ abstract class QuizQuestion {
     $results = module_invoke_all('answers_access', $node);
     $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
-  }
-
-  /**
-   * This function is used by most question types for the form body.
-   * 
-   * @return 
-   *  A form array for a standard question body
-   */
-  public function getStandardQuestionBody() { 
-    return array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
-      '#prefix' => '<div class="quiz-question-body">',
-      '#suffix' => '</div>',
-    );
   }
 }
 

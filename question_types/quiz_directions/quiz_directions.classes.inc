@@ -50,11 +50,8 @@ class QuizDirectionsQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = array();
-    
+    $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'quiz_directions_answering_form';
-    
-    $form['question'] = $this->getStandardQuestionBody();
     
     $form['tries'] = array(
       '#type' => 'hidden',

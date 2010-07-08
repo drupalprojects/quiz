@@ -311,7 +311,7 @@ class ScaleQuestion extends QuizQuestion {
    * @see getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = array();
+    $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'scale_answering_form';
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
@@ -319,7 +319,6 @@ class ScaleQuestion extends QuizQuestion {
         $options[$this->node->{$i}->id] = check_plain($this->node->{$i}->answer);
       }
     }
-    $form['question'] = $this->getStandardQuestionBody();
     
     $form['tries'] = array(
       '#type' => 'radios',

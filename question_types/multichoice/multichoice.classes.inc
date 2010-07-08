@@ -340,9 +340,8 @@ class MultichoiceQuestion extends QuizQuestion {
    * to an administrator or to a quiz taker.
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
+    $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'multichoice_answering_form';
-    
-    $form['question'] = $this->getStandardQuestionBody();
     
     /* We use an array looking key to be able to store multiple answers in tries.
      * At the moment all user answers have to be stored in tries. This is something we plan
