@@ -80,9 +80,9 @@ function theme_multichoice_answer_node_view($alternatives, $show_correct) {
  */
 function theme_multichoice_response($data) {
   $rows = array();
+  $p = drupal_get_path('module', 'multichoice') . '/theme/images';
   foreach($data as $id => $alternative) {
     $cols = array();
-    $p = drupal_get_path('module', 'multichoice') . '/theme/images';
     $rowspan = drupal_strlen($alternative['feedback']) > 0 ? 2: 1;
     $not = '';
     if ($alternative['is_chosen']) {
