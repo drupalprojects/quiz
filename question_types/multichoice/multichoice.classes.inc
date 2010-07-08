@@ -838,7 +838,6 @@ class MultichoiceResponse extends QuizQuestionResponse {
       $short = $this->question->alternatives[$i];
       if (drupal_strlen($this->checkMarkup($short['answer'], $short['answer_format'])) > 0) {
         $alternative = array();
-        $the = ($this->question->choice_multi == 1) ? t('a') : t('the');
         
         // Did the user choose the alternative?
         $alternative['is_chosen'] = in_array($short['id'], $this->user_answer_ids);
