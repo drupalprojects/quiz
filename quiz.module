@@ -1589,7 +1589,9 @@ function quiz_take_quiz($quiz) {
     $module = $types[$former_question->type]['module'];
     $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     $q_passed_validation = $result->is_valid;
-    quiz_store_question_result($quiz, $result, array('set_msg' => TRUE));
+    if ($q_passed_validation === TRUE) {
+      quiz_store_question_result($quiz, $result, array('set_msg' => TRUE));
+    }
 
     // Stash feedback in the session, since the $_POST gets cleared.
     if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
