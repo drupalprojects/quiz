@@ -1575,7 +1575,7 @@ function quiz_take_quiz($quiz) {
   //   questions and then a pointer to the current question. That makes
   //   rewinding much easier.
   // Check for answer submission.
-  elseif ($_POST['op'] == t('Finish') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back')) {
+  elseif ($_POST['op'] == t('Finish') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back') && $quiz->backwards_navigation) {
     // Previous quiz questions: Questions that have been asked already. We save
     // a record of all of them so that a user can navigate backward all the way
     // to the beginning of the quiz.
@@ -1611,7 +1611,7 @@ function quiz_take_quiz($quiz) {
         unset($_SESSION['quiz_'. $quiz->nid]['feedback']);
       }
     }
-    elseif ($_POST['op'] == t('Back')) {
+    elseif ($_POST['op'] == t('Back') && $quiz->backwards_navigation) {
       $quiz_id = 'quiz_' . $quiz->nid;
       // We jump back two times. From the next question to the current, and then
       // from the current to the previous.
@@ -1650,7 +1650,7 @@ function quiz_take_quiz($quiz) {
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
     // If we got no error when validating the question
-    if (!is_string($q_passed_validation) || $_POST['op'] == t('Back')) {
+    if (!is_string($q_passed_validation) || $_POST['op'] == t('Back') && $quiz->backwards_navigation) {
       $question_node = node_load(
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['nid'],
         $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0]['vid']
