@@ -350,7 +350,7 @@ function theme_quiz_progress($question_number, $num_of_question) {
 
   $output  = '';
   $output .= '<div id="quiz_progress">';
-  $output .= t('Question %x of %y', array('%x' => $current_question, '%y' => $num_of_question));
+  $output .= t('Question <span id="quiz-question-number">%x</span> of <span id="quiz-num-questions">%y</span>', array('%x' => $current_question, '%y' => $num_of_question));
   $output .= '</div><br />'."\n";
   // Add div to be used by jQuery countdown
   $output .= '<div class="countdown"></div>';

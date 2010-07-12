@@ -786,7 +786,7 @@ function quiz_take($node) {
     return $node->rendered_content;
   $to_be_rendered = quiz_take_quiz($node);
   return drupal_render($to_be_rendered);
-}  
+}
 
 /**
  * Does the current user have access to take the quiz?
