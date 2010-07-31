@@ -296,6 +296,17 @@ function multichoice_update_6403() {
 }
 
 /**
+ * Implementation of hood_update_N
+ *
+ * Make sure that the quiz_question module is used to show the multichoice questions.
+ */
+function multichoice_update_6404() {
+  $results = array();
+  $results[] = update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE node_type = 'multichoice'");
+  return $results;
+}
+
+/**
  * Implementation of hook_uninstall()
  */
 function multichoice_uninstall() {
