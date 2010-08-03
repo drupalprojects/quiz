@@ -637,6 +637,7 @@ function quiz_title_callback($quiz_node) {
 function _quiz_common_presave_actions(&$node) {
   quiz_translate_form_date($node, 'quiz_open');
   quiz_translate_form_date($node, 'quiz_close');
+
   if (empty($node->pass_rate)) $node->pass_rate = 0;
   if ($node->randomization != 2) $node->number_of_random_questions = 0;
 }

@@ -20,12 +20,14 @@
 function quiz_translate_form_date(&$node, $date) {
   $prefix = $node->$date;
   // If we have all the parameters, re-calculate $node->event_$date .
-  if (isset($prefix['year']) && isset($prefix['month']) && isset($prefix['day'])) {
+  if (is_array($prefix) && isset($prefix['year']) && isset($prefix['month']) && isset($prefix['day'])) {
     // Build a timestamp based on the date supplied and the configured timezone.
     $node->$date = _quiz_mktime(0, 0, 0, $prefix['month'], $prefix['day'], $prefix['year'], 0);
   }
   else {
-    form_set_error('quiz_open', t('Please supply a valid date.'));
+    if (!_quiz_is_int($prefix, 1, 21500000000)) {
+      form_set_error('quiz_open', t('Please supply a valid date.'));
+    }
   }
 }
 
