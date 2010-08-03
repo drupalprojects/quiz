@@ -302,7 +302,7 @@ function multichoice_update_6403() {
  */
 function multichoice_update_6404() {
   $results = array();
-  $results[] = update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE node_type = 'multichoice'");
+  $results[] = update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE type = 'multichoice'");
   return $results;
 }
 
