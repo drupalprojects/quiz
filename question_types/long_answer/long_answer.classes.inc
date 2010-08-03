@@ -262,7 +262,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
-    if (empty($this->answer)) return t('You must provide an answer');
+    if (trim($this->answer) == '') return t('You must provide an answer');
     return TRUE;
   }
 
