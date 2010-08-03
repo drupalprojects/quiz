@@ -15,8 +15,7 @@ $p = drupal_get_path('module', 'multichoice');
 drupal_add_css($p .'/theme/multichoice.css', 'module', 'all');
 
 // Add script for using the entire alternative row as a button
-print "
-<SCRIPT type='text/javascript'>Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
+drupal_add_js("Drupal.behaviors.multichoiceAlternativeBehavior = function(context) {
   $('.multichoice_row')
   .filter(':has(:checkbox:checked)')
   .addClass('selected')
@@ -34,7 +33,7 @@ print "
       }
     }
   });
-};</SCRIPT>";
+};", 'inline');
 
 // We want to have the checkbox in one table cell, and the title in the next. We store the checkbox and the titles
 $options = $form['#options'];
