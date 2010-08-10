@@ -177,15 +177,6 @@ function quiz_question_validate($node, &$form) {
 }
 
 /**
- * Implementation of the cck hook hook_content_extra_fields_alter
- */
-function quiz_question_content_extra_fields_alter(&$extra, $type_name) {
-  $q_types = _quiz_question_get_implementations();
-  if (isset($q_types[$type_name]))
-    unset($extra['body_field'], $extra['title']);
-}
-
-/**
  * Get the form to show to the quiz taker.
  */
 function quiz_question_answering_form($form_state, $node, $include_nid_in_id = FALSE) {
