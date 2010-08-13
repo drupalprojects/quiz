@@ -786,6 +786,32 @@ function quiz_question_get_max_score($nid, $vid) {
 }
 
 /**
+ * Implementation of hook_content_extra_fields(cck)
+ */
+function quiz_question_content_extra_fields($type_name) {
+  $extra = array();
+  $question_types = array_keys(_quiz_question_get_implementations());
+  if (in_array($type_name, $question_types)) {
+    $extra['add_directly'] = array(
+      'label' => t('Add directly'),
+      'description' => t('Fieldset for adding a question directly into quizzes'),
+      'weight' => -3,
+    );
+  }
+  return $extra;
+}
+
+/**
+ * Implementation of hook_content_extra_fields_alter(cck)
+ */
+function quiz_question_content_extra_fields_alter(&$extras, $type_name) {
+  $question_types = array_keys(_quiz_question_get_implementations());
+  if (in_array($type_name, $question_types)) {
+    $extras['body_field']['weight'] = -15;
+  }
+}
+
+/**
  * Returns a result report for a question response.
  * 
  * The retaurned value is a form array because in some contexts the scores in the form

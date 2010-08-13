@@ -246,3 +246,22 @@ function multichoice_user($op, &$edit, &$account, $category = NULL) {
     break;
   }
 }
+
+/**
+ * Implementation of hook_content_extra_fields(cck)
+ */
+function multichoice_content_extra_fields($type_name) {
+  $extra = array();
+  if ($type_name == 'multichoice') {
+    $extra['alternatives'] = array(
+      'label' => t('Alternatives'),
+      'description' => t('Alternatives for multichoice'),
+      'weight' => -4,
+    );
+  }
+  return $extra;
+}
+
+function multichoice_content_extra_fields_alter(&$type_name, $trala) {
+ // dpm($type_name);
+}

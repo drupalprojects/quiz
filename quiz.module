@@ -624,6 +624,41 @@ function quiz_update($node) {
   _quiz_redirect_if_empty($node);
 }
 
+/**
+ * Implementation of hook_content_extra_fields(cck)
+ */
+function quiz_content_extra_fields($type_name) {
+  $extra = array();
+  if ($type_name == 'quiz') {
+    $extra['taking'] = array(
+      'label' => t('Taking options'),
+      'description' => t('Fieldset for customizing how a quiz is taken'),
+      'weight' => 0,
+    );
+    $extra['quiz_availability'] = array(
+      'label' => t('Availability options'),
+      'description' => t('Fieldset for customizing when a quiz is available'),
+      'weight' => 0,
+    );
+    $extra['summaryoptions'] = array(
+      'label' => t('Summary options'),
+      'description' => t('Fieldset for customizing summaries in the quiz reports'),
+      'weight' => 0,
+    );
+    $extra['resultoptions'] = array(
+      'label' => t('Result options'),
+      'description' => t('Fieldset for customizing result comments in quiz reports'),
+      'weight' => 0,
+    );
+    $extra['remember_settings'] = array(
+      'label' => t('Remember settings'),
+      'description' => t('Checkbox for remembering quiz settings'),
+      'weight' => 0,
+    );
+  }
+  return $extra;
+}
+
 function quiz_title_callback($quiz_node) {
   return t('Results for "@quiz_title"', array('@quiz_title' => $quiz_node->title));
 }
