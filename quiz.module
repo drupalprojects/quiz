@@ -1554,12 +1554,13 @@ function quiz_take_quiz($quiz) {
     
     // See if the current user has progress for this revision of the quiz stored
     // in the database
-    $rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid);
+    $rid = $user->uid > 0 ? _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid) : 0;
 
     // Are we resuming an in-progress quiz?
     if ($rid > 0) {
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
     }
+
     // First time running through quiz.
     elseif (quiz_start_check($quiz, $rid)) {
       // Create question list.
