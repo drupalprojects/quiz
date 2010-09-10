@@ -3166,9 +3166,9 @@ function _quiz_get_answers($quiz, $rid) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score
                    FROM {quiz_node_results_answers} ra
-                   LEFT JOIN {node} n ON (question_nid = nid)
+                   LEFT JOIN {node} n ON (ra.question_nid = n.nid)
                    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
-                   LEFT OUTER JOIN {quiz_node_relationship} rs ON (question_vid = rs.child_vid) AND rs.parent_vid = r.vid
+                   LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.parent_vid = r.vid
                    WHERE ra.result_id = %d
                    ORDER BY answer_timestamp", $rid);
   while ($line = db_fetch_object($ids)) {
