@@ -194,7 +194,7 @@ class MatchingQuestion extends QuizQuestion {
     }
     $form['scoring_info'] = array(
       '#type' => 'markup',
-      '#value' => '<p><em>'. t('You lose points by selecting incorrect options. You may leave an option blank to avoid loosing points.') .'</em></p>',
+      '#value' => '<p><em>'. t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') .'</em></p>',
     );
     if (variable_get('quiz_matching_shuffle_options', TRUE)) {
       $form['subquestions'] = $this->customShuffle($form['subquestions']);
