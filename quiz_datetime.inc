@@ -25,7 +25,7 @@ function quiz_translate_form_date(&$node, $date) {
     $node->$date = _quiz_mktime(0, 0, 0, $prefix['month'], $prefix['day'], $prefix['year'], 0);
   }
   else {
-    if (!_quiz_is_int($prefix, 1, 21500000000)) {
+    if (!_quiz_is_int($prefix, 1, 2147483647)) {
       form_set_error('quiz_open', t('Please supply a valid date.'));
     }
   }
