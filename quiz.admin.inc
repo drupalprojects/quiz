@@ -595,11 +595,11 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
-      'query' => $destination,
+      'query' => "$destination&quiz_nid=$quiz->nid&quiz_vid=$quiz->vid",
     );
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
-      '#value' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type/{$quiz->nid}/{$quiz->vid}", $options) .'</div>',
+      '#value' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) .'</div>',
     );
   }
 }

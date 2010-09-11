@@ -166,6 +166,15 @@ function multichoice_add_alternative_js() {
   
   // Get the form from the cache.
   $form = form_get_cache($form_build_id, $form_state);
+
+  // Get values have been sent using the form cache
+  if (isset($form['get']['#value']) && is_array($form['get']['#value'])) {
+    $get = $form['get']['#value'];
+    foreach ($get as $key => $value) {
+      $_GET[$key] = $value;
+    }
+  }
+  
   $args = $form['#parameters'];
   $form_id = array_shift($args);
   

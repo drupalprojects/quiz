@@ -56,8 +56,11 @@ class MultichoiceQuestion extends QuizQuestion {
       // For questions with one, and only one, correct answer, there will be no points awarded for alternatives
       // not chosen.
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
-        $short = $this->node->alternatives[$i];
+        $short = &$this->node->alternatives[$i];
         $short['score_if_not_chosen'] = 0;
+        if ($short['correct'] == 1 && !_quiz_is_int($short['score_if_chosen'], 1)) {
+          $short['score_if_chosen'] = 1;
+        }
       }
     }
   }
@@ -412,8 +415,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $type = node_get_types('type', $this->node);
     // We add #action to the form because of the use of ajax
     $options = array();
-    if (isset($_GET['destination']))
-      $options['query'] = array('destination' => $_GET['destination']);
+    $get = $_GET;
+    unset($get['q']);
+    if (!empty($get)) {
+      $options['query'] = $get;
+    }
+
     $action = url('node/add/'. $type->type, $options);
     if (isset($this->node->nid)) {
       $action = url('node/' . $this->node->nid . '/edit', $options);
@@ -584,13 +591,19 @@ class MultichoiceQuestion extends QuizQuestion {
       '#type' => 'markup',
       '#value' => '<DIV id=\'placeholder\'></DIV>',
     );
-    
+
+    // We can't send the get values to the ahah callback the normal way, so we do it like this.
+    $form['get'] = array (
+      '#type' => 'value',
+      '#value' => $get,
+    );
+
     $form['alternatives']['multichoice_add_alternative'] = array(
       '#type' => 'submit',
       '#value' => t('Add more alternatives'),
       '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
       '#ahah' => array(
-        'path' => "multichoice/add_alternative_js",
+        'path' => 'multichoice/add_alternative_js',
         'wrapper' => 'placeholder',
         'effect' => 'slide',
         'method' => 'before',
