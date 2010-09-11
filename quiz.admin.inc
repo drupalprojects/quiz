@@ -1784,7 +1784,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   );
 
   // Build filter part of form:
-  _quiz_results_mr_add_filter_fields($browser);
+  _quiz_results_mr_add_filter_fields($browser, $quiz);
 
   // Add querystring recieved via ajax to the $_GET array...
   if (isset($form_state['values'])) {
@@ -1955,7 +1955,9 @@ function _quiz_results_mr_prepare_filter($quiz) {
  * @param $browser
  *   FAPI form array
  */
-function _quiz_results_mr_add_filter_fields(&$browser) {
+function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
+  $ahah_path = "node/$quiz->nid/results/browser_ahah";
+
   // Create options array for the changed filter
   $browser['filters'] = array();
   $filters = &$browser['filters'];
@@ -1969,7 +1971,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#size' => 12,
     '#default_value' => isset($_SESSION[$pre .'name']) ? $_SESSION[$pre .'name'] : '',
     '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
@@ -1980,7 +1982,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#options' => _quiz_get_time_interval_options(),
     '#default_value' => isset($_SESSION[$pre .'started']) ? $_SESSION[$pre .'started'] : '',
     '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
@@ -1990,7 +1992,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#options' => _quiz_get_time_interval_options(),
     '#default_value' => isset($_SESSION[$pre .'finished']) ? $_SESSION[$pre .'finished'] : '',
     '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
@@ -2000,7 +2002,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#options' => _quiz_get_score_options(),
     '#default_value' => isset($_SESSION[$pre .'score']) ? $_SESSION[$pre .'score'] : '',
     '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
@@ -2010,7 +2012,7 @@ function _quiz_results_mr_add_filter_fields(&$browser) {
     '#options' => array('def' => t('No filter'), '1' => t('Yes'), '0' => t('No')),
     '#default_value' => isset($_SESSION[$pre .'evaluated']) ? $_SESSION[$pre .'evaluated'] : '',
     '#ahah' => array(
-      'path' => 'admin/quiz/reports/results/browser_ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
