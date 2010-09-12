@@ -246,7 +246,7 @@ abstract class QuizQuestion {
     if ($edit_access || quiz_access_multi_or('create quiz', 'administer nodes')) {
       $form['add_directly'] = array(
         '#type' => 'fieldset',
-        '#title' => t('Add to quiz'),
+        '#title' => t('Add to @quiz', array('@quiz' => QUIZ_NAME)),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
         '#weight' => -3,
@@ -257,18 +257,17 @@ abstract class QuizQuestion {
       if (count($already) > 0) {
         $form['add_directly']['already'] = array(
           '#type' => 'checkboxes',
-          '#title' => t('Quizzes this question already is a member of'),
-          '#description' => t('If you uncheck any of the checkboxes this question will be removed from the corresponding quiz. If the quiz has been answered a new revision of the quiz will be created automatically.'),
+          '#title' => t('This question is already a member of'),
+          '#description' => t('If you uncheck any of the checkboxes this question will be removed from the corresponding @quiz. If the @quiz has been answered a new revision of the @quiz will be created automatically.', array('@quiz' => QUIZ_NAME)),
           '#options' => $already,
           '#default_value' => array_keys($already),
         );
       }
       if (count($latest) > 0) {
-        $desc = t('If you check any of the checkboxes this question will be added to the corresponding quiz. If the quiz has been answered a new revision will be created automatically.');
         $form['add_directly']['latest'] = array(
           '#type' => 'checkboxes',
-          '#title' => t('The @latest latest quizzes this question isn\'t a member of', array('@latest' => count($latest))),
-          '#description' => $desc,
+          '#title' => t('The @latest latest @quiz nodes this question isn\'t a member of', array('@latest' => count($latest), '@quiz' => QUIZ_NAME)),
+          '#description' => t('If you check any of the checkboxes this question will be added to the corresponding @quiz. If the @quiz has been answered a new revision will be created automatically.', array('@quiz' => QUIZ_NAME)),
           '#options' => $latest,
           '#default_value' => $latest_default,
         );
@@ -277,8 +276,8 @@ abstract class QuizQuestion {
     if (quiz_access_multi_or('create quiz', 'administer nodes')) {
       $form['add_directly']['new'] = array(
         '#type' => 'textfield',
-        '#title' => t('Title for new quiz'),
-        '#description' => t('Write in the name of the new quiz you want to create and add this question to.'),
+        '#title' => t('Title for new @quiz', array('@quiz' => QUIZ_NAME)),
+        '#description' => t('Write in the name of the new @quiz you want to create and add this question to.', array('@quiz' => QUIZ_NAME)),
       );
     }
     if ($this->hasBeenAnswered()) {
@@ -501,7 +500,7 @@ abstract class QuizQuestion {
             $temp_quiz_node->auto_created = TRUE;
             node_save($temp_quiz_node);
             $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the quiz %n', array('%n' => $temp_quiz_node->title)));
+            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
           $sql = 'DELETE FROM {quiz_node_relationship}
@@ -533,7 +532,7 @@ abstract class QuizQuestion {
             $temp_quiz_node->auto_created = TRUE;
             node_save($temp_quiz_node);
             $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the quiz %n', array('%n' => $temp_quiz_node->title)));
+            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
           // We build one sql query to insert multiple rows into the relationship table
