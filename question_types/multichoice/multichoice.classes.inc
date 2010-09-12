@@ -684,7 +684,7 @@ class MultichoiceQuestion extends QuizQuestion {
         $max = max($max, $short['score_if_chosen'], $short['score_if_not_chosen']);
       }
     }
-    return $max;
+    return max($max, 1);
   }
 }
 
@@ -790,7 +790,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#score()
    */
   public function score() {
-    if ($this->question->choice_boolean) {
+    if ($this->question->choice_boolean || $this->isAllWrong()) {
       $score = 1;
       foreach ($this->question->alternatives as $key => $alt) {
         if (in_array($alt['id'], $this->user_answer_ids)) {
@@ -813,6 +813,21 @@ class MultichoiceResponse extends QuizQuestionResponse {
       }
     }
     return $score;
+  }
+
+  /**
+   * If all answers in a question is wrong
+   *
+   * @return boolean
+   *  TRUE if all answers are wrong. False otherwise.
+   */
+  public function isAllWrong() {
+    foreach ($this->question->alternatives as $key => $alt) {
+      if ($alt['score_if_chosen'] > 0 || $alt['score_if_not_chosen'] > 0) {
+        return FALSE;
+      }
+    }
+    return TRUE;
   }
 
   /**
