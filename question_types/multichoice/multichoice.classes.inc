@@ -603,7 +603,7 @@ class MultichoiceQuestion extends QuizQuestion {
       '#value' => t('Add more alternatives'),
       '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
       '#ahah' => array(
-        'path' => 'multichoice/add_alternative_js',
+        'path' => 'node/add/multichoice/add_alternative_ahah',
         'wrapper' => 'placeholder',
         'effect' => 'slide',
         'method' => 'before',
