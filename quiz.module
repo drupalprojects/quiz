@@ -1261,7 +1261,7 @@ function quiz_validate($node) {
           }
         }
       }
-      elseif (!empty($option['option_summary'])) {
+      elseif (!_quiz_is_empty_html($option['option_summary'])) {
         form_set_error('option_summary', t('Option has a summary, but no name.'));
       }
     }
@@ -3714,6 +3714,21 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
  */
 function _quiz_is_plain($value) {
   return ($value === check_plain($value));
+}
+
+/**
+ * Helper function used when figuring out if a textfield or textarea is empty.
+ *
+ * Solves a problem with some wysiwyg editors inserting spaces and tags without content.
+ *
+ * @param $html
+ *   The html to evaluate
+ *
+ * @return
+ *   TRUE if the field is empty(can still be tags there) false otherwise.
+ */
+function _quiz_is_empty_html($html) {
+  return drupal_strlen(trim(strip_tags($html, '<img><object><embed>'))) == 0;
 }
 
 /**
