@@ -3728,7 +3728,7 @@ function _quiz_is_plain($value) {
  *   TRUE if the field is empty(can still be tags there) false otherwise.
  */
 function _quiz_is_empty_html($html) {
-  return drupal_strlen(trim(strip_tags($html, '<img><object><embed>'))) == 0;
+  return drupal_strlen(trim(str_replace('&nbsp;', '', strip_tags($html, '<img><object><embed>')))) == 0;
 }
 
 /**
