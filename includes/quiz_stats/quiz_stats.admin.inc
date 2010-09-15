@@ -29,7 +29,7 @@ function quiz_stats_revision_selector_page($quiz) {
     return t('Something went wrong. Please try again');
   elseif ($count == 1) {
     // If there is only one revision we jump directly to that revision
-    drupal_goto('admin/quiz/reports/stats/creator/'. $vids[0] .'/view');
+    drupal_goto("node/{$quiz->nid}/statistics/{$vids[0]}");
   }
   else {
     $content = array();
