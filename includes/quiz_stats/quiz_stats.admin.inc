@@ -172,7 +172,10 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
  */
 function _get_quiz_status_chart($vid, $uid = 0) {
   // get the pass rate of the given quiz by vid
-  $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = %d", intval($vid)));
+  $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = %d", $vid));
+  if (!$pass_rate) {
+    return;
+  }
   // get the count value of results row above and below pass rate
   $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = %d";
   $quiz = db_fetch_array(db_query($sql, intval($vid)));
