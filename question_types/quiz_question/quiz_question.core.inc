@@ -191,7 +191,7 @@ abstract class QuizQuestion {
       $latest_nids = array();
       
       // Finding the last quizzes the current user has been using
-      $sql = "SELECT quiz_nid, n.vid, title, lq.id
+      $sql = "SELECT lq.quiz_nid, n.vid, n.title, lq.id
               FROM {quiz_question_latest_quizzes} lq
               JOIN {node} n
               ON n.nid = lq.quiz_nid
