@@ -62,7 +62,7 @@ function theme_multichoice_answer_node_view($alternatives, $show_correct) {
               '@sc' => $short['score_if_chosen'],
               '@nc' => $short['score_if_not_chosen'])
             ) :
-            t('You are not allowed to veiw the solution for this question')
+            t('You are not allowed to view the solution for this question')
           ),
           'width' => 35
         ),
