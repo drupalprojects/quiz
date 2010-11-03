@@ -1422,14 +1422,18 @@ function quiz_get_all_version_titles() {
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   // Validate that the nids are integers.
   foreach ($nids as $key => $nid) {
-    if (!is_int($nid)) unset($nids[$key]);
+    if (!is_int($nid)) {
+      unset($nids[$key]);
+    }
   }
-  if (empty($nids)) return array();
+  if (empty($nids)) {
+    return array();
+  }
   
   // Fetch score data for the validated nids.
   $to_return = array();
   $vids = array();
-  $sql = 'SELECT n.title, n.nid, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.summary_pass AS percent_pass
+  $sql = 'SELECT n.title, n.nid, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.pass_rate AS percent_pass
           FROM {node} n
           JOIN {quiz_node_properties} p
           ON n.vid = p.vid
@@ -1445,16 +1449,20 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
           ';
   $res = db_query($sql, $uid);
   while ($res_o = db_fetch_object($res)) {
-    if (!$include_num_questions) unset($res_o->num_random_questions);
+    if (!$include_num_questions) {
+      unset($res_o->num_random_questions);
+    }
     $to_return[$res_o->vid] = $res_o;
     // $vids will be used to fetch number of questions.
     $vids[] = $res_o->vid;
   }
-  if (empty($vids)) return array();
+  if (empty($vids)) {
+    return array();
+  }
   
   // Fetch total number of questions.
   if ($include_num_questions) {
-    $sql = 'SELECT COUNT(*) as num_always_questions, parent_vid
+    $sql = 'SELECT COUNT(*) AS num_always_questions, parent_vid
             FROM {quiz_node_relationship}
             WHERE parent_vid IN ('. implode(', ', $vids) .')
             AND question_status = %d
