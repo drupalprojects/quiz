@@ -527,7 +527,7 @@ function quiz_insert($node) {
   $tid = (isset($node->tid) ? $node->tid : 0);
 
   if (!isset($node->has_userpoints)) {
-    $node->has_userporints = 0;
+    $node->has_userpoints = 0;
   }
 
   $sql = "INSERT INTO {quiz_node_properties}
