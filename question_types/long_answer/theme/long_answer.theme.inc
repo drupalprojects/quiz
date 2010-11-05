@@ -37,7 +37,7 @@ function theme_long_answer_view_unscored($unscored) {
 
 /**
  * Theme the long_answer response form
- * 
+ *
  * @param $form
  *  The response form
  */

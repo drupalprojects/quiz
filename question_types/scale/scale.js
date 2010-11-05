@@ -6,7 +6,7 @@
 
 /**
  * Refreshes alternatives when a preset is selected.
- * 
+ *
  * @param selection
  *  The select item used to select answer collection
  */

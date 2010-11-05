@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file
- * Handles the layout of the short_answer answering form. 
+ * Handles the layout of the short_answer answering form.
  *
  *
  * Variables available:

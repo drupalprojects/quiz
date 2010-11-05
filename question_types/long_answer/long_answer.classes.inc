@@ -117,7 +117,7 @@ class LongAnswerQuestion extends QuizQuestion{
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
     $form['#theme'] = 'long_answer_answering_form';
-    
+
     $form['tries'] = array(
       '#type' => 'textarea',
       '#title' => t('Answer'),

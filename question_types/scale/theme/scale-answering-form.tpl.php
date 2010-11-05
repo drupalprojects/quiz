@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file
- * Handles the layout of the scale answering form. 
+ * Handles the layout of the scale answering form.
  *
  *
  * Variables available:

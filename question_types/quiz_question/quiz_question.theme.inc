@@ -8,7 +8,7 @@
 
 /**
  * Theme the question creation form
- * 
+ *
  * @param $form
  *  Question creation form
  */
@@ -19,7 +19,7 @@ function theme_quiz_question_creation_form($form) {
 
 /**
  * Theme the question navigation form(Back, Next, Skip buttons...)
- * 
+ *
  * @param $form
  *  Form holding the navigation buttons
  */

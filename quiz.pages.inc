@@ -125,7 +125,7 @@ function quiz_report_form_submit($form, &$form_state) {
       $quiz = node_load($result->nid, $result->vid);
       $rid = $q_values['rid'];
     }
-    
+
     $q_values['quiz'] = $quiz;
 
     // We call the submit function provided by the question
@@ -138,13 +138,13 @@ function quiz_report_form_submit($form, &$form_state) {
 
   // A message saying the quiz is unscored has already been set. We unset it here...
   _quiz_remove_unscored_message();
-  
+
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
-  
+
   $score_data = quiz_get_score_array($rid, $quiz->vid, TRUE);
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
-  
+
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   $form_state['redirect'] = 'node/' . $quiz->nid . '/results';
 }
@@ -197,7 +197,7 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
 
 /**
  * Returns an array of score information for a quiz
- * 
+ *
  * @param unknown_type $rid
  * @param unknown_type $quiz_vid
  * @param unknown_type $is_evaluated
@@ -206,13 +206,13 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
   $sql = 'SELECT max_score, number_of_random_questions
           FROM {quiz_node_properties}
           WHERE vid = %d';
-  $properties = db_fetch_object(db_query($sql, $quiz_vid)); 
-  
+  $properties = db_fetch_object(db_query($sql, $quiz_vid));
+
   $sql = 'SELECT SUM(points_awarded)
           FROM (quiz_node_results_answers)
           WHERE result_id = %d';
   $total_score = db_result(db_query($sql, $rid));
-  
+
   return array(
     'question_count' => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
     'possible_score' => $properties->max_score,
@@ -271,7 +271,7 @@ function theme_quiz_get_user_results($results) {
     $passed_class = $passed ? 'quiz-passed' : 'quiz-failed';
     if (!is_numeric($result['score']))
       $score = t('In progress');
-    elseif (!$result['is_evaluated']) 
+    elseif (!$result['is_evaluated'])
       $score = t('Not evaluated');
     else {
       if (!empty($result['pass_rate']) && is_numeric($result['score'])) {
@@ -287,11 +287,11 @@ function theme_quiz_get_user_results($results) {
       'title'       => l($result['title'], 'user/quiz/'. $result['result_id'] .'/userresults'),
       'time_start'  => format_date($result['time_start'], 'small'),
       'time_end'    =>($result['time_end'] > 0) ? format_date($result['time_end'], 'small') . '<br />' . t('Duration :  @value', array('@value' => $interval)) : t('In Progress'),
-      
+
       'score'       => $score,
       'evaluated'   => $result['is_evaluated'] ? t('Yes') : t('No'),
     );
-  
+
   }
 
   if (empty($rows)) {

@@ -1,4 +1,4 @@
-<?php 
+<?php
 // $Id$
 
 /**
@@ -10,11 +10,11 @@
 
 /**
  * Theme function for the scale creation form.
- * 
+ *
  * This function only adds js to the page. Js should be added to forms through theme functions
  * like this one. Js can't be added to the page from the form function because sometimes the form
  * is returned from cache.
- * 
+ *
  * @param $form
  *  The scale creation form
  */
@@ -25,7 +25,7 @@ function theme_scale_creation_form($form) {
 
 /**
  * Theme function for the answer part of the node view
- * 
+ *
  * @param $alternatives
  *  Array of alternatives as text
  */
@@ -40,7 +40,7 @@ function theme_scale_answer_node_view($alternatives) {
 
 /**
  * Theme the scale response form
- * 
+ *
  * @param $form
  *  The response form
  */

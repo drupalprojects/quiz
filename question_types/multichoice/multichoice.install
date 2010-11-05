@@ -279,7 +279,7 @@ function multichoice_update_6402() {
 
 /**
  * Implementation of hood_update_N
- * 
+ *
  * Allow negative score values.
  */
 function multichoice_update_6403() {

@@ -10,7 +10,7 @@
  */
 
 ?>
-<?php 
+<?php
 $p = drupal_get_path('module', 'multichoice');
 drupal_add_css($p .'/theme/multichoice.css', 'module', 'all');
 

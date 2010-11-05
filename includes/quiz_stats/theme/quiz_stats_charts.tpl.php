@@ -1,19 +1,19 @@
-<?php 
+<?php
 // $Id$
 
 /**
  * @file
  * Theming the charts page
- * 
+ *
  * Variables available:
  * $charts (array)
- * 
+ *
  * The following charts are available:
  * $charts['top_scorers'] (array or FALSE if chart doesn't exist)
  * $charts['takeup'] (array or FALSE if chart doesn't exist)
  * $charts['status'] (array or FALSE if chart doesn't exist)
  * $charts['grade_range'] (array or FALSE if chart doesn't exist)
- * 
+ *
  * Each chart has a title, an image and an explanation like this:
  * $charts['top_scorers']['title'] (string)
  * $charts['top_scorers']['chart'] (string - img tag - google chart)
@@ -26,7 +26,7 @@ if (!function_exists('_quiz_stats_print_chart')) {
       echo '<h2 class="quiz-charts-title">' . $chart['title'] . '</h2>' . "\n"
          . $chart['chart']. "\n"
          . $chart['explanation'] . "\n";
-      $chart_found = TRUE; 
+      $chart_found = TRUE;
     }
   }
 }

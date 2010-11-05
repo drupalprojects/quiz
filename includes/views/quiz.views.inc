@@ -200,7 +200,7 @@ function quiz_views_data() {
       ),
     'sort' => array('handler' => 'views_handler_sort'),
     ),
-    
+
     'feedback_time' => array(
       'title' => t('Feedback Time'),
       'help' => t('Indicates whether quiz takers will get feedback after every question.'),

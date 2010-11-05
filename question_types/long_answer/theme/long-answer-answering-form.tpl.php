@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file
- * Handles the layout of the long_answer answering form. 
+ * Handles the layout of the long_answer answering form.
  *
  *
  * Variables available:

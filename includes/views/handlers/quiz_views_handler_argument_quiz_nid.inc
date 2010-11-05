@@ -156,7 +156,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     }
 
     $this->nid_field = $this->vid_field;
-    
+
     $this->corresponding_vids = array();
     while ($item = db_fetch_object($result)) {
       $this->corresponding_vids[] = $item->vid;

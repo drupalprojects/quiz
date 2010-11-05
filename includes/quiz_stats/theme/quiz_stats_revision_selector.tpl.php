@@ -1,4 +1,4 @@
-<?php 
+<?php
 // $Id$
 print '<p>' . $content['explanation'] . '</p>' . "\n";
 print '<p>';

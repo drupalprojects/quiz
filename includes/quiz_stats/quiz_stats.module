@@ -124,12 +124,12 @@ function quiz_stats_theme() {
 
 /**
  * Validate that a node is of type quiz, and that the user has access to it, and that the vid is a vid of that quiz
- * 
+ *
  * @param $quiz
  *  The quiz node
  * @param $vid
  *  The version id
- * @return 
+ * @return
  *  TRUE if user has access
  */
 function quiz_stats_validate_vid($quiz, $vid) {
@@ -140,14 +140,14 @@ function quiz_stats_validate_vid($quiz, $vid) {
     return FALSE;
   }
   $sql = db_rewrite_sql(
-    'SELECT n.nid 
+    'SELECT n.nid
      FROM {node} n
      WHERE n.nid = (
        SELECT nr.nid
-       FROM {node_revisions} nr 
+       FROM {node_revisions} nr
        WHERE nr.vid = %d
      )'
   );
   $nid = db_result(db_query($sql, $vid));
-  return $quiz->nid == $nid;  
+  return $quiz->nid == $nid;
 }

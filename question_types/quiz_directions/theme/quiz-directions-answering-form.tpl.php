@@ -2,7 +2,7 @@
 // $Id$
 /**
  * @file
- * Handles the layout of the quiz_directions answering form. 
+ * Handles the layout of the quiz_directions answering form.
  *
  *
  * Variables available:

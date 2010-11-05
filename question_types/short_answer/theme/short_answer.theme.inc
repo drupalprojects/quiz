@@ -48,7 +48,7 @@ function theme_short_answer_user_answer($answer, $correct) {
 
 /**
  * Theme the short_answer response form
- * 
+ *
  * @param $form
  *  The response form
  */

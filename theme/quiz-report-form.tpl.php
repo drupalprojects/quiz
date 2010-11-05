@@ -4,10 +4,10 @@
 /**
  * @file
  * Themes the question report
- * 
+ *
  * Available variables:
  * $form - FAPI array
- * 
+ *
  * All questions are in form[x] where x is an integer.
  * Useful values:
  * $form[x]['question'] - the question as a FAPI array(usually a form field of type "markup")
@@ -36,22 +36,22 @@ foreach ($form as $key => $sub_form):
 
 	<dt>
 	  <div class="quiz-report-score-container <?php print $c_class?>">
-	  	<span> 
+	  	<span>
 	      <?php print t('Score')?>
 		  <?php print drupal_render($sub_form['score'])?>
 		  <?php print t('of') .' '. $sub_form['max_score']['#value']?>
 		  <?php print '<br><em>'. $skipped .'</em>'?>
 		</span>
       </div>
-		
+
 	  <p class="quiz-report-question"><strong><?php print t('Question')?>: </strong></p>
 	  <?php print drupal_render($sub_form['question']);?>
 	</dt>
-	
+
     <dd>
 	  <p><strong><?php print t('Response')?>: </strong></p>
 
-	
+
       <?php print drupal_render($sub_form['response']); ?>
     </dd>
 

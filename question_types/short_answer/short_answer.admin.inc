@@ -53,7 +53,7 @@ function short_answer_edit_score($vid, $rid) {
   else {
     $answer->rel_score = 0;
   }
-   
+
   drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
 
   return drupal_get_form('short_answer_score_form', $node, $answer);

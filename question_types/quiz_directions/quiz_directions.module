@@ -20,7 +20,7 @@ function quiz_directions_help($path, $args) {
 /**
  * Implementation of hook_quiz_question_info().
  */
-function quiz_directions_quiz_question_info() { 
+function quiz_directions_quiz_question_info() {
   return array(
     'quiz_directions' => array(
       'name' => t('Quiz directions'),
