@@ -11,7 +11,6 @@
 /**
  * Implementation of hook_help().
  */
-
 function quiz_stats_help($path, $arg) {
   if ($path == 'admin/help#quiz_stats') {
     return '<p>' . t('Module creates a report to analyse and compare the results of quiz attendees. The reports will be displayed visually using goolge chart API.') . '</p>';
@@ -24,7 +23,6 @@ function quiz_stats_help($path, $arg) {
 function quiz_stats_perm() {
   $permission = array('access user stats', 'access author stats');
   return $permission;
-
 }
 
 /**
@@ -83,7 +81,6 @@ function quiz_stats_menu() {
   return $items;
 }
 
-
 /**
  * Implementation of hook_theme().
  */
@@ -111,12 +108,12 @@ function quiz_stats_theme() {
     ),
     'quiz_stats_revision_selector' => array(
       'arguments' => array('content' => NULL),
-      'path' => drupal_get_path('module', 'quiz_stats') .'/theme',
+      'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
       'template' => 'quiz_stats_revision_selector',
     ),
     'quiz_stats_charts' => array(
       'arguments' => array('charts' => NULL),
-      'path' => drupal_get_path('module', 'quiz_stats') .'/theme',
+      'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
       'template' => 'quiz_stats_charts',
     ),
   );
@@ -140,7 +137,11 @@ function quiz_stats_validate_vid($quiz, $vid) {
     return FALSE;
   }
   $sql = db_rewrite_sql(
+<<<<<<< quiz_stats.module
+      'SELECT n.nid
+=======
     'SELECT n.nid
+>>>>>>> 1.1.2.5
      FROM {node} n
      WHERE n.nid = (
        SELECT nr.nid
