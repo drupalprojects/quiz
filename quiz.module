@@ -1807,14 +1807,14 @@ function quiz_take_quiz($quiz) {
   }
   // If we're at the end of the quiz.
   if (!empty($quiz_end)) {
+    // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
+    $questions = _quiz_get_answers($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     $score = quiz_end_scoring($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
       $content['body']['#value'] = theme('quiz_no_feedback');
     }
     else {
       // Get the results and summary text for this quiz.
-      $questions = _quiz_get_answers($quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
       $summary = _quiz_get_summary_text($quiz, $score);
       // Get the themed summary page.
       $content['body']['#value'] = theme('quiz_take_summary', $quiz, $questions, $score, $summary);
@@ -2396,10 +2396,7 @@ function quiz_calculate_score($quiz, $rid) {
 
     if (function_exists($function)) {
       $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
-
       // Allow for max score to be considered.
-      $score->attained = ($score->possible > 0) ? round(($score->attained / $score->possible * $question->max_score)) : 0;
-      $score->possible = $question->max_score;
       $scores[] = $score;
     }
     else {

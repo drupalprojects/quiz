@@ -354,7 +354,6 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   $dummy_node->vid = $question_vid;
 
   $question = _quiz_question_get_instance($dummy_node, TRUE);
-
   if (!$question)
     return FALSE;
 
