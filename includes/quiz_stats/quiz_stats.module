@@ -137,11 +137,7 @@ function quiz_stats_validate_vid($quiz, $vid) {
     return FALSE;
   }
   $sql = db_rewrite_sql(
-<<<<<<< quiz_stats.module
-      'SELECT n.nid
-=======
     'SELECT n.nid
->>>>>>> 1.1.2.5
      FROM {node} n
      WHERE n.nid = (
        SELECT nr.nid
