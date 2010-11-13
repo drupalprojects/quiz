@@ -104,6 +104,8 @@ function quiz_question_node_info() {
  */
 function quiz_question_access($op, $node, $account) {
   switch ($op) {
+    case 'view':
+      return user_access('view quiz question outside of a quiz');
     case 'create':
       return user_access('create quiz', $account);
     case 'update':
@@ -484,13 +486,8 @@ function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   }
   else {
     // normal node view
-    if (user_access('view quiz question outside of a quiz')) {
-      $question = _quiz_question_get_instance($node, TRUE);
-      $content = $question->getNodeView();
-    }
-    else {
-      drupal_access_denied();
-    }
+    $question = _quiz_question_get_instance($node, TRUE);
+    $content = $question->getNodeView();
   }
 
   // put it into the node->content
