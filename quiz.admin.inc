@@ -1812,7 +1812,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $id = $quiz->nid .'-'. $res_o->result_id;
 
     // build options array for checkboxes for item
-    $options[$id] = check_plain($res_o->name);
+    $options[$id] = empty($res_o->name) ? variable_get('anonymous', t('Anonymous')) : check_plain($res_o->name);
 
     // Build hover menu for users who want to act on a single result
     $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($quiz, $res_o->result_id);
