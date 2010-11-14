@@ -372,7 +372,7 @@ function quiz_menu() {
     'file' => 'quiz.pages.inc',
   );
 
-  $items['admin/quiz/browser/ahah'] = array( //TODO: Add node access instead of user access...
+  $items['node/%node/questions/browser_ahah'] = array( //TODO: Add node access instead of user access...
     'title' => 'Filter browser content',
     'description' => 'AHAH Callback for filtering browser content',
     'page callback' => 'quiz_browser_ahah',

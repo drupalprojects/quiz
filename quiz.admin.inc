@@ -955,7 +955,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   );
 
   //Build filter part of form:
-  _quiz_question_browser_add_filter_fields($browser, $question_types);
+  _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
 
   // Create filter part of sql.
   $filter_params = array($quiz->vid);
@@ -1046,7 +1046,8 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
  * @param $question_types
  *   Array of question types
  */
-function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
+function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $quiz) {
+  $ahah_path = "node/$quiz->nid/questions/browser_ahah";
   // Create options array for the type filter(select field)
   $type_options = array(
     t('No filter'),
@@ -1073,7 +1074,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
     '#size' => 20,
     '#default_value' => $_SESSION[$pre .'title'],
     '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
@@ -1084,7 +1085,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
     '#options' => $type_options,
     '#default_value' => $_SESSION[$pre .'type'],
     '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
@@ -1094,7 +1095,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
     '#options' => $changed_options,
     '#default_value' => $_SESSION[$pre .'changed'],
     '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
     ),
@@ -1104,7 +1105,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types) {
     '#size' => 10,
     '#default_value' => $_SESSION[$pre .'name'],
     '#ahah' => array(
-      'path' => 'admin/quiz/browser/ahah',
+      'path' => $ahah_path,
       'wrapper' => 'ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
