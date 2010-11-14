@@ -1812,7 +1812,17 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
     $id = $quiz->nid .'-'. $res_o->result_id;
 
     // build options array for checkboxes for item
-    $options[$id] = empty($res_o->name) ? variable_get('anonymous', t('Anonymous')) : check_plain($res_o->name);
+    if (empty($res_o->name)) {
+      if ($res_o->uid == '0') {
+        $options[$id] = variable_get('anonymous', t('Anonymous'));
+      }
+      else {
+        $options[$id] = t('ORPHAN %uid', array('%uid' => '#' . $res_o->uid));
+      }
+    }
+    else {
+      $options[$id] = check_plain($res_o->name);
+    }
 
     // Build hover menu for users who want to act on a single result
     $browser['hover_menu'][$id]['#value'] = _quiz_results_mr_get_hover($quiz, $res_o->result_id);
@@ -1861,7 +1871,7 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
  */
 function _quiz_results_mr_data_provider($header, $quiz) {
   $filter = _quiz_results_mr_prepare_filter($quiz);
-  $sql = "SELECT u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS evaluated, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
+  $sql = "SELECT u.name, qnrs.uid, qnrs.result_id, qnrs.score, qnrs.is_evaluated AS evaluated, qnrs.time_start as started, qnrs.time_end as finished, qnp.pass_rate, qnrs.time_end - qnrs.time_start as duration
           FROM {quiz_node_results} qnrs
           LEFT JOIN {users} u ON u.uid = qnrs.uid
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
