@@ -2627,6 +2627,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
         if (!in_array($question['vid'],$already_answered) && $question['random'] === TRUE) {
           $questions[$key]['vid'] = $answered->vid;
           $questions[$key]['nid'] = $answered->nid;
+          $questions[$key]['rid'] = $rid;
           $already_answered[] = $answered->vid;
           continue;
         }
@@ -2641,6 +2642,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
 
   foreach ($questions as $question) {
     if (in_array($question['vid'], $already_answered)) {
+      $question['rid'] = $rid;
       $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $question;
     }
     else {
