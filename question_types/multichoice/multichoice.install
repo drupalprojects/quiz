@@ -74,6 +74,9 @@ function multichoice_schema() {
     'primary key' => array(
       'user_answer_id', 'answer_id'
     ),
+    'indexes' => array(
+      'answer_id' => array('user_answer_id'),
+    ),
   );
 
   $schema['quiz_multichoice_properties'] = array(
@@ -303,6 +306,17 @@ function multichoice_update_6403() {
 function multichoice_update_6404() {
   $results = array();
   $results[] = update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE type = 'multichoice'");
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N().
+ *
+ * Add index to improve performance
+ */
+function multichoice_update_6405() {
+  $results = array();
+  db_add_index($results, 'quiz_multichoice_user_answer_multi', 'answer_id', array('user_answer_id'));
   return $results;
 }
 
