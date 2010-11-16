@@ -29,6 +29,12 @@ function quiz_update_6420() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'weight' => array(
+        'description' => 'The terms weight decides the order of the terms',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'tid' => array(
         'description' => 'Term id',
         'type' => 'int',
@@ -1335,6 +1341,12 @@ function quiz_schema() {
       ),
       'vid' => array(
         'description' => 'Version id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'weight' => array(
+        'description' => 'The terms weight decides the order of the terms',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,

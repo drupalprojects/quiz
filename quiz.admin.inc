@@ -502,25 +502,86 @@ function quiz_questions($node) {
  */
 function quiz_categorized_form($form_state, $quiz) {
   $form = array();
+  _quiz_categorized_existing_terms_form($form, $form_state, $quiz);
+  _quiz_categorized_new_term_form($form, $form_state, $quiz);
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  $form['#tree'] = TRUE;
+  return $form;
+}
+
+function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
+  $terms = _quiz_get_terms($quiz->vid);
+  foreach ($terms as $term) {
+    $form[$term->tid]['name'] = array(
+      '#value' => check_plain($term->name),
+    );
+    $form[$term->tid]['number'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#default_value' => $term->number,
+    );
+    $form[$term->tid]['max_score'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#default_value' => $term->max_score,
+    );
+    $form[$term->tid]['remove'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => 0,
+    );
+    $form[$term->tid]['weight'] = array(
+      '#type' => 'textfield',
+      '#size' => 3,
+      '#default_value' => $term->weight,
+      '#attributes' => array(
+        'class' => 'term-weight'
+      ),
+    );
+  }
+}
+
+/**
+ * Get data for all terms belonging to a Quiz with categorized random questions
+ * 
+ * @param int $vid
+ *  version id for the quiz
+ * @return array
+ *  Array with all terms that belongs to the quiz as objects
+ */
+function _quiz_get_terms($vid) {
+  $sql = 'SELECT td.name, qt.*
+          FROM {quiz_terms} qt
+          JOIN {term_data} td ON qt.tid = td.tid
+          WHERE qt.vid = %d
+          ORDER BY qt.weight';
+  $res = db_query($sql, $vid);
+  $to_return = array();
+  while ($res_o = db_fetch_object($res)) {
+    $to_return[] = $res_o;
+  }
+  return $to_return;
+}
+
+function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
   $form['term'] = array(
     '#type' => 'textfield',
     '#title' => t('Term'),
     '#description' => t('Type in the name of the term you would like to add questions from.'),
     '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
-    '#required' => TRUE,
   );
   $form['number'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of questions'),
     '#description' => t('How many questions would you like to draw from this term?'),
-    '#required' => TRUE,
   );
   $form['max_score'] = array(
     '#type' => 'textfield',
     '#title' => t('Max score for each question'),
     '#description' => t('The number of points a user will be awarded for each question he gets correct.'),
     '#default_value' => 1,
-    '#required' => TRUE,
   );
   $form['nid'] = array(
     '#type' => 'value',
@@ -534,38 +595,35 @@ function quiz_categorized_form($form_state, $quiz) {
     '#type' => 'value',
     '#value' => NULL,
   );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  return $form;
 }
 
 /**
  * Validate the categorized form
  */
 function quiz_categorized_form_validate($form, &$form_state) {
-  $tid = _quiz_get_id_from_string($form_state['values']['term']);
-  if ($tid === FALSE) {
-    $terms = _quiz_search_terms($form_state['values']['term']);
-    $num_terms = count($terms);
-    if ($num_terms == 1) {
-      $tid = key($terms);
+  if (!empty($form_state['values']['term'])) {
+    $tid = _quiz_get_id_from_string($form_state['values']['term']);
+    if ($tid === FALSE) {
+      $terms = _quiz_search_terms($form_state['values']['term']);
+      $num_terms = count($terms);
+      if ($num_terms == 1) {
+        $tid = key($terms);
+      }
+      elseif ($num_terms > 1) {
+        form_set_error('term', t('You need to be more specific, or use the autocomplete feature. The term name you entered matches several terms: %terms', array('%terms' => implode(', ', $terms))));
+      }
+      elseif ($num_terms == 0) {
+        form_set_error('term', t("The term name you entered doesn't match any registered question terms."));
+      }
     }
-    elseif ($num_terms > 1) {
-      form_set_error('term', t('You need to be more specific, or use the autocomplete feature. The term name you entered matches several terms: %terms', array('%terms' => implode(', ', $terms))));
-    }
-    elseif ($num_terms == 0) {
-      form_set_error('term', t("The term name you entered doesn't match any registered question terms."));
-    }
-  }
-  form_set_value($form['tid'], $tid, $form_state);
+    form_set_value($form['tid'], $tid, $form_state);
 
-  if (!_quiz_is_int($form_state['values']['number'])) {
-    form_set_error('number', t('The number of questions needs to be a positive integer'));
-  }
-  if (!_quiz_is_int($form_state['values']['max_score'], 0)) {
-    form_set_error('max_score', t('The max score needs to be a positive integer or 0'));
+    if (!_quiz_is_int($form_state['values']['number'])) {
+      form_set_error('number', t('The number of questions needs to be a positive integer'));
+    }
+    if (!_quiz_is_int($form_state['values']['max_score'], 0)) {
+      form_set_error('max_score', t('The max score needs to be a positive integer or 0'));
+    }
   }
 }
 
@@ -573,18 +631,39 @@ function quiz_categorized_form_validate($form, &$form_state) {
  * Submit the categorized form
  */
 function quiz_categorized_form_submit($form, $form_state) {
-  $to_write = $form_state['values'];
-  $is_update = db_result(
-    db_query('SELECT 1 FROM {quiz_terms} WHERE vid = %d AND tid=%d', $to_write['vid'], $to_write['tid'])
-  );
-  if ($is_update) {
-    drupal_set_message('The term was updated');
-    drupal_write_record('quiz_terms', $to_write, array('vid', 'tid'));
+  if (!empty($form_state['values']['tid'])) {
+    _quiz_categorized_add_term($form, $form_state);
   }
-  else {
-    drupal_set_message('The term was added');
-    drupal_write_record('quiz_terms', $to_write);
+  $ids = array('weight', 'max_score', 'number');
+  $changed = array();
+  foreach ($form_state['values'] as $key => $existing) {
+    if (!is_numeric($key)) {
+      continue;
+    }
+    foreach ($ids as $id) {
+      if ($existing[$id] != $form[$key][$id]['#default_value']) {
+        $existing['nid'] = $form_state['values']['nid'];
+        $existing['vid'] = $form_state['values']['vid'];
+        $existing['tid'] = $key;
+        $changed[] = $form[$key]['name']['#value'];
+        drupal_write_record('quiz_terms', $existing, array('vid', 'tid'));
+        break;
+      }
+    }
   }
+  if (!empty($changed)) {
+    drupal_set_message(t('Updates where made for the following terms: %terms', array('%terms' => implode(', ', $changed))));
+  }
+}
+
+/**
+ * Adds a term to a categorized quiz
+ *
+ * This is a helper function for the submit function.
+ */
+function _quiz_categorized_add_term($form, $form_state) {
+  drupal_set_message('The term was added');
+  drupal_write_record('quiz_terms', $form_state['values']);
 }
 
 /**
@@ -625,14 +704,17 @@ function quiz_categorized_term_ahah($start) {
  *  The start of the string we are looking for
  */
 function _quiz_search_terms($start) {
+  $terms = array();
   $sql_args = array_keys(_quiz_get_vocabularies());
+  if (empty($sql_args)) {
+    return $terms;
+  }
   $sql = "SELECT t.name, t.tid
           FROM term_data t
           WHERE vid IN (" . db_placeholders($sql_args) . ")
           AND t.name LIKE '%%%s%%'";
   $sql_args[] = $start;
   $res = db_query(db_rewrite_sql($sql), $sql_args);
-  $terms = array();
   while ($res_o = db_fetch_object($res)) {
     $terms[$res_o->tid] = $res_o->name;
   }
@@ -2657,4 +2739,32 @@ function _quiz_get_score_intervals($quiz) {
     $scores[$key] = ' AND score '. $val;
   }
   return $scores;
+}
+
+function theme_quiz_categorized_form($form) {
+  $rows = array();
+  foreach ($form as $key => &$existing) {
+    if (!is_numeric($key)) {
+      continue;
+    }
+    $cols = array();
+    $cols[] = drupal_render($existing['name']);
+    $cols[] = drupal_render($existing['number']);
+    $cols[] = drupal_render($existing['max_score']);
+    $cols[] = drupal_render($existing['remove']);
+    $cols[] = drupal_render($existing['weight']);
+    $rows[] = array(
+      'data' => $cols,
+      'class' => 'draggable',
+    );
+  }
+  $header = array(
+    t('Term'),
+    t('Number of questions'),
+    t('Max score'),
+    t('Remove'),
+    t('Weight'),
+  );
+  drupal_add_tabledrag('existing-terms', 'order', 'sibling', 'term-weight', NULL, NULL, TRUE);
+  return theme('table', $header, $rows, array('id' => 'existing-terms')) . drupal_render($form);
 }

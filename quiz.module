@@ -412,6 +412,10 @@ function quiz_theme() {
       'arguments' => array('node' => NULL),
       'file' => 'quiz.pages.inc',
     ),
+    'quiz_categorized_form' => array(
+      'arguments' => array('form' => array()),
+      'file' => 'quiz.admin.inc'
+    ),
     'quiz_get_user_results' => array(
       'arguments' => array('results' => NULL),
       'file' => 'quiz.pages.inc',
