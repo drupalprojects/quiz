@@ -1407,7 +1407,7 @@ function quiz_get_all_version_titles() {
 }
 
 /**
- * Return score data for given quizzes.
+ * Return highest score data for given quizzes.
  *
  * @param $nids
  *   nids for the quizzes we want to collect scores from.
@@ -1418,6 +1418,7 @@ function quiz_get_all_version_titles() {
  *   This adds a performance hit.
  * @return
  *   Array of score data.
+ *   For several takes on the same quiz, only returns highest score.
  */
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   // Validate that the nids are integers.
@@ -1452,7 +1453,9 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
     if (!$include_num_questions) {
       unset($res_o->num_random_questions);
     }
-    $to_return[$res_o->vid] = $res_o;
+    if (!isset($to_return[$res_o->vid]) || $res_o->percent_score > $to_return[$res_o->vid]->percent_score) {
+      $to_return[$res_o->vid] = $res_o;  // Fetch highest score
+    }
     // $vids will be used to fetch number of questions.
     $vids[] = $res_o->vid;
   }
