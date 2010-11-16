@@ -12,6 +12,57 @@
  *
  * Makes sure max_score is correct in the quiz_node_properties
  */
+function quiz_update_6420() {
+  $results = array();
+  db_create_table($results, 'quiz_terms', array(
+    'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Node id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => 'Version id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'tid' => array(
+        'description' => 'Term id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'max_score' => array(
+        'description' => 'Max score for each question marked with this term',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'number' => array(
+        'description' => 'Number of questions to be drawn from this term',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('vid', 'tid'),
+    'indexes' => array(
+      'version' => array('vid'),
+    ),
+  ));
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
+ *
+ * Makes sure max_score is correct in the quiz_node_properties
+ */
 function quiz_update_6419() {
   $results = array();
   $sql = "UPDATE {quiz_node_properties} p
@@ -1250,6 +1301,48 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('uid'),
+  );
+
+  $schema['quiz_terms'] = array(
+    'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Node id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'description' => 'Version id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'tid' => array(
+        'description' => 'Term id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'max_score' => array(
+        'description' => 'Max score for each question marked with this term',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'number' => array(
+        'description' => 'Number of questions to be drawn from this term',
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('vid', 'tid'),
+    'indexes' => array(
+      'version' => array('vid'),
+    ),
   );
   return $schema;
 }

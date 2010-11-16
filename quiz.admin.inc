@@ -484,14 +484,167 @@ function quiz_results_mr_browser_ahah() {
 function quiz_questions($node) {
   // Set page title.
   drupal_set_title(check_plain($node->title));
+  if ($node->randomization < 3) {
+    return drupal_get_form('quiz_questions_form', $node);
+  }
+  else {
+    return drupal_get_form('quiz_categorized_form', $node);
+  }
+}
 
-  return drupal_get_form('quiz_questions_form', $node);
+/**
+ * Form for managing what questions should be added to a quiz with categorized random questions.
+ *
+ * @param array $form_state
+ *  The form state array
+ * @param object $quiz
+ *  The quiz node
+ */
+function quiz_categorized_form($form_state, $quiz) {
+  $form = array();
+  $form['term'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Term'),
+    '#description' => t('Type in the name of the term you would like to add questions from.'),
+    '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
+    '#required' => TRUE,
+  );
+  $form['number'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of questions'),
+    '#description' => t('How many questions would you like to draw from this term?'),
+    '#required' => TRUE,
+  );
+  $form['max_score'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Max score for each question'),
+    '#description' => t('The number of points a user will be awarded for each question he gets correct.'),
+    '#default_value' => 1,
+    '#required' => TRUE,
+  );
+  $form['nid'] = array(
+    '#type' => 'value',
+    '#value' => $quiz->nid,
+  );
+  $form['vid'] = array(
+    '#type' => 'value',
+    '#value' => $quiz->vid,
+  );
+  $form['tid'] = array(
+    '#type' => 'value',
+    '#value' => NULL,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * Validate the categorized form
+ */
+function quiz_categorized_form_validate($form, &$form_state) {
+  $tid = _quiz_get_id_from_string($form_state['values']['term']);
+  if ($tid === FALSE) {
+    $terms = _quiz_search_terms($form_state['values']['term']);
+    $num_terms = count($terms);
+    if ($num_terms == 1) {
+      $tid = key($terms);
+    }
+    elseif ($num_terms > 1) {
+      form_set_error('term', t('You need to be more specific, or use the autocomplete feature. The term name you entered matches several terms: %terms', array('%terms' => implode(', ', $terms))));
+    }
+    elseif ($num_terms == 0) {
+      form_set_error('term', t("The term name you entered doesn't match any registered question terms."));
+    }
+  }
+  form_set_value($form['tid'], $tid, $form_state);
+
+  if (!_quiz_is_int($form_state['values']['number'])) {
+    form_set_error('number', t('The number of questions needs to be a positive integer'));
+  }
+  if (!_quiz_is_int($form_state['values']['max_score'], 0)) {
+    form_set_error('max_score', t('The max score needs to be a positive integer or 0'));
+  }
+}
+
+/**
+ * Submit the categorized form
+ */
+function quiz_categorized_form_submit($form, $form_state) {
+  $to_write = $form_state['values'];
+  $is_update = db_result(
+    db_query('SELECT 1 FROM {quiz_terms} WHERE vid = %d AND tid=%d', $to_write['vid'], $to_write['tid'])
+  );
+  if ($is_update) {
+    drupal_set_message('The term was updated');
+    drupal_write_record('quiz_terms', $to_write, array('vid', 'tid'));
+  }
+  else {
+    drupal_set_message('The term was added');
+    drupal_write_record('quiz_terms', $to_write);
+  }
+}
+
+/**
+ * Searches for an id in the end of a string.
+ *
+ * Id should be written like "(id:23)"
+ *
+ * @param string $string
+ *  The string where we will search for an id
+ * @return int
+ *  The matched integer
+ */
+function _quiz_get_id_from_string($string) {
+  $matches = array();
+  preg_match('/\(id:(\d+)\)$/', $string, $matches);
+  return isset($matches[1]) ? (int)$matches[1] : FALSE;
+}
+
+/**
+ * Ahah function for finding terms...
+ *
+ * @param string $start
+ *  The start of the string we are looking for
+ */
+function quiz_categorized_term_ahah($start) {
+  $terms = _quiz_search_terms($start);
+  $to_json = array();
+  foreach ($terms as $key => $value) {
+    $to_json["$value (id:$key)"] = $value;
+  }
+  drupal_json($to_json);
+}
+
+/**
+ * Helper function for finding terms...
+ *
+ * @param string $start
+ *  The start of the string we are looking for
+ */
+function _quiz_search_terms($start) {
+  $sql_args = array_keys(_quiz_get_vocabularies());
+  $sql = "SELECT t.name, t.tid
+          FROM term_data t
+          WHERE vid IN (" . db_placeholders($sql_args) . ")
+          AND t.name LIKE '%%%s%%'";
+  $sql_args[] = $start;
+  $res = db_query(db_rewrite_sql($sql), $sql_args);
+  $terms = array();
+  while ($res_o = db_fetch_object($res)) {
+    $terms[$res_o->tid] = $res_o->name;
+  }
+  return $terms;
 }
 
 /**
  * Handles "manage questions" tab.
  *
  * Displays form which allows questions to be assigned to the given quiz.
+ *
+ * This function is not used if the question assignment type "categorized random questions" is chosen
  *
  * @param $form_state
  *  The form state variable

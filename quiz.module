@@ -373,17 +373,20 @@ function quiz_menu() {
   );
 
   $items['node/%node/questions/browser_ahah'] = array( //TODO: Add node access instead of user access...
-    'title' => 'Filter browser content',
-    'description' => 'AHAH Callback for filtering browser content',
     'page callback' => 'quiz_browser_ahah',
     'type' => MENU_CALLBACK,
     'access arguments' => array('create quiz'),
     'file' => 'quiz.admin.inc',
   );
 
+  $items['node/%node/questions/term_ahah'] = array( //TODO: Add node access instead of user access...
+    'page callback' => 'quiz_categorized_term_ahah',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('create quiz'),
+    'file' => 'quiz.admin.inc',
+  );
+
   $items['node/%node/results/browser_ahah'] = array(
-    'title' => 'Filter browser content',
-    'description' => 'AHAH Callback for filtering browser content',
     'page callback' => 'quiz_results_mr_browser_ahah',
     'type' => MENU_CALLBACK,
     'access callback' => 'quiz_access_results',
@@ -919,8 +922,9 @@ function quiz_form(&$node) {
       t('No randomization'),
       t('Random order'),
       t('Random questions'),
+      t('Categorized random questions'),
     ),
-    '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions.'),
+    '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
     '#default_value' => $node->randomization,
   );
    $form['taking']['feedback'] = array(
