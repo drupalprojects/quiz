@@ -613,13 +613,15 @@ function quiz_update($node) {
         display_feedback = %d,
         number_of_random_questions = %d,
         has_userpoints = %d,
-        allow_skipping = %d
+        allow_skipping = %d,
+        allow_resume = %d
       WHERE vid = %d
         AND nid = %d";
     _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping,
+      $node->allow_resume,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
@@ -728,6 +730,7 @@ function _quiz_get_node_defaults() {
     'tid' => 0,
     'has_userpoints' => 0,
     'allow_skipping' => 1,
+    'allow_resume' => 1,
   );
 }
 
@@ -896,6 +899,12 @@ function quiz_form(&$node) {
     '#collapsed' => isset($settings_loaded) ? $settings_loaded : FALSE,
     '#collapsible' => TRUE,
     '#attributes' => array('id' => 'taking-fieldset'),
+  );
+  $form['taking']['allow_resume'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow Resume'),
+    '#default_value' => $node->allow_resume,
+    '#description' => t('Whether to allow users to leave the @quiz incomplete and then resume it from where they left off.', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['allow_skipping'] = array(
     '#type' => 'checkbox',
@@ -1573,7 +1582,7 @@ function quiz_take_quiz($quiz) {
     $rid = $user->uid > 0 ? _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid) : 0;
 
     // Are we resuming an in-progress quiz?
-    if ($rid > 0) {
+    if ($quiz->allow_resume && $rid > 0) {
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
     }
 

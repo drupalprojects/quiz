@@ -55,6 +55,15 @@ function quiz_update_6420() {
       'version' => array('vid'),
     ),
   ));
+  $field = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 1,
+  );
+  db_add_field($results, 'quiz_node_properties', 'allow_resume', $field);
+  db_add_field($results, 'quiz_user_settings', 'allow_resume', $field);
   return $results;
 }
 
@@ -946,6 +955,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'allow_resume' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
     ),
     'primary key' => array('vid'),
     // 'unique keys' => array('vid'),
@@ -1298,6 +1313,12 @@ function quiz_schema() {
         'size' => 'small',
         'not null' => TRUE,
         'default' => 0,
+      ),
+      'allow_resume' => array(
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+        'default' => 1,
       ),
     ),
     'primary key' => array('uid'),
