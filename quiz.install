@@ -70,6 +70,10 @@ function quiz_update_6420() {
   );
   db_add_field($results, 'quiz_node_properties', 'allow_resume', $field);
   db_add_field($results, 'quiz_user_settings', 'allow_resume', $field);
+  db_add_field($results, 'quiz_node_results_answers', 'tid', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+  ));
   return $results;
 }
 
@@ -1125,6 +1129,10 @@ function quiz_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'tid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
       ),
       'is_correct' => array(
         'type' => 'int',

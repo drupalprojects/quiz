@@ -504,6 +504,22 @@ function quiz_categorized_form($form_state, $quiz) {
   $form = array();
   _quiz_categorized_existing_terms_form($form, $form_state, $quiz);
   _quiz_categorized_new_term_form($form, $form_state, $quiz);
+  $form['nid'] = array(
+    '#type' => 'value',
+    '#value' => $quiz->nid,
+  );
+  $form['vid'] = array(
+    '#type' => 'value',
+    '#value' => $quiz->vid,
+  );
+  $form['tid'] = array(
+    '#type' => 'value',
+    '#value' => NULL,
+  );
+  // Give the user the option to create a new revision of the quiz
+  _quiz_add_revision_checkbox($form, $quiz);
+  // Timestamp is needed to avoid multiple users editing the same quiz at the same time.
+  $form['timestamp'] = array('#type' => 'hidden', '#default_value' => time());
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -544,56 +560,34 @@ function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
 }
 
 /**
- * Get data for all terms belonging to a Quiz with categorized random questions
- * 
- * @param int $vid
- *  version id for the quiz
- * @return array
- *  Array with all terms that belongs to the quiz as objects
+ * Form for adding new terms to a quiz
+ *
+ * @see quiz_categorized_form
  */
-function _quiz_get_terms($vid) {
-  $sql = 'SELECT td.name, qt.*
-          FROM {quiz_terms} qt
-          JOIN {term_data} td ON qt.tid = td.tid
-          WHERE qt.vid = %d
-          ORDER BY qt.weight';
-  $res = db_query($sql, $vid);
-  $to_return = array();
-  while ($res_o = db_fetch_object($res)) {
-    $to_return[] = $res_o;
-  }
-  return $to_return;
-}
-
 function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
-  $form['term'] = array(
+  $form['new'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Add category'),
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#tree' => FALSE,
+  );
+  $form['new']['term'] = array(
     '#type' => 'textfield',
-    '#title' => t('Term'),
+    '#title' => t('Category'),
     '#description' => t('Type in the name of the term you would like to add questions from.'),
     '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
   );
-  $form['number'] = array(
+  $form['new']['number'] = array(
     '#type' => 'textfield',
     '#title' => t('Number of questions'),
     '#description' => t('How many questions would you like to draw from this term?'),
   );
-  $form['max_score'] = array(
+  $form['new']['max_score'] = array(
     '#type' => 'textfield',
     '#title' => t('Max score for each question'),
     '#description' => t('The number of points a user will be awarded for each question he gets correct.'),
     '#default_value' => 1,
-  );
-  $form['nid'] = array(
-    '#type' => 'value',
-    '#value' => $quiz->nid,
-  );
-  $form['vid'] = array(
-    '#type' => 'value',
-    '#value' => $quiz->vid,
-  );
-  $form['tid'] = array(
-    '#type' => 'value',
-    '#value' => NULL,
   );
 }
 
@@ -601,6 +595,15 @@ function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
  * Validate the categorized form
  */
 function quiz_categorized_form_validate($form, &$form_state) {
+  if (_quiz_is_int(arg(1))) {
+    if (node_last_changed(arg(1)) > $form_state['values']['timestamp']) {
+      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
+    }
+  }
+  else {
+    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
+    return;
+  }
   if (!empty($form_state['values']['term'])) {
     $tid = _quiz_get_id_from_string($form_state['values']['term']);
     if ($tid === FALSE) {
@@ -616,7 +619,12 @@ function quiz_categorized_form_validate($form, &$form_state) {
         form_set_error('term', t("The term name you entered doesn't match any registered question terms."));
       }
     }
-    form_set_value($form['tid'], $tid, $form_state);
+    if (in_array($tid, array_keys($form))) {
+      form_set_error('term', t('The category you are trying to add has already been added to this quiz.'));
+    }
+    else {
+      form_set_value($form['tid'], $tid, $form_state);
+    }
 
     if (!_quiz_is_int($form_state['values']['number'])) {
       form_set_error('number', t('The number of questions needs to be a positive integer'));
@@ -631,17 +639,46 @@ function quiz_categorized_form_validate($form, &$form_state) {
  * Submit the categorized form
  */
 function quiz_categorized_form_submit($form, $form_state) {
-  if (!empty($form_state['values']['tid'])) {
-    _quiz_categorized_add_term($form, $form_state);
+  $quiz = node_load($form_state['values']['nid'], $form_state['values']['vid']);
+  $quiz->number_of_random_questions = 0;
+  // Update the refresh latest quizzes table so that we know what the users latest quizzes are
+  if (variable_get('quiz_auto_revisioning', 1)) {
+    $is_new_revision = quiz_has_been_answered($quiz);
   }
+  else {
+    $is_new_revision = (bool) $form_state['values']['new_revision'];
+  }
+  if (!empty($form_state['values']['tid'])) {
+    $quiz->number_of_random_questions += _quiz_categorized_add_term($form, $form_state);
+  }
+  $quiz->number_of_random_questions += _quiz_categorized_update_terms($form, $form_state);
+  if ($is_new_revision) {
+    $quiz->revision = 1;
+  }
+  // We save the node to update its timestamp and let other modules react to the update.
+  // We also do this in case a new revision is required...
+  node_save($quiz);
+}
+
+/**
+ * Update the categoriez belonging to a quiz with categorized random questions.
+ *
+ * Helper function for quiz_categorized_form_submit
+ */
+function _quiz_categorized_update_terms(&$form, &$form_state) {
   $ids = array('weight', 'max_score', 'number');
   $changed = array();
+  $removed = array();
+  $num_questions = 0;
   foreach ($form_state['values'] as $key => $existing) {
     if (!is_numeric($key)) {
       continue;
     }
+    if (!$existing['remove']) {
+      $num_questions += $existing['number'];
+    }
     foreach ($ids as $id) {
-      if ($existing[$id] != $form[$key][$id]['#default_value']) {
+      if ($existing[$id] != $form[$key][$id]['#default_value'] && !$existing['remove']) {
         $existing['nid'] = $form_state['values']['nid'];
         $existing['vid'] = $form_state['values']['vid'];
         $existing['tid'] = $key;
@@ -649,11 +686,20 @@ function quiz_categorized_form_submit($form, $form_state) {
         drupal_write_record('quiz_terms', $existing, array('vid', 'tid'));
         break;
       }
+      elseif ($existing['remove']) {
+        db_query('DELETE FROM {quiz_terms} WHERE tid = %d AND vid = %d', $key, $form_state['values']['vid']);
+        $removed[] = $form[$key]['name']['#value'];
+        break;
+      }
     }
   }
   if (!empty($changed)) {
-    drupal_set_message(t('Updates where made for the following terms: %terms', array('%terms' => implode(', ', $changed))));
+    drupal_set_message(t('Updates were made for the following terms: %terms', array('%terms' => implode(', ', $changed))));
   }
+  if (!empty($removed)) {
+    drupal_set_message(t('The following terms were removed: %terms', array('%terms' => implode(', ', $removed))));
+  }
+  return $num_questions;
 }
 
 /**
@@ -662,8 +708,9 @@ function quiz_categorized_form_submit($form, $form_state) {
  * This is a helper function for the submit function.
  */
 function _quiz_categorized_add_term($form, $form_state) {
-  drupal_set_message('The term was added');
+  drupal_set_message(t('The term was added'));
   drupal_write_record('quiz_terms', $form_state['values']);
+  return $form_state['values']['number'];
 }
 
 /**
@@ -698,7 +745,7 @@ function quiz_categorized_term_ahah($start) {
 }
 
 /**
- * Helper function for finding terms...
+* Helper function for finding terms...
  *
  * @param string $start
  *  The start of the string we are looking for
@@ -797,7 +844,7 @@ function quiz_questions_form($form_state, $quiz) {
   _quiz_add_revision_checkbox($form, $quiz);
 
   // Timestamp is needed to avoid multiple users editing the same quiz at the same time.
-  $form['timestamp'] = array('#type' => 'hidden', '#value' => time());
+  $form['timestamp'] = array('#type' => 'hidden', '#default_value' => time());
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -2742,6 +2789,7 @@ function _quiz_get_score_intervals($quiz) {
 }
 
 function theme_quiz_categorized_form($form) {
+  $output = '';
   $rows = array();
   foreach ($form as $key => &$existing) {
     if (!is_numeric($key)) {
@@ -2758,13 +2806,17 @@ function theme_quiz_categorized_form($form) {
       'class' => 'draggable',
     );
   }
-  $header = array(
-    t('Term'),
-    t('Number of questions'),
-    t('Max score'),
-    t('Remove'),
-    t('Weight'),
-  );
-  drupal_add_tabledrag('existing-terms', 'order', 'sibling', 'term-weight', NULL, NULL, TRUE);
-  return theme('table', $header, $rows, array('id' => 'existing-terms')) . drupal_render($form);
+  if (!empty($rows)) {
+    $header = array(
+      t('Category'),
+      t('Number of questions'),
+      t('Max score per question'),
+      t('Remove'),
+      t('Weight'),
+    );
+    drupal_add_tabledrag('existing-terms', 'order', 'sibling', 'term-weight', NULL, NULL, TRUE);
+    $output .= theme('table', $header, $rows, array('id' => 'existing-terms'));
+  }
+  $output .= drupal_render($form);
+  return $output;
 }
