@@ -924,7 +924,7 @@ function quiz_form(&$node) {
   );
   $form['taking']['allow_jumping'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Use question menu'),
+    '#title' => t('Allow jumping'),
     '#default_value' => $node->allow_jumping,
     '#description' => t('Whether to allow users to jump between questions using a menu in the @quiz', array('@quiz' => QUIZ_NAME)),
   );
@@ -1294,6 +1294,9 @@ function quiz_validate($node) {
         form_set_error('option_summary', t('Option has a summary, but no name.'));
       }
     }
+  }
+  if ($node->allow_jumping && !$node->allow_skipping) {
+    form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
   }
 }
 
