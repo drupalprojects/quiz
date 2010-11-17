@@ -70,6 +70,10 @@ function quiz_update_6420() {
   );
   db_add_field($results, 'quiz_node_properties', 'allow_resume', $field);
   db_add_field($results, 'quiz_user_settings', 'allow_resume', $field);
+  $field['default'] = 0;
+  db_add_field($results, 'quiz_node_properties', 'allow_jumping', $field);
+  db_add_field($results, 'quiz_user_settings', 'allow_jumping', $field);
+  db_add_field($results, 'quiz_node_results_answers', 'number', $field);
   db_add_field($results, 'quiz_node_results_answers', 'tid', array(
     'type' => 'int',
     'unsigned' => TRUE,
@@ -971,6 +975,13 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'allow_jumping' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('vid'),
     // 'unique keys' => array('vid'),
@@ -1159,6 +1170,13 @@ function quiz_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+      ),
+      'number' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 1,
       ),
     ),
     'primary key' => array('result_id', 'question_nid', 'question_vid'),

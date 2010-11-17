@@ -485,6 +485,10 @@ function quiz_theme() {
       'arguments' => array('form' => NULL),
       'file' => 'quiz.admin.inc',
     ),
+    'quiz_jumper' => array(
+      'arguments' => array('current' => 0, 'num_questions' => 0),
+      'file' => 'quiz.admin.inc',
+    ),
   );
 }
 
@@ -542,12 +546,12 @@ function quiz_insert($node) {
     backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes,
     show_attempt_stats, keep_results, time_limit, pass_rate, summary_pass,
     summary_default, quiz_always, feedback_time, display_feedback, tid,
-    has_userpoints, allow_skipping)
+    has_userpoints, allow_skipping, allow_resume, allow_jumping)
     VALUES(%d, %d, '%s', %d, %d,
     %d, %d, %d, %d, %d,
     %d, %d, %d, %d, '%s',
     '%s', %d, %d, %d, %d,
-    %d, %d)";
+    %d, %d, %d, %d)";
 
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
@@ -556,7 +560,7 @@ function quiz_insert($node) {
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes,
     $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass,
     $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid,
-    isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping);
+    isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping);
 
   _quiz_insert_resultoptions($node);
 
@@ -618,14 +622,15 @@ function quiz_update($node) {
         number_of_random_questions = %d,
         has_userpoints = %d,
         allow_skipping = %d,
-        allow_resume = %d
+        allow_resume = %d,
+        allow_jumping = %d
       WHERE vid = %d
         AND nid = %d";
     _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping,
-      $node->allow_resume,
+      $node->allow_resume, $node->allow_jumping,
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
@@ -735,6 +740,7 @@ function _quiz_get_node_defaults() {
     'has_userpoints' => 0,
     'allow_skipping' => 1,
     'allow_resume' => 1,
+    'allow_jumping' => 0,
   );
 }
 
@@ -915,6 +921,12 @@ function quiz_form(&$node) {
     '#title' => t('Allow Skipping questions'),
     '#default_value' => $node->allow_skipping,
     '#description' => t('Whether to allow users to skip questions in the @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['taking']['allow_jumping'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Use question menu'),
+    '#default_value' => $node->allow_jumping,
+    '#description' => t('Whether to allow users to jump between questions using a menu in the @quiz', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['backwards_navigation'] = array(
     '#type' => 'checkbox',
@@ -1659,8 +1671,13 @@ function quiz_take_quiz($quiz) {
     $module = $types[$former_question->type]['module'];
     $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     $q_passed_validation = $result->is_valid;
+    $check_jump = TRUE;
     if ($q_passed_validation === TRUE) {
       quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
+    }
+    elseif ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
+      $_POST['op'] = t('Skip');
+      $allow_skipping = TRUE;
     }
 
     // Stash feedback in the session, since the $_POST gets cleared.
@@ -1696,7 +1713,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
-  elseif (($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
+  if (($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }
@@ -1716,6 +1733,12 @@ function quiz_take_quiz($quiz) {
 
     // Store that the question was skipped:
     quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
+  }
+
+  if ($check_jump) {
+    if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
+      quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
+    }
   }
 
   // If this quiz is in progress, load the next questions and return it via the theme.
@@ -1743,11 +1766,11 @@ function quiz_take_quiz($quiz) {
       }
     }
 
-    // Aded the progress info to the view.
+    // Added the progress info to the view.
     $number_of_questions = quiz_get_number_of_questions($quiz->vid);
     $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
     $question_node->question_number = $question_number;
-    $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions);
+    $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions, $quiz->allow_jumping);
     $content['progress']['#weight'] = -50;
     if (count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
       drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
@@ -1855,6 +1878,32 @@ function quiz_take_quiz($quiz) {
     quiz_end_actions($quiz, $rid, $score);
   }
   return $content;
+}
+
+/**
+ * Set the current session to jump to a specific question number
+ * 
+ * @param int $question_num
+ *  The question number we want to jump to 
+ */
+function quiz_jump_to($question_num, $quiz, $rid) {
+  $num_next = count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+  $num_previous = count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+  if ($question_num > $num_next + $num_previous) {
+    // Trying to jump too fag
+    return;
+  }
+  if ($question_num <= $num_previous) {
+    for ($i = 0 ; $i < $num_previous - $question_num + 1; $i++) {
+      array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']));
+    }
+  }
+  elseif ($question_num > $num_previous + 1) {
+    for ($i = 0 ; $i < $question_num - $num_previous - 1; $i++) {
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+    }
+    _quiz_cleanup_after_jumping($quiz, $rid);
+  }
 }
 
 /**
@@ -1967,12 +2016,12 @@ function quiz_store_question_result($quiz, $result, $options) {
   else {
     $sql = "INSERT INTO {quiz_node_results_answers}
             (question_nid, question_vid, result_id, is_correct, points_awarded,
-            answer_timestamp, is_skipped";
+            answer_timestamp, is_skipped, number";
     if ($quiz->randomization == 3) {
       $sql .= ", tid";
     }
-    $sql .= ") VALUES (%d, %d, %d, %d, %d, %d, %d";
-    $args = array($result->nid, $result->vid, $result->rid, $result->is_correct, $points, time(), $result->is_skipped);
+    $sql .= ") VALUES (%d, %d, %d, %d, %d, %d, %d, %d";
+    $args = array($result->nid, $result->vid, $result->rid, $result->is_correct, $points, time(), $result->is_skipped, $options['question_data']['number']);
     if ($quiz->randomization == 3) {
       $sql .= ", %d";
       $args[] = $result->tid;
@@ -2557,6 +2606,11 @@ function quiz_build_question_list($quiz) {
   if ($quiz->randomization > 0) {
     shuffle($questions);
   }
+  $count = 0;
+  foreach ($questions as &$question) {
+    $count++;
+    $question['number'] = $count;
+  }
   return $questions;
 }
 
@@ -2573,6 +2627,7 @@ function _quiz_build_categorized_question_list($quiz) {
   if (empty($question_types)) {
     return array();
   }
+  $total_count = 0;
   foreach ($terms as $term) {
     $sql = "SELECT n.nid, n.vid, tn.tid
             FROM {node} n
@@ -2587,11 +2642,13 @@ function _quiz_build_categorized_question_list($quiz) {
     $res = db_query_range($sql, $term->tid, 0, $term->number);
     $count = 0;
     while ($question = db_fetch_array($res)) {
+      $count++;
       $question['tid'] = $term->tid;
+      $question['number'] = $count + $total_count;
       $questions[] = $question;
       $nids[] = $question['nid'];
-      $count++;
     }
+    $total_count += $count;
     if ($count < $term->number) {
       // Not enough questions
       return FALSE;
@@ -2739,10 +2796,10 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   $already_answered = array();
   // Now we need to make sure to set previous questions to be correct.
   // This includes corrections for cases where questions were shuffled.
-  $sql = "SELECT question_nid AS nid, question_vid AS vid
+  $sql = "SELECT question_nid AS nid, question_vid AS vid, number
           FROM {quiz_node_results_answers}
           WHERE result_id = %d
-          ORDER BY answer_timestamp";
+          ORDER BY number, answer_timestamp";
   $answered_questions = db_query($sql, $rid);
   while ($answered = db_fetch_object($answered_questions)) {
     foreach ($questions as $question) {
@@ -2771,13 +2828,15 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   reset($questions);
   $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] = array();
   $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
-
+  $next_number = count($already_answered) + 1;
   foreach ($questions as $question) {
     if (in_array($question['vid'], $already_answered)) {
       $question['rid'] = $rid;
       $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $question;
     }
     else {
+      $question['number'] = $next_number;
+      $next_number++;
       $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][] = $question;
     }
   }
@@ -3314,7 +3373,7 @@ function _quiz_get_answers($quiz, $rid) {
                    LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.parent_vid = r.vid
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = %d AND qt.tid = ra.tid)
                    WHERE ra.result_id = %d
-                   ORDER BY answer_timestamp", $quiz->vid, $rid);
+                   ORDER BY ra.number, ra.answer_timestamp", $quiz->vid, $rid);
   while ($line = db_fetch_object($ids)) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
@@ -3343,6 +3402,43 @@ function _quiz_get_answers($quiz, $rid) {
     }
   }
   return $questions;
+}
+
+/**
+ * Clean up result data when the user jumps forward in a quiz
+ *
+ * When jumping in a quiz we might be skipping lots of questions. We need
+ * to update the result data according to this...
+ *
+ * @param object $quiz
+ *  The quiz node we want to clean up results for
+ * @param int $rid
+ *  Result id for the result we want to clean up
+ */
+function _quiz_cleanup_after_jumping($quiz, $rid) {
+  $sql = "INSERT IGNORE INTO {quiz_node_results_answers}
+          (result_id, question_nid, question_vid, is_skipped, answer_timestamp, number";
+  if ($quiz->randomization == 3) {
+    $sql .= ', tid';
+  }
+  $sql .= ') VALUES ';
+  $args = array();
+  $first = TRUE;
+  $time = time();
+  foreach ($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'] as $previous_question) {
+    if (!$first) {
+      $sql .= ', ';
+    }
+    $sql .= '(%d, %d, %d, 1, ' . $time . ', %d';
+    array_push($args, $rid, $previous_question['nid'], $previous_question['vid'], $previous_question['number']);
+    if ($quiz->randomization == 3) {
+      $sql .= ', %d';
+      $args[] = $previous_question['tid'];
+    }
+    $sql .= ')';
+    $first = FALSE;
+  }
+  db_query($sql, $args);
 }
 
 /**

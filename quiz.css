@@ -249,3 +249,7 @@ dl.quiz-report dd {
 .quiz-answer-hidden {
   font-style: italic;
 }
+
+#quiz-jumper {
+  display: none;
+}

@@ -205,6 +205,12 @@ function quiz_question_answering_form($form_state, $node, $include_nid_in_id = F
       '#value' => $is_last ? t('Skip and finish') : t('Skip'),
       '#attributes' => array('class' => 'q-skip-button'),
     );
+    if ($quiz->allow_jumping) {
+      $form['jump_to_question'] = array(
+        '#type' => 'hidden',
+        '#default_value' => 0,
+      );
+    }
   }
   return $form;
 }

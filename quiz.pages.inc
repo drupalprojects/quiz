@@ -341,19 +341,42 @@ function theme_quiz_score_incorrect() {
  *
  * @ingroup themeable
  */
-function theme_quiz_progress($question_number, $num_of_question) {
+function theme_quiz_progress($question_number, $num_of_question, $jumper = FALSE) {
   // Determine the percentage finished (not used, but left here for other implementations).
   //$progress = ($question_number*100)/$num_of_question;
 
   // Get the current question # by adding one.
   $current_question = $question_number + 1;
 
+  if ($jumper) {
+    $current_question = theme('quiz_jumper', $current_question, $num_of_question);
+  }
+
   $output  = '';
   $output .= '<div id="quiz_progress">';
-  $output .= t('Question <span id="quiz-question-number">@x</span> of <span id="quiz-num-questions">@y</span>', array('@x' => $current_question, '@y' => $num_of_question));
+  $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
   $output .= '</div><br />'."\n";
   // Add div to be used by jQuery countdown
   $output .= '<div class="countdown"></div>';
+  return $output;
+}
+
+function theme_quiz_jumper($current, $num_questions) {
+  $output = '<select name="quiz-jumper" class="form-select" id="quiz-jumper">';
+  for ($i = 1; $i <= $num_questions; $i++) {
+    $extra = $i == $current ? ' selected="selected"' : '';
+    $output .= '<option value="' . $i . '"' . $extra . '>' . $i . '</option>';
+  }
+  $output .= '</select><span id="quiz-jumper-no-js">' . $current . '</span>';
+  drupal_add_js("
+    Drupal.behaviors.quizJumper = function () {
+      $('#quiz-jumper:not(.quizJumper-processed)').show().addClass('quizJumper-processed').change(function(){
+        $('#edit-jump-to-question').val($(this).val());
+        $('#edit-submit').trigger('click');
+      });
+      $('#quiz-jumper-no-js:not(.quizJumper-processed)').hide().addClass('quizJumper-processed');
+    };
+  ", 'inline');
   return $output;
 }
 
