@@ -1681,6 +1681,7 @@ function quiz_take_quiz($quiz) {
     elseif ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
       $_POST['op'] = t('Skip');
       $allow_skipping = TRUE;
+      $jumping = TRUE;
     }
 
     // Stash feedback in the session, since the $_POST gets cleared.
@@ -1722,12 +1723,13 @@ function quiz_take_quiz($quiz) {
     }
     $q_passed_validation = TRUE;
     // Advance the question.
-    $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
+    if (!$jumping) {
+      $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
 
-    // Load the last asked question.
-    $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-    $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
-
+      // Load the last asked question.
+      $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
+      $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
+    }
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
     if (!$module) return array('body' => array('#value' => ' '));
