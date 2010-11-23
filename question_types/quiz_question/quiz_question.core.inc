@@ -127,10 +127,9 @@ abstract class QuizQuestion {
     }
 
     // Quiz id used here to tie creation of a question to a specific quiz
-    $quiz_id = $_GET['quiz_nid'];
-    if (is_numeric($quiz_id)) {
+    if (isset($_GET['quiz_nid']) && is_numeric($_GET['quiz_nid'])) {
       $vid = (_quiz_is_int($_GET['quiz_vid'], 0)) ? $_GET['quiz_vid'] : NULL;
-      $quiz = node_load((int)$quiz_id, $vid);
+      $quiz = node_load((int)$_GET['quiz_nid'], $vid);
 
       // Store quiz id in the form
       $form['quiz_nid'] = array(
