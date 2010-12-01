@@ -1432,6 +1432,7 @@ function quiz_uninstall() {
     'comment_quiz',
     'quiz_def_uid',
     'quiz_auto_revisioning',
+    'quiz_durod',
   );
   foreach ($var as $v) {
     variable_del($v);

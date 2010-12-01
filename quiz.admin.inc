@@ -33,6 +33,13 @@ function quiz_admin_settings() {
     '#description' => t('It is strongly recommended that auto revisioning is always on. It makes sure that when a question or quiz is changed a new revision is created if the current revision has been answered. If this feature is switched off result reports might be broken because a users saved answer might be connected to a wrong version of the quiz and/or question she was answering. All sorts of errors might appear.'),
   );
 
+  $form['quiz_global_settings']['quiz_durod'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Delete results when a user is deleted'),
+    '#default_value' => variable_get('quiz_durod', 0),
+    '#description' => t('When a user is deleted delete any and all results for that user.'),
+  );
+
   $form['quiz_global_settings']['quiz_default_close'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),

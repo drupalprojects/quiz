@@ -1349,8 +1349,27 @@ function quiz_user($op, &$edit, &$account, $category = NULL) {
       $sql = 'DELETE FROM {quiz_user_settings}
               WHERE uid = %d';
       db_query($sql, $account->uid);
+      if (variable_get('quiz_durod', 0)) {
+        _quiz_delete_users_results($account->uid);
+      }
       break;
   }
+}
+
+/**
+ * Deletes all results associated with a given user.
+ *
+ * @param int $uid
+ *  The users id
+ */
+function _quiz_delete_users_results($uid) {
+  $sql = "SELECT result_id FROM {quiz_node_results} WHERE uid = %d";
+  $res = db_query($sql, $uid);
+  $rids = array();
+  while ($rid = db_result($res)) {
+    $rids[] = $rid;
+  }
+  quiz_delete_results($rids);
 }
 
 /**
