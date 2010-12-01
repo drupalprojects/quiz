@@ -761,7 +761,7 @@ function _quiz_search_terms($start) {
           WHERE vid IN (" . db_placeholders($sql_args) . ")
           AND t.name LIKE '%%%s%%'";
   $sql_args[] = $start;
-  $res = db_query(db_rewrite_sql($sql), $sql_args);
+  $res = db_query(db_rewrite_sql($sql, 't', 'tid'), $sql_args);
   while ($res_o = db_fetch_object($res)) {
     $terms[$res_o->tid] = $res_o->name;
   }
