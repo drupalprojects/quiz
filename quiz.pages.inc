@@ -249,6 +249,26 @@ function quiz_get_user_results($user_id) {
   return theme('quiz_get_user_results', $results);
 }
 
+/**
+ * Show results for the current quiz
+ */
+function quiz_my_results($node) {
+  global $user;
+  $results = array();
+  $res = db_query("
+    SELECT qnp.nid, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score
+    FROM {quiz_node_properties} qnp
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    WHERE qnrs.uid = %d AND qnrs.nid = %d AND qnrs.is_evaluated = 1
+    ORDER BY qnrs.result_id DESC
+  ", $user->uid, $node->nid);
+  // Create an array out of the results.
+  while ($line = db_fetch_array($res)) {
+    $results[$line['result_id']] = $line;
+  }
+  return theme('quiz_my_results_for_quiz', $results);
+}
+
 // THEME FUNCTIONS
 
 /**
@@ -308,6 +328,59 @@ function theme_quiz_get_user_results($results) {
 
   $output = theme('table', $header, $rows);
   $output .= '<p><em>' . t('@quiz that are not evaluated may have different score and grade when it is done.', array('@quiz' => QUIZ_NAME)) . '</em></p>';
+  return $output;
+}
+
+/**
+ * Theme the user results page.
+ *
+ * @param $results
+ *  An array of quiz information.
+ * @return
+ *  Themed html.
+ *
+ * @ingroup themeable
+ */
+function theme_quiz_my_results_for_quiz($results) {
+  $rows = array();
+  $with_passing = FALSE;
+  while (list($key, $result) = each($results)) {
+    $interval = _quiz_format_duration($result['time_end'] - $result['time_start']);
+    $score = $result['score'] . ' %';
+    
+    $row = array(
+      'time_start'  => format_date($result['time_start'], 'small'),
+      'time_end'    => format_date($result['time_end'], 'small'),
+      'duration' => $interval,
+      'score'       => $score,
+    );
+    if (!empty($result['pass_rate'])) {
+      $with_passing = TRUE;
+      $passed = $result['score'] >= $result['pass_rate'];
+      $grade = $passed ? t('Passed') : t('Failed');
+      $passed_class = $passed ? 'quiz-passed' : 'quiz-failed';
+      $pre = '<span class = "' . $passed_class . '">';
+      $row['passed'] = $pre . $grade . '</span>';
+    }
+    $row['more'] = l(t('More') . '...', 'node/' . $result['nid'] . '/myresults/' . $result['result_id']);
+    $rows[] = $row;
+  }
+
+  if (empty($rows)) {
+    return t('No @quiz results found.', array('@quiz' => QUIZ_NAME));
+  }
+
+  $header = array(
+    t('Started'),
+    t('Finished'),
+    t('Duration'),
+    t('Score'),
+  );
+  if ($with_passing) {
+    $header[] = t('Passed');
+  }
+  $header[] = '';
+  $output = theme('table', $header, $rows);
   return $output;
 }
 

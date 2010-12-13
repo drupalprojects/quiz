@@ -164,6 +164,28 @@ function quiz_access_results($quiz, $rid = NULL) {
 }
 
 /**
+ * Helper function to determine if a user has access to view his quiz results
+ *
+ * @param object $quiz
+ *  The Quiz node
+ */
+function quiz_access_my_results($quiz) {
+  if ($quiz->type !== 'quiz') {
+    return FALSE;
+  }
+  if (user_access('view own quiz results') && !quiz_access_results($quiz)) {
+    $answered = db_result(db_query_range(
+      'SELECT 1
+       FROM {quiz_node_results}
+       WHERE nid = %d AND uid = %d AND is_evaluated = 1'
+    , $quiz->nid, $user->uid, 0, 1));
+    if ($answered) {
+      return TRUE;
+    }
+  }
+}
+
+/**
  * Helper function to determine if a user has access to score a quiz.
  *
  * @param $quiz_creator
@@ -330,6 +352,26 @@ function quiz_menu() {
     'weight' => 3,
   );
 
+  $items['node/%node/myresults'] = array(
+    'title' => 'My results',
+    'page callback' => 'quiz_my_results',
+    'page arguments' => array(1),
+    'access callback' => 'quiz_access_my_results',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'quiz.pages.inc',
+    'weight' => 3,
+  );
+
+  $items['node/%node/myresults/%'] = array(
+    'title' => 'User results',
+    'page callback' => 'quiz_user_results',
+    'page arguments' => array(3),
+    'access arguments' => array('view own quiz results'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'quiz.pages.inc',
+  );
+
   $items['node/%node/results/%'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
@@ -489,6 +531,10 @@ function quiz_theme() {
       'arguments' => array('current' => 0, 'num_questions' => 0),
       'file' => 'quiz.admin.inc',
     ),
+    'quiz_my_results_for_quiz' => array(
+      'arguments' => array('rows' => array()),
+      'file' => 'quiz.admin.inc'
+    )
   );
 }
 
