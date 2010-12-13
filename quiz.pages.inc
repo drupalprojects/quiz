@@ -350,7 +350,6 @@ function theme_quiz_my_results_for_quiz($results) {
     
     $row = array(
       'time_start'  => format_date($result['time_start'], 'small'),
-      'time_end'    => format_date($result['time_end'], 'small'),
       'duration' => $interval,
       'score'       => $score,
     );
@@ -372,7 +371,6 @@ function theme_quiz_my_results_for_quiz($results) {
 
   $header = array(
     t('Started'),
-    t('Finished'),
     t('Duration'),
     t('Score'),
   );
