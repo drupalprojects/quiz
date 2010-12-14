@@ -40,6 +40,13 @@ function quiz_admin_settings() {
     '#description' => t('When a user is deleted delete any and all results for that user.'),
   );
 
+  $form['quiz_global_settings']['quiz_index_questions'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Index questions'),
+    '#default_value' => variable_get('quiz_index_questions', 1),
+    '#description' => t('If you turn this off questions will not show up in search results.'),
+  );
+
   $form['quiz_global_settings']['quiz_default_close'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),

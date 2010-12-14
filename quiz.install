@@ -1433,6 +1433,7 @@ function quiz_uninstall() {
     'quiz_def_uid',
     'quiz_auto_revisioning',
     'quiz_durod',
+    'quiz_index_questions',
   );
   foreach ($var as $v) {
     variable_del($v);

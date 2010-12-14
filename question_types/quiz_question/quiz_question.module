@@ -478,6 +478,9 @@ function quiz_question_insert(stdClass $node) {
  * Implementation of hook_view()
  */
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
+  if ($node->build_mode == NODE_BUILD_SEARCH_INDEX && !variable_get('quiz_index_questions', 1)) {
+    return $node;
+  }
   $content = '';
   if ($teaser) {
     $content = _quiz_question_teaser_content($node);
