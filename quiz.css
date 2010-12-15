@@ -71,12 +71,17 @@ td.quiz_summary_qcell table td {
   background-color: #666;
 }
 
-.quiz-question-browser-row.odd:not(.selected) td.active {
+.quiz-question-browser-row.odd td.active {
   background-color: #e2e2f9;
 }
 
-.quiz-question-browser-row.even:not(.selected) td.active {
+.quiz-question-browser-row.even td.active {
   background-color: #f8f8ff;
+}
+
+tr.selected.quiz-question-browser-row td, tr.selected.quiz-question-browser-row td.active {
+  background: none repeat scroll 0 0 #505050;
+  color: #FFF;
 }
 
 .browser-table th {
