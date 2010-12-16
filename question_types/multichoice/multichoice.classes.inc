@@ -849,7 +849,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $i = 0;
     $this->orderAlternatives($this->question->alternatives);
-
+    
     // Find the alternative with the highest score
     if ($this->question->choice_multi == 0) {
       $max_score_if_chosen = -999;
@@ -860,7 +860,6 @@ class MultichoiceResponse extends QuizQuestionResponse {
       }
       $i = 0;
     }
-
     // Fetch all data for the report
     $data = array();
     while (isset($this->question->alternatives[$i])) {
@@ -901,7 +900,6 @@ class MultichoiceResponse extends QuizQuestionResponse {
       }
       $i++;
     }
-
     // Return themed report
     return array(
       '#type' => 'markup',
@@ -920,8 +918,9 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $sql = "SELECT choice_order
             FROM {quiz_multichoice_user_answers}
             WHERE result_id = %d AND question_nid = %d AND question_vid = %d";
-    $res = db_query($sql, $this->rid, $this->question->nid, $this->question->vid);
-    $order = explode(',', db_result($res));
+    $result = db_result(db_query($sql, $this->rid, $this->question->nid, $this->question->vid));
+    if (!$result) return;
+    $order = explode(',', $result);
     $newAlternatives = array();
     foreach ($order as $value) {
       foreach ($alternatives as $alternative) {

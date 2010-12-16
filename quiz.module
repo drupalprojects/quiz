@@ -1810,7 +1810,7 @@ function quiz_take_quiz($quiz) {
       quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
     }
   }
-
+  $show_validation_message = FALSE;
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
     // If we got no error when validating the question
@@ -1825,7 +1825,7 @@ function quiz_take_quiz($quiz) {
     }
     else {
       $question_node = $former_question;
-      drupal_set_message($q_passed_validation, 'error');
+      $show_validation_message = TRUE;
       array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $former_question_array);
       if (is_array($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'])) {
         array_shift($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
@@ -1856,22 +1856,10 @@ function quiz_take_quiz($quiz) {
       if ($time == 1) {
         // Quiz has been timed out, run a loop to mark the remaining questions
         // as skipped.
-        while (!empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions'])) {
-          $_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][0];
-          $former_question_array = array_shift($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
-          $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
-
-          // Call hook_skip_question().
-          $module = quiz_question_module_for_type($former_question->type);
-          if (!$module) return array('body' => array('#value' => ' '));
-          $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_'. $quiz->nid]['result_id']);
-          
-          quiz_store_question_result($quiz, $result, array('set_mesg' => FALSE, 'question_data' => $former_question_array));
-        }
-        $_SESSION['quiz_'. $quiz->nid]['quiz_questions'] = array();
-        // Empty the quiz questions. We're at the end of the quiz, so set a flag
-        // saying so.
+        quiz_jump_to(count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']) + 1, $quiz, $_SESSION['quiz_'. $quiz->nid]['result_id']);
         $quiz_end = TRUE;
+        unset($content['progress']);
+        $show_validation_message = FALSE;
         drupal_set_message(t('You have run out of time.'), 'error');
       }
       else {
@@ -1905,6 +1893,9 @@ function quiz_take_quiz($quiz) {
         }
       }
       $_SESSION['quiz_'. $quiz->nid]['question_start_time'] = time();
+    }
+    if ($show_validation_message) {
+      drupal_set_message($q_passed_validation, 'error');
     }
     // If we're not yet at the end.
     if (empty($quiz_end)) {
@@ -1959,8 +1950,8 @@ function quiz_take_quiz($quiz) {
 function quiz_jump_to($question_num, $quiz, $rid) {
   $num_next = count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
   $num_previous = count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
-  if ($question_num > $num_next + $num_previous) {
-    // Trying to jump too fag
+  if ($question_num > $num_next + $num_previous + 1) {
+    // Trying to jump too far. We allow skipping all questions because of jQuery countdown...
     return;
   }
   if ($question_num <= $num_previous) {
