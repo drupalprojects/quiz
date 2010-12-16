@@ -479,6 +479,10 @@ function quiz_question_insert(stdClass $node) {
  */
 function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
   if ($node->build_mode == NODE_BUILD_SEARCH_INDEX && !variable_get('quiz_index_questions', 1)) {
+    $node->body = '';
+    $node->content = array();
+    $node->title = '';
+    $node->taxonomy = array();
     return $node;
   }
   $content = '';

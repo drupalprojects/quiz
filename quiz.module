@@ -170,6 +170,7 @@ function quiz_access_results($quiz, $rid = NULL) {
  *  The Quiz node
  */
 function quiz_access_my_results($quiz) {
+  global $user;
   if ($quiz->type !== 'quiz') {
     return FALSE;
   }
