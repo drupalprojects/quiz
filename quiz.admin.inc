@@ -591,6 +591,7 @@ function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
     '#title' => t('Category'),
     '#description' => t('Type in the name of the term you would like to add questions from.'),
     '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
+    '#field_suffix' => '<a id="browse-for-term" href="#">' . t('browse') . '</a>',
   );
   $form['new']['number'] = array(
     '#type' => 'textfield',
@@ -750,7 +751,7 @@ function _quiz_get_id_from_string($string) {
  *  The start of the string we are looking for
  */
 function quiz_categorized_term_ahah($start) {
-  $terms = _quiz_search_terms($start);
+  $terms = _quiz_search_terms($start, $start == '*');
   $to_json = array();
   foreach ($terms as $key => $value) {
     $to_json["$value (id:$key)"] = $value;
@@ -764,7 +765,7 @@ function quiz_categorized_term_ahah($start) {
  * @param string $start
  *  The start of the string we are looking for
  */
-function _quiz_search_terms($start) {
+function _quiz_search_terms($start, $all = FALSE) {
   $terms = array();
   $sql_args = array_keys(_quiz_get_vocabularies());
   if (empty($sql_args)) {
@@ -772,9 +773,11 @@ function _quiz_search_terms($start) {
   }
   $sql = "SELECT t.name, t.tid
           FROM term_data t
-          WHERE vid IN (" . db_placeholders($sql_args) . ")
-          AND t.name LIKE '%%%s%%'";
-  $sql_args[] = $start;
+          WHERE vid IN (" . db_placeholders($sql_args) . ")";
+  if (!$all) {
+    $sql .= " AND t.name LIKE '%%%s%%'";
+    $sql_args[] = $start;
+  }
   $res = db_query(db_rewrite_sql($sql, 't', 'tid'), $sql_args);
   while ($res_o = db_fetch_object($res)) {
     $terms[$res_o->tid] = $res_o->name;
@@ -2833,5 +2836,19 @@ function theme_quiz_categorized_form($form) {
     $output .= theme('table', $header, $rows, array('id' => 'existing-terms'));
   }
   $output .= drupal_render($form);
+  drupal_add_js(
+    "
+    Drupal.behaviors.quiz_categorized = function() {
+      $('#browse-for-term:not(.quiz-processed)').click(function(event) {
+        event.preventDefault();
+        $('#edit-term').focus().val('*').trigger('keyup');
+      }).addClass('quiz-processed');
+      $('#edit-term').click(function(){
+        if ($(this).val() == '*') {
+          $(this).val('');
+        }
+      });
+    };"
+    , 'inline');
   return $output;
 }

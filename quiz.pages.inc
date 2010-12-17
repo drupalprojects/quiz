@@ -17,7 +17,7 @@ function quiz_user_results($result_id) {
 
   $sql = 'SELECT qnp.nid, qnp.vid, qnrs.uid
     FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     WHERE qnrs.result_id = %d';
   $result = db_fetch_object(db_query($sql, $result_id));
   if ($result->nid) {
@@ -412,7 +412,7 @@ function theme_quiz_score_incorrect() {
  *
  * @ingroup themeable
  */
-function theme_quiz_progress($question_number, $num_of_question, $jumper = FALSE) {
+function theme_quiz_progress($question_number, $num_of_question, $jumper = FALSE, $time_limit = FALSE) {
   // Determine the percentage finished (not used, but left here for other implementations).
   //$progress = ($question_number*100)/$num_of_question;
 
@@ -426,9 +426,11 @@ function theme_quiz_progress($question_number, $num_of_question, $jumper = FALSE
   $output  = '';
   $output .= '<div id="quiz_progress">';
   $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
-  $output .= '</div><br />'."\n";
+  $output .= '</div>'."\n";
   // Add div to be used by jQuery countdown
-  $output .= '<div class="countdown"></div>';
+  if ($time_limit) {
+    $output .= '<div class="countdown"></div>';
+  }
   return $output;
 }
 

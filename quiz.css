@@ -246,3 +246,8 @@ dl.quiz-report dd {
 #quiz-jumper {
   display: none;
 }
+
+#quiz-categorized-form #autocomplete {
+  overflow: auto;
+  max-height: 300px;
+}

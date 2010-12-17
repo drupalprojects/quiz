@@ -602,6 +602,7 @@ function quiz_insert($node) {
 
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
+  _quiz_check_num_always($node);
 
   db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization,
     $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes,
@@ -673,7 +674,6 @@ function quiz_update($node) {
         allow_jumping = %d
       WHERE vid = %d
         AND nid = %d";
-    _quiz_check_num_random($node);
     $resource = db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close,
       $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always,
       $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping,
@@ -681,6 +681,8 @@ function quiz_update($node) {
       $node->vid, $node->nid);
     _quiz_update_resultoptions($node);
   }
+  _quiz_check_num_random($node);
+  _quiz_check_num_always($node);
   quiz_update_max_score_properties(array($node->vid));
   // If the node has no questions redirect to the manage questions tab
   _quiz_redirect_if_empty($node);
@@ -1841,14 +1843,13 @@ function quiz_take_quiz($quiz) {
     $number_of_questions = quiz_get_number_of_questions($quiz->vid);
     $question_number = $number_of_questions - count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']);
     $question_node->question_number = $question_number;
-    $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions, $quiz->allow_jumping);
+    $content['progress']['#value'] = theme('quiz_progress', $question_number, $number_of_questions, $quiz->allow_jumping, $quiz->time_limit);
     $content['progress']['#weight'] = -50;
     if (count($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
       drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
       unset($_SESSION['quiz_'. $quiz->nid]);
       drupal_goto('node/'. $quiz->nid .'/take');
     }
-
     if ($_SESSION['quiz_'. $quiz->nid]['question_duration']) {
       $_SESSION['quiz_'. $quiz->nid]['question_duration'] -= time() - $_SESSION['quiz_'. $quiz->nid]['question_start_time'];
       $time = ($_SESSION['quiz_'. $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_'. $quiz->nid]['question_duration'] : 1;
@@ -3446,7 +3447,6 @@ function _quiz_get_answers($quiz, $rid) {
         $line->max_score = $line->term_max_score;
       }
     }
-
     $module = quiz_question_module_for_type($line->type);
     if (!$module) continue;
     // Invoke hook_get_report().
@@ -3699,6 +3699,20 @@ function _quiz_check_num_random(&$node) {
           WHERE question_status = %d
           AND parent_vid = %d';
   db_query($sql, QUESTION_RANDOM, $node->vid);
+}
+
+/**
+ * If a quiz is saved with random categories we should make sure all questions
+ * are removed from the quiz
+ *
+ * @param $node
+ *   Quiz node.
+ */
+function _quiz_check_num_always(&$node) {
+  if ($node->randomization != 3) return;
+  $sql = 'DELETE FROM {quiz_node_relationship}
+          WHERE parent_vid = %d';
+  db_query($sql, $node->vid);
 }
 
 /**
