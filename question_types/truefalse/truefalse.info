@@ -1,0 +1,8 @@
+; $Id$
+name = True False
+package = Quiz Question
+description = Module to create True or False Kind of Questions
+core = 6.x
+php = 5
+dependencies[] = quiz
+dependencies[] = quiz_question
