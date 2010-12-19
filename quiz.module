@@ -1291,9 +1291,13 @@ function quiz_validate($node) {
     return;
   }
 
-  if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
-    form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
+  // Don't check dates if the quiz is always available.
+  if (!$node->quiz_always) {
+    if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
+      form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
+    }
   }
+
   if (!empty($node->pass_rate)) {
     if (!_quiz_is_int($node->pass_rate, 0, 100)) {
       form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
