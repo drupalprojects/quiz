@@ -1,9 +1,0 @@
-; $Id$
-
-name = Quiz Choice
-package = Quiz Question
-description = This module is under development and should not be used on production servers yet.
-core = 6.x
-php = 5
-dependencies[] = quiz
-dependencies[] = quiz_question

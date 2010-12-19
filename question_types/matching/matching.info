@@ -1,9 +1,0 @@
-;$Id$
-
-name = Matching
-package = Quiz Question
-description = Provide a way to create matching type of questions.
-core = 6.x
-php = 5
-dependencies[] = quiz
-dependencies[] = quiz_question
