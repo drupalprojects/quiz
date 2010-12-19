@@ -399,7 +399,7 @@ abstract class QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     // Delete results
-    db_query('DELETE FROM quiz_node_results_answers
+    db_query('DELETE FROM {quiz_node_results_answers}
               WHERE question_nid = %d' . ($only_this_version ? ' AND question_vid = %d' : ''),
               $this->node->nid, $this->node->vid);
 
