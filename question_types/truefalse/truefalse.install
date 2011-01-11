@@ -8,47 +8,84 @@
  */
 
 /**
- * Implementation of hook_update_N
+ * Implements hook_update_N().
  *
  * truefalse has actually changed its name from true_false. We try to fix any problems this might result in here...
  */
 function truefalse_update_6400() {
   $results = array();
 
-  $results[] = update_sql("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'");
-  $results[] = update_sql("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'");
-  $results[] = update_sql("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'");
-  $results[] = update_sql("UPDATE {vocabulary_node_types} SET type = 'truefalse' WHERE type = 'true_false'");
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $results[] = array() /* update_sql("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'") */;
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $results[] = array() /* update_sql("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'") */;
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $results[] = array() /* update_sql("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'") */;
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $results[] = array() /* update_sql("UPDATE {taxonomy_vocabulary_node_type} SET type = 'truefalse' WHERE type = 'true_false'") */;
 
-  return $results;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function truefalse_install() {
   if (!db_table_exists('quiz_truefalse_node')) {
-    drupal_install_schema('truefalse');
+    // TODO The drupal_(un)install_schema functions are called automatically in D7.
+    // drupal_install_schema('truefalse')
   }
   else {
-    db_query("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'");
-    db_query("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'");
-    db_query("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'");
-    db_query("UPDATE {vocabulary_node_types} SET type = 'truefalse' WHERE type = 'true_false'");
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'") */
+    db_update('system')
+  ->fields(array(
+    'name' =>  'truefalse',
+  ))
+  ->condition('name', 'true_false')
+  ->execute();
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'") */
+    db_update('node')
+  ->fields(array(
+    'type' =>  'truefalse',
+  ))
+  ->condition('type', 'true_false')
+  ->execute();
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'") */
+    db_update('system')
+  ->fields(array(
+    'type' =>  'truefalse',
+  ))
+  ->condition('type', 'true_false')
+  ->execute();
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query("UPDATE {taxonomy_vocabulary_node_type} SET type = 'truefalse' WHERE type = 'true_false'") */
+    db_update('taxonomy_vocabulary_node_type')
+  ->fields(array(
+    'type' =>  'truefalse',
+  ))
+  ->condition('type', 'true_false')
+  ->execute();
   }
   variable_set('node_options_truefalse', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function truefalse_uninstall() {
-  drupal_uninstall_schema('truefalse');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_uninstall_schema('truefalse')
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function truefalse_schema() {
 

@@ -18,15 +18,16 @@
  */
 function quiz_stats_revision_selector_page($quiz) {
   $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
-  $res = db_query($sql, $quiz->nid);
+  $res = db_query('SELECT vid FROM {node_revisions} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz->nid));
   $count = 0; //uses this variable to slightly increase performance
   $vids = array();
   while ($res_o = db_fetch_object($res)) {
     $vids[] = $res_o->vid;
     $count++;
   }
-  if ($count < 1)
+  if ($count < 1) {
     return t('Something went wrong. Please try again');
+  }
   elseif ($count == 1) {
     // If there is only one revision we jump directly to that revision
     drupal_goto("node/{$quiz->nid}/statistics/{$vids[0]}");
@@ -40,7 +41,7 @@ function quiz_stats_revision_selector_page($quiz) {
     foreach ($vids as $key => $value) {
       $content['links'][] = 'node/' . $quiz->nid . '/statistics/' . $value;
     }
-    return theme('quiz_stats_revision_selector', $content);
+    return theme('quiz_stats_revision_selector', array('content' => $content));
   }
 }
 
@@ -54,7 +55,7 @@ function quiz_stats_revision_selector_page($quiz) {
  */
 function quiz_stats_get_basic_stats($uid = 0) {
   $results = _quiz_get_quizzes($uid);
-  return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', $results);
+  return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', array('results' => $results));
 }
 
 /**
@@ -71,7 +72,7 @@ function quiz_stats_get_basic_stats($uid = 0) {
  */
 function quiz_stats_get_adv_stats($vid, $uid = 0) {
   $charts = array();
-  drupal_add_css(drupal_get_path('module', 'quiz_stats') .'/quiz_stats.css', 'theme');
+  drupal_add_css(drupal_get_path('module', 'quiz_stats') . '/quiz_stats.css', array('type' => 'file', 'weight' => CSS_THEME));
   $charts['takeup'] = _get_date_vs_takeup_count_chart($vid, $uid);
   // line chart/graph showing quiz takeup date along x-axis and count along y-axis
   $charts['status'] = _get_quiz_status_chart($vid, $uid);
@@ -79,7 +80,7 @@ function quiz_stats_get_adv_stats($vid, $uid = 0) {
   $charts['top_scorers'] = _get_quiz_top_scorers_chart($vid, $uid);
   // Bar chart displaying top scorers
   $charts['grade_range'] = _get_quiz_grade_range_chart($vid, $uid);
-  return theme('quiz_stats_charts', $charts);
+  return theme('quiz_stats_charts', array('charts' => $charts));
 }
 
 /**
@@ -111,7 +112,7 @@ function _get_quiz_grade_range_chart($vid, $uid = 0) {
   }
   // Get the charts
   $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
-  $chart .= theme('quiz_grade_range', $range);
+  $chart .= theme('quiz_grade_range', array('range' => $range));
   $chart .= '</div>';
   // Return the chart with some meta data
   return array(
@@ -142,14 +143,16 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
     $sql .= " AND qnr.uid = %d";
   }
   $sql .= ' ORDER by score DESC';
-  $results = db_query_range($sql, $vid, $uid, 0, 10);
+  $results = db_query_range($sql, $vid, $uid);
   while ($result = db_fetch_array($results)) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
-  if (count($top_scorers) == 0) return FALSE;
+  if (count($top_scorers) == 0) {
+    return FALSE;
+  }
   $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
-  $chart .= theme('quiz_top_scorers', $top_scorers);
+  $chart .= theme('quiz_top_scorers', array('scorer' => $top_scorers));
   $chart .= '</div>';
   return array(
     'chart' => $chart,
@@ -172,19 +175,20 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
  */
 function _get_quiz_status_chart($vid, $uid = 0) {
   // get the pass rate of the given quiz by vid
-  $pass_rate = db_result(db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = %d", $vid));
+  $pass_rate = db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = :vid", array(':vid' => $vid))->fetchField();
   if (!$pass_rate) {
     return;
   }
   // get the count value of results row above and below pass rate
   $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = %d";
+  // TODO Please convert this statement to the D7 database API syntax.
   $quiz = db_fetch_array(db_query($sql, intval($vid)));
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 3) {
     return FALSE; // no sufficient data
   }
   // generates quiz status chart 3D pie chart
   $chart = '<div id="get_quiz_status_chart" class="quiz-stats-chart-space">';
-  $chart .= theme('get_quiz_status_chart', $quiz);
+  $chart .= theme('get_quiz_status_chart', array('quiz' => $quiz));
   $chart .= '</div>';
   return array(
     'chart' => $chart,
@@ -216,21 +220,25 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
     $sql .= " AND uid = %d";
     $sql_args[] = $uid;
   }
-  $sql .=" GROUP BY date ORDER BY time_start DESC";
-  $results = db_query_range($sql, $sql_args, $start, $end);
+  $sql .= " GROUP BY date ORDER BY time_start DESC";
+  $results = db_query_range($sql, $sql_args);
   $days = _quiz_get_last_days($end);
   $res_o = db_fetch_object($results);
   foreach ($days as $date => &$value) {
-   if ($date == $res_o->date) {
+    if ($date == $res_o->date) {
       $value->value = $res_o->count;
-      if ($res_o->count > 0) $valid_data = TRUE;
+      if ($res_o->count > 0) {
+        $valid_data = TRUE;
+      }
       $res_o = db_fetch_object($results);
     }
   }
-  if (!$valid_data) return FALSE;
+  if (!$valid_data) {
+    return FALSE;
+  }
   $chart = '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">';
   // wrapping the chart output with div for custom theming.
-  $chart .= theme('date_vs_takeup_count', $days);
+  $chart .= theme('date_vs_takeup_count', array('takeup' => $days));
   // generate date vs takeup count line chart
   $chart .= '</div>';
   return array(
@@ -256,7 +264,7 @@ function _quiz_get_attempt_count($vid, $uid = 0) {
   if ($uid != 0) {
     $sql .= " AND uid = %d";
   }
-  return db_result(db_query($sql, $vid, $uid));
+  return db_query($sql, $vid, $uid)->fetchField();
 }
 
 // Theme functions
@@ -270,7 +278,8 @@ function _quiz_get_attempt_count($vid, $uid = 0) {
  * @return
  *   HTML to render/display chart
  */
-function theme_quiz_grade_range($range) {
+function theme_quiz_grade_range($variables) {
+  $range = $variables['range'];
   $chart_width = 600;
   $chart_height = 400;
 
@@ -324,7 +333,8 @@ function theme_quiz_grade_range($range) {
  * @return
  *   HTML to render quiz top scorers chart
  */
-function theme_quiz_top_scorers($attendees) {
+function theme_quiz_top_scorers($variables) {
+  $attendees = $variables['scorer'];
   $chart = array(
     '#chart_id' => 'quiz_top_scorers',
     //'#title' => t('Quiz Top Scorers'),
@@ -337,9 +347,9 @@ function theme_quiz_top_scorers($attendees) {
     $chart['#data'][][] = $attendee['score'];
     $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
     $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
-    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] .' %';
+    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] . ' %';
   }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') .' (%)', 100);
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') . ' (%)', 100);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
   return chart_render($chart);
 }
@@ -353,7 +363,8 @@ function theme_quiz_top_scorers($attendees) {
  * @return
  *   HTML to render quiz status chart
  */
-function theme_get_quiz_status_chart($quiz) {
+function theme_get_quiz_status_chart($variables) {
+  $quiz = $variables['quiz'];
   $quiz['total'] = $quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete'];
   $chart = array(
     '#chart_id' => 'quiz_status_chart',
@@ -389,7 +400,8 @@ function theme_get_quiz_status_chart($quiz) {
  * @return
  *   HTML to render/display chart
  */
-function theme_date_vs_takeup_count($days) {
+function theme_date_vs_takeup_count($variables) {
+  $days = $variables['takeup'];
   $days = array_reverse($days);
   $max_count = 0;
   $chart = array(
@@ -403,7 +415,7 @@ function theme_date_vs_takeup_count($days) {
   $interval = 1;
   foreach ($days as $date => $obj) {
     $count = $obj->value;
-    $chart['#data'][]= $count;
+    $chart['#data'][] = $count;
     $x_label = '|';
     if ($interval == 7) {
       $x_label = chart_mixed_axis_label(format_date($obj->timestamp, 'custom', 'd M'));
@@ -430,7 +442,8 @@ function theme_date_vs_takeup_count($days) {
  * @return
  *   HTML table containing quiz title, author, questions count, attempt count
  */
-function theme_quiz_stats_get_basic_stats($results = array()) {
+function theme_quiz_stats_get_basic_stats($variables) {
+  $results = $variables['results'];
   if (empty($results)) {
     return '<p>' . t('No questions were found.') . '</p>';
   }
@@ -445,13 +458,13 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
     $header['attempt_count'] = t('Attempts');
   }
   $p = drupal_get_path('module', 'quiz_stats');
-  $chart_icon = theme('image', "$p/chart.png", t('Charts'), t('See charts'));
+  $chart_icon = theme('image', array('path' => "$p/chart.png", 'width' => t('Charts'), 'height' => t('See charts')));
   foreach ($results as $result) {
-    $title_link = user_access('access author stats') ? 'node/' . $result['nid'] . '/statistics' : 'user/'. arg(1) .'/stats/';
+    $title_link = user_access('access author stats') ? 'node/' . $result['nid'] . '/statistics' : 'user/' . arg(1) . '/stats/';
     $row = array(
-      'title' => l($chart_icon .' '. $result['title'], $title_link, array('html' => TRUE)),
-      'creator' => l($result['name'], 'user/'. $result['uid']),
-      'created' => format_date($result['created'], 'small'),
+      'title' => l($chart_icon . ' ' . $result['title'], $title_link, array('html' => TRUE)),
+      'creator' => l($result['name'], 'user/' . $result['uid']),
+      'created' => format_date($result['created'], 'short'),
     );
     if (user_access('access author stats')) {
       $row['questions_count'] = quiz_get_number_of_questions($result['vid']);
@@ -460,8 +473,8 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
     $rows[] = $row;
   }
   module_load_include('inc', 'quiz', 'quiz.pages');
-  $cc = '<em>'. t('Chart icon from !url', array('!url' => 'pinvoke.com')) .'</em>';
-  return theme('table', $header, $rows, array('id' => 'tablesorter')) . $cc;
+  $cc = '<em>' . t('Chart icon from !url', array('!url' => 'pinvoke.com')) . '</em>';
+  return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'tablesorter'))) . $cc;
 }
 
 /**
@@ -474,7 +487,7 @@ function theme_quiz_stats_get_basic_stats($results = array()) {
  */
 function _quiz_get_last_days($num_days) {
   $to_return = array();
-  $now = time();
+  $now = REQUEST_TIME;
   $one_day = 86400;
   for ($i = 0; $i < $num_days; $i++) {
     $timestamp = $now - ($one_day * $i);

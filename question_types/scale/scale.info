@@ -2,7 +2,20 @@
 name = Scale
 package = Quiz Question
 description = Scale question type for quiz.
-core = 6.x
+core = 7.x
 php = 5
 dependencies[] = quiz
 dependencies[] = quiz_question
+; Information added by drupal.org packaging script on 2011-01-11
+version = "6.x-4.0"
+core = 7.x
+project = "quiz"
+datestamp = "1294785668"
+
+
+files[] = scale.classes.inc
+files[] = scale.install
+files[] = scale.module
+files[] = scale.test
+files[] = theme/scale-answering-form.tpl.php
+files[] = theme/scale.theme.inc

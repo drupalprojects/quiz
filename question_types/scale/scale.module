@@ -14,7 +14,7 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function scale_help($path, $args) {
   if ($path == 'admin/help#scale') {
@@ -23,7 +23,7 @@ function scale_help($path, $args) {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function scale_menu() {
   $items['scale/collection/manage'] = array(
@@ -38,50 +38,49 @@ function scale_menu() {
 }
 
 /**
- * Implementation of hook_theme
+ * Implements hook_theme().
  */
 function scale_theme($existing, $type, $theme, $path) {
   return array(
     'scale_creation_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'scale') . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_response_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'scale') . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_answer_node_view' => array(
-      'arguments' => array(
+      'variables' => array(
         'alternatives' => NULL,
       ),
-      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'path' => drupal_get_path('module', 'scale') . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_answering_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'scale') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'scale') . '/theme',
       'template' => 'scale-answering-form',
     ),
   );
 }
 
 /**
- * Implementation of hook_perm()
+ * Implements hook_permission().
  */
-function scale_perm() {
-  return array('Edit global presets');
+function scale_permission() {
+  return array(
+    'Edit global presets' => array(
+      'title' => t('Edit global presets'),
+      'description' => t('TODO Add a description for \'Edit global presets\''),
+    ),
+  );
 }
 
 /**
- * Implementation of hook_quiz_question_info().
+ * Implements hook_quiz_question_info().
  */
 function scale_quiz_question_info() {
   return array(
@@ -96,7 +95,7 @@ function scale_quiz_question_info() {
 }
 
 /**
- * Implementation off hook_config
+ * Implements hook_config().
  */
 function scale_config() {
   $form['manage'] = array(
@@ -116,12 +115,13 @@ function scale_config() {
  * Validate the scale config form values
  */
 function scale_config_validate($form, $form_state) {
-  if (!_quiz_is_int($form_state['values']['scale_max_num_of_alts'], 2, 50))
+  if (!_quiz_is_int($form_state['values']['scale_max_num_of_alts'], 2, 50)) {
     form_set_error('scale_max_num_of_alts', t('The number of alternatives must be between 2 and 50'));
+  }
 }
 
 /**
- * Implementation of hook_autoload_info().
+ * Implements hook_autoload_info().
  */
 function scale_autoload_info() {
   return array(
@@ -131,13 +131,15 @@ function scale_autoload_info() {
 }
 
 /**
- * Implementation of hook_get_answer()
+ * Implements hook_get_answer().
  */
 function scale_get_answer($question_nid, $question_vid, $result_id) {
   $sql = "SELECT answer_id, question_vid, question_nid, result_id
     FROM {quiz_scale_user_answers}
     WHERE result_id = %d AND question_nid = %d AND question_vid = %d";
-  $results = db_query($sql, $result_id);
+  $results = db_query("SELECT answer_id, question_vid, question_nid, result_id
+    FROM {quiz_scale_user_answers}
+    WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid", array(':result_id' => $result_id));
 
   if (!$results) {
     return FALSE;
@@ -147,12 +149,10 @@ function scale_get_answer($question_nid, $question_vid, $result_id) {
 }
 
 /**
- * Implementation of hook user.
+ * Implements hook_user_cancel().
  */
-function scale_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'delete': //Remove the users presets if they aren't in use.
-      $sql = 'SELECT id
+function scale_user_cancel($edit, $account, $method) {
+  $sql = 'SELECT id
               FROM {quiz_scale_answer_collection} ac
               JOIN {quiz_scale_user} u ON(ac.id = u.answer_collection_id)
               WHERE uid = %d
@@ -164,21 +164,47 @@ function scale_user($op, &$edit, &$account, $category = NULL) {
                 (SELECT answer_collection_id
                  FROM {quiz_scale_user}
                  WHERE NOT uid = %d)';
-      $res = db_query($sql, $account->uid, $account->uid);
-      while ($res_o = db_fetch_object($res)) {
-        $sql = 'DELETE FROM {quiz_scale_answer}
+  $res = db_query('SELECT id
+              FROM {quiz_scale_answer_collection} ac
+              JOIN {quiz_scale_user} u ON(ac.id = u.answer_collection_id)
+              WHERE uid = :uid
+              AND ac.for_all = :ac.for_all
+              AND ac.id NOT IN
+                (SELECT answer_collection_id
+                 FROM {quiz_scale_node_properties})
+              AND ac.id NOT IN
+                (SELECT answer_collection_id
+                 FROM {quiz_scale_user}
+                 WHERE NOT uid = :uid)', array(':uid' => $account->uid, ':ac.for_all' => 0, ':uid' => $account->uid));
+  while ($res_o = db_fetch_object($res)) {
+    $sql = 'DELETE FROM {quiz_scale_answer}
             WHERE answer_collection_id = %d';
-        db_query($sql, $res_o->id);
-        $sql = 'DELETE FROM {quiz_scale_answer_collection}
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $res_o->id) */
+    db_delete('quiz_scale_answer')
+  ->condition('answer_collection_id', $res_o->id)
+  ->execute();
+    $sql = 'DELETE FROM {quiz_scale_answer_collection}
             WHERE id = %d';
-        db_query($sql, $res_o->id);
-        $sql = 'DELETE FROM {quiz_scale_user}
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $res_o->id) */
+    db_delete('quiz_scale_answer_collection')
+  ->condition('id', $res_o->id)
+  ->execute();
+    $sql = 'DELETE FROM {quiz_scale_user}
             WHERE uid = %d';
-        db_query($sql, $account->uid);
-      }
-    break;
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $account->uid) */
+    db_delete('quiz_scale_user')
+  ->condition('uid', $account->uid)
+  ->execute();
   }
 }
+
+/**
+ * Implementation of hook user.
+ */
+function scale_user_OLD($op, &$edit, &$account, $category = NULL) { }
 
 /**
  * Form for changing and deleting the current users preset answer collections.
@@ -189,7 +215,7 @@ function scale_user($op, &$edit, &$account, $category = NULL) {
  * @param $form_state
  * @return form
  */
-function scale_manage_collection_form(&$form_state) {
+function scale_manage_collection_form($form, &$form_state) {
   global $user;
 
   $edit_globals_access = user_access('Edit global presets');
@@ -223,7 +249,7 @@ function scale_manage_collection_form(&$form_state) {
     $alternatives = $collections[$col_id]->alternatives;
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       $form["collection$col_id"]["alternative$i"] = array(
-        '#title' => t('Alternative !i', array('!i' => ($i+1))),
+        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#size' => 60,
         '#maxlength' => 256,
         '#type' => 'textfield',
@@ -265,7 +291,9 @@ function scale_manage_collection_form(&$form_state) {
     '#value' => t('Submit'),
   );
   $form['#submit'][] = 'scale_collection_form_submit';
-  if ($edit_globals_access) $form['#validate'][] = 'scale_collection_form_validate';
+  if ($edit_globals_access) {
+    $form['#validate'][] = 'scale_collection_form_validate';
+  }
   $form['#tree'] = TRUE;
   return $form;
 }
@@ -290,8 +318,12 @@ function scale_collection_form_submit($form, &$form_state) {
         case 0: //Save, but don't change
         case 1: //Save and change existing questions
           $new_col_id = $s_q->saveAnswerCollection(FALSE, $alternatives, 1);
-          if (isset($alternatives['for_all'])) _scale_set_for_all($new_col_id, $alternatives['for_all']);
-          if ($new_col_id == $col_id) break;
+          if (isset($alternatives['for_all'])) {
+            _scale_set_for_all($new_col_id, $alternatives['for_all']);
+          }
+          if ($new_col_id == $col_id) {
+            break;
+          }
           $changed++;
           // We save the changes, but don't change existing questions
           if ($alternatives['to-do'] == 0) {
@@ -300,7 +332,9 @@ function scale_collection_form_submit($form, &$form_state) {
             // If the old version of the collection doesn't belong to any questions it is safe to delete it.
             $s_q->deleteCollectionIfNotUsed($col_id);
 
-            if (isset($alternatives['for_all'])) _scale_set_for_all($new_col_id, $alternatives['for_all']);
+            if (isset($alternatives['for_all'])) {
+              _scale_set_for_all($new_col_id, $alternatives['for_all']);
+            }
           }
           elseif ($alternatives['to-do'] == 1) {
             // Update all the users questions where the collection is used
@@ -312,26 +346,38 @@ function scale_collection_form_submit($form, &$form_state) {
                       FROM {node}
                       WHERE uid = %d
                     )';
-            db_query($sql, $new_col_id, $col_id, $user->uid);
+            // TODO Please review the conversion of this statement to the D7 database API syntax.
+            /* db_query($sql, $new_col_id, $col_id, $user->uid) */
+            db_update('quiz_scale_node_properties')
+  ->fields(array(
+    'answer_collection_id' => $new_col_id,
+  ))
+    ->where('answer_collection_id = %d                     AND nid IN(                       SELECT nid                       FROM {node}                       WHERE uid = %d                     )',  )
+  ->execute();
 
-            db_query('DELETE FROM {quiz_scale_user} WHERE answer_collection_id = %d AND uid = %d', $col_id, $user->uid);
+            // TODO Please review the conversion of this statement to the D7 database API syntax.
+            /* db_query('DELETE FROM {quiz_scale_user} WHERE answer_collection_id = %d AND uid = %d', $col_id, $user->uid) */
+            db_delete('quiz_scale_user')
+  ->condition('answer_collection_id', $col_id)
+  ->condition('uid', $user->uid)
+  ->execute();
             $s_q->deleteCollectionIfNotUsed($col_id);
           }
-        break;
+          break;
         case 2: //Delete
           $got_deleted = $s_q->deleteCollectionIfNotUsed($col_id);
           if (!$got_deleted) {
             _scale_unpreset_collection($col_id, $user->uid);
           }
           $deleted++;
-        break;
+          break;
         case 3: //New
           if (drupal_strlen($alternatives['alternative0']) > 0) {
             $new_col_id = $s_q->saveAnswerCollection(FALSE, $alternatives, 1);
             _scale_set_for_all($new_col_id, $alternatives['for_all']);
             drupal_set_message(t('New preset has been added'));
           }
-        break;
+          break;
       }
     }
   }
@@ -367,7 +413,7 @@ function scale_collection_form_validate($form, &$form_state) {
 function _scale_get_col_id($string) {
   $res = array();
   $success = preg_match('/^collection([0-9]{1,}|new)$/', $string, $res);
-  return ($success>0) ? $res[1] : FALSE;
+  return ($success > 0) ? $res[1] : FALSE;
 }
 
 /**
@@ -380,11 +426,22 @@ function _scale_get_col_id($string) {
 function _scale_unpreset_collection($col_id, $user_id) {
   $sql = 'DELETE FROM {quiz_scale_user}
           WHERE answer_collection_id = %d AND uid = %d';
-  db_query($sql, $col_id, $user_id);
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query($sql, $col_id, $user_id) */
+  db_delete('quiz_scale_user')
+  ->condition('answer_collection_id', $col_id)
+  ->condition('uid', $user_id)
+  ->execute();
   if (user_access('Edit global presets')) {
     $sql = 'UPDATE {quiz_scale_answer_collection}
             SET for_all = 0';
-    db_query($sql);
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql) */
+    db_update('quiz_scale_answer_collection')
+  ->fields(array(
+    'for_all' =>  0,
+  ))
+  ->execute();
   }
 }
 
@@ -401,5 +458,12 @@ function _scale_set_for_all($new_col_id, $for_all) {
   $sql = 'UPDATE {quiz_scale_answer_collection}
           SET for_all = %d
           WHERE id = %d';
-  db_query($sql, $for_all, $new_col_id);
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query($sql, $for_all, $new_col_id) */
+  db_update('quiz_scale_answer_collection')
+  ->fields(array(
+    'for_all' => $for_all,
+  ))
+  ->condition('id', $new_col_id)
+  ->execute();
 }

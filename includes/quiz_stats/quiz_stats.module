@@ -9,7 +9,7 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function quiz_stats_help($path, $arg) {
   if ($path == 'admin/help#quiz_stats') {
@@ -18,15 +18,24 @@ function quiz_stats_help($path, $arg) {
 }
 
 /**
- * Implementation of hook_perm()
+ * Implements hook_permission().
  */
-function quiz_stats_perm() {
-  $permission = array('access user stats', 'access author stats');
+function quiz_stats_permission() {
+  $permission = array(
+    'access user stats' => array(
+      'title' => t('access user stats'),
+      'description' => t('TODO Add a description for \'access user stats\''),
+    ),
+    'access author stats' => array(
+      'title' => t('access author stats'),
+      'description' => t('TODO Add a description for \'access author stats\''),
+    ),
+  );
   return $permission;
 }
 
 /**
- * Implementation of hook_menu()
+ * Implements hook_menu().
  */
 function quiz_stats_menu() {
   global $user;
@@ -82,37 +91,37 @@ function quiz_stats_menu() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function quiz_stats_theme() {
   return array(
     'quiz_stats_get_basic_stats' => array(
-      'arguments' => array('results' => NULL),
+      'variables' => array('results' => NULL),
       'file' => 'quiz_stats.admin.inc',
     ),
     'date_vs_takeup_count' => array(
-      'arguments' => array('takeup' => NULL),
+      'variables' => array('takeup' => NULL),
       'file' => 'quiz_stats.admin.inc',
     ),
     'get_quiz_status_chart' => array(
-      'arguments' => array('quiz' => NULL),
+      'variables' => array('quiz' => NULL),
       'file' => 'quiz_stats.admin.inc',
     ),
     'quiz_top_scorers' => array(
-      'arguments' => array('scorer' => NULL),
+      'variables' => array('scorer' => NULL),
       'file' => 'quiz_stats.admin.inc',
     ),
     'quiz_grade_range' => array(
-      'arguments' => array('range' => NULL),
+      'variables' => array('range' => NULL),
       'file' => 'quiz_stats.admin.inc',
     ),
     'quiz_stats_revision_selector' => array(
-      'arguments' => array('content' => NULL),
+      'variables' => array('content' => NULL),
       'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
       'template' => 'quiz_stats_revision_selector',
     ),
     'quiz_stats_charts' => array(
-      'arguments' => array('charts' => NULL),
+      'variables' => array('charts' => NULL),
       'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
       'template' => 'quiz_stats_charts',
     ),
@@ -145,6 +154,7 @@ function quiz_stats_validate_vid($quiz, $vid) {
        WHERE nr.vid = %d
      )'
   );
-  $nid = db_result(db_query($sql, $vid));
+  // TODO Please convert this statement to the D7 database API syntax.
+  $nid = db_query($sql, $vid)->fetchField();
   return $quiz->nid == $nid;
 }

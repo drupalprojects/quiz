@@ -13,7 +13,7 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function multichoice_help($path, $args) {
   if ($path == 'admin/help#multichoice') {
@@ -36,7 +36,7 @@ function multichoice_help($path, $args) {
   }
 }
 /**
- * Implementation of hook_quiz_question_info().
+ * Implements hook_quiz_question_info().
  */
 function multichoice_quiz_question_info() {
   return array(
@@ -50,7 +50,7 @@ function multichoice_quiz_question_info() {
   );
 }
 /**
- * Implementation of hook_config
+ * Implements hook_config().
  */
 function multichoice_config() {
   $form['multichoice_def_num_of_alts'] = array(
@@ -76,12 +76,13 @@ function multichoice_config() {
  * Validate the multichoice config form values
  */
 function multichoice_config_validate($form, $form_state) {
-  if (!_quiz_is_int($form_state['values']['multichoice_def_num_of_alts'], 2, 50))
+  if (!_quiz_is_int($form_state['values']['multichoice_def_num_of_alts'], 2, 50)) {
     form_set_error('multichoice_def_num_of_alts', t('The default number of alternatives must be between 2 and 50'));
+  }
 }
 
 /**
- * Implementation of hook_menu
+ * Implements hook_menu().
  */
 function multichoice_menu() {
   $dummy_node = new stdClass();
@@ -96,7 +97,7 @@ function multichoice_menu() {
 }
 
 /**
- * Implementation of hook_autoload_info().
+ * Implements hook_autoload_info().
  */
 function multichoice_autoload_info() {
   return array(
@@ -106,51 +107,43 @@ function multichoice_autoload_info() {
 }
 
 /**
- * Implementation of hook_theme
+ * Implements hook_theme().
  */
 function multichoice_theme($existing, $type, $theme, $path) {
   return array(
     'multichoice_creation_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_answer_node_view' => array(
-      'arguments' => array(
+      'variables' => array(
         'alternatives' => NULL,
         'show_correct' => NULL,
       ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_response' => array(
-      'arguments' => array(
+      'variables' => array(
         'data' => array(),
       ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_alternative_creation' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'template' => 'multichoice-alternative-creation',
     ),
     'multichoice_answering_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'template' => 'multichoice-answering-form',
     ),
     'multichoice_alternative' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'multichoice') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'multichoice') . '/theme',
       'template' => 'multichoice-alternative',
     ),
   );
@@ -160,7 +153,7 @@ function multichoice_theme($existing, $type, $theme, $path) {
  * ahah callback function used when adding alternatives to the node-form
  */
 function multichoice_add_alternative_ahah() {
-  include_once 'modules/node/node.pages.inc';
+  include_once DRUPAL_ROOT . '/' . 'modules/node/node.pages.inc';
   $form_state = array('storage' => NULL, 'submitted' => FALSE);
   $form_build_id = $_POST['form_build_id'];
 
@@ -179,7 +172,7 @@ function multichoice_add_alternative_ahah() {
   $form_id = array_shift($args);
 
   // We will run some of the submit handlers so we need to disable redirecting.
-  $form['#redirect'] = FALSE;
+  $form_state['#redirect'] = FALSE;
 
   // We need to process the form, prepare for that by setting a few internals
   // variables.
@@ -206,8 +199,9 @@ function multichoice_add_alternative_ahah() {
   $new_choice = $form['alternatives'][$i];
   $new_choice['#collapsed'] = FALSE;
   $output = form_get_errors() ? '' : drupal_render($new_choice);
+  // TODO Please change this theme call to use an associative array for the $variables parameter.
   $status = theme('status_messages');
-  drupal_json(array('status' => TRUE, 'data' => $status . $output));
+  drupal_json_output(array('status' => TRUE, 'data' => $status . $output));
 }
 
 /**
@@ -244,20 +238,25 @@ function _multichoice_skip_validation(&$elements) {
 }
 
 /**
- * Implementation of hook user.
+ * Implements hook_user_cancel().
  */
-function multichoice_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'delete':
-      $sql = 'DELETE FROM {quiz_multichoice_user_settings}
+function multichoice_user_cancel($edit, $account, $method) {
+  $sql = 'DELETE FROM {quiz_multichoice_user_settings}
               WHERE uid = %d';
-      db_query($sql, $account->uid);
-    break;
-  }
+  // TODO Please review the conversion of this statement to the D7 database API syntax.
+  /* db_query($sql, $account->uid) */
+  db_delete('quiz_multichoice_user_settings')
+  ->condition('uid', $account->uid)
+  ->execute();
 }
 
 /**
- * Implementation of hook_content_extra_fields(cck)
+ * Implementation of hook user.
+ */
+function multichoice_user_OLD($op, &$edit, &$account, $category = NULL) { }
+
+/**
+ * Implements hook_content_extra_fields(cck)().
  */
 function multichoice_content_extra_fields($type_name) {
   $extra = array();

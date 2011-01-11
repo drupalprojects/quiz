@@ -12,7 +12,8 @@
  * @param $unscored
  *  An array of objects with information about the unscored questions
  */
-function theme_short_answer_view_unscored($unscored) {
+function theme_short_answer_view_unscored($variables) {
+  $unscored = $variables['unscored'];
   $output = '';
   $header = array(
     t('Question'),
@@ -32,7 +33,7 @@ function theme_short_answer_view_unscored($unscored) {
   }
 
   if (!empty($rows)) {
-    $output .= theme('table', $header, $rows);
+    $output .= theme('table', array('header' => $header, 'rows' => $rows));
   }
   else {
     $output .= t('There are no unscored essays.');
@@ -40,10 +41,16 @@ function theme_short_answer_view_unscored($unscored) {
   return $output;
 }
 
-function theme_short_answer_user_answer($answer, $correct) {
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function theme_short_answer_user_answer($variables) {
+  $answer = $variables['answer'];
+  $correct = $variables['correct'];
   $header = array(t('Correct Answer'), t('User Answer'));
   $row = array(array($correct, $answer));
-  return theme('table', $header, $row);
+  return theme('table', array('header' => $header, 'rows' => $row));
 }
 
 /**
@@ -52,6 +59,7 @@ function theme_short_answer_user_answer($answer, $correct) {
  * @param $form
  *  The response form
  */
-function theme_short_answer_response_form($form) {
-  return drupal_render($form);
+function theme_short_answer_response_form($variables) {
+  $form = $variables['form'];
+  return drupal_render_children($form);
 }

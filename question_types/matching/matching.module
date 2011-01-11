@@ -10,7 +10,7 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function matching_help($path, $args) {
   switch ($path) {
@@ -25,7 +25,7 @@ function matching_help($path, $args) {
 }
 
 /**
- * Implementation of hook_quiz_question_info().
+ * Implements hook_quiz_question_info().
  */
 function matching_quiz_question_info() {
   return array(
@@ -65,12 +65,13 @@ function matching_config() {
  * Validate the matching config form values
  */
 function matching_config_validate($form, $form_state) {
-  if (!_quiz_is_int($form_state['values']['quiz_matching_form_size'], 2, 50))
+  if (!_quiz_is_int($form_state['values']['quiz_matching_form_size'], 2, 50)) {
     form_set_error('quiz_matching_form_size', t('The number of questions must be between 2 and 50'));
+  }
 }
 
 /**
- * Implementation of hook_autoload_info().
+ * Implements hook_autoload_info().
  */
 function matching_autoload_info() {
   return array(
@@ -80,35 +81,33 @@ function matching_autoload_info() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function matching_theme() {
   return array(
     'matching_question_form' => array(
-      'arguments' => array('form' => NULL),
-      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'matching') . '/theme',
       'file' => 'matching.theme.inc',
     ),
     'matching_response' => array(
-      'arguments' => array('metadata' => NULL, 'data' => NULL),
-      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'variables' => array('metadata' => NULL, 'data' => NULL),
+      'path' => drupal_get_path('module', 'matching') . '/theme',
       'file' => 'matching.theme.inc',
     ),
     'matching_subquestion_form' => array(
-      'arguments' => array('form' => NULL),
-      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'matching') . '/theme',
       'file' => 'matching.theme.inc',
     ),
     'matching_match_node_view' => array(
-      'arguments' => array('subquestions' => NULL),
-      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'variables' => array('subquestions' => NULL),
+      'path' => drupal_get_path('module', 'matching') . '/theme',
       'file' => 'matching.theme.inc',
     ),
     'matching_answering_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'matching') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'matching') . '/theme',
       'template' => 'matching-answering-form',
     ),
 

@@ -11,6 +11,10 @@
  * Implementation of hook_help().
  */
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function ajax_quiz_help($path, $arg) {
   if ($path == 'admin/help#ajax_quiz') {
     return '<p>' . t('AJAX version of quiz. Successive quiz questions will be loaded in the same page without page reload.') . '</p>';
@@ -23,12 +27,21 @@ function ajax_quiz_help($path, $arg) {
  * @return array An array of valid permissions.
  */
 
-function ajax_quiz_perm() {
-  return array('access ajax quiz');
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function ajax_quiz_permission() {
+  return array(
+    'access ajax quiz' => array(
+      'title' => t('access ajax quiz'),
+      'description' => t('TODO Add a description for \'access ajax quiz\''),
+    ),
+  );
 }
 
 /**
- * Implementation of hook_menu
+ * Implements hook_menu().
  *
  */
 function ajax_quiz_menu() {
@@ -48,6 +61,10 @@ function ajax_quiz_menu() {
  * @function
  * Implementation of hook_init
  * includes the necessary js file(s).
+ */
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
  */
 function ajax_quiz_init() {
   //drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');

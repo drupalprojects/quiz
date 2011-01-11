@@ -50,7 +50,9 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
     }
   }
 
-  function can_expose() { return FALSE; }
+  function can_expose() {
+    return FALSE;
+  }
 
   function option_definition() {
     $options = parent::option_definition();
@@ -107,11 +109,11 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
     $this->group_by_table = !empty($this->definition['group by table']) ?
       $this->query->ensure_table($this->definition['group by table']) :
       $this->table_alias;
-//    $this->query->add_groupby("$this->group_by_table.$this->group_by");
+    //    $this->query->add_groupby("$this->group_by_table.$this->group_by");
     $this->query->add_groupby("$this->table_alias.$this->field");
     $this->query->add_groupby("$this->table_alias.$this->vid_field");
 
-//    if (!empty($this->secondary_group_by) || !empty($this->options['secondary_group_by'])) {
+    //    if (!empty($this->secondary_group_by) || !empty($this->options['secondary_group_by'])) {
     if (!empty($this->secondary_group_by)) {
 
       $this->secondary_table_alias = $this->query->ensure_table($this->secondary_table);

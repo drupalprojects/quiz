@@ -35,14 +35,14 @@ class QuizDirectionsQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#validateNode($form)
    */
-  public function validateNode(array &$form) {}
+  public function validateNode(array &$form) { }
 
   /**
    * Implementation of saveNodeProperties
    *
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
-  public function saveNodeProperties($is_new = FALSE) {}
+  public function saveNodeProperties($is_new = FALSE) { }
 
   /**
    * Implementation of getAnsweringForm
@@ -102,14 +102,14 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
    *
    * @see QuizQuestionResponse#save()
    */
-  public function save() {}
+  public function save() { }
 
   /**
    * Implementation of delete
    *
    * @see QuizQuestionResponse#delete()
    */
-  public function delete() {}
+  public function delete() { }
 
   /**
    * Implementation of score
@@ -124,7 +124,14 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
     if (isset($_SESSION[$quiz_key]['previous_quiz_questions']) && count($_SESSION[$quiz_key]['previous_quiz_questions']) === 1) {
       // reset the timer.
       $sql = 'UPDATE {quiz_node_results} SET time_start=%d WHERE result_id = %d';
-      db_query($sql, time(), $this->rid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, REQUEST_TIME, $this->rid) */
+      db_update('quiz_node_results')
+  ->fields(array(
+    'time_start' => REQUEST_TIME,
+  ))
+  ->condition('result_id', $this->rid)
+  ->execute();
     }
 
     // Set the score

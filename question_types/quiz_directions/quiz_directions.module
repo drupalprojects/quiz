@@ -9,7 +9,7 @@
  */
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function quiz_directions_help($path, $args) {
   if ($path == 'admin/help#quiz_directions') {
@@ -18,7 +18,7 @@ function quiz_directions_help($path, $args) {
 }
 
 /**
- * Implementation of hook_quiz_question_info().
+ * Implements hook_quiz_question_info().
  */
 function quiz_directions_quiz_question_info() {
   return array(
@@ -33,14 +33,14 @@ function quiz_directions_quiz_question_info() {
 }
 
 /**
- * Implementation of hook_config
+ * Implements hook_config().
  */
 function quiz_directions_config() {
   return FALSE;
 }
 
 /**
- * Implementation of hook_autoload_info().
+ * Implements hook_autoload_info().
  */
 function quiz_directions_autoload_info() {
   return array(
@@ -50,15 +50,13 @@ function quiz_directions_autoload_info() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function quiz_directions_theme() {
   return array(
     'quiz_directions_answering_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'quiz_directions') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'quiz_directions') . '/theme',
       'template' => 'quiz-directions-answering-form',
     ),
   );

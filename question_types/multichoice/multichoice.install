@@ -11,16 +11,17 @@
 
 
 /**
- * Implementation of hook_install()
+ * Implements hook_install().
  */
 function multichoice_install() {
-  drupal_install_schema('multichoice');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_install_schema('multichoice')
   cache_clear_all('autoload:', 'cache');
   variable_set('node_options_multichoice', array('status'));
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function multichoice_schema() {
   // Stores the users answers to a question.
@@ -209,13 +210,16 @@ function multichoice_schema() {
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  */
 function multichoice_update_6300() {
   $ret = array();
   $spec = array('type' => 'text');
-  db_change_field($ret, 'quiz_multichoice_answers', 'answer', 'answer', $spec);
-  return $ret;
+  db_change_field('quiz_multichoice_answers', 'answer', 'answer', $spec);
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $ret */;
 }
 /**
  * Implementation of hook_update_N().
@@ -224,9 +228,13 @@ function multichoice_update_6300() {
  * This update hook converts the database
  */
 
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function multichoice_update_6400(&$sandbox = NULL) {
   if (!module_exists('autoload')) {
-    drupal_install_modules(array('autoload' ,'quiz_question'));
+    drupal_install_modules(array('autoload', 'quiz_question'));
     if (!module_exists('autoload')) {
       return array('#abort' => array('success' => FALSE, 'query' => 'The <a href="http://drupal.org/project/autoload">Autoload</a> module is missing. You need to <a href="http://drupal.org/project/autoload">download</a> and enable autoload before you run update.php.'));
     }
@@ -234,50 +242,59 @@ function multichoice_update_6400(&$sandbox = NULL) {
   $path = drupal_get_path('module', 'multichoice');
   // This is a big update. We have put it in its own file to avoid cluttering
   // this install file
-  require_once("$path/multichoice_update_6400.inc");
-  return _multichoice_update_6400($sandbox);
+  require_once DRUPAL_ROOT . '/' . "$path/multichoice_update_6400.inc";
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* _multichoice_update_6400($sandbox) */;
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  *
  * Change how we store the user settings
  */
 function multichoice_update_6401(&$sandbox = NULL) {
   $results = array();
-  db_drop_field($results, 'quiz_multichoice_user_settings', 'last_nid');
-  db_drop_field($results, 'quiz_multichoice_user_settings', 'last_vid');
-  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_boolean', array(
+  db_drop_field('quiz_multichoice_user_settings', 'last_nid');
+  db_drop_field('quiz_multichoice_user_settings', 'last_vid');
+  db_add_field('quiz_multichoice_user_settings', 'choice_boolean', array(
     'type' => 'int',
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
   ));
-  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_random', array(
+  db_add_field('quiz_multichoice_user_settings', 'choice_random', array(
     'type' => 'int',
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
   ));
-  db_add_field($results, 'quiz_multichoice_user_settings', 'choice_multi', array(
+  db_add_field('quiz_multichoice_user_settings', 'choice_multi', array(
     'type' => 'int',
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
   ));
-  return $results;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  *
  * Add indexes to improve performance
  */
 function multichoice_update_6402() {
   $results = array();
-  db_add_index($results, 'quiz_multichoice_answers', 'quiz_id', array('question_nid', 'question_vid'));
-  db_add_index($results, 'quiz_multichoice_user_answers', 'answer_id', array('result_id', 'question_nid', 'question_vid'));
-  return $results;
+  db_add_index('quiz_multichoice_answers', 'quiz_id', array('question_nid', 'question_vid'));
+  db_add_index('quiz_multichoice_user_answers', 'answer_id', array('result_id', 'question_nid', 'question_vid'));
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -287,15 +304,18 @@ function multichoice_update_6402() {
  */
 function multichoice_update_6403() {
   $results = array();
-  foreach(array('score_if_chosen', 'score_if_not_chosen') as $field) {
-    db_change_field($results, 'quiz_multichoice_answers', $field, $field, array(
+  foreach (array('score_if_chosen', 'score_if_not_chosen') as $field) {
+    db_change_field('quiz_multichoice_answers', $field, $field, array(
       'type' => 'int',
       'unsigned' => FALSE,
       'not null' => TRUE,
       'default' => 0,
     ));
   }
-  return $results;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -305,26 +325,34 @@ function multichoice_update_6403() {
  */
 function multichoice_update_6404() {
   $results = array();
-  $results[] = update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE type = 'multichoice'");
-  return $results;
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $results[] = array() /* update_sql("UPDATE {node_type} SET module = 'quiz_question' WHERE type = 'multichoice'") */;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  *
  * Add index to improve performance
  */
 function multichoice_update_6405() {
   $results = array();
-  db_add_index($results, 'quiz_multichoice_user_answer_multi', 'answer_id', array('user_answer_id'));
-  return $results;
+  db_add_index('quiz_multichoice_user_answer_multi', 'answer_id', array('user_answer_id'));
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
- * Implementation of hook_uninstall()
+ * Implements hook_uninstall().
  */
 function multichoice_uninstall() {
-  drupal_uninstall_schema('multichoice');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_uninstall_schema('multichoice')
   $var = array(
     'multichoice_def_scoring',
     'multichoice_def_num_of_alts',

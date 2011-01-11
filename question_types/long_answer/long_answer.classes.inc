@@ -12,7 +12,7 @@
 /**
  * Extension of QuizQuestion.
  */
-class LongAnswerQuestion extends QuizQuestion{
+class LongAnswerQuestion extends QuizQuestion {
   /**
    * Implementation of saveNodeProperties
    *
@@ -26,13 +26,29 @@ class LongAnswerQuestion extends QuizQuestion{
       $sql = "INSERT INTO {quiz_long_answer_node_properties}
         (nid, vid, rubric)
         VALUES (%d, %d, '%s')";
-      db_query($sql, $this->node->nid, $this->node->vid, $this->node->rubric);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid, $this->node->rubric) */
+      $id = db_insert('quiz_long_answer_node_properties')
+  ->fields(array(
+    'nid' => $this->node->nid,
+    'vid' => $this->node->vid,
+    'rubric' => $this->node->rubric,
+  ))
+  ->execute();
     }
     else {
       $sql = "UPDATE {quiz_long_answer_node_properties}
         SET rubric = '%s'
         WHERE nid = %d AND vid = %d";
-      db_query($sql, $this->node->rubric, $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->rubric, $this->node->nid, $this->node->vid) */
+      db_update('quiz_long_answer_node_properties')
+  ->fields(array(
+    'rubric' => $this->node->rubric,
+  ))
+  ->condition('nid', $this->node->nid)
+  ->condition('vid', $this->node->vid)
+  ->execute();
     }
   }
 
@@ -41,8 +57,7 @@ class LongAnswerQuestion extends QuizQuestion{
    *
    * @see QuizQuestion#validateNode($form)
    */
-  public function validateNode(array &$form) {
-  }
+  public function validateNode(array &$form) { }
 
   /**
    * Implementation of delete
@@ -51,12 +66,30 @@ class LongAnswerQuestion extends QuizQuestion{
    */
   public function delete($only_this_version = FALSE) {
     if ($only_this_version) {
-      db_query('DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d AND question_vid = %d', $this->node->nid, $this->node->vid);
-      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d AND question_vid = %d', $this->node->nid, $this->node->vid) */
+      db_delete('quiz_long_answer_user_answers')
+  ->condition('question_nid', $this->node->nid)
+  ->condition('question_vid', $this->node->vid)
+  ->execute();
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid) */
+      db_delete('quiz_long_answer_node_properties')
+  ->condition('nid', $this->node->nid)
+  ->condition('vid', $this->node->vid)
+  ->execute();
     }
     else {
-      db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->node->nid);
-      db_query('DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d', $this->node->nid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->node->nid) */
+      db_delete('quiz_long_answer_node_properties')
+  ->condition('nid', $this->node->nid)
+  ->execute();
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query('DELETE FROM {quiz_long_answer_user_answers} WHERE question_nid = %d', $this->node->nid) */
+      db_delete('quiz_long_answer_user_answers')
+  ->condition('question_nid', $this->node->nid)
+  ->execute();
     }
     parent::delete($only_this_version);
   }
@@ -67,16 +100,21 @@ class LongAnswerQuestion extends QuizQuestion{
    * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
-    if (isset($this->nodeProperties)) return $this->nodeProperties;
+    if (isset($this->nodeProperties)) {
+      return $this->nodeProperties;
+    }
     $props = parent::getNodeProperties();
 
     $sql = 'SELECT rubric
       FROM {quiz_long_answer_node_properties}
       WHERE nid = %d AND vid = %d';
-    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $res = db_query('SELECT rubric
+      FROM {quiz_long_answer_node_properties}
+      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
     $res_a = db_fetch_array($res);
-    if (is_array($res_a))
-    $props = array_merge($props, $res_a);
+    if (is_array($res_a)) {
+      $props = array_merge($props, $res_a);
+    }
     $this->nodeProperties = $props;
     return $props;
   }
@@ -90,11 +128,11 @@ class LongAnswerQuestion extends QuizQuestion{
     $content = parent::getNodeView();
 
     if ($this->viewCanRevealCorrect()) {
-      $rubric_html = check_markup($this->node->rubric, $this->node->format, FALSE);
+      $rubric_html = check_markup($this->node->rubric, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE);
       $content['answers'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
-        '#value' => '<div class="quiz-solution">' . $rubric_html .'</div>',
+        '#value' => '<div class="quiz-solution">' . $rubric_html . '</div>',
         '#weight' => 1,
       );
     }
@@ -184,7 +222,11 @@ class LongAnswerResponse extends QuizQuestionResponse {
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
       INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
       WHERE a.is_evaluated = 0';
-    $results = db_query_range($sql, $offset, $count);
+    $results = db_query_range('SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
+      FROM {quiz_long_answer_user_answers} AS a
+      INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
+      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
+      WHERE a.is_evaluated = :a.is_evaluated', array(':a.is_evaluated' => 0));
     $unscored = array();
 
     if ($results) {
@@ -214,10 +256,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
   public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
     $results = db_query_range('SELECT result_id
       FROM {quiz_long_answer_user_answers}
-      WHERE is_evaluated = 0
-      AND question_nid = %d
-      AND question_vid = %d',
-      $nid, $vid, $offset, $count);
+      WHERE is_evaluated = :is_evaluated
+      AND question_nid = :question_nid
+      AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid));
     $unscored = array();
     foreach (db_fetch_object($results) as $row) {
       $unscored[] = $row->result_id;
@@ -241,7 +282,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
       $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_long_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-      $r = db_fetch_object(db_query($sql, $question_node->nid, $question_node->vid, $result_id));
+      $r = db_fetch_object(db_query("SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+        FROM {quiz_long_answer_user_answers}
+        WHERE question_nid = :question_nid AND question_vid = :question_vid AND result_id = :result_id", array(':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid, ':result_id' => $result_id)));
 
       if (!empty($r)) {
         $this->answer = $r->answer;
@@ -262,7 +305,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
-    if (trim($this->answer) == '') return t('You must provide an answer');
+    if (trim($this->answer) == '') {
+      return t('You must provide an answer');
+    }
     return TRUE;
   }
 
@@ -275,7 +320,16 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $sql = "INSERT INTO {quiz_long_answer_user_answers}
             (answer, question_nid, question_vid, result_id)
             VALUES ('%s', %d, %d, %d)";
-    db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid);
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid) */
+    $id = db_insert('quiz_long_answer_user_answers')
+  ->fields(array(
+    'answer' => $this->answer,
+    'question_nid' => $this->question->nid,
+    'question_vid' => $this->question->vid,
+    'result_id' => $this->rid,
+  ))
+  ->execute();
     $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
   }
 
@@ -287,7 +341,13 @@ class LongAnswerResponse extends QuizQuestionResponse {
   public function delete() {
     $sql = 'DELETE FROM {quiz_long_answer_user_answers}
             WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
-    db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $this->question->nid, $this->question->vid, $this->rid) */
+    db_delete('quiz_long_answer_user_answers')
+  ->condition('question_nid', $this->question->nid)
+  ->condition('question_vid', $this->question->vid)
+  ->condition('result_id', $this->rid)
+  ->execute();
   }
 
   /**
@@ -299,7 +359,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $sql = "SELECT score
             FROM {quiz_long_answer_user_answers}
             WHERE result_id = %d AND question_vid = %d";
-    $score = (int)db_result(db_query($sql, $this->rid, $this->question->vid));
+    $score = (int) db_query("SELECT score
+            FROM {quiz_long_answer_user_answers}
+            WHERE result_id = :result_id AND question_vid = :question_vid", array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
     return $score;
   }
 
@@ -320,10 +382,12 @@ class LongAnswerResponse extends QuizQuestionResponse {
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $form = array();
     $form['#theme'] = 'long_answer_response_form';
-    if ($this->question && !empty($this->question->answers))
+    if ($this->question && !empty($this->question->answers)) {
       $answer = (object) current($this->question->answers);
-    else
+    }
+    else {
       return $form;
+    }
     $form['answer'] = array(
       '#type' => 'markup',
       '#value' => check_markup($answer->answer),
@@ -343,7 +407,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
       $form['rubric'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
-        '#value' => check_markup($this->question->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+        '#value' => check_markup($this->question->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
       );
     }
     if (!empty($feedback)) {

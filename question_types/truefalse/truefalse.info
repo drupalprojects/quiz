@@ -2,7 +2,20 @@
 name = True False
 package = Quiz Question
 description = Module to create True or False Kind of Questions
-core = 6.x
+core = 7.x
 php = 5
 dependencies[] = quiz
 dependencies[] = quiz_question
+
+; Information added by drupal.org packaging script on 2011-01-11
+version = "6.x-4.0"
+core = 7.x
+project = "quiz"
+datestamp = "1294785668"
+
+
+files[] = truefalse.classes.inc
+files[] = truefalse.install
+files[] = truefalse.module
+files[] = truefalse.test
+files[] = theme/truefalse-answering-form.tpl.php

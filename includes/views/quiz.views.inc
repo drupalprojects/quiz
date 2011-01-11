@@ -287,7 +287,7 @@ function quiz_views_data() {
       // Related to TERM
       'relationship' => array(
         'handler' => 'views_handler_relationship',
-        'base' => 'term_data',
+        'base' => 'taxonomy_term_data',
         'field' => 'tid',
         'label' => t('term'),
       ),

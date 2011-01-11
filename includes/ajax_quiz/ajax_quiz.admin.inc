@@ -12,6 +12,10 @@
  * @return
  * HTML quiz description
  */
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
 function ajax_quiz_instruction($node) {
   // If this is an AJAX request, return the AJAX result.
   if (isset($_REQUEST['ajax_load_example']) && $_REQUEST['ajax_load_example']) {
@@ -20,7 +24,7 @@ function ajax_quiz_instruction($node) {
   else {
     drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
     $output = '<div class="ajax-quiz-wrapper">';
-    $output .= '<div class="ajax-quiz-description">' . $node->body .'</div>';
+    $output .= '<div class="ajax-quiz-description">' . $node->body . '</div>';
     $output .= '<div class="ajax-quiz-start">' . l(t('Start'), $_GET['q'], array('attributes' => array('class' => 'ajax-load-example'))) . '</div>';
     $output .= '</div>';
     return $output;
@@ -50,6 +54,6 @@ function _ajax_quiz_get_questions($node) {
   // The fourth and optional argument is the original data that was the subject
   // of the ajax operation--in this case, a form ID.
   drupal_alter('ajax_data', $result, 'ajax_load_example', 'node_view');
-  drupal_json($result);
+  drupal_json_output($result);
 }
 

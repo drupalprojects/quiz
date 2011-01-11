@@ -10,7 +10,7 @@
 
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function truefalse_help($path, $args) {
   switch ($path) {
@@ -25,7 +25,7 @@ function truefalse_help($path, $args) {
 }
 
 /**
- * Implementation of hook_quiz_question_info().
+ * Implements hook_quiz_question_info().
  */
 function truefalse_quiz_question_info() {
   return array(
@@ -40,14 +40,14 @@ function truefalse_quiz_question_info() {
 }
 
 /**
- * Implementation of the quiz_question hook_config
+ * Implements hook_config().
  */
 function truefalse_config() {
   return FALSE;
 }
 
 /**
- * Implementation of hook_autoload_info().
+ * Implements hook_autoload_info().
  */
 function truefalse_autoload_info() {
   return array(
@@ -57,19 +57,17 @@ function truefalse_autoload_info() {
 }
 
 /**
- * Implementation of hook_theme().
+ * Implements hook_theme().
  */
 function truefalse_theme() {
   return array(
     'truefalse_answering_form' => array(
-      'arguments' => array(
-        'form' => NULL,
-      ),
-      'path' => drupal_get_path('module', 'truefalse') .'/theme',
+      'render element' => 'form',
+      'path' => drupal_get_path('module', 'truefalse') . '/theme',
       'template' => 'truefalse-answering-form',
     ),
     'truefalse_response' => array(
-      'arguments' => array(
+      'variables' => array(
         'metadata' => array(),
         'data' => array(),
       ),
@@ -85,6 +83,8 @@ function truefalse_theme() {
  * @param $data
  *  Can be used as table rows
  */
-function theme_truefalse_response($metadata, $data) {
-  return theme('table', $metadata, $data);
+function theme_truefalse_response($variables) {
+  $metadata = $variables['metadata'];
+  $data = $variables['data'];
+  return theme('table', array('header' => $metadata, 'rows' => $data));
 }

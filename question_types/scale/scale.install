@@ -11,20 +11,21 @@
 
 
 /**
- * Implementation of hook_install()
+ * Implements hook_install().
  */
 function scale_install() {
-  drupal_install_schema('scale');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_install_schema('scale')
   _scale_insert_collection(array('Always', 'Very often', 'Some times', 'Rarely', 'Very rarely', 'Never'));
   _scale_insert_collection(array('Excellent', 'Very good', 'Good', 'Ok', 'Poor', 'Very poor'));
   _scale_insert_collection(array('Totally agree', 'Agree', 'Not sure', 'Disagree', 'Totally disagree'));
-  _scale_insert_collection(array('Very important', 'Important', 'Moderately important', 'Less important' , 'Least important'));
+  _scale_insert_collection(array('Very important', 'Important', 'Moderately important', 'Less important', 'Least important'));
   variable_set('node_options_scale', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function scale_schema() {
   $schema['quiz_scale_node_properties'] = array(
@@ -147,17 +148,20 @@ function scale_schema() {
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  *
  * NOTE: We shouldn't create update hooks for rebuilding the theme registry, but since this is already here we can't remove it...
  */
 function scale_update_6400() {
   // drupal_rebuild_theme_registry();
-  return array();
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* array() */;
 }
 
 /**
- * Implementation of hook_update_N().
+ * Implements hook_update_N().
  *
  * Update max score for the scale questions in the database
  */
@@ -170,15 +174,20 @@ function scale_update_6401() {
             WHERE n.type = \'scale\'
           )';
   $to_return = array();
-  $to_return[] = update_sql($sql);
-  return $to_return;
+  // TODO update_sql has been removed. Use the database API for any schema or data changes.
+  $to_return[] = array() /* update_sql($sql) */;
+  // hook_update_N() no longer returns a $ret array. Instead, return
+  // nothing or a translated string indicating the update ran successfully.
+  // See http://drupal.org/node/224333#update_sql.
+  return t('TODO Add a descriptive string here to show in the UI.') /* $to_return */;
 }
 
 /**
- * Implementation of hook_uninstall()
+ * Implements hook_uninstall().
  */
 function scale_uninstall() {
-  drupal_uninstall_schema('scale');
+  // TODO The drupal_(un)install_schema functions are called automatically in D7.
+  // drupal_uninstall_schema('scale')
   variable_del('scale_max_num_of_alts');
   cache_clear_all('variables', 'cache');
   drupal_set_message(t("The Scale module has been uninstalled. Scale nodes may still exist, but they will not function properly."));
@@ -194,19 +203,25 @@ function _scale_insert_collection($answers) {
   // Save the collection as a global preset
   $sql = 'INSERT INTO {quiz_scale_answer_collection}
          (for_all) VALUES(1)';
-  db_query($sql);
+  // TODO Please convert this statement to the D7 database API syntax.
+  /* db_query($sql) */
+  NULL;
 
   // Save the collections as a preset collection for user 1
   $collection_id = db_last_insert_id('{quiz_scale_answer_collection}', 'id');
   $sql = 'INSERT INTO {quiz_scale_user}
          (uid, answer_collection_id) VALUES(%d, %d)';
-  db_query($sql, 1, $collection_id);
+  // TODO Please convert this statement to the D7 database API syntax.
+  /* db_query($sql, 1, $collection_id) */
+  NULL;
 
   // Save the answers belonging to the collection
   for ($i = 0; $i < count($answers); $i++) {
     $sql = 'INSERT INTO {quiz_scale_answer}
            (answer_collection_id, answer)
            VALUES(%d, \'%s\')';
-    db_query($sql, $collection_id, $answers[$i]);
+    // TODO Please convert this statement to the D7 database API syntax.
+    /* db_query($sql, $collection_id, $answers[$i]) */
+    NULL;
   }
 }

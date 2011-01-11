@@ -35,9 +35,9 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     parent::options_form($form, $form_state);
     // Set weighting so that our element can sanely ordered
     $form['title']['#weight'] = -2;
-//    $form['default_action']['#weight'] = -3;
-//    $form['wildcard']['#weight'] = -4;
-//    $form['wildcard_substitution']['#weight'] = -4;
+    //    $form['default_action']['#weight'] = -3;
+    //    $form['wildcard']['#weight'] = -4;
+    //    $form['wildcard_substitution']['#weight'] = -4;
     $form['which_vid'] = array(
       '#type' => 'select',
       '#title' => t('Quiz revision(s) to use'),
@@ -56,6 +56,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     $titles = array();
     $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
 
+    // TODO Please convert this statement to the D7 database API syntax.
     $result = db_query("SELECT n.title FROM {node_revisions} n WHERE n.vid IN ($placeholders)", $this->corresponding_vids);
     while ($term = db_fetch_object($result)) {
       $titles[] = check_plain($term->title);
@@ -147,10 +148,12 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
         // If we need a group by clause, tag it onto the end.
         $where .= ($use_group_by) ? ' GROUP BY qnp.nid' : '';
 
+        // TODO Please convert this statement to the D7 database API syntax.
         $result = db_query("SELECT $operation(qnp.vid) AS vid $from $where", $this->value);
         break;
 
       case 'all':
+        // TODO Please convert this statement to the D7 database API syntax.
         $result = db_query("SELECT qnp.vid AS vid $from $where", $this->value);
         break;
     }

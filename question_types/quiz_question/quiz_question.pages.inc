@@ -20,10 +20,11 @@
  * @return
  *  FAPI form array
  */
-function quiz_question_revision_actions($form_state, $nid, $vid) {
+function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
   // If no questions were kept we shouldn't get here...
-  if (!isset($_SESSION['quiz_question_kept']))
-    drupal_goto('node/'. $nid);
+  if (!isset($_SESSION['quiz_question_kept'])) {
+    drupal_goto('node/' . $nid);
+  }
 
   $form = array();
   $form['q_nid'] = array('#type' => 'value', '#value' => intval($nid));
@@ -43,7 +44,8 @@ function quiz_question_revision_actions($form_state, $nid, $vid) {
   $sql = "SELECT nr.nid, nr.vid, nr.title, n.status
           FROM {node_revisions} nr
           JOIN {node} n ON n.nid = nr.nid
-          WHERE nr.vid IN (". implode(',', $quiz_vids) .")";
+          WHERE nr.vid IN (" . implode(',', $quiz_vids) . ")";
+  // TODO Please convert this statement to the D7 database API syntax.
   $res = db_query($sql);
   while ($res_o = db_fetch_object($res)) {
     $res_o->answered = quiz_has_been_answered($res_o);
@@ -64,9 +66,9 @@ function quiz_question_revision_actions($form_state, $nid, $vid) {
     // We fetch the revision options from a helper function
     $options = _quiz_question_revision_options($quiz->status == 1, $quiz->answered);
 
-    $form['quizzes'][$quiz->nid .'-'. $quiz->vid .'-'. $quiz->status .'-'. ($quiz->answered ? '1' : '0')] = array(
+    $form['quizzes'][$quiz->nid . '-' . $quiz->vid . '-' . $quiz->status . '-' . ($quiz->answered ? '1' : '0')] = array(
       '#type' => 'radios',
-      '#title' => check_plain($quiz->title) .' ('. $published .' '. t('and') .' '. $answered .')',
+      '#title' => check_plain($quiz->title) . ' (' . $published . ' ' . t('and') . ' ' . $answered . ')',
       '#default_value' => $options['default'],
       '#options' => $options['options'],
     );
@@ -166,17 +168,20 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
   unset($_SESSION['quiz_question_kept']);
 
   foreach ($form_state['values'] as $key => $value) {
-    if (!preg_match('/^[0-9]+-[0-9]+-[0,1]-[0,1]$/', $key)) continue;
+    if (!preg_match('/^[0-9]+-[0-9]+-[0,1]-[0,1]$/', $key)) {
+      continue;
+    }
     list($update, $revise, $publish) = str_split($value); //FORMAT: Update[0,1], revise[0,1] and publish[0,1]
     list($nid, $vid, $published, $answered) = explode('-', $key); //FORMAT: nid(int), vid(int), published[0,1] and answered[0,1]
 
     //If we are to revise the quiz we need to do that first...
     if ($revise == '1') {
-      $quiz_node = node_load((int)$nid, (int)$vid);
+      $quiz_node = node_load((int) $nid, (int) $vid);
       $quiz_node->revision = 1;
     }
-    if (!isset($quiz_node) && $publish != $published)
-      $quiz_node = node_load((int)$nid, (int)$vid);
+    if (!isset($quiz_node) && $publish != $published) {
+      $quiz_node = node_load((int) $nid, (int) $vid);
+    }
 
     // If the quiz node is to be revised and/or (un)published we save it now
     if (isset($quiz_node)) {
@@ -187,8 +192,8 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       $quiz_vid = $quiz_node->vid;
     }
     else {
-      $quiz_nid = (int)$nid;
-      $quiz_vid = (int)$vid;
+      $quiz_nid = (int) $nid;
+      $quiz_vid = (int) $vid;
     }
 
     if ($update == '1') {
@@ -196,44 +201,58 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
               FROM {quiz_node_relationship}
               WHERE parent_vid = %d
               AND child_nid = %d';
-      $res = db_query($sql, $quiz_vid, $form_state['values']['q_nid']);
-      if ($max_score = db_result($res));
+      $res = db_query('SELECT max_score
+              FROM {quiz_node_relationship}
+              WHERE parent_vid = :parent_vid
+              AND child_nid = :child_nid', array(':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
+      if ($max_score = $res->fetchField()) {
+      }
       else {
         $sql = 'SELECT max_score
                 FROM {quiz_question_properties}
                 WHERE vid = %d';
-        $res = db_query($sql, $form_state['values']['q_vid']);
-        $max_score = db_result($res);
+        $res = db_query('SELECT max_score
+                FROM {quiz_question_properties}
+                WHERE vid = :vid', array(':vid' => $form_state['values']['q_vid']));
+        $max_score = $res->fetchField();
       }
 
 
       $sql = 'SELECT weight, question_status
               FROM {quiz_node_relationship}
               WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-      $res = db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
+      $res = db_query('SELECT weight, question_status
+              FROM {quiz_node_relationship}
+              WHERE parent_nid = :parent_nid AND parent_vid = :parent_vid AND child_nid = :child_nid', array(':parent_nid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
       if ($res_o = db_fetch_object($res)) {
         // Remove old revsions of the question from the quiz
         $sql = 'DELETE FROM {quiz_node_relationship}
                 WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-        db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']);
+        // TODO Please review the conversion of this statement to the D7 database API syntax.
+        /* db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']) */
+        db_delete('quiz_node_relationship')
+  ->condition('parent_nid', $quiz_nid)
+  ->condition('parent_vid', $quiz_vid)
+  ->condition('child_nid', $form_state['values']['q_nid'])
+  ->execute();
         $weight = $res_o->weight;
         $question_status = $res_o->question_status;
       }
       else {
-        $weight = 1 + db_result(
-          db_query('SELECT MAX(weight)
+        $weight = 1 + db_query('SELECT MAX(weight)
                     FROM {quiz_node_relationship}
-                    WHERE parent_vid = %d'));
-        $quiz_randomization = db_result(
-          db_query('SELECT randomization
+                    WHERE parent_vid = :parent_vid', array())->fetchField();
+        $quiz_randomization = db_query('SELECT randomization
                     FROM quiz_node_properties
-                    WHERE nid = %d AND vid = %d'));
+                    WHERE nid = :nid AND vid = :vid', array())->fetchField();
         $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
       }
       // Insert the newest revision of the question into the quiz
       $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
               VALUES(%d, %d, %d, %d, %d, %d, %d)';
-      db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score, $weight, $question_status);
+      // TODO Please convert this statement to the D7 database API syntax.
+      /* db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score, $weight, $question_status) */
+      NULL;
     }
   }
 }

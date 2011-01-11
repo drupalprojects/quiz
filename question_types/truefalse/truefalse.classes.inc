@@ -25,11 +25,29 @@ class TrueFalseQuestion extends QuizQuestion {
 
     if ($is_new || $this->node->revision == 1) {
       $sql = "INSERT INTO {quiz_truefalse_node} (nid, vid, correct_answer, feedback) VALUES (%d, %d, %d, '%s')";
-      db_query($sql, $this->node->nid, $this->node->vid, (int)$this->node->correct_answer, $this->node->feedback);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid, (int) $this->node->correct_answer, $this->node->feedback) */
+      $id = db_insert('quiz_truefalse_node')
+  ->fields(array(
+    'nid' => $this->node->nid,
+    'vid' => $this->node->vid,
+    'correct_answer' => (int) $this->node->correct_answer,
+    'feedback' => $this->node->feedback,
+  ))
+  ->execute();
     }
     else {
       $sql = "UPDATE {quiz_truefalse_node} SET correct_answer = %d, feedback = '%s' WHERE nid = %d AND vid = %d";
-      db_query($sql, (int)$this->node->correct_answer, $this->node->feedback, $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, (int) $this->node->correct_answer, $this->node->feedback, $this->node->nid, $this->node->vid) */
+      db_update('quiz_truefalse_node')
+  ->fields(array(
+    'correct_answer' => (int) $this->node->correct_answer,
+    'feedback' => $this->node->feedback,
+  ))
+  ->condition('nid', $this->node->nid)
+  ->condition('vid', $this->node->vid)
+  ->execute();
     }
   }
 
@@ -53,16 +71,34 @@ class TrueFalseQuestion extends QuizQuestion {
     // Only delete a nid/vid.
     if ($only_this_version) {
       $sql = 'DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d AND question_vid = %d';
-      db_query($sql, $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid) */
+      db_delete('quiz_truefalse_user_answers')
+  ->condition('question_nid', $this->node->nid)
+  ->condition('question_vid', $this->node->vid)
+  ->execute();
       $sql = 'DELETE FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid) */
+      db_delete('quiz_truefalse_node')
+  ->condition('nid', $this->node->nid)
+  ->condition('vid', $this->node->vid)
+  ->execute();
     }
     // Delete all versions of the quiz question.
     else {
       $sql = 'DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d';
-      db_query($sql, $this->node->nid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid) */
+      db_delete('quiz_truefalse_user_answers')
+  ->condition('question_nid', $this->node->nid)
+  ->execute();
       $sql = 'DELETE FROM {quiz_truefalse_node} WHERE nid = %d';
-      db_query($sql, $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid) */
+      db_delete('quiz_truefalse_node')
+  ->condition('nid', $this->node->nid)
+  ->execute();
     }
   }
 
@@ -72,14 +108,17 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
-    if (isset($this->nodeProperties)) return $this->nodeProperties;
+    if (isset($this->nodeProperties)) {
+      return $this->nodeProperties;
+    }
     $props = parent::getNodeProperties();
 
     $sql = 'SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d';
-    $res = db_query($sql, $this->node->nid, $this->node->vid);
+    $res = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
     $res_a = db_fetch_array($res);
-    if (is_array($res_a))
+    if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
+    }
     $this->nodeProperties = $props;
     return $props;
   }
@@ -95,7 +134,7 @@ class TrueFalseQuestion extends QuizQuestion {
     if ($this->viewCanRevealCorrect()) {
       $answer = ($this->node->correct_answer) ? t('True') : t('False');
       $content['answers']['#type'] = 'markup';
-      $content['answers']['#value'] = '<div class="quiz-solution">'. $answer .'</div>';
+      $content['answers']['#value'] = '<div class="quiz-solution">' . $answer . '</div>';
     }
     else {
       $content['answers'] = array(
@@ -168,7 +207,7 @@ class TrueFalseQuestion extends QuizQuestion {
       '#collapsed' => TRUE,
       '#weight' => -3,
     );
-    $form['feedback_fields']['feedback'] = array( // @todo: Does this make sense?
+    $form['feedback_fields']['feedback'] = array(// @todo: Does this make sense?
       '#type' => 'textarea',
       '#title' => t('Feedback Text'),
       '#description' => t('Text to be displayed when the results are displayed'),
@@ -197,7 +236,7 @@ class TrueFalseQuestion extends QuizQuestion {
    */
   public function getCorrectAnswer() {
     $sql = "SELECT correct_answer FROM {quiz_truefalse_node} WHERE nid = %d AND vid = %d";
-    return db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    return db_query("SELECT correct_answer FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid", array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
   }
 }
 
@@ -229,8 +268,12 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
-    if ($this->answer['answer'] === NULL) return t('You must provide an answer');
-    else return TRUE;
+    if ($this->answer['answer'] === NULL) {
+      return t('You must provide an answer');
+    }
+    else {
+      return TRUE;
+    }
   }
 
   /**
@@ -240,7 +283,17 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public function save() {
     $sql = "INSERT INTO {quiz_truefalse_user_answers} (question_nid, question_vid, result_id, answer, score) VALUES (%d, %d, %d, %d, %d)";
-    db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int)$this->answer, (int)$this->getScore());
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $this->question->nid, $this->question->vid, $this->rid, (int) $this->answer, (int) $this->getScore()) */
+    $id = db_insert('quiz_truefalse_user_answers')
+  ->fields(array(
+    'question_nid' => $this->question->nid,
+    'question_vid' => $this->question->vid,
+    'result_id' => $this->rid,
+    'answer' => (int) $this->answer,
+    'score' => (int) $this->getScore(),
+  ))
+  ->execute();
   }
 
   /**
@@ -250,7 +303,13 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public function delete() {
     $sql = "DELETE FROM {quiz_truefalse_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-    db_query($sql, $this->question->nid, $this->question->vid, $this->rid);
+    // TODO Please review the conversion of this statement to the D7 database API syntax.
+    /* db_query($sql, $this->question->nid, $this->question->vid, $this->rid) */
+    db_delete('quiz_truefalse_user_answers')
+  ->condition('question_nid', $this->question->nid)
+  ->condition('question_vid', $this->question->vid)
+  ->condition('result_id', $this->rid)
+  ->execute();
   }
 
   /**
@@ -281,7 +340,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public function getCorrectAnswer() {
     $sql = "SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = %d AND result_id = %d";
-    return db_fetch_object(db_query($sql, $this->question->vid, $this->rid));
+    return db_fetch_object(db_query("SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :question_vid AND result_id = :result_id", array(':question_vid' => $this->question->vid, ':result_id' => $this->rid)));
   }
 
   /**
@@ -314,7 +373,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
     if ($showpoints) {
       $data[0]['correct_answer'] = ($correct_answer ? t('True') : t('False'));
     }
-    $data[0]['user_answer'] = (($user_answer === NULL) ? '': ($user_answer ? t('True') : t('False')));
+    $data[0]['user_answer'] = (($user_answer === NULL) ? '' : ($user_answer ? t('True') : t('False')));
 
     if ($showfeedback && !empty($this->question->feedback)) {
       $data[0]['feedback'] = $this->question->feedback;
@@ -323,7 +382,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
     // Return themed output
     return array(
       '#type' => 'markup',
-      '#value' => theme('truefalse_response', $metadata, $data),
+      '#value' => theme('truefalse_response', array('metadata' => $metadata, 'data' => $data)),
     );
   }
 }

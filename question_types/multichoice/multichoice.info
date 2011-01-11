@@ -2,7 +2,23 @@
 name = Quiz Multichoice
 package = Quiz Question
 description = Multiple choice question type for quiz.
-core = 6.x
+core = 7.x
 php = 5
 dependencies[] = quiz
 dependencies[] = quiz_question
+; Information added by drupal.org packaging script on 2011-01-11
+version = "6.x-4.0"
+core = 7.x
+project = "quiz"
+datestamp = "1294785668"
+
+
+files[] = multichoice.classes.inc
+files[] = multichoice.install
+files[] = multichoice.module
+files[] = multichoice.test
+files[] = multichoice_update_6400.inc
+files[] = theme/multichoice-alternative-creation.tpl.php
+files[] = theme/multichoice-alternative.tpl.php
+files[] = theme/multichoice-answering-form.tpl.php
+files[] = theme/multichoice.theme.inc

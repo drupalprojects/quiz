@@ -96,5 +96,5 @@ function _quiz_date($format, $timestamp, $offset = NULL) {
 
   // make sure we apply the site first day of the week setting for dow requests
   $result = gmdate($format, $timestamp);
-  return  $result;
+  return $result;
 }

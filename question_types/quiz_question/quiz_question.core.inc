@@ -129,7 +129,7 @@ abstract class QuizQuestion {
     // Quiz id used here to tie creation of a question to a specific quiz
     if (isset($_GET['quiz_nid']) && is_numeric($_GET['quiz_nid'])) {
       $vid = (_quiz_is_int($_GET['quiz_vid'], 0)) ? $_GET['quiz_vid'] : NULL;
-      $quiz = node_load((int)$_GET['quiz_nid'], $vid);
+      $quiz = node_load((int) $_GET['quiz_nid'], $vid);
 
       // Store quiz id in the form
       $form['quiz_nid'] = array(
@@ -149,7 +149,7 @@ abstract class QuizQuestion {
 
       // If coming from quiz view, go back there on submit.
       if ($quiz->type == 'quiz') {
-        $form['#redirect'] = 'node/'. $quiz->nid .'/questions';
+        $form_state['#redirect'] = 'node/' . $quiz->nid . '/questions';
         $form['#cancel_button'] = TRUE;
       }
     }
@@ -160,7 +160,7 @@ abstract class QuizQuestion {
     // If access to edit quizzes we add the add to quiz fieldset
     $edit_access = quiz_access_multi_or('edit any quiz', 'edit own quiz', 'administer nodes');
     if ($edit_access) {
-      $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = '. intval($user->uid);
+      $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = ' . intval($user->uid);
 
       // Fieldset allowing question makers to add questions to multiple quizzes when creating or editing a question
       $already = array();
@@ -173,16 +173,19 @@ abstract class QuizQuestion {
                 ON n.nid = r.parent_nid
                 WHERE r.child_vid = %d $own_filter
                 ORDER BY r.parent_vid DESC";
+        // TODO Please convert this statement to the D7 database API syntax.
         $res = db_query(db_rewrite_sql($sql), $this->node->vid);
 
         // Store the results
         while ($res_o = db_fetch_object($res)) {
-          if (in_array($res_o->nid, $already_nids)) continue;
+          if (in_array($res_o->nid, $already_nids)) {
+            continue;
+          }
           // Store in simple array to use in later querries
           $already_nids[] = $res_o->nid;
 
           // Store in array to use as #options
-          $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+          $already[$res_o->nid . '-' . $res_o->vid] = $res_o->title;
         }
       }
       $found = implode(', ', $already_nids);
@@ -195,13 +198,16 @@ abstract class QuizQuestion {
               JOIN {node} n
               ON n.nid = lq.quiz_nid
               WHERE lq.uid = %d $own_filter";
-      if (drupal_strlen($found) > 0) $sql .= " AND quiz_nid NOT IN ($found)";
+      if (drupal_strlen($found) > 0) {
+        $sql .= " AND quiz_nid NOT IN ($found)";
+      }
       $sql .= " ORDER BY lq.id DESC";
+      // TODO Please convert this statement to the D7 database API syntax.
       $res = db_query(db_rewrite_sql($sql), $user->uid);
 
       while ($res_o = db_fetch_object($res)) {
         // Array to use as #option in form element
-        $latest[$res_o->quiz_nid .'-'. $res_o->vid] = $res_o->title;
+        $latest[$res_o->quiz_nid . '-' . $res_o->vid] = $res_o->title;
         // Array to use in later queries
         $latest_nids[] = $res_o->quiz_nid;
       }
@@ -216,10 +222,11 @@ abstract class QuizQuestion {
           $sql .= " AND n.nid NOT IN ($found)";
         }
         $sql .= " ORDER BY changed LIMIT %d";
+        // TODO Please convert this statement to the D7 database API syntax.
         $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_NUM_LATEST - count($latest));
         while ($res_o = db_fetch_object($res)) {
           // array to be used as #options in form element
-          $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+          $latest[$res_o->nid . '-' . $res_o->vid] = $res_o->title;
         }
       }
 
@@ -236,10 +243,12 @@ abstract class QuizQuestion {
         $sql = 'SELECT title
                 FROM {node_revisions}
                 WHERE vid = %d';
-        $res = db_query($sql, $quiz->vid);
-        $latest[$quiz->nid .'-'. $quiz->vid] = db_result($res);
+        $res = db_query('SELECT title
+                FROM {node_revisions}
+                WHERE vid = :vid', array(':vid' => $quiz->vid));
+        $latest[$quiz->nid . '-' . $quiz->vid] = $res->fetchField();
         // $latest_default is to be used as #default_value in form item
-        $latest_default[] = $quiz->nid .'-'. $quiz->vid;
+        $latest_default[] = $quiz->nid . '-' . $quiz->vid;
       }
     }
     if ($edit_access || quiz_access_multi_or('create quiz', 'administer nodes')) {
@@ -296,7 +305,7 @@ abstract class QuizQuestion {
    *  Content array
    */
   public function getNodeView() {
-    $type = node_get_types('type', $this->node);
+    $type = node_type_get_type($this->node);
     $content['question_type'] = array(
       '#type'  => 'markup',
       '#value' => '<div class="question_type_name">' . $type->name . '</div>',
@@ -304,7 +313,7 @@ abstract class QuizQuestion {
     );
     $content['question'] = array(
       '#type'  => 'markup',
-      '#value' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, FALSE) . '</div>',
+      '#value' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE) . '</div>',
       '#weight' => -1,
     );
     return $content;
@@ -318,11 +327,15 @@ abstract class QuizQuestion {
    * @return array
    */
   public function getNodeProperties() {
-    if (isset($this->nodeProperties)) return $this->nodeProperties;
+    if (isset($this->nodeProperties)) {
+      return $this->nodeProperties;
+    }
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
-    $props['max_score'] = db_result(db_query($sql, $this->node->nid, $this->node->vid));
+    $props['max_score'] = db_query('SELECT max_score
+            FROM {quiz_question_properties}
+            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
     $props['is_quiz_question'] = TRUE;
     $this->nodeProperties = $props;
     return $props;
@@ -358,30 +371,40 @@ abstract class QuizQuestion {
       $sql = 'INSERT INTO {quiz_question_properties}
               (nid, vid, max_score)
               VALUES(%d, %d, %d)';
-      db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore());
+      // TODO Please convert this statement to the D7 database API syntax.
+      /* db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore()) */
+      NULL;
     }
     else {
       $sql = 'UPDATE {quiz_question_properties}
               SET max_score = %d
               WHERE nid = %d AND vid = %d';
-      db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid);
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid) */
+      db_update('quiz_question_properties')
+  ->fields(array(
+    'max_score' => $this->getMaximumScore(),
+  ))
+  ->condition('nid', $this->node->nid)
+  ->condition('vid', $this->node->vid)
+  ->execute();
     }
 
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
     if ($quizzes_kept && $this->node->revision) {
       if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
-        unset($_REQUEST['destination']);
+        unset($_GET['destination']);
         unset($_REQUEST['edit']['destination']);
-        drupal_goto('quiz_question/'. $this->node->nid .'/'. $this->node->vid .'/revision_actions');
+        drupal_goto('quiz_question/' . $this->node->nid . '/' . $this->node->vid . '/revision_actions');
       }
       // For users without the 'manual quiz revisioning' permission we submit the revision_actions form
       // silently with its default values set.
       else {
         $form_state = array();
         $form_state['values']['op'] = t('Submit');
-        require_once(drupal_get_path('module', 'quiz_question') .'/quiz_question.pages.inc');
-        drupal_execute('quiz_question_revision_actions', $form_state, $this->node->nid, $this->node->vid);
+        require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz_question') . '/quiz_question.pages.inc';
+        drupal_form_submit('quiz_question_revision_actions', $form_state, $this->node->nid, $this->node->vid);
       }
     }
   }
@@ -399,6 +422,7 @@ abstract class QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     // Delete results
+    // TODO Please convert this statement to the D7 database API syntax.
     db_query('DELETE FROM {quiz_node_results_answers}
               WHERE question_nid = %d' . ($only_this_version ? ' AND question_vid = %d' : ''),
               $this->node->nid, $this->node->vid);
@@ -406,7 +430,9 @@ abstract class QuizQuestion {
     // Delete properties
     $sql = 'DELETE FROM {quiz_question_properties}
             WHERE nid = %d';
-    if ($only_this_version) $sql .= ' AND vid = %d';
+    if ($only_this_version) {
+      $sql .= ' AND vid = %d';
+    }
     db_query($sql, $this->node->nid, $this->node->vid);
   }
 
@@ -442,7 +468,7 @@ abstract class QuizQuestion {
 
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#value' => check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
       '#prefix' => '<div class="quiz-question-body">',
       '#suffix' => '</div>',
     );
@@ -504,7 +530,14 @@ abstract class QuizQuestion {
           $quizzes_to_update[] = $nid_vid[1];
           $sql = 'DELETE FROM {quiz_node_relationship}
                   WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
-          db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid);
+          // TODO Please review the conversion of this statement to the D7 database API syntax.
+          /* db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid) */
+          db_delete('quiz_node_relationship')
+  ->condition('parent_nid', $nid_vid[0])
+  ->condition('parent_vid', $nid_vid[1])
+  ->condition('child_nid', $this->node->nid)
+  ->condition('child_vid', $this->node->vid)
+  ->execute();
         }
         else {
           $quizzes_kept = TRUE;
@@ -535,25 +568,25 @@ abstract class QuizQuestion {
           }
           $quizzes_to_update[] = $nid_vid[1];
           // We build one sql query to insert multiple rows into the relationship table
-          if (count($insert_values) > 0) $to_insert .= ',';
+          if (count($insert_values) > 0) {
+            $to_insert .= ',';
+          }
           $to_insert .= ' (%d, %d, %d, %d, %d, %d, %d)';
           $insert_values[] = $nid_vid[0];
           $insert_values[] = $nid_vid[1];
           $insert_values[] = $this->node->nid;
           $insert_values[] = $this->node->vid;
           $insert_values[] = $this->getMaximumScore();
-          $insert_values[] = 1 + db_result(
-            db_query('
+          $insert_values[] = 1 + db_query('
               SELECT MAX(weight)
               FROM {quiz_node_relationship}
               WHERE parent_vid = %d
-            ', $nid_vid[1]));
-          $randomization = db_result(
-            db_query('
+            ', $nid_vid[1])->fetchField();
+          $randomization = db_query('
               SELECT randomization
               FROM {quiz_node_properties}
               WHERE nid = %d AND vid = %d
-            ', $nid_vid[0], $nid_vid[1]));
+            ', $nid_vid[0], $nid_vid[1])->fetchField();
           $insert_values[] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
           // We also delete multiple rows from the table...
@@ -564,11 +597,13 @@ abstract class QuizQuestion {
       }
       if (count($insert_values) > 0) {
         $sql = 'DELETE FROM {quiz_node_relationship}
-                WHERE '. implode(' OR ', $delete_sqls);
+                WHERE ' . implode(' OR ', $delete_sqls);
+        // TODO Please convert this statement to the D7 database API syntax.
         db_query($sql, $delete_values);
         $sql = 'INSERT INTO {quiz_node_relationship}
                 (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
-                '. $to_insert;
+                ' . $to_insert;
+        // TODO Please convert this statement to the D7 database API syntax.
         db_query($sql, $insert_values);
       }
     }
@@ -577,7 +612,17 @@ abstract class QuizQuestion {
       $sql = 'INSERT INTO {quiz_node_relationship}
               (parent_nid, parent_vid, child_nid, child_vid, max_score)
               VALUES (%d, %d, %d, %d, %d)';
-      db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore());
+      // TODO Please review the conversion of this statement to the D7 database API syntax.
+      /* db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore()) */
+      $id = db_insert('quiz_node_relationship')
+  ->fields(array(
+    'parent_nid' => $new_node->nid,
+    'parent_vid' => $new_node->vid,
+    'child_nid' => $this->node->nid,
+    'child_vid' => $this->node->vid,
+    'max_score' => $this->getMaximumScore(),
+  ))
+  ->execute();
       $quizzes_to_update[] = $new_node->vid;
     }
     quiz_update_max_score_properties($quizzes_to_update);
@@ -595,7 +640,9 @@ abstract class QuizQuestion {
    *   true if question has been answered or is about to be answered...
    */
   public function hasBeenAnswered() {
-    if (!isset($this->node->vid)) return FALSE;
+    if (!isset($this->node->vid)) {
+      return FALSE;
+    }
     $sql = 'SELECT *
             FROM {quiz_node_results}
             WHERE vid IN (
@@ -604,7 +651,14 @@ abstract class QuizQuestion {
               WHERE child_vid = %d
             )
             LIMIT 1';
-    $res = db_query($sql, $this->node->vid);
+    $res = db_query('SELECT *
+            FROM {quiz_node_results}
+            WHERE vid IN (
+              SELECT parent_vid
+              FROM {quiz_node_relationship}
+              WHERE child_vid = :child_vid
+            )
+            LIMIT 1', array(':child_vid' => $this->node->vid));
     return db_fetch_object($res) ? TRUE : FALSE;
   }
 
@@ -618,8 +672,9 @@ abstract class QuizQuestion {
     global $user;
     // permission overrides the hook
     if (user_access('view any quiz question correct response')
-    || $user->uid == $this->node->uid)
+     || $user->uid == $this->node->uid) {
       return TRUE;
+    }
     $results = module_invoke_all('answers_access', $node);
     $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
@@ -662,8 +717,10 @@ abstract class QuizQuestionResponse {
     $sql = 'SELECT is_skipped
             FROM {quiz_node_results_answers}
             WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
-    $res = db_query($sql, $result_id, $question_node->nid, $question_node->vid);
-    $this->is_skipped = db_result($res);
+    $res = db_query('SELECT is_skipped
+            FROM {quiz_node_results_answers}
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid));
+    $this->is_skipped = $res->fetchField();
   }
 
   /**
@@ -682,7 +739,7 @@ abstract class QuizQuestionResponse {
    * toggle this.
    */
   public function isEvaluated() {
-    return (bool)$this->evaluated;
+    return (bool) $this->evaluated;
   }
 
   /**
@@ -706,10 +763,15 @@ abstract class QuizQuestionResponse {
    *  Score(int)
    */
   function getScore($weight_adjusted = TRUE) {
-    if ($this->is_skipped) return 0;
-    if (!isset($this->score)) $this->score = $this->score();
-    if (isset($this->question->score_weight) && $weight_adjusted)
+    if ($this->is_skipped) {
+      return 0;
+    }
+    if (!isset($this->score)) {
+      $this->score = $this->score();
+    }
+    if (isset($this->question->score_weight) && $weight_adjusted) {
       return round($this->score * $this->question->score_weight);
+    }
     return $this->score;
   }
 
@@ -722,9 +784,12 @@ abstract class QuizQuestionResponse {
    *  Max score(int)
    */
   public function getMaxScore($weight_adjusted = TRUE) {
-    if (!isset($this->question->max_score)) $this->question->max_score = $this->question->getMaximumScore();
-    if (isset($this->question->score_weight) && $weight_adjusted)
+    if (!isset($this->question->max_score)) {
+      $this->question->max_score = $this->question->getMaximumScore();
+    }
+    if (isset($this->question->score_weight) && $weight_adjusted) {
       return round($this->question->max_score * $this->question->score_weight);
+    }
     return $this->question->max_score;
   }
 
@@ -857,7 +922,7 @@ abstract class QuizQuestionResponse {
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     return array(
       '#type' => 'markup',
-      '#value' => check_markup($this->question->body, $this->question->format, FALSE),
+      '#value' => check_markup($this->question->body, $this->question->format, $langcode = '' /* TODO Set this variable. */, FALSE),
     );
   }
 
@@ -889,7 +954,7 @@ abstract class QuizQuestionResponse {
   public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return array(
       '#type' => 'markup',
-      '#value' => '<span class="quiz-report-score">'. $this->getScore() .'</span>',
+      '#value' => '<span class="quiz-report-score">' . $this->getScore() . '</span>',
     );
   }
 
@@ -946,7 +1011,7 @@ abstract class QuizQuestionResponse {
    */
   abstract public function score();
 
-   /**
+  /**
    * Get the user's response.
    */
   abstract public function getResponse();

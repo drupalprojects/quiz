@@ -13,7 +13,7 @@
  */
 function long_answer_view_unscored() {
   $unscored = long_answer_get_all_unscored_answers();
-  return theme('long_answer_view_unscored', $unscored);
+  return theme('long_answer_view_unscored', array('unscored' => $unscored));
 }
 
 /**
@@ -32,7 +32,7 @@ function long_answer_edit_score($vid, $rid) {
 
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
   // and we need to be able to access old nodes in node_revisions.vid.
-  $nid = db_result(db_query("SELECT nid FROM {node_revisions} WHERE vid = %d", $vid));
+  $nid = db_query("SELECT nid FROM {node_revisions} WHERE vid = :vid", array(':vid' => $vid))->fetchField();
   if (!$nid) {
     drupal_not_found();
     return;
@@ -44,7 +44,7 @@ function long_answer_edit_score($vid, $rid) {
     return;
   }
 
-  $answer = (object)long_answer_get_answer($node->nid, $node->vid, $rid);
+  $answer = (object) long_answer_get_answer($node->nid, $node->vid, $rid);
   if (!$answer) {
     drupal_not_found();
     return;
@@ -55,7 +55,7 @@ function long_answer_edit_score($vid, $rid) {
   else {
     $answer->rel_score = 0;
   }
-  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)));
+  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)), PASS_THROUGH);
   return drupal_get_form('long_answer_score_form', $node, $answer);
 }
 
@@ -69,7 +69,7 @@ function long_answer_edit_score($vid, $rid) {
  * @return
  *  The form (as a FAPI array).
  */
-function long_answer_score_form($form_state, $node, $answer) {
+function long_answer_score_form($form, $form_state, $node, $answer) {
   if (!$node || $node->type != 'long_answer' || !$answer) {
     drupal_not_found();
     return;
@@ -79,12 +79,12 @@ function long_answer_score_form($form_state, $node, $answer) {
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#value' => check_markup($node->body, $node->format, FALSE),
+    '#value' => check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
   );
   $form['rubric'] = array(
     '#type' => 'item',
     '#title' => t('Rubric'),
-    '#value' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+    '#value' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',
@@ -98,12 +98,12 @@ function long_answer_score_form($form_state, $node, $answer) {
   $form['score_answer']['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), FALSE),
+    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
   );
   $form['score_answer']['score'] = array(
     '#type' => 'textfield',
     '#title' => t('Score'),
-    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)) ,
+    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)),
     '#size' => 3,
     '#maxlength' => 3,
     '#default_value' => (int) $answer->rel_score,
@@ -144,7 +144,7 @@ function long_answer_score_form($form_state, $node, $answer) {
  */
 function long_answer_score_form_validate($form, $form_state) {
   // Check to make sure that entered score is not higher than max allowed score.
-  $max = (int)$form_state['values']['rel_max_score'];
+  $max = (int) $form_state['values']['rel_max_score'];
   $given = $form_state['values']['score'];
   if (!_quiz_is_int($given, 0, $max)) {
     $args = array('@score' => $given, '@max' => $max);
@@ -157,7 +157,7 @@ function long_answer_score_form_validate($form, $form_state) {
  */
 function long_answer_score_form_submit($form, &$form_state) {
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-  $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));
+  $result = db_fetch_object(db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id'])));
 
   $quiz = node_load($result->nid, $result->vid);
 
