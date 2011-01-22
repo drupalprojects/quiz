@@ -323,11 +323,13 @@ function quiz_cron() {
   // Remove old quiz results that haven't been finished.
   $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
   if ($rm_time) { // $time = 0 for never.
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', REQUEST_TIME, $rm_time) */
     db_delete('quiz_node_results')
-    ->where('!time_end AND (%d - time_start) > %d',  )
-  ->execute();
+    ->where('!time_end')
+    ->where('(:request_time - time_start) > :remove_time', array(
+      ':request_time' => REQUEST_TIME,
+      ':remove_time' => $rm_time
+    ))
+    ->execute();
   }
 }
 
@@ -514,24 +516,6 @@ function quiz_menu() {
   return $items;
 }
 
-// Temporary fix, ref: http://drupal.org/node/777408
-// TODO: Remove this if and when autoload adds a fix
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function quiz_enable() {
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("UPDATE {system} SET weight = -282828 WHERE name = 'autoload' AND type = 'module'") */
-  db_update('system')
-  ->fields(array(
-    'weight' =>  -282828,
-  ))
-  ->condition('name', 'autoload')
-  ->condition('type', 'module')
-  ->execute();
-}
-
 /**
  * Implements hook_theme().
  */
@@ -662,31 +646,17 @@ function quiz_insert($node) {
 
   _quiz_common_presave_actions($node);
 
-  $tid = (isset($node->tid) ? $node->tid : 0);
+  $node->tid = (isset($node->tid) ? $node->tid : 0);
 
   if (!isset($node->has_userpoints)) {
     $node->has_userpoints = 0;
   }
 
-  $sql = "INSERT INTO {quiz_node_properties}
-    (vid, nid, aid, number_of_random_questions, randomization,
-    backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes,
-    show_attempt_stats, keep_results, time_limit, pass_rate, summary_pass,
-    summary_default, quiz_always, feedback_time, display_feedback, tid,
-    has_userpoints, allow_skipping, allow_resume, allow_jumping)
-    VALUES(%d, %d, '%s', %d, %d,
-    %d, %d, %d, %d, %d,
-    %d, %d, %d, %d, '%s',
-    '%s', %d, %d, %d, %d,
-    %d, %d, %d, %d)";
-
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
 
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping) */
-  NULL;
+  drupal_write_record('quiz_node_properties', $node);
 
   _quiz_insert_resultoptions($node);
 
@@ -727,61 +697,34 @@ function quiz_update($node) {
   else {
     // Update an existing row in the quiz_node_properties table.
     _quiz_common_presave_actions($node);
-    $sql = "UPDATE {quiz_node_properties}
-      SET vid = %d,
-        aid='%s',
-        randomization = %d,
-        backwards_navigation = %d,
-        repeat_until_correct = %d,
-        quiz_open = %d,
-        quiz_close = %d,
-        takes = %d,
-        show_attempt_stats = %d,
-        keep_results = %d,
-        time_limit = '%d',
-        pass_rate = %d,
-        summary_pass = '%s',
-        summary_default = '%s',
-        quiz_always = %d,
-        feedback_time = %d,
-        display_feedback = %d,
-        number_of_random_questions = %d,
-        has_userpoints = %d,
-        allow_skipping = %d,
-        allow_resume = %d,
-        allow_jumping = %d
-      WHERE vid = %d
-        AND nid = %d";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping, $node->vid, $node->nid) */
     $resource = db_update('quiz_node_properties')
-  ->fields(array(
-    'vid' => $node->vid,
-    'aid' => $node->aid,
-    'randomization' => $node->randomization,
-    'backwards_navigation' => $node->backwards_navigation,
-    'repeat_until_correct' => $node->repeat_until_correct,
-    'quiz_open' => $node->quiz_open,
-    'quiz_close' => $node->quiz_close,
-    'takes' => $node->takes,
-    'show_attempt_stats' => $node->show_attempt_stats,
-    'keep_results' => $node->keep_results,
-    'time_limit' => $node->time_limit,
-    'pass_rate' => $node->pass_rate,
-    'summary_pass' => $node->summary_pass,
-    'summary_default' => $node->summary_default,
-    'quiz_always' => $node->quiz_always,
-    'feedback_time' => $node->feedback_time,
-    'display_feedback' => $node->display_feedback,
-    'number_of_random_questions' => $node->number_of_random_questions,
-    'has_userpoints' => isset($node->has_userpoints) ? $node->has_userpoints : 0,
-    'allow_skipping' => $node->allow_skipping,
-    'allow_resume' => $node->allow_resume,
-    'allow_jumping' => $node->allow_jumping,
-  ))
-  ->condition('vid', $node->vid)
-  ->condition('nid', $node->nid)
-  ->execute();
+      ->fields(array(
+        'vid' => $node->vid,
+        'aid' => $node->aid,
+        'randomization' => $node->randomization,
+        'backwards_navigation' => $node->backwards_navigation,
+        'repeat_until_correct' => $node->repeat_until_correct,
+        'quiz_open' => $node->quiz_open,
+        'quiz_close' => $node->quiz_close,
+        'takes' => $node->takes,
+        'show_attempt_stats' => $node->show_attempt_stats,
+        'keep_results' => $node->keep_results,
+        'time_limit' => $node->time_limit,
+        'pass_rate' => $node->pass_rate,
+        'summary_pass' => $node->summary_pass,
+        'summary_default' => $node->summary_default,
+        'quiz_always' => $node->quiz_always,
+        'feedback_time' => $node->feedback_time,
+        'display_feedback' => $node->display_feedback,
+        'number_of_random_questions' => $node->number_of_random_questions,
+        'has_userpoints' => isset($node->has_userpoints) ? $node->has_userpoints : 0,
+        'allow_skipping' => $node->allow_skipping,
+        'allow_resume' => $node->allow_resume,
+        'allow_jumping' => $node->allow_jumping,
+       ))
+      ->condition('vid', $node->vid)
+      ->condition('nid', $node->nid)
+      ->execute();
     _quiz_update_resultoptions($node);
   }
   _quiz_check_num_random($node);
@@ -866,25 +809,17 @@ function quiz_delete($node) {
   while ($rids[] = $res->fetchField()) {
   }
   quiz_delete_results($rids);
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_properties} WHERE nid = %d', $node->nid) */
   db_delete('quiz_node_properties')
   ->condition('nid', $node->nid)
   ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid) */
   db_delete('quiz_node_relationship')
   ->condition('parent_nid', $node->nid)
   ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_results} WHERE nid = %d', $node->nid) */
   db_delete('quiz_node_results')
   ->condition('nid', $node->nid)
   ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_result_options} WHERE nid = %d', $node->vid, $node->nid) */
   db_delete('quiz_node_result_options')
-  ->condition('nid', $node->vid)
+  ->condition('nid', $node->nid)
   ->execute();
 }
 
@@ -1488,42 +1423,39 @@ function quiz_validate($node) {
 }
 
 /**
- * Implements hook_nodeapi().
+ * Implementation of hook_node_presave
  */
-function quiz_nodeapi_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  // We need to filter on node type to prevent this from overriding any other
-  // node.
+function quiz_node_presave($node) {
   if ($node->type == 'quiz') {
-    switch ($op) {
-      case 'presave':
-        // Convert the action id to the actual id from the MD5 hash.
-        // Why the actions module does this I do not know? Maybe to prevent
-        // invalid values put into the options value="" field.
-        if ($aid = actions_function_lookup($node->aid)) {
-          $node->aid = $aid;
-        }
+    // Convert the action id to the actual id from the MD5 hash.
+    // Why the actions module does this I do not know? Maybe to prevent
+    // invalid values put into the options value="" field.
+    if ($aid = actions_function_lookup($node->aid)) {
+      $node->aid = $aid;
+    }
 
-        if (variable_get('quiz_auto_revisioning', 1)) {
-          $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
-        }
-        break;
-      case 'prepare':
-        // Meet E_STRICT on new nodes.
-        $defaults = _quiz_get_node_defaults();
-        if (!isset($node->nid)) {
-          foreach ($defaults as $key => $value) {
-            if (!isset($node->$key)) {
-              $node->$key = $value;
-            }
-          }
-        }
-        break;
+    if (variable_get('quiz_auto_revisioning', 1)) {
+      $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
     }
   }
-  if (isset($node->is_quiz_question)) {
-    if (variable_get('quiz_auto_revisioning', 1) && $op == 'presave') {
-      $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
+  if (isset($node->is_quiz_question) && variable_get('quiz_auto_revisioning', 1)) {
+    $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
+  }
+}
+
+/**
+ * Implementation of hook_node_prepare
+ */
+function quiz_node_prepare($node) {
+  if ($node->type == 'quiz') {
+    // Meet E_STRICT on new nodes.
+    $defaults = _quiz_get_node_defaults();
+    if (!isset($node->nid)) {
+      foreach ($defaults as $key => $value) {
+        if (!isset($node->$key)) {
+          $node->$key = $value;
+        }
+      }
     }
   }
 }
@@ -1532,10 +1464,6 @@ function quiz_nodeapi_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
  * Implements hook_user_cancel().
  */
 function quiz_user_cancel($edit, $account, $method) {
-  $sql = 'DELETE FROM {quiz_user_settings}
-              WHERE uid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $account->uid) */
   db_delete('quiz_user_settings')
   ->condition('uid', $account->uid)
   ->execute();
