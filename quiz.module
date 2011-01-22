@@ -868,7 +868,7 @@ function quiz_delete($node) {
     ->execute();
   // Remove quiz node records from table quiz_node_result_options
   db_delete('quiz_node_result_options')
-    ->condition('nid', $node->vid)
+    ->condition('nid', $node->nid)
     ->execute();
 
 }
