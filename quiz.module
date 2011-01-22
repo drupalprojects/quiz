@@ -756,7 +756,7 @@ function quiz_delete($node) {
   db_query('DELETE FROM {quiz_node_properties} WHERE nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid);
   db_query('DELETE FROM {quiz_node_results} WHERE nid = %d', $node->nid);
-  db_query('DELETE FROM {quiz_node_result_options} WHERE nid = %d', $node->vid, $node->nid);
+  db_query('DELETE FROM {quiz_node_result_options} WHERE nid = %d', $node->nid);
 }
 
 /**
