@@ -23,19 +23,6 @@ function quiz_question_help($path, $args) {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function quiz_question_autoload_info() {
-  return array(
-  // Base interfaces and classes:
-    'QuizQuestion' => array('file' => 'quiz_question.core.inc'),
-    'AbstractQuizQuestion' => array('file' => 'quiz_question.core.inc'),
-    'QuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
-    'AbstractQuizQuestionResponse' => array('file' => 'quiz_question.core.inc'),
-  );
-}
-
-/**
  * Implements hook_menu().
  */
 function quiz_question_menu() {

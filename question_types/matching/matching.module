@@ -71,16 +71,6 @@ function matching_config_validate($form, $form_state) {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function matching_autoload_info() {
-  return array(
-    'MatchingQuestion' => array('file' => 'matching.classes.inc'),
-    'MatchingResponse' => array('file' => 'matching.classes.inc'),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function matching_theme() {

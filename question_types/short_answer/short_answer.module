@@ -82,16 +82,6 @@ function short_answer_config() {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function short_answer_autoload_info() {
-  return array(
-    'ShortAnswerQuestion' => array('file' => 'short_answer.classes.inc'),
-    'ShortAnswerResponse' => array('file' => 'short_answer.classes.inc'),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function short_answer_theme() {

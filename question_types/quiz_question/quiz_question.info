@@ -5,7 +5,6 @@ package = Quiz Core
 description = Helper module for all quiz question types
 core = 7.x
 php = 5.2
-dependencies[] = autoload
 dependencies[] = quiz
 
 ; Information added by drupal.org packaging script on 2011-01-11

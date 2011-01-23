@@ -75,16 +75,6 @@ function long_answer_config() {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function long_answer_autoload_info() {
-  return array(
-    'LongAnswerQuestion' => array('file' => 'long_answer.classes.inc'),
-    'LongAnswerResponse' => array('file' => 'long_answer.classes.inc'),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function long_answer_theme() {

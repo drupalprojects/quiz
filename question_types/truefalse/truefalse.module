@@ -47,16 +47,6 @@ function truefalse_config() {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function truefalse_autoload_info() {
-  return array(
-    'TrueFalseQuestion' => array('file' => 'truefalse.classes.inc'),
-    'TrueFalseResponse' => array('file' => 'truefalse.classes.inc'),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function truefalse_theme() {

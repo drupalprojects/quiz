@@ -40,16 +40,6 @@ function quiz_directions_config() {
 }
 
 /**
- * Implements hook_autoload_info().
- */
-function quiz_directions_autoload_info() {
-  return array(
-    'QuizDirectionsQuestion' => array('file' => 'quiz_directions.classes.inc'),
-    'QuizDirectionsResponse' => array('file' => 'quiz_directions.classes.inc'),
-  );
-}
-
-/**
  * Implements hook_theme().
  */
 function quiz_directions_theme() {
