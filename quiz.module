@@ -1550,11 +1550,14 @@ function quiz_get_all_titles() {
   $sql = "SELECT nid, title
           FROM {node} n
           WHERE n.type = 'quiz'";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql));
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('n.type', 'quiz')
+    ->addTag('node_access')
+    ->execute();
   $to_return = array();
-  while ($res_o = db_fetch_object($res)) {
-    $to_return[$res_o->nid] = $res_o->title;
+  foreach ($result as $record) {
+    $to_return[$record->nid] = $record->title;
   }
   return $to_return;
 }
@@ -1567,14 +1570,13 @@ function quiz_get_all_titles() {
  *   Like this: array($nid => array($vid => $title))
  */
 function quiz_get_all_version_titles() {
-  $sql = "SELECT r.nid, r.vid, r.title
-          FROM {node_revisions} r
-          LEFT JOIN {node} n ON n.nid = r.nid
-          WHERE n.type = 'quiz'";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql));
+  db_select('node_revisions', 'r')
+    ->join('node', 'n', 'n.nid = r.nid')
+    ->condition('n.type', 'quiz')
+    ->addTag('node_access')
+    ->execute();
   $to_return = array();
-  while ($res_o = db_fetch_object($res)) {
+  foreach ($res as $res_o) {
     $to_return[$res_o->nid][$res_o->vid] = $res_o->title;
   }
   return $to_return;
@@ -1613,7 +1615,7 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
           JOIN {quiz_node_properties} p
           ON n.vid = p.vid
           LEFT OUTER JOIN {quiz_node_results} r
-          ON r.nid = n.nid AND r.uid = %d
+          ON r.nid = n.nid AND r.uid = :uid
           LEFT OUTER JOIN (
             SELECT nid, max(score) as highest_score
             FROM {quiz_node_results}
@@ -1622,9 +1624,8 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
           ON n.nid = rm.nid AND r.score = rm.highest_score
           WHERE n.nid in (' . implode(', ', $nids) . ')
           ';
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query($sql, $uid);
-  while ($res_o = db_fetch_object($res)) {
+  $res = db_query($sql, array(':uid' => $uid));
+  foreach ($res as $res_o) {
     if (!$include_num_questions) {
       unset($res_o->num_random_questions);
     }
@@ -1643,11 +1644,10 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
     $sql = 'SELECT COUNT(*) AS num_always_questions, parent_vid
             FROM {quiz_node_relationship}
             WHERE parent_vid IN (' . implode(', ', $vids) . ')
-            AND question_status = %d
+            AND question_status = :question_status
             GROUP BY parent_vid';
-    // TODO Please convert this statement to the D7 database API syntax.
-    $res = db_query(db_rewrite_sql($sql), QUESTION_ALWAYS);
-    while ($res_o = db_fetch_object($res)) {
+    $res = db_query($sql, array(':question_status', QUESTION_ALWAYS));
+    foreach ($res as $res_o) {
       $to_return[$res_o->parent_vid]->num_questions = $to_return[$res_o->parent_vid]->num_random_questions + $res_o->num_always_questions;
     }
   }
@@ -1695,13 +1695,17 @@ function quiz_get_pass_rate($nid, $vid) {
  *   The quiz node id.
  */
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
-  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-          SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status, src.weight, src.max_score
-          FROM {quiz_node_relationship} AS src
-          WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER) */
-  NULL;
+
+  // TODO: Denne er ikke fikset enda!
+  db_insert('quiz_node_relationship')
+    ->fields(array('parent_vid', 'parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
+    ->from(db_select('quiz_node_relationship', 'qnr')
+      ->addExpression(':new_quiz_vid', NULL, array(':new_quiz_vid' => $new_quiz_vid))
+      ->fields('qnr', array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
+      ->condition('parent_vid', $old_quiz_vid)
+      ->condition('parent_nid', $quiz_nid)
+      ->condition('question_status', QUESTION_NEVER, '!='))
+    ->execute();
   $sql = "INSERT INTO {quiz_terms} (nid, vid, tid, weight, max_score, number)
           SELECT qt.nid, %d, qt.tid, qt.weight, qt.max_score, qt.number
           FROM {quiz_terms} qt
