@@ -1479,7 +1479,7 @@ function quiz_type_confirm($node, $op = NULL) {
  *   Array with nids as keys and titles as values.
  */
 function quiz_get_all_titles() {
-  $sql = "SELECT nid, title
+  $sql = "SELECT n.nid, n.title
           FROM {node} n
           WHERE n.type = 'quiz'";
   $res = db_query(db_rewrite_sql($sql));
