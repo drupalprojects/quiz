@@ -222,6 +222,22 @@ function quiz_access_my_results($quiz) {
 }
 
 /**
+ * Helper function to determine if a user has access to view a specific quiz result.
+ *
+ * @param int $rid
+ *  Result id
+ * @return boolean
+ *  True if access, false otherwise
+ */
+function quiz_access_my_result($rid) {
+  global $user;
+  if (!user_access('view own quiz results'))
+    return FALSE;
+  $time_end = db_result(db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = %d AND uid = %d', $rid, $user->uid));
+  return $time_end > 0;
+}
+
+/**
  * Helper function to determine if a user has access to score a quiz.
  *
  * @param $quiz_creator
@@ -428,7 +444,8 @@ function quiz_menu() {
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(3),
-    'access arguments' => array('view own quiz results'),
+    'access arguments' => array(3),
+    'access callback' => 'quiz_access_my_result',
     'type' => MENU_LOCAL_TASK,
     'file' => 'quiz.pages.inc',
   );
@@ -470,7 +487,8 @@ function quiz_menu() {
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(2),
-    'access arguments' => array('view own quiz results'),
+    'access arguments' => array(2),
+    'access callback' => 'quiz_access_my_result',
     'type' => MENU_CALLBACK,
     'file' => 'quiz.pages.inc',
   );
