@@ -239,6 +239,7 @@ function quiz_get_user_results($user_id) {
     INNER JOIN {users} u ON u.uid = qnrs.uid
     WHERE n.type = 'quiz'
       AND u.uid = %d
+      AND qnrs.time_end > 0
     ORDER BY qnrs.result_id ASC";
 
   $dbresult = db_query($sql, $user_id);
