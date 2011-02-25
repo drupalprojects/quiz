@@ -1,4 +1,3 @@
-$Id$
 
 For a current TODO list please visit http://groups.drupal.org/quiz
 
