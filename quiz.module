@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 include(drupal_get_path('module', 'quiz').'/quiz_datetime.inc');
 
