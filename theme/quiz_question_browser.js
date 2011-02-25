@@ -1,4 +1,3 @@
-// $Id$
 
 /**
  * Sponsored by: Norwegian Centre for Telemedicine

@@ -1,4 +1,3 @@
-; $Id$
 name = Scale
 package = Quiz Question
 description = Scale question type for quiz.

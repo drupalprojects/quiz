@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * short_answer.admin
  *

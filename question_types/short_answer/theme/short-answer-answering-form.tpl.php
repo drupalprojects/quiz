@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Handles the layout of the short_answer answering form.
