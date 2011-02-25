@@ -1,4 +1,3 @@
-// $Id$
 
 /**
  * supporting Javascript code for questions_import module

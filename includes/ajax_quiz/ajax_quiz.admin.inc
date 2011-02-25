@@ -1,6 +1,5 @@
 <?php
 
-// $Id$
 
 /* @file
  * ajax quiz admin page

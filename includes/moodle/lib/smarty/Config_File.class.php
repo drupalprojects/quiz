@@ -25,7 +25,6 @@
  * @package Smarty
  */
 
-/* $Id$ */
 
 /**
  * Config file reading class

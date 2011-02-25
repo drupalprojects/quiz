@@ -1,6 +1,5 @@
 <?php
 
-// $Id$
 
 /**
  * The main classes for the choice question type.

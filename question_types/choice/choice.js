@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @file
  * Javascript functions for the choice question type.

@@ -1,4 +1,3 @@
-; $Id$
 name = Quiz Dashboard
 description = "Creates a report to compare and analyse the results of quiz attendees."
 core = 6.x

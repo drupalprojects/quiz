@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 
 function results_export_as_full_view($rid, $export_type) {

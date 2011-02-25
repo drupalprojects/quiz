@@ -1,4 +1,3 @@
-// $id$
 /**
  * @file
  * Javascript functions for the scale question type.

@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @file
  * JS enabling the quiz taker to click anywhere in a table row to mark a checkbox/radio button.

@@ -1,4 +1,3 @@
-# $Id$
 
 # This is a sample aiken import file. It allows you to create a bulk of quiz questions from a text file.
 #

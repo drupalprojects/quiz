@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Administration pages for the long answer questions module.

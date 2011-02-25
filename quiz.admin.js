@@ -1,4 +1,3 @@
-// $Id$
 
 /**
  * Scripts for Quiz administration.
