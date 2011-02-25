@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /////////////////////////////////
 // Date and time routines for use with quiz module.
