@@ -1,6 +1,5 @@
 <?php
 
-// $Id$
 
 /**
  * Classes used in the Quiz Question module.

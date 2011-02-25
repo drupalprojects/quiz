@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Administrator interface for Quiz module.
