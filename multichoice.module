@@ -1,5 +1,4 @@
 <?php
-/* $Id$ */
 
 define('MULTICHOICE_NAME', 'Multi-Choice Question');
 
