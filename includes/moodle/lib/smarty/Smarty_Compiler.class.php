@@ -26,7 +26,6 @@
  * @package Smarty
  */
 
-/* $Id$ */
 
 /**
  * Template compiling class

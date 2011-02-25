@@ -1,4 +1,3 @@
-; $Id$
 name = Long Answer
 package = Quiz
 description = This provides long answer (essay, multi-paragraph) question types for use by the Quiz module.

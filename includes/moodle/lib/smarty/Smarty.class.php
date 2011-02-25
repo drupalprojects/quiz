@@ -30,7 +30,6 @@
  * @version 2.6.9
  */
 
-/* $Id$ */
 
 /**
  * DIR_SEP isn't used anymore, but third party apps might

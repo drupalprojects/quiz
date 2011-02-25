@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * quiz_directions.classes
  *
