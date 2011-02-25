@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /*
  * @file
  * Update for choice Questions type module.

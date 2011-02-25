@@ -1,6 +1,5 @@
 <?php
 
-// $Id$
 
 /**
  * Defines the classes necessary for a True/False quiz.

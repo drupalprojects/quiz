@@ -1,4 +1,3 @@
-; $Id$
 name = Quiz Multichoice
 package = Quiz Question
 description = Multiple choice question type for quiz.

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * The theme file for scale.
