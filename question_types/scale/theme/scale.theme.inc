@@ -2,7 +2,6 @@
 <<<<<<< scale.theme.inc
 <<<<<<< scale.theme.inc
 <<<<<<< scale.theme.inc
-// $Id$
 
 /**
  * The theme file for scale.
@@ -54,12 +53,9 @@ function theme_scale_response_form($variables) {
   return drupal_render_children($form);
 }
 =======
-// $Id$
 =======
-// $Id$
 >>>>>>> 1.1.2.3
 =======
-// $Id$
 >>>>>>> 1.2
 
 /**

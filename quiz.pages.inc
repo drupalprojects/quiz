@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * User pages.

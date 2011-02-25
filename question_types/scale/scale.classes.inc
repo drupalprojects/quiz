@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * The main classes for the scale question type.
