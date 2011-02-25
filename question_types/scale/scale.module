@@ -130,22 +130,6 @@ function scale_autoload_info() {
 }
 
 /**
- * Implementation of hook_get_answer()
- */
-function scale_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, question_vid, question_nid, result_id
-    FROM {quiz_scale_user_answers}
-    WHERE result_id = %d AND question_nid = %d AND question_vid = %d";
-  $results = db_query($sql, $result_id);
-
-  if (!$results) {
-    return FALSE;
-  }
-
-  return db_fetch_array($results);
-}
-
-/**
  * Implementation of hook user.
  */
 function scale_user($op, &$edit, &$account, $category = NULL) {

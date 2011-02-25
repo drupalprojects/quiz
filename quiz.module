@@ -2374,6 +2374,14 @@ function quiz_update_max_score_properties($quizzes_to_update) {
           )
           WHERE vid IN( " . db_placeholders($quizzes_to_update) . ")";
   db_query($sql, $quizzes_to_update);
+  $sql = "UPDATE {quiz_node_properties} qnp
+          SET qnp.max_score = (
+            SELECT SUM(qt.max_score * qt.number)
+            FROM {quiz_terms} qt
+            WHERE qt.nid = qnp.nid AND qt.vid = qnp.vid
+          )
+          WHERE qnp.randomization = 3 AND qnp.vid IN( " . db_placeholders($quizzes_to_update) . ")";
+  db_query($sql, $quizzes_to_update);
   // No need to use db_placeholders for time()...
   $sql = "UPDATE {node_revisions}
           SET timestamp = " . time() . "
