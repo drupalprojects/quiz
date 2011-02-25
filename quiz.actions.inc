@@ -2,7 +2,6 @@
 <<<<<<< quiz.actions.inc
 <<<<<<< quiz.actions.inc
 <<<<<<< quiz.actions.inc
-// $Id$
 /**
  * @file
  * Example Action Implementation.
@@ -50,12 +49,9 @@ function quiz_action_info() {
    );
    */
 =======
-// $Id$
 =======
-// $Id$
 >>>>>>> 1.2
 =======
-// $Id$
 >>>>>>> 1.5
 /**
  * @file

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * matching.classes
  *

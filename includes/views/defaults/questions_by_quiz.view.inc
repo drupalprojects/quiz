@@ -1,5 +1,4 @@
 <?php
-//$Id$
 $view = new view;
 $view->name = 'questions_by_quiz';
 $view->description = 'View of all the questions associated with a quiz';

@@ -1,4 +1,3 @@
-// $Id$
 /**
  * @file
  * JS enabling one filter fieldset to controll filter formats for all textareas in alternatives.

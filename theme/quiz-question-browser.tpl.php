@@ -1,5 +1,4 @@
 <?php
-// $Id$
 /**
  * @file
  * Handles the layout of the quiz question browser.

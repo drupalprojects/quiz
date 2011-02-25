@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * This module defines a long answer question type for quizzes.
