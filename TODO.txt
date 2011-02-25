@@ -8,7 +8,6 @@ Items
 - #497772
 - certify
 - Improve quiz taking
--- Optional menu for navigation between questions
 -- Ajax
 -- Follow fapi
 
