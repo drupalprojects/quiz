@@ -2334,7 +2334,12 @@ function quiz_end_scoring($quiz, $rid) {
     ))
     ->condition('result_id', $rid)
     ->execute();
-  $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
+  if ($user->uid) {
+    $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
+  }
+  else {
+    $score['passing'] = $score['percentage_score'] >= $quiz->pass_rate;
+  }
   return $score;
 }
 
