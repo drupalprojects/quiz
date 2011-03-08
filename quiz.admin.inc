@@ -409,7 +409,6 @@ function quiz_results_mr_browser_ahah() {
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
     form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output = theme('status_messages');
     print drupal_json_encode(array('status' => TRUE, 'data' => $output));
     exit();
@@ -445,7 +444,6 @@ function quiz_results_mr_browser_ahah() {
   drupal_process_form($form_id, $form, $form_state);
 
   //Remove any status messages the processing resulted in...
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
   theme('status_messages');
 
   // Get the form the ajax call resulted in
@@ -470,7 +468,6 @@ function quiz_results_mr_browser_ahah() {
     unset($b_form['#value']);
 
     $rendered_browser = drupal_render($b_form);
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output .= ' var renderedBrowser = ' . drupal_json_encode(theme('status_messages') . $rendered_browser) . ';';
 
     // Have js(jQuery) replace the browser and change the form build id in the DOM
@@ -487,7 +484,6 @@ function quiz_results_mr_browser_ahah() {
     $output .= ' var quizBrowserPager = ' . drupal_json_encode($b_pager) . ';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
     $output .= ' </script>';
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output .= ' ' . theme('status_messages');
   }
   drupal_json_output(array('status' => TRUE, 'data' => $output));
@@ -711,12 +707,10 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
         break;
       }
       elseif ($existing['remove']) {
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
-        /* db_query('DELETE FROM {quiz_terms} WHERE tid = %d AND vid = %d', $key, $form_state['values']['vid']) */
         db_delete('quiz_terms')
-  ->condition('tid', $key)
-  ->condition('vid', $form_state['values']['vid'])
-  ->execute();
+          ->condition('tid', $key)
+          ->condition('vid', $form_state['values']['vid'])
+        ->execute();
         $removed[] = $form[$key]['name']['#value'];
         break;
       }
@@ -785,15 +779,14 @@ function _quiz_search_terms($start, $all = FALSE) {
   if (empty($sql_args)) {
     return $terms;
   }
-  $sql = "SELECT t.name, t.tid
-          FROM term_data t
-          WHERE vid IN (" . db_placeholders($sql_args) . ")";
+  $query = db_select('term_data', 't')
+    ->fields('t', array('name', 'tid'))
+    ->condition('t.vid', $sql_args , 'IN');
   if (!$all) {
-    $sql .= " AND t.name LIKE '%%%s%%'";
+    $query->condition('t.name', '%%%s%%', 'LIKE');
     $sql_args[] = $start;
   }
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql, 't', 'tid'), $sql_args);
+  $res = $query->execute();
   while ($res_o = db_fetch_object($res)) {
     $terms[$res_o->tid] = $res_o->name;
   }
@@ -1006,16 +999,15 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     $cur_questions[$cur_question->nid] = $cur_question;
   }
 
-  // Fetching the rest of the data we need for each question...
-  $sql = 'SELECT n.nid, n.type, n.vid AS latest_vid, r.title
-          FROM {node_revisions} r
-          JOIN {node} n
-          ON n.nid = r.nid
-          WHERE r.vid IN (' . implode(', ', $vids) . ')';
-
-  // We use db_rewrite_sql to add node access security
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql));
+  $query = db_select('node_revisions', 'r');
+  $table_alias = $query->join('node', 'n', 'n.nid = r.nid');
+  $res = $query->addField('n', 'nid')
+    ->addTag('node_access')
+    ->addField('n', 'type')
+    ->addField('n', 'vid', 'latest_vid')
+    ->addField('r', 'title')
+    ->condition('r.vid', $vids, 'IN')
+  ->execute();
   while ($res_o = db_fetch_object($res)) {
     $cur_questions[$res_o->nid]->type = $res_o->type;
     $cur_questions[$res_o->nid]->title = check_plain($res_o->title);
@@ -1074,15 +1066,17 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
   }
   if (count($vids) > 0) {
     // We fetch the rest of the information for each question and adds node access security
-    $sql = 'SELECT n.nid, n.type, r.title, p.max_score, n.vid AS latest_vid
-            FROM {node} n
-            JOIN {node_revisions} r
-            ON n.nid = r.nid
-            JOIN {quiz_question_properties} p
-            ON r.vid = p.vid
-            WHERE r.vid IN (' . implode(', ', $vids) . ')';
-    // TODO Please convert this statement to the D7 database API syntax.
-    $res = db_query(db_rewrite_sql($sql));
+    $query = db_select('node', 'n')
+      ->addTag('node_access');
+    $nr_alias = $query->join('node_revisions', 'r', 'n.nid = r.nid');
+    $qqp_alias = $query->join('quiz_question_properties', 'p', 'r.vid = p.vid');
+    $res = $query->addField('n', 'nid')
+      ->addField('n', 'type')
+      ->addField('r', 'title')
+      ->addField('p', 'max_score')
+      ->addField('n', 'vid', 'latest_vid')
+      ->condition('r.vid', $vids, 'IN')
+    ->execute();
     while ($res_o = db_fetch_object($res)) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
@@ -1667,30 +1661,22 @@ function quiz_questions_form_submit($form, &$form_state) {
   $success = TRUE; // since we got this far
   if ($quiz->type == 'quiz') {
     // Update the quiz node properties.
-    $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $num_random, $quiz->max_score_for_random, $term_id, $quiz->vid, $quiz->nid) */
     $success = db_update('quiz_node_properties')
-  ->fields(array(
-    'number_of_random_questions' => $num_random,
-    'max_score_for_random' => $quiz->max_score_for_random,
-    'tid' => $term_id,
-  ))
-  ->condition('vid', $quiz->vid)
-  ->condition('nid', $quiz->nid)
-  ->execute();
+      ->fields(array(
+        'number_of_random_questions' => $num_random,
+        'max_score_for_random' => $quiz->max_score_for_random,
+        'tid' => $term_id,
+        ))
+      ->condition('vid', $quiz->vid)
+      ->condition('nid', $quiz->nid)
+    ->execute();
 
-    $sql = "UPDATE {quiz_node_properties} SET max_score = max_score_for_random  * number_of_random_questions + (
+    $success2 = db_query("UPDATE {quiz_node_properties} SET max_score = max_score_for_random  * number_of_random_questions + (
               SELECT COALESCE(SUM(max_score), 0)
               FROM {quiz_node_relationship}
-              WHERE parent_vid = %d AND question_status = %d
+              WHERE parent_vid = :vid AND question_status = :question_status
             )
-            WHERE vid = %d";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $quiz->vid, QUESTION_ALWAYS, $quiz->vid) */
-    $success2 = db_update('quiz_node_properties')
-  ->fields(array('max_score' =>));
-  }
+            WHERE vid = :vid", array(':vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS))->execute();
 
   if ($success && $success2) {
     drupal_set_message(t('Questions updated successfully.'));
@@ -1766,7 +1752,6 @@ function quiz_browser_ahah() {
   // Make sure the form exists
   if (!($form = form_get_cache($form_id, $form_state))) {
     form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output = theme('status_messages');
     print drupal_json_encode(array('status' => TRUE, 'data' => $output));
     exit();
@@ -1851,7 +1836,6 @@ function quiz_browser_ahah() {
     unset($b_form['#value']);
 
     $rendered_browser = drupal_render($b_form['table']);
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output .= ' var renderedBrowser = ' . drupal_json_encode(theme('status_messages') . $rendered_browser) . ';';
 
     // Have js(jQuery) replace the browser and change the form build id in the DOM
@@ -1870,7 +1854,6 @@ function quiz_browser_ahah() {
     $output .= ' var quizBrowserPager = ' . drupal_json_encode($b_pager) . ';';
     $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
     $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
-    // TODO Please change this theme call to use an associative array for the $variables parameter.
     $output .= ' ' . theme('status_messages');
   }
   drupal_json_output(array('status' => TRUE, 'data' => $output));
@@ -1952,8 +1935,7 @@ function theme_quiz_node_form($variables) {
   $form = $variables['form'];
   $path = drupal_get_path('module', 'quiz') . '/theme/quiz_node_form.js';
   drupal_add_js($path);
-  // TODO Please change this theme call to use an associative array for the $variables parameter.
-  return theme('node_form', $form);
+  return theme('node_form', array('form' => $form));
 }
 
 /**
@@ -2416,11 +2398,6 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
 /**
  * Submit function for the result browser form
  */
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
 function quiz_results_mr_form_submit($form, &$form_state) {
   // If we are confirming the deltion of results.
   if ($form_state['values']['op'] == t('Delete all marked results')) {
@@ -2489,20 +2466,13 @@ function _quiz_delete_results($rid, $nid = NULL) {
 
   // We are to delete all results for a certain user on a certain quiz.
   if (isset($nid)) {
-    $sql = 'SELECT result_id
-            FROM {quiz_node_results}
-            WHERE nid = %d AND uid = (
-              SELECT uid
-              FROM {quiz_node_results}
-              WHERE result_id = %d
-            )';
     $res = db_query('SELECT result_id
             FROM {quiz_node_results}
-            WHERE nid = :nid AND uid = :uid
+            WHERE nid = :nid AND uid = (
               SELECT uid
               FROM {quiz_node_results}
               WHERE result_id = :result_id
-            )', array(':nid' => $nid ':uid' =>));
+            )', array(':nid' => $nid, ':result_id' => $rid));
     while ($result = $res->fetchField()) {
       $rids[] = $result;
     }
@@ -2695,12 +2665,8 @@ function quiz_remove_partial_quiz_record_value() {
   );
 }
 
-/*
- * Adds inline js to automatically set the question's node title.
- */
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Adds inline js to automatically set the question's node title.
  */
 function quiz_set_auto_title() {
   $max_length = variable_get('quiz_autotitle_length', 50);
@@ -2918,8 +2884,7 @@ function _quiz_get_score_intervals($quiz) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Themes a categorized quiz form
  */
 function theme_quiz_categorized_form($variables) {
   $form = $variables['form'];
