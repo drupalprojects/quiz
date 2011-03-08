@@ -12,7 +12,6 @@
  * Makes sure max_score is correct in the quiz_node_properties
  */
 function quiz_update_6420() {
-  $results = array();
   db_create_table('quiz_terms', array(
     'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
     'fields' => array(
@@ -77,10 +76,6 @@ function quiz_update_6420() {
     'type' => 'int',
     'unsigned' => TRUE,
   ));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -89,7 +84,6 @@ function quiz_update_6420() {
  * Makes sure max_score is correct in the quiz_node_properties
  */
 function quiz_update_6419() {
-  $results = array();
   $sql = "UPDATE {quiz_node_properties} p
           LEFT OUTER JOIN (
             SELECT parent_vid, COALESCE(SUM(max_score), 0) AS ms
@@ -98,12 +92,7 @@ function quiz_update_6419() {
             GROUP BY parent_vid
           ) t ON t.parent_vid = p.vid
           SET p.max_score = p.max_score_for_random  * p.number_of_random_questions + COALESCE(t.ms, 0)";
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
+  db_query($sql);
 }
 
 /**
@@ -112,13 +101,8 @@ function quiz_update_6419() {
  * Change the primary key of the quiz_node_properties table to something more useful...
  */
 function quiz_update_6418() {
-  $results = array();
   db_drop_field('quiz_node_properties', 'property_id');
   db_add_primary_key('quiz_node_properties', array('vid'));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -127,7 +111,6 @@ function quiz_update_6418() {
  * Make sure all the max_scores in the database are updated.
  */
 function quiz_update_6417() {
-  $results = array();
   $sql = "UPDATE {quiz_node_properties} qnp
           SET max_score = max_score_for_random * number_of_random_questions + (
             SELECT SUM(max_score)
@@ -135,12 +118,8 @@ function quiz_update_6417() {
             WHERE qnr.question_status = 1
             AND parent_vid = qnp.vid
           )";
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
+  db_query($sql);
+
 }
 
 /**
@@ -149,17 +128,7 @@ function quiz_update_6417() {
  * Remove number_of_random_questions from the user settings
  */
 function quiz_update_6416() {
-  $results = array();
   db_drop_field('quiz_user_settings', 'number_of_random_questions');
-
-  // Temporary fix, ref: http://drupal.org/node/777408
-  // TODO: Remove this if and when autoload adds a fix
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql("UPDATE {system} SET weight = -282828 WHERE name = 'autoload' AND type = 'module'") */;
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -186,10 +155,6 @@ function quiz_update_6415() {
     'not null' => TRUE,
     'default' => $def,
   ));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -198,7 +163,6 @@ function quiz_update_6415() {
  * Allow negative score values.
  */
 function quiz_update_6414() {
-  $results = array();
   db_change_field('quiz_node_results_answers', 'points_awarded', 'points_awarded', array(
     'type' => 'int',
     'size' => 'tiny',
@@ -206,10 +170,6 @@ function quiz_update_6414() {
     'not null' => TRUE,
     'default' => 0,
   ));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -218,7 +178,6 @@ function quiz_update_6414() {
  * Make display feedback a quiz option, and not a global variable
  */
 function quiz_update_6413() {
-  $results = array();
   db_add_field('quiz_node_properties', 'display_feedback', array(
     'type' => 'int',
     'size' => 'tiny',
@@ -227,10 +186,9 @@ function quiz_update_6413() {
     'default' => 1,
   ));
   if (variable_get('quiz_display_feedback', 1) == 0) {
-    // TODO update_sql has been removed. Use the database API for any schema or data changes.
-    $results[] = array() /* update_sql('
-      UPDATE {quiz_node_properties}
-      SET quiz_display_feedback = 0') */;
+    db_update('quiz_node_properties')
+      ->fields(array('quiz_display_feedback' => 0))
+    ->execute();
   }
   variable_del('quiz_display_feedback');
   db_add_field('quiz_user_settings', 'display_feedback', array(
@@ -240,10 +198,6 @@ function quiz_update_6413() {
     'not null' => TRUE,
     'default' => 1,
   ));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -251,7 +205,6 @@ function quiz_update_6413() {
  * Adding a new field to store the max score for random questions
  */
 function quiz_update_6412() {
-  $results = array();
   db_add_field('quiz_node_properties', 'max_score_for_random', array(
     'type' => 'int',
     'size' => 'tiny',
@@ -259,10 +212,6 @@ function quiz_update_6412() {
     'not null' => TRUE,
     'default' => 1,
   ));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -273,10 +222,6 @@ function quiz_update_6411() {
   variable_del('quiz_default_pass_rate');
   variable_del('quiz_keep_results');
   variable_del('quiz_def_takes');
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* array() */;
 }
 
 /**
@@ -284,20 +229,16 @@ function quiz_update_6411() {
  * Creating the variable quiz_def_uid. This artificial uid is used when storing the default quiz preferences.
  */
 function quiz_update_6410() {
-  $results = array();
-  db_lock_table('users');
+  $def_uid = db_insert('users')
+    ->fields(array(
+      'name' => 'def user',
+    ))
+    ->execute();
   $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
-  $def_uid = db_last_insert_id('users', 'uid');
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql('DELETE FROM {users} WHERE uid = ' . intval($def_uid)) */;
-  db_unlock_tables();
+  db_delete('users')
+    ->condition('uid', $def_uid)
+    ->execute();
   variable_set('quiz_def_uid', $def_uid);
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -305,13 +246,8 @@ function quiz_update_6410() {
  * Adding indexes to improve performance
  */
 function quiz_update_6409() {
-  $results = array();
   db_add_index('quiz_node_relationship', 'parent_id', array('parent_vid'));
   db_add_index('quiz_node_results_answers', 'result_id', array('result_id'));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -320,7 +256,6 @@ function quiz_update_6409() {
  * - Merging randomize and shuffle into randomization
  */
 function quiz_update_6408() {
-  $results = array();
   db_create_table('quiz_user_settings', array(
     'fields' => array(
       'uid' => array(
@@ -435,22 +370,20 @@ function quiz_update_6408() {
     'not null' => TRUE,
     'default' => 0
   ));
-  $sql = 'UPDATE {quiz_node_properties}
-          SET randomization = 1
-          WHERE shuffle = 1';
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
+  db_update('quiz_node_properties')
+    ->fields(array('randomization' => 1))
+    ->condition('shuffle', 1, '=')
+  ->execute();
   db_drop_field('quiz_node_properties', 'shuffle');
   $sql = 'UPDATE {quiz_node_properties}
           SET randomization = 2
           WHERE randomize = 1';
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
+  db_update('quiz_node_properties')
+    ->fields(array('randomization' => 2))
+    ->condition('randomize', 1, '=')
+  ->execute();
   db_drop_field('quiz_node_properties', 'randomize');
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
+  return;
 }
 
 /**
@@ -458,31 +391,23 @@ function quiz_update_6408() {
  * Add field is_evaluated to the quiz_node_result, and make sure the values are correct
  */
 function quiz_update_6407() {
-  $results = array();
   db_add_field('quiz_node_results', 'is_evaluated', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  $sql = 'UPDATE {quiz_node_results}
-          SET is_evaluated = 1
-          WHERE time_end > 0';
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql($sql) */;
+  db_update('quiz_node_results')
+    ->fields(array('is_evaluated' => 1))
+    ->condition('time_end', 0, '>')
+  ->execute();
   $tables = array('quiz_short_answer_user_answers', 'quiz_long_answer_user_answers');
   foreach ($tables as $table) {
     if (db_table_exists($table)) {
-      $sql = 'UPDATE {quiz_node_results}
-              SET is_evaluated = 0
-              WHERE result_id IN (
-                SELECT result_id
-                FROM {' . $table . '} tbl
-                WHERE tbl.is_evaluated = 0
-              )';
-      // TODO update_sql has been removed. Use the database API for any schema or data changes.
-      $results[] = array() /* update_sql($sql) */;
+      $sub = db_select($table, 'tbl')
+        ->fields('tbl', array('result_id'))
+        ->condition('tbl.is_evaluated', 0, '=');
+      db_update('quiz_node_results')
+        ->fields(array('is_evaluated' => 0))
+        ->condition('result_id', $sub, 'IN')
+      ->execute();
     }
   }
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
 }
 
 /**
@@ -490,12 +415,7 @@ function quiz_update_6407() {
  * Adding a field to store what results are to be kept.
  */
 function quiz_update_6406() {
-  $result = array();
   db_add_field('quiz_node_properties', 'keep_results', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 2));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -503,12 +423,7 @@ function quiz_update_6406() {
  * Adding a new field to store whether or not to repeat questions until they're found correct
  */
 function quiz_update_6405() {
-  $result = array();
   db_add_field('quiz_node_properties', 'repeat_until_correct', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -516,19 +431,13 @@ function quiz_update_6405() {
  * Adding a new field to save if a quiz takes random questions or not.
  */
 function quiz_update_6404() {
-  $result = array();
   if (!db_field_exists('quiz_node_properties', 'randomize')) {
     db_add_field('quiz_node_properties', 'randomize', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
-    $sql = 'UPDATE {quiz_node_properties}
-            SET randomize = 1
-            WHERE number_of_random_questions > 0';
-    // TODO update_sql has been removed. Use the database API for any schema or data changes.
-    $result[] = array() /* update_sql($sql) */;
+    db_update('quiz_node_properties')
+      ->fields(array('randomize' => 1))
+      ->condition('number_of_random_questions', 0, '>')
+    ->execute();
   }
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -536,17 +445,12 @@ function quiz_update_6404() {
  * Adding a new field to save timer status for a timed quiz.
  */
 function quiz_update_6403() {
-  $result = array();
   if (!db_field_exists('quiz_node_results', 'time_left')) {
     db_add_field('quiz_node_results', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
   }
   if (!db_field_exists('quiz_node_properties', 'time_left')) {
     db_add_field('quiz_node_properties', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
   }
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -555,12 +459,7 @@ function quiz_update_6403() {
  * Adding a field to turn on/off questions skipping in quiz.
  */
 function quiz_update_6402() {
-  $result = array();
   db_add_field('quiz_node_properties', 'allow_skipping', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -572,8 +471,6 @@ function quiz_update_6402() {
  * This function uses the batch feature
  */
 function quiz_update_6401(&$sandbox = NULL) {
-  $result = array();
-
   // Altering tables:
   if (!isset($sandbox['tables_changed'])) {
     db_add_field('quiz_node_relationship', 'max_score', array(
@@ -648,38 +545,37 @@ function quiz_update_6401(&$sandbox = NULL) {
     $tables = array_pop($sandbox['question_types']);
     switch ($current_type) {
       case 'long_answer':
-        $sql = 'INSERT INTO {quiz_question_properties}
-                (nid, vid, max_score)
-                SELECT t.nid, t.vid, t.maximum_score
-                FROM {quiz_long_answer_node_properties} t';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        $q = db_select('quiz_long_answer_node_properties', 't')
+          ->fields('t', array('nid', 'vid', 'maximum_score'));
+        db_insert('quiz_question_properties')
+          ->from($q)
+        ->execute();
         db_drop_field('quiz_long_answer_node_properties', 'maximum_score');
         break;
       case 'matching':
-        $sql = 'INSERT INTO {quiz_question_properties}
-                (nid, vid, max_score)
-                SELECT t.nid, t.vid, COUNT(*)
-                FROM {quiz_matching_node} t
-                GROUP BY t.nid, t.vid';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        $q = db_select('quiz_matching_node', 't')
+          ->fields('t', array('nid', 'vid'))
+          ->addExpression('COUNT(*)', 'maximum_score')
+          ->groupBy('t.nid')
+          ->groupBy('t.vid');
+        db_insert('quiz_question_properties')
+          ->from($q)
+        ->execute();
         break;
       case 'multichoice':
-        $sql = 'INSERT INTO {quiz_question_properties}
-                (nid, vid, max_score)
-                SELECT t.nid, t.vid, 1
-                FROM {quiz_multichoice_properties} t
-                WHERE t.choice_boolean = 1';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
-        $sql = 'INSERT INTO {quiz_question_properties}
-                (nid, vid)
-                SELECT t.nid, t.vid
-                FROM {quiz_multichoice_properties} t
-                WHERE t.choice_boolean = 0';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        $q = db_select('quiz_multichoice_properties', 't')
+          ->fields('t', array('nid', 'vid', 1))
+          ->condition('t.choice_boolean', 1, '=');
+        db_insert('quiz_question_properties')
+          ->from($q)
+        ->execute();
+
+        $q = db_select('quiz_multichoice_properties', 't')
+          ->fields('t', array('nid', 'vid'))
+          ->condition('t.choice_boolean', 0, '=');
+        db_insert('quiz_question_properties')
+          ->from($q)
+        ->execute();
         $sql = 'UPDATE {quiz_question_properties} p
                 JOIN {quiz_multichoice_properties} mp
                 ON p.nid = mp.nid AND p.vid = mp.vid
@@ -694,24 +590,21 @@ function quiz_update_6401(&$sandbox = NULL) {
                   GROUP BY ma.question_nid, ma.question_vid
                 )
                 WHERE mp.choice_boolean = 0';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        db_query($sql);
         break;
       case 'scale':
-        $sql = 'INSERT INTO {quiz_question_properties}
-                (nid, vid)
-                SELECT t.nid, t.vid
-                FROM {quiz_scale_node_properties} t';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        $q = db_select('quiz_scale_node_properties', 't')
+          ->fields('t', array('nid', 'vid'));
+        db_insert('quiz_question_properties')
+          ->from($q)
+        ->execute();
         break;
       case 'short_answer':
         $sql = 'INSERT INTO {quiz_question_properties}
                 (nid, vid, max_score)
                 SELECT t.nid, t.vid, t.maximum_score
                 FROM {quiz_short_answer_node_properties} t';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        db_query($sql);
         db_drop_field('quiz_short_answer_node_properties', 'maximum_score');
         break;
       case 'truefalse':
@@ -719,8 +612,7 @@ function quiz_update_6401(&$sandbox = NULL) {
                 (nid, vid, max_score)
                 SELECT t.nid, t.vid, 1
                 FROM {quiz_truefalse_node} t';
-        // TODO update_sql has been removed. Use the database API for any schema or data changes.
-        $result[] = array() /* update_sql($sql) */;
+        db_query($sql);
         break;
     }
     $sandbox['progress']++;
@@ -733,8 +625,7 @@ function quiz_update_6401(&$sandbox = NULL) {
               SELECT n.nid, n.vid, 0
               FROM {node} n
               WHERE type = "quiz_directions"';
-      // TODO update_sql has been removed. Use the database API for any schema or data changes.
-      $result[] = array() /* update_sql($sql) */;
+      db_query($sql);
       $sandbox['quiz_directions_done'] = TRUE;
     }
     // Store default max score in node relationship table
@@ -743,8 +634,7 @@ function quiz_update_6401(&$sandbox = NULL) {
               JOIN {quiz_question_properties} p
               ON r.child_nid = p.nid AND r.child_vid = p.vid
               SET r.max_score = p.max_score';
-      // TODO update_sql has been removed. Use the database API for any schema or data changes.
-      $result[] = array() /* update_sql($sql) */;
+      db_query($sql);
       $sandbox['quiz_relationships_done'] = TRUE;
     }
     // In quiz 3.x mathing questions only gave 1 point...
@@ -754,8 +644,7 @@ function quiz_update_6401(&$sandbox = NULL) {
               ON r.child_nid = n.nid AND r.child_vid = n.vid
               SET r.max_score = 1
               WHERE n.type = "matching"';
-      // TODO update_sql has been removed. Use the database API for any schema or data changes.
-      $result[] = array() /* update_sql($sql) */;
+      db_query($sql);
       $sandbox['matching_relationship_done'] = TRUE;
     }
     elseif (!isset($sandbox['quiz_properties_done'])) {
@@ -765,18 +654,13 @@ function quiz_update_6401(&$sandbox = NULL) {
                 FROM {quiz_node_relationship} r
                 WHERE r.parent_nid = p.nid AND r.parent_vid = p.vid
                 GROUP BY r.parent_nid, r.parent_vid)';
-      // TODO update_sql has been removed. Use the database API for any schema or data changes.
-      $result[] = array() /* update_sql($sql) */;
+      db_query($sql);
       $sandbox['quiz_properties_done'] = TRUE;
     }
     $sandbox['progress']++;
   }
 
   $result['#finished'] = $sandbox['progress'] / $sandbox['max'];
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -785,17 +669,8 @@ function quiz_update_6401(&$sandbox = NULL) {
  * it is not beeing used at all, and therefore we remove it.
  */
 function quiz_update_6400() {
-  drupal_install_modules(array('autoload', 'quiz_question'));
-  if (!module_exists('autoload')) {
-    return array('#abort' => array('success' => FALSE, 'query' => 'The <a href="http://drupal.org/project/autoload">Autoload</a> module is missing. You need to <a href="http://drupal.org/project/autoload">download</a> and enable autoload before you run update.php.'));
-  }
-
-  $result = array();
+  drupal_install_modules(array('quiz_question'));
   db_drop_table('quiz_node_question_properties');
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -803,12 +678,7 @@ function quiz_update_6400() {
  * Adding a new field to save timer status for a timed quiz.
  */
 function quiz_update_6306() {
-  $result = array();
   db_add_field('quiz_node_results', 'time_left', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -816,12 +686,7 @@ function quiz_update_6306() {
  *  Adding new field to integrate quiz node and userpoints modules
  */
 function quiz_update_6305() {
-  $result = array();
   db_add_field('quiz_node_properties', 'has_userpoints', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -829,12 +694,7 @@ function quiz_update_6305() {
  *
  */
 function quiz_update_6304() {
-  $result = array();
   db_add_field('quiz_node_relationship', 'weight', array('type' => 'int', 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -842,13 +702,8 @@ function quiz_update_6304() {
  * Add new field for invalidating entire quizzes. Use it on those mean cheaters.
  */
 function quiz_update_6303() {
-  $result = array();
   // Add a field that allows an admin to mark a quiz as invalid.
   db_add_field('quiz_node_results', 'is_invalid', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -856,29 +711,18 @@ function quiz_update_6303() {
  * Add and rearrange indexes across several of the tables.
  */
 function quiz_update_6302() {
-  $result = array();
   db_add_index('quiz_node_result_options', 'quiz_id', array('vid, nid'));
   db_add_index('quiz_node_properties', 'quiz_id', array('vid, nid'));
   db_add_index('quiz_node_results', 'user_results', array('uid', 'vid', 'nid'));
-
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 /**
  * Implements hook_update_N().
  * Add is_skipped column to quiz answer field. This allows questions to be skipped.
  */
 function quiz_update_6301() {
-  $result = array();
   // Do this:
   //'is_skipped' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
   db_add_field('quiz_node_results_answers', 'is_skipped', array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
@@ -886,22 +730,13 @@ function quiz_update_6301() {
  * Add aid to quiz_node_properties table.
  */
 function quiz_update_6300() {
-  $result = array();
   db_add_field('quiz_node_properties', 'aid', array('type' => 'varchar', 'length' => 255, 'not null' => TRUE));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $result */;
 }
 
 /**
  * Implements hook_install().
  */
 function quiz_install() {
-  // Create Tables
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_install_schema('quiz')
-
   // Default the "Show Author and Date" for quiz nodes to OFF.
   $temp_array = variable_get('theme_settings', array());
   $temp_array['toggle_node_info_quiz'] = 0;
@@ -910,15 +745,15 @@ function quiz_install() {
   variable_set('comment_quiz', '0');
 
   // Create the quiz_def_uid variable holding an artificial uid to use when storing default settings.
-  db_lock_table('users');
+  $def_uid = db_insert('users')
+  ->fields(array(
+    'name' => 'def user',
+  ))
+  ->execute();
   $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql) */
-  NULL;
-  $def_uid = db_last_insert_id('users', 'uid');
-  // TODO Please convert this statement to the D7 database API syntax.
-  db_query('DELETE FROM {users} WHERE uid = ' . intval($def_uid));
-  db_unlock_tables();
+  db_delete('users')
+    ->condition('uid', $def_uid)
+    ->execute();
   variable_set('quiz_def_uid', $def_uid);
 
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
@@ -1523,8 +1358,6 @@ function quiz_schema() {
  * Implements hook_uninstall().
  */
 function quiz_uninstall() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('quiz')
   $var = array(
     'quiz_name',
     'quiz_default_close',
