@@ -783,10 +783,10 @@ function _quiz_search_terms($start, $all = FALSE) {
     ->fields('t', array('name', 'tid'))
     ->condition('t.vid', $sql_args , 'IN');
   if (!$all) {
-    $query->condition('t.name', '%%%s%%', 'LIKE');
-    $sql_args[] = $start;
+    $query->condition('t.name', '%' . $start . '%', 'LIKE');
   }
   $res = $query->execute();
+  // TODO Don't user db_fetch_object
   while ($res_o = db_fetch_object($res)) {
     $terms[$res_o->tid] = $res_o->name;
   }
@@ -1008,6 +1008,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     ->addField('r', 'title')
     ->condition('r.vid', $vids, 'IN')
   ->execute();
+  // TODO: Don't use db_fetch_object
   while ($res_o = db_fetch_object($res)) {
     $cur_questions[$res_o->nid]->type = $res_o->type;
     $cur_questions[$res_o->nid]->title = check_plain($res_o->title);
@@ -1077,6 +1078,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
       ->addField('n', 'vid', 'latest_vid')
       ->condition('r.vid', $vids, 'IN')
     ->execute();
+    // TODO: Don't user db_fetch_object
     while ($res_o = db_fetch_object($res)) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
@@ -2466,6 +2468,7 @@ function _quiz_delete_results($rid, $nid = NULL) {
 
   // We are to delete all results for a certain user on a certain quiz.
   if (isset($nid)) {
+    // TODO: We should be able to rewrite this one to use the DBTNG.
     $res = db_query('SELECT result_id
             FROM {quiz_node_results}
             WHERE nid = :nid AND uid = (
