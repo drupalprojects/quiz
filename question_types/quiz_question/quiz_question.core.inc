@@ -177,7 +177,8 @@ abstract class QuizQuestion {
       // Finding the last quizzes the current user has been using
       $sql = "SELECT lq.quiz_nid, n.vid, n.title, lq.id FROM {quiz_question_latest_quizzes} lq
               JOIN {node} n ON n.nid = lq.quiz_nid
-              WHERE lq.uid = :uid";
+              JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
+              WHERE lq.uid = :uid AND qnp.randomization < 3";
       if (drupal_strlen($found) > 0) {
         $sql .= " AND quiz_nid NOT IN ($found)";
       }
@@ -196,7 +197,8 @@ abstract class QuizQuestion {
         // Suplementing with other available quizzes...
         $found = implode(', ', array_merge($already_nids, $latest_nids));
         $sql = "SELECT n.nid, n.vid, title, changed FROM {node} n
-                WHERE type = 'quiz'";
+        		JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
+                WHERE type = 'quiz' AND qnp.randomization < 3";
         if (drupal_strlen($found) > 0) {
           $sql .= " AND n.nid NOT IN ($found)";
         }
