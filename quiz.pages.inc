@@ -463,7 +463,7 @@ function theme_quiz_progress($variables) {
   // Get the current question # by adding one.
   $current_question = $question_number + 1;
 
-  if ($jumper) {
+  if ($variables['allow_jumping']) {
     $current_question = theme('quiz_jumper', array('current' => $current_question, 'num_questions' => $num_of_question));
   }
 
@@ -472,7 +472,7 @@ function theme_quiz_progress($variables) {
   $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
   $output .= '</div>' . "\n";
   // Add div to be used by jQuery countdown
-  if ($time_limit) {
+  if ($variables['time_limit']) {
     $output .= '<div class="countdown"></div>';
   }
   return $output;
