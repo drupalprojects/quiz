@@ -3,24 +3,10 @@ package = Quiz Core
 description = "Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly. If in doubt, use the Multichoice module."
 dependencies[] = taxonomy
 core = 7.x
-php = 5.1
 
 ; This is (or should be) recommended, but not required.
 ;dependencies[] = jquery_countdown
-; Information added by drupal.org packaging script on 2011-01-11
-version = "6.x-4.0"
-core = 7.x
-project = "quiz"
-datestamp = "1294785668"
 
-
-files[] = quiz.actions.inc
-files[] = quiz.admin.inc
-files[] = quiz.help.inc
-files[] = quiz.install
-files[] = quiz.module
-files[] = quiz.pages.inc
-files[] = quiz_datetime.inc
 files[] = views/quiz.views.inc
 files[] = views/quiz.views_default.inc
 files[] = defaults/questions_by_quiz.inc
@@ -40,6 +26,3 @@ files[] = handlers/quiz_views_handler_filter_quiz_nid.inc
 files[] = handlers/quiz_views_handler_filter_user_nullable.inc
 files[] = handlers/quiz_views_handler_filter_user_quiz_state.inc
 files[] = handlers/quiz_views_handler_relationship_quiz_nid.inc
-files[] = theme/quiz-question-browser.tpl.php
-files[] = theme/quiz-report-form.tpl.php
-files[] = theme/quiz-results-browser.tpl.php

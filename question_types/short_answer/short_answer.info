@@ -1,23 +1,9 @@
-
 name = Short Answer
 package = Quiz Question
 description = Short answer question type for Quiz.
 core = 7.x
-php = 5.1
 dependencies[] = quiz
 dependencies[] = quiz_question
 
-; Information added by drupal.org packaging script on 2011-01-11
-version = "6.x-4.0"
-core = 7.x
-project = "quiz"
-datestamp = "1294785668"
-
-
-files[] = short_answer.admin.inc
 files[] = short_answer.classes.inc
-files[] = short_answer.install
-files[] = short_answer.module
 files[] = short_answer.test
-files[] = theme/short-answer-answering-form.tpl.php
-files[] = theme/short_answer.theme.inc

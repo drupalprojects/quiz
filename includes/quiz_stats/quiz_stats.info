@@ -1,19 +1,6 @@
 name = Quiz Statistics
 description = "Creates a report to compare and analyse the results of quiz attendees."
 core = 7.x
-php = 5
 package = Quiz Addon
 dependencies[] = quiz
 dependencies[] = chart
-
-; Information added by drupal.org packaging script on 2011-01-11
-version = "6.x-4.0"
-core = 7.x
-project = "quiz"
-datestamp = "1294785668"
-
-
-files[] = quiz_stats.admin.inc
-files[] = quiz_stats.module
-files[] = theme/quiz_stats_charts.tpl.php
-files[] = theme/quiz_stats_revision_selector.tpl.php
