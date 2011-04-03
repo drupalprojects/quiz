@@ -321,12 +321,11 @@ function quiz_init() {
 function quiz_cron() {
   // Remove old quiz results that haven't been finished.
   $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
-  if ($rm_time) { // $time = 0 for never.
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query('DELETE FROM {quiz_node_results} WHERE !time_end AND (%d - time_start) > %d', REQUEST_TIME, $rm_time) */
+  if ($rm_time) {
+    // $time = 0 for never.
     db_delete('quiz_node_results')
-    ->where('!time_end AND (%d - time_start) > %d',  )
-  ->execute();
+    ->where('!time_end AND (%d - time_start) > %d', REQUEST_TIME, $rm_time)
+    ->execute();
   }
 }
 
@@ -511,24 +510,6 @@ function quiz_menu() {
   );
 
   return $items;
-}
-
-// Temporary fix, ref: http://drupal.org/node/777408
-// TODO: Remove this if and when autoload adds a fix
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function quiz_enable() {
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("UPDATE {system} SET weight = -282828 WHERE name = 'autoload' AND type = 'module'") */
-  db_update('system')
-  ->fields(array(
-    'weight' =>  -282828,
-  ))
-  ->condition('name', 'autoload')
-  ->condition('type', 'module')
-  ->execute();
 }
 
 /**
@@ -754,7 +735,7 @@ function quiz_update($node) {
     // TODO Please review the conversion of this statement to the D7 database API syntax.
     /* db_query($sql, $node->vid, $node->aid, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $node->number_of_random_questions, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping, $node->vid, $node->nid) */
     $resource = db_update('quiz_node_properties')
-  ->fields(array(
+    ->fields(array(
     'vid' => $node->vid,
     'aid' => $node->aid,
     'randomization' => $node->randomization,
@@ -826,14 +807,6 @@ function quiz_content_extra_fields($type_name) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function quiz_title_callback($quiz_node) {
-  return t('Results for "@quiz_title"', array('@quiz_title' => $quiz_node->title));
-}
-
-/**
  * Common actions that need to be done before a quiz is inserted or updated
  *
  * @param $node
@@ -854,37 +827,31 @@ function _quiz_common_presave_actions(&$node) {
 /**
  * Implements hook_delete().
  */
-function quiz_delete($node) {
-  $sql = 'SELECT result_id
-          FROM {quiz_node_results}
-          WHERE nid = %d';
+function quiz_delete($node) {  
   $res = db_query('SELECT result_id
           FROM {quiz_node_results}
           WHERE nid = :nid', array(':nid' => $node->nid));
   $rids = array();
-  while ($rids[] = $res->fetchField()) {
+  while ($rid = $res->fetchField()) {
+    $rids[] = $rid;
   }
   quiz_delete_results($rids);
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_properties} WHERE nid = %d', $node->nid) */
+  // Remove quiz node records from table quiz_node_properties
   db_delete('quiz_node_properties')
-  ->condition('nid', $node->nid)
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_relationship} WHERE parent_nid = %d', $node->nid) */
+    ->condition('nid', $node->nid)
+    ->execute();
+  // Remove quiz node records from table quiz_node_relationship
   db_delete('quiz_node_relationship')
-  ->condition('parent_nid', $node->nid)
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_results} WHERE nid = %d', $node->nid) */
+    ->condition('parent_nid', $node->nid)
+    ->execute();    
+  // Remove quiz node records from table quiz_node_results
   db_delete('quiz_node_results')
-  ->condition('nid', $node->nid)
-  ->execute();
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('DELETE FROM {quiz_node_result_options} WHERE nid = %d', $node->vid, $node->nid) */
+    ->condition('nid', $node->nid)
+    ->execute();
+  // Remove quiz node records from table quiz_node_result_options
   db_delete('quiz_node_result_options')
-  ->condition('nid', $node->vid)
-  ->execute();
+    ->condition('nid', $node->vid)
+    ->execute();
 }
 
 /**
@@ -1487,66 +1454,61 @@ function quiz_validate($node) {
 }
 
 /**
- * Implements hook_nodeapi().
+ * Implementation of hook_node_presave().
  */
-function quiz_nodeapi_OLD(&$node, $op, $a3 = NULL, $a4 = NULL) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  // We need to filter on node type to prevent this from overriding any other
-  // node.
+function quiz_node_presave($node) {
   if ($node->type == 'quiz') {
-    switch ($op) {
-      case 'presave':
-        // Convert the action id to the actual id from the MD5 hash.
-        // Why the actions module does this I do not know? Maybe to prevent
-        // invalid values put into the options value="" field.
-        if ($aid = actions_function_lookup($node->aid)) {
-          $node->aid = $aid;
-        }
-
-        if (variable_get('quiz_auto_revisioning', 1)) {
-          $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
-        }
-        break;
-      case 'prepare':
-        // Meet E_STRICT on new nodes.
-        $defaults = _quiz_get_node_defaults();
-        if (!isset($node->nid)) {
-          foreach ($defaults as $key => $value) {
-            if (!isset($node->$key)) {
-              $node->$key = $value;
-            }
-          }
-        }
-        break;
+    // Convert the action id to the actual id from the MD5 hash.
+    // Why the actions module does this I do not know? Maybe to prevent
+    // invalid values put into the options value="" field.
+    if ($aid = actions_function_lookup($node->aid)) {
+      $node->aid = $aid;
+    }
+    if (variable_get('quiz_auto_revisioning', 1)) {
+      $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
     }
   }
+  
   if (isset($node->is_quiz_question)) {
-    if (variable_get('quiz_auto_revisioning', 1) && $op == 'presave') {
+    if (variable_get('quiz_auto_revisioning', 1)) {
       $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
     }
   }
 }
 
 /**
+ * Implementation of hook_node_prepare().
+ */
+function quiz_node_prepare($node) {
+  if ($node->type == 'quiz') {
+    $defaults = _quiz_get_node_defaults();
+    if (!isset($node->nid)) {
+      foreach ($defaults as $key => $value) {
+        if (!isset($node->$key)) {
+          $node->$key = $value;
+        }
+      }
+    }
+  }
+
+  if (isset($node->is_quiz_question)) {
+    if (variable_get('quiz_auto_revisioning', 1) && $op == 'presave') {
+      $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
+    }
+  }
+}
+  
+/**
  * Implements hook_user_cancel().
  */
-function quiz_user_cancel($edit, $account, $method) {
-  $sql = 'DELETE FROM {quiz_user_settings}
-              WHERE uid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $account->uid) */
+function quiz_user_cancel($edit, $account, $method) {  
   db_delete('quiz_user_settings')
-  ->condition('uid', $account->uid)
-  ->execute();
+    ->condition('uid', $account->uid)
+    ->execute();
   if (variable_get('quiz_durod', 0)) {
     _quiz_delete_users_results($account->uid);
   }
 }
-
-/**
- * Implementation of hook user().
- */
-function quiz_user_OLD($op, &$edit, &$account, $category = NULL) { }
 
 /**
  * Deletes all results associated with a given user.
@@ -1554,8 +1516,7 @@ function quiz_user_OLD($op, &$edit, &$account, $category = NULL) { }
  * @param int $uid
  *  The users id
  */
-function _quiz_delete_users_results($uid) {
-  $sql = "SELECT result_id FROM {quiz_node_results} WHERE uid = %d";
+function _quiz_delete_users_results($uid) {  
   $res = db_query("SELECT result_id FROM {quiz_node_results} WHERE uid = :uid", array(':uid' => $uid));
   $rids = array();
   while ($rid = $res->fetchField()) {
@@ -1618,13 +1579,12 @@ function quiz_type_confirm($node, $op = NULL) {
  *   Array with nids as keys and titles as values.
  */
 function quiz_get_all_titles() {
-  $sql = "SELECT nid, title
-          FROM {node} n
-          WHERE n.type = 'quiz'";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql));
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('n.type', 'quiz')
+    ->execute();
   $to_return = array();
-  while ($res_o = db_fetch_object($res)) {
+  while ($res_o = $query->fetch()) {
     $to_return[$res_o->nid] = $res_o->title;
   }
   return $to_return;
@@ -1638,14 +1598,14 @@ function quiz_get_all_titles() {
  *   Like this: array($nid => array($vid => $title))
  */
 function quiz_get_all_version_titles() {
-  $sql = "SELECT r.nid, r.vid, r.title
-          FROM {node_revisions} r
-          LEFT JOIN {node} n ON n.nid = r.nid
-          WHERE n.type = 'quiz'";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query(db_rewrite_sql($sql));
+  $query = db_select('node', 'n');
+  $query->join('node_revision', 'nr', 'nr.nid = n.nid');
+  $query->fields('nr', array('nid', 'vid', 'title'))
+    ->condition('n.type', 'quiz')
+    ->execute();
+  
   $to_return = array();
-  while ($res_o = db_fetch_object($res)) {
+  while ($res_o = $query->fetch()) {
     $to_return[$res_o->nid][$res_o->vid] = $res_o->title;
   }
   return $to_return;
@@ -1772,14 +1732,15 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
           WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
   // TODO Please convert this statement to the D7 database API syntax.
   /* db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER) */
-  NULL;
-  $sql = "INSERT INTO {quiz_terms} (nid, vid, tid, weight, max_score, number)
-          SELECT qt.nid, %d, qt.tid, qt.weight, qt.max_score, qt.number
-          FROM {quiz_terms} qt
-          WHERE qt.vid = %d";
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, $new_quiz_vid, $old_quiz_vid) */
-  NULL;
+    
+  db_insert('quiz_terms')
+    ->fields(array('nid', 'vid', 'tid', 'weight', 'max_score', 'number'))
+    ->from(
+      db_select('quiz_terms', 'qt')
+        ->fields('qt', array('nid', $new_quiz_vid, 'tid', 'weight', 'max_score', 'number'))
+        ->condition('vid', $old_quiz_vid)
+      )
+    ->execute();
 }
 
 
@@ -2014,11 +1975,9 @@ function quiz_take_quiz($quiz) {
       // TODO Please review the conversion of this statement to the D7 database API syntax.
       /* db_query("UPDATE {quiz_node_results} SET time_left = %d WHERE result_id = %d", $time, $_SESSION['quiz_' . $quiz->nid]['result_id']) */
       db_update('quiz_node_results')
-  ->fields(array(
-    'time_left' => $time,
-  ))
-  ->condition('result_id', $_SESSION['quiz_' . $quiz->nid]['result_id'])
-  ->execute();
+        ->fields(array('time_left' => $time)
+        ->condition('result_id', $_SESSION['quiz_' . $quiz->nid]['result_id'])
+        ->execute();
 
       if ($time == 1) {
         // Quiz has been timed out, run a loop to mark the remaining questions
@@ -2503,11 +2462,9 @@ function quiz_update_total_score($quiz, $rid) {
     // TODO Please review the conversion of this statement to the D7 database API syntax.
     /* db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid) */
     db_update('quiz_node_results')
-  ->fields(array(
-    'is_evaluated' =>  1,
-  ))
-  ->condition('result_id', $rid)
-  ->execute();
+      ->fields(array('is_evaluated' =>  1))
+      ->condition('result_id', $rid)
+      ->execute();
   }
   return $score['percentage_score'];
 }
@@ -2958,7 +2915,7 @@ function _quiz_get_terms($vid) {
 function quiz_node_map($node, $include_question = TRUE) {
   $new_question = new stdClass();
   if ($include_question) {
-    $new_question->question = check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+    $new_question->question = check_markup($node->body, $node->format);
   }
   $new_question->title = check_plain($node->title);
   $new_question->nid = $node->nid;
@@ -3282,10 +3239,10 @@ function _quiz_get_summary_text($quiz, $score) {
   if (!$admin) {
     if (!empty($score['result_option'])) {
       // Unscored quiz, return the proper result option.
-      $summary['result'] = check_markup($score['result_option'], $quiz->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+      $summary['result'] = check_markup($score['result_option'], $quiz->format);
     }
     else {
-      $summary['result'] = check_markup(_quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']), $quiz->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+      $summary['result'] = check_markup(_quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']), $quiz->format);
     }
   }
 
@@ -3296,7 +3253,7 @@ function _quiz_get_summary_text($quiz, $score) {
       $summary['passfail'] = t('The user passed this quiz.');
     }
     elseif (trim($quiz->summary_pass) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+      $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->format);
     }
   }
   // If the user did not pass or we are not using pass/fail.
@@ -3312,7 +3269,7 @@ function _quiz_get_summary_text($quiz, $score) {
       }
     }
     elseif (trim($quiz->summary_default) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_default, $quiz->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+      $summary['passfail'] = check_markup($quiz->summary_default, $quiz->format);
     }
   }
   return $summary;
