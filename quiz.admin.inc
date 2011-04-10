@@ -1686,7 +1686,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $score = $query->execute()->fetch();   
     
     $success2 = db_update('quiz_node_properties')
-      ->fields(array('max_score' => (int) $score['sum']))
+      ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))    
       ->condition('vid', $quiz->vid)
       ->execute();
   }
