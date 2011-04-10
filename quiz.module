@@ -894,19 +894,28 @@ function _quiz_get_node_defaults() {
 function quiz_load($nodes) {
   foreach ($nodes as $nid => &$node) {
     // Fetching defaults.
-    $default_additions = _quiz_get_node_defaults();
-    $fields = implode(', ', array_keys($default_additions));
+    $default_additions = _quiz_get_node_defaults();    
 
     // Fetching node settings.
-    $sql = 'SELECT %s FROM {quiz_node_properties} WHERE vid = %d AND nid = %d';
-    $fetched_additions = db_fetch_array(db_query('SELECT %s FROM {quiz_node_properties} WHERE vid = :vid AND nid = :nid', array(':vid' => $fields, ':nid' => $node->vid, '' => $node->nid)));
+    $query = db_select('quiz_node_properties', 'qnp');
+    foreach (array_keys($default_additions) as $field) {
+      $query->addField('qnp', $field);
+    }
+    $query->condition('vid', $node->vid);
+    $query->condition('nid', $node->nid);
+    $fetched_additions = $query->execute()->fetch();    
+    
     $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
 
     // Fetching result options.
-    $result_options = db_query('SELECT * FROM {quiz_node_result_options} WHERE nid = :nid AND vid = :vid', array(':nid' => $node->nid, ':vid' => $node->vid));
-    while ($option = db_fetch_array($result_options)) {
+    $query = db_select('quiz_node_result_options', 'qnro');
+    $query->fields('qnro');
+    $query->condition('nid', $node->nid);
+    $query->condition('vid', $node->vid);
+    $options = $query->execute();
+    foreach ($options as $option) {
       $additions->resultoptions[$option['option_id']] = $option;
-    }
+    }    
 
     foreach ($additions as $property => &$value) {
       $node->$property = $value;
@@ -919,7 +928,7 @@ function quiz_load($nodes) {
  */
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   drupal_alter('quiz_view', $node, $teaser, $page);
-  $node = node_prepare($node, $teaser);
+  node_invoke($node, 'prepare');
 
   // Number of questions is needed on the statistics page.
   $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
@@ -1047,7 +1056,7 @@ function quiz_form(&$node) {
     '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
     '#required' => FALSE,
   );
-  $form['body_field']['format'] = filter_form($node->format);
+  //$form['body_field']['format'] = filter_form($node->format);
 
   // The body field format controls all the format selectors for this form.
   _quiz_format_mod($form['body_field']['format']);
@@ -1270,7 +1279,7 @@ function quiz_form(&$node) {
       '#cols' => 60,
       '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
     );
-    $form['summaryoptions']['format'] = filter_form($node->format, NULL, array('summary_format'));
+    //$form['summaryoptions']['format'] = filter_form($node->format, NULL, array('summary_format'));
     _quiz_format_mod($form['summaryoptions']['format']);
   }
   // If the pass/fail option is unchecked, use the default and hide it.
@@ -1290,7 +1299,7 @@ function quiz_form(&$node) {
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
   );
-  $form['summaryoptions']['helper']['format'] = filter_form($node->format, NULL, array('default_summary_format'));
+  //$form['summaryoptions']['helper']['format'] = filter_form($node->format, NULL, array('default_summary_format'));
   _quiz_format_mod($form['summaryoptions']['helper']['format']);
 
   // Number of random questions, max score and tid for random questions are set on
@@ -1360,7 +1369,7 @@ function quiz_form(&$node) {
         '#default_value' => $option['option_summary'],
         '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
       );
-      $form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
+      //$form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
       _quiz_format_mod($form['resultoptions'][$i]['format']);
       if ($option['option_id']) {
         $form['resultoptions'][$i]['option_id'] = array(
@@ -1975,7 +1984,7 @@ function quiz_take_quiz($quiz) {
       // TODO Please review the conversion of this statement to the D7 database API syntax.
       /* db_query("UPDATE {quiz_node_results} SET time_left = %d WHERE result_id = %d", $time, $_SESSION['quiz_' . $quiz->nid]['result_id']) */
       db_update('quiz_node_results')
-        ->fields(array('time_left' => $time)
+        ->fields(array('time_left' => $time))
         ->condition('result_id', $_SESSION['quiz_' . $quiz->nid]['result_id'])
         ->execute();
 
@@ -3871,15 +3880,12 @@ function quiz_has_been_answered($node) {
   if (!isset($node->nid)) {
     return FALSE;
   }
-  $sql = 'SELECT *
-          FROM {quiz_node_results}
-          WHERE nid = %d AND vid = %d
-          LIMIT 1';
-  $res = db_query('SELECT *
-          FROM {quiz_node_results}
-          WHERE nid = :nid AND vid = :vid
-          LIMIT 1', array(':nid' => $node->nid, ':vid' => $node->vid));
-  return db_fetch_object($res) ? TRUE : FALSE;
+  $query = db_select('quiz_node_results', 'qnr');
+  $query->addField('qnr', 'result_id');
+  $query->condition('nid', $node->nid);
+  $query->condition('vid', $node->vid);  
+  $result = $query->execute()->fetch();
+  return empty($result);
 }
 
 /**
@@ -3996,6 +4002,7 @@ function _quiz_maintain_results($quiz, $rid) {
     case QUIZ_KEEP_ALL:
       return FALSE;
     case QUIZ_KEEP_BEST: //I'm afraid of what this might do to performance...
+      /*
       $sql = 'SELECT result_id
               FROM {quiz_node_results}
               WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != (
@@ -4008,18 +4015,17 @@ function _quiz_maintain_results($quiz, $rid) {
                 )
                 AND nid = %d AND uid = %d LIMIT 1
               )';
+              */
       $res = db_query('SELECT result_id
               FROM {quiz_node_results}
-              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id
+              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != (
                 SELECT result_id
                 FROM {quiz_node_results}
-                WHERE score = :score
-                  SELECT MAX(score)
-                  FROM {quiz_node_results}
+                WHERE score = (
+                  SELECT MAX(score) FROM {quiz_node_results}
                   WHERE nid = :nid AND uid = :uid
                 )
-                AND nid = :nid AND uid = :uid LIMIT 1
-              )', array(':nid' => $quiz->nid ':uid' => $user->uid ':is_evaluated' => 1 ':result_id' =>));
+                AND nid = :nid AND uid = :uid LIMIT 1', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1));
       $rids = array();
       while ($rid2 = $res->fetchField()) {
         $rids[] = $rid2;
@@ -4081,21 +4087,26 @@ function quiz_delete_results($rids) {
  *   TRUE if success or FALSE if not success.
  */
 function _quiz_load_user_settings(&$node) {
-  global $user;
-  $sql = "SELECT * FROM {quiz_user_settings} WHERE uid = %d";
+  global $user;  
   // The def_uid property is the default user id. It is used if there are no
-  // settings store for the current user.
-  $res = db_query("SELECT * FROM {quiz_user_settings} WHERE uid = :uid", array(':uid' => isset($node->def_uid) ? $node->def_uid : $user->uid));
-  if ($res_o = db_fetch_object($res)) {
-    foreach ($res_o as $key => $value) {
+  // settings store for the current user.  
+  $def_uid = isset($node->def_uid) ? $node->def_uid : $user->uid;
+  $query = db_select('quiz_user_settings', 'qus')
+    ->fields('qus')
+    ->condition('uid', $def_uid);
+  $res = $query->execute()->fetchAll();
+  if (!empty($res)) {
+    foreach ($res as $key => $value) {
       if (!in_array($key, array('nid', 'vid', 'uid'))) {
         $node->{$key} = $value;
       }
     }
-    $result_options = db_query('SELECT * FROM {quiz_node_result_options} WHERE nid = :nid AND vid = :vid', array(':nid' => $res_o->nid, ':vid' => $res_o->vid));
-    while ($option = db_fetch_array($result_options)) {
-      $node->resultoptions[] = $option;
-    }
+    $node->resultoptions[] = db_select('quiz_node_result_options', 'qnro')
+      ->fields('qnro')
+      ->condition('nid', $value->nid)
+      ->condition('vid', $value->vid)
+      ->execute()
+      ->fetchAll();     
     return TRUE;
   }
   return FALSE;
@@ -4140,10 +4151,11 @@ function _quiz_redirect_if_empty($node) {
   $sql = 'SELECT child_vid
           FROM {quiz_node_relationship}
           WHERE parent_vid = %d';
-  $res = db_query('SELECT child_vid
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->vid));
-  if (!$res_o = db_fetch_object($res)) {
+  $res = db_select('quiz_node_relationship', 'qnr');
+  $res->addField('qnr', 'child_vid');
+  $res->condition('parent_vid', $node->vid);
+  $res = $res->execute()->fetchAll();  
+  if (!count($res)) {
     $_GET['destination'] = 'node/' . $node->nid . '/questions';
   }
 }

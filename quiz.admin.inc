@@ -1667,29 +1667,28 @@ function quiz_questions_form_submit($form, &$form_state) {
   $success = TRUE; // since we got this far
   if ($quiz->type == 'quiz') {
     // Update the quiz node properties.
-    $sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $num_random, $quiz->max_score_for_random, $term_id, $quiz->vid, $quiz->nid) */
+    //$sql = "UPDATE {quiz_node_properties} SET number_of_random_questions = %d, max_score_for_random = %d, tid = %d WHERE vid = %d AND nid = %d";    
     $success = db_update('quiz_node_properties')
-  ->fields(array(
-    'number_of_random_questions' => $num_random,
-    'max_score_for_random' => $quiz->max_score_for_random,
-    'tid' => $term_id,
-  ))
-  ->condition('vid', $quiz->vid)
-  ->condition('nid', $quiz->nid)
-  ->execute();
+      ->fields(array(
+        'number_of_random_questions' => $num_random,
+        'max_score_for_random' => $quiz->max_score_for_random,
+        'tid' => $term_id,
+      ))
+      ->condition('vid', $quiz->vid)
+      ->condition('nid', $quiz->nid)
+      ->execute();
 
-    $sql = "UPDATE {quiz_node_properties} SET max_score = max_score_for_random  * number_of_random_questions + (
-              SELECT COALESCE(SUM(max_score), 0)
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = %d AND question_status = %d
-            )
-            WHERE vid = %d";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $quiz->vid, QUESTION_ALWAYS, $quiz->vid) */
+    // Get sum of max_score
+    $query = db_select('quiz_node_relationship', 'qnr');
+    $query->addExpression('SUM(max_score)', 'sum');
+    $query->condition('parent_vid', $quiz->vid);
+    $query->condition('question_status', QUESTION_ALWAYS);
+    $score = $query->execute()->fetch();   
+    
     $success2 = db_update('quiz_node_properties')
-  ->fields(array('max_score' =>));
+      ->fields(array('max_score' => (int) $score['sum']))
+      ->condition('vid', $quiz->vid)
+      ->execute();
   }
 
   if ($success && $success2) {
@@ -2498,11 +2497,11 @@ function _quiz_delete_results($rid, $nid = NULL) {
             )';
     $res = db_query('SELECT result_id
             FROM {quiz_node_results}
-            WHERE nid = :nid AND uid = :uid
+            WHERE nid = :nid AND uid = (
               SELECT uid
               FROM {quiz_node_results}
               WHERE result_id = :result_id
-            )', array(':nid' => $nid ':uid' =>));
+            )', array(':nid' => $nid));
     while ($result = $res->fetchField()) {
       $rids[] = $result;
     }
