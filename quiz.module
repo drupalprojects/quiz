@@ -716,8 +716,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
-  if ($node->revision) {
-
+  if ($node->revision) {    
     // Insert a new row in the quiz_node_properties table.
     $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
@@ -1068,7 +1067,7 @@ function quiz_form(&$node) {
   // We tell quiz_form_alter to check for the manual revisioning permission.
   $form['#quiz_check_revision_access'] = TRUE;
 
-  $form['theme']['#theme'] = 'quiz_node_form';
+  //$form['theme']['#theme'] = 'quiz_node_form';
 
   $form['title'] = array(
     '#type' => 'textfield',
@@ -1763,21 +1762,36 @@ function quiz_get_pass_rate($nid, $vid) {
  *   The quiz node id.
  */
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
+  /*
   $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
           SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status, src.weight, src.max_score
           FROM {quiz_node_relationship} AS src
           WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
   // TODO Please convert this statement to the D7 database API syntax.
   /* db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER) */
-    
-  db_insert('quiz_terms')
-    ->fields(array('nid', 'vid', 'tid', 'weight', 'max_score', 'number'))
-    ->from(
-      db_select('quiz_terms', 'qt')
-        ->fields('qt', array('nid', $new_quiz_vid, 'tid', 'weight', 'max_score', 'number'))
-        ->condition('vid', $old_quiz_vid)
-      )
-    ->execute();
+  $quiz_questions = db_select('quiz_node_relationship', 'qnr')        
+    ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))        
+    ->condition('parent_vid', $old_quiz_vid)
+    ->condition('parent_nid', $quiz_nid)
+    ->condition('question_status', QUESTION_NEVER)
+    ->execute()
+    ->fetchAll();
+        
+  $query = db_insert('quiz_node_relationship')
+    ->fields(array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'parent_vid'));
+  foreach ($quiz_questions as $quiz_question) {
+    $value = array(
+      'parent_nid' => $quiz_nid,
+      'parent_vid' => $old_quiz_vid,
+      'child_nid' => $quiz_question['child_nid'],
+      'child_vid' => $quiz_question['child_vid'],
+      'question_status' => QUESTION_NEVER,
+      'weight' => $quiz_question['weight'],
+      'max_score' => $quiz_question['max_score']
+    );
+    $query->values($record);
+  }
+  $query->execute();
 }
 
 
