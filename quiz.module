@@ -4103,7 +4103,7 @@ function quiz_delete_results($rids) {
   $sql = 'SELECT result_id, question_nid, question_vid
           FROM {quiz_node_results_answers}
           WHERE result_id IN(:result_id)';  
-  $result = db_query($sql, array(':result_id' => $rids);
+  $result = db_query($sql, array(':result_id' => $rids));
   foreach ($result as $record) {
     quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
   }
