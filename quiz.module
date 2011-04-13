@@ -2543,7 +2543,7 @@ function quiz_update_max_score_properties($quizzes_to_update) {
   db_query($sql, array(':vids' => $quizzes_to_update));
   
   // Update node_revisions table
-  $sql = 'UPDATE {node_revisions}
+  $sql = 'UPDATE {node_revision}
           SET timestamp = ' . REQUEST_TIME . '
           WHERE vid IN(:vids)';
   db_query($sql, array(':vids' => $quizzes_to_update));
@@ -3525,61 +3525,42 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *   An array of questions.
  */
-function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {
-  $filter_types = '';
-  $questions    = array();
-  $wheres    = array();
-  $where_sql    = '';
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {  
+  $questions    = array();    
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'type'))
+    ->fields('nr', array('vid', 'title'))
+    ->fields('qnr', array('question_status', 'weight', 'max_score'));
+        
+  $table_alias = $query->innerjoin('node_revision', 'nr', 'n.nid = nr.nid');
+  $table_alias = $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+  
+  $query->condition('question_status', $include_random ? QUESTION_NEVER : QUESTION_ALWAYS)
+    ->condition('n.status', 1)
+    ->orderBy('weight');
 
-  if ($include_all_types === TRUE) {
-    $types = array_keys(_quiz_get_question_types());
-    if (count($types) > 0) {
-      $str_types = "'" . implode("','", $types) . "'";
-      $wheres[] = 'n.type IN (' . $str_types . ')';
-    }
+  if ($include_all_types === TRUE && $types = array_keys(_quiz_get_question_types()) && count($types)) {
+    $query->condition('type', $types, 'IN');
   }
 
   if (!is_null($quiz_vid)) {
-    $wheres[] = 'qnr.parent_vid = ' . intval($quiz_vid);
-    $wheres[] = 'qnr.parent_nid = ' . intval($quiz_nid);
+    $query->condition('parent_vid', $quiz_vid);
+    $query->condition('parent_nid', $quiz_nid);    
   }
-
-  // Only include published questions.
-  $wheres[] = 'n.status = 1';
-
-  // Create where filter to be added.
-  if (count($wheres)) {
-    $where_sql = ' WHERE ';
-    $where_sql .= implode(' AND ', $wheres);
-  }
-
-  if ($include_random) {
-    $on_filter = 'AND qnr.question_status != ' . QUESTION_NEVER;
-  }
-  else {
-    $on_filter = 'AND qnr.question_status = ' . QUESTION_ALWAYS;
-  }
-
-  // TODO Please convert this statement to the D7 database API syntax.
-  $result = db_query('SELECT n.nid, nr.vid, n.vid AS latest_vid, n.type, nr.title, nr.body, nr.format, qnr.question_status, qnr.weight, qnr.max_score
-    FROM {node} n
-    INNER JOIN {node_revisions} nr ON n.nid = nr.nid
-    LEFT JOIN {quiz_node_relationship} qnr
-    ON nr.vid = qnr.child_vid
-    AND qnr.parent_vid = %d
-    ' . $on_filter . '
-    ' . $where_sql . ' ORDER BY weight', $quiz_vid);
-
-  // Create questions array.
-  if ($nid_keys === FALSE) {
-    while ($node = db_fetch_object($result)) {
-      $questions[] = quiz_node_map($node, $include_question);
+  
+	$results = $query->execute();
+  foreach($results as $result) {
+    // Create questions array.
+    if ($nid_keys === FALSE) {
+      while ($node = db_fetch_object($result)) {
+        $questions[] = quiz_node_map($node, $include_question);
+      }
     }
-  }
-  else {
-    while ($node = db_fetch_object($result)) {
-      $n = quiz_node_map($node, $include_question);
-      $questions[$n->nid] = $n;
+    else {
+      while ($node = db_fetch_object($result)) {
+        $n = quiz_node_map($node, $include_question);
+        $questions[$n->nid] = $n;
+      }
     }
   }
   return $questions;
