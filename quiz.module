@@ -642,13 +642,12 @@ function quiz_insert($node) {
 
   _quiz_common_presave_actions($node);
 
-  $tid = (isset($node->tid) ? $node->tid : 0);
-
   if (!isset($node->has_userpoints)) {
     $node->has_userpoints = 0;
   }
 
-  $sql = "INSERT INTO {quiz_node_properties}
+  /*
+   $sql = "INSERT INTO {quiz_node_properties}
     (vid, nid, aid, number_of_random_questions, randomization,
     backwards_navigation, repeat_until_correct, quiz_open, quiz_close, takes,
     show_attempt_stats, keep_results, time_limit, pass_rate, summary_pass,
@@ -659,6 +658,7 @@ function quiz_insert($node) {
     %d, %d, %d, %d, '%s',
     '%s', %d, %d, %d, %d,
     %d, %d, %d, %d)";
+    */ 
 
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
@@ -666,7 +666,34 @@ function quiz_insert($node) {
 
   // TODO Please convert this statement to the D7 database API syntax.
   /* db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping) */
-  NULL;
+  db_insert('quiz_node_properties')
+    ->fields(array(
+      'vid'                         => $node->vid,
+      'nid'                         => $node->nid,
+      'aid'                         => $node->aid,
+      'number_of_random_questions'  => $node->number_of_random_questions,
+      'randomization'               => $node->randomization,
+      'backwards_navigation'        => $node->backwards_navigation,
+      'repeat_until_correct'        => $node->repeat_until_correct,
+      'quiz_open'                   => $node->quiz_open,
+      'quiz_close'                  => $node->quiz_close,
+      'takes'                       => $node->takes,
+      'show_attempt_stats'          => $node->show_attempt_stats,
+      'keep_results'                => $node->keep_results,
+      'time_limit'                  => $node->time_limit,
+      'pass_rate'                   => $node->pass_rate,
+      'summary_pass'                => $node->summary_pass,
+      'summary_default'             => $node->summary_default,
+      'quiz_always'                 => $node->quiz_always,
+      'feedback_time'               => $node->feedback_time,
+      'display_feedback'            => $node->display_feedback,
+      'tid'                         => (isset($node->tid) ? $node->tid : 0),
+      'has_userpoints'              => isset($node->has_userpoints) ? $node->has_userpoints : 0,
+      'allow_skipping'              => $node->allow_skipping,
+      'allow_resume'                => $node->allow_resume,
+      'allow_jumping'               => $node->allow_jumping
+    ))
+    ->execute();  
 
   _quiz_insert_resultoptions($node);
 
@@ -680,6 +707,7 @@ function quiz_insert($node) {
   if (!isset($node->auto_created)) {
     _quiz_redirect_if_empty($node);
   }
+  
 }
 
 /**
@@ -895,7 +923,7 @@ function quiz_load($nodes) {
   foreach ($nodes as $nid => &$node) {
     // Fetching defaults.
     $default_additions = _quiz_get_node_defaults();    
-
+    
     // Fetching node settings.
     $query = db_select('quiz_node_properties', 'qnp');
     foreach (array_keys($default_additions) as $field) {
@@ -903,7 +931,7 @@ function quiz_load($nodes) {
     }
     $query->condition('vid', $node->vid);
     $query->condition('nid', $node->nid);
-    $fetched_additions = $query->execute()->fetch();    
+    $fetched_additions = (array) $query->execute()->fetch();    
     
     $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
 
@@ -3174,19 +3202,25 @@ function _quiz_insert_resultoptions($node) {
   if (!isset($node->resultoptions)) {
     return;
   }
-  // We insert the result options one by one.
+ 
+  $query = db_insert('quiz_node_result_options')
+    ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_start', 'option_end'));
+  
   foreach ($node->resultoptions as $id => $option) {
     if ($option['option_name']) {
       $option['nid'] = $node->nid;
       $option['vid'] = $node->vid;
-      _quiz_insert_result_option($option);
+      //_quiz_insert_result_option($option);
+      $query->values(array($node->nid, $node->vid, $option['option_name'], $option['option_summary'], $option['option_start'], $option['option_end']));
     }
   }
+  
+  $query->execute();
 }
 
 /**
  * Insert one result option.
- *
+ * @TODO This could be a dead function from now, need to remove this.
  * @param $option
  *  The option array to insert.
  */
@@ -3203,7 +3237,7 @@ function _quiz_insert_result_option($option) {
   );
   // TODO Please convert this statement to the D7 database API syntax.
   /* db_query($sql, $values) */
-  NULL;
+  
 }
 
 /**
