@@ -432,56 +432,61 @@ function quiz_question_config($form, $context) {
 /**
  * Implements hook_node_revision_delete().
  */
-function quiz_question_node_revision_delete($node) {
-  if (TRUE) {
-    $q_types = _quiz_question_get_implementations();
-    foreach ($q_types as $q_type => $info) {
-      if ($node->type == $q_type) {
-        _quiz_delete_question($node, TRUE); // true for only this version
-      }
+function quiz_question_node_revision_delete($node) {  
+  $q_types = _quiz_question_get_implementations();
+  foreach ($q_types as $q_type => $info) {
+    if ($node->type == $q_type) {
+      _quiz_delete_question($node, TRUE); // true for only this version
     }
-  }
+  }  
 }
 
 /**
  * Implements hook_node_presave().
  */
-function quiz_question_node_presave($node) {
-  if (TRUE) {
-    $q_types = _quiz_question_get_implementations();
-    foreach ($q_types as $q_type => $info) {
-      if ($node->type == $q_type) {
-        if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
-          if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
-            $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
-          }
-          else {
-            $node->title = strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
-          }
+function quiz_question_node_presave($node) {  
+  $q_types = _quiz_question_get_implementations();
+  foreach ($q_types as $q_type => $info) {
+    if ($node->type == $q_type) {
+      if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
+        if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
+          $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
+        }
+        else {
+          $node->title = strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
         }
       }
     }
+  }  
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function quiz_question_node_insert($node) {
+  // Make sure the latest quizzes table is maintained when a quiz changes
+  if ($node->type == 'quiz') {
+    quiz_question_refresh_latest_quizzes($node->nid);
   }
 }
 
 /**
- * Implements hook_nodeapi().
+ * Implements hook_node_update().
  */
-function quiz_question_nodeapi_OLD(&$node, $op) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  // If a question is deleted it should also be removed from quizzes it belongs to.
-  // If a question don't have a title we autogenerate it from the question body
+function quiz_question_node_update($node) {
   // Make sure the latest quizzes table is maintained when a quiz changes
   if ($node->type == 'quiz') {
-    switch ($op) {
-      case 'insert':
-      case 'update':
-        quiz_question_refresh_latest_quizzes($node->nid);
-        break;
-      case 'delete':
-        quiz_question_remove_latest_quizzes($node->nid);
-        break;
-    }
+    quiz_question_refresh_latest_quizzes($node->nid);
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function quiz_question_node_delete($node) {
+  // Make sure the latest quizzes table is maintained when a quiz changes
+  if ($node->type == 'quiz') {
+    quiz_question_remove_latest_quizzes($node->nid);
   }
 }
 
