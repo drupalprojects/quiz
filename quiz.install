@@ -741,20 +741,12 @@ function quiz_install() {
   $temp_array = variable_get('theme_settings', array());
   $temp_array['toggle_node_info_quiz'] = 0;
   variable_set('theme_settings', $temp_array);
+  
   // Default the comment settings to disabled.
   variable_set('comment_quiz', '0');
 
   // Create the quiz_def_uid variable holding an artificial uid to use when storing default settings.
-  $def_uid = db_insert('users')
-  ->fields(array(
-    'name' => 'def user',
-  ))
-  ->execute();
-  $sql = 'INSERT INTO {users} (name) VALUES(\'def user\')';
-  db_delete('users')
-    ->condition('uid', $def_uid)
-    ->execute();
-  variable_set('quiz_def_uid', $def_uid);
+  variable_set('quiz_def_uid', 1);
 
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
 }
@@ -1357,32 +1349,9 @@ function quiz_schema() {
 /**
  * Implements hook_uninstall().
  */
-function quiz_uninstall() {
-  $var = array(
-    'quiz_name',
-    'quiz_default_close',
-    'quiz_use_passfail',
-    'quiz_action_type',
-    'quiz_action_type',
-    'quiz_email_results',
-    'quiz_email_results_body',
-    'quiz_email_results_subject',
-    'quiz_email_results_body_taker',
-    'quiz_email_results_subject_taker',
-    'quiz_results_to_quiz_author',
-    'quiz_has_timer',
-    'quiz_has_userpoints',
-    'quiz_max_result_options',
-    'quiz_remove_partial_quiz_record',
-    'quiz_show_allowed_times',
-    'quiz_autotitle_length',
-    'comment_quiz',
-    'quiz_def_uid',
-    'quiz_auto_revisioning',
-    'quiz_durod',
-    'quiz_index_questions',
-  );
-  foreach ($var as $v) {
-    variable_del($v);
-  }
+
+function quiz_uninstall() {  
+  db_delete('variable')
+    ->condition('name', "quiz_%", 'like')  
+    ->execute();
 }

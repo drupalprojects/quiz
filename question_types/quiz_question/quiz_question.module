@@ -117,32 +117,19 @@ function quiz_question_node_access($node, $op, $account) {
  */
 function quiz_question_access_to_score($vid, $rid) {
   global $user;
-  $sql = 'SELECT *
-          FROM {quiz_node_results_answers}
-          WHERE result_id = %d AND question_vid = %d';
-  if (!db_fetch_object(db_query('SELECT *
-          FROM {quiz_node_results_answers}
-          WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $rid, ':question_vid' => $vid)))) {
+  $sql = 'SELECT * FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_vid = :question_vid';
+  $answer = db_query($sql, array(':result_id' => $rid, ':question_vid' => $vid))->fetch();
+  if (!$answer) {
     return FALSE;
-  }
+  }  
   if (user_access('score any quiz')) {
     return TRUE;
   }
-  if (user_access('score own quiz')) {
-    $sql = 'SELECT r.uid
-            FROM {node_revisions} r
-            WHERE r.nid = (
-              SELECT nid
-              FROM {quiz_node_results}
-              WHERE result_id = %d
-            )';
-    return db_query('SELECT r.uid
-            FROM {node_revisions} r
-            WHERE r.nid = :r.nid
-              SELECT nid
-              FROM {quiz_node_results}
-              WHERE result_id = :result_id
-            )', array(':r.nid' =>))->fetchField() == $user->uid;
+  if (user_access('score own quiz')) {    
+    return db_query('SELECT r.uid FROM {node_revision} r
+            JOIN {quiz_node_results} qnr ON (r.nid = qnr.nid)
+            WHERE qnr.result_id = :result_id
+            ', array(':result_id' => $rid))->fetchField() == $user->uid;
   }
 }
 
@@ -291,6 +278,11 @@ function quiz_question_skip_question($question, $result_id) {
  * Implements hook_list_questions().
  */
 function quiz_question_list_questions($count = 0, $offset = 0) {
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'vid'))
+    ->innerjoin('node_revision', 'nr')
+    ->execute();
+    
   $sql = "SELECT n.nid, n.vid, r.body, r.format
     FROM {node} AS n
     INNER JOIN {node_revisions} AS r USING(vid)
@@ -427,56 +419,61 @@ function quiz_question_config($form, $context) {
 /**
  * Implements hook_node_revision_delete().
  */
-function quiz_question_node_revision_delete($node) {
-  if (TRUE) {
-    $q_types = _quiz_question_get_implementations();
-    foreach ($q_types as $q_type => $info) {
-      if ($node->type == $q_type) {
-        _quiz_delete_question($node, TRUE); // true for only this version
-      }
+function quiz_question_node_revision_delete($node) {  
+  $q_types = _quiz_question_get_implementations();
+  foreach ($q_types as $q_type => $info) {
+    if ($node->type == $q_type) {
+      _quiz_delete_question($node, TRUE); // true for only this version
     }
-  }
+  }  
 }
 
 /**
  * Implements hook_node_presave().
  */
-function quiz_question_node_presave($node) {
-  if (TRUE) {
-    $q_types = _quiz_question_get_implementations();
-    foreach ($q_types as $q_type => $info) {
-      if ($node->type == $q_type) {
-        if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
-          if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
-            $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
-          }
-          else {
-            $node->title = strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
-          }
+function quiz_question_node_presave($node) {  
+  $q_types = _quiz_question_get_implementations();
+  foreach ($q_types as $q_type => $info) {
+    if ($node->type == $q_type) {
+      if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
+        if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
+          $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
+        }
+        else {
+          $node->title = strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
         }
       }
     }
+  }  
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function quiz_question_node_insert($node) {
+  // Make sure the latest quizzes table is maintained when a quiz changes
+  if ($node->type == 'quiz') {
+    quiz_question_refresh_latest_quizzes($node->nid);
   }
 }
 
 /**
- * Implements hook_nodeapi().
+ * Implements hook_node_update().
  */
-function quiz_question_nodeapi_OLD(&$node, $op) {
-  // TODO Remaining code in this function needs to be moved to the appropriate new hook function.
-  // If a question is deleted it should also be removed from quizzes it belongs to.
-  // If a question don't have a title we autogenerate it from the question body
+function quiz_question_node_update($node) {
   // Make sure the latest quizzes table is maintained when a quiz changes
-  elseif ($node->type == 'quiz') {
-    switch ($op) {
-      case 'insert':
-      case 'update':
-        quiz_question_refresh_latest_quizzes($node->nid);
-        break;
-      case 'delete':
-        quiz_question_remove_latest_quizzes($node->nid);
-        break;
-    }
+  if ($node->type == 'quiz') {
+    quiz_question_refresh_latest_quizzes($node->nid);
+  }
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function quiz_question_node_delete($node) {
+  // Make sure the latest quizzes table is maintained when a quiz changes
+  if ($node->type == 'quiz') {
+    quiz_question_remove_latest_quizzes($node->nid);
   }
 }
 
@@ -626,19 +623,10 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
       // To substanitally improve performance(especially on the result page) we avoid node_load()...
       $sql = 'SELECT n.type, r.nid, r.vid, r.title, r.body, p.max_score, r.format
               FROM {node_revisions} r
-              JOIN {node} n
-              ON r.nid = n.nid
-              JOIN {quiz_question_properties} p
-              ON r.vid = p.vid
-              WHERE r.vid = %d';
-      $res = db_query('SELECT n.type, r.nid, r.vid, r.title, r.body, p.max_score, r.format
-              FROM {node_revisions} r
-              JOIN {node} n
-              ON r.nid = n.nid
-              JOIN {quiz_question_properties} p
-              ON r.vid = p.vid
-              WHERE r.vid = :r.vid', array(':r.vid' => $node->vid));
-      $node = db_fetch_object($res);
+              JOIN {node} n ON r.nid = n.nid
+              JOIN {quiz_question_properties} p ON r.vid = p.vid
+              WHERE r.vid = :vid';
+      $node = db_query($sql, array(':vid' => $node->vid))->fetch();      
       $using_dummy_node = TRUE;
     }
     $name = $node->type;
@@ -772,45 +760,31 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
  */
 function quiz_question_refresh_latest_quizzes($nid) {
   global $user;
-  // Delete entry if it allready exists
-  $sql = 'DELETE FROM {quiz_question_latest_quizzes}
-          WHERE uid = %d AND quiz_nid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $user->uid, $nid) */
+  // Delete entry if it allready exists  
   db_delete('quiz_question_latest_quizzes')
-  ->condition('uid', $user->uid)
-  ->condition('quiz_nid', $nid)
-  ->execute();
-  // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)
-  $sql = 'INSERT INTO {quiz_question_latest_quizzes}
-          (uid, quiz_nid)
-          VALUES (%d, %d)';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $user->uid, $nid) */
+    ->condition('uid', $user->uid)
+    ->condition('quiz_nid', $nid)
+    ->execute();
+  
+  // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)  
   $id = db_insert('quiz_question_latest_quizzes')
-  ->fields(array(
-    'uid' => $user->uid,
-    'quiz_nid' => $nid,
-  ))
-  ->execute();
-  // If we have to many entries for current user, delete the oldest entries...
-  $sql = 'SELECT COUNT(*)
-          FROM {quiz_question_latest_quizzes}
-          WHERE uid = %d';
+    ->fields(array(
+      'uid' => $user->uid,
+      'quiz_nid' => $nid,
+    ))
+    ->execute();
+    
+  // If we have to many entries for current user, delete the oldest entries...  
   $count = db_query('SELECT COUNT(*)
           FROM {quiz_question_latest_quizzes}
           WHERE uid = :uid', array(':uid' => $user->uid))->fetchField();
   $n_to_delete = (int) $count - QUIZ_QUESTION_NUM_LATEST;
-  if ($n_to_delete > 0) {
-    $sql = 'DELETE FROM {quiz_question_latest_quizzes}
-            WHERE uid = %d
-            ORDER BY id LIMIT %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $user->uid, $n_to_delete) */
+  if ($n_to_delete > 0) {    
     db_delete('quiz_question_latest_quizzes')
-  ->condition('uid', $user->uid)
-  ->condition('DER BY id LIMIT %d', '')
-  ->execute();
+      ->condition('uid', $user->uid)
+      ->orderBy('id')
+      ->range(0, $n_to_delete)
+      ->execute();
   }
 }
 
@@ -820,11 +794,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
  * @param $nid
  *   the nid of a quiz that shall be removed
  */
-function quiz_question_remove_latest_quizzes($nid) {
-  $sql = 'DELETE FROM {quiz_question_latest_quizzes}
-          WHERE quiz_nid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $nid) */
+function quiz_question_remove_latest_quizzes($nid) {  
   db_delete('quiz_question_latest_quizzes')
   ->condition('quiz_nid', $nid)
   ->execute();
@@ -840,11 +810,8 @@ function quiz_question_remove_latest_quizzes($nid) {
  * @return
  *  Max score(int)
  */
-function quiz_question_get_max_score($nid, $vid) {
-  $sql = 'SELECT max_score
-          FROM {quiz_question_properties}
-          WHERE nid = %d AND vid = %d';
-  return db_query('SELECT max_score
+function quiz_question_get_max_score($nid, $vid) {  
+  return db_query('SELECT max_score 
           FROM {quiz_question_properties}
           WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->fetchField();
 }
@@ -894,22 +861,10 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
   $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
-    $sql = 'SELECT qnr.max_score
-            FROM {quiz_node_relationship} qnr
-            WHERE qnr.child_vid = %d
-            AND qnr.parent_vid = (
-              SELECT vid
-              FROM {quiz_node_results}
-              WHERE result_id = %d
-            )';
-    $qnr_max_score = db_query('SELECT qnr.max_score
-            FROM {quiz_node_relationship} qnr
-            WHERE qnr.child_vid = :qnr.child_vid
-            AND qnr.parent_vid = :qnr.parent_vid
-              SELECT vid
-              FROM {quiz_node_results}
-              WHERE result_id = :result_id
-            )', array(':qnr.child_vid' => $question->vid ':qnr.parent_vid' =>))->fetchField();
+    $sql = 'SELECT qnr.max_score FROM {quiz_node_relationship} qnr
+            JOIN {quiz_node_results} qnres ON (qnres.vid = qnr.parent_vid)
+            WHERE qnr.child_vid = :child_vid';    
+    $qnr_max_score = db_query($sql, array(':child_vid' => $question->vid, ':result_id' => $answer['result_id']))->fetchField();
     if ($qnr_max_score == 0) {
       $weight = 0;
     }

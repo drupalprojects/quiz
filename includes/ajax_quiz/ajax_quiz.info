@@ -4,12 +4,5 @@ dependencies[] = quiz
 core = 7.x
 package = Quiz Addon
 
-; Information added by drupal.org packaging script on 2011-01-11
-version = "6.x-4.0"
-core = 7.x
-project = "quiz"
-datestamp = "1294785668"
-
-
 files[] = ajax_quiz.admin.inc
 files[] = ajax_quiz.module

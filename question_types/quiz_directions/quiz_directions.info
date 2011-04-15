@@ -1,19 +1,10 @@
-
 name = Quiz Direction
 package = Quiz Question
 description = Provide a slot to add directions for a quiz or some sub-portion of a quiz.
 core = 7.x
-php = 5
+
 dependencies[] = quiz
 dependencies[] = quiz_question
 
-; Information added by drupal.org packaging script on 2011-01-11
-version = "6.x-4.0"
-core = 7.x
-project = "quiz"
-datestamp = "1294785668"
-
-
 files[] = quiz_directions.classes.inc
-files[] = quiz_directions.module
-files[] = theme/quiz-directions-answering-form.tpl.php
+

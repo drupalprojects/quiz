@@ -1668,17 +1668,23 @@ function quiz_questions_form_submit($form, &$form_state) {
         'number_of_random_questions' => $num_random,
         'max_score_for_random' => $quiz->max_score_for_random,
         'tid' => $term_id,
-        ))
+      ))
       ->condition('vid', $quiz->vid)
       ->condition('nid', $quiz->nid)
-    ->execute();
+      ->execute();
 
-    $success2 = db_query("UPDATE {quiz_node_properties} SET max_score = max_score_for_random  * number_of_random_questions + (
-              SELECT COALESCE(SUM(max_score), 0)
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = :vid AND question_status = :question_status
-            )
-            WHERE vid = :vid", array(':vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS))->execute();
+    // Get sum of max_score
+    $query = db_select('quiz_node_relationship', 'qnr');
+    $query->addExpression('SUM(max_score)', 'sum');
+    $query->condition('parent_vid', $quiz->vid);
+    $query->condition('question_status', QUESTION_ALWAYS);
+    $score = $query->execute()->fetch();   
+    
+    $success2 = db_update('quiz_node_properties')
+      ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))    
+      ->condition('vid', $quiz->vid)
+      ->execute();
+  }
 
   if ($success && $success2) {
     drupal_set_message(t('Questions updated successfully.'));
@@ -2476,6 +2482,7 @@ function _quiz_delete_results($rid, $nid = NULL) {
               FROM {quiz_node_results}
               WHERE result_id = :result_id
             )', array(':nid' => $nid, ':result_id' => $rid));
+
     while ($result = $res->fetchField()) {
       $rids[] = $result;
     }
