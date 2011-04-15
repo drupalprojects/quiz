@@ -1473,32 +1473,6 @@ function quiz_node_presave($node) {
 }
 
 /**
- * Implementation of hook_node_prepare
- */
-function quiz_node_prepare($node) {
-  if ($node->type == 'quiz') {
-    // Meet E_STRICT on new nodes.
-    $defaults = _quiz_get_node_defaults();
-    if (!isset($node->nid)) {
-      foreach ($defaults as $key => $value) {
-        if (!isset($node->$key)) {
-          $node->$key = $value;
-        }
-      }
-=======
-    if (variable_get('quiz_auto_revisioning', 1)) {
-      $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
-    }
-  }
-  
-  if (isset($node->is_quiz_question)) {
-    if (variable_get('quiz_auto_revisioning', 1)) {
-      $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
-    }
-  }
-}
-
-/**
  * Implementation of hook_node_prepare().
  */
 function quiz_node_prepare($node) {
