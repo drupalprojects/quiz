@@ -212,12 +212,7 @@ function quiz_access_results($quiz, $rid = NULL) {
   // If rid is set we must make sure the result belongs to the quiz we are
   // viewing results for.
   if (isset($rid)) {
-    $sql = 'SELECT qnr.nid
-            FROM {quiz_node_results} qnr
-            WHERE result_id = %d';
-    $res = db_query('SELECT qnr.nid
-            FROM {quiz_node_results} qnr
-            WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
+    $res = db_query('SELECT qnr.nid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
     if ($res != $quiz->nid) {
       return FALSE;
     }
@@ -242,9 +237,7 @@ function quiz_access_my_results($quiz) {
     return FALSE;
   }
   if (user_access('view own quiz results') && !quiz_access_results($quiz)) {
-    $answered = db_query_range('SELECT 1
-       FROM {quiz_node_results}
-       WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
+    $answered = db_query('SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
     if ($answered) {
       return TRUE;
     }
@@ -324,7 +317,7 @@ function quiz_cron() {
 
   if ($rm_time) { // $time = 0 for never.
     db_delete('quiz_node_results')
-    ->where('!time_end')
+    ->condition('time_end', 0)
     ->where('(:request_time - time_start) > :remove_time', array(
       ':request_time' => REQUEST_TIME,
       ':remove_time' => $rm_time
@@ -645,7 +638,7 @@ function quiz_insert($node) {
   }
 
   _quiz_common_presave_actions($node);
-  
+
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
@@ -679,7 +672,7 @@ function quiz_insert($node) {
       'allow_resume'                => $node->allow_resume,
       'allow_jumping'               => $node->allow_jumping
     ))
-    ->execute();  
+    ->execute();
 
 
   _quiz_insert_resultoptions($node);
@@ -694,7 +687,7 @@ function quiz_insert($node) {
   if (!isset($node->auto_created)) {
     _quiz_redirect_if_empty($node);
   }
-  
+
 }
 
 /**
@@ -703,7 +696,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
-  if ($node->revision) {    
+  if ($node->revision) {
     // Insert a new row in the quiz_node_properties table.
     $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
@@ -814,16 +807,15 @@ function _quiz_common_presave_actions(&$node) {
 /**
  * Implements hook_delete().
  */
-function quiz_delete($node) {  
-  $res = db_query('SELECT result_id
-          FROM {quiz_node_results}
+function quiz_delete($node) {
+  $res = db_query('SELECT result_id FROM {quiz_node_results}
           WHERE nid = :nid', array(':nid' => $node->nid));
   $rids = array();
   while ($rid = $res->fetchField()) {
     $rids[] = $rid;
   }
   quiz_delete_results($rids);
-  
+
   // Remove quiz node records from table quiz_node_properties
   db_delete('quiz_node_properties')
     ->condition('nid', $node->nid)
@@ -831,7 +823,7 @@ function quiz_delete($node) {
   // Remove quiz node records from table quiz_node_relationship
   db_delete('quiz_node_relationship')
     ->condition('parent_nid', $node->nid)
-    ->execute();    
+    ->execute();
   // Remove quiz node records from table quiz_node_results
   db_delete('quiz_node_results')
     ->condition('nid', $node->nid)
@@ -883,8 +875,8 @@ function _quiz_get_node_defaults() {
 function quiz_load($nodes) {
   foreach ($nodes as $nid => &$node) {
     // Fetching defaults.
-    $default_additions = _quiz_get_node_defaults();    
-    
+    $default_additions = _quiz_get_node_defaults();
+
     // Fetching node settings.
     $query = db_select('quiz_node_properties', 'qnp');
     foreach (array_keys($default_additions) as $field) {
@@ -892,8 +884,8 @@ function quiz_load($nodes) {
     }
     $query->condition('vid', $node->vid);
     $query->condition('nid', $node->nid);
-    $fetched_additions = (array) $query->execute()->fetch();    
-    
+    $fetched_additions = (array) $query->execute()->fetch();
+
     $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
 
     // Fetching result options.
@@ -904,7 +896,7 @@ function quiz_load($nodes) {
     $options = $query->execute();
     foreach ($options as $option) {
       $additions->resultoptions[$option['option_id']] = $option;
-    }    
+    }
 
     foreach ($additions as $property => &$value) {
       $node->$property = $value;
@@ -1493,7 +1485,7 @@ function quiz_node_prepare($node) {
     }
   }
 }
-  
+
 /**
  * Implements hook_user_cancel().
  */
@@ -1512,7 +1504,7 @@ function quiz_user_cancel($edit, $account, $method) {
  * @param int $uid
  *  The users id
  */
-function _quiz_delete_users_results($uid) {  
+function _quiz_delete_users_results($uid) {
   $res = db_query("SELECT result_id FROM {quiz_node_results} WHERE uid = :uid", array(':uid' => $uid));
   $rids = array();
   while ($rid = $res->fetchField()) {
@@ -1575,19 +1567,12 @@ function quiz_type_confirm($node, $op = NULL) {
  *   Array with nids as keys and titles as values.
  */
 function quiz_get_all_titles() {
-  $sql = "SELECT nid, title
-          FROM {node} n
-          WHERE n.type = 'quiz'";
-  $result = db_select('node', 'n')
+  return db_select('node', 'n')
     ->fields('n', array('nid', 'title'))
     ->condition('n.type', 'quiz')
     ->addTag('node_access')
-    ->execute();
-  $to_return = array();
-  foreach ($result as $record) {
-    $to_return[$record->nid] = $record->title;
-  }
-  return $to_return;
+    ->execute()
+    ->fetchAll();
 }
 
 /**
@@ -1603,7 +1588,7 @@ function quiz_get_all_version_titles() {
   $query->fields('nr', array('nid', 'vid', 'title'))
     ->condition('n.type', 'quiz')
     ->execute();
-  
+
   $to_return = array();
   while ($res_o = $query->fetch()) {
     $to_return[$res_o->nid][$res_o->vid] = $res_o->title;
@@ -1731,14 +1716,14 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
           WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
   // TODO Please convert this statement to the D7 database API syntax.
   /* db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER) */
-  $quiz_questions = db_select('quiz_node_relationship', 'qnr')        
-    ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))        
+  $quiz_questions = db_select('quiz_node_relationship', 'qnr')
+    ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
     ->condition('parent_vid', $old_quiz_vid)
     ->condition('parent_nid', $quiz_nid)
     ->condition('question_status', QUESTION_NEVER)
     ->execute()
     ->fetchAll();
-        
+
   $query = db_insert('quiz_node_relationship')
     ->fields(array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'parent_vid'));
   foreach ($quiz_questions as $quiz_question) {
@@ -3149,10 +3134,10 @@ function _quiz_insert_resultoptions($node) {
   if (!isset($node->resultoptions)) {
     return;
   }
- 
+
   $query = db_insert('quiz_node_result_options')
     ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_start', 'option_end'));
-  
+
   foreach ($node->resultoptions as $id => $option) {
     if ($option['option_name']) {
       $option['nid'] = $node->nid;
@@ -3161,7 +3146,7 @@ function _quiz_insert_resultoptions($node) {
       $query->values(array($node->nid, $node->vid, $option['option_name'], $option['option_summary'], $option['option_start'], $option['option_end']));
     }
   }
-  
+
   $query->execute();
 }
 
@@ -3458,16 +3443,16 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *   An array of questions.
  */
-function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {  
-  $questions    = array();    
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {
+  $questions    = array();
   $query = db_select('node', 'n')
     ->fields('n', array('nid', 'type'))
     ->fields('nr', array('vid', 'title'))
     ->fields('qnr', array('question_status', 'weight', 'max_score'));
-        
+
   $table_alias = $query->innerjoin('node_revision', 'nr', 'n.nid = nr.nid');
   $table_alias = $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
-  
+
   $query->condition('question_status', $include_random ? QUESTION_NEVER : QUESTION_ALWAYS)
     ->condition('n.status', 1)
     ->orderBy('weight');
@@ -3478,10 +3463,10 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
 
   if (!is_null($quiz_vid)) {
     $query->condition('parent_vid', $quiz_vid);
-    $query->condition('parent_nid', $quiz_nid);    
+    $query->condition('parent_nid', $quiz_nid);
   }
-  
-	$results = $query->execute();
+
+  $results = $query->execute();
   foreach($results as $result) {
     // Create questions array.
     if ($nid_keys === FALSE) {
@@ -3550,21 +3535,18 @@ function _quiz_get_results($nid = '', $uid = 0) {
 function _quiz_get_quizzes($uid = 0) {
   $results = array();
   $args = array();
-  $sql = "SELECT n.nid, n.vid, n.title, n.uid, u.name, n.created
-          FROM {node} n
-          LEFT JOIN {users} u
-          ON u.uid = n.uid
-          WHERE n.type = 'quiz'";
-
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'vid', 'title', 'uid', 'created'))
+    ->fields('u', array('name'));
+  $query->leftJoin('users', 'u', 'u.uid = n.uid');
+  $query->condition('n.type', 'quiz');
   if ($uid != 0) {
-    $sql .= " AND n.uid = %d";
-    $args[] = $uid;
+    $query->condition('n.uid', $uid);
   }
-  $sql .= " ORDER BY n.nid DESC";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $dbresult = db_query(db_rewrite_sql($sql), $args);
-  while ($line = db_fetch_array($dbresult)) {
-    $results[$line['nid']] = $line;
+  $query->orderBy('n.nid');
+  $quizzes = $query->execute();
+  foreach ($quizzes as $quiz) {
+    $results[$quiz->nid] = (array) $quiz;
   }
   return $results;
 }
@@ -3588,7 +3570,7 @@ function _quiz_get_answers($quiz, $rid) {
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = %d AND qt.tid = ra.tid)
                    WHERE ra.result_id = :ra.result_id
                    ORDER BY ra.number, ra.answer_timestamp", array(':ra.result_id' => $quiz->vid, '' => $rid));
-  while ($line = db_fetch_object($ids)) {
+  while ($line = $ids->fetch()) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
       if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
@@ -3755,9 +3737,8 @@ function quiz_action_options($type = 'all') {
  */
 function quiz_get_quiz_options() {
   $options = array();
-  // TODO Please convert this statement to the D7 database API syntax.
-  $results = db_query(db_rewrite_sql("SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = 'quiz'"));
-  while ($result = db_fetch_object($results)) {
+  $results = db_query('SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = :type', array(':type' => 'quiz'));
+  foreach ($results as $result) {
     $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
   }
   return $options;
@@ -3839,7 +3820,7 @@ function quiz_has_been_answered($node) {
   $query = db_select('quiz_node_results', 'qnr');
   $query->addField('qnr', 'result_id');
   $query->condition('nid', $node->nid);
-  $query->condition('vid', $node->vid);  
+  $query->condition('vid', $node->vid);
   $result = $query->execute()->fetch();
   return empty($result);
 }
@@ -3893,13 +3874,9 @@ function _quiz_user_results_access($user_id) {
  */
 function quiz_copy_questions($node) {
   // Find original questions.
-  $sql = 'SELECT child_nid, child_vid, question_status, weight, max_score
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = %d';
-  $res = db_query('SELECT child_nid, child_vid, question_status, weight, max_score
-          FROM {quiz_node_relationship}
+  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score FROM {quiz_node_relationship}
           WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
-  while ($res_o = db_fetch_object($res)) {
+  foreach ($query as $res_o) {
     $original_question = node_load($res_o->child_nid);
 
     // Set variables we can't or won't carry with us to the translated node to
@@ -3920,10 +3897,8 @@ function quiz_copy_questions($node) {
     // Save the relationship between the new question and the quiz.
     $sql = 'INSERT INTO {quiz_node_relationship}
             (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-            VALUES(%d, %d, %d, %d, %d, %d, %d)';
-    // TODO Please convert this statement to the D7 database API syntax.
-    /* db_query($sql, $node->nid, $node->vid, $original_question->nid, $original_question->vid, $res_o->question_status, $res_o->weight, $res_o->max_score) */
-    NULL;
+            VALUES(:parent_id, :parent_vid, :child_nid, :child_vid, :question_status, :weight, :max_score)';
+    db_query($sql, array(':parent_nid' => $node->nid, ':parent_vid' => $node->vid, ':child_nid' => $original_question->nid, ':child_vid' => $original_question->vid, ':question_status' => $res_o->question_status, ':weight' => $res_o->weight, ':max_score' => $res_o->max_score));
   }
 }
 
@@ -3949,20 +3924,7 @@ function _quiz_maintain_results($quiz, $rid) {
     case QUIZ_KEEP_ALL:
       return FALSE;
     case QUIZ_KEEP_BEST: //I'm afraid of what this might do to performance...
-      /*
-      $sql = 'SELECT result_id
-              FROM {quiz_node_results}
-              WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != (
-                SELECT result_id
-                FROM {quiz_node_results}
-                WHERE score = (
-                  SELECT MAX(score)
-                  FROM {quiz_node_results}
-                  WHERE nid = %d AND uid = %d
-                )
-                AND nid = %d AND uid = %d LIMIT 1
-              )';
-              */
+      // TODO Change it to JOIN SQL query
       $res = db_query('SELECT result_id
               FROM {quiz_node_results}
               WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != (
@@ -3980,11 +3942,7 @@ function _quiz_maintain_results($quiz, $rid) {
       quiz_delete_results($rids);
       return !empty($rids);
     case QUIZ_KEEP_LATEST:
-      $sql = 'SELECT result_id
-              FROM {quiz_node_results}
-              WHERE nid = %d AND uid = %d AND is_evaluated = 1 AND result_id != %d';
-      $res = db_query('SELECT result_id
-              FROM {quiz_node_results}
+      $res = db_query('SELECT result_id FROM {quiz_node_results}
               WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':result_id' => $rid));
       $rids = array();
       while ($rid2 = $res->fetchField()) {
@@ -4004,16 +3962,22 @@ function _quiz_maintain_results($quiz, $rid) {
 function quiz_delete_results($rids) {
   if (empty($rids)) {
     return;
-  }  
-  $sql = 'SELECT result_id, question_nid, question_vid
-          FROM {quiz_node_results_answers}
-          WHERE result_id IN(:result_id)';  
+  }
+  $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
+          WHERE result_id IN(:result_id)';
   $result = db_query($sql, array(':result_id' => $rids));
   foreach ($result as $record) {
     quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
   }
-  db_query('DELETE FROM {quiz_node_results_answers} WHERE result_id IN (:result_id)', array(':result_id' => $rids));  
-  db_query('DELETE FROM {quiz_node_results} WHERE result_id IN (:result_id)', array(':result_id' => $rids));
+
+  db_delete('quiz_node_results_answers')
+    ->condition('result_id', $rids, 'IN')
+    ->execute();
+
+  db_delete('quiz_node_results')
+    ->condition('result_id', $rids, 'IN')
+    ->execute();
+
 }
 
 /**
@@ -4026,9 +3990,9 @@ function quiz_delete_results($rids) {
  *   TRUE if success or FALSE if not success.
  */
 function _quiz_load_user_settings(&$node) {
-  global $user;  
+  global $user;
   // The def_uid property is the default user id. It is used if there are no
-  // settings store for the current user.  
+  // settings store for the current user.
   $def_uid = isset($node->def_uid) ? $node->def_uid : $user->uid;
   $query = db_select('quiz_user_settings', 'qus')
     ->fields('qus')
@@ -4045,7 +4009,7 @@ function _quiz_load_user_settings(&$node) {
       ->condition('nid', $value->nid)
       ->condition('vid', $value->vid)
       ->execute()
-      ->fetchAll();     
+      ->fetchAll();
     return TRUE;
   }
   return FALSE;
@@ -4065,14 +4029,10 @@ function _quiz_save_user_settings($node) {
   if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
     return FALSE;
   }
-
-
-
   // We're going to use drupal_write_record so we have to set the uid correctly first.
   // This is just temporary. We're not changing the nodes stored uid!
   $node->uid = isset($node->save_def_uid) ? $node->save_def_uid : $user->uid;
   // Are we updating or inserting?
-  $sql = 'SELECT uid FROM {quiz_user_settings} WHERE uid = %d';
   $res = db_query('SELECT uid FROM {quiz_user_settings} WHERE uid = :uid', array(':uid' => $node->uid));
   $update = is_numeric($res->fetchField()) ? array('uid') : array();
 
@@ -4093,7 +4053,7 @@ function _quiz_redirect_if_empty($node) {
   $res = db_select('quiz_node_relationship', 'qnr');
   $res->addField('qnr', 'child_vid');
   $res->condition('parent_vid', $node->vid);
-  $res = $res->execute()->fetchAll();  
+  $res = $res->execute()->fetchAll();
   if (!count($res)) {
     $_GET['destination'] = 'node/' . $node->nid . '/questions';
   }
@@ -4110,11 +4070,7 @@ function _quiz_redirect_if_empty($node) {
  *   Number of compulsory questions.
  */
 function _quiz_get_num_always_questions($vid) {
-  $sql = 'SELECT count(*)
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = %d AND question_status = %d';
-  return db_query('SELECT count(*)
-          FROM {quiz_node_relationship}
+  return db_query('SELECT COUNT(*) FROM {quiz_node_relationship}
           WHERE parent_vid = :parent_vid AND question_status = :question_status', array(':parent_vid' => $vid, ':question_status' => QUESTION_ALWAYS))->fetchField();
 }
 
