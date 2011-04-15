@@ -9,8 +9,6 @@
  * Implements hook_install().
  */
 function quiz_question_install() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_install_schema('quiz_question')
 }
 
 /**
@@ -134,6 +132,4 @@ function quiz_question_update_6402() {
  * Implements hook_uninstall().
  */
 function quiz_question_uninstall() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('quiz_question')
 }
