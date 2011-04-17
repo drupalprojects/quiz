@@ -999,7 +999,8 @@ function quiz_take_access($node) {
  * This is an admin form used to build a new quiz. It is called as part of the
  * node edit form.
  */
-function quiz_form(&$node) {
+function quiz_form(&$node, &$form_state) {
+
   $form = array();
 
   // If this is a new node we try to load the users settings.
@@ -1030,6 +1031,7 @@ function quiz_form(&$node) {
     '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
+  /*
   $form['body_field']['body'] = array(
     '#type' => 'textarea',
     '#title' => t('Description'),
@@ -1037,6 +1039,7 @@ function quiz_form(&$node) {
     '#description' => t('A description of what the @quiz entails', array('@quiz' => QUIZ_NAME)),
     '#required' => FALSE,
   );
+  */
   //$form['body_field']['format'] = filter_form($node->format);
 
   // The body field format controls all the format selectors for this form.
@@ -2467,17 +2470,16 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     return;
   }
 
+  $score = db_query('SELECT SUM(qnr.max_score) FROM {quiz_node_relationship} qnr
+    JOIN {quiz_node_properties} qnp ON (qnr.parent_vid = qnp.vid)
+    WHERE qnr.question_status = :status', array(':status' => QUESTION_ALWAYS))->fetchField();
+
   db_update('quiz_node_properties')
-    ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
-      SELECT SUM(max_score)
-      FROM {quiz_node_relationship} qnr
-      WHERE qnr.question_status = " . QUESTION_ALWAYS . "
-      AND parent_vid = qnp.vid
-    )')
+    ->expression('max_score', 'max_score_for_random * number_of_random_questions + :score', array(':score' => (int) $score))
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
-  db_update('node_revisions')
+  db_update('node_revision')
     ->fields(array('timestamp' => REQUEST_TIME))
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
@@ -2487,18 +2489,15 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
+  $points_awarded = (int) db_query('SELECT SUM(a.points_awarded) FROM {quiz_node_results_answers} a
+    JOIN {quiz_node_results} r ON (a.result_id = r.result_id)')->fetchField();
+
+  $max_score = (int) db_query('SELECT max_score FROM {quiz_node_properties} qnp
+    JOIN {quiz_node_results} r ON (r.vid = qnp.vid)')->fetchField();
+
+  $expression = array(':points_awarded' => $points_awarded, ':max_score' => ($max_score > 0) ? $max_score : 1);
   db_update('quiz_node_results')
-    ->expression('score', 'ROUND(
-      100 * (
-        SELECT SUM(a.points_awarded)
-        FROM {quiz_node_results_answers} a
-        WHERE a.result_id = r.result_id
-      ) / (
-        SELECT max_score
-        FROM {quiz_node_properties} qnp
-        WHERE qnp.vid = r.vid
-      )
-    )')
+    ->expression('score', 'ROUND(100 * :points_awarded / :max_score)', $expression)
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 }
@@ -2518,10 +2517,12 @@ function quiz_update_max_score_properties($quizzes_to_update) {
  *   The version ID.
  */
 function quiz_is_passed($uid, $nid, $vid) {
-  $passed = db_query("SELECT COUNT(result_id) AS passed_count
-    FROM {quiz_node_results} qnrs
+  $passed = db_query('SELECT COUNT(result_id) AS passed_count FROM {quiz_node_results} qnrs
     INNER JOIN {quiz_node_properties} USING (vid, nid)
-    WHERE qnrs.vid = :qnrs.vid AND qnrs.nid = :qnrs.nid AND qnrs.uid = :qnrs.uid AND score >= :score", array(':qnrs.vid' => $vid, ':qnrs.nid' => $nid, ':qnrs.uid' => $uid, ':score' => pass_rate))->fetchField();
+    WHERE qnrs.vid = :vid
+      AND qnrs.nid = :nid
+      AND qnrs.uid = :uid
+      AND score >= pass_rate', array(':vid' => $vid, ':nid' => $nid, ':uid' => $uid))->fetchField();
   // Force into boolean context.
   return ($passed !== FALSE && $passed > 0);
 }
@@ -2777,17 +2778,12 @@ function quiz_build_question_list($quiz) {
   }
 
   // Get required questions first.
-  $sql = "SELECT child_nid as nid, child_vid as vid, max_score as relative_max_score
-    FROM {quiz_node_relationship}
-    WHERE parent_vid = %d
-      AND question_status = %d
-    ORDER BY weight";
-  $result = db_query("SELECT child_nid as nid, child_vid as vid, max_score as relative_max_score
+  $query = db_query('SELECT child_nid as nid, child_vid as vid, max_score as relative_max_score
     FROM {quiz_node_relationship}
     WHERE parent_vid = :parent_vid
       AND question_status = :question_status
-    ORDER BY weight", array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
-  while ($question_node = db_fetch_array($result)) {
+    ORDER BY weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
+  while ($question_node = $query->fetch()) {
     $questions[] = $question_node;
   }
 
@@ -3062,18 +3058,11 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
  *   The userid of the user the old in progress results belong to.
  */
 function _quiz_delete_old_in_progress($quiz, $uid) {
-  $sql = "SELECT qnr.result_id
-          FROM {quiz_node_results} qnr
-          WHERE qnr.uid = %d
-          AND qnr.nid = %d
-          AND qnr.time_end = 0
-          AND qnr.vid < %d";
-  $res = db_query("SELECT qnr.result_id
-          FROM {quiz_node_results} qnr
-          WHERE qnr.uid = :qnr.uid
-          AND qnr.nid = :qnr.nid
-          AND qnr.time_end = :qnr.time_end
-          AND qnr.vid < :qnr.vid", array(':qnr.uid' => $uid, ':qnr.nid' => $quiz->nid, ':qnr.time_end' => 0, ':qnr.vid' => $quiz->vid));
+  $res = db_query('SELECT qnr.result_id FROM {quiz_node_results} qnr
+          WHERE qnr.uid = :uid
+          AND qnr.nid = :nid
+          AND qnr.time_end = :time_end
+          AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
   $rids = array();
   while ($rids[] = $res->fetchField()) {
   }
@@ -3105,20 +3094,12 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
 
   // Get any quiz that is open, for this user, and has not already
   // been completed.
-  $sql = "SELECT result_id
-          FROM {quiz_node_results} qnr
+  $rid = db_query('SELECT result_id FROM {quiz_node_results} qnr
           INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
-          WHERE (qnp.quiz_always = 1 OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
-          AND qnr.vid = %d
-          AND qnr.uid = %d
-          AND qnr.time_end = 0";
-  $rid = db_query("SELECT result_id
-          FROM {quiz_node_results} qnr
-          INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
-          WHERE (qnp.quiz_always = :(qnp.quiz_always OR (%d BETWEEN qnp.quiz_open AND qnp.quiz_close))
-          AND qnr.vid = :qnr.vid
-          AND qnr.uid = :qnr.uid
-          AND qnr.time_end = :qnr.time_end", array(':(qnp.quiz_always' => 1, ':qnr.vid' => $now, ':qnr.uid' => $vid, ':qnr.time_end' => 0, '' => $uid))->fetchField();
+          WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
+          AND qnr.vid = :vid
+          AND qnr.uid = :uid
+          AND qnr.time_end = :time_end', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid, ':time_end' => 0))->fetchField();
   return (int) $rid;
 }
 
@@ -3363,28 +3344,13 @@ function _quiz_get_question_types() {
   }
 
   // Get question types from the modules that defines them..
-  $to_return = module_invoke_all('quiz_question_info');
-  if (empty($to_return)) {
+  $quiz_questions = module_invoke_all('quiz_question_info');
+  if (empty($quiz_questions)) {
     drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
     return array();
   }
-  // We must make sure names and descriptions are customizable and
-  // translationable
-  $types = array();
-  $placeholders = array();
-  foreach ($to_return as $key => $value) {
-    $types[] = $key;
-  }
-  $sql = "SELECT type, name, description
-          FROM {node_type}
-          WHERE type IN ('" . implode("', '", $types) . "')";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query($sql, $types);
-  while ($res_o = db_fetch_object($res)) {
-    $to_return[$res_o->type]['name'] = check_plain($res_o->name);
-    $to_return[$res_o->type]['description'] = check_markup($res_o->description);
-  }
-  return $to_return;
+
+  return $quiz_questions;
 }
 
 /**
@@ -3468,17 +3434,18 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
 
   $results = $query->execute();
   foreach($results as $result) {
+    $node = $result;
     // Create questions array.
     if ($nid_keys === FALSE) {
-      while ($node = db_fetch_object($result)) {
+      //while ($node = db_fetch_object($result)) {
         $questions[] = quiz_node_map($node, $include_question);
-      }
+      //}
     }
     else {
-      while ($node = db_fetch_object($result)) {
+      //while ($node = db_fetch_object($result)) {
         $n = quiz_node_map($node, $include_question);
         $questions[$n->nid] = $n;
-      }
+      //}
     }
   }
   return $questions;
@@ -3715,7 +3682,7 @@ function _quiz_form_prepare_date($time = '', $offset = 0) {
 function quiz_action_options($type = 'all') {
   $options = array(t('Choose an action'));
   foreach (actions_actions_map(actions_get_all_actions()) as $aid => $action) {
-    $options[$action['type']][$aid] = $action['description'];
+    $options[$action['type']][$aid] = $action['label'];
   }
 
   if ($type == 'all') {
