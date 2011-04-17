@@ -30,7 +30,7 @@ $row[] = drupal_render($form['answer']);
 $rows[] = $row;
 $header[] = array('data' => $title_correct);
 $header[] = array('data' => $title_answer);
-print theme('table', $header, $rows);
+print theme('table', array('header' => $header, 'rows' => $rows));
 
 //These lines make things look alot beter if user only has one input format available:
 _quiz_format_mod($form['format']);

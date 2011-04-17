@@ -67,22 +67,16 @@ function quiz_question_theme() {
  * Implements hook_node_info().
  */
 function quiz_question_node_info() {
-  $types = _quiz_question_get_implementations();
-  $info = array();
-  $defaults = array(
-    'module' => 'quiz_question',
-    'has_body' => TRUE,
-    'has_title' => TRUE,
-    'body_label' => t('Question'),
-  );
-  foreach ($types as $type => $definition) {
-    $node_info = array(
+  $node_info = array();
+  foreach (_quiz_question_get_implementations() as $type => $definition) {
+    $node_info[$type] = array(
       'name' => $definition['name'],
+      'base' => 'quiz_question',
       'description' => $definition['description']
     );
-    $info[$type] = $node_info + $defaults;
+    //$info[$type] = $node_info + $defaults;
   }
-  return $info;
+  return $node_info;
 }
 
 /**
@@ -206,15 +200,10 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
  *  Content array
  */
 function _quiz_question_teaser_content($node) {
-  $content['question'] = array(
-    '#type' => 'markup',
-    '#value' => check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
-  );
-
+  $content['question'] = array('#markup' => check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
   $type = node_type_get_type($node);
   $content['question_type'] = array(
-    '#type'  => 'markup',
-    '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+    '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
     '#weight' => -1,
   );
 
@@ -281,10 +270,11 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
   $query = db_select('node', 'n')
     ->fields('n', array('nid', 'vid'))
     ->innerjoin('node_revision', 'nr')
+    ->condition('type', array_keys(_quiz_question_get_implementations()), 'IN')
     ->execute();
 
-  $sql = "SELECT n.nid, n.vid, r.body, r.format
-    FROM {node} AS n
+  /*
+  $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
     INNER JOIN {node_revisions} AS r USING(vid)
     WHERE n.type IN (%s) ORDER BY n.type, n.changed";
   $types = array();
@@ -303,9 +293,10 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
     // TODO Please convert this statement to the D7 database API syntax.
     $result = db_query_range(db_rewrite_sql($sql), $type);
   }
+  */
 
   $questions = array();
-  while ($question = db_fetch_object($result)) {
+  while ($question = $query->fetch()) {
     $question->question = check_markup($question->body, $question->format, $langcode = '' /* TODO Set this variable. */, FALSE);
     $questions[] = $question;
   }
@@ -562,18 +553,28 @@ function _quiz_delete_question(&$node, $only_this_version) {
   // @todo reconsider this QUESTION_NEVER status, since the node is actually gone
 
   // then remove it from {quiz_node_relationship} linking table
-  $base_sql = "UPDATE {quiz_node_relationship} SET question_status = " . QUESTION_NEVER;
-  $select_sql = "SELECT parent_vid FROM {quiz_node_relationship}";
+  //$base_sql = "UPDATE {quiz_node_relationship} SET question_status = " . QUESTION_NEVER;
+  $select_sql = 'SELECT parent_vid FROM {quiz_node_relationship}';
   if ($only_this_version) {
-    $filter_sql = ' WHERE child_nid = %d AND child_vid = %d';
+    $select_sql .= ' WHERE child_nid = :child_nid AND child_vid = :child_vid';
+    $filter_arg = array(':child_nid' => $node->nid, ':child_vid' => $node->vid);
   }
   else {
-    $filter_sql = ' WHERE child_nid = %d';
+    $select_sql .= ' WHERE child_nid = %d';
+    $filter_arg = array(':child_nid' => $node->nid);
   }
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query($select_sql . $filter_sql, $node->nid, $node->vid);
-  // TODO Please convert this statement to the D7 database API syntax.
-  db_query($base_sql . $filter_sql, $node->nid, $node->vid);
+  //$res = db_query($select_sql . $filter_sql, $node->nid, $node->vid);
+  $res = db_query($select_sql, $filter_arg);
+
+  //db_query($base_sql . $filter_sql, $node->nid, $node->vid);
+  $update = db_update('quiz_node_relationship')
+    ->fields(array('question_status' => QUESTION_NEVER))
+    ->condition('child_nid', $node->nid);
+  if ($only_this_version) {
+    $update = $update->condition('child_vid', $node->vid);
+  }
+  $update->execute();
+
   $quizzes_to_update = array();
   while ($quizzes_to_update[] = $res->fetchField()) {
   }
@@ -775,8 +776,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
     ->execute();
 
   // If we have to many entries for current user, delete the oldest entries...
-  $count = db_query('SELECT COUNT(*)
-          FROM {quiz_question_latest_quizzes}
+  $count = db_query('SELECT COUNT(*) FROM {quiz_question_latest_quizzes}
           WHERE uid = :uid', array(':uid' => $user->uid))->fetchField();
   $n_to_delete = (int) $count - QUIZ_QUESTION_NUM_LATEST;
   if ($n_to_delete > 0) {

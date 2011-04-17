@@ -303,7 +303,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     //$delete_answers = 'DELETE FROM {quiz_multichoice_answers} WHERE question_nid = %d';
     $delete_answers = db_delete('quiz_multichoice_answers')
-      ->condition('question_nid', $this->node->nid)
+      ->condition('question_nid', $this->node->nid);
     if ($only_this_version) {
       $delete_answers->condition('question_vid', $this->node->vid);
     }
@@ -326,7 +326,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     //$delete_results = 'DELETE FROM {quiz_multichoice_user_answers} WHERE question_nid = %d';
     $delete_results = db_delete('quiz_multichoice_user_answers')
-      ->condition('question_nid', $this->node->nid)
+      ->condition('question_nid', $this->node->nid);
     if ($only_this_version) {
       $delete_results->condition('question_vid', $this->node->vid);
     }
@@ -584,7 +584,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#default_value' => $short['answer'],
         '#required' => $i < 2,
       );
-      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i, 'answer_format'));
+//      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i, 'answer_format'));
 
       $form['alternatives'][$i]['advanced'] = array(
         '#type' => 'fieldset',
@@ -599,7 +599,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen'],
       );
-      $form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_chosen_format'));
+      //$form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_chosen_format'));
       // We add 'helper' to trick the current version of the wysiwyg module to add an editor to several
       // textareas in the same fieldset
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
@@ -609,7 +609,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen'],
       );
-      $form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
+      //$form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
 
       $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
       if (!isset($default_value)) {
@@ -710,7 +710,7 @@ class MultichoiceQuestion extends QuizQuestion {
     global $user;
     $res = db_query('SELECT choice_multi, choice_boolean, choice_random
             FROM {quiz_multichoice_user_settings}
-            WHERE uid = :uid', array(':uid' => $user->uid))->fetchAssoc());
+            WHERE uid = :uid', array(':uid' => $user->uid))->fetchAssoc();
     if ($res) {
       return $res;
     }
@@ -839,7 +839,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $query = db_insert('quiz_multichoice_user_answer_multi')
       ->fields(array('user_answer_id', 'answer_id'));
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
-      $query->values(array($user_answer_id, , $this->user_answer_ids[$i]));
+      $query->values(array($user_answer_id, $this->user_answer_ids[$i]));
     }
       $query->execute();
   }

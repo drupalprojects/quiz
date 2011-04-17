@@ -86,13 +86,13 @@ abstract class QuizQuestion {
    */
   public function getNodeForm(array $form_state = NULL) {
     global $user;
-
     $form = array();
 
     // mark this form to be processed by quiz_form_alter. quiz_form_alter will among other things
     // hide the revion fieldset if the user don't have permission to controll the revisioning manually.
     $form['#quiz_check_revision_access'] = TRUE;
 
+    /*
     $form['body_field']['body'] = array(
       '#type' => 'textarea',
       '#title' => $this->getBodyFieldTitle(),
@@ -106,6 +106,7 @@ abstract class QuizQuestion {
     $form['body_field']['format'] = filter_form($this->node->format);
     $form['body_field']['format']['#weight'] = -14;
     $form['body_field']['#weight'] = -15;
+    */
 
     // Allow user to set title?
     if (user_access('edit question titles')) {
@@ -166,17 +167,14 @@ abstract class QuizQuestion {
       $already_nids = array();
       if (isset($this->node->nid) && is_numeric($this->node->nid)) {
         // Finding quizzes this question already belongs to.
-        $sql = "SELECT n.nid, r.parent_vid AS vid, n.title
-                FROM {quiz_node_relationship} r
-                JOIN {node} n
-                ON n.nid = r.parent_nid
-                WHERE r.child_vid = %d $own_filter
-                ORDER BY r.parent_vid DESC";
-        // TODO Please convert this statement to the D7 database API syntax.
-        $res = db_query(db_rewrite_sql($sql), $this->node->vid);
+        $sql = 'SELECT n.nid, r.parent_vid AS vid, n.title FROM {quiz_node_relationship} r
+                JOIN {node} n ON n.nid = r.parent_nid
+                WHERE r.child_vid = :child_vid
+                ORDER BY r.parent_vid DESC';
+        $res = db_query($sql, array(':child_vid' => $this->node->vid));
 
         // Store the results
-        while ($res_o = db_fetch_object($res)) {
+        while ($res_o = $res->fetch()) {
           if (in_array($res_o->nid, $already_nids)) {
             continue;
           }
@@ -192,19 +190,17 @@ abstract class QuizQuestion {
       $latest_nids = array();
 
       // Finding the last quizzes the current user has been using
-      $sql = "SELECT lq.quiz_nid, n.vid, n.title, lq.id
-              FROM {quiz_question_latest_quizzes} lq
-              JOIN {node} n
-              ON n.nid = lq.quiz_nid
-              WHERE lq.uid = %d $own_filter";
+      $sql = "SELECT lq.quiz_nid, n.vid, n.title, lq.id FROM {quiz_question_latest_quizzes} lq
+              JOIN {node} n ON n.nid = lq.quiz_nid
+              WHERE lq.uid = :uid";
       if (drupal_strlen($found) > 0) {
         $sql .= " AND quiz_nid NOT IN ($found)";
       }
       $sql .= " ORDER BY lq.id DESC";
       // TODO Please convert this statement to the D7 database API syntax.
-      $res = db_query(db_rewrite_sql($sql), $user->uid);
+      $res = db_query($sql, array(':uid' => $user->uid));
 
-      while ($res_o = db_fetch_object($res)) {
+      while ($res_o = $res->fetch()) {
         // Array to use as #option in form element
         $latest[$res_o->quiz_nid . '-' . $res_o->vid] = $res_o->title;
         // Array to use in later queries
@@ -214,16 +210,16 @@ abstract class QuizQuestion {
       if (count($latest) < QUIZ_QUESTION_NUM_LATEST) {
         // Suplementing with other available quizzes...
         $found = implode(', ', array_merge($already_nids, $latest_nids));
-        $sql = "SELECT n.nid, n.vid, title, changed
-                FROM {node} n
-                WHERE type = 'quiz' $own_filter";
+        $sql = "SELECT n.nid, n.vid, title, changed FROM {node} n
+                WHERE type = 'quiz'";
         if (drupal_strlen($found) > 0) {
           $sql .= " AND n.nid NOT IN ($found)";
         }
-        $sql .= " ORDER BY changed LIMIT %d";
+        //$sql .= " ORDER BY changed LIMIT %d";
         // TODO Please convert this statement to the D7 database API syntax.
-        $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_NUM_LATEST - count($latest));
-        while ($res_o = db_fetch_object($res)) {
+        //$res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_NUM_LATEST - count($latest));
+        $res = db_query($sql);
+        while ($res_o = $res->fetch()) {
           // array to be used as #options in form element
           $latest[$res_o->nid . '-' . $res_o->vid] = $res_o->title;
         }
@@ -239,12 +235,8 @@ abstract class QuizQuestion {
             break;
           }
         }
-        $sql = 'SELECT title
-                FROM {node_revisions}
-                WHERE vid = %d';
-        $res = db_query('SELECT title
-                FROM {node_revisions}
-                WHERE vid = :vid', array(':vid' => $quiz->vid));
+
+        $res = db_query('SELECT title FROM {node_revisions} WHERE vid = :vid', array(':vid' => $quiz->vid));
         $latest[$quiz->nid . '-' . $quiz->vid] = $res->fetchField();
         // $latest_default is to be used as #default_value in form item
         $latest_default[] = $quiz->nid . '-' . $quiz->vid;
@@ -527,16 +519,12 @@ abstract class QuizQuestion {
             drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
-          $sql = 'DELETE FROM {quiz_node_relationship}
-                  WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d AND child_vid = %d';
-          // TODO Please review the conversion of this statement to the D7 database API syntax.
-          /* db_query($sql, $nid_vid[0], $nid_vid[1], $this->node->nid, $this->node->vid) */
           db_delete('quiz_node_relationship')
-  ->condition('parent_nid', $nid_vid[0])
-  ->condition('parent_vid', $nid_vid[1])
-  ->condition('child_nid', $this->node->nid)
-  ->condition('child_vid', $this->node->vid)
-  ->execute();
+            ->condition('parent_nid', $nid_vid[0])
+            ->condition('parent_vid', $nid_vid[1])
+            ->condition('child_nid', $this->node->nid)
+            ->condition('child_vid', $this->node->vid)
+            ->execute();
         }
         else {
           $quizzes_kept = TRUE;
@@ -642,23 +630,10 @@ abstract class QuizQuestion {
     if (!isset($this->node->vid)) {
       return FALSE;
     }
-    $sql = 'SELECT *
-            FROM {quiz_node_results}
-            WHERE vid IN (
-              SELECT parent_vid
-              FROM {quiz_node_relationship}
-              WHERE child_vid = %d
-            )
-            LIMIT 1';
-    $res = db_query('SELECT *
-            FROM {quiz_node_results}
-            WHERE vid IN (
-              SELECT parent_vid
-              FROM {quiz_node_relationship}
-              WHERE child_vid = :child_vid
-            )
-            LIMIT 1', array(':child_vid' => $this->node->vid));
-    return db_fetch_object($res) ? TRUE : FALSE;
+    $answered = db_query('SELECT * FROM {quiz_node_results} qnres
+            JOIN ON {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
+            WHERE qnrel.child_vid = :child_vid', array(':child_vid' => $this->node->vid))->fetch();
+    return $answered ? TRUE : FALSE;
   }
 
   /**
@@ -713,13 +688,8 @@ abstract class QuizQuestionResponse {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
-    $sql = 'SELECT is_skipped
-            FROM {quiz_node_results_answers}
-            WHERE result_id = %d AND question_nid = %d AND question_vid = %d';
-    $res = db_query('SELECT is_skipped
-            FROM {quiz_node_results_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid));
-    $this->is_skipped = $res->fetchField();
+    $this->is_skipped = db_query('SELECT is_skipped FROM {quiz_node_results_answers}
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetchField();
   }
 
   /**
@@ -919,10 +889,7 @@ abstract class QuizQuestionResponse {
    *  FAPI form array holding the question
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
-    return array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->question->body, $this->question->format, $langcode = '' /* TODO Set this variable. */, FALSE),
-    );
+    return array('#markup' => check_markup($this->question->body, $this->question->format, $langcode = '' /* TODO Set this variable. */, FALSE));
   }
 
   /**
@@ -935,10 +902,7 @@ abstract class QuizQuestionResponse {
    *  FAPI form array holding the response part
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    return array(
-      '#type' => 'markup',
-      '#value' => ''
-    );
+    return array('#markup' => '');
   }
 
   /**
@@ -951,10 +915,7 @@ abstract class QuizQuestionResponse {
    *  FAPI form array holding the score part
    */
   public function getReportFormScore($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    return array(
-      '#type' => 'markup',
-      '#value' => '<span class="quiz-report-score">' . $this->getScore() . '</span>',
-    );
+    return array('#markup' => '<span class="quiz-report-score">' . $this->getScore() . '</span>');
   }
 
   /**
