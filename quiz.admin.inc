@@ -207,8 +207,7 @@ function quiz_admin_settings($form, &$form_state) {
   );
 
   $form['def_settings_link'] = array(
-    '#type' => 'markup',
-    '#value' => '<p>' . t('Default values for the quiz creation form can be edited <a href="!url">here</a>', array('!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
+    '#markup' => '<p>' . t('Default values for the quiz creation form can be edited <a href="!url">here</a>', array('!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
   );
 
   $form['#validate'][] = 'quiz_settings_form_validate';
@@ -270,8 +269,7 @@ function quiz_admin_node_form($form, &$form_state) {
   }
   $form = quiz_form($dummy_node);
   $form['direction'] = array(
-    '#type' => 'markup',
-    '#value' => t('Here you can change the default quiz settings for new users.'),
+    '#markup' => t('Here you can change the default quiz settings for new users.'),
     '#weight' => -10,
   );
   // unset values we can't or won't let the user edit default values for
@@ -844,8 +842,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
 
   if (empty($questions)) {
     $form['question_list']['no_questions'] = array(
-      '#type' => 'markup',
-      '#value' => '<div id = "no-questions">' . t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') . '</div>',
+      '#markup' => '<div id = "no-questions">' . t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') . '</div>',
     );
   }
 
@@ -880,7 +877,6 @@ function quiz_questions_form($form, $form_state, $quiz) {
     '#value' => t('Submit'),
     '#submit' => array('quiz_questions_form_submit'),
   );
-
   return $form;
 }
 
@@ -908,11 +904,10 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
-      //'query' => "$destination&quiz_nid={$quiz->nid}&quiz_vid={$quiz->vid}",
+      'query' => $destination,
     );
     $form['additional_questions'][$type] = array(
-      '#type' => 'markup',
-      '#value' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
+      '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
     );
   }
 }
@@ -1133,8 +1128,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     }
     else {
       $form[$fieldset]['max_scores'][$id] = array(
-        '#type' => 'markup',
-        '#value' => '',
+        '#markup' => '',
       );
     }
     // Add checkboxes to remove questions in js disabled browsers...
@@ -1176,8 +1170,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     // Add a checkbox to update to the latest revision of the question
     if ($question->vid == $question->latest_vid) {
       $update_cell = array(
-        '#type' => 'markup',
-        '#value' => t('<em>Up to date</em>'),
+        '#markup' => t('<em>Up to date</em>'),
       );
     }
     else {
@@ -1244,8 +1237,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
 function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state, $quiz, $question_types) {
   if (!is_array($question_types) || count($question_types) == 0) {
     return $form['no_questions'] = array(
-      '#type' => 'markup',
-      '#value' => t('No question types are enabled'),
+      '#markup' => t('No question types are enabled'),
     );
   }
   $form = array(
@@ -1263,12 +1255,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   // Ahah targets
   $browser['ahah_target'] = array(
-    '#type' => 'markup',
-    '#value' => '<DIV ID = "ahah-target"></DIV>'
+    '#markup' => '<DIV ID = "ahah-target"></DIV>'
   );
   $browser['ahah_target_all'] = array(
-    '#type' => 'markup',
-    '#value' => '<DIV ID = "all-ahah-target">'
+    '#markup' => '<DIV ID = "all-ahah-target">'
   );
 
   // Ajax use this field to send extra query strings to drupal
@@ -1278,14 +1268,14 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   );
 
   //Build filter part of form:
-  _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
+  //_quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
 
   // Create filter part of sql.
-  $filter_params = array($quiz->vid);
+  //$filter_params = array($quiz->vid);
   // Get filter sql, and add filter params to $filter_params
-  $filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
+  //$filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
 
-  $question_type_list = implode('\', \'', array_keys($question_types));
+  //$question_type_list = implode('\', \'', array_keys($question_types));
 
   // Add querystring recieved via ajax to the $_GET array...
   if (isset($form_state['values'])) {
@@ -1301,6 +1291,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     array('data' => t('Username'), 'field' => 'name', 'class' => 'quiz-browser-header-name'),
   );
 
+  /*
   // Sql to get the questions for the question browser...
   $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name
           FROM {node} n
@@ -1311,15 +1302,25 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
             FROM {quiz_node_relationship}
             WHERE parent_vid = %d
           )' . $filter_sql;//tablesort_sql($browser['#header']);
+          */
+
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'type', 'vid', 'title', 'changed'))
+    ->fields('u', array('name'));
+  $alias = $query->leftJoin('users', 'u', 'n.uid = u.uid');
+  $query->condition('type', array_keys($question_types), 'IN');
+  $query->execute();
+  //$results = $query->fetchAll();
 
   /* We use a custom query for the pager to vastly improve performance if there are lots of db hits...
    This custom query doesn't find the total number of hits, thus the "last" link in the pager is hidden. */
+  /*
   $page = isset($_GET['page']) ? intval($_GET['page']) : 0;
   $num = 25;
   $pager_sql = 'SELECT COUNT(*)
           FROM (
          ' // db_rewrite_sql doesn't work on the entire query because of a bug...
-         . db_rewrite_sql('SELECT n.nid FROM {node} n
+         . ('SELECT n.nid FROM {node} n
           LEFT OUTER JOIN {users} u ON n.uid = u.uid
           WHERE n.type IN (\'' . $question_type_list . '\')') . '
             AND n.nid NOT IN (
@@ -1327,11 +1328,15 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
               FROM {quiz_node_relationship}
               WHERE parent_vid = %d
             )' . $filter_sql . " LIMIT 0, " . max($page * $num + $num * 7, $num * 10) . ") tbl";
+            */
 
-  $res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
+  //$res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
+  //$res = db_query($sql);//, $num, 0, $pager_sql, $filter_params);
   // build data part of form
   $options = array();
-  while ($res_o = db_fetch_object($res)) {
+
+  //while ($res_o = $query->fetch()) {
+  foreach ($query as $res_o) {
     $id = $res_o->nid . '-' . $res_o->vid;
     // Add $id to hidden_questions, this way quiz_questions_form knows that it has to add a invisible row for this question.
     $hidden_questions[] = $id;
@@ -1351,12 +1356,11 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   );
 
   $browser['pager'] = array(
-    '#value' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
+    '#markup' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
   );
 
   $browser['ahah_target_all_end'] = array(
-    '#type' => 'markup',
-    '#value' => '</DIV>'
+    '#markup' => '</DIV>'
   );
   return $form;
 }
@@ -2105,8 +2109,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
     '#value' => t('Delete all marked results'),
   );
   $form['confirm_delete']['cancel'] = array(
-    '#type' => 'markup',
-    '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
+    '#markup' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
   );
 
   $form['special_filters'] = array(
@@ -2140,12 +2143,10 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
 
   // Ahah targets
   $browser['ahah_target'] = array(
-    '#type' => 'markup',
-    '#value' => '<DIV ID = "ahah-target"></DIV>'
+    '#markup' => '<DIV ID = "ahah-target"></DIV>'
   );
   $browser['ahah_target_all'] = array(
-    '#type' => 'markup',
-    '#value' => '<DIV ID = "all-ahah-target">'
+    '#markup' => '<DIV ID = "all-ahah-target">'
   );
 
   // js use this field to send extra query strings to drupal(sorting, paging etc)
@@ -2216,11 +2217,10 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   );
 
   $browser['pager'] = array(
-    '#value' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
+    '#markup' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
   );
   $browser['ahah_target_all_end'] = array(
-    '#type' => 'markup',
-    '#value' => '</DIV>'
+    '#markup' => '</DIV>'
   );
   $form['#submit'] = array('quiz_results_mr_form_submit');
 

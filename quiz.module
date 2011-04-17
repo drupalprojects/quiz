@@ -617,8 +617,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
     // Quiz questions might want to add a cancel button.
     if (isset($form['#cancel_button'])) {
       $form['buttons']['cancel'] = array(
-        '#type' => 'markup',
-        '#value' => l(t('Cancel'), $form_state['#redirect']),
+        '#markup' => l(t('Cancel'), $form_state['#redirect']),
         '#weight' => 6,
       );
     }
@@ -3423,8 +3422,11 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
     ->condition('n.status', 1)
     ->orderBy('weight');
 
-  if ($include_all_types === TRUE && $types = array_keys(_quiz_get_question_types()) && count($types)) {
-    $query->condition('type', $types, 'IN');
+  if ($include_all_types === TRUE) {
+    $types = array_keys(_quiz_get_question_types());
+    if (count($types)) {
+      $query->condition('type', $types, 'IN');
+    }
   }
 
   if (!is_null($quiz_vid)) {
