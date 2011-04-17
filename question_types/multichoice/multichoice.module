@@ -230,10 +230,6 @@ function _multichoice_skip_validation(&$elements) {
  * Implements hook_user_cancel().
  */
 function multichoice_user_cancel($edit, $account, $method) {
-  $sql = 'DELETE FROM {quiz_multichoice_user_settings}
-              WHERE uid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $account->uid) */
   db_delete('quiz_multichoice_user_settings')
   ->condition('uid', $account->uid)
   ->execute();
