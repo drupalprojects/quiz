@@ -813,6 +813,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
   $form['#action'] = url('node/' . $quiz->nid . '/questions');
 
   $types = _quiz_get_question_types();
+
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
 
   // Display questions in this quiz.
@@ -907,7 +908,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
-      'query' => "$destination&quiz_nid=$quiz->nid&quiz_vid=$quiz->vid",
+      //'query' => "$destination&quiz_nid={$quiz->nid}&quiz_vid={$quiz->vid}",
     );
     $form['additional_questions'][$type] = array(
       '#type' => 'markup',
@@ -1309,7 +1310,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
             SELECT child_nid
             FROM {quiz_node_relationship}
             WHERE parent_vid = %d
-          )' . $filter_sql . tablesort_sql($browser['#header']);
+          )' . $filter_sql;//tablesort_sql($browser['#header']);
 
   /* We use a custom query for the pager to vastly improve performance if there are lots of db hits...
    This custom query doesn't find the total number of hits, thus the "last" link in the pager is hidden. */
@@ -1678,10 +1679,10 @@ function quiz_questions_form_submit($form, &$form_state) {
     $query->addExpression('SUM(max_score)', 'sum');
     $query->condition('parent_vid', $quiz->vid);
     $query->condition('question_status', QUESTION_ALWAYS);
-    $score = $query->execute()->fetch();   
-    
+    $score = $query->execute()->fetch();
+
     $success2 = db_update('quiz_node_properties')
-      ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))    
+      ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))
       ->condition('vid', $quiz->vid)
       ->execute();
   }
