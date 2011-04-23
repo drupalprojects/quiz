@@ -359,26 +359,16 @@ abstract class QuizQuestion {
 
     // Save general data
     if ($is_new_node) {
-      $sql = 'INSERT INTO {quiz_question_properties}
-              (nid, vid, max_score)
-              VALUES(%d, %d, %d)';
-      // TODO Please convert this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid, $this->node->vid, $this->getMaximumScore()) */
-      NULL;
+      db_query('INSERT INTO {quiz_question_properties} (nid, vid, max_score) VALUES(:nid, :vid, :max_score)', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':max_score' => $this->getMaximumScore()));
     }
     else {
-      $sql = 'UPDATE {quiz_question_properties}
-              SET max_score = %d
-              WHERE nid = %d AND vid = %d';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->getMaximumScore(), $this->node->nid, $this->node->vid) */
       db_update('quiz_question_properties')
-  ->fields(array(
-    'max_score' => $this->getMaximumScore(),
-  ))
-  ->condition('nid', $this->node->nid)
-  ->condition('vid', $this->node->vid)
-  ->execute();
+        ->fields(array(
+          'max_score' => $this->getMaximumScore(),
+        ))
+        ->condition('nid', $this->node->nid)
+        ->condition('vid', $this->node->vid)
+        ->execute();
     }
 
     // Save what quizzes this question belongs to.
