@@ -906,7 +906,8 @@ function quiz_load($nodes) {
 /**
  * Implements hook_view().
  */
-function quiz_view($node, $teaser = FALSE, $page = FALSE) {
+//function quiz_view($node, $teaser = FALSE, $page = FALSE) {
+function quiz_view($node, $view_mode) {
   drupal_alter('quiz_view', $node, $teaser, $page);
   node_invoke($node, 'prepare');
 
@@ -914,30 +915,30 @@ function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
 
   $node->content['stats'] = array(
-    '#value' => theme('quiz_view_stats', array('node' => $node)),
+    '#markup' => theme('quiz_view_stats', array('node' => $node)),
     '#weight' => -1,
   );
-
+  
   $available = quiz_availability($node);
   if ($available === TRUE) {
     // Add a link to the take tab as a button if this isn't a teaser view.
     if (!$teaser) {
       $node->content['take'] = array(
-        '#value' => drupal_get_form('quiz_start_quiz_button_form', $node),
+        '#markup' => drupal_render(drupal_get_form('quiz_start_quiz_button_form', $node)),
         '#weight' => 2,
       );
     }
     // Add a link to the take tab if this is a teaser view.
     else {
       $node->content['take'] = array(
-        '#value' =>  l(t('Start quiz'), 'node/' . $node->nid . '/take'),
+        '#markup' =>  l(t('Start quiz'), 'node/' . $node->nid . '/take'),
         '#weight' => 2,
       );
     }
   }
   else {
     $node->content['take'] = array(
-      '#value' => '<div class="quiz-not-available">' . $available . '</div>',
+      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
       '#weight' => 2,
     );
   }
