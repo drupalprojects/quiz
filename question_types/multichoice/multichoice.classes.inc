@@ -121,7 +121,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
-  public function saveNodeProperties($is_new = FALSE) {
+  public function saveNodeProperties($is_new = FALSE) {    
     $is_new = $is_new || $this->node->revision == 1;
 
     // Before we save we forgive some possible user errors
@@ -141,6 +141,7 @@ class MultichoiceQuestion extends QuizQuestion {
         ))
         ->execute();
 
+      // TODO: utilize the benefit of multiple insert of DBTNG
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
           $this->insertAlternative($i);
@@ -214,8 +215,8 @@ class MultichoiceQuestion extends QuizQuestion {
         'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen_format'],
         'score_if_chosen' => $alternatives['score_if_chosen'],
         'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
-        'question_nid' => $alternatives->node->nid,
-        'question_vid' => $alternatives->node->vid
+        'question_nid' => $this->node->nid,
+        'question_vid' => $this->node->vid
       ))
       ->execute();
   }
@@ -341,7 +342,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see QuizQuestion#getNodeProperties()
    */
   public function getNodeProperties() {
-    if (isset($this->nodeProperties)) {
+    if (isset($this->nodeProperties) && !empty($this->nodeProperties)) {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
