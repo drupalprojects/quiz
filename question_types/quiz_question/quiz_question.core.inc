@@ -621,7 +621,7 @@ abstract class QuizQuestion {
       return FALSE;
     }
     $answered = db_query('SELECT * FROM {quiz_node_results} qnres
-            JOIN ON {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
+            JOIN {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
             WHERE qnrel.child_vid = :child_vid', array(':child_vid' => $this->node->vid))->fetch();
     return $answered ? TRUE : FALSE;
   }
