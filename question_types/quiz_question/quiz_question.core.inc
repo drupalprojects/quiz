@@ -298,13 +298,11 @@ abstract class QuizQuestion {
   public function getNodeView() {
     $type = node_type_get_type($this->node);
     $content['question_type'] = array(
-      '#type'  => 'markup',
-      '#value' => '<div class="question_type_name">' . $type->name . '</div>',
+      '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
       '#weight' => -2,
     );
     $content['question'] = array(
-      '#type'  => 'markup',
-      '#value' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE) . '</div>',
+      '#markup' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE) . '</div>',
       '#weight' => -1,
     );
     return $content;
@@ -402,19 +400,21 @@ abstract class QuizQuestion {
    *  current nid can be deleted.
    */
   public function delete($only_this_version = FALSE) {
-    // Delete results
-    // TODO Please convert this statement to the D7 database API syntax.
-    db_query('DELETE FROM {quiz_node_results_answers}
-              WHERE question_nid = %d' . ($only_this_version ? ' AND question_vid = %d' : ''),
-              $this->node->nid, $this->node->vid);
+    // Delete answeres
+    $delete = db_delete('quiz_node_results_answers')
+      ->condition('question_nid', $this->node->nid);
+    if ($only_this_version) {
+      $delete->condition('question_vid', $this->node->vid);
+    }
+    $delete->execute();
 
     // Delete properties
-    $sql = 'DELETE FROM {quiz_question_properties}
-            WHERE nid = %d';
+    $delete = db_delete('quiz_question_properties')
+      ->condition('nid', $this->node->nid);
     if ($only_this_version) {
-      $sql .= ' AND vid = %d';
+      $delete->condition('vid', $this->node->vid);
     }
-    db_query($sql, $this->node->nid, $this->node->vid);
+    $delete->execute();
   }
 
   /**

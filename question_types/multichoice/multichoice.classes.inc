@@ -121,7 +121,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * (non-PHPdoc)
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
-  public function saveNodeProperties($is_new = FALSE) {    
+  public function saveNodeProperties($is_new = FALSE) {
     $is_new = $is_new || $this->node->revision == 1;
 
     // Before we save we forgive some possible user errors
@@ -313,17 +313,20 @@ class MultichoiceQuestion extends QuizQuestion {
     // Delete from table quiz_multichoice_user_answer_multi
     $user_answer_id = array();
     if ($only_this_version) {
-    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->question->nid, ':vid' => $this->question->vid, ':result_id' => $this->rid));
+    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':result_id' => $this->rid));
     }
     else {
-      $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND result_id = :result_id', array(':nid' => $this->question->nid, ':result_id' => $this->rid));
+      $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND result_id = :result_id', array(':nid' => $this->node->nid, ':result_id' => $this->rid));
     }
     while ($user_answer = $query->fetch()) {
       $user_answer_id[] = $user_answer->id;
     }
-    db_delete('quiz_multichoice_user_answer_multi')
-      ->condition('user_answer_id', $user_answer_id, 'IN')
-      ->execute();
+
+    if (count($user_answer_id)) {
+      db_delete('quiz_multichoice_user_answer_multi')
+        ->condition('user_answer_id', $user_answer_id, 'IN')
+        ->execute();
+    }
 
     //$delete_results = 'DELETE FROM {quiz_multichoice_user_answers} WHERE question_nid = %d';
     $delete_results = db_delete('quiz_multichoice_user_answers')
@@ -379,7 +382,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $this->shuffle($this->node->alternatives);
     }
     $content['answers'] = array(
-       '#value' => theme('multichoice_answer_node_view', array('alternatives' => $this->node->alternatives, 'show_correct' => $this->viewCanRevealCorrect())),
+       '#markup' => theme('multichoice_answer_node_view', array('alternatives' => $this->node->alternatives, 'show_correct' => $this->viewCanRevealCorrect())),
        '#weight' => 2,
     );
 
