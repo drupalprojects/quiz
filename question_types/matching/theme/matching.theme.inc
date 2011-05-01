@@ -25,7 +25,7 @@ function theme_matching_question_form($variables) {
     $rows[] = array(
       'question' => drupal_render($form[$key]['question']),
       'answer' => drupal_render($form[$key]['answer']),
-      'feedback' => drupal_render_children($form[$key]['feedback']),
+      'feedback' => drupal_render($form[$key]['feedback']),
     );
   }
   // Theme output and display to screen.

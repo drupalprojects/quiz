@@ -301,10 +301,13 @@ abstract class QuizQuestion {
       '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
       '#weight' => -2,
     );
+    /*
+    $question_body = field_get_items('node', $this->node, 'body');
     $content['question'] = array(
-      '#markup' => '<div class="question-body">' . check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE) . '</div>',
+      '#markup' => '<div class="question-body">' . $question_body[0]['safe_value'] . '</div>',
       '#weight' => -1,
     );
+    */
     return $content;
   }
 

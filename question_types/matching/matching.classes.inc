@@ -44,14 +44,14 @@ class MatchingQuestion extends QuizQuestion {
           // TODO Please review the conversion of this statement to the D7 database API syntax.
           /* db_query($sql, $this->node->nid, $this->node->vid, $match['question'], $match['answer'], $match['feedback']) */
           $id = db_insert('quiz_matching_node')
-  ->fields(array(
-    'nid' => $this->node->nid,
-    'vid' => $this->node->vid,
-    'question' => $match['question'],
-    'answer' => $match['answer'],
-    'feedback' => $match['feedback'],
-  ))
-  ->execute();
+                  ->fields(array(
+                    'nid' => $this->node->nid,
+                    'vid' => $this->node->vid,
+                    'question' => $match['question'],
+                    'answer' => $match['answer'],
+                    'feedback' => $match['feedback'],
+                  ))
+                  ->execute();
         }
       }
       // match_id is set, user may remove or update existing question.
@@ -61,22 +61,22 @@ class MatchingQuestion extends QuizQuestion {
           // TODO Please review the conversion of this statement to the D7 database API syntax.
           /* db_query("DELETE FROM {quiz_matching_node} WHERE match_id = %d", $match['match_id']) */
           db_delete('quiz_matching_node')
-  ->condition('match_id', $match['match_id'])
-  ->execute();
+            ->condition('match_id', $match['match_id'])
+            ->execute();
         }
         else {
           // update sub question.
-          $sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
+          //$sql = "UPDATE {quiz_matching_node} SET question = '%s', answer = '%s', feedback = '%s' WHERE match_id = %d";
           // TODO Please review the conversion of this statement to the D7 database API syntax.
           /* db_query($sql, $match['question'], $match['answer'], $match['feedback'], $match['match_id']) */
           db_update('quiz_matching_node')
-  ->fields(array(
-    'question' => $match['question'],
-    'answer' => $match['answer'],
-    'feedback' => $match['feedback'],
-  ))
-  ->condition('match_id', $match['match_id'])
-  ->execute();
+            ->fields(array(
+              'question' => $match['question'],
+              'answer' => $match['answer'],
+              'feedback' => $match['feedback'],
+            ))
+            ->condition('match_id', $match['match_id'])
+            ->execute();
         }
       }
     }
@@ -99,46 +99,27 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
-
     if ($only_this_version) {
-      $sql = 'DELETE FROM {quiz_matching_user_answers}
-              WHERE match_id IN(
-                SELECT match_id
-                FROM {quiz_matching_node}
-                WHERE nid = %d AND vid = %d
-              )';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid, $this->node->vid) */
+      $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
       db_delete('quiz_matching_user_answers')
-    ->where('match_id IN(                 SELECT match_id                 FROM {quiz_matching_node}                 WHERE nid = %d AND vid = %d               )',  )
-  ->execute();
-      $sql = 'DELETE FROM {quiz_matching_node} WHERE nid = %d AND vid = %d';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid, $this->node->vid) */
+        ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
+        ->execute();
+
       db_delete('quiz_matching_node')
-  ->condition('nid', $this->node->nid)
-  ->condition('vid', $this->node->vid)
-  ->execute();
+        ->condition('nid', $this->node->nid)
+        ->condition('vid', $this->node->vid)
+        ->execute();
     }
     // Delete all versions of this question.
     else {
-      $sql = 'DELETE FROM {quiz_matching_user_answers}
-              WHERE match_id IN(
-                SELECT match_id
-                FROM {quiz_matching_node}
-                WHERE nid = %d
-              )';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid) */
+      $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid', array(':nid' => $this->node->nid))->fetchCol();
       db_delete('quiz_matching_user_answers')
-    ->where('match_id IN(                 SELECT match_id                 FROM {quiz_matching_node}                 WHERE nid = %d               )',  )
-  ->execute();
-      $sql = 'DELETE FROM {quiz_matching_node} WHERE nid = %d';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid, $this->node->vid) */
+        ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
+        ->execute();
+
       db_delete('quiz_matching_node')
-  ->condition('nid', $this->node->nid)
-  ->execute();
+        ->condition('nid', $this->node->nid)
+        ->execute();
     }
   }
 
@@ -153,9 +134,9 @@ class MatchingQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
-    $results = db_query("SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid", array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
-    while ($result = db_fetch_object($results)) {
+    //$sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
+    $query = db_query('SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+    while ($result = $query->fetch()) {
       $props['match'][] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
@@ -201,7 +182,7 @@ class MatchingQuestion extends QuizQuestion {
       }
     }
     $content['answers'] = array(
-       '#value' => theme('matching_match_node_view', array('subquestions' => $subquestions)),
+       '#markup' => theme('matching_match_node_view', array('subquestions' => $subquestions)),
        '#weight' => 2,
     );
     return $content;
@@ -236,8 +217,7 @@ class MatchingQuestion extends QuizQuestion {
       }
     }
     $form['scoring_info'] = array(
-      '#type' => 'markup',
-      '#value' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
+      '#markup' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
     );
     if (variable_get('quiz_matching_shuffle_options', TRUE)) {
       $form['subquestions'] = $this->customShuffle($form['subquestions']);
@@ -272,9 +252,9 @@ class MatchingQuestion extends QuizQuestion {
    */
   private function getSubquestions() {
     $matches = $select_option = array();
-    $sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
-    $results = db_query("SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid", array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
-    while ($result = db_fetch_object($results)) {
+    //$sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
+    $query = db_query('SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+    while ($result = $query->fetch()) {
       $matches[] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
@@ -315,7 +295,7 @@ class MatchingQuestion extends QuizQuestion {
         '#title' => t('Question ' . $i),
       );
       $form['match'][$i]['match_id'] = array(
-        '#type' => 'hidden',
+        '#type' => 'value',
         '#default_value' => isset($this->node->match[$i -1]['match_id']) ? $this->node->match[$i -1]['match_id'] : ''
       );
       $form['match'][$i]['question'] = array(
@@ -365,12 +345,8 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function getCorrectAnswer() {
     $correct_answers = array();
-
-    $results = db_query('SELECT match_id, question, answer, feedback
-      FROM {quiz_matching_node}
-      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
-
-    while ($result = db_fetch_object($results)) {
+    $query = db_query('SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+    while ($result = $query->fetch()) {
       $correct_answers[$result->match_id] = array(
         'match_id'  => $result->match_id,
         'question'  => $result->question,
@@ -393,18 +369,11 @@ class MatchingResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $sql = 'SELECT ua.answer, score, ua.match_id
-              FROM {quiz_matching_user_answers} ua
-              JOIN {quiz_matching_node} n
-              ON n.match_id = ua.match_id
-              WHERE n.nid = %d AND n.vid = %d AND ua.result_id = %d';
-      $res = db_query('SELECT ua.answer, score, ua.match_id
-              FROM {quiz_matching_user_answers} ua
-              JOIN {quiz_matching_node} n
-              ON n.match_id = ua.match_id
-              WHERE n.nid = :n.nid AND n.vid = :n.vid AND ua.result_id = :ua.result_id', array(':n.nid' => $question_node->nid, ':n.vid' => $question_node->vid, ':ua.result_id' => $result_id));
+      $res = db_query('SELECT ua.answer, score, ua.match_id FROM {quiz_matching_user_answers} ua
+              JOIN {quiz_matching_node} n ON n.match_id = ua.match_id
+              WHERE n.nid = :nid AND n.vid = :vid AND ua.result_id = :result_id', array(':nid' => $question_node->nid, ':vid' => $question_node->vid, ':result_id' => $result_id));
       $this->answer = array();
-      while ($obj = db_fetch_object($res)) {
+      while ($obj = $res->fetch()) {
         $this->answer[$obj->match_id] = $obj->answer;
       }
     }
@@ -431,22 +400,19 @@ class MatchingResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    $user_answers = isset($this->answer) ? $this->answer : array();
-    // to prevent warning : Invalid argument supplied for foreach()
-    foreach ((array) $user_answers as $key => $value) {
-      $score = ($key == $value) ? 1 : 0;
-      $sql = 'INSERT INTO {quiz_matching_user_answers} (match_id, result_id, answer, score) VALUES (%d, %d, %d, %d)';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $key, $this->rid, (int) $value, $score) */
-      $id = db_insert('quiz_matching_user_answers')
-  ->fields(array(
-    'match_id' => $key,
-    'result_id' => $this->rid,
-    'answer' => (int) $value,
-    'score' => $score,
-  ))
-  ->execute();
+    if (!isset($this->answer) || !is_array($this->answer)) {
+      return;
     }
+    $insert = db_insert('quiz_matching_user_answers')->fields(array('match_id', 'result_id', 'answer', 'score'));
+    foreach ($this->answer as $key => $value) {
+      $insert->values(array(
+        'match_id' => $key,
+        'result_id' => $this->rid,
+        'answer' => (int) $value,
+        'score' => ($key == $value) ? 1 : 0,
+      ));
+    }
+    $insert->execute();
   }
 
   /**
@@ -455,18 +421,11 @@ class MatchingResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#delete()
    */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_matching_user_answers}
-            WHERE match_id IN (
-              SELECT match_id
-              FROM {quiz_matching_node}
-              WHERE nid = %d AND vid = %d
-            )
-            AND result_id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $this->question->nid, $this->question->vid, $this->rid) */
+    $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = %d AND vid = %d', $this->question->nid, $this->question->vid)->fetchCol();
     db_delete('quiz_matching_user_answers')
-    ->where('match_id IN (               SELECT match_id               FROM {quiz_matching_node}               WHERE nid = %d AND vid = %d             )             AND result_id = %d',  )
-  ->execute();
+      ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
+      ->condition('result_id', $this->rid)
+      ->execute();
   }
 
   /**
@@ -539,8 +498,7 @@ class MatchingResponse extends QuizQuestionResponse {
     }
 
     return array(
-      '#type' => 'markup',
-      '#value' => theme('matching_response', array('metadata' => $metadata, 'data' => $data)),
+      '#markup' => theme('matching_response', array('metadata' => $metadata, 'data' => $data)),
     );
   }
 }
