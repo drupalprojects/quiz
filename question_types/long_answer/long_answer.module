@@ -128,29 +128,21 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
   //
   // We update all three.
 
-  // First, we update the long answer table
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("UPDATE {quiz_long_answer_user_answers}
-   SET score = %d * (
-   SELECT max_score
-   FROM {quiz_question_properties}
-   WHERE nid = %d
-   AND vid = %d
-   ) / (
-   SELECT max_score
-   FROM {quiz_node_relationship}
-   WHERE parent_vid = %d
-   AND child_vid = %d
-   ), is_evaluated = 1
-   WHERE question_nid = %d
-   AND question_vid = %d
-   AND result_id = %d", $score, $nid, $vid, $quiz->vid, $vid, $nid, $vid, $rid) */
-  db_update('quiz_long_answer_user_answers')
-  ->fields(array(
-    'score' => $score,
-  ))
-    ->where('nid = %d               AND vid = %d             ) / (               SELECT max_score               FROM {quiz_node_relationship}               WHERE parent_vid = %d               AND child_vid = %d             ), is_evaluated = 1             WHERE question_nid = %d             AND question_vid = %d             AND result_id = %d',  )
-  ->execute();
+  // First, we update the long answer table    
+  $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
+
+  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
+
+  $changed = db_update('quiz_long_answer_user_answers')
+    ->fields(array(
+      'score' => $question_max_score / $quiz_max_score,
+      'is_evaluated' => 1
+    ))
+    ->condition('question_nid', $nid)
+    ->condition('question_vid', $vid)
+    ->condition('result_id', $rid)
+    ->execute();
+  
   $changed = db_affected_rows();
 
   if ($changed > 0) {
@@ -167,20 +159,15 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
       $is_correct = $score == $max ? 1 : 0;
       $points_awarded = $score;
     }
-
-    $sql = 'UPDATE {quiz_node_results_answers}
-      SET points_awarded = %d, is_correct = %d
-      WHERE question_vid = %d AND result_id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $points_awarded, $is_correct, $vid, $rid) */
+        
     db_update('quiz_node_results_answers')
-  ->fields(array(
-    'points_awarded' => $points_awarded,
-    'is_correct' => $is_correct,
-  ))
-  ->condition('question_vid', $vid)
-  ->condition('result_id', $rid)
-  ->execute();
+      ->fields(array(
+        'points_awarded' => $points_awarded,
+        'is_correct' => $is_correct,
+      ))
+      ->condition('question_vid', $vid)
+      ->condition('result_id', $rid)
+      ->execute();
 
     // Third, we update the main quiz results table
     if ($update_total) {
@@ -214,23 +201,12 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
  *  result_id
  *  </code>
  */
-function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score
-    FROM {quiz_long_answer_user_answers} la
+function long_answer_get_answer($question_nid, $question_vid, $result_id) {  
+  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
-    WHERE question_nid = %d AND question_vid = %d AND la.result_id = %d";
-  $results = db_query("SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score
-    FROM {quiz_long_answer_user_answers} la
-    JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
-    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
-    WHERE question_nid = :question_nid AND question_vid = :question_vid AND la.result_id = :la.result_id", array(':question_nid' => $question_nid, ':question_vid' => $question_vid, ':la.result_id' => $result_id));
-
-  if (!$results) {
-    return FALSE;
-  }
-
-  return db_fetch_array($results);
+    WHERE question_nid = :question_nid AND question_vid = :question_vid AND la.result_id = :la.result_id', array(':question_nid' => $question_nid, ':question_vid' => $question_vid, ':la.result_id' => $result_id))->fetch();
+  return $result ? $result : FALSE;
 }
 
 /**
@@ -249,12 +225,12 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
  *  Indexed array of result IDs that need to be scored.
  */
 function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $offset = 0) {
-  $results = db_query_range('SELECT result_id
-    FROM {quiz_long_answer_user_answers}
+  $results = db_query('SELECT result_id FROM {quiz_long_answer_user_answers}
     WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid));
+      
   $unscored = array();
-  foreach (db_fetch_object($results) as $row) {
-    $unscored[] = $row->result_id;
+  foreach ($results as $result) {
+    $unscored[] = $result->result_id;
   }
   return $unscored;
 }
@@ -272,26 +248,23 @@ function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $
  *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
  */
 function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
-  global $user;
-  $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, qnr.time_end, qnr.time_start, qnr.uid
-    FROM {quiz_long_answer_user_answers} AS a
-    INNER JOIN {node_revisions} r ON a.question_vid = r.vid
-    INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
-    JOIN {node} n ON qnr.nid = n.nid
-    WHERE a.is_evaluated = 0';
+  $query = db_select('quiz_long_answer_user_answers', 'a');
+  $query->fields('a', array('result_id', 'question_nid', 'question_vid'));
+  $query->fields('r', array('title'));
+  $query->fields('qnr', array('time_end', 'time_start', 'uid'));
+  $query->join('node_revisions', 'r', 'a.question_vid = r.vid');
+  $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
+  $query->join('node', 'n', 'qnr.nid = n.nid');
+  $query->condition('a.is_evaluated', 0);
+  
   if (!user_access('score any quiz')) {
-    $sql .= ' AND n.uid = %d';
+    $query->condition('n.uid', $_GLOBALS['user']->uid);
   }
-  // TODO Please convert this statement to the D7 database API syntax.
-  $results = db_query_range(db_rewrite_sql($sql), $user->uid);
+    
   $unscored = array();
-
-  if ($results) {
-    while ($row = db_fetch_object($results)) {
-      $unscored[] = $row;
-    }
-  }
-
+  foreach ($query->execute() as $result) {
+    $unscored[] = $result;
+  }  
   return $unscored;
 }
 
@@ -302,11 +275,9 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
  *  array containing nid as key and title as value
  */
 function long_answer_questions_list() {
-  $questions = array();
-  $type = 'long_answer';
-  $sql = "SELECT nid, title FROM {node} WHERE type = '%s'";
-  $results = db_query("SELECT nid, title FROM {node} WHERE type = :type", array(':type' => $type));
-  while ($result = db_fetch_object($results)) {
+  $questions = array();  
+  $results = db_query('SELECT nid, title FROM {node} WHERE type = :type', array(':type' => 'long_answer'));
+  foreach ($results as $result) {
     $questions[$result->nid] = check_plain($result->title);
   }
   return $questions;
