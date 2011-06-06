@@ -10,9 +10,7 @@
  */
 function long_answer_install() {
   // Add body field to long answer node
-  node_types_rebuild();
-  $types = node_type_get_types();
-  node_add_body_field($types['long_answer']);
+  quiz_question_add_body_field('long_answer');
 
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('long_answer')

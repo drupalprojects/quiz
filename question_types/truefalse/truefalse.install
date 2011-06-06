@@ -34,9 +34,7 @@ function truefalse_update_6400() {
  */
 function truefalse_install() {
   // Add body field to true false node
-  node_types_rebuild();
-  $types = node_type_get_types();
-  node_add_body_field($types['truefalse']);
+  quiz_question_add_body_field('truefalse');
 
   if (!db_table_exists('quiz_truefalse_node')) {
     // TODO The drupal_(un)install_schema functions are called automatically in D7.

@@ -10,9 +10,8 @@
  */
 function short_answer_install() {
   // Add body field to short answer node
-  node_types_rebuild();
-  $types = node_type_get_types();
-  node_add_body_field($types['short_answer']);
+  quiz_question_add_body_field('short_answer');
+
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('short_answer')
   variable_set('node_options_short_answer', array('status'));
