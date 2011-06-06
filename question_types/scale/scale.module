@@ -130,60 +130,31 @@ function scale_get_answer($question_nid, $question_vid, $result_id) {
 /**
  * Implements hook_user_cancel().
  */
-function scale_user_cancel($edit, $account, $method) {
-  $sql = 'SELECT id
-              FROM {quiz_scale_answer_collection} ac
-              JOIN {quiz_scale_user} u ON(ac.id = u.answer_collection_id)
-              WHERE uid = %d
-              AND ac.for_all = 0
-              AND ac.id NOT IN
-                (SELECT answer_collection_id
-                 FROM {quiz_scale_node_properties})
-              AND ac.id NOT IN
-                (SELECT answer_collection_id
-                 FROM {quiz_scale_user}
-                 WHERE NOT uid = %d)';
-  $res = db_query('SELECT id
-              FROM {quiz_scale_answer_collection} ac
+function scale_user_cancel($edit, $account, $method) {  
+  $results = db_query('SELECT id FROM {quiz_scale_answer_collection} ac
               JOIN {quiz_scale_user} u ON(ac.id = u.answer_collection_id)
               WHERE uid = :uid
-              AND ac.for_all = :ac.for_all
+              AND ac.for_all = :for_all
               AND ac.id NOT IN
                 (SELECT answer_collection_id
                  FROM {quiz_scale_node_properties})
               AND ac.id NOT IN
                 (SELECT answer_collection_id
                  FROM {quiz_scale_user}
-                 WHERE NOT uid = :uid)', array(':uid' => $account->uid, ':ac.for_all' => 0, ':uid' => $account->uid));
-  while ($res_o = db_fetch_object($res)) {
-    $sql = 'DELETE FROM {quiz_scale_answer}
-            WHERE answer_collection_id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $res_o->id) */
+                 WHERE NOT uid = :uid)', array(':uid' => $account->uid, ':for_all' => 0));
+  foreach ($results as $result) {
     db_delete('quiz_scale_answer')
-  ->condition('answer_collection_id', $res_o->id)
-  ->execute();
-    $sql = 'DELETE FROM {quiz_scale_answer_collection}
-            WHERE id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $res_o->id) */
+      ->condition('answer_collection_id', $result->id)
+      ->execute();
     db_delete('quiz_scale_answer_collection')
-  ->condition('id', $res_o->id)
-  ->execute();
-    $sql = 'DELETE FROM {quiz_scale_user}
-            WHERE uid = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $account->uid) */
-    db_delete('quiz_scale_user')
-  ->condition('uid', $account->uid)
-  ->execute();
+      ->condition('id', $result->id)
+      ->execute();
   }
+  
+  db_delete('quiz_scale_user')
+    ->condition('uid', $account->uid)
+    ->execute();
 }
-
-/**
- * Implementation of hook user.
- */
-function scale_user_OLD($op, &$edit, &$account, $category = NULL) { }
 
 /**
  * Form for changing and deleting the current users preset answer collections.
@@ -238,15 +209,15 @@ function scale_manage_collection_form($form, &$form_state) {
     }
     if ($col_id != 'new') {
       if ($edit_globals_access) {
-        $form["collection$col_id"]["for_all"] = array(
+        $form["collection$col_id"]['for_all'] = array(
           '#type' => 'checkbox',
-          '#title' => t("Available to all users"),
+          '#title' => t('Available to all users'),
           '#default_value' => $collections[$col_id]->for_all,
         );
       }
-      $form["collection$col_id"]["to-do"] = array(
+      $form["collection$col_id"]['to-do'] = array(
         '#type' => 'radios',
-        '#title' => t("What will you do?"),
+        '#title' => t('What will you do?'),
         '#default_value' => '0',
         '#options' => array(
           t('Save changes, do not change questions using this preset'),
@@ -317,29 +288,16 @@ function scale_collection_form_submit($form, &$form_state) {
           }
           elseif ($alternatives['to-do'] == 1) {
             // Update all the users questions where the collection is used
-            $sql = 'UPDATE {quiz_scale_node_properties}
-                    SET answer_collection_id = %d
-                    WHERE answer_collection_id = %d
-                    AND nid IN(
-                      SELECT nid
-                      FROM {node}
-                      WHERE uid = %d
-                    )';
-            // TODO Please review the conversion of this statement to the D7 database API syntax.
-            /* db_query($sql, $new_col_id, $col_id, $user->uid) */
+            $nids = db_query('SELECT nid FROM {node} WHERE uid = :uid', array(':uid' => 1))->fetchCol();
             db_update('quiz_scale_node_properties')
-  ->fields(array(
-    'answer_collection_id' => $new_col_id,
-  ))
-    ->where('answer_collection_id = %d                     AND nid IN(                       SELECT nid                       FROM {node}                       WHERE uid = %d                     )',  )
-  ->execute();
-
-            // TODO Please review the conversion of this statement to the D7 database API syntax.
-            /* db_query('DELETE FROM {quiz_scale_user} WHERE answer_collection_id = %d AND uid = %d', $col_id, $user->uid) */
+              ->fields(array('answer_collection_id' => $new_col_id))
+              ->condition('answer_collection_id', $nids, 'IN')
+              ->execute();
+                          
             db_delete('quiz_scale_user')
-  ->condition('answer_collection_id', $col_id)
-  ->condition('uid', $user->uid)
-  ->execute();
+              ->condition('answer_collection_id', $col_id)
+              ->condition('uid', $user->uid)
+              ->execute();
             $s_q->deleteCollectionIfNotUsed($col_id);
           }
           break;
@@ -402,25 +360,15 @@ function _scale_get_col_id($string) {
  *  Answer_collection_id
  * @param $user_id
  */
-function _scale_unpreset_collection($col_id, $user_id) {
-  $sql = 'DELETE FROM {quiz_scale_user}
-          WHERE answer_collection_id = %d AND uid = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $col_id, $user_id) */
+function _scale_unpreset_collection($col_id, $user_id) {  
   db_delete('quiz_scale_user')
-  ->condition('answer_collection_id', $col_id)
-  ->condition('uid', $user_id)
-  ->execute();
+    ->condition('answer_collection_id', $col_id)
+    ->condition('uid', $user_id)
+    ->execute();
   if (user_access('Edit global presets')) {
-    $sql = 'UPDATE {quiz_scale_answer_collection}
-            SET for_all = 0';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql) */
     db_update('quiz_scale_answer_collection')
-  ->fields(array(
-    'for_all' =>  0,
-  ))
-  ->execute();
+      ->fields(array('for_all' =>  0))
+      ->execute();
   }
 }
 
@@ -433,16 +381,11 @@ function _scale_unpreset_collection($col_id, $user_id) {
  *  0 if not for all,
  *  1 if for all
  */
-function _scale_set_for_all($new_col_id, $for_all) {
-  $sql = 'UPDATE {quiz_scale_answer_collection}
-          SET for_all = %d
-          WHERE id = %d';
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query($sql, $for_all, $new_col_id) */
+function _scale_set_for_all($new_col_id, $for_all) {  
   db_update('quiz_scale_answer_collection')
-  ->fields(array(
-    'for_all' => $for_all,
-  ))
-  ->condition('id', $new_col_id)
-  ->execute();
+    ->fields(array(
+      'for_all' => $for_all,
+    ))
+    ->condition('id', $new_col_id)
+    ->execute();
 }
