@@ -78,17 +78,17 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#value' => check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($node->body, $node->format),
   );
   $form['rubric'] = array(
     '#type' => 'item',
     '#title' => t('Rubric'),
-    '#value' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
-    '#value' => (int) $answer->rel_max_score,
+    '#markup' => (int) $answer->rel_max_score,
   );
   $form['score_answer'] = array(
     '#type' => 'fieldset',
@@ -97,7 +97,7 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
   $form['score_answer']['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#value' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
   );
   $form['score_answer']['score'] = array(
     '#type' => 'textfield',
