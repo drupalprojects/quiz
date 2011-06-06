@@ -128,7 +128,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
   //
   // We update all three.
 
-  // First, we update the long answer table    
+  // First, we update the long answer table
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
 
   $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
@@ -142,7 +142,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
     ->condition('question_vid', $vid)
     ->condition('result_id', $rid)
     ->execute();
-  
+
   $changed = db_affected_rows();
 
   if ($changed > 0) {
@@ -159,7 +159,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
       $is_correct = $score == $max ? 1 : 0;
       $points_awarded = $score;
     }
-        
+
     db_update('quiz_node_results_answers')
       ->fields(array(
         'points_awarded' => $points_awarded,
@@ -201,11 +201,11 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
  *  result_id
  *  </code>
  */
-function long_answer_get_answer($question_nid, $question_vid, $result_id) {  
+function long_answer_get_answer($question_nid, $question_vid, $result_id) {
   $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
-    WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAllAssoc();
+    WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $result ? $result : FALSE;
 }
 
@@ -227,7 +227,7 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
 function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $offset = 0) {
   $results = db_query('SELECT result_id FROM {quiz_long_answer_user_answers}
     WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid));
-      
+
   $unscored = array();
   foreach ($results as $result) {
     $unscored[] = $result->result_id;
@@ -256,15 +256,15 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
   $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
   $query->join('node', 'n', 'qnr.nid = n.nid');
   $query->condition('a.is_evaluated', 0);
-  
+
   if (!user_access('score any quiz')) {
     $query->condition('n.uid', $_GLOBALS['user']->uid);
   }
-    
+
   $unscored = array();
   foreach ($query->execute() as $result) {
     $unscored[] = $result;
-  }  
+  }
   return $unscored;
 }
 
@@ -275,7 +275,7 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
  *  array containing nid as key and title as value
  */
 function long_answer_questions_list() {
-  $questions = array();  
+  $questions = array();
   $results = db_query('SELECT nid, title FROM {node} WHERE type = :type', array(':type' => 'long_answer'));
   foreach ($results as $result) {
     $questions[$result->nid] = check_plain($result->title);

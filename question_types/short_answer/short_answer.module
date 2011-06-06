@@ -83,26 +83,27 @@ function short_answer_config() {
 /**
  * Implements hook_theme().
  */
-function short_answer_theme() {
+function short_answer_theme($existing, $type, $theme, $path) {
+  $module_path = drupal_get_path('module', 'short_answer');
   return array(
     'short_answer_view_unscored' => array(
       'variables' => array('unscored' => array()),
-      'path' => drupal_get_path('module', 'short_answer') . '/theme',
+      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_response_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'short_answer') . '/theme',
+      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_user_answer' => array(
       'variables' => array('answer' => NULL, 'correct' => NULL),
-      'path' => drupal_get_path('module', 'short_answer') . '/theme',
+      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_answering_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'short_answer') . '/theme',
+      'path' => $module_path . '/theme',
       'template' => 'short-answer-answering-form',
     ),
   );
@@ -133,27 +134,20 @@ function short_answer_theme() {
  */
 function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_total = TRUE) {
   // When we set the score we make sure that the max score in the quiz the question belongs to is considered
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query("UPDATE {quiz_short_answer_user_answers}
-   SET score = %d * (
-   SELECT max_score
-   FROM {quiz_question_properties}
-   WHERE vid = %d
-   ) / (
-   SELECT max_score
-   FROM {quiz_node_relationship}
-   WHERE parent_vid = %d
-   AND child_vid = %d
-   ), is_evaluated = 1
-   WHERE question_nid = %d
-   AND question_vid = %d
-   AND result_id = %d", $score, $vid, $quiz->vid, $vid, $nid, $vid, $rid) */
-  db_update('quiz_short_answer_user_answers')
-  ->fields(array(
-    'score' => $score,
-  ))
-    ->where('vid = %d             ) / (               SELECT max_score               FROM {quiz_node_relationship}               WHERE parent_vid = %d               AND child_vid = %d             ), is_evaluated = 1             WHERE question_nid = %d             AND question_vid = %d             AND result_id = %d',  )
-  ->execute();
+  $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
+
+  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
+
+  $changed = db_update('quiz_short_answer_user_answers')
+    ->fields(array(
+      'score' => $question_max_score / $quiz_max_score,
+      'is_evaluated' => 1
+    ))
+    ->condition('question_nid', $nid)
+    ->condition('question_vid', $vid)
+    ->condition('result_id', $rid)
+    ->execute();
+
   $changed = db_affected_rows();
 
   // Now the short answer user data has been updated. We also need to update the data in the quiz tables
@@ -168,19 +162,14 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_t
       $points_awarded = $score;
     }
 
-    $sql = 'UPDATE {quiz_node_results_answers}
-      SET points_awarded = %d, is_correct = %d
-      WHERE question_vid = %d AND result_id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $points_awarded, $is_correct, $vid, $rid) */
     db_update('quiz_node_results_answers')
-  ->fields(array(
-    'points_awarded' => $points_awarded,
-    'is_correct' => $is_correct,
-  ))
-  ->condition('question_vid', $vid)
-  ->condition('result_id', $rid)
-  ->execute();
+      ->fields(array(
+        'points_awarded' => $points_awarded,
+        'is_correct' => $is_correct,
+      ))
+      ->condition('question_vid', $vid)
+      ->condition('result_id', $rid)
+      ->execute();
 
     // Third, we update the main quiz results table
     if ($update_total) {
@@ -231,20 +220,10 @@ function short_answer_report_submit($values) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score
+  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid)
-    WHERE sa.question_nid = %d AND sa.question_vid = %d AND sa.result_id = %d";
-  $results = db_query("SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score
-    FROM {quiz_short_answer_user_answers} sa
-    JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
-    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid)
-    WHERE sa.question_nid = :sa.question_nid AND sa.question_vid = :sa.question_vid AND sa.result_id = :sa.result_id", array(':sa.question_nid' => $question_nid, ':sa.question_vid' => $question_vid, ':sa.result_id' => $result_id));
-
-  if (!$results) {
-    return FALSE;
-  }
-
-  return db_fetch_array($results);
+    WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
+  return $results ? $results : FALSE;
 }
