@@ -40,27 +40,28 @@ function scale_menu() {
  * Implements hook_theme().
  */
 function scale_theme($existing, $type, $theme, $path) {
+  $module_path = drupal_get_path('module', 'scale');
   return array(
     'scale_creation_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'scale') . '/theme',
+      'path' =>  $module_path . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_response_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'scale') . '/theme',
+      'path' => $module_path . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_answer_node_view' => array(
       'variables' => array(
         'alternatives' => NULL,
       ),
-      'path' => drupal_get_path('module', 'scale') . '/theme',
+      'path' => $module_path . '/theme',
       'file' => 'scale.theme.inc',
     ),
     'scale_answering_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'scale') . '/theme',
+      'path' => $module_path . '/theme',
       'template' => 'scale-answering-form',
     ),
   );
