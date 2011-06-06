@@ -205,7 +205,7 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
   $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
-    WHERE question_nid = :question_nid AND question_vid = :question_vid AND la.result_id = :la.result_id', array(':question_nid' => $question_nid, ':question_vid' => $question_vid, ':la.result_id' => $result_id))->fetch();
+    WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAllAssoc();
   return $result ? $result : FALSE;
 }
 
