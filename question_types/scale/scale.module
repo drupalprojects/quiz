@@ -98,10 +98,7 @@ function scale_quiz_question_info() {
  * Implements hook_config().
  */
 function scale_config() {
-  $form['manage'] = array(
-    '#type' => 'markup',
-    '#value' => l(t('Manage presets'), 'scale/collection/manage'),
-  );
+  $form['manage'] = array('#markup' => l(t('Manage presets'), 'scale/collection/manage'));
   $form['scale_max_num_of_alts'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum number of alternatives allowed'),
