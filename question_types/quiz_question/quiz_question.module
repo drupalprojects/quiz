@@ -68,7 +68,7 @@ function quiz_question_theme() {
  */
 function quiz_question_node_info() {
   $node_info = array();
-  foreach (_quiz_question_get_implementations() as $type => $definition) {
+  foreach (_quiz_question_get_implementations(NULL, TRUE) as $type => $definition) {
     $node_info[$type] = array(
       'name' => $definition['name'],
       'base' => 'quiz_question',
@@ -877,8 +877,13 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
  */
 function quiz_question_add_body_field($type) {
   node_types_rebuild();
-  $types = node_type_get_types();
-  node_add_body_field($types[$type], 'Question');
+  $node_type = node_type_get_type($type);
+  if (!$node_type) {    
+    watchdog('quiz', 'Attempt to add body field was failed as question content type %type is not defined.', array('%type' => $type), WATCHDOG_ERROR);
+    watchdog('quiz', '<pre>'.  print_r(node_type_get_types(), 1), array(), WATCHDOG_ERROR);
+    return;
+  }
+  node_add_body_field($node_type, 'Question');
   // Override default weight to make body field appear first
   $instance = field_read_instance('node', 'body', $type);
   $instance['widget']['weight'] = -10;

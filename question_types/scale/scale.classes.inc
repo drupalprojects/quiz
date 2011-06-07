@@ -445,12 +445,12 @@ class ScaleQuestion extends QuizQuestion {
             FROM {quiz_scale_user} au
             JOIN {quiz_scale_answer_collection} ac ON(au.answer_collection_id = ac.id)
             JOIN {quiz_scale_answer} a ON(a.answer_collection_id = ac.id)
-            WHERE au.uid = %d';
+            WHERE au.uid = :uid';
     if ($with_defaults) {
       $sql .= ' OR ac.for_all = 1';
     }
     $sql .= ' ORDER BY au.answer_collection_id, a.id';
-    $res = db_query($sql, $user->uid);
+    $res = db_query($sql, array(':uid' => $user->uid));
     $col_id = NULL;
 
     // Populate the $collections array

@@ -168,13 +168,14 @@ function scale_update_6400() {
  * Update max score for the scale questions in the database
  */
 function scale_update_6401() {
-  $sql = 'UPDATE {quiz_question_properties} qqp
-          SET max_score = 1
-          WHERE qqp.nid IN(
-            SELECT n.nid
-            FROM {node} n
-            WHERE n.type = \'scale\'
-          )';
+  $nids = db_query('SELECT nid FROM {node} WHERE type = :type', array(':type' => 'scale'))->fetchCol();  
+  db_update('quiz_question_properties')
+    ->fields(array(
+        'max_score' => 1
+      ))
+    ->condition('nid', $nids, 'IN')
+    ->execute();
+    
   $to_return = array();
   // TODO update_sql has been removed. Use the database API for any schema or data changes.
   $to_return[] = array() /* update_sql($sql) */;
@@ -187,12 +188,10 @@ function scale_update_6401() {
 /**
  * Implements hook_uninstall().
  */
-function scale_uninstall() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('scale')
+function scale_uninstall() {  
   variable_del('scale_max_num_of_alts');
   cache_clear_all('variables', 'cache');
-  drupal_set_message(t("The Scale module has been uninstalled. Scale nodes may still exist, but they will not function properly."));
+  drupal_set_message(t('The Scale module has been uninstalled. Scale nodes may still exist, but they will not function properly.'));
 }
 
 /**
@@ -202,28 +201,30 @@ function scale_uninstall() {
  *  Array of answers to include in the answer collection
  */
 function _scale_insert_collection($answers) {
-  // Save the collection as a global preset
-  $sql = 'INSERT INTO {quiz_scale_answer_collection}
-         (for_all) VALUES(1)';
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql) */
-  NULL;
+  // Save the collection as a global preset  
+  $collection_id = db_insert('quiz_scale_answer_collection')
+    ->fields(array(
+      'for_all' => 1
+    ))
+    ->execute();
 
   // Save the collections as a preset collection for user 1
-  $collection_id = db_last_insert_id('{quiz_scale_answer_collection}', 'id');
-  $sql = 'INSERT INTO {quiz_scale_user}
-         (uid, answer_collection_id) VALUES(%d, %d)';
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, 1, $collection_id) */
-  NULL;
+  db_insert('quiz_scale_user')
+    ->fields(array(
+      'answer_collection_id' => $collection_id,
+      'uid' => 1,
+    ))
+    ->execute();  
 
+  $insert = db_insert('quiz_scale_answer')->fields(array('answer_collection_id', 'answer'));
+  $values = array();
   // Save the answers belonging to the collection
   for ($i = 0; $i < count($answers); $i++) {
-    $sql = 'INSERT INTO {quiz_scale_answer}
-           (answer_collection_id, answer)
-           VALUES(%d, \'%s\')';
-    // TODO Please convert this statement to the D7 database API syntax.
-    /* db_query($sql, $collection_id, $answers[$i]) */
-    NULL;
-  }
+    $values = array(
+      'answer_collection_id' => $collection_id,
+      'answer' => $answers[$i],
+    );
+    $insert->values($values);
+  }  
+  $insert->execute();
 }

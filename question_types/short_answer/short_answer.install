@@ -10,10 +10,7 @@
  */
 function short_answer_install() {
   // Add body field to short answer node
-  quiz_question_add_body_field('short_answer');
-
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_install_schema('short_answer')
+  quiz_question_add_body_field('short_answer');  
   variable_set('node_options_short_answer', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
@@ -43,12 +40,12 @@ function short_answer_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      /*'maximum_score' => array(
- 'type' => 'int',
- 'unsigned' => TRUE,
- 'not null' => TRUE,
- 'default' => 1,
- ),*/
+      'maximum_score' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 1,
+      ),
       // One of (0) textfield and (1) textare
       'text_entry_type' => array(
         'type' => 'int',
