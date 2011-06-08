@@ -109,7 +109,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   private function checkMarkup($alternativeIndex, $field, $check_user_access = TRUE) {
     $alternative = $this->node->alternatives[$alternativeIndex];
-    return check_markup($alternative[$field], $alternative[$field . '_format'], $langcode = '' /* TODO Set this variable. */, $check_user_access);
+    return check_markup($alternative[$field]);
   }
 
   /**
@@ -254,7 +254,7 @@ class MultichoiceQuestion extends QuizQuestion {
   public function validateNode(array &$form) {
     if ($this->node->choice_multi == 0) {
       $found_one_correct = FALSE;
-      for ($i = 0; is_array($this->node->alternatives[$i]); $i++) {
+      for ($i = 0; (isset($this->node->alternatives[$i]) && is_array($this->node->alternatives[$i])); $i++) {
         $short = $this->node->alternatives[$i];
         if (drupal_strlen($this->checkMarkup($i, 'answer')) < 1) {
           continue;

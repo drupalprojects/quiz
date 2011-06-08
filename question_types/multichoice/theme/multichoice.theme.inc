@@ -27,7 +27,7 @@ function theme_multichoice_creation_form($variables) {
 
   // We open the alternative fieldsets if errors have been reported
   if ($errors) {
-    for ($i = 0; is_array($form[$i]); $i++) {
+    for ($i = 0; isset($form[$i]) && is_array($form[$i]); $i++) {
       if (drupal_strlen(strip_tags($_POST['alternatives'][$i]['answer'])) > 0) {
         $form[$i]['#collapsed'] = FALSE;
       }
