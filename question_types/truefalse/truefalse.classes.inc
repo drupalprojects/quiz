@@ -105,6 +105,7 @@ class TrueFalseQuestion extends QuizQuestion {
     if ($this->viewCanRevealCorrect()) {
       $answer = ($this->node->correct_answer) ? t('True') : t('False');
       $content['answers']['#markup'] = '<div class="quiz-solution">' . $answer . '</div>';
+      $content['answers']['#weight'] = 2;
     }
     else {
       $content['answers'] = array(

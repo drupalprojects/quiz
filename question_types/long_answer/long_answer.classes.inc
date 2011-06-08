@@ -60,7 +60,7 @@ class LongAnswerQuestion extends QuizQuestion {
         ->condition('nid', $this->node->nid)
         ->condition('vid', $this->node->vid)
         ->execute();
-    }    
+    }
     else {
       db_delete('quiz_long_answer_node_properties')
         ->condition('nid', $this->node->nid)
@@ -82,14 +82,14 @@ class LongAnswerQuestion extends QuizQuestion {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
-    
+
     $res_a = db_query('SELECT rubric FROM {quiz_long_answer_node_properties}
       WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
-    
+
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
     }
-    
+
     $this->nodeProperties = $props;
     return $props;
   }
@@ -101,7 +101,7 @@ class LongAnswerQuestion extends QuizQuestion {
    */
   public function getNodeView() {
     $content = parent::getNodeView();
-    if ($this->viewCanRevealCorrect()) {      
+    if ($this->viewCanRevealCorrect()) {
       $content['answers'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
@@ -187,12 +187,13 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * @return
    *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
    */
-  public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {    
+  public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     $results = db_query('SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
       FROM {quiz_long_answer_user_answers} AS a
       INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
-      INNER JOIN {quiz_node_results} AS n ON a.result_id = n.result_id
-      WHERE a.is_evaluated = :a.is_evaluated', array(':a.is_evaluated' => 0));
+      INNER JOIN {quiz_node_results} AS qnr ON a.result_id = qnr.result_id
+      JOIN {node} n ON qnr.nid = n.nid
+      WHERE a.is_evaluated = :is_evaluated', array(':is_evaluated' => 0));
     $unscored = array();
     foreach ($results as $row) {
       $unscored[] = $row;
@@ -239,8 +240,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
     parent::__construct($result_id, $question_node, $answer);
 
     if (!isset($answer)) {
-      // Question has been answered allready. We fetch the answer data from the database.      
-      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id 
+      // Question has been answered allready. We fetch the answer data from the database.
+      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_long_answer_user_answers}
         WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id))->fetch();
 
@@ -274,7 +275,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *
    * @see QuizQuestionResponse#save()
    */
-  public function save() {  
+  public function save() {
     $this->answer_id = db_insert('quiz_long_answer_user_answers')
       ->fields(array(
         'answer' => $this->answer,
@@ -290,7 +291,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *
    * @see QuizQuestionResponse#delete()
    */
-  public function delete() {    
+  public function delete() {
     db_delete('quiz_long_answer_user_answers')
       ->condition('question_nid', $this->question->nid)
       ->condition('question_vid', $this->question->vid)

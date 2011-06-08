@@ -14,7 +14,7 @@ function refreshAlternatives(selection) {
   var colId = selection.options[selection.selectedIndex].value;
   var numberOfOptions = scaleCollections[colId].length;
   for(var i = 0; i<numberOfOptions;i++){
-	$('#edit-alternative' + (i)).val(scaleCollections[colId][i]);
+	jQuery('#edit-alternative' + (i)).val(scaleCollections[colId][i]);
   }
 }
 
@@ -23,6 +23,6 @@ function refreshAlternatives(selection) {
  */
 function clearAlternatives() {
   for ( var i = 0; i < scale_max_num_of_alts; i++) {
-	$('#edit-alternative' + (i)).val('');
+	jQuery('#edit-alternative' + (i)).val('');
   }
 }

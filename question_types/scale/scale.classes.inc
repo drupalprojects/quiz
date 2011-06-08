@@ -132,8 +132,8 @@ class ScaleQuestion extends QuizQuestion {
       return $answer_collection_id;
     }
     // Register a new answer collection
-    $$answer_collection_id = db_insert('quiz_scale_answer_collection')
-      ->fields(array())
+    $answer_collection_id = db_insert('quiz_scale_answer_collection')
+      ->fields(array('for_all' => 1))
       ->execute();
 
     // Save as preset if checkbox for preset has been checked
@@ -146,11 +146,11 @@ class ScaleQuestion extends QuizQuestion {
         ->execute();
     }
     // Save the alternatives in the answer collection
-    db_lock_table('quiz_scale_answer');
+    //db_lock_table('quiz_scale_answer');
     for ($i = 0; $i < count($alternatives); $i++) {
       $this->saveAlternative($alternatives[$i], $answer_collection_id);
     }
-    db_unlock_tables();
+    //db_unlock_tables();
     return $answer_collection_id;
   }
 
@@ -225,15 +225,18 @@ class ScaleQuestion extends QuizQuestion {
 
     // Find all answers identical to the next answer in $alternatives
     $sql = 'SELECT id, answer_collection_id FROM {quiz_scale_answer} WHERE answer = :answer';
+    $args[':answer'] = array_pop($my_alts);
     // Filter on collection id
     if (isset($answer_collection_id)) {
       $sql .= ' AND answer_collection_id = :acid';
+      $args[':acid'] = $answer_collection_id;
     }
     // Filter on alternative id(If we are investigating a specific collection, the alternatives needs to be in a correct order)
     if (isset($last_id)) {
       $sql .= ' AND id = :id';
+      $args[':id'] = $last_id + 1;
     }
-    $res = db_query($sql, array(':answer' => array_pop($my_alts), ':acid' => $answer_collection_id, ':id' => ($last_id + 1)));
+    $res = db_query($sql, $args);
     if (!$res_o = $res->fetch()) {
       return FALSE;
     }
@@ -328,11 +331,14 @@ class ScaleQuestion extends QuizQuestion {
     $content = parent::getNodeView();
     $alternatives = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (drupal_strlen($this->node->{$i}->answer) > 0) {
+      if (isset($this->node->{$i}->answer) && drupal_strlen($this->node->{$i}->answer) > 0) {
         $alternatives[] = check_plain($this->node->{$i}->answer);
       }
     }
-    $content['answer'] = array('#markup' => theme('scale_answer_node_view', array('alternatives' => $alternatives)));
+    $content['answer'] = array(
+      '#markup' => theme('scale_answer_node_view', array('alternatives' => $alternatives)),
+      '#weight' => 2,
+    );
     return $content;
   }
 
@@ -399,6 +405,7 @@ class ScaleQuestion extends QuizQuestion {
       '#attributes' => array('onchange' => 'refreshAlternatives(this)'),
     );
     $max_num_alts = variable_get('scale_max_num_of_alts', 10);
+    // TODO: use drupal_add_js($path, 'settings');
     $form['jsArray'] = array('#markup' => "<script type='text/javascript'>$jsArray var scale_max_num_of_alts = $max_num_alts;</script>");
     $form['answer']['alternatives'] = array(
       '#type' => 'fieldset',
@@ -455,7 +462,7 @@ class ScaleQuestion extends QuizQuestion {
 
     // Populate the $collections array
     while (true) {
-      if (!($res_o = db_fetch_object($res)) || ($res_o->answer_collection_id != $col_id)) {
+      if (!($res_o = $res->fetch()) || ($res_o->answer_collection_id != $col_id)) {
         /*
          * We have gone through all elements for one answer collection,
          * and needs to store the answer collection name and id in the options array...

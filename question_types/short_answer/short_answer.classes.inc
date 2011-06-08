@@ -34,34 +34,25 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function saveNodeProperties($is_new = FALSE) {
     if ($is_new || $this->node->revision == 1) {
-      $sql = "INSERT INTO {quiz_short_answer_node_properties}
-        (nid, vid, correct_answer, correct_answer_evaluation)
-        VALUES (%d, %d, '%s', %d)";
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->nid, $this->node->vid, $this->node->correct_answer, $this->node->correct_answer_evaluation) */
       $id = db_insert('quiz_short_answer_node_properties')
-  ->fields(array(
-    'nid' => $this->node->nid,
-    'vid' => $this->node->vid,
-    'correct_answer' => $this->node->correct_answer,
-    'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
-  ))
-  ->execute();
+        ->fields(array(
+          'nid' => $this->node->nid,
+          'vid' => $this->node->vid,
+          'correct_answer' => $this->node->correct_answer,
+          'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
+        ))
+        ->execute();
     }
     else {
-      $sql = "UPDATE {quiz_short_answer_node_properties}
-        SET correct_answer = '%s', correct_answer_evaluation = %d
-        WHERE nid = %d AND vid = %d";
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $this->node->correct_answer, $this->node->correct_answer_evaluation, $this->node->nid, $this->node->vid) */
+
       db_update('quiz_short_answer_node_properties')
-  ->fields(array(
-    'correct_answer' => $this->node->correct_answer,
-    'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
-  ))
-  ->condition('nid', $this->node->nid)
-  ->condition('vid', $this->node->vid)
-  ->execute();
+        ->fields(array(
+          'correct_answer' => $this->node->correct_answer,
+          'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
+        ))
+        ->condition('nid', $this->node->nid)
+        ->condition('vid', $this->node->vid)
+        ->execute();
     }
   }
 
@@ -83,32 +74,19 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
+    $delete_ans = db_delete('quiz_short_answer_user_answers');
+    $delete_ans->condition('question_nid', $this->node->nid);
+
+    $delete_node = db_delete('quiz_short_answer_node_properties');
+    $delete_node->condition('nid', $this->node->nid);
+
     if ($only_this_version) {
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('DELETE FROM {quiz_short_answer_user_answers} WHERE question_nid = %d AND question_vid = %d', $this->node->nid, $this->node->vid) */
-      db_delete('quiz_short_answer_user_answers')
-  ->condition('question_nid', $this->node->nid)
-  ->condition('question_vid', $this->node->vid)
-  ->execute();
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('DELETE FROM {quiz_short_answer_node_properties} WHERE nid = %d AND vid = %d', $this->node->nid, $this->node->vid) */
-      db_delete('quiz_short_answer_node_properties')
-  ->condition('nid', $this->node->nid)
-  ->condition('vid', $this->node->vid)
-  ->execute();
+      $delete_ans->condition('question_vid', $this->node->vid);
+      $delete_node->condition('vid', $this->node->vid);
     }
-    else {
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('DELETE FROM {quiz_short_answer_user_answers} WHERE question_nid = %d', $this->node->nid) */
-      db_delete('quiz_short_answer_user_answers')
-  ->condition('question_nid', $this->node->nid)
-  ->execute();
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query('DELETE FROM {quiz_short_answer_node_properties} WHERE nid = %d', $this->node->nid) */
-      db_delete('quiz_short_answer_node_properties')
-  ->condition('nid', $this->node->nid)
-  ->execute();
-    }
+
+    $delete_ans->execute();
+    $delete_node->execute();
   }
 
   /**
@@ -121,19 +99,10 @@ class ShortAnswerQuestion extends QuizQuestion {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
-
-    $sql = 'SELECT correct_answer, correct_answer_evaluation
-      FROM {quiz_short_answer_node_properties}
-      WHERE nid = %d AND vid = %d';
-    $res = db_query('SELECT correct_answer, correct_answer_evaluation
-      FROM {quiz_short_answer_node_properties}
-      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
-    $res_a = db_fetch_array($res);
-    if (is_array($res_a)) {
-      $props = array_merge($props, $res_a);
-    }
-    $this->nodeProperties = $props;
-    return $props;
+    $res_a = db_query('SELECT correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties}
+      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+    $this->nodeProperties = (is_array($res_a)) ? array_merge($props, $res_a) : $props;
+    return $this->nodeProperties;
   }
 
   /**
@@ -143,12 +112,10 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function getNodeView() {
     $content = parent::getNodeView();
-
     if ($this->viewCanRevealCorrect()) {
       $content['answers'] = array(
-        '#type' => 'markup',
-        '#value' => '<div class="quiz-solution">' . check_plain($this->node->correct_answer) . '</div>',
-        '#weight' => 1,
+        '#markup' => '<div class="quiz-solution">' . check_plain($this->node->correct_answer) . '</div>',
+        '#weight' => 2,
       );
     }
     else {
@@ -304,23 +271,23 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
-    $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, qnr.time_end, qnr.time_start, qnr.uid
-            FROM {quiz_short_answer_user_answers} AS a
-            INNER JOIN {node_revisions} r ON a.question_vid = r.vid
-            INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
-            JOIN {node} n ON qnr.nid = n.nid
-            WHERE a.is_evaluated = 0';
-    if (!user_access('score any quiz')) {
-      $sql .= ' AND n.uid = %d';
-    }
-    // TODO Please convert this statement to the D7 database API syntax.
-    $results = db_query_range(db_rewrite_sql($sql), $user->uid);
-    $unscored = array();
+    $query = db_select('quiz_short_answer_user_answers', 'a');
+    $query->fields('a', array('result_id', 'question_nid', 'question_vid'));
+    $query->fields('r', array('title'));
+    $query->fields('qnr', array('time_end', 'time_start', 'uid'));
+    $query->join('node_revisions', 'r', 'a.question_vid = r.vid');
+    $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
+    $query->join('node', 'n', 'qnr.nid = n.nid');
+    $query->condition('a.is_evaluated', 0);
 
-    if ($results) {
-      while ($row = db_fetch_object($results)) {
-        $unscored[] = $row;
-      }
+    if (!user_access('score any quiz')) {
+      $query->condition('n.uid', $user->uid);
+    }
+    $results = $query->execute();
+
+    $unscored = array();
+    foreach ($results as $row) {
+      $unscored[] = $row;
     }
     return $unscored;
   }
@@ -341,12 +308,11 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    *  Indexed array of result IDs that need to be scored.
    */
   public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
-    $results = db_query_range('SELECT result_id FROM {quiz_short_answer_user_answers} WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid));
-    $unscored = array();
-    foreach (db_fetch_object($results) as $row) {
-      $unscored[] = $row->result_id;
-    }
-    return $unscored;
+    return db_query('SELECT result_id FROM {quiz_short_answer_user_answers}
+      WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid',
+      array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid)
+    )->fetchCol();
+
   }
 
   /**
@@ -360,12 +326,11 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
         FROM {quiz_short_answer_user_answers}
-        WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-      $r = db_fetch_object(db_query("SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
-        FROM {quiz_short_answer_user_answers}
-        WHERE question_nid = :question_nid AND question_vid = :question_vid AND result_id = :result_id", array(':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid, ':result_id' => $result_id)));
+        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid',
+        array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id)
+      )->fetch();
 
       if (!empty($r)) {
         $this->answer = $r->answer;
@@ -405,23 +370,16 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     $this->is_evaluated = (int) ($this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL);
-
-    $sql = "INSERT INTO {quiz_short_answer_user_answers}
-      (answer, question_nid, question_vid, result_id, score, is_evaluated)
-      VALUES ('%s', %d, %d, %d, %d, %d)";
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $this->answer, $this->question->nid, $this->question->vid, $this->rid, $this->getScore(FALSE), $this->is_evaluated) */
-    $id = db_insert('quiz_short_answer_user_answers')
-  ->fields(array(
-    'answer' => $this->answer,
-    'question_nid' => $this->question->nid,
-    'question_vid' => $this->question->vid,
-    'result_id' => $this->rid,
-    'score' => $this->getScore(FALSE),
-    'is_evaluated' => $this->is_evaluated,
-  ))
-  ->execute();
-    $this->answer_id = db_last_insert_id('quiz_long_answer_user_answers', 'answer_id');
+    $this->answer_id = db_insert('quiz_short_answer_user_answers')
+      ->fields(array(
+        'answer' => $this->answer,
+        'question_nid' => $this->question->nid,
+        'question_vid' => $this->question->vid,
+        'result_id' => $this->rid,
+        'score' => $this->getScore(FALSE),
+        'is_evaluated' => $this->is_evaluated,
+      ))
+      ->execute();
   }
 
   /**
@@ -430,14 +388,11 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#delete()
    */
   public function delete() {
-    $sql = 'DELETE FROM {quiz_short_answer_user_answers} WHERE question_nid = %d AND question_vid = %d AND result_id = %d';
-    // TODO Please review the conversion of this statement to the D7 database API syntax.
-    /* db_query($sql, $this->question->nid, $this->question->vid, $this->rid) */
     db_delete('quiz_short_answer_user_answers')
-  ->condition('question_nid', $this->question->nid)
-  ->condition('question_vid', $this->question->vid)
-  ->condition('result_id', $this->rid)
-  ->execute();
+      ->condition('question_nid', $this->question->nid)
+      ->condition('question_vid', $this->question->vid)
+      ->condition('result_id', $this->rid)
+      ->execute();
   }
 
   /**
@@ -448,8 +403,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function score() {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
-      $sql = "SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = %d AND question_vid = %d";
-      $score = db_query("SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid", array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
+      $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
     }
     // Otherwise, we run the scoring automatically.
     else {
@@ -484,8 +438,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
 
     $form['answer'] = array(
-      '#type' => 'markup',
-      '#value' => theme('short_answer_user_answer', array('answer' => $answer->answer, 'correct' => $this->question->correct_answer)),
+      '#markup' => theme('short_answer_user_answer', array('answer' => $answer->answer, 'correct' => $this->question->correct_answer)),
     );
 
     if ($answer->is_evaluated == 1) {
@@ -501,8 +454,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
     if (!empty($feedback)) {
       $form['feedback'] = array(
-        '#type' => 'markup',
-        '#value' => '<span class="quiz_answer_feedback">' . $feedback . '</span>',
+        '#markup' => '<span class="quiz_answer_feedback">' . $feedback . '</span>',
       );
     }
     return $form;
@@ -526,8 +478,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
     else {
       return array(
-        '#type' => 'markup',
-        '#value' => $score,
+        '#markup' => $score,
       );
     }
   }
