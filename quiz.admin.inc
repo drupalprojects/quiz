@@ -502,10 +502,11 @@ function quiz_questions($node) {
   // Set page title.
   drupal_set_title($node->title);
   if ($node->randomization < 3) {
-    return drupal_get_form('quiz_questions_form', $node);
+    //print_r(drupal_get_form('quiz_questions_form', $node));exit;
+    return drupal_render(drupal_get_form('quiz_questions_form', $node));
   }
   else {
-    return drupal_get_form('quiz_categorized_form', $node);
+    return drupal_render(drupal_get_form('quiz_categorized_form', $node));
   }
 }
 
@@ -570,7 +571,7 @@ function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
       '#size' => 3,
       '#default_value' => $term->weight,
       '#attributes' => array(
-        'class' => 'term-weight'
+        'class' => array('term-weight')
       ),
     );
   }
@@ -809,7 +810,6 @@ function quiz_questions_form($form, $form_state, $quiz) {
   // We need to add this because of the use of ajax. Without this the form api might redirect the user
   // To the page with the ahah callback...
   $form['#action'] = url('node/' . $quiz->nid . '/questions');
-
   $types = _quiz_get_question_types();
 
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
@@ -849,7 +849,6 @@ function quiz_questions_form($form, $form_state, $quiz) {
   // We add the browser and allows the browser to give us information on what questions are displayed in the browser...
   $hidden_questions = array();
   $form['question_list']['browser'] = _quiz_question_browser_form($hidden_questions, $questions_to_add, $form_state, $quiz, $types);
-
   // We add the questions from the browser as hidden question rows in the question list. Doing this we can have
   // the question show up in the question list instantly when a question is chosen in the browser(using js).
   _quiz_add_hidden_questions($questions, $hidden_questions, $form_state, $quiz);
@@ -1063,19 +1062,17 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
   }
   if (count($vids) > 0) {
     // We fetch the rest of the information for each question and adds node access security
-    $query = db_select('node', 'n')
-      ->addTag('node_access');
-    $nr_alias = $query->join('node_revisions', 'r', 'n.nid = r.nid');
-    $qqp_alias = $query->join('quiz_question_properties', 'p', 'r.vid = p.vid');
-    $res = $query->addField('n', 'nid')
-      ->addField('n', 'type')
-      ->addField('r', 'title')
-      ->addField('p', 'max_score')
-      ->addField('n', 'vid', 'latest_vid')
-      ->condition('r.vid', $vids, 'IN')
-    ->execute();
+    $res = db_select('node', 'n');
+    $res->fields('n', array('nid', 'type'));
+    $res->fields('r', array('title'));
+    $res->fields('p', array('max_score'));
+    $res->addField('n', 'vid', 'latest_vid');
+    $res->join('node_revision', 'r', 'n.nid = r.nid');
+    $res->join('quiz_question_properties', 'p', 'r.vid = p.vid');
+    $res->condition('r.vid', $vids, 'in');
+
     // TODO: Don't user db_fetch_object
-    while ($res_o = db_fetch_object($res)) {
+    foreach ($res->execute() as $res_o) {
       $cur_questions[$res_o->nid]->type = $res_o->type;
       $cur_questions[$res_o->nid]->title = $res_o->title;
       $cur_questions[$res_o->nid]->max_score = $res_o->type == 'scale' ? 0 : $res_o->max_score;
@@ -1131,41 +1128,48 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#markup' => '',
       );
     }
+
     // Add checkboxes to remove questions in js disabled browsers...
     $form[$fieldset]['stayers'][$id] = array(
       '#type' => 'checkbox',
       '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
-      '#attributes' => array('class' => 'q-staying'),
+      '#attributes' => array('class' => array('q-staying')),
     );
+
     //Add checkboxes to mark compulsory questions for randomized quizzes.
     if ($quiz->randomization == 2) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
         '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
-        '#attributes' => array('class' => 'q-compulsory'),
+        '#attributes' => array('class' => array('q-compulsory')),
       );
     }
+
     $link_options = array(
-      'attributes' => array('class' => 'handle-changes'),
+      'attributes' => array('class' => array('handle-changes')),
       'html' => TRUE,
     );
-    $form[$fieldset]['titles'][$id] = array('#value' => l($question->title, 'node/' . $question->nid, $link_options));
+
+    $form[$fieldset]['titles'][$id] = array('#markup' => l($question->title, 'node/' . $question->nid, $link_options));
+
+
     $form[$fieldset]['types'][$id] = array(
-      '#value' => $question_types[$question->type]['name'],
+      '#markup' => $question_types[$question->type]['name'],
     );
+
     $form[$fieldset]['view_links'][$id] = array(
-      '#value' => l(
+      '#markup' => l(
         t('Edit'),
         'node/' . $question->nid . '/edit',
         array(
           'query' => array('destination' => $my_dest),
-          'attributes' => array('class' => 'handle-changes'),
+          'attributes' => array('class' => array('handle-changes')),
         )
       ),
     );
     // For js enabled browsers questions are removed by pressing a remove link
     $form[$fieldset]['remove_links'][$id] = array(
-      '#value' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
+      '#markup' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
     );
     // Add a checkbox to update to the latest revision of the question
     if ($question->vid == $question->latest_vid) {
@@ -1255,10 +1259,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   // Ahah targets
   $browser['ahah_target'] = array(
-    '#markup' => '<DIV ID = "ahah-target"></DIV>'
+    '#markup' => '<div id="ahah-target"></div>'
   );
   $browser['ahah_target_all'] = array(
-    '#markup' => '<DIV ID = "all-ahah-target">'
+    '#markup' => '<div id="all-ahah-target">'
   );
 
   // Ajax use this field to send extra query strings to drupal
@@ -1309,7 +1313,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     ->fields('u', array('name'));
   $alias = $query->leftJoin('users', 'u', 'n.uid = u.uid');
   $query->condition('type', array_keys($question_types), 'IN');
-  $query->execute();
+
   //$results = $query->fetchAll();
 
   /* We use a custom query for the pager to vastly improve performance if there are lots of db hits...
@@ -1333,10 +1337,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   //$res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
   //$res = db_query($sql);//, $num, 0, $pager_sql, $filter_params);
   // build data part of form
-  $options = array();
 
   //while ($res_o = $query->fetch()) {
-  foreach ($query as $res_o) {
+  foreach ($query->execute() as $res_o) {
     $id = $res_o->nid . '-' . $res_o->vid;
     // Add $id to hidden_questions, this way quiz_questions_form knows that it has to add a invisible row for this question.
     $hidden_questions[] = $id;
@@ -1351,16 +1354,16 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#title' => t('Titles'),
     '#type' => 'checkboxes',
     '#options' => $options,
-    '#attributes' => array('class' => 'quiz-browser-checkbox'),
+    '#attributes' => array('class' => array('quiz-browser-checkbox')),
     '#default_value' => $questions,
   );
 
   $browser['pager'] = array(
-    '#markup' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
+    '#markup' => '<div id="browser-pager">' . theme('pager', array('tags' => NULL)) . '</div>',
   );
 
   $browser['ahah_target_all_end'] = array(
-    '#markup' => '</DIV>'
+    '#markup' => '</div>'
   );
   return $form;
 }
@@ -1506,8 +1509,15 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 
   $question_types = array_keys(_quiz_get_question_types());
-  $placeholders = db_placeholders($question_types, 'text');
-  $sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
+  //$placeholders = db_placeholders($question_types, 'text');
+  //$sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
+  $questions_count = db_select('node', 'n')
+    ->condition('type', array_keys(_quiz_get_question_types()), 'IN')
+    ->countQuery()
+    ->addTag('node_access')
+    ->execute()
+    ->fetchField();
+
   foreach ($weight_map as $id => $weight) {
     if ($form_state['values']['stayers'][$id] == 0) {
       continue;
@@ -1519,7 +1529,7 @@ function quiz_questions_form_validate($form, $form_state) {
     $params = $question_types; // Copy array.
     $params[] = $nid;
     // TODO Please convert this statement to the D7 database API syntax.
-    if (db_query($sql, $params)->fetchField() == 0) {
+    if ($questions_count == 0) {
       form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
     }
@@ -1633,6 +1643,8 @@ function quiz_questions_form_submit($form, &$form_state) {
     $compulsories = $form_state['values']['compulsories'];
   }
   $num_random = $form_state['values']['num_random_questions'];
+
+
   $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random'] : 1;
   $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
 
@@ -2013,7 +2025,7 @@ function theme_question_selection_table($variables) {
   $rows = array();
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $id) {
-      $form['weights'][$id]['#attributes']['class'] = 'question-list-weight';
+      $form['weights'][$id]['#attributes']['class'] = array('question-list-weight');
 
       $rows[] = _quiz_get_question_row($form, $id);
     }
@@ -2068,7 +2080,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#attributes' => array(
-      'class' => 'container-inline',
+      'class' => array('container-inline'),
       'id' => 'quiz-results-update',
       'style' => "display:$display;"
     ),
@@ -2212,7 +2224,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
     '#title' => t('Name'),
     '#type' => 'checkboxes',
     '#options' => $options,
-    '#attributes' => array('class' => 'quiz-browser-checkbox'),
+    '#attributes' => array('class' => array('quiz-browser-checkbox')),
     '#default_value' => $default_value,
   );
 
@@ -2525,7 +2537,7 @@ function _quiz_skip_validation(&$elements) {
  */
 function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
-  $type = $sub_form['types'][$id]['#value'];
+  $type = $sub_form['types'][$id]['#markup'];
 
   // We add the class "hidden-class" to hide questions that haven't been added to the quiz yet.
   $hidden_class = ($sub_form['stayers'][$id]['#default_value'] === 0) ? ' hidden-question' : '';
@@ -2535,7 +2547,7 @@ function _quiz_get_question_row($sub_form, $id) {
     drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
 
     $type,
-    $sub_form['view_links'][$id]['#value'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | ' . $sub_form['remove_links'][$id]['#value'] . '</SPAN>',
+    $sub_form['view_links'][$id]['#markup'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | ' . $sub_form['remove_links'][$id]['#value'] . '</SPAN>',
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
     drupal_render($sub_form['max_scores'][$id])
   );
@@ -2544,7 +2556,7 @@ function _quiz_get_question_row($sub_form, $id) {
   }
   $data_array[] = drupal_render($sub_form['weights'][$id]);
   return array(
-    'class' => 'q-row draggable' . $hidden_class,
+    'class' => array('q-row draggable' . $hidden_class),
     'id' => 'q-' . $id,
     'data' => $data_array
   );

@@ -31,7 +31,7 @@ $cols[] = drupal_render($form['filters']['title']);
 $cols[] = drupal_render($form['filters']['type']);
 $cols[] = drupal_render($form['filters']['changed']);
 $cols[] = drupal_render($form['filters']['name']);
-$rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
+//$rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
 
 // We make the question rows
 foreach ($form['titles']['#options'] as $key => $value) {
@@ -53,10 +53,10 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $cols[] = $form['changed'][$key]['#value'];
   $cols[] = $form['names'][$key]['#value'];
 
-  $rows[] = array('data' => $cols, 'class' => 'quiz-question-browser-row', 'id' => 'browser-'. $key);
+  $rows[] = array('data' => $cols, 'class' => array('quiz-question-browser-row'), 'id' => 'browser-'. $key);
 }
 
-print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
+print theme('table', array('header' => array(), 'rows' => $rows));// , array('class' => 'browser-table'));
 
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
