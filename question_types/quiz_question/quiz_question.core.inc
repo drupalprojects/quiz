@@ -449,14 +449,12 @@ abstract class QuizQuestion {
       '#type' => 'hidden',
       '#value' => $this->node->nid,
     );
-
+    $body = field_get_items('node', $this->node, 'body');    
     $form['question'] = array(
-      '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
+      '#markup' => check_markup($body[0]['value'], $body[0]['format']),
       '#prefix' => '<div class="quiz-question-body">',
       '#suffix' => '</div>',
     );
-
     return $form;
   }
 

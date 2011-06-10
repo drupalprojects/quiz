@@ -1270,9 +1270,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#type' => 'hidden',
     '#default_value' => '',
   );
-
+  
   //Build filter part of form:
-  //_quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
+  _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
 
   // Create filter part of sql.
   //$filter_params = array($quiz->vid);
@@ -1378,11 +1378,9 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
  *   Array of question types
  */
 function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $quiz) {
-  $ahah_path = "node/$quiz->nid/questions/browser_ahah";
+  $ahah_path = 'node/' . $quiz->nid . '/questions/browser_ahah';
   // Create options array for the type filter(select field)
-  $type_options = array(
-    t('No filter'),
-  );
+  $type_options = array(t('No filter'));
   foreach (array_keys($question_types) as $type) {
     $type_options[$type] = $question_types[$type]['name'];
   }
@@ -1682,7 +1680,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     // Update the quiz node properties.
     $success = db_update('quiz_node_properties')
       ->fields(array(
-        'number_of_random_questions' => $num_random,
+        'number_of_random_questions' => $num_random ? $num_random : 0,
         'max_score_for_random' => $quiz->max_score_for_random,
         'tid' => $term_id,
       ))
@@ -1695,7 +1693,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $query->addExpression('SUM(max_score)', 'sum');
     $query->condition('parent_vid', $quiz->vid);
     $query->condition('question_status', QUESTION_ALWAYS);
-    $score = $query->execute()->fetch();
+    $score = $query->execute()->fetchAssoc();
 
     $success2 = db_update('quiz_node_properties')
       ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))
@@ -1726,7 +1724,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   // Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
-
+  
   // Save the active filters in $_SESSION
   $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
@@ -2547,7 +2545,7 @@ function _quiz_get_question_row($sub_form, $id) {
     drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
 
     $type,
-    $sub_form['view_links'][$id]['#markup'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | ' . $sub_form['remove_links'][$id]['#value'] . '</SPAN>',
+    $sub_form['view_links'][$id]['#markup'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | ' . $sub_form['remove_links'][$id]['#markup'] . '</SPAN>',
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
     drupal_render($sub_form['max_scores'][$id])
   );

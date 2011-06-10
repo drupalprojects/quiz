@@ -972,11 +972,11 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Primary quiz-taking view on 'Take' tab.
  */
 function quiz_take($node) {
-  drupal_alter('quiz_take', $node);
+  //drupal_alter('quiz_take', $node);
   if (isset($node->rendered_content)) {
     return $node->rendered_content;
   }
-  $to_be_rendered = quiz_take_quiz($node);
+  $to_be_rendered = quiz_take_quiz($node);  
   return drupal_render($to_be_rendered);
 }
 
@@ -1776,9 +1776,9 @@ function quiz_take_quiz($quiz) {
   if (isset($_SESSION['quiz_' . $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_' . $quiz->nid]['quiz_vid']) {
     $quiz = node_load($quiz->nid, $_SESSION['quiz_' . $quiz->nid]['quiz_vid']);
   }
-
+  
   // If the session has no data for this quiz.
-  if (!isset($_SESSION['quiz_' . $quiz->nid]['quiz_questions'])) {
+  if (!isset($_SESSION['quiz_' . $quiz->nid]['quiz_questions'])) {    
     // We delete questions in progress from old revisions.
     _quiz_delete_old_in_progress($quiz, $user->uid);
 
@@ -1787,51 +1787,33 @@ function quiz_take_quiz($quiz) {
     $rid = $user->uid > 0 ? _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid) : 0;
 
     // Are we resuming an in-progress quiz?
-    if ($quiz->allow_resume && $rid > 0) {
+    if ($quiz->allow_resume && $rid > 0) {      
       _quiz_resume_existing_quiz($quiz, $user->uid, $rid);
+      
     }
-
+    
     // First time running through quiz.
-    elseif (quiz_start_check($quiz, $rid)) {
-      // Create question list.
-      $questions = quiz_build_question_list($quiz);
-      if ($questions === FALSE) {
-        drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME)), 'error');
-        return array('body' => array('#value' => ' '));
-      }
-
-      if (count($questions) == 0) {
-        drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.',
-          array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . arg(1) . '/questions'))), 'error');
-        return array('body' => array('#value' => t('Please assign questions...')));
-      }
-
-      // Initialize session variables.
-      $_SESSION['quiz_' . $quiz->nid]['result_id'] = quiz_create_rid($quiz);
-      $_SESSION['quiz_' . $quiz->nid]['quiz_questions'] = $questions;
-      $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] = array();
-      $_SESSION['quiz_' . $quiz->nid]['question_number'] = 0;
-      $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
-      $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
-      $_SESSION['quiz_' . $quiz->nid]['quiz_vid'] = $quiz->vid;
+    elseif (quiz_start_check($quiz, $rid)) {      
+      _quiz_take_quiz_init($quiz);
+      
     }
 
-    else {
-      return array('body' => array('#value' => t('This quiz is closed')));
+    else {      
+      return array('body' => array('#markup' => t('This quiz is closed')));
     }
   }
-
+  
   $q_passed_validation = FALSE;
 
   if (quiz_availability($quiz) !== TRUE) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
-    return array('body' => array('#value' => t('This quiz is closed')));
+    return array('body' => array('#markup' => t('This quiz is closed')));
   }
+  
   if (!isset($_POST['op'])) {
     // @todo Starting new quiz... Do we need to show instructions here?
   }
-  elseif ($_POST['question_nid'] != $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0]['nid']) {
+  elseif (isset($_POST['question_nid']) &&  ($_POST['question_nid'] != $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0]['nid'])) {
     // The user has pressed the navigation buttons multiple times...
   }
   // We maintain two lists: previous questions and upcomming questions.
@@ -1924,14 +1906,16 @@ function quiz_take_quiz($quiz) {
     quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
   }
 
-  if ($check_jump) {
+  if (isset($check_jump) && $check_jump) {
     if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
       quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
     }
   }
   $show_validation_message = FALSE;
+  
   // If this quiz is in progress, load the next questions and return it via the theme.
-  if (!empty($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
+  if (!empty($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {    
+    
     // If we got no error when validating the question
     if (!is_string($q_passed_validation) || $_POST['op'] == t('Back') && $quiz->backwards_navigation) {
       $question_node = node_load(
@@ -1955,12 +1939,13 @@ function quiz_take_quiz($quiz) {
         drupal_goto('node/' . $quiz->nid . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
       }
     }
-
+    
     // Added the progress info to the view.
     $number_of_questions = quiz_get_number_of_questions($quiz->vid);
+    
     $question_number = $number_of_questions - count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']);
     $question_node->question_number = $question_number;
-    $content['progress']['#value'] = theme('quiz_progress', array(
+    $content['progress']['#markup'] = theme('quiz_progress', array(
       'question_number' => $question_number,
       'num_questions' => $number_of_questions,
       'allow_jumping' => $quiz->allow_jumping,
@@ -1970,7 +1955,8 @@ function quiz_take_quiz($quiz) {
       drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
       unset($_SESSION['quiz_' . $quiz->nid]);
       drupal_goto('node/' . $quiz->nid . '/take');
-    }
+    }    
+    
     if ($_SESSION['quiz_' . $quiz->nid]['question_duration']) {
       $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
       $time = ($_SESSION['quiz_' . $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_' . $quiz->nid]['question_duration'] : 1;
@@ -2023,13 +2009,14 @@ function quiz_take_quiz($quiz) {
     if ($show_validation_message) {
       drupal_set_message($q_passed_validation, 'error');
     }
+    
     // If we're not yet at the end.
     if (empty($quiz_end)) {
-      $content['body']['question']['#value'] = quiz_take_question_view($question_node, $quiz);
+      $content['body']['question']['#markup'] = quiz_take_question_view($question_node, $quiz);
       $content['body']['question']['#weight'] = 0;
       // If we had feedback from the last question.
       if (isset($_SESSION['quiz_' . $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-        $content['body']['feedback']['#value'] = rawurldecode($_SESSION['quiz_' . $quiz->nid]['feedback']);
+        $content['body']['feedback']['#markup'] = rawurldecode($_SESSION['quiz_' . $quiz->nid]['feedback']);
         $content['body']['feedback']['#weight'] = -100;
       }
       drupal_set_title($quiz->title);
@@ -2040,6 +2027,7 @@ function quiz_take_quiz($quiz) {
   else {
     $quiz_end = TRUE;
   }
+  
   // If we're at the end of the quiz.
   if (!empty($quiz_end)) {
     // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
@@ -2064,6 +2052,7 @@ function quiz_take_quiz($quiz) {
     // NOTE: End actions might redirect the user somewhere. Code below this line might not get executed...
     quiz_end_actions($quiz, $rid, $score);
   }
+  
   return $content;
 }
 
@@ -2093,6 +2082,32 @@ function quiz_jump_to($question_num, $quiz, $rid) {
   }
 }
 
+function _quiz_take_quiz_init($quiz) {
+  // Create question list.  
+  $questions = quiz_build_question_list($quiz);  
+  
+  if ($questions === FALSE) {
+    drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.',
+      array('@quiz' => QUIZ_NAME)), 'error');
+    return array('body' => array('#value' => ' '));
+  }
+
+  if (count($questions) == 0) {
+    drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.',
+      array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . arg(1) . '/questions'))), 'error');
+    return array('body' => array('#value' => t('Please assign questions...')));
+  }
+
+  // Initialize session variables.
+  $_SESSION['quiz_' . $quiz->nid]['result_id'] = quiz_create_rid($quiz);
+  $_SESSION['quiz_' . $quiz->nid]['quiz_questions'] = $questions;
+  $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] = array();
+  $_SESSION['quiz_' . $quiz->nid]['question_number'] = 0;
+  $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
+  $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
+  $_SESSION['quiz_' . $quiz->nid]['quiz_vid'] = $quiz->vid;
+}
+
 /**
  * Create the view for a question the user is about to take.
  *
@@ -2104,10 +2119,10 @@ function quiz_jump_to($question_num, $quiz, $rid) {
  *   A string containing the body of the node.
  */
 function quiz_take_question_view($question_node, $quiz_node) {
-  $question_node->allow_skipping = $quiz_node->allow_skipping;
-  $question_node = node_build_content($question_node, FALSE, TRUE);
-  module_invoke_all('node_build_alter', $question_node, FALSE);
-  $question_node->body = drupal_render($question_node->content);
+  $question_node->allow_skipping = $quiz_node->allow_skipping;  
+  node_build_content($question_node, 'teaser');  
+  module_invoke_all('node_build_alter', $question_node, FALSE);  
+  //$question_node->body = drupal_render($question_node->content);
   return theme('quiz_single_question_node', array('question_node' => $question_node));
 }
 
@@ -2783,7 +2798,7 @@ function quiz_build_question_list($quiz) {
     WHERE parent_vid = :parent_vid
       AND question_status = :question_status
     ORDER BY weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
-  while ($question_node = $query->fetch()) {
+  while ($question_node = $query->fetchAssoc()) {
     $questions[] = $question_node;
   }
 
@@ -2989,16 +3004,13 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   $questions = quiz_build_question_list($quiz);
   $already_answered = array();
   // Now we need to make sure to set previous questions to be correct.
-  // This includes corrections for cases where questions were shuffled.
-  $sql = "SELECT question_nid AS nid, question_vid AS vid, number
+  // This includes corrections for cases where questions were shuffled.  
+  $answered_questions = db_query('SELECT question_nid AS nid, question_vid AS vid, number
           FROM {quiz_node_results_answers}
-          WHERE result_id = %d
-          ORDER BY number, answer_timestamp";
-  $answered_questions = db_query("SELECT question_nid AS nid, question_vid AS vid, number
-          FROM {quiz_node_results_answers}
-          WHERE result_id = :result_id
-          ORDER BY number, answer_timestamp", array(':result_id' => $rid));
-  while ($answered = db_fetch_object($answered_questions)) {
+          WHERE result_id = :rid
+          ORDER BY number, answer_timestamp', array(':rid' => $rid));
+  //while ($answered = db_fetch_object($answered_questions)) {
+  foreach ($answered_questions as $answered) {
     foreach ($questions as $question) {
       if ($question['vid'] == $answered->vid) {
         $already_answered[] = $answered->vid;

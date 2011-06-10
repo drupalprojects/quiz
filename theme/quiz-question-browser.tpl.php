@@ -62,7 +62,7 @@ if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
 
 print '<div id="before-pager"></div>';
-print $form['pager']['#value'];
+print $form['pager']['#markup'];
 print drupal_render($form['add_to_get']);
 print drupal_render($form['ahah_target_all_end']);
 ?>

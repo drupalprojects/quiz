@@ -453,9 +453,9 @@ function theme_quiz_score_incorrect() {
  *
  * @ingroup themeable
  */
-function theme_quiz_progress($variables) {
+function theme_quiz_progress($variables) {  
   $question_number = $variables['question_number'];
-  $num_of_question = $variables['num_of_question'];
+  $num_of_question = $variables['num_questions'];
   // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
   // Determine the percentage finished (not used, but left here for other implementations).
   //$progress = ($question_number*100)/$num_of_question;
@@ -618,7 +618,7 @@ function theme_quiz_single_question_node($variables) {
   $node = $variables['question_node'];
   // This might seem meaningless, but it is designed this way to allow themes to add more
   // meaningful stuff here...
-  return $node->body;
+  return drupal_render($node->body) . drupal_render($node->content);
 }
 
 /**
