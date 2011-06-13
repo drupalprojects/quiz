@@ -119,9 +119,8 @@ class ShortAnswerQuestion extends QuizQuestion {
       );
     }
     else {
-      $content['answers'] = array(
-        '#type' => 'markup',
-        '#value' => '<div class="quiz-answer-hidden">Answer hidden</div>',
+      $content['answers'] = array(        
+        '#markup' => '<div class="quiz-answer-hidden">Answer hidden</div>',
         '#weight' => 2,
       );
     }
@@ -196,9 +195,8 @@ class ShortAnswerQuestion extends QuizQuestion {
         '#collapsed' => TRUE,
       );
 
-      $form['answer']['regex_box']['regex_help'] = array(
-        '#type' => 'markup',
-        '#value' => '<p>' .
+      $form['answer']['regex_box']['regex_help'] = array(        
+        '#markup' => '<p>' .
       t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
          '</p><p>' .
       t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .

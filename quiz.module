@@ -1834,7 +1834,7 @@ function quiz_take_quiz($quiz) {
 
     // Call hook_evaluate_question().
     $types = _quiz_get_question_types();
-    $module = $types[$former_question->type]['module'];
+    $module = $types[$former_question->type]['module'];    
     $result = module_invoke($module, 'evaluate_question', $former_question, $_SESSION['quiz_' . $quiz->nid]['result_id']);
     $q_passed_validation = $result->is_valid;
     $check_jump = TRUE;
@@ -2034,13 +2034,13 @@ function quiz_take_quiz($quiz) {
     $questions = _quiz_get_answers($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
     $score = quiz_end_scoring($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
-      $content['body']['#value'] = theme('quiz_no_feedback');
+      $content['body']['#markup'] = theme('quiz_no_feedback');
     }
     else {
       // Get the results and summary text for this quiz.
       $summary = _quiz_get_summary_text($quiz, $score);
       // Get the themed summary page.
-      $content['body']['#value'] = theme('quiz_take_summary', array('quiz' => $quiz, 'questions' => $questions, 'score' => $score, 'summary' => $summary));
+      $content['body']['#markup'] = theme('quiz_take_summary', array('quiz' => $quiz, 'questions' => $questions, 'score' => $score, 'summary' => $summary));
     }
     if ($score['is_evaluated']) {
       _quiz_maintain_results($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
@@ -2137,7 +2137,8 @@ function quiz_take_question_view($question_node, $quiz_node) {
  *  Array with options that affect the behavior of this function.
  *  ['set_msg'] - Sets a message if the last question was skipped.
  */
-function quiz_store_question_result($quiz, $result, $options) {  
+function quiz_store_question_result($quiz, $result, $options) {
+  //drupal_set_message('<pre>'. print_r($result, 1) .'</pre>');
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
       drupal_set_message(t('Last question skipped.'), 'status');
@@ -2684,23 +2685,17 @@ function quiz_availability($quiz) {
  * @return $rid
  *   The result id.
  */
-function quiz_create_rid($quiz) {
-  global $user;
+function quiz_create_rid($quiz) {  
   $rid = db_insert('quiz_node_results')
     ->fields(array(
       'nid' => $quiz->nid,
       'vid' => $quiz->vid,
-      'uid' => $user->uid,
+      'uid' => $GLOBALS['user']->uid,
       'time_start' => REQUEST_TIME,
     ))
-    ->execute();
-
-  if ($result) {
-    // Return the last RID.
-    $rid = db_last_insert_id('quiz_node_results', 'result_id');
-  }
-  else {
-    drupal_set_message(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
+    ->execute(); 
+  if (!is_numeric($rid)) {
+    form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
     return FALSE;
   }
   return $rid;

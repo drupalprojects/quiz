@@ -709,10 +709,7 @@ abstract class QuizQuestionResponse {
    * This default version returns TRUE iff the score is equal to the maximum possible score.
    */
   function isCorrect() {
-    $possible = $this->getMaxScore();
-    $actual = $this->getScore();
-
-    return ($possible == $actual);
+    return ($this->getMaxScore() == $this->getScore());
   }
 
   /**
@@ -770,9 +767,9 @@ abstract class QuizQuestionResponse {
     $obj->nid = $this->question->nid;
     $obj->vid = $this->question->vid;
     $obj->rid = $this->rid;
-    $obj->is_correct = $this->isCorrect();
+    $obj->is_correct = (int) $this->isCorrect();
     $obj->is_evaluated = $this->isEvaluated();
-    $obj->is_skipped = FALSE;
+    $obj->is_skipped = 0;
     $obj->is_valid = $this->isValid();
     return $obj;
   }
