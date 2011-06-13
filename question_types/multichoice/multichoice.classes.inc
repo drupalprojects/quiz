@@ -830,7 +830,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    db_insert('quiz_multichoice_user_answers')
+    $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
         'result_id' => $this->rid,
         'question_vid' => $this->question->vid,
@@ -838,8 +838,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
         'choice_order' => $this->choice_order
       ))
       ->execute();
-
-    $user_answer_id = db_last_insert_id('{quiz_multichoice_user_answers}', 'id');
+    
     $query = db_insert('quiz_multichoice_user_answer_multi')
       ->fields(array('user_answer_id', 'answer_id'));
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {

@@ -154,6 +154,7 @@ dl.quiz-report dd {
 }
 
 .q-skip-button {
+  float: right;
   background: 0 none;
   border: 0 none;
   color: #666699;

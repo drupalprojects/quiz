@@ -352,7 +352,7 @@ class ScaleQuestion extends QuizQuestion {
     //$form['#theme'] = 'scale_answering_form';
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (drupal_strlen($this->node->{$i}->answer) > 0) {
+      if (isset($this->node->{$i}) && drupal_strlen($this->node->{$i}->answer) > 0) {
         $options[$this->node->{$i}->id] = check_plain($this->node->{$i}->answer);
       }
     }

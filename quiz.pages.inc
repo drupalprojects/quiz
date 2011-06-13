@@ -12,18 +12,13 @@
  *  Result id
  */
 function quiz_user_results($result_id) {
-  global $user;
-
-  $sql = 'SELECT qnp.nid, qnp.vid, qnrs.uid
+  global $user;  
+  $result = db_query('SELECT qnp.nid, qnp.vid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
-    WHERE qnrs.result_id = %d';
-  $result = db_fetch_object(db_query('SELECT qnp.nid, qnp.vid, qnrs.uid
-    FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
-    WHERE qnrs.result_id = :qnrs.result_id', array(':qnrs.result_id' => $result_id)));
+    WHERE qnrs.result_id = :rid', array(':rid' => $result_id))->fetch();
+    
   if ($result->nid) {
-
     // User can view own results (quiz_menu sets access to 'own results').
     // User with role 'user results' can view other user's results.
     if ($result->uid != $user->uid && !user_access('view any quiz results')) {
@@ -260,28 +255,21 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
  * @return
  *  HTML output for page.
  */
-function quiz_get_user_results($user_id) {
-  $results = array();
-  $sql = "SELECT n.nid, n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
+function quiz_get_user_results($uid) {
+  $results = array();  
+  $dbresult = db_query('SELECT DISTINCT(n.nid), n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
     INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
     INNER JOIN {users} u ON u.uid = qnrs.uid
-    WHERE n.type = 'quiz'
-      AND u.uid = %d
-    ORDER BY qnrs.result_id ASC";
-
-  $dbresult = db_query("SELECT n.nid, n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
-    FROM {node} n
-    INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
-    INNER JOIN {users} u ON u.uid = qnrs.uid
-    WHERE n.type = :n.type
-      AND u.uid = :u.uid
-    ORDER BY qnrs.result_id ASC", array(':n.type' => 'quiz', ':u.uid' => $user_id));
+    WHERE n.type = :type
+      AND u.uid = :uid
+    ORDER BY qnrs.result_id ASC', array(':type' => 'quiz', ':uid' => $uid));
+  
   // Create an array out of the results.
-  while ($line = db_fetch_array($dbresult)) {
-    $results[$line['result_id']] = $line;
+  foreach ($dbresult as $result) {
+    $result = (array) $result;
+    $results[$result['result_id']] = $result;
   }
   return theme('quiz_get_user_results', array('results' => $results));
 }
@@ -344,12 +332,13 @@ function theme_quiz_get_user_results($variables) {
       $score = $pre_score . $result['score'] . $post_score;
     }
     $rows[] = array(
-      'title'       => l($result['title'], 'user/quiz/' . $result['result_id'] . '/userresults'),
+      'title'       => l($result['title'], 'node/' . $result['nid']),
       'time_start'  => format_date($result['time_start'], 'short'),
       'time_end'    => ($result['time_end'] > 0) ? format_date($result['time_end'], 'short') . '<br />' . t('Duration :  @value', array('@value' => $interval)) : t('In Progress'),
 
       'score'       => $score,
       'evaluated'   => $result['is_evaluated'] ? t('Yes') : t('No'),
+      'op'          => l(t('View answers'), 'user/quiz/' . $result['result_id'] . '/userresults'),
     );
 
   }
@@ -364,6 +353,7 @@ function theme_quiz_get_user_results($variables) {
     t('Finished'),
     t('Score'),
     t('Evaluated'),
+    t('Operation'),
   );
 
   $output = theme('table', array('header' => $header, 'rows' => $rows));
@@ -566,7 +556,7 @@ function theme_quiz_take_summary($variables) {
  *
  * @ingroup themeable
  */
-function theme_quiz_user_summary($variables) {
+function theme_quiz_user_summary($variables) {  
   $quiz = $variables['quiz'];
   $questions = $variables['questions'];
   $score = $variables['score'];
@@ -589,8 +579,8 @@ function theme_quiz_user_summary($variables) {
   if (isset($summary['result'])) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
-  // Get the feedback for all questions.
-  $output .= drupal_get_form('quiz_report_form', $questions, FALSE, TRUE);
+  // Get the feedback for all questions.  
+  $output .= drupal_render_children(drupal_get_form('quiz_report_form', $questions, FALSE, TRUE));
   return $output;
 }
 

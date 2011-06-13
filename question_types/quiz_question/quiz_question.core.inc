@@ -450,7 +450,7 @@ abstract class QuizQuestion {
       '#type' => 'hidden',
       '#value' => $this->node->nid,
     );
-    $body = field_get_items('node', $this->node, 'body');    
+    $body = field_get_items('node', $this->node, 'body');
     $form['question'] = array(
       '#markup' => check_markup($body[0]['value'], $body[0]['format']),
       '#prefix' => '<div class="quiz-question-body">',

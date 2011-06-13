@@ -133,8 +133,9 @@ class TrueFalseQuestion extends QuizQuestion {
         1 => t('True'),
         0 => t('False')
       ),
+      '#default_value' => -1, // prevent default value set to 0
     );
-
+    
     if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
       $form['tries']['#default_value'] = $response->getResponse();
