@@ -433,7 +433,7 @@ function quiz_menu() {
     'weight' => 3,
   );
 
-  $items['node/%node/myresults/%'] = array(
+  $items['node/%node/myresults/%quiz_rid'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(3),
@@ -442,7 +442,7 @@ function quiz_menu() {
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%node/results/%'] = array(
+  $items['node/%node/results/%quiz_rid'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
     'page arguments' => array(1, 3),
@@ -866,6 +866,20 @@ function _quiz_get_node_defaults() {
     'allow_resume' => 1,
     'allow_jumping' => 0,
   );
+}
+
+/**
+ * Result_id, menu argument loader.
+ */
+function quiz_rid_load($rid) {
+  return (!empty($rid) && is_numeric($rid)) ? $rid : 0;
+}
+
+/**
+ * Workaround for a _menu_translate() bug.
+ */
+function quiz_rid_to_arg() {
+  return 0;
 }
 
 /**
