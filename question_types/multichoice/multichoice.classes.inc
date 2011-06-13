@@ -397,7 +397,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    $form['#theme'] = 'multichoice_answering_form';
+    //$form['#theme'] = 'multichoice_answering_form';
 
     /* We use an array looking key to be able to store multiple answers in tries.
      * At the moment all user answers have to be stored in tries. This is something we plan
@@ -405,7 +405,7 @@ class MultichoiceQuestion extends QuizQuestion {
      */
     $form['tries[answer]'] = array(
       '#options' => array(),
-      '#theme' => 'multichoice_alternative',
+      //'#theme' => 'multichoice_alternative',
     );
     if (isset($rid)) {
       // This question has already been answered. We load the answer.
@@ -860,9 +860,11 @@ class MultichoiceResponse extends QuizQuestionResponse {
       $user_answer_id[] = $user_answer->id;
     }
 
-    db_delete('quiz_multichoice_user_answer_multi')
-      ->condition('user_answer_id', $user_answer_id, 'IN')
-      ->execute();
+    if (!empty($user_answer_id)) {
+      db_delete('quiz_multichoice_user_answer_multi')
+        ->condition('user_answer_id', $user_answer_id, 'IN')
+        ->execute();
+    }
 
     db_delete('quiz_multichoice_user_answers')
       ->condition('result_id', $this->rid)

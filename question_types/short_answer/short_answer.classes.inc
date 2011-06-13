@@ -135,7 +135,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    $form['#theme'] = 'short_answer_answering_form';
+    //$form['#theme'] = 'short_answer_answering_form';
 
     $form['tries'] = array(
       '#type' => 'textfield',

@@ -2199,19 +2199,32 @@ function quiz_store_question_result($quiz, $result, $options) {
               AND question_vid = :question_vid
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->rid))->fetchField();
   if ($rid_count > 0) {
-    $sql = "UPDATE {quiz_node_results_answers}
-            SET is_correct = %d, points_awarded = %d, answer_timestamp = %d, is_skipped = %d";
+    $update = db_update('quiz_node_results_answers')
+      ->fields(array(
+        'is_correct' => $result->is_correct,
+        'points_awarded' => $points,
+        'answer_timestamp' => REQUEST_TIME,
+        'is_skipped' => $result->is_skipped,
+        'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
+      ));
+      
+    //$sql = "UPDATE {quiz_node_results_answers}
+    //        SET is_correct = %d, points_awarded = %d, answer_timestamp = %d, is_skipped = %d";
     $args = array($result->is_correct, $points, REQUEST_TIME, $result->is_skipped);
     if ($quiz->randomization == 3) {
-      $sql .= ", tid = %d";
-      $args[] = $result->tid;
+      //$sql .= ", tid = %d";            
+      //$args[] = $result->tid;
     }
-    $sql .= " WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
-    array_push($args, $result->nid, $result->vid, $result->rid);
-    db_query($sql, $args);
+    //$sql .= " WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
+    $update->condition('question_nid', $result->nid);
+    $update->condition('question_vid', $result->vid);
+    $update->condition('result_id', $result->rid);
+    $update->execute();
+    //array_push($args, $result->nid, $result->vid, $result->rid);
+    //db_query($sql, $args);
   }
   else {
-    $sql = "INSERT INTO {quiz_node_results_answers}
+    /*$sql = "INSERT INTO {quiz_node_results_answers}
             (question_nid, question_vid, result_id, is_correct, points_awarded,
             answer_timestamp, is_skipped, number";
     if ($quiz->randomization == 3) {
@@ -2225,6 +2238,21 @@ function quiz_store_question_result($quiz, $result, $options) {
     }
     $sql .= ')';
     db_query($sql, $args);
+    */
+     $insert = db_insert('quiz_node_results_answers')
+      ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped',    'number', 'tid'))
+      ->values(array(
+        'question_nid' => $result->nid,
+        'question_vid' => $result->vid,
+        'result_id' => $result->rid,
+        'is_correct' => $result->is_correct,
+        'points_awarded' => $points,
+        'answer_timestamp' => REQUEST_TIME,
+        'is_skipped' => (int) $result->is_skipped,
+        'number' => $options['question_data']['number'],
+        'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
+      ))
+      ->execute();
   }
 }
 
@@ -2292,7 +2320,7 @@ function quiz_end_actions($quiz, $rid, $score) {
 function quiz_quiz_finished($quiz, $score, $rid) {
   // Load data about the quiz taker
   $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
-  $taker = db_fetch_object(db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $rid)));
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_query('SELECT mail FROM {users} WHERE uid = :uid', array(':uid' => $quiz->uid))->fetchField();
@@ -2690,22 +2718,17 @@ function quiz_create_rid($quiz) {
  *   Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $rid) {
-  // 1. Fetch all questions and their max scores
-  $sql = 'SELECT a.question_nid, a.question_vid, n.type, r.max_score
-  FROM {quiz_node_results_answers} a
-  LEFT JOIN {node} n ON (question_nid = nid)
-  LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = %d
-  WHERE result_id = %d';
-  $results = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
-  FROM {quiz_node_results_answers} a
-  LEFT JOIN {node} n ON (question_nid = nid)
-  LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = %d
-  WHERE result_id = :result_id', array(':result_id' => $quiz->vid, '' => $rid));
+  // 1. Fetch all questions and their max scores  
+  $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
+    FROM {quiz_node_results_answers} a
+    LEFT JOIN {node} n ON (question_nid = nid)
+    LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = :vid
+    WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $rid));
   // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
   // Fetched from the db, not calculated....
   $scores = array();
   $count = 0;
-  while ($question = db_fetch_object($results)) {
+  foreach ($questions as $question) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($question->max_score === NULL && isset($quiz->tid) && $quiz->tid > 0) {
       $question->max_score = $quiz->max_score_for_random;
@@ -3255,7 +3278,7 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
        FROM {quiz_node_result_options}
        WHERE nid = :nid
        AND vid = :vid
-       AND %d BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, '' => $score))->fetchField();
+       AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score))->fetchField();
 }
 
 /**
@@ -3550,9 +3573,9 @@ function _quiz_get_answers($quiz, $rid) {
                    LEFT JOIN {node} n ON (ra.question_nid = n.nid)
                    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
                    LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.parent_vid = r.vid
-                   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = %d AND qt.tid = ra.tid)
-                   WHERE ra.result_id = :ra.result_id
-                   ORDER BY ra.number, ra.answer_timestamp", array(':ra.result_id' => $quiz->vid, '' => $rid));
+                   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
+                   WHERE ra.result_id = :rid
+                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $rid));
   while ($line = $ids->fetch()) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
