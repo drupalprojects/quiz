@@ -878,7 +878,8 @@ abstract class QuizQuestionResponse {
    *  FAPI form array holding the question
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
-    return array('#markup' => check_markup($this->question->body, $this->question->format, $langcode = '' /* TODO Set this variable. */, FALSE));
+    $field = field_get_items('node', node_load($this->question->nid), 'body');
+    return array('#markup' => $field[0]['safe_value']);    
   }
 
   /**

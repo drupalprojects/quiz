@@ -1895,7 +1895,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
-  if (($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
+  if (isset($_POST['op']) && ($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
     if (!isset($_SESSION['quiz_' . $quiz->nid]['result_id'])) {
       $_SESSION['quiz_' . $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }
@@ -3233,10 +3233,10 @@ function _quiz_get_summary_text($quiz, $score) {
   if (!$admin) {
     if (!empty($score['result_option'])) {
       // Unscored quiz, return the proper result option.
-      $summary['result'] = check_markup($score['result_option'], $quiz->format);
+      $summary['result'] = check_markup($score['result_option']);
     }
     else {
-      $summary['result'] = check_markup(_quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']), $quiz->format);
+      $summary['result'] = check_markup(_quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']));
     }
   }
 
@@ -3247,7 +3247,7 @@ function _quiz_get_summary_text($quiz, $score) {
       $summary['passfail'] = t('The user passed this quiz.');
     }
     elseif (trim($quiz->summary_pass) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->format);
+      $summary['passfail'] = check_markup($quiz->summary_pass);
     }
   }
   // If the user did not pass or we are not using pass/fail.
@@ -3818,8 +3818,9 @@ function quiz_get_quiz_from_menu() {
   if ($to_return = menu_get_object('quiz_type_access', 4)) {
     return $to_return;
   }
+  //TODO: FIX it. This seems to return NULL in feedback page.
   $node = menu_get_object();
-  return $node->type == 'quiz' ? $node : FALSE;
+  return (is_object($node) && $node->type == 'quiz') ? $node : FALSE;
 }
 
 /**
