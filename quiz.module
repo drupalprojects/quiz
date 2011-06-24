@@ -1041,7 +1041,7 @@ function quiz_form(&$node, &$form_state) {
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#default_value' => $node->title,
+    '#default_value' => isset($node->title) ? $node->title : '',
     '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
   );
@@ -1343,7 +1343,7 @@ function quiz_form(&$node, &$form_state) {
       $form['resultoptions'][$i]['option_name'] = array(
         '#type' => 'textfield',
         '#title' => t('The name of the result'),
-        '#default_value' => $option['option_name'],
+        '#default_value' => isset($option['option_name']) ? $option['option_name'] : '',
         '#maxlength' => 40,
         '#size' => 40,
       );
@@ -1351,28 +1351,28 @@ function quiz_form(&$node, &$form_state) {
         '#type' => 'textfield',
         '#title' => t('Percentage Start Range'),
         '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-        '#default_value' => $option['option_start'],
+        '#default_value' => isset($option['option_start']) ? $option['option_start'] : '',
         '#size' => 5,
       );
       $form['resultoptions'][$i]['option_end'] = array(
         '#type' => 'textfield',
         '#title' => t('Percentage End Range'),
         '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-        '#default_value' => $option['option_end'],
+        '#default_value' => isset($option['option_end']) ? $option['option_end'] : '',
         '#size' => 5,
       );
       $form['resultoptions'][$i]['option_summary'] = array(
         '#type' => 'textarea',
         '#title' => t('Display text for the result'),
-        '#default_value' => $option['option_summary'],
+        '#default_value' => isset($option['option_summary']) ? $option['option_summary'] : '',
         '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
       );
       //$form['resultoptions'][$i]['format'] = filter_form($node->format, NULL, array('resultoptions', $i, 'filter_format'));
       _quiz_format_mod($form['resultoptions'][$i]['format']);
-      if ($option['option_id']) {
+      if (isset($option['option_id'])) {
         $form['resultoptions'][$i]['option_id'] = array(
           '#type' => 'hidden',
-          '#value' => $option['option_id'],
+          '#value' => isset($option['option_id']) ? $option['option_id'] : '',
         );
       }
     }
@@ -1394,7 +1394,7 @@ function quiz_form(&$node, &$form_state) {
  * Implements hook_validate().
  */
 function quiz_validate($node) {
-  if (!$node->nid && empty($_POST)) {
+  if (isset($node->nid) && !$node->nid && empty($_POST)) {
     return;
   }
 
@@ -4013,13 +4013,14 @@ function _quiz_load_user_settings(&$node) {
   $query = db_select('quiz_user_settings', 'qus')
     ->fields('qus')
     ->condition('uid', $def_uid);
-  $res = $query->execute()->fetchAll();
+  $res = $query->execute()->fetchAssoc();
   if (!empty($res)) {
     foreach ($res as $key => $value) {
       if (!in_array($key, array('nid', 'vid', 'uid'))) {
         $node->{$key} = $value;
       }
     }
+    // TODO : Reviews this later.
     $node->resultoptions[] = db_select('quiz_node_result_options', 'qnro')
       ->fields('qnro')
       ->condition('nid', $value->nid)
@@ -4048,10 +4049,10 @@ function _quiz_save_user_settings($node) {
   // We're going to use drupal_write_record so we have to set the uid correctly first.
   // This is just temporary. We're not changing the nodes stored uid!
   $node->uid = isset($node->save_def_uid) ? $node->save_def_uid : $user->uid;
+  $node->aid = isset($node->aid) ? $node->aid : '';
   // Are we updating or inserting?
   $res = db_query('SELECT uid FROM {quiz_user_settings} WHERE uid = :uid', array(':uid' => $node->uid));
-  $update = is_numeric($res->fetchField()) ? array('uid') : array();
-
+  $update = is_numeric($res->fetchField()) ? array('uid') : array();  
   drupal_write_record('quiz_user_settings', $node, $update);
   drupal_set_message(t('Default settings have been saved'));
 }

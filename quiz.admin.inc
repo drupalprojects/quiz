@@ -262,12 +262,12 @@ function quiz_admin_node_form($form, &$form_state) {
   // Create a dummy node to use as input for quiz_form
   $dummy_node = new stdClass();
   // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
-  $dummy_node->def_uid = variable_get('quiz_def_uid', NULL);
+  $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
   $additions = _quiz_get_node_defaults();
   foreach ($additions as $key => $value) {
     $dummy_node->{$key} = $value;
   }
-  $form = quiz_form($dummy_node);
+  $form = quiz_form($dummy_node, $form_state);
   $form['direction'] = array(
     '#markup' => t('Here you can change the default quiz settings for new users.'),
     '#weight' => -10,
