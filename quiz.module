@@ -4064,14 +4064,8 @@ function _quiz_save_user_settings($node) {
  *   Quiz node.
  */
 function _quiz_redirect_if_empty($node) {
-  $sql = 'SELECT child_vid
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = %d';
-  $res = db_select('quiz_node_relationship', 'qnr');
-  $res->addField('qnr', 'child_vid');
-  $res->condition('parent_vid', $node->vid);
-  $res = $res->execute()->fetchAll();
-  if (!count($res)) {
+  $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();  
+  if (!is_numeric($res)) {
     $_GET['destination'] = 'node/' . $node->nid . '/questions';
   }
 }
