@@ -273,7 +273,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     $query->fields('a', array('result_id', 'question_nid', 'question_vid'));
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
-    $query->join('node_revisions', 'r', 'a.question_vid = r.vid');
+    $query->join('node_revision', 'r', 'a.question_vid = r.vid');
     $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');
     $query->condition('a.is_evaluated', 0);
