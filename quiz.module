@@ -344,7 +344,7 @@ function quiz_menu() {
 
   // Admin pages.
   $items['admin/quiz'] = array(
-    'title' => '@quiz management',
+    'title' => '@quiz',
     'title arguments' => array('@quiz' => QUIZ_NAME),
     'description' => 'View results, score answers, run reports and edit configurations.',
     'page callback' => 'system_admin_menu_block_page',

@@ -531,8 +531,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     // Add helper tag where we will place the input selector for all the textareas.
     $form['alternatives']['input_format_all'] = array(
-      '#type' => 'markup',
-      '#value' => '<DIV id="input-all-ph"></DIV>',
+      '#markup' => '<DIV id="input-all-ph"></DIV>',
     );
 
     $form['alternatives']['#theme'][] = 'multichoice_creation_form';
@@ -552,7 +551,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'fieldset',
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#collapsible' => TRUE,
-        '#collapsed' => !($i < 2 || isset($short['answer'])),
+        '#collapsed' => !($i < variable_get('multichoice_def_num_of_alts', 2) || isset($short['answer'])),
         // - The two first alternatives won't be collapsed.
         // - Populated alternatives won't be collapsed
       );
