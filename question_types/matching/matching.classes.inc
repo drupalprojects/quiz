@@ -195,7 +195,7 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    $form['#theme'] = 'matching_answering_form';
+    //$form['#theme'] = 'matching_answering_form';
 
     if (isset($rid)) {
       // The question has already been answered. We load the answers
@@ -205,8 +205,7 @@ class MatchingQuestion extends QuizQuestion {
     list($matches, $select_option) = $this->getSubquestions();
     $form['subquestions']['#theme'] = 'matching_subquestion_form';
     foreach ($matches as $match) {
-      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question'], FILTER_FORMAT_DEFAULT, $langcode = '' /* TODO Set this variable. */, FALSE);
-
+      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question']);
       $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
         '#type' => 'select',
         '#options' => $this->customShuffle($select_option),
