@@ -424,11 +424,12 @@ function quiz_question_node_presave($node) {
   foreach ($q_types as $q_type => $info) {
     if ($node->type == $q_type) {
       if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
-        if (drupal_strlen(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE))) > variable_get('quiz_autotitle_length', 50)) {
-          $node->title = drupal_substr(strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE)), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
+        $body = field_get_items('node', $node, 'body');
+        if (drupal_strlen(strip_tags(check_markup($body[0]['value']))) > variable_get('quiz_autotitle_length', 50)) {
+          $node->title = drupal_substr(strip_tags(check_markup($body[0]['value'])), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
         }
         else {
-          $node->title = strip_tags(check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE));
+          $node->title = strip_tags(check_markup($body[0]['value']));
         }
       }
     }

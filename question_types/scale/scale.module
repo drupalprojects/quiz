@@ -184,7 +184,7 @@ function scale_manage_collection_form($form, &$form_state) {
   $form = array();
   if (count($collections) == 0) {
     $form['no_col'] = array(
-      '#value' => t('You don\'t have any preset collections'),
+      '#markup' => t("You don't have any preset collections."),
     );
     return $form;
   }
@@ -195,9 +195,10 @@ function scale_manage_collection_form($form, &$form_state) {
       '#title' => $collections[$col_id]->name,
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
+      '#group' => 'scale_manage_collection_form',
     );
-    $alternatives = $collections[$col_id]->alternatives;
-    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
+    $alternatives = isset($collections[$col_id]->alternatives) ? $collections[$col_id]->alternatives : array();
+    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10) && isset($alternatives[$i]); $i++) {
       $form["collection$col_id"]["alternative$i"] = array(
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#size' => 60,

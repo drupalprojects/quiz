@@ -250,6 +250,7 @@ abstract class QuizQuestion {
         '#collapsed' => TRUE,
         '#weight' => -3,
         '#tree' => TRUE,
+        '#group' => 'additional_settings',
       );
     }
     if ($edit_access) {
@@ -528,7 +529,7 @@ abstract class QuizQuestion {
     /*
      * The quiz question might have been added to new quizzes
      */
-    if (is_array($this->node->add_directly['latest'])) {
+    if (isset($this->node->add_directly['latest']) && is_array($this->node->add_directly['latest'])) {
       $to_insert = 'VALUES';
       $insert_values = array();
       foreach ($this->node->add_directly['latest'] as $nid => $checked) {
