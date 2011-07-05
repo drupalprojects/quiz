@@ -45,14 +45,14 @@ foreach ($options as $key => $value) {
   unset($form[$key]);
 }
 unset($form['#options']);
-print drupal_render($form);
+print drupal_render_children($form);
 
 // We use the stored checkboxes and titles to generate a table for the alternatives
 foreach ($titles as $key => $value) {
   $row = array();
   $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35, 'class' => 'selector-td');
   $row[] = $value;
-  $rows[] = array('data' => $row, 'class' => 'multichoice_row');
+  $rows[] = array('data' => $row, 'class' => array('multichoice_row'));
 }
-print theme('table', NULL, $rows);
+print theme('table', array('header' => array(), 'rows' => $rows));
 ?>

@@ -394,7 +394,7 @@ class MultichoiceQuestion extends QuizQuestion {
      */
     $form['tries[answer]'] = array(
       '#options' => array(),
-      //'#theme' => 'multichoice_alternative',
+      '#theme' => 'multichoice_alternative',
     );
     if (isset($rid)) {
       // This question has already been answered. We load the answer.
@@ -402,7 +402,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
-      $answer_markup = $this->checkMarkup($i, 'answer', FALSE);
+      $answer_markup = check_markup($short['answer'], $short['answer_format']);
       if (drupal_strlen($answer_markup) > 0) {
         $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
       }
@@ -652,7 +652,7 @@ class MultichoiceQuestion extends QuizQuestion {
     // ahah helper tag. New questions will be inserted before this tag
     $form['alternatives']["placeholder"] = array(
       '#type' => 'markup',
-      '#value' => '<DIV id=\'placeholder\'></DIV>',
+      '#value' => '<DIV id="placeholder"></DIV>',
     );
 
     // We can't send the get values to the ahah callback the normal way, so we do it like this.
