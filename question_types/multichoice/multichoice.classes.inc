@@ -109,7 +109,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   private function checkMarkup($alternativeIndex, $field, $check_user_access = TRUE) {
     $alternative = $this->node->alternatives[$alternativeIndex];
-    return check_markup($alternative[$field]);
+    return check_markup($alternative[$field]['value'], $alternative[$field]['format']);
   }
 
   /**
@@ -143,7 +143,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
       // TODO: utilize the benefit of multiple insert of DBTNG
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
-        if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
+        if (drupal_strlen($this->node->alternatives[$i]['answer']['value']) > 0) {
           $this->insertAlternative($i);
         }
       }
@@ -172,7 +172,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = $this->node->alternatives[$i];
-        if (drupal_strlen($this->node->alternatives[$i]['answer']) > 0) {
+        if (drupal_strlen($this->node->alternatives[$i]['answer']['value']) > 0) {
           // If new alternative
           if (!is_numeric($short['id'])) {
             $this->insertAlternative($i);
@@ -207,12 +207,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $alternatives = $this->node->alternatives[$i];
     db_insert('quiz_multichoice_answers')
       ->fields(array(
-        'answer' => $alternatives['answer'],
-        'answer_format' => $alternatives['answer_format'],
-        'feedback_if_chosen' => $alternatives['feedback_if_chosen'],
-        'feedback_if_chosen_format' => $alternatives['feedback_if_chosen_format'],
-        'feedback_if_not_chosen' => $alternatives['feedback_if_not_chosen'],
-        'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen_format'],
+        'answer' => $alternatives['answer']['value'],
+        'answer_format' => $alternatives['answer']['format'],
+        'feedback_if_chosen' => $alternatives['feedback_if_chosen']['value'],
+        'feedback_if_chosen_format' => $alternatives['feedback_if_chosen']['format'],
+        'feedback_if_not_chosen' => $alternatives['feedback_if_not_chosen']['value'],
+        'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen']['format'],
         'score_if_chosen' => $alternatives['score_if_chosen'],
         'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
         'question_nid' => $this->node->nid,
@@ -231,12 +231,12 @@ class MultichoiceQuestion extends QuizQuestion {
     $short = $this->node->alternatives[$i];
     db_update('quiz_multichoice_answers')
       ->fields(array(
-        'answer' => $short['answer'],
-        'answer_format' => $short['answer_format'],
-        'feedback_if_chosen' => $short['feedback_if_chosen'],
-        'feedback_if_chosen_format' => $short['feedback_if_chosen_format'],
-        'feedback_if_not_chosen' => $short['feedback_if_not_chosen'],
-        'feedback_if_not_chosen_format' => $short['feedback_if_not_chosen_format'],
+        'answer' => $short['answer']['value'],
+        'answer_format' => $short['answer']['format'],
+        'feedback_if_chosen' => $short['feedback_if_chosen']['value'],
+        'feedback_if_chosen_format' => $short['feedback_if_chosen']['format'],
+        'feedback_if_not_chosen' => $short['feedback_if_not_chosen']['value'],
+        'feedback_if_not_chosen_format' => $short['feedback_if_not_chosen']['format'],
         'score_if_chosen' => $short['score_if_chosen'],
         'score_if_not_chosen' => $short['score_if_not_chosen'],
       ))
@@ -294,21 +294,19 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
-    //$delete_properties = 'DELETE FROM {quiz_multichoice_properties} WHERE nid = %d';
-    $delete_properties = db_delete('quiz_multichoice_properties')
-      ->condition('nid', $this->node->nid);
+    $delete_properties = db_delete('quiz_multichoice_properties')->condition('nid', $this->node->nid);
+    $delete_answers = db_delete('quiz_multichoice_answers')->condition('question_nid', $this->node->nid);
+    $delete_results = db_delete('quiz_multichoice_user_answers')->condition('question_nid', $this->node->nid);
+
     if ($only_this_version) {
       $delete_properties->condition('vid', $this->node->vid);
-    }
-    $delete_properties->execute();
-
-    //$delete_answers = 'DELETE FROM {quiz_multichoice_answers} WHERE question_nid = %d';
-    $delete_answers = db_delete('quiz_multichoice_answers')
-      ->condition('question_nid', $this->node->nid);
-    if ($only_this_version) {
       $delete_answers->condition('question_vid', $this->node->vid);
+      $delete_results->condition('question_vid', $this->node->vid);
     }
+
+    $delete_properties->execute();
     $delete_answers->execute();
+    $delete_results->execute();
 
     // Delete from table quiz_multichoice_user_answer_multi
     $user_answer_id = array();
@@ -327,15 +325,6 @@ class MultichoiceQuestion extends QuizQuestion {
         ->condition('user_answer_id', $user_answer_id, 'IN')
         ->execute();
     }
-
-    //$delete_results = 'DELETE FROM {quiz_multichoice_user_answers} WHERE question_nid = %d';
-    $delete_results = db_delete('quiz_multichoice_user_answers')
-      ->condition('question_nid', $this->node->nid);
-    if ($only_this_version) {
-      $delete_results->condition('question_vid', $this->node->vid);
-    }
-    $delete_results->execute();
-
     parent::delete($only_this_version);
   }
 
@@ -559,7 +548,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
       if (is_array($short)) {
         if ($short['score_if_chosen'] == $short['score_if_not_chosen']) {
-          $correct_default = $short['correct'];
+          $correct_default = isset($short['correct']) ? $short['correct'] : FALSE;
         }
         else {
           $correct_default = $short['score_if_chosen'] > $short['score_if_not_chosen'];
@@ -581,13 +570,15 @@ class MultichoiceQuestion extends QuizQuestion {
         '#value' => $short['id'],
       );
 
-      $form['alternatives'][$i]["answer"] = array(
-        '#type' => 'textarea',
+      $form['alternatives'][$i]['answer'] = array(
+        '#type' => 'text_format',
+        '#base_type' => 'textarea',
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#default_value' => $short['answer'],
         '#required' => $i < 2,
+        '#format' => isset($short['answer_format']) ? $short['answer_format'] : NULL,
+        '#rows' => 3,
       );
-//      $form['alternatives'][$i]['format'] = filter_form($short['answer_format'], NULL, array('alternatives', $i, 'answer_format'));
 
       $form['alternatives'][$i]['advanced'] = array(
         '#type' => 'fieldset',
@@ -596,21 +587,27 @@ class MultichoiceQuestion extends QuizQuestion {
         '#collapsed' => TRUE,
       );
       $form['alternatives'][$i]['advanced']['feedback_if_chosen'] = array(
-        '#type' => 'textarea',
+        '#type' => 'text_format',
+        '#base_type' => 'textarea',
         '#title' => t('Feedback if chosen'),
         '#description' => t('This feedback is given to users who chooses this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen'],
+        '#format' => isset($short['feedback_if_chosen_format']) ? $short['feedback_if_chosen_format'] : NULL,
+        '#rows' => 3,
       );
       //$form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_chosen_format'));
       // We add 'helper' to trick the current version of the wysiwyg module to add an editor to several
       // textareas in the same fieldset
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
-        '#type' => 'textarea',
+        '#type' => 'text_format',
+        '#base_type' => 'textarea',
         '#title' => t('Feedback if not chosen'),
         '#description' => t('This feedback is given to users who doesn\'t choose this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen'],
+        '#format' => isset($short['feedback_if_not_chosen_format']) ? $short['feedback_if_not_chosen_format'] : NULL,
+        '#rows' => 3,
       );
       //$form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
 
@@ -837,7 +834,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
         'choice_order' => $this->choice_order
       ))
       ->execute();
-    
+
     $query = db_insert('quiz_multichoice_user_answer_multi')
       ->fields(array('user_answer_id', 'answer_id'));
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
