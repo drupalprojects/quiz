@@ -152,7 +152,7 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_answering_form($form, $form_state, $node, $include_nid_in_id = FALSE) {
   $question = _quiz_question_get_instance($node);
-  $form = $question->getAnsweringForm($form_state, isset($node->rid) ? $node->rid : NULL);  
+  $form = $question->getAnsweringForm($form_state, isset($node->rid) ? $node->rid : NULL);
   $quiz = quiz_type_access_load(arg(1));
 
   $form['#attributes']['class'] = array('answering-form');
@@ -199,7 +199,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
  * @return
  *  Content array
  */
-function _quiz_question_teaser_content($node) {    
+function _quiz_question_teaser_content($node) {
   $content['question_type'] = array(
     '#markup' => '<div class="question_type_name">' . node_type_get_type($node)->name . '</div>',
     '#weight' => -100,
@@ -489,19 +489,19 @@ function quiz_question_view($node, $view_mode) {
     return $node;
   }
   $content = '';
-  
+
   if (_quiz_is_taking_context()) {
     /*
      * @todo: I see no reason why this should be a part of view anymore.
      * In quiz 5 we should stop using hook_view to view the answering form
      */
     //print_r(drupal_get_form('quiz_question_answering_form', $node));exit;
-    $form_markup = drupal_render(drupal_get_form('quiz_question_answering_form', $node));    
+    $form_markup = drupal_render(drupal_get_form('quiz_question_answering_form', $node));
     if (!empty($form_markup)) {
       $node->content['body']['#markup'] = $form_markup;
     }
   }
-  elseif ($view_mode == 'teaser') {    
+  elseif ($view_mode == 'teaser') {
     $node->content['question_teaser'] = _quiz_question_teaser_content($node);
   }
   else {
@@ -581,11 +581,11 @@ function _quiz_delete_question(&$node, $only_this_version) {
  */
 function quiz_question_load($nodes) {
   foreach ($nodes as $nid => &$node) {
-    $node_additions = _quiz_question_get_instance($node, TRUE)->getNodeProperties();    
+    $node_additions = _quiz_question_get_instance($node, TRUE)->getNodeProperties();
     foreach ($node_additions as $property => &$value) {
       $node->$property = $value;
     }
-  }  
+  }
 }
 
 // END NODE API
@@ -856,17 +856,26 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
   $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
-    $sql = 'SELECT qnr.max_score FROM {quiz_node_relationship} qnr
-            JOIN {quiz_node_results} qnres ON (qnres.vid = qnr.parent_vid)
-            WHERE qnr.child_vid = :child_vid';
-    $qnr_max_score = db_query($sql, array(':child_vid' => $question->vid, ':result_id' => $answer['result_id']))->fetchField();
-    if ($qnr_max_score == 0) {
-      $weight = 0;
+    $vid = db_query('SELECT vid FROM {quiz_node_results}
+      WHERE result_id = :rid',
+      array(':rid' => $answer['result_id']))
+      ->fetchField();
+
+    $qnr_max_score = db_query('SELECT qnr.max_score FROM {quiz_node_relationship} qnr
+      WHERE qnr.child_vid = :child_vid AND qnr.parent_vid = :parent_vid',
+      array(':child_vid' => $question->vid, ':parent_vid' => $vid))
+      ->fetchField();
+
+    if ($qnr_max_score === FALSE) {
+      $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_node_results} qnr
+         JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id)
+         JOIN {quiz_terms} qt ON (qt.vid = qnr.vid AND qt.tid = qnra.tid)
+         WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid',
+        array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
+        ->fetchField();
     }
-    else {
-      $weight = $qnr_max_score / $response_instance->question->max_score;
-    }
-    $response_instance->question->score_weight = $weight;
+
+    $response_instance->question->score_weight = ($qnr_max_score == 0) ? 0 : ($qnr_max_score / $response_instance->question->max_score);
   }
 
   return $response_instance->getReportForm($showpoints, $showfeedback, $allow_scoring);
