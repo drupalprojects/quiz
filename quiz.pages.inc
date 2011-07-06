@@ -608,7 +608,7 @@ function theme_quiz_single_question_node($variables) {
   $node = $variables['question_node'];
   // This might seem meaningless, but it is designed this way to allow themes to add more
   // meaningful stuff here...
-  return drupal_render($node->body) . drupal_render($node->content);
+  return drupal_render($node->body) . drupal_render($node->content['body']);
 }
 
 /**
