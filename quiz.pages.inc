@@ -12,12 +12,12 @@
  *  Result id
  */
 function quiz_user_results($result_id) {
-  global $user;  
+  global $user;
   $result = db_query('SELECT qnp.nid, qnp.vid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     WHERE qnrs.result_id = :rid', array(':rid' => $result_id))->fetch();
-    
+
   if ($result->nid) {
     // User can view own results (quiz_menu sets access to 'own results').
     // User with role 'user results' can view other user's results.
@@ -256,7 +256,7 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
  *  HTML output for page.
  */
 function quiz_get_user_results($uid) {
-  $results = array();  
+  $results = array();
   $dbresult = db_query('SELECT DISTINCT(n.nid), n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
     INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
@@ -265,7 +265,7 @@ function quiz_get_user_results($uid) {
     WHERE n.type = :type
       AND u.uid = :uid
     ORDER BY qnrs.result_id ASC', array(':type' => 'quiz', ':uid' => $uid));
-  
+
   // Create an array out of the results.
   foreach ($dbresult as $result) {
     $result = (array) $result;
@@ -443,7 +443,7 @@ function theme_quiz_score_incorrect() {
  *
  * @ingroup themeable
  */
-function theme_quiz_progress($variables) {  
+function theme_quiz_progress($variables) {
   $question_number = $variables['question_number'];
   $num_of_question = $variables['num_questions'];
   // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
@@ -556,7 +556,7 @@ function theme_quiz_take_summary($variables) {
  *
  * @ingroup themeable
  */
-function theme_quiz_user_summary($variables) {  
+function theme_quiz_user_summary($variables) {
   $quiz = $variables['quiz'];
   $questions = $variables['questions'];
   $score = $variables['score'];
@@ -579,7 +579,7 @@ function theme_quiz_user_summary($variables) {
   if (isset($summary['result'])) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
-  // Get the feedback for all questions.  
+  // Get the feedback for all questions.
   $output .= drupal_render_children(drupal_get_form('quiz_report_form', $questions, FALSE, TRUE));
   return $output;
 }
