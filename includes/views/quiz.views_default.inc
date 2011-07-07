@@ -2,10 +2,13 @@
 
 /*
  * @file
- * Handles Default views.
- * // Declare all the .view files in the views subdir that end in .view
+ * Handles default views.
+ * Reads views from all the .view.inc files in the views/defaults directory.
  */
 
+/**
+ * Implements hook_views_default_views().
+ */
 function quiz_views_default_views() {
   $files = file_scan_directory(QUIZ_VIEWS_DIR . '/defaults', '/\.view\.inc$/');
 
