@@ -1872,7 +1872,8 @@ function quiz_take_quiz($quiz) {
       $path = drupal_get_path('module', 'quiz');
       require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
       if ($report) {
-        $_SESSION['quiz_' . $quiz->nid]['feedback'] = rawurlencode(drupal_get_form('quiz_report_form', array($report)));
+        $report_form = drupal_get_form('quiz_report_form', array($report));
+        $_SESSION['quiz_' . $quiz->nid]['feedback'] = rawurlencode(drupal_render($report_form));
       }
     }
     if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
@@ -1915,7 +1916,7 @@ function quiz_take_quiz($quiz) {
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
     if (!$module) {
-      return array('body' => array('#value' => ' '));
+      return array('body' => array('#markup' => ' '));
     }
     $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_' . $quiz->nid]['result_id']);
 
