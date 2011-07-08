@@ -8,10 +8,6 @@
  * - $form
  */
 
-// Add js
-$p = drupal_get_path('module', 'quiz') .'/theme/';
-drupal_add_js($p .'quiz_question_browser.js', 'module');
-
 // We need to separate the title and the checkbox. We make a custom options array...
 $full_options = array();
 foreach ($form['titles']['#options'] as $key => $value) {

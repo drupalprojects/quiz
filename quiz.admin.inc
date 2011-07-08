@@ -824,6 +824,8 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
+  $form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
+
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
 
@@ -1270,7 +1272,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#type' => 'hidden',
     '#default_value' => '',
   );
-  
+
   //Build filter part of form:
   _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
 
@@ -1724,7 +1726,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 function _quiz_question_browser_submit($form, &$form_state) {
   // Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
-  
+
   // Save the active filters in $_SESSION
   $filters = $form_state['values']['browser']['table']['filters'];
   _quiz_browser_store_filters($filters);
