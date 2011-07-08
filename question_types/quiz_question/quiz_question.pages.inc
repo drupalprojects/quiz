@@ -40,21 +40,19 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
     }
   }
   $quizzes = array();
-  $sql = "SELECT nr.nid, nr.vid, nr.title, n.status
-          FROM {node_revisions} nr
+  $sql = 'SELECT nr.nid, nr.vid, nr.title, n.status FROM {node_revision} nr
           JOIN {node} n ON n.nid = nr.nid
-          WHERE nr.vid IN (" . implode(',', $quiz_vids) . ")";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $res = db_query($sql);
-  while ($res_o = db_fetch_object($res)) {
+          WHERE nr.vid IN (:vids)';
+  $res = db_query($sql, array(':vids' => $quiz_vids));
+  //while ($res_o = db_fetch_object($res)) {
+  foreach ($res as $res_o) {
     $res_o->answered = quiz_has_been_answered($res_o);
     $quizzes[] = $res_o;
   }
 
   $text = t('You have created a new revision of a question that belongs to %num quizzes. Choose what you want to do with the different quizzes.', array('%num' => count($quizzes)));
   $form['intro'] = array(
-    '#type' => 'markup',
-    '#value' => $text,
+    '#markup' => $text,
   );
   $form['quizzes'] = array();
   // Create a form element for each quiz
@@ -196,62 +194,50 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
     }
 
     if ($update == '1') {
-      $sql = 'SELECT max_score
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = %d
-              AND child_nid = %d';
-      $res = db_query('SELECT max_score
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = :parent_vid
-              AND child_nid = :child_nid', array(':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
+      $res = db_query('SELECT max_score FROM {quiz_node_relationship}
+              WHERE parent_vid = :parent_vid AND child_nid = :child_nid',
+              array(':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
       if ($max_score = $res->fetchField()) {
       }
       else {
-        $sql = 'SELECT max_score
-                FROM {quiz_question_properties}
-                WHERE vid = %d';
-        $res = db_query('SELECT max_score
-                FROM {quiz_question_properties}
+        $res = db_query('SELECT max_score FROM {quiz_question_properties}
                 WHERE vid = :vid', array(':vid' => $form_state['values']['q_vid']));
         $max_score = $res->fetchField();
       }
 
-
-      $sql = 'SELECT weight, question_status
-              FROM {quiz_node_relationship}
-              WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-      $res = db_query('SELECT weight, question_status
-              FROM {quiz_node_relationship}
-              WHERE parent_nid = :parent_nid AND parent_vid = :parent_vid AND child_nid = :child_nid', array(':parent_nid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
-      if ($res_o = db_fetch_object($res)) {
+      $res = db_query('SELECT weight, question_status FROM {quiz_node_relationship}
+              WHERE parent_nid = :parent_nid AND parent_vid = :parent_vid AND child_nid = :child_nid',
+              array(':parent_nid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
+      if ($res_o = $res->fetch()) {
         // Remove old revsions of the question from the quiz
-        $sql = 'DELETE FROM {quiz_node_relationship}
-                WHERE parent_nid = %d AND parent_vid = %d AND child_nid = %d';
-        // TODO Please review the conversion of this statement to the D7 database API syntax.
-        /* db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid']) */
         db_delete('quiz_node_relationship')
-  ->condition('parent_nid', $quiz_nid)
-  ->condition('parent_vid', $quiz_vid)
-  ->condition('child_nid', $form_state['values']['q_nid'])
-  ->execute();
+          ->condition('parent_nid', $quiz_nid)
+          ->condition('parent_vid', $quiz_vid)
+          ->condition('child_nid', $form_state['values']['q_nid'])
+          ->execute();
         $weight = $res_o->weight;
         $question_status = $res_o->question_status;
       }
       else {
-        $weight = 1 + db_query('SELECT MAX(weight)
-                    FROM {quiz_node_relationship}
+        $weight = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship}
                     WHERE parent_vid = :parent_vid', array())->fetchField();
-        $quiz_randomization = db_query('SELECT randomization
-                    FROM quiz_node_properties
+        $quiz_randomization = db_query('SELECT randomization FROM {quiz_node_properties}
                     WHERE nid = :nid AND vid = :vid', array())->fetchField();
         $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
       }
       // Insert the newest revision of the question into the quiz
-      $sql = 'INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
-              VALUES(%d, %d, %d, %d, %d, %d, %d)';
-      // TODO Please convert this statement to the D7 database API syntax.
-      /* db_query($sql, $quiz_nid, $quiz_vid, $form_state['values']['q_nid'], $form_state['values']['q_vid'], $max_score, $weight, $question_status) */
-      NULL;
+      $insert_qnr = db_insert('quiz_node_relationship')
+        ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status'))
+        ->values(array(
+          'parent_nid' => $quiz_nid,
+          'parent_vid' => $quiz_vid,
+          'child_nid' => $form_state['values']['q_nid'],
+          'child_vid' => $form_state['values']['q_vid'],
+          'max_score' => $max_score,
+          'weight' => $weight,
+          'question_status' => $question_status
+        ))
+        ->execute();
     }
   }
 }

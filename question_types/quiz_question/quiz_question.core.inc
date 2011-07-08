@@ -547,62 +547,44 @@ abstract class QuizQuestion {
             drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
-          // We build one sql query to insert multiple rows into the relationship table
-          if (count($insert_values) > 0) {
-            $to_insert .= ',';
-          }
-          $to_insert .= ' (%d, %d, %d, %d, %d, %d, %d)';
-          $insert_values[] = $nid_vid[0];
-          $insert_values[] = $nid_vid[1];
-          $insert_values[] = $this->node->nid;
-          $insert_values[] = $this->node->vid;
-          $insert_values[] = $this->getMaximumScore();
-          $insert_values[] = 1 + db_query('
-              SELECT MAX(weight)
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = %d
-            ', $nid_vid[1])->fetchField();
-          $randomization = db_query('
-              SELECT randomization
-              FROM {quiz_node_properties}
-              WHERE nid = %d AND vid = %d
-            ', $nid_vid[0], $nid_vid[1])->fetchField();
-          $insert_values[] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+          $insert_values[$nid]['parent_nid'] = $nid_vid[0];
+          $insert_values[$nid]['parent_vid'] = $nid_vid[1];
+          $insert_values[$nid]['child_nid'] = $this->node->nid;
+          $insert_values[$nid]['child_vid'] = $this->node->vid;
+          $insert_values[$nid]['max_score'] = $this->getMaximumScore();
+          $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
+          $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
+          $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
-          // We also delete multiple rows from the table...
-          $delete_values[] = $nid_vid[1];
-          $delete_values[] = $this->node->nid;
-          $delete_sqls[] = '(parent_vid = %d AND child_nid = %d)';
+          $delete_values[] = array('vid' => $nid_vid[1], 'nid' => $this->node->nid);
         }
       }
       if (count($insert_values) > 0) {
-        $sql = 'DELETE FROM {quiz_node_relationship}
-                WHERE ' . implode(' OR ', $delete_sqls);
-        // TODO Please convert this statement to the D7 database API syntax.
-        db_query($sql, $delete_values);
-        $sql = 'INSERT INTO {quiz_node_relationship}
-                (parent_nid, parent_vid, child_nid, child_vid, max_score, weight, question_status)
-                ' . $to_insert;
-        // TODO Please convert this statement to the D7 database API syntax.
-        db_query($sql, $insert_values);
+        foreach ($delete_values as $delete_value) {
+          $delete_qnr = db_delete('quiz_node_relationship');
+          $delete_qnr->condition('parent_vid', $delete_value['vid']);
+          $delete_qnr->condition('child_nid', $delete_value['nid']);
+          $delete_qnr->execute();
+        }
+        $insert_qnr = db_insert('quiz_node_relationship');
+        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status'));
+        foreach ($insert_values as $insert_value) {
+          $insert_qnr->values($insert_value);
+        }
+        $insert_qnr->execute();
       }
     }
     if (drupal_strlen($this->node->add_directly['new']) > 0) {
       $new_node = quiz_make_new($this->node->add_directly['new']);
-      $sql = 'INSERT INTO {quiz_node_relationship}
-              (parent_nid, parent_vid, child_nid, child_vid, max_score)
-              VALUES (%d, %d, %d, %d, %d)';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, $new_node->nid, $new_node->vid, $this->node->nid, $this->node->vid, $this->getMaximumScore()) */
       $id = db_insert('quiz_node_relationship')
-  ->fields(array(
-    'parent_nid' => $new_node->nid,
-    'parent_vid' => $new_node->vid,
-    'child_nid' => $this->node->nid,
-    'child_vid' => $this->node->vid,
-    'max_score' => $this->getMaximumScore(),
-  ))
-  ->execute();
+      ->fields(array(
+        'parent_nid' => $new_node->nid,
+        'parent_vid' => $new_node->vid,
+        'child_nid' => $this->node->nid,
+        'child_vid' => $this->node->vid,
+        'max_score' => $this->getMaximumScore(),
+      ))
+      ->execute();
       $quizzes_to_update[] = $new_node->vid;
     }
     quiz_update_max_score_properties($quizzes_to_update);
@@ -880,7 +862,7 @@ abstract class QuizQuestionResponse {
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     $field = field_get_items('node', node_load($this->question->nid), 'body');
-    return array('#markup' => $field[0]['safe_value']);    
+    return array('#markup' => $field[0]['safe_value']);
   }
 
   /**
