@@ -2259,13 +2259,14 @@ function quiz_store_question_result($quiz, $result, $options) {
     $sql .= ')';
     db_query($sql, $args);
     */
+
      $insert = db_insert('quiz_node_results_answers')
       ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped',    'number', 'tid'))
       ->values(array(
         'question_nid' => $result->nid,
         'question_vid' => $result->vid,
         'result_id' => $result->rid,
-        'is_correct' => $result->is_correct,
+        'is_correct' => (int) $result->is_correct,
         'points_awarded' => $points,
         'answer_timestamp' => REQUEST_TIME,
         'is_skipped' => (int) $result->is_skipped,
