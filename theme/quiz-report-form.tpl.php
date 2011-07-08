@@ -57,4 +57,4 @@ foreach ($form as $key => $sub_form):
 <?php endforeach; ?>
 </dl>
 
-<div style="float:right;"><?php print drupal_render($form);?></div>
+<div style="float:right;"><?php print drupal_render_children($form);?></div>
