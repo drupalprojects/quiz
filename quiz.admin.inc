@@ -1639,10 +1639,9 @@ function quiz_questions_form_submit($form, &$form_state) {
   $max_scores = $form_state['values']['max_scores'];
   $refreshes = isset($form_state['values']['revision']) ? $form_state['values']['revision'] : NULL;
   $stayers = $form_state['values']['stayers'];
-  if (isset($form_state['values']['compulsories'])) {
-    $compulsories = $form_state['values']['compulsories'];
-  }
-  $num_random = $form_state['values']['num_random_questions'];
+  $compulsories = isset($form_state['values']['compulsories']) ? $form_state['values']['compulsories'] : NULL;
+
+  $num_random = isset($form_state['values']['num_random_questions']) ? $form_state['values']['num_random_questions'] : 0;
 
 
   $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random'] : 1;
@@ -1677,7 +1676,6 @@ function quiz_questions_form_submit($form, &$form_state) {
     }
   }
 
-  $success = TRUE; // since we got this far
   if ($quiz->type == 'quiz') {
     // Update the quiz node properties.
     $success = db_update('quiz_node_properties')
@@ -1703,7 +1701,7 @@ function quiz_questions_form_submit($form, &$form_state) {
       ->execute();
   }
 
-  if ($success && $success2) {
+  if (isset($success) && isset($success2)) {
     drupal_set_message(t('Questions updated successfully.'));
   }
   else {

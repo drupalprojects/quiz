@@ -2993,25 +2993,23 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
     return TRUE; // This is not an error condition.
   }
 
-  // Now we do an insert of everything in the quiz. (Note that we are using a
-  // subselect to get the most recent vid.)
-  $refresh_sql = "INSERT INTO {quiz_node_relationship}
-                  (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-                  VALUES (%d, %d, %d, (SELECT vid FROM {node} WHERE nid = %d), %d, %d, %d)";
-
+  $qnr_insert = db_insert('quiz_node_relationship')
+    ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'));
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
-      if ($question->refresh) {
-        // @todo DBTNG Doesn't support this query. Rewrite it?
-        $result = db_query($refresh_sql, $quiz->nid, $quiz->vid, $question->nid, $question->nid, $question->state, $question->weight, $question->max_score);
-      }
-      else {
-        db_insert('quiz_node_relationship')
-          ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
-          ->values(array($quiz->nid, $quiz->vid, $question->nid, $question->vid, $question->state, $question->weight, $question->max_score))
-          ->execute();
-      }
+      $qnr_insert->values(array(
+        'parent_nid' => $quiz->nid,
+        'parent_vid' => $quiz->vid,
+        'child_nid' => $question->nid,
+        'child_vid' => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
+        'question_status' => $question->state,
+        'weight' => $question->weight,
+        'max_score' => (int) $question->max_score,
+      ));
     }
+  }
+  if (count($questions)) {
+    $qnr_insert->execute();
   }
   quiz_update_max_score_properties(array($quiz->vid));
   return TRUE;
