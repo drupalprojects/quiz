@@ -204,61 +204,68 @@ var Quiz = Quiz || {inputEnabled:true};
 /**
  * Adding behavior. Behaviors are called everytime a page is refreshed fully or through ahah.
  */
-Drupal.behaviors.attachRemoveAction = function () {
-  $('.rem-link:not(.attachRemoveAction-processed)')
-  .addClass('attachRemoveAction-processed')
-  .click(function (e) {
-    var $this = $(this);
-    var remID = $this.parents('tr').attr('id');
-    var matches = remID.match(/[0-9]+-[0-9]+/);
-    if (!matches || matches.length < 1) {
-      return false;
+(function ($) {
+  Drupal.behaviors.attachRemoveAction = {
+    attach: function (context, settings) {
+      $('.rem-link:not(.attachRemoveAction-processed)')
+      .addClass('attachRemoveAction-processed')
+      .click(function (e) {
+        var $this = $(this);
+        var remID = $this.parents('tr').attr('id');
+        var matches = remID.match(/[0-9]+-[0-9]+/);
+        if (!matches || matches.length < 1) {
+          return false;
+        }
+        Quiz.fixColorAndWeight($this.parents('tr'));
+
+        //Hide the question
+        $this.parents('tr').addClass('hidden-question');
+
+        // Mark the question as removed
+        $('#edit-stayers-' + matches[0]).attr('checked', false);
+
+        // Uncheck the question in the browser
+        $('#browser-'+ matches[0]).click();
+
+        var table = Drupal.tableDrag['question-list'];
+        if (!table.changed) {
+          table.changed = true;
+          $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
+        }
+
+        e.preventDefault();
+        return true;
+      });
     }
-    Quiz.fixColorAndWeight($this.parents('tr'));
-
-    //Hide the question
-    $this.parents('tr').addClass('hidden-question');
-
-    // Mark the question as removed
-    $('#edit-stayers-' + matches[0]).attr('checked', false);
-
-    // Uncheck the question in the browser
-    $('#browser-'+ matches[0]).click();
-
-    var table = Drupal.tableDrag['question-list'];
-    if (!table.changed) {
-      table.changed = true;
-      $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
-    }
-
-    e.preventDefault();
-    return true;
-  });
-};
-
-// This is only called once, not on ajax refreshes...
-$(document).ready(function () {
-
-  // There are some problems with table headers and ajax. We try to reduce those problems here...
-  var oldTableHeader = Drupal.behaviors.tableHeader;
-  Drupal.behaviors.tableHeader = function(context) {
-    if (!$('table.sticky-enabled', context).size()) {
-	  return;
-	}
-    oldTableHeader(context);
   };
+})(jQuery);
 
-  // If a browser row is selected make sure it gets marked.
-  $('.quiz_question_browser_row:has(:checkbox:checked)').each(function() {
-    $(this).click();
-  });
 
-  // If validation of the form fails questions added using the browser will become invisible.
-  // We fix this problem here:
-  $('.q-row').each(function() {
-    if ($('.q-staying', $(this)).attr('checked')) $(this).removeClass('hidden-question');
+(function ($) {
+  // This is only called once, not on ajax refreshes...
+  $(document).ready(function () {
+
+    // There are some problems with table headers and ajax. We try to reduce those problems here...
+    var oldTableHeader = Drupal.behaviors.tableHeader;
+    Drupal.behaviors.tableHeader = function(context) {
+      if (!$('table.sticky-enabled', context).size()) {
+      return;
+    }
+      oldTableHeader(context);
+    };
+
+    // If a browser row is selected make sure it gets marked.
+    $('.quiz_question_browser_row:has(:checkbox:checked)').each(function() {
+      $(this).click();
+    });
+
+    // If validation of the form fails questions added using the browser will become invisible.
+    // We fix this problem here:
+    $('.q-row').each(function() {
+      if ($('.q-staying', $(this)).attr('checked')) $(this).removeClass('hidden-question');
+    });
   });
-});
+})(jQuery);
 
 /**
  * Adds new rows to the browser. This function is called from a inline js added to the page using ahah.
@@ -339,6 +346,7 @@ Quiz.updatePageInUrl = function(myUrl) {
  * @param newest
  *   The row that last was added to the question list(jQuery object)
  */
+(function ($) {
 Quiz.fixColorAndWeight = function(newest) {
   var nextClass = 'odd';
   var lastClass = 'even';
@@ -346,23 +354,25 @@ Quiz.fixColorAndWeight = function(newest) {
   var lastQuestion = null;
   var numQRows = 0;
 
-  $('.q-row').each(function() {
-    if (!$(this).hasClass('hidden-question') && $(this).attr('id') != newest.attr('id')) {
-      // Color:
-      numQRows++;
-      if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
-      var currentClass = nextClass;
-      nextClass = lastClass;
-      lastClass = currentClass;
-      lastQuestion = $(this);
 
-      // Weight:
-      var myId = Quiz.findNidVidString($(this).attr('id') + '');
-      var weightField = $('#edit-weights-' + myId);
-      weightField.val(lastWeight);
-      lastWeight++;
-    }
-  });
+    $('.q-row').each(function() {
+      if (!$(this).hasClass('hidden-question') && $(this).attr('id') != newest.attr('id')) {
+        // Color:
+        numQRows++;
+        if (!$(this).hasClass(nextClass)) $(this).removeClass(lastClass).addClass(nextClass);
+        var currentClass = nextClass;
+        nextClass = lastClass;
+        lastClass = currentClass;
+        lastQuestion = $(this);
+
+        // Weight:
+        var myId = Quiz.findNidVidString($(this).attr('id') + '');
+        var weightField = $('#edit-weights-' + myId);
+        weightField.val(lastWeight);
+        lastWeight++;
+      }
+    });
+
 
   if (numQRows < 2) return;
 
@@ -383,6 +393,7 @@ Quiz.fixColorAndWeight = function(newest) {
     $(Drupal.theme('tableDragChangedWarning')).insertAfter(table.table).hide().fadeIn('slow');
   }
 };
+}(jQuery));
 
 /**
  * Finds and returns the part of a string holding the nid and vid
@@ -394,6 +405,7 @@ Quiz.findNidVidString = function(str) {
   var pattern = new RegExp('[0-9]+-[0-9]+');
   return pattern.exec(str);
 };
+
 
 /**
  * Adds question rows to the question list
