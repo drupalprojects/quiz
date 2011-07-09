@@ -540,7 +540,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'fieldset',
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#collapsible' => TRUE,
-        '#collapsed' => !($i < variable_get('multichoice_def_num_of_alts', 2) || isset($short['answer'])),
+        '#collapsed' => FALSE,
         // - The two first alternatives won't be collapsed.
         // - Populated alternatives won't be collapsed
       );
@@ -651,8 +651,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     // ahah helper tag. New questions will be inserted before this tag
     $form['alternatives']["placeholder"] = array(
-      '#type' => 'markup',
-      '#value' => '<DIV id="placeholder"></DIV>',
+      '#markup' => '<div id="placeholder"></div>',
     );
 
     // We can't send the get values to the ahah callback the normal way, so we do it like this.
@@ -665,8 +664,9 @@ class MultichoiceQuestion extends QuizQuestion {
       '#type' => 'submit',
       '#value' => t('Add more alternatives'),
       '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
-      '#ahah' => array(
-        'path' => 'node/add/multichoice/add_alternative_ahah',
+      '#limit_validation_errors' => array(),
+      '#ajax' => array(
+        'callback' => 'multichoice_add_alternative_ajax_callback',
         'wrapper' => 'placeholder',
         'effect' => 'slide',
         'method' => 'before',
