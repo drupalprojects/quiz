@@ -33,7 +33,7 @@ function quiz_stats_revision_selector_page($quiz) {
   }
   else {
     $content = array();
-    $content['explanation'] = t('There are !num revisions of this quiz that has been taken.
+    $content['explanation'] = t('There are !num revisions of this quiz that have been taken.
     Different revisions may have different scoring, difficulity and other differences affecting its statistics.
     Because of this you have to choose the revision you want to see statistics from.', array('!num' => $count));
     $content['links'] = array();
