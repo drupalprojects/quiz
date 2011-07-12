@@ -907,8 +907,8 @@ function quiz_load($nodes) {
     $query->condition('nid', $node->nid);
     $query->condition('vid', $node->vid);
     $options = $query->execute();
-    foreach ($options->fetchAssoc() as $option) {
-      $additions->resultoptions[$option['option_id']] = $option;
+    foreach ($options as $option) {
+      $additions->resultoptions[$option->option_id] = (array) $option;
     }
 
     foreach ($additions as $property => &$value) {
