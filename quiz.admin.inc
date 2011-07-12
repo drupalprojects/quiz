@@ -771,7 +771,7 @@ function _quiz_search_terms($start, $all = FALSE) {
     return $terms;
   }
   $sql = "SELECT t.name, t.tid
-          FROM term_data t
+          FROM {term_data} t
           WHERE vid IN (" . db_placeholders($sql_args) . ")";
   if (!$all) {
     $sql .= " AND t.name LIKE '%%%s%%'";
