@@ -1364,7 +1364,7 @@ function quiz_form(&$node, &$form_state) {
         '#title' => t('Display text for the result'),
         '#default_value' => isset($option['option_summary']) ? $option['option_summary'] : '',
         '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
-        '#format' => isset($option['option_summary_format']) ? $option['option_summary_format'] : '',
+        '#format' => isset($option['option_summary_format']) ? $option['option_summary_format'] : NULL,
       );
       if (isset($option['option_id'])) {
         $form['resultoptions'][$i]['option_id'] = array(
@@ -3228,9 +3228,7 @@ function _quiz_update_resultoptions($node) {
  * @return
  *   Filtered summary text or null if we are not displaying any summary.
  */
-function _quiz_get_summary_text($quiz, $score) {
-  $summary = array();
-
+function _quiz_get_summary_text($quiz, $score) {  $summary = array();
   $admin = (arg(0) == 'admin');
   if (!$admin) {
     if (!empty($score['result_option'])) {
@@ -3238,7 +3236,8 @@ function _quiz_get_summary_text($quiz, $score) {
       $summary['result'] = check_markup($score['result_option']);
     }
     else {
-      $summary['result'] = check_markup(_quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']));
+      $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
+      $summary['result'] = check_markup($result_option->option_summary, $result_option->option_summary_format);
     }
   }
 
@@ -3249,7 +3248,7 @@ function _quiz_get_summary_text($quiz, $score) {
       $summary['passfail'] = t('The user passed this quiz.');
     }
     elseif (trim($quiz->summary_pass) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_pass);
+      $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->summary_pass_format);
     }
   }
   // If the user did not pass or we are not using pass/fail.
@@ -3265,7 +3264,7 @@ function _quiz_get_summary_text($quiz, $score) {
       }
     }
     elseif (trim($quiz->summary_default) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_default, $quiz->format);
+      $summary['passfail'] = check_markup($quiz->summary_default, $quiz->summary_default_format);
     }
   }
   return $summary;
@@ -3285,11 +3284,10 @@ function _quiz_get_summary_text($quiz, $score) {
  *   Summary text for the user's score.
  */
 function _quiz_pick_result_option($qnid, $qvid, $score) {
-  return db_query('SELECT option_summary
-       FROM {quiz_node_result_options}
-       WHERE nid = :nid
-       AND vid = :vid
-       AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score))->fetchField();
+  return db_query('SELECT option_summary, option_summary_format FROM {quiz_node_result_options}
+      WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end',
+      array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
+    )->fetch();
 }
 
 /**
