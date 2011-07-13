@@ -596,7 +596,6 @@ class MultichoiceQuestion extends QuizQuestion {
         '#format' => isset($short['feedback_if_chosen_format']) ? $short['feedback_if_chosen_format'] : NULL,
         '#rows' => 3,
       );
-      //$form['alternatives'][$i]['advanced']['format'] = filter_form($short['feedback_if_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_chosen_format'));
       // We add 'helper' to trick the current version of the wysiwyg module to add an editor to several
       // textareas in the same fieldset
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
@@ -609,12 +608,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#format' => isset($short['feedback_if_not_chosen_format']) ? $short['feedback_if_not_chosen_format'] : NULL,
         '#rows' => 3,
       );
-      //$form['alternatives'][$i]['advanced']['helper']['format'] = filter_form($short['feedback_if_not_chosen_format'], NULL, array('alternatives', $i, 'feedback_if_not_chosen_format'));
-
       $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
-      if (!isset($default_value)) {
-        $default_value = '0';
-      }
       $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
         '#type' => 'textfield',
         '#title' => t('Score if chosen'),

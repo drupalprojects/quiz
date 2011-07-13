@@ -92,22 +92,6 @@ abstract class QuizQuestion {
     // hide the revion fieldset if the user don't have permission to controll the revisioning manually.
     $form['#quiz_check_revision_access'] = TRUE;
 
-    /*
-    $form['body_field']['body'] = array(
-      '#type' => 'textarea',
-      '#title' => $this->getBodyFieldTitle(),
-      '#description' => t('Enter the full text of the question that will be shown to the user. Include any special instructions on how to answer.'),
-      '#default_value' => $this->node->body,
-      '#required' => TRUE,
-      '#weight' => -15,
-    );
-
-    // process up the filter format
-    $form['body_field']['format'] = filter_form($this->node->format);
-    $form['body_field']['format']['#weight'] = -14;
-    $form['body_field']['#weight'] = -15;
-    */
-
     // Allow user to set title?
     if (user_access('edit question titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';

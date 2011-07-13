@@ -805,8 +805,18 @@ function quiz_schema() {
       'summary_pass' => array(
         'type' => 'text',
       ),
+      'summary_pass_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
       'summary_default' => array(
         'type' => 'text',
+      ),
+      'summary_default_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
       ),
       'randomization' => array(
         'type' => 'int',
@@ -1159,6 +1169,11 @@ function quiz_schema() {
       ),
       'option_summary' => array(
         'type' => 'text',
+      ),
+      'option_summary_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
       ),
       'option_start' => array(
         'type' => 'int',
