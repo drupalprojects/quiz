@@ -34,6 +34,6 @@ _quiz_stats_print_chart($charts['top_scorers']);
 _quiz_stats_print_chart($charts['status']);
 _quiz_stats_print_chart($charts['grade_range']);
 if (!$chart_found) {
-  echo t("There aren't enough data to generate statistics for this quiz.");
+  echo t('There are no statistics for this quiz (or quiz revision). This is probably because nobody has yet run this quiz (or quiz revision). If the quiz has multiple revisions, it is possible that the other revisions do have statistics. If this is the last revision, taking the quiz should generate some statistics.');
 }
 ?>
