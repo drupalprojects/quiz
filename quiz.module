@@ -1273,7 +1273,7 @@ function quiz_form(&$node, &$form_state) {
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
       '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
-      '#format' => isset($node->summary_pass_format) ? $node->summary_pass_format : NULL,
+      '#format' => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
     );
   }
   // If the pass/fail option is unchecked, use the default and hide it.
@@ -1293,7 +1293,7 @@ function quiz_form(&$node, &$form_state) {
     '#default_value' => $node->summary_default,
     '#cols' => 60,
     '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
-    '#format' => isset($node->summary_default_format) ? $node->summary_default_format : NULL,
+    '#format' => isset($node->summary_default_format) && !empty($node->summary_default_format) ? $node->summary_default_format : NULL,
   );
 
   // Number of random questions, max score and tid for random questions are set on
@@ -4046,6 +4046,38 @@ function _quiz_save_user_settings($node) {
   if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
     return FALSE;
   }
+
+  db_merge('quiz_user_settings')
+    ->key(array(
+      'uid' => $user->uid
+    ))
+    ->fields(array(
+      'uid'                     => $node->uid,
+      'nid'                     => $node->nid,
+      'vid'                     => $node->vid,
+      'aid'                     => $node->aid,
+      'pass_rate'               => $node->pass_rate,
+      'summary_pass'            => $node->summary_pass['value'],
+      'summary_pass_format'     => $node->summary_pass['format'],
+      'summary_default'         => $node->summary_default['value'],
+      'summary_default_format'  => $node->summary_default['format'],
+      'randomization'           => $node->randomization,
+      'backwards_navigation'    => $node->backwards_navigation,
+      'keep_results'            => $node->keep_results,
+      'repeat_until_correct'    => $node->repeat_until_correct,
+      'feedback_time'           => $node->feedback_time,
+      'display_feedback'        => $node->display_feedback,
+      'takes'                   => $node->takes,
+      'show_attempt_stats'      => $node->show_attempt_stats,
+      'time_limit'              => $node->time_limit,
+      'quiz_always'             => $node->quiz_always,
+      'has_userpoints'          => $node->has_userpoints,
+      'allow_skipping'          => $node->allow_skipping,
+      'allow_resume'            => $node->allow_resume,
+      'allow_jumping'           => $node->allow_jumping,
+    ))
+    ->execute();
+  /*
   // We're going to use drupal_write_record so we have to set the uid correctly first.
   // This is just temporary. We're not changing the nodes stored uid!
   $node->uid = isset($node->save_def_uid) ? $node->save_def_uid : $user->uid;
@@ -4054,6 +4086,7 @@ function _quiz_save_user_settings($node) {
   $res = db_query('SELECT uid FROM {quiz_user_settings} WHERE uid = :uid', array(':uid' => $node->uid));
   $update = is_numeric($res->fetchField()) ? array('uid') : array();
   drupal_write_record('quiz_user_settings', $node, $update);
+  */
   drupal_set_message(t('Default settings have been saved'));
 }
 

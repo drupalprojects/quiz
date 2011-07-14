@@ -1226,8 +1226,18 @@ function quiz_schema() {
       'summary_pass' => array(
         'type' => 'text',
       ),
+      'summary_pass_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
       'summary_default' => array(
         'type' => 'text',
+      ),
+      'summary_default_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
       ),
       'randomization' => array(
         'type' => 'int',
@@ -1310,6 +1320,12 @@ function quiz_schema() {
         'size' => 'small',
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'allow_jumping' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array('uid'),
