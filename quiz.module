@@ -4052,10 +4052,10 @@ function _quiz_save_user_settings($node) {
       'uid' => $user->uid
     ))
     ->fields(array(
-      'uid'                     => $node->uid,
+      'uid'                     => isset($node->uid) ? $node->uid : $node->save_def_uid,
       'nid'                     => $node->nid,
       'vid'                     => $node->vid,
-      'aid'                     => $node->aid,
+      'aid'                     => isset($node->aid) ? $node->aid : 0,
       'pass_rate'               => $node->pass_rate,
       'summary_pass'            => $node->summary_pass['value'],
       'summary_pass_format'     => $node->summary_pass['format'],
@@ -4069,9 +4069,9 @@ function _quiz_save_user_settings($node) {
       'display_feedback'        => $node->display_feedback,
       'takes'                   => $node->takes,
       'show_attempt_stats'      => $node->show_attempt_stats,
-      'time_limit'              => $node->time_limit,
+      'time_limit'              => isset($node->time_limit) ? $node->time_limit : 0,
       'quiz_always'             => $node->quiz_always,
-      'has_userpoints'          => $node->has_userpoints,
+      'has_userpoints'          => isset($node->has_userpoints) ? $node->has_userpoints : 0,
       'allow_skipping'          => $node->allow_skipping,
       'allow_resume'            => $node->allow_resume,
       'allow_jumping'           => $node->allow_jumping,
