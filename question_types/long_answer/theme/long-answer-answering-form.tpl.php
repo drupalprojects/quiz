@@ -7,6 +7,6 @@
  * Variables available:
  * - $form
  */
-print drupal_render($form);
+print drupal_render_children($form);
 
 ?>
