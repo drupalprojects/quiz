@@ -27,7 +27,7 @@ $rows = array();
 $cols = array();
 
 // We make the filter row
-$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
+//$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['score']);
@@ -72,10 +72,11 @@ foreach ($form['name']['#options'] as $key => $value) {
   }
   $cols[] = array('data' => $form['evaluated'][$key]['#value'], 'valign' => 'top');
 
-  $rows[] = array('data' => $cols, 'class' => 'quiz-results-browser-row', 'id' => 'browser-'. $key);
+  $rows[] = array('data' => $cols, 'class' => array('quiz-results-browser-row'), 'id' => 'browser-'. $key);
 }
 
-print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
+//print theme('table', $form['#header'], $rows, array('class' => 'browser-table'));
+print theme('table', array('header' => $form['#header'], 'rows' => $rows));
 
 if (count($form['name']['#options']) == 0)
   print '<div id="no-results">'. t('No results were found') .'</div>';

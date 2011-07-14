@@ -502,7 +502,6 @@ function quiz_questions($node) {
   // Set page title.
   drupal_set_title($node->title);
   if ($node->randomization < 3) {
-    //print_r(drupal_get_form('quiz_questions_form', $node));exit;
     return drupal_render(drupal_get_form('quiz_questions_form', $node));
   }
   else {
@@ -2175,18 +2174,19 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
 
   // Browsers table header
   $browser['#header'] = array(
-    array('data' => t('Username'), 'field' => 'u.uid', 'class' => 'quiz-browser-header-name'),
-    array('data' => t('Started'), 'field' => 'started', 'class' => 'quiz-browser-header-started'),
-    array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => 'quiz-browser-header-finished'),
-    array('data' => t('Score'), 'field' => 'score', 'class' => 'quiz-browser-header-score'),
-    array('data' => t('Evaluated'), 'field' => 'evaluated', 'class' => 'quiz-browser-header-evaluated'),
+    array('data' => t('Username'), 'field' => 'u.uid', 'class' => array('quiz-browser-header-name')),
+    array('data' => t('Started'), 'field' => 'started', 'class' => array('quiz-browser-header-started')),
+    array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => array('quiz-browser-header-finished')),
+    array('data' => t('Score'), 'field' => 'score', 'class' => array('quiz-browser-header-score')),
+    array('data' => t('Evaluated'), 'field' => 'evaluated', 'class' => array('quiz-browser-header-evaluated')),
   );
 
   $res = _quiz_results_mr_data_provider($browser['#header'], $quiz);
 
   // build data part of form
   $options = array();
-  while ($res_o = db_fetch_object($res)) {
+  //while ($res_o = db_fetch_object($res)) {
+  foreach ($res as $res_o) {
     $id = $quiz->nid . '-' . $res_o->result_id;
 
     // build options array for checkboxes for item
@@ -2253,7 +2253,10 @@ function _quiz_results_mr_data_provider($header, $quiz) {
           LEFT JOIN {users} u ON u.uid = qnrs.uid
           LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
           " . $filter['join'] . "
-          WHERE qnrs.nid = %d " . $filter['where'] . $filter['group'] . tablesort_sql($header) . ', qnrs.result_id DESC';
+          WHERE qnrs.nid = :quiz_nid " . $filter['where'] . $filter['group'];// . tablesort_sql($header) . ', qnrs.result_id DESC';
+  //echo $sql;exit;
+  return db_query($sql, array(':quiz_nid' => $quiz->nid));
+  /*
   // We remove the links to the last page and use a custom query to fetch the number of pages
   // Doing this we wastly improve performance
   $page = isset($_GET['page']) ? intval($_GET['page']) : 0;
@@ -2267,6 +2270,7 @@ function _quiz_results_mr_data_provider($header, $quiz) {
                 WHERE  qnrs.nid = %d " . $filter['where'] . $filter['group'] . ' LIMIT 0, ' . max($page * $num + $num * 7, $num * 10) . ") tbl";
 
   return pager_query($sql, $num, 0, $pager_sql, $filter['params']);
+  */
 }
 
 /**
@@ -2321,7 +2325,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
     }
   }
   if ($_SESSION[$pre . 'not_in_progress'] == 1) {
-    $filter['where'] .= " AND time_end != 0";
+    $filter['where'] .= " AND time_end <> 0";
   }
   if ($_SESSION[$pre . 'best_results'] == 1) {
     $filter['join'] .= " INNER JOIN (
@@ -2329,7 +2333,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
                            FROM {quiz_node_results} qnrs
                            LEFT JOIN {users} u ON u.uid = qnrs.uid
                            LEFT JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
-                           WHERE qnrs.nid = %d " . $filter['where'] . "
+                           WHERE qnrs.nid = :quiz_nid " . $filter['where'] . "
                            GROUP BY qnrs.uid
                          ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.top_score";
     $filter['group'] .= " GROUP BY qnrs.uid";
