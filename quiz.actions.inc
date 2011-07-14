@@ -1,58 +1,4 @@
 <?php
-<<<<<<< quiz.actions.inc
-<<<<<<< quiz.actions.inc
-<<<<<<< quiz.actions.inc
-/**
- * @file
- * Example Action Implementation.
- *
- * This does not provide functional code, but is an illustration of how actions can be created for
- * Quiz.
- *
- * This file was created with the intent of providing
- * some documentation for a good starting point when creating actions for utilization with
- * the quiz module.  Most of this documentation was taken from http://api.drupal.org, the API
- * documentation provided by Drupal.  For more understanding of these functions and hooks, please
- * see that Drupal API documentation for further reading.
- * @file
- */
-
-
-/**
- * Implements hook_action_info().().
- * An action consists of two or three parts:
- * (1) an action definition (returned by this hook),
- * (2) a function which does the action
- *   (which by convention is named module + '_' + description of what the function does + '_action'),
- * (3) and an optional form definition function that defines a configuration form
- *   (which has the name of the action with '_form' appended to it.)
- *
- */
-function quiz_action_info() {
-  /*
-   //this is the name of your function to execute (custom_action)
-   //whatever your name here is you MUST have a function that matches
-   $info['custom_action'] = array(
-   //this is how we can filter the dropdown box on the quiz create page there will be an
-   //admin setting that will allow you to filter your dropdown results by 'type'
-   'type' => 'quiz',
-   //self explainatory
-   'description' => t('Custom Desription'),
-   //This allows you to configure your action with parameters through the admin
-   //If set to TRUE then you will need a custom form function for your options
-   'configurable' => TRUE,
-   //this will filter out actions based hooks, You will only use this if your going to get
-   //extremely advanced.
-   'hooks' => array(
-   'any' => TRUE,
-   ),
-   );
-   */
-=======
-=======
->>>>>>> 1.2
-=======
->>>>>>> 1.5
 /**
  * @file
  * Example Action Implementation.
@@ -99,7 +45,6 @@ function quiz_action_info() {
     ),
   );
   */
->>>>>>> 1.5
   //return your array of actions
   return $info;
 }
