@@ -3237,7 +3237,7 @@ function _quiz_get_summary_text($quiz, $score) {  $summary = array();
     }
     else {
       $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
-      $summary['result'] = check_markup($result_option->option_summary, $result_option->option_summary_format);
+      $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
     }
   }
 
