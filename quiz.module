@@ -2174,10 +2174,10 @@ function quiz_store_question_result($quiz, $result, $options) {
                   WHERE nid = :nid AND vid = :vid
                 )) as scale
                 FROM {quiz_node_relationship}
-                WHERE parent_nid = :nid
-                AND parent_vid = :vid
-                AND child_nid = :nid
-                AND child_vid = :vid
+                WHERE parent_nid = :parent_nid
+                AND parent_vid = :parent_vid
+                AND child_nid = :child_nid
+                AND child_vid = :child_vid
                ", array(':nid' => $result->nid, ':vid' => $result->vid, ':parent_nid' => $quiz->nid, ':parent_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
   }
   elseif ($quiz->randomization == 2) {
