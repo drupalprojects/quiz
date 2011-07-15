@@ -10,7 +10,7 @@
  */
 function short_answer_install() {
   // Add body field to short answer node
-  quiz_question_add_body_field('short_answer');  
+  quiz_question_add_body_field('short_answer');
   variable_set('node_options_short_answer', array('status'));
   cache_clear_all('autoload:', 'cache');
 }
@@ -125,25 +125,4 @@ function short_answer_schema() {
     ),
   );
   return $schema;
-}
-
-/**
- * Implements hook_update_N().
- *
- * Convert the score columt to be of type float. This is to fit the new scoring system with different max
- * scores in different quizzes.
- */
-function short_answer_update_6400() {
-  $to_return = array();
-  $spec = array(
-    'type' => 'float',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'default' => 0,
-  );
-  db_change_field('quiz_short_answer_user_answers', 'score', 'score', $spec);
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $to_return */;
 }
