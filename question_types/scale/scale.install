@@ -150,45 +150,9 @@ function scale_schema() {
 }
 
 /**
- * Implements hook_update_N().
- *
- * NOTE: We shouldn't create update hooks for rebuilding the theme registry, but since this is already here we can't remove it...
- */
-function scale_update_6400() {
-  // drupal_rebuild_theme_registry();
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* array() */;
-}
-
-/**
- * Implements hook_update_N().
- *
- * Update max score for the scale questions in the database
- */
-function scale_update_6401() {
-  $nids = db_query('SELECT nid FROM {node} WHERE type = :type', array(':type' => 'scale'))->fetchCol();  
-  db_update('quiz_question_properties')
-    ->fields(array(
-        'max_score' => 1
-      ))
-    ->condition('nid', $nids, 'IN')
-    ->execute();
-    
-  $to_return = array();
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $to_return[] = array() /* update_sql($sql) */;
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $to_return */;
-}
-
-/**
  * Implements hook_uninstall().
  */
-function scale_uninstall() {  
+function scale_uninstall() {
   variable_del('scale_max_num_of_alts');
   cache_clear_all('variables', 'cache');
   drupal_set_message(t('The Scale module has been uninstalled. Scale nodes may still exist, but they will not function properly.'));
@@ -201,7 +165,7 @@ function scale_uninstall() {
  *  Array of answers to include in the answer collection
  */
 function _scale_insert_collection($answers) {
-  // Save the collection as a global preset  
+  // Save the collection as a global preset
   $collection_id = db_insert('quiz_scale_answer_collection')
     ->fields(array(
       'for_all' => 1
@@ -214,7 +178,7 @@ function _scale_insert_collection($answers) {
       'answer_collection_id' => $collection_id,
       'uid' => 1,
     ))
-    ->execute();  
+    ->execute();
 
   $insert = db_insert('quiz_scale_answer')->fields(array('answer_collection_id', 'answer'));
   $values = array();
@@ -225,6 +189,6 @@ function _scale_insert_collection($answers) {
       'answer' => $answers[$i],
     );
     $insert->values($values);
-  }  
+  }
   $insert->execute();
 }
