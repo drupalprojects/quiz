@@ -7,29 +7,6 @@
  */
 
 /**
- * Implements hook_update_N().
- *
- * truefalse has actually changed its name from true_false. We try to fix any problems this might result in here...
- */
-function truefalse_update_6400() {
-  $results = array();
-
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql("UPDATE {system} SET name = 'truefalse' WHERE name = 'true_false'") */;
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql("UPDATE {node} SET type = 'truefalse' WHERE type = 'true_false'") */;
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql("UPDATE {system} SET type = 'truefalse' WHERE type = 'true_false'") */;
-  // TODO update_sql has been removed. Use the database API for any schema or data changes.
-  $results[] = array() /* update_sql("UPDATE {taxonomy_vocabulary_node_type} SET type = 'truefalse' WHERE type = 'true_false'") */;
-
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
-}
-
-/**
  * Implements hook_install().
  */
 function truefalse_install() {
