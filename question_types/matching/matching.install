@@ -6,20 +6,6 @@
  */
 
 /**
- * Implements hook_update_N().
- *
- * Add index to improve performance
- */
-function matching_update_6400() {
-  $results = array();
-  db_add_index('quiz_matching_node', 'question_id', array('nid', 'vid'));
-  // hook_update_N() no longer returns a $ret array. Instead, return
-  // nothing or a translated string indicating the update ran successfully.
-  // See http://drupal.org/node/224333#update_sql.
-  return t('TODO Add a descriptive string here to show in the UI.') /* $results */;
-}
-
-/**
  * Implements hook_install().
  */
 function matching_install() {
