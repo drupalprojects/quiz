@@ -25,7 +25,8 @@ function short_answer_permission() {
   return array(
     'use regex for short answer' => array(
       'title' => t('use regex for short answer'),
-      'description' => t('TODO Add a description for \'use regex for short answer\''),
+      'description' => t('Use PHP "regular expressions" the advanced option for automated response evaluation.'),
+      'restrict access' => TRUE,
     ),
   );
 }

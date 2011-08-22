@@ -81,93 +81,85 @@ function quiz_permission() {
   return array(
     // Configure quiz:
     'administer quiz configuration' => array(
-      'title' => t('administer quiz configuration'),
-      'description' => t('TODO Add a description for \'administer quiz configuration\''),
+      'title' => t('Administer quiz configuration'),
+      'description' => t('Control the various settings and behaviours of quiz'),
+      'restrict access' => TRUE,
     ),
     // Managing quizzes:
     'access quiz' => array(
-      'title' => t('access quiz'),
-      'description' => t('TODO Add a description for \'access quiz\''),
+      'title' => t('Access quiz'),
+      'description' => t('Can access (take) all quizzes.'),
     ),
     'create quiz' => array(
-      'title' => t('create quiz'),
-      'description' => t('TODO Add a description for \'create quiz\''),
+      'title' => t('Create quiz'),
     ),
     'edit own quiz' => array(
-      'title' => t('edit own quiz'),
-      'description' => t('TODO Add a description for \'edit own quiz\''),
+      'title' => t('Edit own quiz'),
     ),
     'edit any quiz' => array(
-      'title' => t('edit any quiz'),
-      'description' => t('TODO Add a description for \'edit any quiz\''),
+      'title' => t('Edit any quiz'),
     ),
     'delete any quiz' => array(
-      'title' => t('delete any quiz'),
-      'description' => t('TODO Add a description for \'delete any quiz\''),
+      'title' => t('Delete any quiz'),
     ),
     'delete own quiz' => array(
-      'title' => t('delete own quiz'),
-      'description' => t('TODO Add a description for \'delete own quiz\''),
+      'title' => t('Delete own quiz'),
     ),
     // viewing results:
     'view any quiz results' => array(
-      'title' => t('view any quiz results'),
-      'description' => t('TODO Add a description for \'view any quiz results\''),
+      'title' => t('View any quiz results'),
+      'description' => t('Can view results for all quizzes and users.'),
     ),
     'view own quiz results' => array(
-      'title' => t('view own quiz results'),
-      'description' => t('TODO Add a description for \'view own quiz results\''),
+      'title' => t('View own quiz results'),
+      'description' => t('Quiz takers can view their own results, also when quiz is not passed.'),
     ),
     'view results for own quiz' => array(
-      'title' => t('view results for own quiz'),
-      'description' => t('TODO Add a description for \'view results for own quiz\''),
+      'title' => t('View results for own quiz'),
+      'description' => t('Quiz makers can view results for their own quizzes.'),
     ),
     // deleting results:
     'delete any quiz results' => array(
-      'title' => t('delete any quiz results'),
-      'description' => t('TODO Add a description for \'delete any quiz results\''),
+      'title' => t('Delete any quiz results'),
     ),
     'delete results for own quiz' => array(
-      'title' => t('delete results for own quiz'),
-      'description' => t('TODO Add a description for \'delete results for own quiz\''),
+      'title' => t('Delete results for own quiz'),
     ),
     // scoring:
     'score any quiz' => array(
-      'title' => t('score any quiz'),
-      'description' => t('TODO Add a description for \'score any quiz\''),
+      'title' => t('Score any quiz'),
     ),
     'score own quiz' => array(
-      'title' => t('score own quiz'),
-      'description' => t('TODO Add a description for \'score own quiz\''),
+      'title' => t('Score own quiz'),
     ),
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz' => array(
-      'title' => t('view quiz question outside of a quiz'),
-      'description' => t('TODO Add a description for \'view quiz question outside of a quiz\''),
+      'title' => t('View quiz question outside of a quiz'),
+      'description' => t('Questions can only be accessed through taking a quiz (not as individual nodes) unless this permission is given.'),
     ),
     // Allow the user to see the correct answer, when viewed outside a quiz
     'view any quiz question correct response' => array(
-      'title' => t('view any quiz question correct response'),
-      'description' => t('TODO Add a description for \'view any quiz question correct response\''),
+      'title' => t('View any quiz question correct response'),
+      'description' => t('Allow the user to see the correct answer, when viewed outside a quiz.'),
     ),
     // Allows users to pick a name for their questions. Otherwise this is auto
     // generated.
     'edit question titles' => array(
-      'title' => t('edit question titles'),
-      'description' => t('TODO Add a description for \'edit question titles\''),
+      'title' => t('Edit question titles'),
+      'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
     ),
     // Allow users to assign an action to be performed when a user has completed
     // a quiz:
     'assign any action to quiz events' => array(
-      'title' => t('assign any action to quiz events'),
-      'description' => t('TODO Add a description for \'assign any action to quiz events\''),
+      'title' => t('Assign any action to quiz events'),
+      'description' => t("Enables Drupal's actions system for Quiz triggers."),
     ),
     // Control revisioning, only assign this permission to users who understand
     // who permissions work. Note: If a quiz or question is changed and not
     // revisioned you will also change existing result reports.
     'manual quiz revisioning' => array(
-      'title' => t('manual quiz revisioning'),
-      'description' => t('TODO Add a description for \'manual quiz revisioning\''),
+      'title' => t('Manual quiz revisioning'),
+      'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
     ),
   );
 }

@@ -73,8 +73,7 @@ function scale_theme($existing, $type, $theme, $path) {
 function scale_permission() {
   return array(
     'Edit global presets' => array(
-      'title' => t('Edit global presets'),
-      'description' => t('TODO Add a description for \'Edit global presets\''),
+      'title' => t('Administer presets'),
     ),
   );
 }
