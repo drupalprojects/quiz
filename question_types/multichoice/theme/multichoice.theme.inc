@@ -98,14 +98,14 @@ function theme_multichoice_response($variables) {
       switch ($alternative['is_correct']) {
         case 0:
           $cols[] = array(
-            'data' => theme('image', array('path' => "$p/wrong.png", 'width' => t('Wrong'), 'height' => t('This answer is wrong'), 'alt' => array('class' => 'feedback-icon'))),
+            'data' => theme('image', array('path' => "$p/wrong.png", 'alt' => t('Wrong'), 'title' => t('This answer is wrong'), 'attributes' => array('class' => 'feedback-icon'))),
             'width' => 35,
             'rowspan' => $rowspan,
             'class' => 'selector-td',
           );
           break;
         case 1:
-          $cols[] = array('data' => theme('image', array('path' => "$p/almost.png", 'width' => t('Almost correct'), 'height' => t('This answer is correct, but there is an answer that gives a higher score'), 'alt' => array('class' => 'feedback-icon'))),
+          $cols[] = array('data' => theme('image', array('path' => "$p/almost.png", 'alt' => t('Almost correct'), 'title' => t('This answer is correct, but there is an answer that gives a higher score'), 'attributes' => array('class' => 'feedback-icon'))),
             'width' => 35,
             'rowspan' => $rowspan,
             'class' => 'selector-td',
@@ -113,7 +113,7 @@ function theme_multichoice_response($variables) {
           break;
         case 2:
           $cols[] = array(
-            'data' => theme('image', array('path' => "$p/correct.png", 'width' => t('Correct'), 'height' => t('This answer is correct'), 'alt' => array('class' => 'feedback-icon'))),
+            'data' => theme('image', array('path' => "$p/correct.png", 'alt' => t('Correct'), 'title' => t('This answer is correct'), 'attributes' => array('class' => 'feedback-icon'))),
             'width' => 35,
             'rowspan' => $rowspan,
             'class' => 'selector-td',
@@ -124,7 +124,7 @@ function theme_multichoice_response($variables) {
     else {
       if ($alternative['is_correct'] == 2) {
         $cols[] = array(
-          'data' => theme('image', array('path' => "$p/should.png", 'width' => t('Should have chosen'), 'height' => t("This answer is correct, but you didn't choose it"), 'alt' => array('class' => 'feedback-icon'))),
+          'data' => theme('image', array('path' => "$p/should.png", 'alt' => t('Should have chosen'), 'title' => t("This answer is correct, but you didn't choose it"), 'attributes' => array('class' => 'feedback-icon'))),
           'width' => 35,
           'rowspan' => $rowspan,
           'class' => 'selector-td',
