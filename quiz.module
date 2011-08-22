@@ -193,6 +193,17 @@ function quiz_node_access($node, $op, $account) {
 }
 
 /**
+ * Implements hook_admin_paths().
+ */
+function quiz_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    return array(
+      'node/*/questions' => TRUE,
+    );
+  }
+}
+
+/**
  * Helper function to determine if a user has access to the different results
  * pages.
  *
