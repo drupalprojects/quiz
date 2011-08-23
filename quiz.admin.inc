@@ -1308,12 +1308,17 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
             WHERE parent_vid = %d
           )' . $filter_sql;//tablesort_sql($browser['#header']);
           */
-
+  $child_nid = db_query('SELECT child_nid FROM {quiz_node_relationship}
+      WHERE parent_vid = :parent_vid',
+      array(':parent_vid' => $quiz->vid)
+    )
+    ->fetchCol();
   $query = db_select('node', 'n')
     ->fields('n', array('nid', 'type', 'vid', 'title', 'changed'))
     ->fields('u', array('name'));
   $alias = $query->leftJoin('users', 'u', 'n.uid = u.uid');
   $query->condition('type', array_keys($question_types), 'IN');
+  $query->condition('nid', $child_nid, 'NOT IN');
 
   //$results = $query->fetchAll();
 
