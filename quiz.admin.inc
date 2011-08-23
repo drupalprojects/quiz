@@ -1313,12 +1313,15 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
       array(':parent_vid' => $quiz->vid)
     )
     ->fetchCol();
+
   $query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
   $query->fields('n', array('nid', 'type', 'vid', 'title', 'changed'));
   $query->fields('u', array('name'));
   $query->leftJoin('users', 'u', 'n.uid = u.uid');
   $query->condition('type', array_keys($question_types), 'IN');
-  $query->condition('nid', $child_nid, 'NOT IN');
+  if (count($child_nid)) {
+    $query->condition('nid', $child_nid, 'NOT IN');
+  }
   $query->limit(10);
   $query->orderByHeader($browser['#header']);
 
