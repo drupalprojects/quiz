@@ -334,10 +334,10 @@ Quiz.updatePageInUrl = function(myUrl) {
   if (pageQuery == null) pageQuery = 'page=0';
 
   //Replaces stored query strings page with our page
-  var currentQuery = $('#edit-browser-table-add-to-get').val() + '';
+  var currentQuery = jQuery('#edit-browser-table-add-to-get').val() + '';
   currentQuery = currentQuery.replace(pattern, '');
   currentQuery += pageQuery;
-  $('#edit-browser-table-add-to-get').val(currentQuery);
+  jQuery('#edit-browser-table-add-to-get').val(currentQuery);
 };
 
 /**
@@ -441,6 +441,6 @@ Quiz.setInputEnabled = function(enabled) {
     $('.quizQuestionBrowserBehavior-processed').removeAttr('disabled');
   }
   else {
-    $('.quizQuestionBrowserBehavior-processed').attr('disabled', true);
+  jQuery('.quizQuestionBrowserBehavior-processed').attr('disabled', true);
   }
 }

@@ -823,7 +823,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
-  $form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
+  //$form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
 
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
@@ -1290,10 +1290,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   // Browsers table header
   $browser['#header'] = array(
     NULL,
-    array('data' => t('Title'), 'field' => 'title', 'class' => 'quiz-browser-header-title'),
-    array('data' => t('Type'), 'field' => 'type', 'class' => 'quiz-browser-header-type'),
-    array('data' => t('Changed'), 'field' => 'changed', 'sort' => 'desc', 'class' => 'quiz-browser-header-changed'),
-    array('data' => t('Username'), 'field' => 'name', 'class' => 'quiz-browser-header-name'),
+    array('data' => t('Title'), 'field' => 'n.title', 'class' => array('quiz-browser-header-title')),
+    array('data' => t('Type'), 'field' => 'n.type', 'class' => array('quiz-browser-header-type')),
+    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc', 'class' => array('quiz-browser-header-changed')),
+    array('data' => t('Username'), 'field' => 'u.name', 'class' => array('quiz-browser-header-name')),
   );
 
   /*
@@ -1313,12 +1313,14 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
       array(':parent_vid' => $quiz->vid)
     )
     ->fetchCol();
-  $query = db_select('node', 'n')
-    ->fields('n', array('nid', 'type', 'vid', 'title', 'changed'))
-    ->fields('u', array('name'));
-  $alias = $query->leftJoin('users', 'u', 'n.uid = u.uid');
+  $query = db_select('node', 'n')->extend('PagerDefault')->extend('TableSort');
+  $query->fields('n', array('nid', 'type', 'vid', 'title', 'changed'));
+  $query->fields('u', array('name'));
+  $query->leftJoin('users', 'u', 'n.uid = u.uid');
   $query->condition('type', array_keys($question_types), 'IN');
   $query->condition('nid', $child_nid, 'NOT IN');
+  $query->limit(10);
+  $query->orderByHeader($browser['#header']);
 
   //$results = $query->fetchAll();
 

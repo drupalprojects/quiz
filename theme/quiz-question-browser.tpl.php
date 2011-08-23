@@ -52,7 +52,7 @@ foreach ($form['titles']['#options'] as $key => $value) {
   $rows[] = array('data' => $cols, 'class' => array('quiz-question-browser-row'), 'id' => 'browser-'. $key);
 }
 
-print theme('table', array('header' => array(), 'rows' => $rows));// , array('class' => 'browser-table'));
+print theme('table', array('header' =>  $form['#header'], 'rows' => $rows));// , array('class' => 'browser-table'));
 
 if (count($form['titles']['#options']) == 0)
   print t('No questions were found');
