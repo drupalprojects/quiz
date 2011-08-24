@@ -348,7 +348,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
       $form['rubric'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
-        '#markup' => check_markup($this->question->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
+        '#markup' => check_markup($this->question->rubric),
       );
     }
     if (!empty($feedback)) {
