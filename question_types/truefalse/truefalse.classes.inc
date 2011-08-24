@@ -135,7 +135,7 @@ class TrueFalseQuestion extends QuizQuestion {
       ),
       '#default_value' => -1, // prevent default value set to 0
     );
-    
+
     if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
       $form['tries']['#default_value'] = $response->getResponse();
@@ -319,7 +319,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
       $metadata[] = t('Correct Answer');
     }
     $metadata[] = t('User answer');
-    if ($showfeedback) {
+    if ($showfeedback && !empty($this->question->feedback)) {
       $metadata[] = '&nbsp;';
     }
 
