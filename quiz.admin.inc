@@ -823,7 +823,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
-  //$form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
+  $form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
 
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
@@ -1290,10 +1290,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   // Browsers table header
   $browser['#header'] = array(
     NULL,
-    array('data' => t('Title'), 'field' => 'n.title', 'class' => array('quiz-browser-header-title')),
-    array('data' => t('Type'), 'field' => 'n.type', 'class' => array('quiz-browser-header-type')),
-    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc', 'class' => array('quiz-browser-header-changed')),
-    array('data' => t('Username'), 'field' => 'u.name', 'class' => array('quiz-browser-header-name')),
+    array('data' => t('Title'), 'field' => 'n.title'),
+    array('data' => t('Type'), 'field' => 'n.type'),
+    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc'),
+    array('data' => t('Username'), 'field' => 'u.name'),
   );
 
   /*
