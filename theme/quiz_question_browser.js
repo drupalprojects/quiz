@@ -153,7 +153,7 @@ var Quiz = Quiz || {inputEnabled:true};
           Quiz.setInputEnabled(false);
         });
       }
-
+      /*
       // Pager
       $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
       .addClass(done)
@@ -169,7 +169,7 @@ var Quiz = Quiz || {inputEnabled:true};
         event.preventDefault();
         Quiz.setInputEnabled(false);
       });
-
+      */
     // If js is active we don't want to show a checkbox for selecting questions
       $('.q-staying').css('display', 'none');
       // If js is active we use a link to remove questions from the question list
