@@ -1039,6 +1039,7 @@ function quiz_form(&$node, &$form_state) {
     '#collapsible' => TRUE,
     '#attributes' => array('id' => 'taking-fieldset'),
     '#group' => 'additional_settings',
+    '#weight' => -2,
   );
   $form['taking']['allow_resume'] = array(
     '#type' => 'checkbox',
