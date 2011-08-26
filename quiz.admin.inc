@@ -2070,6 +2070,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   $form = array();
   $pre = 'quiz_results_mr_';
 
+  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/theme/quiz_results_browser.js');
   /* not_in_progress is a filter to filter away questions that are in progress...
    By default we don't want to show questions in progress... */
   if (!isset($_SESSION[$pre . 'not_in_progress'])) {

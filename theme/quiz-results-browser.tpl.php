@@ -8,10 +8,6 @@
  *  - $form
  */
 
-// Add js
-$p = drupal_get_path('module', 'quiz') .'/theme/';
-drupal_add_js($p .'quiz_results_browser.js', 'module');
-
 // We need to separate the title and the checkbox. We make a custom options array...
 $full_options = array();
 foreach ($form['name']['#options'] as $key => $value) {
@@ -27,7 +23,7 @@ $rows = array();
 $cols = array();
 
 // We make the filter row
-$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
+$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => array('container-inline'), 'style' => 'white-space: nowrap;');
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['score']);
@@ -82,7 +78,7 @@ if (count($form['name']['#options']) == 0)
   print '<div id="no-results">'. t('No results were found') .'</div>';
 
 print '<div id="before-pager"></div>';
-print $form['pager']['#value'];
+print drupal_render($form['pager']);
 print drupal_render($form['add_to_get']);
 print drupal_render($form['ahah_target_all_end']);
 ?>
