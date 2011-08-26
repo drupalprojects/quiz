@@ -823,7 +823,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
-  $form['#attached']['js'] = array(drupal_add_js(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js'));
+  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js');
 
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
