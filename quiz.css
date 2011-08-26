@@ -64,8 +64,17 @@ td.quiz_summary_qcell table td {
 }
 
 #quiz-question-browser-filters {
-  background-color: black;
+  /*background-color: black;*/
+  /* Black bg in seven theme looks horrible. */
+  background: none repeat scroll 0 0 #E1E2DC;
+  border-color: #BEBFB9;
+  border-style: solid;
+  border-width: 1px;
+  font-weight: normal;
+  padding: 3px 10px;
+  text-transform: uppercase;
 }
+
 #quiz-question-browser-filters td.active {
   background-color: #666;
 }

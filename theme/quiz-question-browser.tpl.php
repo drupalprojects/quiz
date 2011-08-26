@@ -27,7 +27,7 @@ $cols[] = drupal_render($form['filters']['title']);
 $cols[] = drupal_render($form['filters']['type']);
 $cols[] = drupal_render($form['filters']['changed']);
 $cols[] = drupal_render($form['filters']['name']);
-//$rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
+$rows[] = array('data' => $cols, 'id' => 'quiz-question-browser-filters');
 
 // We make the question rows
 foreach ($form['titles']['#options'] as $key => $value) {
@@ -54,11 +54,12 @@ foreach ($form['titles']['#options'] as $key => $value) {
 
 print theme('table', array('header' =>  $form['#header'], 'rows' => $rows));// , array('class' => 'browser-table'));
 
-if (count($form['titles']['#options']) == 0)
+if (count($form['titles']['#options']) == 0) {
   print t('No questions were found');
+}
 
 print '<div id="before-pager"></div>';
-print $form['pager']['#markup'];
+print drupal_render($form['pager']);
 print drupal_render($form['add_to_get']);
 print drupal_render($form['ahah_target_all_end']);
 ?>
