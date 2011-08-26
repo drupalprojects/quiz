@@ -16,7 +16,6 @@ var Quiz = Quiz || {inputEnabled:true};
 
 Drupal.behaviors.quizResultsBrowserBehavior = {
   attach: function(context, settings) {
-    alert("called this behaviors");
     // Using variables for readability and to ease change of names...
     var done = 'quizResultsBrowserBehavior-processed';
     var notDone = ':not(.'+ done +')';
