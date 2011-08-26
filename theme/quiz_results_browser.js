@@ -59,7 +59,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
       var nidRid = Quiz.findNidRidString($(event.target).attr('id'));
       $('#edit-table-name-' + nidRid).click();
       $('#edit-bulk-action').val('del');
-      $('#edit-update').click();
+      $('#edit-update--2').click();
       event.preventDefault();
     });
     // Filter row in the browser
@@ -218,11 +218,11 @@ $(document).ready(function () {
     $(this).click();
   });
 
-  $('#edit-update').click(function(event){
+  $('#edit-update--2').click(function(event){
     if ($('#edit-bulk-action').val() == 'del') {
       $('#quiz-results-update').css('display', 'none');
       $('#quiz-results-confirm-delete').css('display', 'block');
-      $('input:not(#edit-confirm-delete), select').attr('DISABLED', true);
+      //$('input:not(#edit-confirm-delete--2), select').attr('DISABLED', true);
       event.preventDefault();
       $('.quiz-hover-menu').hide();
     }
@@ -230,12 +230,12 @@ $(document).ready(function () {
   $('#quiz-results-cancel-delete').click(function(event){
 	  $('#quiz-results-update').css('display', 'block');
 	  $('#quiz-results-confirm-delete').css('display', 'none');
-	  $('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
+	  //$('input:not(#edit-confirm-delete--2), select').removeAttr('DISABLED');
 	  event.preventDefault();
 	  $('.quiz-hover-menu').show();
   });
   $('#edit-confirm-delete').click(function(event){
-    $('input:not(#edit-confirm-delete), select').removeAttr('DISABLED');
+    //$('input:not(#edit-confirm-delete--2), select').removeAttr('DISABLED');
   });
 });
 

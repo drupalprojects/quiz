@@ -2243,7 +2243,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   $browser['ahah_target_all_end'] = array(
     '#markup' => '</DIV>'
   );
-  $form['#submit'] = array('quiz_results_mr_form_submit');
+  $form['#submit'][] = 'quiz_results_mr_form_submit';
 
   return $form;
 }
