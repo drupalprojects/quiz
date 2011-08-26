@@ -27,7 +27,7 @@ $rows = array();
 $cols = array();
 
 // We make the filter row
-//$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
+$cols[] = array('data' => drupal_render($form['filters']['all']) . drupal_render($form['filters']['name']), 'class' => 'container-inline', 'style' => 'white-space: nowrap;');
 $cols[] = drupal_render($form['filters']['started']);
 $cols[] = drupal_render($form['filters']['finished']);
 $cols[] = drupal_render($form['filters']['score']);
