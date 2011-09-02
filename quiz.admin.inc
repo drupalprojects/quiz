@@ -1371,7 +1371,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['title'] = array(
     '#type' => 'textfield',
     '#size' => 20,
-    '#default_value' => $_SESSION[$pre .'title'],
+    '#default_value' => isset($_SESSION[$pre .'title']) ? $_SESSION[$pre .'title'] : '',
     '#ahah' => array(
       'path' => $ahah_path,
       'wrapper' => 'ahah-target',
@@ -1382,7 +1382,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['type'] = array(
     '#type' => 'select',
     '#options' => $type_options,
-    '#default_value' => $_SESSION[$pre .'type'],
+    '#default_value' => isset($_SESSION[$pre .'type']) ? $_SESSION[$pre .'type'] : '',
     '#ahah' => array(
       'path' => $ahah_path,
       'wrapper' => 'ahah-target',
@@ -1392,7 +1392,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['changed'] = array(
     '#type' => 'select',
     '#options' => $changed_options,
-    '#default_value' => $_SESSION[$pre .'changed'],
+    '#default_value' => isset($_SESSION[$pre .'changed']) ? $_SESSION[$pre .'changed'] : '',
     '#ahah' => array(
       'path' => $ahah_path,
       'wrapper' => 'ahah-target',
@@ -1402,7 +1402,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 10,
-    '#default_value' => $_SESSION[$pre .'name'],
+    '#default_value' => isset($_SESSION[$pre .'name']) ? $_SESSION[$pre .'name'] : '',
     '#ahah' => array(
       'path' => $ahah_path,
       'wrapper' => 'ahah-target',
@@ -1426,11 +1426,11 @@ function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
   $pre = 'quiz_question_browser_';
   $changed_timestamps = _quiz_get_interval_timestamps('changed');
   $filter_sql = '';
-  if (drupal_strlen($_SESSION[$pre .'title']) > 0) {
+  if (isset($_SESSION[$pre .'title']) && drupal_strlen($_SESSION[$pre .'title']) > 0) {
     $filter_sql .= ' AND n.title LIKE \'%s%%\'';
     $filter_params[] = $_SESSION[$pre .'title'];
   }
-  if (drupal_strlen($_SESSION[$pre .'name']) > 0) {
+  if (isset($_SESSION[$pre .'name']) && drupal_strlen($_SESSION[$pre .'name']) > 0) {
     $filter_sql .= ' AND u.name LIKE \'%s%%\'';
     $filter_params[] = $_SESSION[$pre .'name'];
   }
