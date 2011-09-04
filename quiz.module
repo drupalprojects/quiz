@@ -2586,7 +2586,7 @@ function quiz_calculate_score($quiz, $rid) {
   // 1. Fetch all questions and their max scores
   $sql = 'SELECT a.question_nid, a.question_vid, n.type, r.max_score, qt.max_score as term_max_score
   FROM {quiz_node_results_answers} a
-  LEFT JOIN {node} n ON (question_nid = nid)
+  LEFT JOIN {node} n ON (a.question_nid = n.nid)
   LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid AND r.parent_vid = %d)
   LEFT OUTER JOIN {quiz_terms} qt ON (a.tid = qt.tid AND qt.vid = %d)
   WHERE a.result_id = %d';
