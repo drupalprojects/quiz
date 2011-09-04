@@ -9,6 +9,25 @@
 /**
  * Implementation of hook_update_N
  *
+ * We forgot to add allow_jumping to the user settings in hook_schema
+ */
+function quiz_update_6421() {
+  $results = array();
+  if (!db_column_exists('quiz_user_settings', 'allow_jumping')) {
+    db_add_field($results, 'quiz_user_settings', 'allow_jumping', array(
+      'type' => 'int',
+      'size' => 'tiny',
+      'unsigned' => FALSE,
+      'not null' => TRUE,
+      'default' => 0,
+    ));
+  }
+  return $results;
+}
+
+/**
+ * Implementation of hook_update_N
+ *
  * Makes sure max_score is correct in the quiz_node_properties
  */
 function quiz_update_6420() {
@@ -1350,6 +1369,13 @@ function quiz_schema() {
         'size' => 'small',
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'allow_jumping' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'primary key' => array('uid'),
