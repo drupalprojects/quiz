@@ -948,8 +948,6 @@ function quiz_form(&$node) {
   // We tell quiz_form_alter to check for the manual revisioning permission.
   $form['#quiz_check_revision_access'] = TRUE;
 
-  $form['theme']['#theme'] = 'quiz_node_form';
-
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
