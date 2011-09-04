@@ -2007,6 +2007,7 @@ function quiz_take_quiz($quiz) {
       }
       // Avoid caching for anonymous users
       if (!$user->uid) {
+        drupal_set_message($q_passed_validation, 'error');
         drupal_goto('node/' . $quiz->nid . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
       }
     }
