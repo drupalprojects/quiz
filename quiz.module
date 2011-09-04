@@ -1768,7 +1768,7 @@ function quiz_take_quiz($quiz) {
       quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
     }
     elseif ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
-      $_POST['op'] = t('Skip');
+      $_POST['op'] = t('Leave blank');
       $allow_skipping = TRUE;
       $jumping = TRUE;
     }
@@ -1806,7 +1806,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
-  if (isset($_POST['op']) && ($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
+  if (isset($_POST['op']) && ($_POST['op'] == t('Leave blank') || $_POST['op'] == t('Leave blank and finish')) && $allow_skipping) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }
