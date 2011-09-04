@@ -93,12 +93,12 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
   });
 
   // started, finished, duration and score filters
-  this.selector = '#edit-table-filters-started'+ notDone;
-  this.selector += ', #edit-table-filters-finished'+ notDone;
-  this.selector += ', #edit-table-filters-duration'+ notDone;
-  this.selector += ', #edit-table-filters-score'+ notDone;
-  this.selector += ', #edit-table-filters-evaluated'+ notDone;
-  $(this.selector)
+  var selector = '#edit-table-filters-started'+ notDone;
+  selector += ', #edit-table-filters-finished'+ notDone;
+  selector += ', #edit-table-filters-duration'+ notDone;
+  selector += ', #edit-table-filters-score'+ notDone;
+  selector += ', #edit-table-filters-evaluated'+ notDone;
+  $(selector)
   .addClass(done)
   .change(function(event) {
     $('.quiz-results-browser-row').each(function() {
@@ -110,8 +110,8 @@ Drupal.behaviors.quizResultsBrowserBehavior = function(context) {
 
   //Username filters
   var quizRefreshId;
-  this.selector = '#edit-table-filters-name'+ notDone;
-  $(this.selector)
+  selector = '#edit-table-filters-name'+ notDone;
+  $(selector)
   .addClass(done)
   // triggering custom event "doneTyping" one second after the last key up in the text fields...
   .keyup(function(event) {
