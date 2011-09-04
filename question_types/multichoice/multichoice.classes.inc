@@ -854,7 +854,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
     // Find the alternative with the highest score
     if ($this->question->choice_multi == 0) {
       $max_score_if_chosen = -999;
-      while (is_array($this->question->alternatives[$i])) {
+      // TODO: Is is_array needed here?
+      while (isset($this->question->alternatives[$i]) && is_array($this->question->alternatives[$i])) {
         $short = $this->question->alternatives[$i];
         if ($short['score_if_chosen'] > $max_score_if_chosen) $max_score_if_chosen = $short['score_if_chosen'];
         $i++;
