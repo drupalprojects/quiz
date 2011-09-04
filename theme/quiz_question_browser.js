@@ -73,9 +73,9 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
     });
 
     // Type and date filters
-    this.selector = '#edit-browser-table-header-filters-type';
-    this.selector += ', #edit-browser-table-header-filters-changed';
-    $(this.selector)
+    var selector = '#edit-browser-table-header-filters-type';
+    selector += ', #edit-browser-table-header-filters-changed';
+    $(selector)
     .once()
     .change(function(event) {
       $('#browser-pager').remove();
@@ -84,9 +84,9 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
 
     //Title and username filters
     var quizRefreshId;
-    this.selector = '#edit-browser-table-header-filters-title';
-    this.selector += ', #edit-browser-table-header-filters-name';
-    $(this.selector)
+    selector = '#edit-browser-table-header-filters-title';
+    selector += ', #edit-browser-table-header-filters-name';
+    $(selector)
     .once()
     // triggering custom event "doneTyping" one second after the last key up in the text fields...
     .keyup(function(event) {
