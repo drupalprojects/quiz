@@ -56,8 +56,8 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
 
     // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query("SELECT n.title FROM {node_revisions} n WHERE n.vid IN ($placeholders)", $this->corresponding_vids);
-    while ($term = db_fetch_object($result)) {
+    $result = db_query("SELECT n.title FROM {node_revision} n WHERE n.vid IN ($placeholders)", $this->corresponding_vids);
+    while ($term = $result->fetch()) {
       $titles[] = check_plain($term->title);
     }
     return $titles;

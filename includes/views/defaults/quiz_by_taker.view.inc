@@ -41,7 +41,7 @@ $handler->override_option('fields', array(
     'link_to_node' => 0,
     'exclude' => 0,
     'id' => 'title',
-    'table' => 'node_revisions',
+    'table' => 'node_revision',
     'field' => 'title',
     'relationship' => 'vid',
   ),

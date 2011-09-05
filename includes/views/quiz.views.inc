@@ -85,7 +85,7 @@ function quiz_views_data() {
           'field' => 'nid',
           'type' => 'INNER',
         ),
-        'node_revisions' => array(
+        'node_revision' => array(
           'left_field' => 'vid',
           'field' => 'vid',
           'type' => 'INNER',
@@ -104,7 +104,7 @@ function quiz_views_data() {
       'argument' => array(
         'handler' => 'quiz_views_handler_argument_quiz_nid',
         'name field' => 'title',
-        'name table' => 'node_revisions',
+        'name table' => 'node_revision',
         'numeric' => TRUE,
         'validate type' => 'vid',
         'nid field' => 'nid',
@@ -134,14 +134,14 @@ function quiz_views_data() {
       'argument' => array(
         'handler' => 'views_handler_argument_numeric',
         'name field' => 'title',
-        'name table' => 'node_revisions',
+        'name table' => 'node_revision',
         'numeric' => TRUE,
         'validate type' => 'vid',
       ),
       // Related to NODE
       'relationship' => array(
         'handler' => 'views_handler_relationship',
-        'base' => 'node_revisions',
+        'base' => 'node_revision',
         'field' => 'vid',
         'label' => t('quiz node revision'),
       ),
@@ -353,7 +353,7 @@ function quiz_views_data() {
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
-        'base' => 'node_revisions',
+        'base' => 'node_revision',
         'field' => 'vid',
         'label' => t('Quiz node revision'),
       ),
@@ -401,7 +401,7 @@ function quiz_views_data() {
       ),
       'relationship' => array(
         'handler' => 'views_handler_relationship',
-        'base' => 'node_revisions',
+        'base' => 'node_revision',
         'field' => 'vid',
         'label' => t('Question node revision'),
       ),
@@ -506,7 +506,7 @@ function quiz_views_data() {
       // Related to NODE
       'relationship' => array(
         'handler' => 'views_handler_relationship',
-        'base' => 'node_revisions',
+        'base' => 'node_revision',
         'field' => 'vid',
         'label' => t('node revision'),
       ),
