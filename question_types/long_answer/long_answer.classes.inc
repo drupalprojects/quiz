@@ -190,7 +190,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     $results = db_query('SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
       FROM {quiz_long_answer_user_answers} AS a
-      INNER JOIN {node_revisions} AS r ON a.question_vid = r.vid
+      INNER JOIN {node_revision} AS r ON a.question_vid = r.vid
       INNER JOIN {quiz_node_results} AS qnr ON a.result_id = qnr.result_id
       JOIN {node} n ON qnr.nid = n.nid
       WHERE a.is_evaluated = :is_evaluated', array(':is_evaluated' => 0));

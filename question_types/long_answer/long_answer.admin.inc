@@ -30,8 +30,8 @@ function long_answer_view_unscored() {
 function long_answer_edit_score($vid, $rid) {
 
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
-  // and we need to be able to access old nodes in node_revisions.vid.
-  $nid = db_query("SELECT nid FROM {node_revisions} WHERE vid = :vid", array(':vid' => $vid))->fetchField();
+  // and we need to be able to access old nodes in node_revision.vid.
+  $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
   if (!$nid) {
     drupal_not_found();
     return;
