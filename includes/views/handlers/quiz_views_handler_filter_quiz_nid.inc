@@ -114,12 +114,10 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
 
     //    if (!empty($this->secondary_group_by) || !empty($this->options['secondary_group_by'])) {
     if (!empty($this->secondary_group_by)) {
-
       $this->secondary_table_alias = $this->query->ensure_table($this->secondary_table);
       $this->query->add_groupby("$this->secondary_table_alias.$this->secondary_group_by");
     }
-
-    $this->query->add_where(0, "$this->secondary_table_alias.$this->secondary_vid = ({$this->subselect()})");
+    $this->query->add_where(0, "$this->secondary_table_alias.$this->secondary_vid", $this->subselect());
   }
 
   /**
@@ -137,5 +135,6 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
     $subselect .= "$subalias.$this->secondary_group_by = $this->secondary_table_alias.$this->secondary_group_by AND ";
     $subselect .= "$subalias.$this->secondary_nid = $this->secondary_table_alias.$this->secondary_nid";
     return $subselect;
+
   }
 }

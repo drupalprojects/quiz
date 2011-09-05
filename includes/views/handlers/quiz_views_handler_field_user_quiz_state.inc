@@ -15,15 +15,12 @@ class quiz_views_handler_field_user_quiz_state extends views_handler_field {
   // additional field in the handler declaration
   function query() {
     $this->ensure_my_table();
-    $this->query->add_field($this->table_alias, "time_end > 0", 'is_finished');
+    $this->query->add_field($this->table_alias, "time_end", 'is_finished');
     // $this->query->add_field($this->table_alias, time() . " BETWEEN $this->table_alias.time_start AND $this->table_alias.time_end", $this->field_alias);
   }
 
   function render($values) {
-    if (is_null($values->is_finished)) {
-      return t('Not Started');
-    }
-    elseif (!empty($values->is_finished)) {
+    if ($values->is_finished > 0) {
       return t('Finished');
     }
     else {

@@ -28,10 +28,10 @@ class quiz_views_handler_argument_user_uid_nullable extends views_handler_argume
   function query() {
     $this->ensure_my_table();
     $operator = empty($this->options['not']) ? '=' : '!=';
-    $where = "$this->table_alias.$this->real_field $operator %d";
+    $where = "$this->table_alias.$this->real_field";
     if ($this->options['allow_null']) {
       $group = $this->query->set_where_group('AND', 'qnr_user');
-      $where .= " OR ISNULL($this->table_alias.$this->real_field)";
+      //$where .= " OR ISNULL($this->table_alias.$this->real_field)";
     }
     else {
       $group = 0;
