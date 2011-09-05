@@ -23,11 +23,9 @@ function quiz_stats_permission() {
   $permission = array(
     'access user stats' => array(
       'title' => t('access user stats'),
-      'description' => t('TODO Add a description for \'access user stats\''),
     ),
     'access author stats' => array(
       'title' => t('access author stats'),
-      'description' => t('TODO Add a description for \'access author stats\''),
     ),
   );
   return $permission;
@@ -37,8 +35,6 @@ function quiz_stats_permission() {
  * Implements hook_menu().
  */
 function quiz_stats_menu() {
-  global $user;
-  $items = array();
   $items['admin/quiz/reports/stats/creator'] = array(
     'title' => 'Quiz Statistics',
     'description' => 'Generates a report on quiz results for quiz creators.',
@@ -93,6 +89,7 @@ function quiz_stats_menu() {
  * Implements hook_theme().
  */
 function quiz_stats_theme() {
+  $path = drupal_get_path('module', 'quiz_stats') . '/theme';
   return array(
     'quiz_stats_get_basic_stats' => array(
       'variables' => array('results' => NULL),
@@ -116,12 +113,12 @@ function quiz_stats_theme() {
     ),
     'quiz_stats_revision_selector' => array(
       'variables' => array('content' => NULL),
-      'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
+      'path' => $path,
       'template' => 'quiz_stats_revision_selector',
     ),
     'quiz_stats_charts' => array(
       'variables' => array('charts' => NULL),
-      'path' => drupal_get_path('module', 'quiz_stats') . '/theme',
+      'path' => $path,
       'template' => 'quiz_stats_charts',
     ),
   );
@@ -144,16 +141,5 @@ function quiz_stats_validate_vid($quiz, $vid) {
   if (!user_access('access author stats')) {
     return FALSE;
   }
-  $sql = db_rewrite_sql(
-    'SELECT n.nid
-     FROM {node} n
-     WHERE n.nid = (
-       SELECT nr.nid
-       FROM {node_revision} nr
-       WHERE nr.vid = %d
-     )'
-  );
-  // TODO Please convert this statement to the D7 database API syntax.
-  $nid = db_query($sql, $vid)->fetchField();
-  return $quiz->nid == $nid;
+  return $quiz->nid == db_query('SELECT n.nid FROM {node} n INNER JOIN {node_revision} nr ON (n.nid = nr.nid) WHERE nr.vid = :vid', array(':vid' => $vid))->fetchField();
 }

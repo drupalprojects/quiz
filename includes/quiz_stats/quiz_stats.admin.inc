@@ -1,7 +1,7 @@
 <?php
 
 
-/*
+/**
  * @file
  * Administration file for Quiz stats Module
  *
@@ -93,17 +93,19 @@ function quiz_stats_get_adv_stats($vid, $uid = 0) {
  */
 function _get_quiz_grade_range_chart($vid, $uid = 0) {
   // @todo: make the ranges configurable
-  $sql = "SELECT SUM(score >= 0 && score < 20) AS zero_to_twenty,
+  $sql = 'SELECT SUM(score >= 0 && score < 20) AS zero_to_twenty,
     SUM(score >= 20 && score < 40) AS twenty_to_fourty,
     SUM(score >= 40 && score < 60) AS fourty_to_sixty,
     SUM(score >= 60 && score < 80) AS sixty_to_eighty,
     SUM(score >= 80 && score <= 100) AS eighty_to_hundred
     FROM {quiz_node_results}
-    WHERE vid = %d";
+    WHERE vid = :vid';
+  $arg[':vid'] = $vid;
   if ($uid != 0) {
-    $sql .= " AND uid = %d";
+    $sql .= ' AND uid = :uid';
+    $arg[':uid'] = $uid;
   }
-  $range = db_fetch_object(db_query($sql, $vid, $uid));
+  $range = db_query($sql, $arg)->fetch();
   $count = $range->zero_to_twenty + $range->twenty_to_fourty + $range->fourty_to_sixty + $range->sixty_to_eighty + $range->eighty_to_hundred;
   if ($count < 2) {
     return FALSE;
@@ -136,13 +138,15 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   $top_scorers = array();
   $sql = 'SELECT name, score FROM {quiz_node_results} qnr
     LEFT JOIN {users} u ON (u.uid = qnr.uid)
-    WHERE vid = %d';
+    WHERE vid = :vid';
+  $arg[':vid'] = $vid
   if ($uid != 0) {
-    $sql .= " AND qnr.uid = %d";
+    $sql .= ' AND qnr.uid = :uid';
+    $arg[':uid'] = $uid
   }
   $sql .= ' ORDER by score DESC';
-  $results = db_query_range($sql, $vid, $uid);
-  while ($result = db_fetch_array($results)) {
+  $results = db_query($sql, $arg);
+  while ($result = $results->fetch()) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
@@ -178,9 +182,8 @@ function _get_quiz_status_chart($vid, $uid = 0) {
     return;
   }
   // get the count value of results row above and below pass rate
-  $sql = "SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = %d";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $quiz = db_fetch_array(db_query($sql, intval($vid)));
+  $quiz = db_query("SELECT SUM(score > $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(score = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = :vid", array(':vid' => $vid))
+    ->fetchAssoc();
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 3) {
     return FALSE; // no sufficient data
   }
@@ -212,16 +215,15 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
   $sql = "SELECT COUNT(result_id) AS count,
             DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
             FROM {quiz_node_results}
-            WHERE vid = %d";
-  $sql_args = array($vid);
+            WHERE vid = :vid";
+  $sql_args[':vid'] = $vid;
   if ($uid != 0) {
-    $sql .= " AND uid = %d";
-    $sql_args[] = $uid;
+    $sql .= " AND uid = :uid";
+    $sql_args[':uid'] = $uid;
   }
   $sql .= " GROUP BY date ORDER BY time_start DESC";
-  $results = db_query_range($sql, $sql_args);
   $days = _quiz_get_last_days($end);
-  $res_o = db_fetch_object($results);
+  $res_o = db_query($sql, $sql_args)->fetch();
   foreach ($days as $date => &$value) {
     if ($date == $res_o->date) {
       $value->value = $res_o->count;
@@ -250,19 +252,21 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
  * Computes quiz attempt count
  *
  * @param $vid
- *   quiz revision id
+ *   quiz node id
  * @param $uid
  *   user id for filtering
  * @return
  *   Integer containing number of times that a quiz has
  *   been attended, can be filtered by uid.
  */
-function _quiz_get_attempt_count($vid, $uid = 0) {
-  $sql = "SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = %d";
+function _quiz_get_attempt_count($nid, $uid = 0) {
+  $sql = 'SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = :nid';
+  $arg[':nid'] = $nid;
   if ($uid != 0) {
-    $sql .= " AND uid = %d";
+    $sql .= ' AND uid = :uid';
+    $arg[':uid'] = $uid;
   }
-  return db_query($sql, $vid, $uid)->fetchField();
+  return db_query($sql, $arg)->fetchField();
 }
 
 // Theme functions
