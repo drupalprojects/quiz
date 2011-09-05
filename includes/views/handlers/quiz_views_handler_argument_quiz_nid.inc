@@ -136,7 +136,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
       $use_group_by = !empty($this->options['not']);
 
       $operator = empty($this->options['not']) ? '=' : '!=';
-      $where = "WHERE qnp.nid $operator %d";
+      $where = "WHERE qnp.nid $operator :nid";
     }
 
     switch ($this->options['which_vid']) {
@@ -148,7 +148,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
         $where .= ($use_group_by) ? ' GROUP BY qnp.nid' : '';
 
         // TODO Please convert this statement to the D7 database API syntax.
-        $result = db_query("SELECT $operation(qnp.vid) AS vid $from $where", $this->value);
+        $result = db_query("SELECT $operation(qnp.vid) AS vid $from $where", array(':nid' => $this->value));
         break;
 
       case 'all':
@@ -160,7 +160,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     $this->nid_field = $this->vid_field;
 
     $this->corresponding_vids = array();
-    while ($item = db_fetch_object($result)) {
+    while ($item = $result->fetch()) {
       $this->corresponding_vids[] = $item->vid;
     }
     return (count($this->corresponding_vids) > 1);
