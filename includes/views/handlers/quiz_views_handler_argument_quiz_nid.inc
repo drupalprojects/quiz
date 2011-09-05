@@ -77,7 +77,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
       $this->query->add_where(0, "$this->table_alias.$this->nid_field IN ($placeholders)", $this->corresponding_vids);
     }
     else {
-      $this->query->add_where(0, "$this->table_alias.$this->nid_field = %d", $this->corresponding_vids);
+      $this->query->add_where(0, "$this->table_alias.$this->nid_field", $this->corresponding_vids);
     }
   }
 
