@@ -220,7 +220,7 @@ abstract class QuizQuestion {
           }
         }
 
-        $res = db_query('SELECT title FROM {node_revisions} WHERE vid = :vid', array(':vid' => $quiz->vid));
+        $res = db_query('SELECT title FROM {node_revision} WHERE vid = :vid', array(':vid' => $quiz->vid));
         $latest[$quiz->nid . '-' . $quiz->vid] = $res->fetchField();
         // $latest_default is to be used as #default_value in form item
         $latest_default[] = $quiz->nid . '-' . $quiz->vid;

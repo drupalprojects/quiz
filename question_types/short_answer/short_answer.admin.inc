@@ -28,7 +28,7 @@ function short_answer_view_unscored() {
  *  Text to display.
  */
 function short_answer_edit_score($vid, $rid) {
-  $nid = db_query("SELECT nid FROM {node_revisions} WHERE vid = :vid", array(':vid' => $vid))->fetchField();
+  $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
   if (!$nid) {
     drupal_not_found();
     return;

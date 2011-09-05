@@ -16,11 +16,10 @@
  *  Themed html
  */
 function quiz_stats_revision_selector_page($quiz) {
-  $sql = 'SELECT vid FROM {node_revisions} WHERE nid = %d ORDER BY vid';
-  $res = db_query('SELECT vid FROM {node_revisions} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz->nid));
+  $res = db_query('SELECT vid FROM {node_revision} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz->nid));
   $count = 0; //uses this variable to slightly increase performance
   $vids = array();
-  while ($res_o = db_fetch_object($res)) {
+  while ($res_o = $res->fetch()) {
     $vids[] = $res_o->vid;
     $count++;
   }

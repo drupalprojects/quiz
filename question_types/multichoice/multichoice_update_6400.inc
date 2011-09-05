@@ -302,10 +302,10 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
 
       // Store the format for this node
       $sql = 'SELECT format
-              FROM {node_revisions}
+              FROM {node_revision}
               WHERE vid = %d';
       $res2 = db_query('SELECT format
-              FROM {node_revisions}
+              FROM {node_revision}
               WHERE vid = :vid', array(':vid' => $res_o->question_vid));
       $sandbox['last_format'] = $res2->fetchField();
       $sql = 'INSERT INTO {quiz_multichoice_properties}

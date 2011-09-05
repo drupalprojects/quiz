@@ -995,7 +995,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     $cur_questions[$cur_question->nid] = $cur_question;
   }
 
-  $query = db_select('node_revisions', 'r');
+  $query = db_select('node_revision', 'r');
   $table_alias = $query->join('node', 'n', 'n.nid = r.nid');
   $res = $query->addField('n', 'nid')
     ->addTag('node_access')

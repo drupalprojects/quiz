@@ -272,7 +272,7 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
 
   /*
   $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
-    INNER JOIN {node_revisions} AS r USING(vid)
+    INNER JOIN {node_revision} AS r USING(vid)
     WHERE n.type IN (%s) ORDER BY n.type, n.changed";
   $types = array();
   foreach (array_keys(_quiz_question_get_implementations()) as $key) {
