@@ -139,10 +139,10 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   $sql = 'SELECT name, score FROM {quiz_node_results} qnr
     LEFT JOIN {users} u ON (u.uid = qnr.uid)
     WHERE vid = :vid';
-  $arg[':vid'] = $vid
+  $arg[':vid'] = $vid;
   if ($uid != 0) {
     $sql .= ' AND qnr.uid = :uid';
-    $arg[':uid'] = $uid
+    $arg[':uid'] = $uid;
   }
   $sql .= ' ORDER by score DESC';
   $results = db_query($sql, $arg);
