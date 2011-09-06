@@ -146,7 +146,7 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   }
   $sql .= ' ORDER by score DESC';
   $results = db_query($sql, $arg);
-  while ($result = $results->fetch()) {
+  while ($result = $results->fetchAssoc()) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
   }
@@ -223,14 +223,18 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
   }
   $sql .= " GROUP BY date ORDER BY time_start DESC";
   $days = _quiz_get_last_days($end);
-  $res_o = db_query($sql, $sql_args)->fetch();
+  $results = db_query($sql, $sql_args);
+  $res_o = $results->fetch();
+  if (!is_object($res_o)) {
+    return FALSE;
+  }
   foreach ($days as $date => &$value) {
-    if ($date == $res_o->date) {
+    if (isset($res_o->date) && $date == $res_o->date) {
       $value->value = $res_o->count;
       if ($res_o->count > 0) {
         $valid_data = TRUE;
       }
-      $res_o = db_fetch_object($results);
+      $res_o = $results->fetch();
     }
   }
   if (!$valid_data) {
@@ -292,6 +296,7 @@ function theme_quiz_grade_range($variables) {
     '#grid_lines' => chart_grid_lines(10, 10),
     '#bar_size' => chart_bar_size(20, 15),
     '#adjust_resolution' => TRUE,
+    '#title' => '',
   );
   // chart data
   $chart['#data'][][] = $range->eighty_to_hundred;
@@ -322,8 +327,7 @@ function theme_quiz_grade_range($variables) {
   $chart['#legends'][] = t('40 to 60 % - ') . $range->fourty_to_sixty;
   $chart['#legends'][] = t('20 to 40 % - ') . $range->twenty_to_fourty;
   $chart['#legends'][] = t('0 to 20 % - ') . $range->zero_to_twenty;
-
-  return chart_render($chart);
+  return theme('chart', array('chart' => $chart));
 }
 
 /**
@@ -339,7 +343,7 @@ function theme_quiz_top_scorers($variables) {
   $attendees = $variables['scorer'];
   $chart = array(
     '#chart_id' => 'quiz_top_scorers',
-    //'#title' => t('Quiz Top Scorers'),
+    '#title' => t('Quiz Top Scorers'),
     '#type' => CHART_TYPE_BAR_V_GROUPED,
     '#size' => chart_size(600, 400),
     '#grid_lines' => chart_grid_lines(10, 10),
@@ -353,7 +357,7 @@ function theme_quiz_top_scorers($variables) {
   }
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') . ' (%)', 100);
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
-  return chart_render($chart);
+  return theme('chart', array('chart' => $chart));
 }
 
 /**
@@ -370,7 +374,7 @@ function theme_get_quiz_status_chart($variables) {
   $quiz['total'] = $quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete'];
   $chart = array(
     '#chart_id' => 'quiz_status_chart',
-    //'#title' => t('Quiz Status Chart'),
+    '#title' => t('Quiz Status Chart'),
     '#type' => CHART_TYPE_PIE_3D,
     '#size' => chart_size(500, 200),
     '#adjust_resolution' => TRUE,
@@ -391,7 +395,7 @@ function theme_get_quiz_status_chart($variables) {
     'incomplete' => ($quiz['no_incomplete'] / $quiz['total']) * 100 . t('% incomplete'),
     'fail' => ($quiz['no_fail'] / $quiz['total']) * 100 . t('% fail'),
   );
-  return chart_render($chart);
+  return theme('chart', array('chart' => $chart));
 }
 
 /**
@@ -408,6 +412,7 @@ function theme_date_vs_takeup_count($variables) {
   $max_count = 0;
   $chart = array(
     '#chart_id' => 'test_chart',
+    '#title' => '',
     '#type' => CHART_TYPE_LINE,
     '#size' => chart_size(600, 400),
     //'#chart_fill' => chart_fill('c', 'eeeeee'),
@@ -432,8 +437,7 @@ function theme_date_vs_takeup_count($variables) {
   // The chart module has some bugs. If we have the time we should provide patches instead of tricking it to work...
   $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1] = array('|', chart_mixed_axis_label(t('Attempts')));
   $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1] = array('|', chart_mixed_axis_label(t('Date')), '|');
-
-  return chart_render($chart);
+  return theme('chart', array('chart' => $chart));
 }
 
 /**

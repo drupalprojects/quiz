@@ -18,7 +18,7 @@
  * $charts['top_scorers']['chart'] (string - img tag - google chart)
  * $charts['top_scorers']['explanation'] (string)
  */
-
+$chart_found = FALSE;
 if (!function_exists('_quiz_stats_print_chart')) {
   function _quiz_stats_print_chart(&$chart) {
     if (is_array($chart)) {
