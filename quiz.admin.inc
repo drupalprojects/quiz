@@ -399,57 +399,60 @@ function _quiz_results_mr_store_filters($filters) {
 /**
  * AHAH handler for the results browser
  */
-function quiz_results_mr_browser_ahah() {
+function quiz_results_mr_browser_ahah($form, &$form_state) {
   // Prepare to get the form from cache
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_id = $_POST['form_build_id'];
+  //$form_state = array('storage' => NULL, 'submitted' => FALSE);
+  //$form_id = $_POST['form_build_id'];
 
   // Make sure the form exists
-  if (!($form = form_get_cache($form_id, $form_state))) {
-    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-    $output = theme('status_messages');
-    print drupal_json_encode(array('status' => TRUE, 'data' => $output));
-    exit();
-  }
+  //if (!($form = form_get_cache($form_id, $form_state))) {
+  //  form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
+ //   $output = theme('status_messages');
+ //   print drupal_json_encode(array('status' => TRUE, 'data' => $output));
+ //   exit();
+  //}
 
   // If filter or pager has been used
-  $replace_all = drupal_strlen($_POST['table']['add_to_get']) > 0;
+  //$replace_all = drupal_strlen($_POST['table']['add_to_get']) > 0;
 
   // Prepare to submit the form
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
+  //$args = $form['#parameters'];
+  //$form_id = array_shift($args);
 
   // We will run some of the submit handlers so we need to disable redirecting.
-  $form_state['#redirect'] = FALSE;
+  //$form_state['#redirect'] = FALSE;
 
   // We need to process the form, prepare for that by setting a few internal variables.
-  $form['#post'] = $_POST;
-  $form['#programmed'] = FALSE;
-  $form_state['post'] = $_POST;
+  //$form['#post'] = $_POST;
+  ///$form['#programmed'] = FALSE;
+  //$form_state['post'] = $_POST;
 
   // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
-  foreach ($_POST as $key => $value) {
-    unset($_REQUEST[$key]);
-  }
-  $_POST = array();
+  //foreach ($_POST as $key => $value) {
+  //  unset($_REQUEST[$key]);
+ // }
+  //$_POST = array();
 
   // We don't want any validation errors to show up. This isn't a real submit.
   _quiz_skip_validation($form);
 
-  _quiz_results_mr_store_filters($form_state['post']['table']['filters']);
+  _quiz_results_mr_store_filters($form_state['values']['table']['filters']);
 
   // Build, validate and submit the form.
-  drupal_process_form($form_id, $form, $form_state);
+  //drupal_process_form($form_id, $form, $form_state);
 
   //Remove any status messages the processing resulted in...
   theme('status_messages');
 
   // Get the form the ajax call resulted in
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-
+  //$form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  //$form = ajax_form_callback();
+  return $form['table'];
+  //print_r($form);exit;
   // We store a copy of the browser part of the form, and remove it from the main form.
   // This way we can render the form without the browser, and render the browser separatly
   $b_form = $form['table'];
+
   unset($form['table']);
 
   /*
@@ -484,7 +487,7 @@ function quiz_results_mr_browser_ahah() {
     $output .= ' </script>';
     $output .= ' ' . theme('status_messages');
   }
-  drupal_json_output(array('status' => TRUE, 'data' => $output));
+  return $output;
 }
 // MANAGE QUESTIONS
 
@@ -2380,9 +2383,10 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
     '#type' => 'textfield',
     '#size' => 12,
     '#default_value' => isset($_SESSION[$pre . 'name']) ? $_SESSION[$pre . 'name'] : '',
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_results_mr_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'all-ahah-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
     ),
@@ -2391,9 +2395,10 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
     '#type' => 'select',
     '#options' => _quiz_get_time_interval_options(),
     '#default_value' => isset($_SESSION[$pre . 'started']) ? $_SESSION[$pre . 'started'] : '',
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_results_mr_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'all-ahah-target',
       'method' => 'replace',
     ),
   );
@@ -2401,9 +2406,10 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
     '#type' => 'select',
     '#options' => _quiz_get_time_interval_options(),
     '#default_value' => isset($_SESSION[$pre . 'finished']) ? $_SESSION[$pre . 'finished'] : '',
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_results_mr_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'all-ahah-target',
       'method' => 'replace',
     ),
   );
@@ -2411,9 +2417,10 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
     '#type' => 'select',
     '#options' => _quiz_get_score_options(),
     '#default_value' => isset($_SESSION[$pre . 'score']) ? $_SESSION[$pre . 'score'] : '',
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_results_mr_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'all-ahah-target',
       'method' => 'replace',
     ),
   );
@@ -2421,9 +2428,10 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
     '#type' => 'select',
     '#options' => array('def' => t('No filter'), '1' => t('Yes'), '0' => t('No')),
     '#default_value' => isset($_SESSION[$pre . 'evaluated']) ? $_SESSION[$pre . 'evaluated'] : '',
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_results_mr_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'all-ahah-target',
       'method' => 'replace',
     ),
   );
