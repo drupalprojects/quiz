@@ -1293,10 +1293,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   // Browsers table header
   $browser['#header'] = array(
     NULL,
-    array('data' => t('Title'), 'field' => 'n.title'),
-    array('data' => t('Type'), 'field' => 'n.type'),
-    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc'),
-    array('data' => t('Username'), 'field' => 'u.name'),
+    array('data' => t('Title')), //'field' => 'n.title'),
+    array('data' => t('Type')), //'field' => 'n.type'),
+    array('data' => t('Changed')), //'field' => 'n.changed', 'sort' => 'desc'),
+    array('data' => t('Username')), //'field' => 'u.name'),
   );
 
   /*
@@ -1416,9 +1416,10 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#type' => 'textfield',
     '#size' => 20,
     '#default_value' => $_SESSION[$pre . 'title'],
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'mq-fieldset',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
     ),
@@ -1427,9 +1428,10 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#type' => 'select',
     '#options' => $type_options,
     '#default_value' => $_SESSION[$pre . 'type'],
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'mq-fieldset',
       'method' => 'replace',
     ),
   );
@@ -1437,9 +1439,10 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#type' => 'select',
     '#options' => $changed_options,
     '#default_value' => $_SESSION[$pre . 'changed'],
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'mq-fieldset',
       'method' => 'replace',
     ),
   );
@@ -1447,9 +1450,10 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#type' => 'textfield',
     '#size' => 10,
     '#default_value' => $_SESSION[$pre . 'name'],
-    '#ahah' => array(
-      'path' => $ahah_path,
-      'wrapper' => 'ahah-target',
+    '#ajax' => array(
+      'callback' => 'quiz_browser_ahah',
+      'effect' => 'slide',
+      'wrapper' => 'mq-fieldset',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
     ),
@@ -1779,57 +1783,58 @@ function _quiz_browser_store_filters($filters) {
 /**
  * AHAH handler for the question browser
  */
-function quiz_browser_ahah() {
+function quiz_browser_ahah($form, &$form_state) {
   // Prepare to get the form from cache
-  $form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_id = $_POST['form_build_id'];
+  //$form_state = array('storage' => NULL, 'submitted' => FALSE);
+  //$form_id = $_POST['form_build_id'];
 
   // Make sure the form exists
-  if (!($form = form_get_cache($form_id, $form_state))) {
-    form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-    $output = theme('status_messages');
-    print drupal_json_encode(array('status' => TRUE, 'data' => $output));
-    exit();
-  }
+  //if (!($form = form_get_cache($form_id, $form_state))) {
+   // form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
+   // $output = theme('status_messages');
+   // print drupal_json_encode(array('status' => TRUE, 'data' => $output));
+   // exit();
+ // }
   // If filter or pager has been used
-  $replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
+  //$replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
 
   // Prepare to submit the form
-  $args = $form['#parameters'];
-  $form_id = array_shift($args);
+  //$args = $form['#parameters'];
+  //$form_id = array_shift($args);
 
   // We will run some of the submit handlers so we need to disable redirecting.
-  $form_state['#redirect'] = FALSE;
+  //$form_state['#redirect'] = FALSE;
 
   // We need to process the form, prepare for that by setting a few internals
   // variables.
-  $form['#post'] = $_POST;
-  $form['#programmed'] = FALSE;
-  $form_state['post'] = $_POST;
-  $form_state['#from_ahah'] = TRUE;
+  //$form['#post'] = $_POST;
+  //$form['#programmed'] = FALSE;
+  //$form_state['post'] = $_POST;
+  //$form_state['#from_ahah'] = TRUE;
 
   // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
-  foreach ($_POST as $key => $value) {
-    unset($_REQUEST[$key]);
-  }
-  $_POST = array();
+  //foreach ($_POST as $key => $value) {
+  //  unset($_REQUEST[$key]);
+  //}
+  //$_POST = array();
 
   // We don't want any validation errors to show up. This isn't a real submit.
   _quiz_skip_validation($form);
 
-  _quiz_browser_store_filters($form_state['post']['browser']['table']['filters']);
+  _quiz_browser_store_filters($form_state['values']['browser']['table']['filters']);
 
   // Build, validate and submit the form.
-  drupal_process_form($form_id, $form, $form_state);
+  //drupal_process_form($form_id, $form, $form_state);
 
   //Remove any status messages the processing resulted in...
-  //theme('status_messages');
+  theme('status_messages');
 
   // Get the form the ajax call resulted in
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  //$form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
 
   // We store a copy of the browser part of the form, and remove it from the main form.
   // This way we can render the form without the browser, and render the browser separatly
+  return $form['question_list']['browser'];
   $b_form = $form['question_list']['browser'];
   unset($form['question_list']['browser']);
 
