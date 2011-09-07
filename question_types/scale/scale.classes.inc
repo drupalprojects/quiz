@@ -112,7 +112,7 @@ class ScaleQuestion extends QuizQuestion {
 
     $alternatives = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (drupal_strlen($alt_input['alternative' . $i]) > 0) {
+      if (isset($alt_input['alternative' . $i]) && drupal_strlen($alt_input['alternative' . $i]) > 0) {
         $alternatives[] = $alt_input['alternative' . $i];
       }
     }
