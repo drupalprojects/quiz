@@ -1078,7 +1078,7 @@ function quiz_form(&$node, &$form_state) {
       t('No randomization'),
       t('Random order'),
       t('Random questions'),
-      t('Categorized random questions'),
+      //t('Categorized random questions'),
     ),
     '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
     '#default_value' => $node->randomization,
