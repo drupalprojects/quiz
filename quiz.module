@@ -3095,7 +3095,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
       if ($question['vid'] == $answered->vid) {
         $already_answered[] = $answered->vid;
         // we found it, no need to continue the foreach loop
-        continue;
+        continue 2;
       }
     }
     // This question was answered, but wasn't in $questions, so we need
@@ -3107,7 +3107,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
           $questions[$key]['nid'] = $answered->nid;
           $questions[$key]['rid'] = $rid;
           $already_answered[] = $answered->vid;
-          continue;
+          continue 2;
         }
       }
     }
@@ -3130,8 +3130,14 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
     }
   }
 
-  $_SESSION['quiz_' . $quiz->nid]['result_id'] = $rid;
-  $_SESSION['quiz_' . $quiz->nid]['question_number'] = count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
+  if (empty($_SESSION['quiz_'. $quiz->nid]['quiz_questions']) &&
+      count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']) == count($already_answered)
+    ) {
+    $_SESSION['quiz_'. $quiz->nid]['quiz_questions'][] = array_pop($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+  }
+
+  $_SESSION['quiz_'. $quiz->nid]['result_id'] = $rid;
+  $_SESSION['quiz_'. $quiz->nid]['question_number'] = count($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
 
   // Timed quizzes are likely to have expired by this point. But we let
   // the quiz_take_quiz handler handle that.
