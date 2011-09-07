@@ -3920,18 +3920,20 @@ function _quiz_maintain_results($quiz, $rid) {
   switch ($quiz->keep_results) {
     case QUIZ_KEEP_ALL:
       return FALSE;
-    case QUIZ_KEEP_BEST: //I'm afraid of what this might do to performance...
-      // TODO Change it to JOIN SQL query
-      $res = db_query('SELECT result_id
-              FROM {quiz_node_results}
-              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != (
-                SELECT result_id
-                FROM {quiz_node_results}
-                WHERE score = (
-                  SELECT MAX(score) FROM {quiz_node_results}
-                  WHERE nid = :nid AND uid = :uid
-                )
-                AND nid = :nid AND uid = :uid LIMIT 1', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1));
+    case QUIZ_KEEP_BEST:
+      $best_result_id = db_query('SELECT result_id FROM {quiz_node_results}
+          WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated
+          ORDER BY score DESC',
+          array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1)
+        )
+        ->fetchField();
+      if (!$best_result_id) {
+        return;
+      }
+      $res = db_query('SELECT result_id FROM {quiz_node_results}
+          WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated',
+          array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
+        );
       $rids = array();
       while ($rid2 = $res->fetchField()) {
         $rids[] = $rid2;
