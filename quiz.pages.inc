@@ -571,8 +571,13 @@ function theme_quiz_user_summary($variables) {
 
   // Display overall result.
   $output = '';
-  $output .= '<div id="quiz_score_possible">' . t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) . '</div>' . "\n";
-  $output .= '<div id="quiz_score_percent">' . t('Your score was: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
+  $output .= '<div id="quiz_score_possible">' .
+    t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .
+    '</div>';
+  $output .= '<div id="quiz_score_percent">' .
+    t('Your score was: @score %', array('@score' => $score['percentage_score'])) .
+    '</div>';
+
   if (isset($summary['passfail'])) {
     $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
   }
@@ -580,7 +585,7 @@ function theme_quiz_user_summary($variables) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
   // Get the feedback for all questions.
-  $output .= drupal_render_children(drupal_get_form('quiz_report_form', $questions, FALSE, TRUE));
+  $output .= drupal_render(drupal_get_form('quiz_report_form', $questions, FALSE, TRUE));
   return $output;
 }
 
