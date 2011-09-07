@@ -2193,11 +2193,11 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
 
   // Browsers table header
   $browser['#header'] = array(
-    array('data' => t('Username'), 'field' => 'u.uid', 'class' => array('quiz-browser-header-name')),
-    array('data' => t('Started'), 'field' => 'started', 'class' => array('quiz-browser-header-started')),
-    array('data' => t('Finished'), 'field' => 'finished', 'sort' => 'desc', 'class' => array('quiz-browser-header-finished')),
-    array('data' => t('Score'), 'field' => 'score', 'class' => array('quiz-browser-header-score')),
-    array('data' => t('Evaluated'), 'field' => 'evaluated', 'class' => array('quiz-browser-header-evaluated')),
+    array('data' => t('Username'), 'field' => 'u.uid'),
+    array('data' => t('Started'), 'field' => 'started'),
+    array('data' => t('Finished'), 'field' => 'finished'),
+    array('data' => t('Score'), 'field' => 'score'),
+    array('data' => t('Evaluated'), 'field' => 'evaluated'),
   );
 
   $res = _quiz_results_mr_data_provider($browser['#header'], $quiz);
