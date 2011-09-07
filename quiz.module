@@ -948,8 +948,6 @@ function quiz_form(&$node) {
   // We tell quiz_form_alter to check for the manual revisioning permission.
   $form['#quiz_check_revision_access'] = TRUE;
 
-  $form['theme']['#theme'] = 'quiz_node_form';
-
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
@@ -1768,7 +1766,7 @@ function quiz_take_quiz($quiz) {
       quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
     }
     elseif ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
-      $_POST['op'] = t('Skip');
+      $_POST['op'] = t('Leave blank');
       $allow_skipping = TRUE;
       $jumping = TRUE;
     }
@@ -1806,7 +1804,7 @@ function quiz_take_quiz($quiz) {
     }
   }
   // Check for a skip.
-  if (isset($_POST['op']) && ($_POST['op'] == t('Skip') || $_POST['op'] == t('Skip and finish')) && $allow_skipping) {
+  if (isset($_POST['op']) && ($_POST['op'] == t('Leave blank') || $_POST['op'] == t('Leave blank and finish')) && $allow_skipping) {
     if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
       $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
     }
@@ -1856,6 +1854,7 @@ function quiz_take_quiz($quiz) {
       }
       // Avoid caching for anonymous users
       if (!$user->uid) {
+        drupal_set_message($q_passed_validation, 'error');
         drupal_goto('node/'. $quiz->nid .'/take', array('quizkey' => md5(mt_rand() . time())));
       }
     }
@@ -2585,7 +2584,7 @@ function quiz_calculate_score($quiz, $rid) {
   // 1. Fetch all questions and their max scores
   $sql = 'SELECT a.question_nid, a.question_vid, n.type, r.max_score, qt.max_score as term_max_score
   FROM {quiz_node_results_answers} a
-  LEFT JOIN {node} n ON (question_nid = nid)
+  LEFT JOIN {node} n ON (a.question_nid = n.nid)
   LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid AND r.parent_vid = %d)
   LEFT OUTER JOIN {quiz_terms} qt ON (a.tid = qt.tid AND qt.vid = %d)
   WHERE a.result_id = %d';
