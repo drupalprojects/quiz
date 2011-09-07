@@ -197,13 +197,13 @@ function scale_manage_collection_form($form, &$form_state) {
       '#group' => 'scale_manage_collection_form',
     );
     $alternatives = isset($collections[$col_id]->alternatives) ? $collections[$col_id]->alternatives : array();
-    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10) && isset($alternatives[$i]); $i++) {
+    for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       $form["collection$col_id"]["alternative$i"] = array(
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#size' => 60,
         '#maxlength' => 256,
         '#type' => 'textfield',
-        '#default_value' => $alternatives[$i],
+        '#default_value' => isset($alternatives[$i]) ? $alternatives[$i] : '',
         '#required' => (($i < 2) && $col_id != 'new'),
       );
     }
