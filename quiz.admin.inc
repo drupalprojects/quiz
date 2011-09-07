@@ -2304,7 +2304,6 @@ function _quiz_results_mr_data_provider($header, $quiz) {
  *   sql to be added to where statement in browser(string)
  */
 function _quiz_results_mr_prepare_filter($quiz) {
-  global $db_type;
   $pre = 'quiz_results_mr_';
 
   // Get all the intervals we need
@@ -2356,7 +2355,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
                            GROUP BY qnrs.uid
                          ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.top_score";
     $filter['group'] .= " GROUP BY qnrs.uid";
-    if ($db_type == 'pgsql') {
+    if (db_driver() == 'pgsql') {
       $filter['group'] .= " GROUP BY qnrs.uid, u.uid, u.name, qnrs.result_id, qnrs.score, qnrs.is_evaluated, qnrs.time_start, qnrs.time_end, qnp.pass_rate";
     }
     $filter['params'][] = $filter['params'][0];
