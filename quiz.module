@@ -1190,7 +1190,7 @@ function quiz_form(&$node, &$form_state) {
     );
   }
 
-  if (module_exists('userpoints') && variable_get('quiz_has_userpoints', 0)) {
+  if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
     $form['has_userpoints'] = array(
       '#type' => 'checkbox',
       '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
@@ -2347,6 +2347,7 @@ function quiz_quiz_finished($quiz, $score, $rid) {
       'points' => $score['numeric_score'],
       'description' => t('Attened @title @quiz on @time', $variables),
       'tid' => $selected_tid,
+      'uid' => $taker->uid,
     );
     userpoints_userpointsapi($params);
   }
