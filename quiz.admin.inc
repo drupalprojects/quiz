@@ -1415,7 +1415,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['title'] = array(
     '#type' => 'textfield',
     '#size' => 20,
-    '#default_value' => $_SESSION[$pre . 'title'],
+    '#default_value' => isset($_SESSION[$pre . 'title']) ? $_SESSION[$pre . 'title'] : '',
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
@@ -1427,7 +1427,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['type'] = array(
     '#type' => 'select',
     '#options' => $type_options,
-    '#default_value' => $_SESSION[$pre . 'type'],
+    '#default_value' => isset($_SESSION[$pre . 'type']) ? $_SESSION[$pre . 'type'] : '',
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
@@ -1438,7 +1438,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['changed'] = array(
     '#type' => 'select',
     '#options' => $changed_options,
-    '#default_value' => $_SESSION[$pre . 'changed'],
+    '#default_value' => isset($_SESSION[$pre . 'changed']) ? $_SESSION[$pre . 'changed'] : '',
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
@@ -1449,7 +1449,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
   $filters['name'] = array(
     '#type' => 'textfield',
     '#size' => 10,
-    '#default_value' => $_SESSION[$pre . 'name'],
+    '#default_value' => isset($_SESSION[$pre . 'name']) ? $_SESSION[$pre . 'name'] : '',
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
