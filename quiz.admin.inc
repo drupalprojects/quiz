@@ -1257,17 +1257,11 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
+    '#prefix' => '<div id="quiz-browser-target">',
+    '#suffix' => '</div>',
   );
   $form['table'] = array('#theme' => 'quiz_question_browser');
   $browser = &$form['table'];
-
-  // Ahah targets
-  $browser['ahah_target'] = array(
-    '#markup' => '<div id="ahah-target"></div>'
-  );
-  $browser['ahah_target_all'] = array(
-    '#markup' => '<div id="all-ahah-target">'
-  );
 
   // Ajax use this field to send extra query strings to drupal
   $browser['add_to_get'] = array(
@@ -1277,11 +1271,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   //Build filter part of form:
   _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
-
-  // Create filter part of sql.
-  //$filter_params = array($quiz->vid);
-  // Get filter sql, and add filter params to $filter_params
-  //$filter_sql = _quiz_question_browser_prepare_filter_sql($filter_params);
 
   //$question_type_list = implode('\', \'', array_keys($question_types));
 
@@ -1293,10 +1282,10 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   // Browsers table header
   $browser['#header'] = array(
     NULL,
-    array('data' => t('Title')), //'field' => 'n.title'),
-    array('data' => t('Type')), //'field' => 'n.type'),
-    array('data' => t('Changed')), //'field' => 'n.changed', 'sort' => 'desc'),
-    array('data' => t('Username')), //'field' => 'u.name'),
+    array('data' => t('Title'), 'field' => 'n.title'),
+    array('data' => t('Type'), 'field' => 'n.type'),
+    array('data' => t('Changed'), 'field' => 'n.changed', 'sort' => 'desc'),
+    array('data' => t('Username'), 'field' => 'u.name'),
   );
 
   /*
@@ -1324,6 +1313,27 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $query->condition('type', array_keys($question_types), 'IN');
   if (count($child_nid)) {
     $query->condition('nid', $child_nid, 'NOT IN');
+  }
+  // Get filter sql, and add filter params to $filter_params
+  // _quiz_question_browser_prepare_filter_sql($query);
+  $pre = 'quiz_question_browser_';
+  $changed_timestamps = _quiz_get_interval_timestamps('changed');
+  $filter_sql = '';
+  if (drupal_strlen($_SESSION[$pre . 'title']) > 0) {
+    $filter_sql .= ' AND n.title LIKE \'%s%%\'';
+    $filter_params[] = $_SESSION[$pre . 'title'];
+  }
+  if (drupal_strlen($_SESSION[$pre . 'name']) > 0) {
+    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
+    $filter_params[] = $_SESSION[$pre . 'name'];
+  }
+  if (isset($_SESSION[$pre . 'type']) && ($_SESSION[$pre . 'type'] !== '0')) {
+    //$filter_sql .= ' AND n.type = \'%s\'';
+    //$filter_params[] = $_SESSION[$pre . 'type'];
+    $query->condition('type', array($_SESSION[$pre . 'type']), 'IN');
+  }
+  if (isset($_SESSION[$pre . 'changed'])) {
+    $filter_sql .= $changed_timestamps[$_SESSION[$pre . 'changed']]['sql'];
   }
   $query->limit(10);
   $query->orderByHeader($browser['#header']);
@@ -1353,6 +1363,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   // build data part of form
 
   //while ($res_o = $query->fetch()) {
+  $options = array();
   foreach ($query->execute() as $res_o) {
     $id = $res_o->nid . '-' . $res_o->vid;
     // Add $id to hidden_questions, this way quiz_questions_form knows that it has to add a invisible row for this question.
@@ -1419,7 +1430,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
-      'wrapper' => 'mq-fieldset',
+      'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
     ),
@@ -1431,7 +1442,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
-      'wrapper' => 'mq-fieldset',
+      'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
     ),
   );
@@ -1442,7 +1453,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
-      'wrapper' => 'mq-fieldset',
+      'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
     ),
   );
@@ -1453,7 +1464,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
       'effect' => 'slide',
-      'wrapper' => 'mq-fieldset',
+      'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
       'event' => 'doneTyping', // Custom event
     ),
@@ -1784,9 +1795,10 @@ function _quiz_browser_store_filters($filters) {
  * AHAH handler for the question browser
  */
 function quiz_browser_ahah($form, &$form_state) {
+
   // Prepare to get the form from cache
   //$form_state = array('storage' => NULL, 'submitted' => FALSE);
-  //$form_id = $_POST['form_build_id'];
+  $form_id = $form['#form_id'];
 
   // Make sure the form exists
   //if (!($form = form_get_cache($form_id, $form_state))) {
@@ -1830,11 +1842,12 @@ function quiz_browser_ahah($form, &$form_state) {
   theme('status_messages');
 
   // Get the form the ajax call resulted in
-  //$form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+  $form = drupal_rebuild_form($form_id, $form_state);
 
   // We store a copy of the browser part of the form, and remove it from the main form.
   // This way we can render the form without the browser, and render the browser separatly
   return $form['question_list']['browser'];
+
   $b_form = $form['question_list']['browser'];
   unset($form['question_list']['browser']);
 
