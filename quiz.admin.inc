@@ -1671,7 +1671,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 
 
   $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random'] : 1;
-  $term_id = isset($form_state['values']['random_term_id']) ? $form_state['values']['random_term_id'] : 0;
+  $term_id = isset($form_state['values']['random_term_id']) ? (int) $form_state['values']['random_term_id'] : 0;
 
 
   // Store what questions belong to the quiz
