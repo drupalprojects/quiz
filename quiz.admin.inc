@@ -949,19 +949,22 @@ function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
     '#title' => t('Max score for each random question'),
     '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
   );
-  $terms =  _quiz_taxonomy_select($quiz->tid);
-  if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
-    $form['question_list']['random_settings']['random_term_id'] = array(
-      '#type' => 'select',
-      '#title' => t('Terms'),
-      '#size' => 1,
-      '#options' => _quiz_taxonomy_select($quiz->tid),
-      '#default_value' => $quiz->tid,
-      '#description' => t('Randomly select from questions with this term, or choose from the question pool below'),
-      '#weight' => -4,
-    );
+  if ($quiz->randomization == 3) {
+    $terms =  _quiz_taxonomy_select($quiz->tid);
+    if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
+      $form['question_list']['random_settings']['random_term_id'] = array(
+        '#type' => 'select',
+        '#title' => t('Terms'),
+        '#size' => 1,
+        '#options' => _quiz_taxonomy_select($quiz->tid),
+        '#default_value' => $quiz->tid,
+        '#description' => t('Randomly select from questions with this term, or choose from the question pool below'),
+        '#weight' => -4,
+      );
+    }
   }
 }
+
 
 /**
  * Returns the questions that was in the question list when the form was submitted using ajax.
