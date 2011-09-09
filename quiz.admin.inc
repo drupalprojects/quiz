@@ -1314,25 +1314,26 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   if (count($child_nid)) {
     $query->condition('nid', $child_nid, 'NOT IN');
   }
-  // Get filter sql, and add filter params to $filter_params
+
+  // Apply filter conditions
   // _quiz_question_browser_prepare_filter_sql($query);
   $pre = 'quiz_question_browser_';
   $changed_timestamps = _quiz_get_interval_timestamps('changed');
   $filter_sql = '';
-  if (drupal_strlen($_SESSION[$pre . 'title']) > 0) {
-    $filter_sql .= ' AND n.title LIKE \'%s%%\'';
-    $filter_params[] = $_SESSION[$pre . 'title'];
+  if (isset($_SESSION[$pre . 'title']) && !empty($_SESSION[$pre . 'title'])) {
+    $query->condition('n.title', '%' . db_like($_SESSION[$pre . 'title']) . '%', 'LIKE');
   }
-  if (drupal_strlen($_SESSION[$pre . 'name']) > 0) {
-    $filter_sql .= ' AND u.name LIKE \'%s%%\'';
-    $filter_params[] = $_SESSION[$pre . 'name'];
+
+  if (isset($_SESSION[$pre . 'name']) && !empty($_SESSION[$pre . 'name'])) {
+    $query->condition('u.name', '%' . db_like($_SESSION[$pre . 'name']) . '%', 'LIKE');
   }
+
   if (isset($_SESSION[$pre . 'type']) && ($_SESSION[$pre . 'type'] !== '0')) {
-    //$filter_sql .= ' AND n.type = \'%s\'';
-    //$filter_params[] = $_SESSION[$pre . 'type'];
     $query->condition('type', array($_SESSION[$pre . 'type']), 'IN');
   }
+
   if (isset($_SESSION[$pre . 'changed'])) {
+    $changed_timestamps = _quiz_get_interval_timestamps('changed');
     $filter_sql .= $changed_timestamps[$_SESSION[$pre . 'changed']]['sql'];
   }
   $query->limit(10);
@@ -1432,7 +1433,6 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
       'effect' => 'slide',
       'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
-      'event' => 'doneTyping', // Custom event
     ),
   );
   $filters['type'] = array(
@@ -1466,7 +1466,6 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
       'effect' => 'slide',
       'wrapper' => 'quiz-browser-target',
       'method' => 'replace',
-      'event' => 'doneTyping', // Custom event
     ),
   );
 }
