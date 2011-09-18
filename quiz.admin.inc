@@ -402,7 +402,7 @@ function _quiz_results_mr_store_filters($filters) {
 function quiz_results_mr_browser_ahah($form, &$form_state) {
   // Prepare to get the form from cache
   //$form_state = array('storage' => NULL, 'submitted' => FALSE);
-  //$form_id = $_POST['form_build_id'];
+  $form_id = $form['#form_id'];
 
   // Make sure the form exists
   //if (!($form = form_get_cache($form_id, $form_state))) {
@@ -445,8 +445,7 @@ function quiz_results_mr_browser_ahah($form, &$form_state) {
   theme('status_messages');
 
   // Get the form the ajax call resulted in
-  //$form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-  //$form = ajax_form_callback();
+  $form = drupal_rebuild_form($form_id, $form_state);
   return $form['table'];
   //print_r($form);exit;
   // We store a copy of the browser part of the form, and remove it from the main form.
@@ -2407,7 +2406,6 @@ function _quiz_results_mr_add_filter_fields(&$browser, $quiz) {
       'effect' => 'slide',
       'wrapper' => 'all-ahah-target',
       'method' => 'replace',
-      'event' => 'doneTyping', // Custom event
     ),
   );
   $filters['started'] = array(
