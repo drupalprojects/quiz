@@ -280,15 +280,16 @@ function quiz_get_user_results($uid) {
 function quiz_my_results($node) {
   global $user;
   $results = array();
-  $res = db_query("
+  $res = db_query('
     SELECT qnp.nid, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
-    WHERE qnrs.uid = %d AND qnrs.nid = %d AND qnrs.is_evaluated = 1
-    ORDER BY qnrs.result_id DESC
-  ", $user->uid, $node->nid);
+    WHERE qnrs.uid = :uid AND qnrs.nid = :nid AND qnrs.is_evaluated = 1
+    ORDER BY qnrs.result_id DESC',
+    array(':uid' => $user->uid, ':nid' => $node->nid)
+  );
   // Create an array out of the results.
-  while ($line = db_fetch_array($res)) {
+  while ($line = $res->fetchAssoc()) {
     $results[$line['result_id']] = $line;
   }
   return theme('quiz_my_results_for_quiz', array('rows' => $results));
