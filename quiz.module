@@ -1879,7 +1879,7 @@ function quiz_take_quiz($quiz) {
     }
     $q_passed_validation = TRUE;
     // Advance the question.
-    if (!$jumping) {
+    if (isset($jumping) && !$jumping) {
       $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0];
 
       // Load the last asked question.

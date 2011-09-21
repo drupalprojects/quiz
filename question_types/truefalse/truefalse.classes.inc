@@ -289,7 +289,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function getResponse() {
     if (!isset($this->answer)) {
       $correct_answer = $this->getCorrectAnswer();
-      $this->answer = $correct_answer->answer;
+      $this->answer = isset($correct_answer->answer) ? $correct_answer->answer : '';
     }
     return $this->answer;
   }
