@@ -220,7 +220,7 @@ function _quiz_question_teaser_content($node) {
  *  Object with nid, vid, rid, score, is_correct flags set.
  */
 function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
-  if (empty($answer)) {
+  if (empty($answer) && !empty($_POST['tries'])) {
     // FIXME this use of POST array is hacky. We will try to use FAPI mor accurately in Quiz 5.x
     $answer = $_POST['tries'];
   }
