@@ -63,11 +63,11 @@ class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
     }
     $this->ensure_my_table();
     if ($val == 'not_started') {
-      $this->query->add_where(0, "$this->table_alias.time_end IS NULL");
+      $this->query->add_where($this->options['group'], "$this->table_alias.time_end", NULL, "IS NULL");
     }
     else {
       $operator = $val == 'in_progress' ? '=' : '>';
-      $this->query->add_where(0, "$this->table_alias.time_end $operator 0");
+      $this->query->add_where($this->options['group'], "$this->table_alias.time_end", 0, $operator);
     }
   }
 }
