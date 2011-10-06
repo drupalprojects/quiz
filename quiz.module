@@ -731,37 +731,38 @@ function quiz_update($node) {
 }
 
 /**
- * Implements hook_content_extra_fields(cck)().
+ * Implements hook_field_extra_fields().
  */
-function quiz_content_extra_fields($type_name) {
-  $extra = array();
-  if ($type_name == 'quiz') {
-    $extra['taking'] = array(
-      'label' => t('Taking options'),
-      'description' => t('Fieldset for customizing how a quiz is taken'),
-      'weight' => 0,
-    );
-    $extra['quiz_availability'] = array(
-      'label' => t('Availability options'),
-      'description' => t('Fieldset for customizing when a quiz is available'),
-      'weight' => 0,
-    );
-    $extra['summaryoptions'] = array(
-      'label' => t('Summary options'),
-      'description' => t('Fieldset for customizing summaries in the quiz reports'),
-      'weight' => 0,
-    );
-    $extra['resultoptions'] = array(
-      'label' => t('Result options'),
-      'description' => t('Fieldset for customizing result comments in quiz reports'),
-      'weight' => 0,
-    );
-    $extra['remember_settings'] = array(
-      'label' => t('Remember settings'),
-      'description' => t('Checkbox for remembering quiz settings'),
-      'weight' => 0,
-    );
-  }
+function quiz_field_extra_fields() {
+  $extra['node']['quiz'] = array(
+    'form' => array(
+      'taking' => array(
+        'label' => t('Taking options'),
+        'description' => t('Fieldset for customizing how a quiz is taken'),
+        'weight' => 0,
+      ),
+      'quiz_availability' => array(
+        'label' => t('Availability options'),
+        'description' => t('Fieldset for customizing when a quiz is available'),
+        'weight' => 0,
+      ),
+      'summaryoptions' => array(
+        'label' => t('Summary options'),
+        'description' => t('Fieldset for customizing summaries in the quiz reports'),
+        'weight' => 0,
+      ),
+      'resultoptions' => array(
+        'label' => t('Result options'),
+        'description' => t('Fieldset for customizing result comments in quiz reports'),
+        'weight' => 0,
+      ),
+      'remember_settings' => array(
+        'label' => t('Remember settings'),
+        'description' => t('Checkbox for remembering quiz settings'),
+        'weight' => 0,
+      ),
+    ),
+  );
   return $extra;
 }
 

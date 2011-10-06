@@ -183,16 +183,17 @@ function multichoice_user_cancel($edit, $account, $method) {
 function multichoice_user_OLD($op, &$edit, &$account, $category = NULL) { }
 
 /**
- * Implements hook_content_extra_fields(cck)().
+ * Implements hook_field_extra_fields().
  */
-function multichoice_content_extra_fields($type_name) {
-  $extra = array();
-  if ($type_name == 'multichoice') {
-    $extra['alternatives'] = array(
-      'label' => t('Alternatives'),
-      'description' => t('Alternatives for multichoice'),
-      'weight' => -4,
-    );
-  }
+function multichoice_field_extra_fields() {
+  $extra['node']['multichoice'] = array(
+    'form' => array(
+      'alternatives' => array(
+        'label' => t('Alternatives'),
+        'description' => t('Alternatives for multichoice'),
+        'weight' => -4,
+      ),
+    ),
+  );
   return $extra;
 }

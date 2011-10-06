@@ -817,28 +817,32 @@ function quiz_question_get_max_score($nid, $vid) {
 }
 
 /**
- * Implements hook_content_extra_fields(cck)().
+ * Implements hook_field_extra_fields().
  */
-function quiz_question_content_extra_fields($type_name) {
+function quiz_question_field_extra_fields() {
   $extra = array();
   $question_types = array_keys(_quiz_question_get_implementations());
-  if (in_array($type_name, $question_types)) {
-    $extra['add_directly'] = array(
-      'label' => t('Add directly'),
-      'description' => t('Fieldset for adding a question directly into quizzes'),
-      'weight' => -3,
-    );
+  if (!empty($question_types)) {
+    foreach ($question_types as $type_name) {
+      $extra['node'][$type_name]['form']['add_directly'] = array(
+        'label' => t('Add directly'),
+        'description' => t('Fieldset for adding a question directly into quizzes'),
+        'weight' => -3,
+      );
+    }
   }
   return $extra;
 }
 
 /**
- * Implements hook_content_extra_fields_alter(cck)().
+ * Implements hook_field_extra_fields_alter().
  */
-function quiz_question_content_extra_fields_alter(&$extras, $type_name) {
+function quiz_question_field_extra_fields_alter(&$info) {
   $question_types = array_keys(_quiz_question_get_implementations());
-  if (in_array($type_name, $question_types)) {
-    $extras['body_field']['weight'] = -15;
+  if (!empty($question_types)) {
+    foreach ($question_types as $type_name) {
+      $extras['node'][$type_name]['body_field']['weight'] = -15;
+    }
   }
 }
 
