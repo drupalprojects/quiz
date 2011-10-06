@@ -771,14 +771,19 @@ function quiz_question_refresh_latest_quizzes($nid) {
     ->execute();
 
   // If we have to many entries for current user, delete the oldest entries...
-  $count = db_query('SELECT COUNT(*) FROM {quiz_question_latest_quizzes}
-          WHERE uid = :uid', array(':uid' => $user->uid))->fetchField();
-  $n_to_delete = (int) $count - QUIZ_QUESTION_NUM_LATEST;
-  if ($n_to_delete > 0) {
+  $min_id = db_select('quiz_question_latest_quizzes', 'lq')
+    ->fields('lq', array('id'))
+    ->condition('uid', $user->uid)
+    ->orderBy('id', 'DESC')
+    ->range(QUIZ_QUESTION_NUM_LATEST - 1, 1)
+    ->execute()
+    ->fetchField();
+
+  // Delete all table entries older than the nth row, if nth row was found.
+  if ($min_id) {
     db_delete('quiz_question_latest_quizzes')
+      ->condition('id', $min_id, '<')
       ->condition('uid', $user->uid)
-      ->orderBy('id')
-      ->range(0, $n_to_delete)
       ->execute();
   }
 }
