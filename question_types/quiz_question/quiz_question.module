@@ -835,18 +835,6 @@ function quiz_question_field_extra_fields() {
 }
 
 /**
- * Implements hook_field_extra_fields_alter().
- */
-function quiz_question_field_extra_fields_alter(&$info) {
-  $question_types = array_keys(_quiz_question_get_implementations());
-  if (!empty($question_types)) {
-    foreach ($question_types as $type_name) {
-      $extras['node'][$type_name]['body_field']['weight'] = -15;
-    }
-  }
-}
-
-/**
  * Returns a result report for a question response.
  *
  * The retaurned value is a form array because in some contexts the scores in the form
