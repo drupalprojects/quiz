@@ -463,12 +463,12 @@ class MatchingResponse extends QuizQuestionResponse {
       $answer_data = array();
       $id = $user_answers[$correct_answer['match_id']];
       $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
-      $answer_data['question'] = $correct_answer['question'];
+      $answer_data['question'] = check_markup($correct_answer['question'], $this->question->format);
       if ($showpoints)
-        $answer_data['correct_answer'] = $correct_answer['answer'];
-      $answer_data['user_answer'] = isset($correct_answers[$id]) ? $correct_answers[$id]['answer'] : NULL;
+        $answer_data['correct_answer'] = check_markup($correct_answer['answer'], $this->question->format);
+      $answer_data['user_answer'] = isset($correct_answers[$id]) ? check_markup($correct_answers[$id]['answer'], $this->question->format) : NULL;
       if ($showfeedback) {
-        $answer_data['feedback'] = check_markup($correct_answer['feedback']);
+        $answer_data['feedback'] = check_markup($correct_answer['feedback'], $this->question->format);
         $answer_data['is_correct'] = $correct;
       }
       $data[] = $answer_data;

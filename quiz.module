@@ -2801,7 +2801,7 @@ function quiz_node_map($node, $include_question = TRUE) {
   if ($include_question) {
     $new_question->question = check_markup($node->body, $node->format, FALSE);
   }
-  $new_question->title = check_plain($node->title);
+  $new_question->title = $node->title;
   $new_question->nid = $node->nid;
   $new_question->vid = $node->vid;
   $new_question->type = $node->type;

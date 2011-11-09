@@ -995,7 +995,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
   $res = db_query(db_rewrite_sql($sql));
   while ($res_o = db_fetch_object($res)) {
     $cur_questions[$res_o->nid]->type = $res_o->type;
-    $cur_questions[$res_o->nid]->title = check_plain($res_o->title);
+    $cur_questions[$res_o->nid]->title = $res_o->title;
     $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
     $questions[] = $cur_questions[$res_o->nid];
   }
@@ -1128,7 +1128,6 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     }
     $link_options = array(
       'attributes' => array('class' => 'handle-changes'),
-      'html' => TRUE,
     );
     $form[$fieldset]['titles'][$id] = array('#value' => l($question->title, 'node/'. $question->nid, $link_options));
     $form[$fieldset]['types'][$id] = array(
@@ -1919,9 +1918,9 @@ function theme_quiz_admin_summary($quiz, $questions, $score, $summary) {
   $output .= '<div id="quiz_score_possible">'. t('This person got %num_correct of %question_count possible points.', $params) .'</div>'."\n";
   $output .= '<div id="quiz_score_percent">'. t('Total score: @score %', array('@score' => $score['percentage_score'])) .'</div>'."\n";
   if (isset($summary['passfail']))
-    $output .= '<div id="quiz_summary">'. $summary['passfail'] .'</div>'."\n";
+    $output .= '<div id="quiz_summary">'. check_markup($summary['passfail'], $quiz->format) .'</div>'."\n";
   if (isset($summary['result']))
-    $output .= '<div id="quiz_summary">'. $summary['result'] .'</div>'."\n";
+    $output .= '<div id="quiz_summary">'. check_markup($summary['result'], $quiz->format) .'</div>'."\n";
 
   // Get the feedback for all questions.
   require_once(drupal_get_path('module', 'quiz') .'/quiz.pages.inc');

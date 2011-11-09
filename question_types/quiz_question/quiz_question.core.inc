@@ -181,7 +181,7 @@ abstract class QuizQuestion {
           $already_nids[] = $res_o->nid;
 
           // Store in array to use as #options
-          $already[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+          $already[$res_o->nid .'-'. $res_o->vid] = check_plain($res_o->title);
         }
       }
       $found = implode(', ', $already_nids);
@@ -202,7 +202,7 @@ abstract class QuizQuestion {
 
       while ($res_o = db_fetch_object($res)) {
         // Array to use as #option in form element
-        $latest[$res_o->quiz_nid .'-'. $res_o->vid] = $res_o->title;
+        $latest[$res_o->quiz_nid .'-'. $res_o->vid] = check_plain($res_o->title);
         // Array to use in later queries
         $latest_nids[] = $res_o->quiz_nid;
       }
@@ -222,7 +222,7 @@ abstract class QuizQuestion {
         $res = db_query(db_rewrite_sql($sql), QUIZ_QUESTION_NUM_LATEST - count($latest));
         while ($res_o = db_fetch_object($res)) {
           // array to be used as #options in form element
-          $latest[$res_o->nid .'-'. $res_o->vid] = $res_o->title;
+          $latest[$res_o->nid .'-'. $res_o->vid] = check_plain($res_o->title);
         }
       }
 
@@ -240,7 +240,7 @@ abstract class QuizQuestion {
                 FROM {node_revisions}
                 WHERE vid = %d';
         $res = db_query($sql, $quiz->vid);
-        $latest[$quiz->nid .'-'. $quiz->vid] = db_result($res);
+        $latest[$quiz->nid .'-'. $quiz->vid] = check_plain(db_result($res));
         // $latest_default is to be used as #default_value in form item
         $latest_default[] = $quiz->nid .'-'. $quiz->vid;
       }
@@ -445,7 +445,7 @@ abstract class QuizQuestion {
 
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
+      '#value' => check_markup($this->node->body, $this->node->format),
       '#prefix' => '<div class="quiz-question-body">',
       '#suffix' => '</div>',
     );

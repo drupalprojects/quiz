@@ -316,7 +316,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
     $data[0]['user_answer'] = (($user_answer === NULL) ? '': ($user_answer ? t('True') : t('False')));
 
     if ($showfeedback && !empty($this->question->feedback)) {
-      $data[0]['feedback'] = $this->question->feedback;
+      $data[0]['feedback'] = check_markup($this->question->feedback, $this->question->format);
     }
 
     // Return themed output
