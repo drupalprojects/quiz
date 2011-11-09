@@ -438,7 +438,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
 
     $form['answer'] = array(
-      '#markup' => theme('short_answer_user_answer', array('answer' => $answer->answer, 'correct' => $this->question->correct_answer)),
+      '#markup' => theme('short_answer_user_answer', array('answer' => check_plain($answer->answer), 'correct' => check_plain($this->question->correct_answer))),
     );
 
     if ($answer->is_evaluated == 1) {

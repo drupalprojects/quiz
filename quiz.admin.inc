@@ -939,7 +939,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
   // TODO: Don't use db_fetch_object
   while ($res_o = $res->fetch()) {
     $cur_questions[$res_o->nid]->type = $res_o->type;
-    $cur_questions[$res_o->nid]->title = check_plain($res_o->title);
+    $cur_questions[$res_o->nid]->title = $res_o->title;
     $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
     $questions[] = $cur_questions[$res_o->nid];
   }
@@ -1081,7 +1081,6 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
 
     $link_options = array(
       'attributes' => array('class' => array('handle-changes')),
-      'html' => TRUE,
     );
 
     $form[$fieldset]['titles'][$id] = array('#markup' => l($question->title, 'node/' . $question->nid, $link_options));
@@ -1784,10 +1783,10 @@ function theme_quiz_admin_summary($variables) {
   $output .= '<div id="quiz_score_possible">' . t('This person got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
   $output .= '<div id="quiz_score_percent">' . t('Total score: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
   if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz->format) . '</div>' . "\n";
   }
   if (isset($summary['result'])) {
-    $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz->format) . '</div>' . "\n";
   }
 
   // Get the feedback for all questions.
