@@ -475,7 +475,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         '#default_value' => $score,
         '#size' => 3,
         '#maxlength' => 3,
-        '#attributes' => array('class' => 'quiz-report-score'),
+        '#attributes' => array('class' => array('quiz-report-score')),
       );
     }
     else {

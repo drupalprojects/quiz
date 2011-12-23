@@ -74,22 +74,21 @@ function short_answer_score_form($form, $context, $node, $answer) {
     drupal_not_found();
     return;
   }
-
   // Set up the form
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#value' => check_markup($node->body, $node->format, $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($node->body['und'][0]['value'], $node->body['und'][0]['format'], $langcode = '' /* TODO Set this variable. */, FALSE),
   );
   $form['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#value' => check_markup($answer->answer, variable_get('short_answer_markup_filter', FILTER_FORMAT_DEFAULT), $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($answer->answer, variable_get('short_answer_markup_filter'), $langcode = '' /* TODO Set this variable. */, FALSE),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',
     '#title' => t('Maximum Score'),
-    '#value' => (int) $answer->rel_max_score,
+    '#markup' => (int) $answer->rel_max_score,
   );
   $form['score'] = array(
     '#type' => 'textfield',
@@ -150,7 +149,7 @@ function short_answer_score_form_validate($form, $form_state) {
 function short_answer_score_form_submit($form, &$form_state) {
 
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-  $result = db_fetch_object(db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id'])));
+  $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetchobject();
   $quiz = node_load($result->nid, $result->vid);
 
   $nid = $form_state['values']['question_nid'];

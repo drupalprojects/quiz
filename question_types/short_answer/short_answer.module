@@ -148,9 +148,6 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_t
     ->condition('question_vid', $vid)
     ->condition('result_id', $rid)
     ->execute();
-
-  $changed = db_affected_rows();
-
   // Now the short answer user data has been updated. We also need to update the data in the quiz tables
   if ($changed > 0) {
     $max = db_query('SELECT max_score FROM {quiz_question_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
