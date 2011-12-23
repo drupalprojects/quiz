@@ -368,6 +368,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     $this->is_evaluated = (int) ($this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL);
+    echo $this->getScore(FALSE)."--Score";
     $this->answer_id = db_insert('quiz_short_answer_user_answers')
       ->fields(array(
         'answer' => $this->answer,
@@ -402,6 +403,9 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
       $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
+      if(!$score) {
+        $score = 0;
+      }      
     }
     // Otherwise, we run the scoring automatically.
     else {
