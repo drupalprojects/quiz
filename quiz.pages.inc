@@ -133,7 +133,7 @@ function quiz_report_form_submit($form, &$form_state) {
     // Load the quiz
     if (!isset($quiz)) {
       $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-      $result = db_fetch_object(db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid'])));
+      $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid']))->fetchObject();
       $quiz = node_load($result->nid, $result->vid);
       $rid = $q_values['rid'];
     }
@@ -145,9 +145,7 @@ function quiz_report_form_submit($form, &$form_state) {
   }
   // Scores may have been changed. We take the necessary actions
   quiz_update_total_score_fast($rid, $quiz->vid);
-  // TODO Please review the conversion of this statement to the D7 database API syntax.
-  /* db_query('UPDATE {quiz_node_results} SET is_evaluated = 1 WHERE result_id = %d', $rid) */
-  db_update('quiz_node_results')
+  $changed = db_update('quiz_node_results')
   ->fields(array(
     'is_evaluated' =>  1,
   ))
@@ -156,12 +154,15 @@ function quiz_report_form_submit($form, &$form_state) {
   $results_got_deleted = _quiz_maintain_results($quiz, $rid);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
-  _quiz_remove_unscored_message();
+	if($changed > 0) {
+  		_quiz_remove_unscored_message();
+	}
 
   // Notify the user if results got deleted as a result of him scoring an answer.
-  $add = $quiz->quiz_keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
+  $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
 
   $score_data = quiz_get_score_array($rid, $quiz->vid, TRUE);
+
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
@@ -198,22 +199,22 @@ function _quiz_remove_unscored_message() {
  *  Quiz node version id
  */
 function quiz_update_total_score_fast($rid, $quiz_vid) {
-  $sql = 'UPDATE {quiz_node_results} r
-          SET r.score = ROUND(
-            100 * (
-              SELECT SUM(a.points_awarded)
-              FROM {quiz_node_results_answers} a
-              WHERE a.result_id = %d
-            ) / (
-              SELECT max_score
-              FROM {quiz_node_properties} qnp
-              WHERE vid = %d
-            )
-          )
-          WHERE r.result_id = %d';
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, $rid, $quiz_vid, $rid) */
-  NULL;
+	$subq1 = db_select('quiz_node_results_answers', 'a');
+	$subq1
+		->condition('a.result_id', $rid)
+		->addExpression('SUM(a.points_awarded)');
+	$res1 = $subq1->execute()->fetchField();
+
+	$subq2 = db_select('quiz_node_properties', 'qnp');
+	$subq2
+		->condition('qnp.vid', $quiz_vid)
+		->addField('qnp', 'max_score');
+	$res2 = $subq2->execute()->fetchField();
+
+	db_update('quiz_node_results')
+		->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
+		->condition('result_id', $rid)
+		->execute();
 }
 
 /**
@@ -224,16 +225,9 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
  * @param unknown_type $is_evaluated
  */
 function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
-  $sql = 'SELECT max_score, number_of_random_questions
+  $properties = db_query('SELECT max_score, number_of_random_questions
           FROM {quiz_node_properties}
-          WHERE vid = %d';
-  $properties = db_fetch_object(db_query('SELECT max_score, number_of_random_questions
-          FROM {quiz_node_properties}
-          WHERE vid = :vid', array(':vid' => $quiz_vid)));
-
-  $sql = 'SELECT SUM(points_awarded)
-          FROM (quiz_node_results_answers)
-          WHERE result_id = %d';
+          WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
   $total_score = db_query('SELECT SUM(points_awarded)
           FROM (quiz_node_results_answers)
           WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();

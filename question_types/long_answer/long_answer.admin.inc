@@ -73,17 +73,16 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
     drupal_not_found();
     return;
   }
-
   // Set up the form
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#markup' => check_markup($node->body, $node->format),
+    '#markup' => check_markup($node->body['und'][0]['value'], $node->body['und'][0]['format']),
   );
   $form['rubric'] = array(
     '#type' => 'item',
     '#title' => t('Rubric'),
-    '#markup' => check_markup($node->rubric, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
+    '#markup' => check_markup($node->rubric),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',
@@ -97,7 +96,7 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
   $form['score_answer']['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#markup' => check_markup($answer->answer, variable_get('long_answer_markup_filter', FILTER_FORMAT_DEFAULT)),
+    '#markup' => check_markup($answer->answer),
   );
   $form['score_answer']['score'] = array(
     '#type' => 'textfield',
@@ -156,17 +155,13 @@ function long_answer_score_form_validate($form, $form_state) {
  */
 function long_answer_score_form_submit($form, &$form_state) {
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
-  $result = db_fetch_object(db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id'])));
-
+  $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetchobject();
   $quiz = node_load($result->nid, $result->vid);
-
   $nid = $form_state['values']['question_nid'];
   $vid = $form_state['values']['question_vid'];
   $rid = $form_state['values']['result_id'];
   $score = $form_state['values']['score'];
-
   $result = long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score);
-
   if ($result == 1) {
     drupal_set_message(t('The score has been saved.'));
     $form_state['redirect'] = 'admin/quiz/reports/score-long-answer';

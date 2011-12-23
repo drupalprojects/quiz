@@ -142,9 +142,6 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
     ->condition('question_vid', $vid)
     ->condition('result_id', $rid)
     ->execute();
-
-  $changed = db_affected_rows();
-
   if ($changed > 0) {
     // Second, we update the main quiz answers table
 
