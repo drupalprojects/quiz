@@ -138,7 +138,8 @@ class TrueFalseQuestion extends QuizQuestion {
 
     if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
-      $form['tries']['#default_value'] = $response->getResponse();
+      $default = $response->getResponse();
+      $form['tries']['#default_value'] = is_null($default) ? -1 : $default;
     }
     return $form;
   }
@@ -238,7 +239,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#isValid()
    */
   public function isValid() {
-    return ($this->answer['answer'] === NULL) ? t('You must provide an answer') : TRUE;
+    return ($this->answer === NULL) ? t('You must provide an answer') : TRUE;
   }
 
   /**
@@ -289,7 +290,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function getResponse() {
     if (!isset($this->answer)) {
       $correct_answer = $this->getCorrectAnswer();
-      $this->answer = isset($correct_answer->answer) ? $correct_answer->answer : '';
+      $this->answer = isset($correct_answer->answer) ? $correct_answer->answer : NULL;
     }
     return $this->answer;
   }

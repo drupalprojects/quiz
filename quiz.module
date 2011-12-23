@@ -1880,7 +1880,7 @@ function quiz_take_quiz($quiz) {
     }
     $q_passed_validation = TRUE;
     // Advance the question.
-    if (isset($jumping) && !$jumping) {
+    if (!isset($jumping) || (isset($jumping) && !$jumping)) {
       $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0];
 
       // Load the last asked question.
@@ -2195,7 +2195,7 @@ function quiz_store_question_result($quiz, $result, $options) {
   if ($rid_count > 0) {
     $update = db_update('quiz_node_results_answers')
       ->fields(array(
-        'is_correct' => $result->is_correct,
+        'is_correct' => (int)$result->is_correct,
         'points_awarded' => $points,
         'answer_timestamp' => REQUEST_TIME,
         'is_skipped' => (int) $result->is_skipped,
