@@ -135,7 +135,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
 
   $changed = db_update('quiz_long_answer_user_answers')
     ->fields(array(
-      'score' => $question_max_score / $quiz_max_score,
+      'score' =>$score * $question_max_score / $quiz_max_score,
       'is_evaluated' => 1
     ))
     ->condition('question_nid', $nid)
