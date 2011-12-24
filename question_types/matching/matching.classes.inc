@@ -476,7 +476,6 @@ class MatchingResponse extends QuizQuestionResponse {
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
-
     $has_feedback = TRUE;
     foreach ($correct_answers as $correct_answer) {
       $answer_data = array();
@@ -487,13 +486,17 @@ class MatchingResponse extends QuizQuestionResponse {
         $answer_data['correct_answer'] = $correct_answer['answer'];
       }
       $answer_data['user_answer'] = isset($correct_answers[$id]) ? $correct_answers[$id]['answer'] : NULL;
+      
       if ($showfeedback && !empty($correct_answer['feedback'])) {
-        $answer_data['feedback'] = check_markup($correct_answer['feedback']);
-        $answer_data['is_correct'] = $correct;
-      }
+        $answer_data['feedback'] = check_markup($correct_answer['feedback']);        
+      }      
       else {
-        $has_feedback = FALSE;
+        //$has_feedback = FALSE;
+        if ($showfeedback)  {
+          $answer_data['feedback'] = '';
+        }
       }
+      $answer_data['is_correct'] = $correct;
       $data[] = $answer_data;
     }
 
