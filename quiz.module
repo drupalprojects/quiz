@@ -2404,7 +2404,7 @@ function quiz_mail($key, &$message, $params) {
     '!author' => $quiz->name,
     '!title' => check_plain($quiz->title),
     '!date' => date("F j, Y, g:i a"),
-    '!desc' => check_plain($quiz->body),
+    '!desc' => isset($quiz->body[$quiz->language][0]['value'])  ? check_plain($quiz->body[$quiz->language][0]['value']) : '',
     '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
     '!total' => $score['possible_score'],
     '!percentage' => $score['percentage_score'],
@@ -2423,7 +2423,7 @@ function quiz_mail($key, &$message, $params) {
         $body = t(variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')), $substitutions, array('langcode' => $user->language));
       }
       $message['subject'] = $subject;
-      $message['body'] = $body;
+      $message['body'][] = $body;
       break;
   }
 }
