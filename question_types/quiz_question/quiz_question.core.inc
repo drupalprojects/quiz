@@ -98,6 +98,7 @@ abstract class QuizQuestion {
       $form['title'] = array(
         '#type' => 'textfield',
         '#title' => t('Title'),
+        '#maxlength' => 255,
         '#default_value' => $this->node->title,
         '#required' => FALSE,
         '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
