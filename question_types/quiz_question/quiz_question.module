@@ -85,16 +85,20 @@ function quiz_question_node_info() {
 function quiz_question_node_access($node, $op, $account) {
   switch ($op) {
     case 'view':
-      return user_access('view quiz question outside of a quiz');
+      if (!empty($node->is_quiz_question) && !user_access('view quiz question outside of a quiz')) {
+         return NODE_ACCESS_DENY;
+       }
     case 'create':
-      return user_access('create quiz', $account);
+      if (in_array($node, $question_types) && !user_access('create quiz', $account)) {
+        return NODE_ACCESS_DENY;
+      }
     case 'update':
-      if (user_access('edit any quiz', $account) || user_access('edit own quiz', $account) && ($account->uid == $node->uid)) {
-        return TRUE;
+      if (in_array($node, $question_types) && (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid)))) {
+        return NODE_ACCESS_ALLOW;
       }
     case 'delete':
-      if (user_access('delete any quiz', $account) || user_access('delete own quiz', $account) && ($account->uid == $node->uid)) {
-        return TRUE;
+      if (in_array($node, $question_types) && (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid)))) {
+        return NODE_ACCESS_ALLOW;
       }
   }
 }
