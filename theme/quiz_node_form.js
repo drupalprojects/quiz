@@ -18,7 +18,7 @@ Drupal.behaviors.quizFormBehavior = {
       oldToggle(context);
       $('.quizStayHidden').hide();
     };
-  };
+  }
 };
 
 })(jQuery);
