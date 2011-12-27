@@ -83,6 +83,7 @@ function quiz_question_node_info() {
  * Implements hook_node_access().
  */
 function quiz_question_node_access($node, $op, $account) {
+  $question_types = array_keys(_quiz_question_get_implementations());
   switch ($op) {
     case 'view':
       if (!empty($node->is_quiz_question) && !user_access('view quiz question outside of a quiz')) {
