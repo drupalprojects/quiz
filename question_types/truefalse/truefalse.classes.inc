@@ -321,7 +321,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
     }
     $metadata[] = t('User answer');
     if ($showfeedback && !empty($this->question->feedback)) {
-      $metadata[] = '&nbsp;';
+      $metadata[] = 'Feedback';
     }
 
     $answer = $this->question->answers[0];
