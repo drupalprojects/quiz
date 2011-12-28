@@ -647,7 +647,8 @@ function quiz_insert($node) {
       'has_userpoints'              => isset($node->has_userpoints) ? $node->has_userpoints : 0,
       'allow_skipping'              => $node->allow_skipping,
       'allow_resume'                => $node->allow_resume,
-      'allow_jumping'               => $node->allow_jumping
+      'allow_jumping'               => $node->allow_jumping,
+      'show_passed'                 => $node->show_passed
     ))
     ->execute();
 
@@ -717,6 +718,7 @@ function quiz_update($node) {
         'allow_skipping'              => $node->allow_skipping,
         'allow_resume'                => $node->allow_resume,
         'allow_jumping'               => $node->allow_jumping,
+        'show_passed'                 => $node->show_passed
        ))
       ->condition('vid', $node->vid)
       ->condition('nid', $node->nid)
@@ -848,6 +850,7 @@ function _quiz_get_node_defaults() {
     'allow_skipping' => 1,
     'allow_resume' => 1,
     'allow_jumping' => 0,
+    'show_passed' => 1,
   );
 }
 
@@ -1071,6 +1074,14 @@ function quiz_form(&$node, &$form_state) {
     '#default_value' => $node->repeat_until_correct,
     '#description' => t('Require the user to re-try the question until they answer it correctly.'),
   );
+
+  $form['taking']['show_passed'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Show passed status'),
+    '#default_value' => $node->show_passed,
+    '#description' => t('Show the status, if the user has previously passed'),
+  );
+    
   $form['taking']['randomization'] = array(
     '#type' => 'radios',
     '#title' => t('Randomize questions'),
@@ -2631,7 +2642,7 @@ function quiz_start_check($quiz, $rid) {
   }
 
   // Check to see if the user is registered, and user alredy passed this quiz.
-  if ($user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
+  if ($quiz->show_passed && $user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
     drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
   }
 
@@ -4066,6 +4077,7 @@ function _quiz_save_user_settings($node) {
       'allow_skipping'          => $node->allow_skipping,
       'allow_resume'            => $node->allow_resume,
       'allow_jumping'           => $node->allow_jumping,
+      'show_passed'             => $node->show_passed,
     ))
     ->execute();
   /*

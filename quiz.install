@@ -209,6 +209,13 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'show_passed' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 1,      
+      ),
     ),
     'primary key' => array('vid'),
     // 'unique keys' => array('vid'),
@@ -600,6 +607,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'show_passed' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
     ),
     'primary key' => array('uid'),
   );
@@ -653,7 +666,18 @@ function quiz_schema() {
   );
   return $schema;
 }
+/**
+ * Implements hook_update_N()
+ */
 
+function quiz_update_7100(&$sandbox) {  
+  db_add_field('quiz_node_properties', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
+  return t('Show passed field added to quiz config.');
+}
+function quiz_update_7101(&$sandbox) {  
+  db_add_field('quiz_user_settings', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
+  return t('Done !');
+}
 /**
  * Implements hook_uninstall().
  */
