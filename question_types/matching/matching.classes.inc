@@ -478,15 +478,18 @@ class MatchingResponse extends QuizQuestionResponse {
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
     $has_feedback = TRUE;
     foreach ($correct_answers as $correct_answer) {
-      $answer_data = array();
-      $id = $user_answers[$correct_answer['match_id']];
-      $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
+      $answer_data = array();      
+      $correct = FALSE;
+      $id = NULL;
       $answer_data['question'] = $correct_answer['question'];
+      if ( isset($user_answers[$correct_answer['match_id']])) {
+        $id = $user_answers[$correct_answer['match_id']];
+        $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
+        $answer_data['user_answer'] = isset($correct_answers[$id]) ? $correct_answers[$id]['answer'] : NULL;
+      }      
       if ($showpoints) {
         $answer_data['correct_answer'] = $correct_answer['answer'];
-      }
-      $answer_data['user_answer'] = isset($correct_answers[$id]) ? $correct_answers[$id]['answer'] : NULL;
-      
+      }      
       if ($showfeedback && !empty($correct_answer['feedback'])) {
         $answer_data['feedback'] = check_markup($correct_answer['feedback']);        
       }      
