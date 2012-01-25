@@ -1186,7 +1186,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     else {
       $update_cell = array(
       '#type' => 'checkbox',
-      '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $latest->vid . '/view')
+      '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' .$question->latest_vid . '/view')
                   . ' of ' .
                   l(t('revisions'), 'node/' . $question->nid . '/revisions')
                   ),
