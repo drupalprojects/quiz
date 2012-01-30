@@ -1,0 +1,9 @@
+name = True False
+package = Quiz Question
+description = Module to create True or False Kind of Questions
+core = 7.x
+dependencies[] = quiz
+dependencies[] = quiz_question
+
+files[] = truefalse.classes.inc
+files[] = truefalse.test
