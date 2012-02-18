@@ -430,11 +430,12 @@ function quiz_question_node_presave($node) {
     if ($node->type == $q_type) {
       if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
         $body = field_get_items('node', $node, 'body');
-        if (drupal_strlen(strip_tags(check_markup($body[0]['value']))) > variable_get('quiz_autotitle_length', 50)) {
-          $node->title = drupal_substr(strip_tags(check_markup($body[0]['value'])), 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
+        $markup = strip_tags(check_markup($body[0]['value'], $body[0]['format']));
+        if (drupal_strlen($markup) > variable_get('quiz_autotitle_length', 50)) {
+          $node->title = drupal_substr($markup, 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
         }
         else {
-          $node->title = strip_tags(check_markup($body[0]['value']));
+          $node->title = $markup;
         }
       }
     }
