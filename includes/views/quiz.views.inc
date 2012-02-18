@@ -874,8 +874,8 @@ function quiz_views_data() {
       'title' => t('Answer'),
       'help' => t('Answer text'),
       'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE,
+        'handler' => 'views_handler_field_markup',
+        'format' => array('field' => 'answer_format'),
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
