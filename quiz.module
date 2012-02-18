@@ -1726,25 +1726,27 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
     ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
     ->condition('parent_vid', $old_quiz_vid)
     ->condition('parent_nid', $quiz_nid)
-    ->condition('question_status', QUESTION_NEVER)
+    ->condition('question_status', QUESTION_NEVER, '!=')
     ->execute()
-    ->fetchAll();
+    ->fetchAssoc();
 
-  $query = db_insert('quiz_node_relationship')
-    ->fields(array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'parent_vid'));
-  foreach ($quiz_questions as $quiz_question) {
-    $value = array(
-      'parent_nid' => $quiz_nid,
-      'parent_vid' => $old_quiz_vid,
-      'child_nid' => $quiz_question['child_nid'],
-      'child_vid' => $quiz_question['child_vid'],
-      'question_status' => QUESTION_NEVER,
-      'weight' => $quiz_question['weight'],
-      'max_score' => $quiz_question['max_score']
-    );
-    $query->values($record);
+  if (!empty($quiz_questions)) {
+    $query = db_insert('quiz_node_relationship')
+      ->fields(array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'parent_vid'));
+    foreach ($quiz_questions as $quiz_question) {
+      $value = array(
+        'parent_nid' => $quiz_nid,
+        'parent_vid' => $old_quiz_vid,
+        'child_nid' => $quiz_question['child_nid'],
+        'child_vid' => $quiz_question['child_vid'],
+        'question_status' => $quiz_question['question_status'],
+        'weight' => $quiz_question['weight'],
+        'max_score' => $quiz_question['max_score']
+      );
+      $query->values($record);
+    }
+    $query->execute();
   }
-  $query->execute();
 }
 
 
