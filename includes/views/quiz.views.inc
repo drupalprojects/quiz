@@ -586,6 +586,11 @@ function quiz_views_data() {
         'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+        'help' => t('Filter quiz results by Score.'),
+        'allow empty' => TRUE,
+      ),
     ),
     'is_invalid' => array(
       'title' => t('Is Invalid'),
