@@ -1934,6 +1934,7 @@ function quiz_take_quiz($quiz) {
   }
   // Else we're at the end of quiz.
   else {
+    drupal_set_title(filter_xss($quiz->title));
     $quiz_end = TRUE;
   }
   // If we're at the end of the quiz.
