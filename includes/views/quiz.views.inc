@@ -616,6 +616,7 @@ function quiz_views_data() {
         'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
+      'filter' => array('handler' => 'views_handler_filter_numeric'),
     ),
     'is_invalid' => array(
       'title' => t('Is Invalid'),
