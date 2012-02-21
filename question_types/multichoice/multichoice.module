@@ -139,7 +139,9 @@ function multichoice_add_alternative_ajax_callback($form, &$form_state) {
  */
 function multichoice_more_choices_submit($form, &$form_state) {
   // Set the form to rebuild and run submit handlers.
-  node_form_submit_build_node($form, $form_state);
+  if (!empty($form['node']->nid)) {
+    node_form_submit_build_node($form, $form_state);
+  }
 
   // Count the existing alternatives
   $exists = 0;
