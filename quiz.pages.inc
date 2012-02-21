@@ -132,7 +132,6 @@ function quiz_report_form_submit($form, &$form_state) {
 
     // Load the quiz
     if (!isset($quiz)) {
-      $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
       $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid']))->fetchObject();
       $quiz = node_load($result->nid, $result->vid);
       $rid = $q_values['rid'];
@@ -154,9 +153,9 @@ function quiz_report_form_submit($form, &$form_state) {
   $results_got_deleted = _quiz_maintain_results($quiz, $rid);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
-	if($changed > 0) {
-  		_quiz_remove_unscored_message();
-	}
+  if($changed > 0) {
+    _quiz_remove_unscored_message();
+  }
 
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
