@@ -83,25 +83,31 @@ function quiz_question_node_info() {
  * Implements hook_node_access().
  */
 function quiz_question_node_access($node, $op, $account) {
+  // We could use the "$node->is_quiz_question" property to check if it's a question type node or not.
+  // But by hook_node_access() definition $node can be a node object or the machine name of the
+  // content type. Using _quiz_question_get_implementations() as a workaround for this.
   $question_types = array_keys(_quiz_question_get_implementations());
+  $type = is_string($node) ? $node : $node->type;
   switch ($op) {
     case 'view':
-      if (!empty($node->is_quiz_question) && !user_access('view quiz question outside of a quiz')) {
+      if (in_array($type, $question_types) && !user_access('view quiz question outside of a quiz')) {
          return NODE_ACCESS_DENY;
        }
     case 'create':
-      if (in_array($node, $question_types) && !user_access('create quiz', $account)) {
+      if (in_array($type, $question_types) && !user_access('create quiz', $account)) {
         return NODE_ACCESS_DENY;
       }
     case 'update':
-      if (in_array($node, $question_types) && (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid)))) {
+      if (in_array($type, $question_types) && (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid)))) {
         return NODE_ACCESS_ALLOW;
       }
     case 'delete':
-      if (in_array($node, $question_types) && (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid)))) {
+      if (in_array($type, $question_types) && (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid)))) {
         return NODE_ACCESS_ALLOW;
       }
   }
+  // Returning nothing from this function would have the same effect.
+  return NODE_ACCESS_IGNORE;
 }
 
 /**
