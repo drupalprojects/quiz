@@ -2337,13 +2337,13 @@ function _quiz_results_mr_prepare_filter($quiz) {
     $filter['where'] .= ' AND u.name LIKE \'%s%%\'';
     $filter['params'][] = $_SESSION[$pre . 'name'];
   }
-  if (isset($_SESSION[$pre . 'started'])) {
+  if (isset($_SESSION[$pre . 'started']) && isset($started_intervals[$_SESSION[$pre . 'started']]['sql'])) {
     $filter['where'] .= $started_intervals[$_SESSION[$pre . 'started']]['sql'];
   }
-  if (isset($_SESSION[$pre . 'finished'])) {
+  if (isset($_SESSION[$pre . 'finished']) && isset($finished_intervals[$_SESSION[$pre . 'finished']]['sql'])) {
     $filter['where'] .= $finished_intervals[$_SESSION[$pre . 'finished']]['sql'];
   }
-  if (isset($_SESSION[$pre . 'score'])) {
+  if (isset($_SESSION[$pre . 'score']) && isset($score_intervals[$_SESSION[$pre . 'score']])) {
     $filter['where'] .= $score_intervals[$_SESSION[$pre . 'score']];
   }
   if (isset($_SESSION[$pre . 'evaluated'])) {
