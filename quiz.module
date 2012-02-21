@@ -3474,7 +3474,7 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
     $query->condition('parent_nid', $quiz_nid);
   }
 
-  $query->condition('question_status', $include_random ? QUESTION_NEVER : QUESTION_ALWAYS)
+  $query->condition('question_status', $include_random ? QUESTION_RANDOM : QUESTION_ALWAYS)
     ->condition('n.status', 1)
     ->orderBy('weight');
 
