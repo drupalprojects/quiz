@@ -3635,29 +3635,24 @@ function _quiz_get_answers($quiz, $rid) {
  *  Result id for the result we want to clean up
  */
 function _quiz_cleanup_after_jumping($quiz, $rid) {
-  $sql = "INSERT IGNORE INTO {quiz_node_results_answers}
-          (result_id, question_nid, question_vid, is_skipped, answer_timestamp, number";
-  if ($quiz->randomization == 3) {
-    $sql .= ', tid';
-  }
-  $sql .= ') VALUES ';
-  $args = array();
-  $first = TRUE;
-  $time = REQUEST_TIME;
   foreach ($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] as $previous_question) {
-    if (!$first) {
-      $sql .= ', ';
+    // tried db_merge() instead of separate SELECT and INSERT query
+    // but it marks all the questions as skipped.
+    $duplicate = db_query('SELECT * FROM {quiz_node_results_answers} WHERE result_id = :rid AND question_nid = :nid AND question_vid = :vid', $condition)->fetchAssoc();
+    if (empty($duplicate)) {
+      db_insert('quiz_node_results_answers')
+        ->fields(array(
+            'result_id' => $rid,
+            'question_nid' => $previous_question['nid'],
+            'question_vid' => $previous_question['vid'],
+            'is_skipped' => 1,
+            'answer_timestamp' => REQUEST_TIME,
+            'number' => $previous_question['number'],
+            'tid' => isset($previous_question['tid']) ? $previous_question['tid'] : 0,
+        ))
+        ->execute();
     }
-    $sql .= '(%d, %d, %d, 1, ' . $time . ', %d';
-    array_push($args, $rid, $previous_question['nid'], $previous_question['vid'], $previous_question['number']);
-    if ($quiz->randomization == 3) {
-      $sql .= ', %d';
-      $args[] = $previous_question['tid'];
-    }
-    $sql .= ')';
-    $first = FALSE;
   }
-  db_query($sql, $args);
 }
 
 /**
