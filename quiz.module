@@ -1744,7 +1744,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
         'weight' => $quiz_question['weight'],
         'max_score' => $quiz_question['max_score']
       );
-      $query->values($record);
+      $query->values($value);
     }
     $query->execute();
   }
