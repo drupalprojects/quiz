@@ -1432,9 +1432,7 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#default_value' => isset($_SESSION[$pre . 'title']) ? $_SESSION[$pre . 'title'] : '',
     '#ajax' => array(
       'callback' => 'quiz_browser_ahah',
-      'effect' => 'slide',
       'wrapper' => 'quiz-browser-target',
-      'method' => 'replace',
     ),
   );
   $filters['type'] = array(
