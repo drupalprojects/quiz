@@ -327,7 +327,7 @@ function theme_quiz_get_user_results($results) {
   );
 
   $output = theme('table', $header, $rows);
-  $output .= '<p><em>' . t('@quiz that are not evaluated may have different score and grade when it is done.', array('@quiz' => QUIZ_NAME)) . '</em></p>';
+  $output .= '<p><em>' . t('@quizzes that are not evaluated may have different score and grade when it is done.', array('@quizzes' => QUIZ_NAME)) . '</em></p>';
   return $output;
 }
 
@@ -347,7 +347,7 @@ function theme_quiz_my_results_for_quiz($results) {
   while (list($key, $result) = each($results)) {
     $interval = _quiz_format_duration($result['time_end'] - $result['time_start']);
     $score = $result['score'] . ' %';
-    
+
     $row = array(
       'time_start'  => format_date($result['time_start'], 'small'),
       'duration' => $interval,
