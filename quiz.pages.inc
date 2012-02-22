@@ -351,7 +351,7 @@ function theme_quiz_get_user_results($variables) {
   );
 
   $output = theme('table', array('header' => $header, 'rows' => $rows));
-  $output .= '<p><em>' . t('@quizzes that are not evaluated may have a different score and grade once evaluated.', array('@quiz' => QUIZ_NAME)) . '</em></p>';
+  $output .= '<p><em>' . t('@quizzes that are not evaluated may have a different score and grade once evaluated.', array('@quizzes' => QUIZ_NAME)) . '</em></p>';
   return $output;
 }
 
