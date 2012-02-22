@@ -609,7 +609,7 @@ abstract class QuizQuestion {
      || $user->uid == $this->node->uid) {
       return TRUE;
     }
-    $results = module_invoke_all('answers_access', $node);
+    $results = module_invoke_all('answers_access', $this->node);
     $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
   }
