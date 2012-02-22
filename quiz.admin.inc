@@ -787,7 +787,7 @@ function _quiz_search_terms($start, $all = FALSE) {
   }
   $res = $query->execute();
   // TODO Don't user db_fetch_object
-  while ($res_o = db_fetch_object($res)) {
+  while ($res_o = $res->fetch()) {
     $terms[$res_o->tid] = $res_o->name;
   }
   return $terms;
@@ -1010,7 +1010,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
     ->condition('r.vid', $vids, 'IN')
   ->execute();
   // TODO: Don't use db_fetch_object
-  while ($res_o = db_fetch_object($res)) {
+  while ($res_o = $res->fetch()) {
     $cur_questions[$res_o->nid]->type = $res_o->type;
     $cur_questions[$res_o->nid]->title = check_plain($res_o->title);
     $cur_questions[$res_o->nid]->latest_vid = $res_o->latest_vid;
