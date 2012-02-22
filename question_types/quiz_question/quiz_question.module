@@ -88,21 +88,24 @@ function quiz_question_node_access($node, $op, $account) {
   // content type. Using _quiz_question_get_implementations() as a workaround for this.
   $question_types = array_keys(_quiz_question_get_implementations());
   $type = is_string($node) ? $node : $node->type;
+  if (!in_array($type, $question_types)) {
+    return NODE_ACCESS_IGNORE;
+  }
   switch ($op) {
     case 'view':
-      if (in_array($type, $question_types) && !user_access('view quiz question outside of a quiz')) {
+      if (!user_access('view quiz question outside of a quiz')) {
          return NODE_ACCESS_DENY;
        }
     case 'create':
-      if (in_array($type, $question_types) && !user_access('create quiz', $account)) {
+      if (!user_access('create quiz', $account)) {
         return NODE_ACCESS_DENY;
       }
     case 'update':
-      if (in_array($type, $question_types) && (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid)))) {
+      if (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
     case 'delete':
-      if (in_array($type, $question_types) && (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid)))) {
+      if (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
   }
