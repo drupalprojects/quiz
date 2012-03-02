@@ -445,7 +445,7 @@ abstract class QuizQuestion {
 
     $form['question'] = array(
       '#type' => 'markup',
-      '#value' => check_markup($this->node->body, $this->node->format),
+      '#value' => check_markup($this->node->body, $this->node->format, FALSE),
       '#prefix' => '<div class="quiz-question-body">',
       '#suffix' => '</div>',
     );
