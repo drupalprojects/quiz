@@ -2691,7 +2691,7 @@ function quiz_build_question_list($quiz) {
   // Get required questions first.
   $sql = "SELECT child_nid as nid, child_vid as vid, max_score as relative_max_score
     FROM {quiz_node_relationship} qnr
-    JOIN {node} n ON qnr.nid = n.nid
+    JOIN {node} n ON qnr.child_nid = n.nid
     WHERE qnr.parent_vid = %d
     AND qnr.question_status = %d
     AND n.status = 1
@@ -3191,7 +3191,7 @@ function _quiz_get_random_questions($quiz) {
       // Select random question from assigned pool.
       $result = db_query_range("SELECT child_nid as nid, child_vid as vid
                                 FROM {quiz_node_relationship} qnr
-                                JOIN {node} n on qnr.nid = n.nid
+                                JOIN {node} n on qnr.child_nid = n.nid
                                 WHERE qnr.parent_vid = %d
                                 AND qnr.parent_nid = %d
                                 AND qnr.question_status = %d
