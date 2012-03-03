@@ -1783,10 +1783,10 @@ function theme_quiz_admin_summary($variables) {
   $output .= '<div id="quiz_score_possible">' . t('This person got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
   $output .= '<div id="quiz_score_percent">' . t('Total score: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
   if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz->format) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz->format, FALSE) . '</div>' . "\n";
   }
   if (isset($summary['result'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz->format) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz->format, FALSE) . '</div>' . "\n";
   }
 
   // Get the feedback for all questions.

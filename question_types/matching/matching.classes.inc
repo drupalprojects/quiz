@@ -481,17 +481,17 @@ class MatchingResponse extends QuizQuestionResponse {
       $answer_data = array();      
       $correct = FALSE;
       $id = NULL;
-      $answer_data['question'] = check_markup($correct_answer['question'], $this->question->format);
+      $answer_data['question'] = check_markup($correct_answer['question'], $this->question->format, FALSE);
       if ( isset($user_answers[$correct_answer['match_id']])) {
         $id = $user_answers[$correct_answer['match_id']];
         $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
-        $answer_data['user_answer'] = isset($correct_answers[$id]) ? check_markup($correct_answers[$id]['answer'], $this->question->format) : NULL;
+        $answer_data['user_answer'] = isset($correct_answers[$id]) ? check_markup($correct_answers[$id]['answer'], $this->question->format, FALSE) : NULL;
       }      
       if ($showpoints) {
         $answer_data['correct_answer'] = $correct_answer['answer'];
       }      
       if ($showfeedback && !empty($correct_answer['feedback'])) {
-        $answer_data['feedback'] = check_markup($correct_answer['feedback'], $this->question->format);        
+        $answer_data['feedback'] = check_markup($correct_answer['feedback'], $this->question->format, FALSE);        
       }      
       else {
         //$has_feedback = FALSE;
