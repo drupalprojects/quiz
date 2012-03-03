@@ -384,7 +384,7 @@ function quiz_admin_results($quiz, $rid) {
  */
 function _quiz_results_mr_store_filters($filters) {
   $pre = 'quiz_results_mr_';
-  $_SESSION[$pre .'name'] = $filters['name'];
+  $_SESSION[$pre .'name'] = trim($filters['name']);
   $_SESSION[$pre .'started'] = $filters['started'];
   $_SESSION[$pre .'finished'] = $filters['finished'];
   $_SESSION[$pre .'score'] = $filters['score'];
@@ -1694,10 +1694,10 @@ function _quiz_question_browser_submit($form, &$form_state) {
  */
 function _quiz_browser_store_filters($filters) {
   $pre = 'quiz_question_browser_';
-  $_SESSION[$pre .'title'] = $filters['title'];
+  $_SESSION[$pre .'title'] = trim($filters['title']);
   $_SESSION[$pre .'type'] = $filters['type'];
   $_SESSION[$pre .'changed'] = $filters['changed'];
-  $_SESSION[$pre .'name'] = $filters['name'];
+  $_SESSION[$pre .'name'] = trim($filters['name']);
 }
 
 
