@@ -1667,7 +1667,7 @@ function quiz_get_all_version_titles() {
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   // Validate that the nids are integers.
   foreach ($nids as $key => $nid) {
-    if (!is_int($nid)) {
+    if (!_quiz_is_int($nid)) {
       unset($nids[$key]);
     }
   }
