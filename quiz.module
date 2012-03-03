@@ -3638,6 +3638,11 @@ function _quiz_cleanup_after_jumping($quiz, $rid) {
   foreach ($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] as $previous_question) {
     // tried db_merge() instead of separate SELECT and INSERT query
     // but it marks all the questions as skipped.
+    $condition = array(
+      ':rid' => $rid,
+      ':nid' => $previous_question['nid'],
+      ':vid' => $previous_question['vid']
+    );
     $duplicate = db_query('SELECT * FROM {quiz_node_results_answers} WHERE result_id = :rid AND question_nid = :nid AND question_vid = :vid', $condition)->fetchAssoc();
     if (empty($duplicate)) {
       db_insert('quiz_node_results_answers')
