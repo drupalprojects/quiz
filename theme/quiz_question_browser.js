@@ -208,7 +208,7 @@ Drupal.behaviors.attachRemoveAction = {
       Quiz.fixColorAndWeight($this.parents('tr'));
 
       //Hide the question
-      $this.parents('tr').addClass('hidden-question');
+      $this.parents('tr').filter(':first').addClass('hidden-question');
 
       // Mark the question as removed
       $('#edit-stayers-' + matches[0]).attr('checked', false);
