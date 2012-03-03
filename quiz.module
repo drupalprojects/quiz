@@ -2349,6 +2349,9 @@ function quiz_end_scoring($quiz, $rid) {
  *  Score as a number
  */
 function quiz_end_actions($quiz, $score, $session_data) {
+  // Call hook_quiz_finished().
+  module_invoke_all('quiz_finished', $quiz, $score, $session_data);
+  
   // Lets piggy back here to perform the quiz defined action since were done
   // with this quiz.
   // We will verify that there is an associated action with this quiz and then
@@ -2358,14 +2361,9 @@ function quiz_end_actions($quiz, $score, $session_data) {
     // have simply passed the actions_do() function an empty array. By passing
     // this function a single id then it will retrieve the callback, get the
     // parameters and perform that function (action) for you.
-    // @todo Add ability to assign multiple actions and pass the actions_do() an
-    //   array of aid's
-    // @todo Create feature to only fire action if certain score is reached.
     actions_do($quiz->aid, $quiz, $score, $session_data);
   }
-
-  // Call hook_quiz_finished().
-  module_invoke_all('quiz_finished', $quiz, $score, $session_data);
+  
   return $score;
 }
 
