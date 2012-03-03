@@ -8,6 +8,31 @@
 
 /**
  * Implementation of hook_update_N
+ * 
+ * Increase the maximum quiz size
+ */
+function quiz_update_6422() {
+  $results = array();
+  db_change_field($results, 'quiz_node_properties', 'number_of_random_questions', 'number_of_random_questions', array(
+    'type' => 'int',
+    'size' => 'small',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  db_change_field($results, 'quiz_node_results_answers', 'number', 'number', array(
+    'type' => 'int',
+    'size' => 'small',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 1,
+  ));
+  return $results;
+}
+
+
+/**
+ * Implementation of hook_update_N
  *
  * We forgot to add allow_jumping to the user settings in hook_schema
  */
@@ -858,7 +883,7 @@ function quiz_schema() {
       ),
       'number_of_random_questions' => array(
         'type' => 'int',
-        'size' => 'tiny',
+        'size' => 'small',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
@@ -1191,7 +1216,7 @@ function quiz_schema() {
       ),
       'number' => array(
         'type' => 'int',
-        'size' => 'tiny',
+        'size' => 'small',
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 1,
