@@ -3980,8 +3980,9 @@ function _quiz_redirect_if_empty($node) {
  */
 function _quiz_get_num_always_questions($vid) {
   $sql = 'SELECT count(*)
-          FROM {quiz_node_relationship}
-          WHERE parent_vid = %d AND question_status = %d';
+          FROM {quiz_node_relationship} qnr
+          JOIN {node} n ON n.nid = qnr.child_nid
+          WHERE n.status = 1 AND qnr.parent_vid = %d AND qnr.question_status = %d';
   return db_result(db_query($sql, $vid, QUESTION_ALWAYS));
 }
 
