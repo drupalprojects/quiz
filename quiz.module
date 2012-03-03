@@ -838,7 +838,7 @@ function quiz_load($node) {
 function quiz_view($node, $teaser = FALSE, $page = FALSE) {
   drupal_alter('quiz_view', $node, $teaser, $page);
   $node = node_prepare($node, $teaser);
-
+  
   // Number of questions is needed on the statistics page.
   $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
 
@@ -1542,7 +1542,7 @@ function quiz_get_all_version_titles() {
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
   // Validate that the nids are integers.
   foreach ($nids as $key => $nid) {
-    if (!is_int($nid)) {
+    if (!_quiz_is_int($nid)) {
       unset($nids[$key]);
     }
   }
