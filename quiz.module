@@ -1134,7 +1134,7 @@ function quiz_form(&$node, &$form_state) {
       //   "Choose an Action" option.  Review actions and the
       //   quiz_action_options() function for further explaination.
       '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
-      '#default_value' => MD5($node->aid),
+      '#default_value' => drupal_hash_base64($node->aid),
     );
   }
   $options = array(t('Unlimited'));
