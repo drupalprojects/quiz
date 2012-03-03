@@ -326,6 +326,7 @@ function quiz_admin_node_form_submit($form, &$form_state) {
   $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
   $form_state['values']['nid'] = 0;
   $form_state['values']['vid'] = 0;
+  $form_state['values']['aid'] = '';
   _quiz_save_user_settings($form_state['values']);
 }
 
