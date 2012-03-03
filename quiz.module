@@ -2422,16 +2422,16 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  * Performs actions like sending quiz results over email at the end of quiz.
  */
 function quiz_quiz_scored($quiz, $score, $rid) {
-  global $user;
-
-  if (variable_get('quiz_email_results', 0) && $user->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $user->mail, NULL, array($quiz, $score, $rid, 'taker'));
+  $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
+  $taker = db_fetch_object(db_query($sql, $rid));
+  if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $rid, 'taker'));
     drupal_set_message(t('The results has been sent to the users e-mail address.'));
   }
 
   // Calls userpoints functions to credit user point based on number of correct
   // answers.
-  if ($quiz->has_userpoints && $user->uid != 0 && $score['is_evaluated']) {
+  if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
 
     //Looking up the tid of the selected Userpoint vocabulary
     $selected_tid = db_query("SELECT ti.tid 
