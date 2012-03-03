@@ -1850,7 +1850,7 @@ function quiz_take_quiz($quiz) {
       $show_validation_message = TRUE;
       array_unshift($_SESSION['quiz_'. $quiz->nid]['quiz_questions'], $former_question_array);
       if (is_array($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions'])) {
-        array_shift($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
+        array_pop($_SESSION['quiz_'. $quiz->nid]['previous_quiz_questions']);
       }
       // Avoid caching for anonymous users
       if (!$user->uid) {
