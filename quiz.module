@@ -1673,7 +1673,7 @@ function quiz_take_quiz($quiz) {
 
   // If anonymous user and no unique hash, refresh with a unique string to
   // prevent caching.
-  if (!$quiz->name && arg(4) == NULL) {
+  if (!$user->uid && arg(4) != NULL) {
     drupal_goto('node/'. $quiz->nid .'/take/'. md5(mt_rand() . time()));
   }
 
