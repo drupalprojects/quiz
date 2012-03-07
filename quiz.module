@@ -3346,7 +3346,7 @@ function _quiz_taxonomy_select($value = 0) {
  * @return
  *   An array of questions.
  */
-function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random) {
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random = TRUE) {
   $filter_types = '';
   $questions    = array();
   $wheres    = array();
