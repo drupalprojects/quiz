@@ -16,13 +16,8 @@ var Quiz = Quiz || {inputEnabled:true};
 
 Drupal.behaviors.quizResultsBrowserBehavior = {
   attach: function(context, settings) {
-    // Using variables for readability and to ease change of names...
-    var done = 'quizResultsBrowserBehavior-processed';
-    var notDone = ':not(.'+ done +')';
-
     // Result rows in the browser
-    $('.quiz-results-browser-row'+ notDone)
-    .addClass(done)
+    $('.quiz-results-browser-row').once()
 
     // Add selected class to already selected results
     .filter(':has(:checkbox:checked)')
@@ -52,21 +47,20 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
       }
     );
 
-    $('.hover-del'+ notDone)
-    .addClass(done)
+    $('.hover-del').once()
     .click(function(event) {
       $('.quiz-results-browser-row:has(:checkbox:checked)').click();
       var nidRid = Quiz.findNidRidString($(event.target).attr('id'));
-      $('#edit-table-name-' + nidRid).click();
+      $('#edit-table-body-name-' + nidRid).click();
       $('#edit-bulk-action').val('del');
       $('#edit-update--2').click();
       event.preventDefault();
+      event.stopPropagation();
     });
     // Filter row in the browser
 
     // Mark all button
-    $('#edit-table-filters-all'+ notDone)
-    .addClass(done)
+    $('#edit-table-header-filters-all').once()
     .click(function(event) {
       var ch = $(this).attr('checked');
       $('.quiz-results-browser-row').each(function() {
@@ -83,47 +77,33 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
       });
     });
 
-    $('#edit-table-filters-best-results'+ notDone + ', #edit-table-filters-not-in-progress' + notDone)
-    .addClass(done)
+    $('#edit-table-header-filters-best-results, #edit-table-header-filters-not-in-progress').once()
     .click(function(event) {
-      $('#edit-table-filters-all').hide();
-      $('.quiz-results-browser-row').remove();
       $('#browser-pager').remove();
-      $('#edit-table-filters-name').trigger('doneTyping');
       Quiz.setInputEnabled(false);
     });
 
     // started, finished, duration and score filters
-    this.selector = '#edit-table-filters-started'+ notDone;
-    this.selector += ', #edit-table-filters-finished'+ notDone;
-    this.selector += ', #edit-table-filters-duration'+ notDone;
-    this.selector += ', #edit-table-filters-score'+ notDone;
-    this.selector += ', #edit-table-filters-evaluated'+ notDone;
-    $(this.selector)
-    .addClass(done)
+    this.selector = '#edit-table-header-filters-started';
+    this.selector += ', #edit-table-header-filters-finished';
+    this.selector += ', #edit-table-header-filters-duration';
+    this.selector += ', #edit-table-header-filters-score';
+    this.selector += ', #edit-table-header-filters-evaluated';
+    $(this.selector).once()
     .change(function(event) {
-      $('.quiz-results-browser-row').each(function() {
-        $(this).remove();
-      });
       $('#browser-pager').remove();
       Quiz.setInputEnabled(false);
     });
 
-    //Username filters
+    // Username filters
     var quizRefreshId;
-    this.selector = '#edit-table-filters-name'+ notDone;
-    $(this.selector)
-    .addClass(done)
+    $('#edit-table-header-filters-name').once()
     // triggering custom event "doneTyping" one second after the last key up in the text fields...
     .keyup(function(event) {
       clearInterval(quizRefreshId);
       var quizClicked = this;
       quizRefreshId = setInterval(function(){
-        $('.quiz-results-browser-row').each(function() {
-          $(this).remove();
-        });
         $('#browser-pager').remove();
-        $('#edit-table-filters-all').hide();
         $(quizClicked).trigger('doneTyping');
         clearInterval(quizRefreshId);
         Quiz.setInputEnabled(false);
@@ -157,8 +137,7 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
     ];
 
     for (i in toSort) {
-      $('.quiz-browser-header-'+ toSort[i].name +' > a'+ notDone)
-      .addClass(done)
+      $('.quiz-browser-header-'+ toSort[i].name +' > a').once()
       .attr('myName', toSort[i].name)
       .attr('myEvent', toSort[i].event)
       .click(function(event) {
@@ -172,16 +151,15 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
         // We need to post the query string to drupal since we are using ajax.
         // The querystring will be added to $_REQUEST on the server.
         $('#edit-table-add-to-get').val(myUrl);
-        if ($(this).attr('myName') == 'name') $('#edit-table-filters-all').hide();
-        $('#edit-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
+        if ($(this).attr('myName') == 'name') $('#edit-table-header-filters-all').hide();
+        $('#edit-table-header-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
         Quiz.setInputEnabled(false);
         event.preventDefault();
       });
     }
 
     // Pager
-    $('.pager-item a'+ notDone +', .pager-first a'+ notDone +', .pager-next a'+ notDone +', .pager-previous a'+ notDone +', .pager-last a'+ notDone)
-    .addClass(done)
+    $('.pager-item a, .pager-first a, .pager-next a, .pager-previous a, .pager-last a').once()
     .click(function(event) {
       if (!Quiz.inputEnabled) {
         event.preventDefault();
@@ -189,14 +167,14 @@ Drupal.behaviors.quizResultsBrowserBehavior = {
       }
       var myUrl = $(this).attr('href').substr(2);
       Quiz.updatePageInUrl(myUrl);
-      $('#edit-table-filters-all').hide();
+      $('#edit-table-header-filters-all').hide();
       $('.quiz-results-browser-row').remove();
-      $('#edit-table-filters-name').trigger('doneTyping');
+      $('#edit-table-header-filters-name').trigger('doneTyping');
       event.preventDefault();
       Quiz.setInputEnabled(false);
     });
     $('.quiz-hover-menu').css('opacity', 0);
-    $('#edit-table-filters-all').show();
+    $('#edit-table-header-filters-all').show();
   }
 };
 
@@ -238,55 +216,6 @@ $(document).ready(function () {
     //$('input:not(#edit-confirm-delete--2), select').removeAttr('DISABLED');
   });
 });
-
-/**
- * Adds new rows to the browser. This function is called from a inline js added to the page using ahah.
- *
- * @param rows
- *   Browser rows(html string)
- * @param newBuildId
- *   Id of the new form(string)
- * @param pager
- *   The browsers new pager(html string)
- */
-Quiz.addBrowserRows = function(rows, newBuildId, pager) {
-  // Add the new rows to the browser and replace the pager
-  $('#no-results').remove();
-  $('#quiz-question-browser-filters').after(rows);
-  $('#before-pager').after(pager);
-
-  // Change build id to the new id provided by the server(prevents validation error):
-  $('[name="form_build_id"]').val(newBuildId);
-
-  Drupal.behaviors.quizResultsBrowserBehavior();
-  Quiz.setInputEnabled(true);
-};
-
-/**
- * Replaces the entire browser. This function is called from a inline js added to the page using ahah.
- *
- * @param renderedBrowser
- *   The entire browser(html string)
- * @param newBuildId
- *   Id of the new form(string)
- */
-Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
-  // Change build id to the new id provided by the server:
-  $('[name="form_build_id"]').val(newBuildId);
-
-  var $this = $('#all-ahah-target');
-  var par = $this.parent();
-  var sib = $this.prev();
-  $this.remove();
-
-  if (sib[0])
-    sib.after(renderedBrowser);
-  else
-    par.prepend(renderedBrowser);
-
-  Drupal.attachBehaviors($('#all-ahah-target'));
-  Quiz.setInputEnabled(true);
-};
 
 /**
  * Updates the page part of the query string in the add-to-get hidden field

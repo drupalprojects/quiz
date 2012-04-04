@@ -270,7 +270,23 @@ function quiz_node_info() {
     )
   );
 }
-
+/*
+function quiz_element_info() {
+  $types['advancedtable'] = array(
+    '#process' => array('form_process_fieldset', 'ajax_process_form'),
+    '#theme_wrappers' => array('quiz_table'),
+  );
+  $types['advancedtable_header'] = array(
+    '#process' => array('form_process_fieldset', 'ajax_process_form'),
+    '#theme_wrappers' => array('quiz_table_header'),
+  );
+  $types['advancedtable_body'] = array(
+    '#process' => array('form_process_fieldset', 'ajax_process_form'),
+    '#theme_wrappers' => array('quiz_table_body'),
+  );
+  return $types;
+}
+*/
 /**
  * Implements hook_init().
  *
@@ -488,7 +504,7 @@ function quiz_menu() {
 /**
  * Implements hook_theme().
  */
-function quiz_theme() {
+function quiz_theme($existing, $type, $theme, $path) {
   return array(
     'quiz_view_stats' => array(
       'variables' => array('node' => NULL),
@@ -544,20 +560,29 @@ function quiz_theme() {
     ),
     'quiz_question_browser' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'quiz') . '/theme',
+      'path' => $path . '/theme',
       'template' => 'quiz-question-browser',
     ),
-    'quiz_results_browser' => array(
+    'quiz_results_browser_body' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'quiz') . '/theme',
-      'template' => 'quiz-results-browser',
+      'path' => $path . '/theme',
+      'template' => 'quiz-results-browser-body',
+    ),
+    'quiz_results_browser_header' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-results-browser-header',
     ),
     'quiz_report_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'quiz') . '/theme',
+      'path' => $path . '/theme',
       'template' => 'quiz-report-form',
     ),
     'quiz_node_form' => array(
+      'render element' => 'form',
+      'file' => 'quiz.admin.inc',
+    ),
+    'quiz_browser' => array(
       'render element' => 'form',
       'file' => 'quiz.admin.inc',
     ),
