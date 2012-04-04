@@ -1775,7 +1775,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
   if ($result->rowCount()) {
     $insert_query = db_insert('quiz_node_relationship')
       ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'));
-    while ($quiz_questions = $result->fetchAssoc()) {
+    while ($quiz_question = $result->fetchAssoc()) {
       $insert_query->values(array(
         'parent_nid' => $quiz_nid,
         'parent_vid' => $new_quiz_vid,
