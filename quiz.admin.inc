@@ -401,6 +401,10 @@ function quiz_browser_body_callback($form, $form_state) {
   return $form['table']['body'];
 }
 
+function quiz_questions_browser_body_callback($form, $form_state) {
+  return $form['question_list']['browser']['table']['body'];
+}
+
 // MANAGE QUESTIONS
 
 /**
@@ -721,9 +725,12 @@ function _quiz_search_terms($start, $all = FALSE) {
  *  HTML output to create page.
  */
 function quiz_questions_form($form, $form_state, $quiz) {
-  // We need to add this because of the use of ajax. Without this the form api might redirect the user
-  // To the page with the ahah callback...
-  $form['#action'] = url('node/' . $quiz->nid . '/questions');
+  if ($form_state['rebuild']) {
+    // Save the active filters in $_SESSION
+    $filters = $form_state['values']['browser']['table']['header']['filters'];
+    _quiz_questions_store_filters($filters);
+  }
+  
   $types = _quiz_get_question_types();
 
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
@@ -1175,7 +1182,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#prefix' => '<div id="quiz-browser-target">',
     '#suffix' => '</div>',
   );
-  $form['table'] = array('#theme' => 'quiz_question_browser');
+  $form['table'] = array('#theme' => 'quiz_browser');
   $browser = &$form['table'];
 
   // Ajax use this field to send extra query strings to drupal
@@ -1184,10 +1191,11 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     '#default_value' => '',
   );
 
+  $browser['header'] = array('#theme' => 'quiz_questions_browser_header');
+  $browser['body'] = array('#theme' => 'quiz_questions_browser_body');
+  
   //Build filter part of form:
-  _quiz_question_browser_add_filter_fields($browser, $question_types, $quiz);
-
-  //$question_type_list = implode('\', \'', array_keys($question_types));
+  _quiz_question_browser_add_filter_fields($browser['header'], $question_types, $quiz);
 
   // Add querystring recieved via ajax to the $_GET array...
   if (isset($form_state['values'])) {
@@ -1195,7 +1203,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   }
 
   // Browsers table header
-  $browser['#header'] = array(
+  $browser['header']['#header'] = array(
     NULL,
     array('data' => t('Title'), 'field' => 'n.title'),
     array('data' => t('Type'), 'field' => 'n.type'),
@@ -1203,18 +1211,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     array('data' => t('Username'), 'field' => 'u.name'),
   );
 
-  /*
-  // Sql to get the questions for the question browser...
-  $sql = 'SELECT n.nid, n.type, n.vid, n.title, n.changed, u.name
-          FROM {node} n
-          LEFT OUTER JOIN {users} u
-          ON n.uid = u.uid
-          WHERE n.type IN (\'' . $question_type_list . '\') AND n.nid NOT IN (
-            SELECT child_nid
-            FROM {quiz_node_relationship}
-            WHERE parent_vid = %d
-          )' . $filter_sql;//tablesort_sql($browser['#header']);
-          */
   $child_nid = db_query('SELECT child_nid FROM {quiz_node_relationship}
       WHERE parent_vid = :parent_vid',
       array(':parent_vid' => $quiz->vid)
@@ -1249,49 +1245,29 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   if (isset($_SESSION[$pre . 'changed'])) {
     $changed_timestamps = _quiz_get_interval_timestamps('changed');
-    $filter_sql .= $changed_timestamps[$_SESSION[$pre . 'changed']]['sql'];
+    if ($changed_timestamps[$_SESSION[$pre . 'changed']][0]) {
+      $query->condition('changed', $changed_timestamps[$_SESSION[$pre . 'changed']][0], '>');
+    }
+    if ($changed_timestamps[$_SESSION[$pre . 'changed']][1]) {
+      $query->condition('changed', $changed_timestamps[$_SESSION[$pre . 'changed']][1], '<');
+    }
   }
   $query->limit(10);
-  $query->orderByHeader($browser['#header']);
-
-  //$results = $query->fetchAll();
-
-  /* We use a custom query for the pager to vastly improve performance if there are lots of db hits...
-   This custom query doesn't find the total number of hits, thus the "last" link in the pager is hidden. */
-  /*
-  $page = isset($_GET['page']) ? intval($_GET['page']) : 0;
-  $num = 25;
-  $pager_sql = 'SELECT COUNT(*)
-          FROM (
-         ' // db_rewrite_sql doesn't work on the entire query because of a bug...
-         . ('SELECT n.nid FROM {node} n
-          LEFT OUTER JOIN {users} u ON n.uid = u.uid
-          WHERE n.type IN (\'' . $question_type_list . '\')') . '
-            AND n.nid NOT IN (
-              SELECT child_nid
-              FROM {quiz_node_relationship}
-              WHERE parent_vid = %d
-            )' . $filter_sql . " LIMIT 0, " . max($page * $num + $num * 7, $num * 10) . ") tbl";
-            */
-
-  //$res = pager_query(db_rewrite_sql($sql), $num, 0, $pager_sql, $filter_params);
-  //$res = db_query($sql);//, $num, 0, $pager_sql, $filter_params);
-  // build data part of form
-
-  //while ($res_o = $query->fetch()) {
+  $query->orderByHeader($browser['header']['#header']);
   $options = array();
+  
   foreach ($query->execute() as $res_o) {
     $id = $res_o->nid . '-' . $res_o->vid;
     // Add $id to hidden_questions, this way quiz_questions_form knows that it has to add a invisible row for this question.
     $hidden_questions[] = $id;
 
     $options[$id] = check_plain($res_o->title);
-    $browser['changed'][$id]['#value'] = format_date($res_o->changed, 'short');
-    $browser['types'][$id]['#value'] = $question_types[$res_o->type]['name'];
-    $browser['names'][$id]['#value'] = check_plain($res_o->name);
+    $browser['body']['changed'][$id]['#value'] = format_date($res_o->changed, 'short');
+    $browser['body']['types'][$id]['#value'] = $question_types[$res_o->type]['name'];
+    $browser['body']['names'][$id]['#value'] = check_plain($res_o->name);
   }
 
-  $browser['titles'] = array(
+  $browser['body']['titles'] = array(
     '#title' => t('Titles'),
     '#type' => 'checkboxes',
     '#options' => $options,
@@ -1301,10 +1277,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   $browser['pager'] = array(
     '#markup' => '<div id="browser-pager">' . theme('pager', array('tags' => NULL)) . '</div>',
-  );
-
-  $browser['ahah_target_all_end'] = array(
-    '#markup' => '</div>'
   );
   return $form;
 }
@@ -1319,7 +1291,6 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
  *   Array of question types
  */
 function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $quiz) {
-  $ahah_path = 'node/' . $quiz->nid . '/questions/browser_ahah';
   // Create options array for the type filter(select field)
   $type_options = array(t('No filter'));
   foreach (array_keys($question_types) as $type) {
@@ -1344,8 +1315,11 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#size' => 20,
     '#default_value' => isset($_SESSION[$pre . 'title']) ? $_SESSION[$pre . 'title'] : '',
     '#ajax' => array(
-      'callback' => 'quiz_browser_ahah',
-      'wrapper' => 'quiz-browser-target',
+      'callback' => 'quiz_questions_browser_body_callback',
+      'effect' => 'slide',
+      'wrapper' => 'quiz-browser-body',
+      'method' => 'replace',
+      'event' => 'doneTyping', // custom event
     ),
   );
   $filters['type'] = array(
@@ -1353,9 +1327,9 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#options' => $type_options,
     '#default_value' => isset($_SESSION[$pre . 'type']) ? $_SESSION[$pre . 'type'] : '',
     '#ajax' => array(
-      'callback' => 'quiz_browser_ahah',
+      'callback' => 'quiz_questions_browser_body_callback',
       'effect' => 'slide',
-      'wrapper' => 'quiz-browser-target',
+      'wrapper' => 'quiz-browser-body',
       'method' => 'replace',
     ),
   );
@@ -1364,9 +1338,9 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#options' => $changed_options,
     '#default_value' => isset($_SESSION[$pre . 'changed']) ? $_SESSION[$pre . 'changed'] : '',
     '#ajax' => array(
-      'callback' => 'quiz_browser_ahah',
+      'callback' => 'quiz_questions_browser_body_callback',
       'effect' => 'slide',
-      'wrapper' => 'quiz-browser-target',
+      'wrapper' => 'quiz-browser-body',
       'method' => 'replace',
     ),
   );
@@ -1375,10 +1349,11 @@ function _quiz_question_browser_add_filter_fields(&$browser, &$question_types, $
     '#size' => 10,
     '#default_value' => isset($_SESSION[$pre . 'name']) ? $_SESSION[$pre . 'name'] : '',
     '#ajax' => array(
-      'callback' => 'quiz_browser_ahah',
+      'callback' => 'quiz_questions_browser_body_callback',
       'effect' => 'slide',
-      'wrapper' => 'quiz-browser-target',
+      'wrapper' => 'quiz-browser-body',
       'method' => 'replace',
+      'event' => 'doneTyping', // custom event
     ),
   );
 }
@@ -1664,10 +1639,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
   // Find the biggest weight:
   $next_weight = max($form_state['values']['weights']);
 
-  // Save the active filters in $_SESSION
-  $filters = $form_state['values']['browser']['table']['filters'];
-  _quiz_browser_store_filters($filters);
-
   // If a question is chosen in the browser, add it to the question list if it isn't already there
   if (is_array($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
@@ -1693,139 +1664,13 @@ function _quiz_question_browser_submit($form, &$form_state) {
  * @param $filters
  *   array holding the values for each filter
  */
-function _quiz_browser_store_filters($filters) {
+function _quiz_questions_store_filters($filters) {
   $pre = 'quiz_question_browser_';
   $_SESSION[$pre . 'title'] = $filters['title'];
   $_SESSION[$pre . 'type'] = $filters['type'];
   $_SESSION[$pre . 'changed'] = $filters['changed'];
   $_SESSION[$pre . 'name'] = $filters['name'];
 }
-
-
-
-/**
- * AHAH handler for the question browser
- */
-function quiz_browser_ahah($form, &$form_state) {
-
-  // Prepare to get the form from cache
-  //$form_state = array('storage' => NULL, 'submitted' => FALSE);
-  $form_id = $form['#form_id'];
-
-  // Make sure the form exists
-  //if (!($form = form_get_cache($form_id, $form_state))) {
-   // form_set_error('form_token', t("Validation error, please try again. If this error persists, please contact the site administrator."));
-   // $output = theme('status_messages');
-   // print drupal_json_encode(array('status' => TRUE, 'data' => $output));
-   // exit();
- // }
-  // If filter or pager has been used
-  //$replace_all = drupal_strlen($_POST['browser']['table']['add_to_get']) > 0;
-
-  // Prepare to submit the form
-  //$args = $form['#parameters'];
-  //$form_id = array_shift($args);
-
-  // We will run some of the submit handlers so we need to disable redirecting.
-  //$form_state['#redirect'] = FALSE;
-
-  // We need to process the form, prepare for that by setting a few internals
-  // variables.
-  //$form['#post'] = $_POST;
-  //$form['#programmed'] = FALSE;
-  //$form_state['post'] = $_POST;
-  //$form_state['#from_ahah'] = TRUE;
-
-  // $_REQUEST is used by drupal core. We need to remove data recieved from ajax.
-  //foreach ($_POST as $key => $value) {
-  //  unset($_REQUEST[$key]);
-  //}
-  //$_POST = array();
-
-  // We don't want any validation errors to show up. This isn't a real submit.
-  _quiz_skip_validation($form);
-
-  _quiz_browser_store_filters($form_state['values']['browser']['table']['filters']);
-
-  // Build, validate and submit the form.
-  //drupal_process_form($form_id, $form, $form_state);
-
-  //Remove any status messages the processing resulted in...
-  theme('status_messages');
-
-  // Get the form the ajax call resulted in
-  $form = drupal_rebuild_form($form_id, $form_state);
-
-  // We store a copy of the browser part of the form, and remove it from the main form.
-  // This way we can render the form without the browser, and render the browser separatly
-  return $form['question_list']['browser'];
-
-  $b_form = $form['question_list']['browser'];
-  unset($form['question_list']['browser']);
-
-  /*
-   * $output is the string we will send to ajax, and that will be added to the page.
-   * We are doing this in a special way so way have to call javascript functions to
-   * update the DOM.
-   */
-  $output = '<script>var quizNewBuildId = ' . drupal_json_encode($form['#build_id']) . ';';
-
-  // We remove all visible questions from the quiz. We only want to render the hidden questions.
-  foreach ($form['question_list']['stayers'] as $key => $value) {
-    if (isset($value['#value']) && $value['#value'] == 1) {
-      unset($form['question_list']['titles'][$key]);
-    }
-  }
-
-  // We count the number of hidden questions
-  $num_hiddens = 0;
-  if (is_array($form['question_list']['titles'])) {
-    foreach ($form['question_list']['titles'] as $key => $value) {
-      if (preg_match('/^[0-9]+-[0-9]+/', $key)) {
-        $num_hiddens++;
-      }
-    }
-  }
-
-  // We render what is left of the question list
-  $sub_form_html = drupal_render($form['question_list']);
-
-  // We pick the table rows holding the hidden questions
-  $q_rows_html = _quiz_get_last_table_rows($sub_form_html, $num_hiddens);
-  $output .= ' var qRowsHidden = ' . drupal_json_encode($q_rows_html) . ';';
-
-  // We replace the entire browser. This is done when the browser is sorted
-  if ($replace_all) {
-    // Make sure the description and test is removed
-    unset($b_form['#type']);
-    unset($b_form['#value']);
-
-    $rendered_browser = drupal_render($b_form['table']);
-    $output .= ' var renderedBrowser = ' . drupal_json_encode(theme('status_messages') . $rendered_browser) . ';';
-
-    // Have js(jQuery) replace the browser and change the form build id in the DOM
-    $output .= ' Quiz.replaceBrowser(renderedBrowser, quizNewBuildId);';
-
-    // Add the hidden questions to the question list
-    $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
-  }
-  // Only the question rows in the browser is replaced.
-  else {
-    // Send status messages, new build id for the form and the new question row to the javascript:
-    $b_rows = _quiz_get_browser_content(drupal_render($b_form), 'quiz-question-browser-row');
-    $b_pager = drupal_render($b_form['table']['pager']);
-
-    $output .= ' var quizBrowserRows = ' . drupal_json_encode($b_rows) . ';';
-    $output .= ' var quizBrowserPager = ' . drupal_json_encode($b_pager) . ';';
-    $output .= ' Quiz.addBrowserRows(quizBrowserRows, quizNewBuildId, quizBrowserPager);';
-    $output .= ' Quiz.addQuestions(qRowsHidden);</script>';
-    $output .= ' ' . theme('status_messages');
-  }
-  drupal_json_output(array('status' => TRUE, 'data' => $output));
-}
-
-
-
 
 // THEME FUNCTIONS
 

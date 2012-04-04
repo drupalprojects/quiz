@@ -17,13 +17,9 @@ var Quiz = Quiz || {inputEnabled:true};
 Drupal.behaviors.quizQuestionBrowserBehavior = {
   attach: function(context, settings) {
 
-    // Using variables for readability and to ease change of names...
-    var done = 'quizQuestionBrowserBehavior-processed';
-    var notDone = ':not(.'+ done +')';
-
     // Question rows in the browser
-    $('.quiz-question-browser-row'+ notDone)
-    .addClass(done)
+    $('.quiz-question-browser-row')
+    .once()
 
     // Add selected class to already selected questions
     .filter(':has(:checkbox:checked)')
@@ -58,8 +54,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
     // Filter row in the browser
 
     // Mark all button
-    $('#edit-browser-table-filters-all'+ notDone)
-    .addClass(done)
+    $('#edit-browser-table-header-filters-all')
+    .once()
     .click(function(event) {
       var ch = $(this).attr('checked');
       $('.quiz-question-browser-row').each(function() {
@@ -77,32 +73,26 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
     });
 
     // Type and date filters
-    this.selector = '#edit-browser-table-filters-type'+ notDone;
-    this.selector += ', #edit-browser-table-filters-changed'+ notDone;
+    this.selector = '#edit-browser-table-header-filters-type';
+    this.selector += ', #edit-browser-table-header-filters-changed';
     $(this.selector)
-    .addClass(done)
+    .once()
     .change(function(event) {
-      $('.quiz-question-browser-row').each(function() {
-        $(this).remove();
-      });
       $('#browser-pager').remove();
       Quiz.setInputEnabled(false);
     });
 
     //Title and username filters
     var quizRefreshId;
-    this.selector = '#edit-browser-table-filters-title'+ notDone;
-    this.selector += ', #edit-browser-table-filters-name'+ notDone;
+    this.selector = '#edit-browser-table-header-filters-title';
+    this.selector += ', #edit-browser-table-header-filters-name';
     $(this.selector)
-    .addClass(done)
+    .once()
     // triggering custom event "doneTyping" one second after the last key up in the text fields...
     .keyup(function(event) {
       clearInterval(quizRefreshId);
       var quizClicked = this;
       quizRefreshId = setInterval(function(){
-        $('.quiz-question-browser-row').each(function() {
-          $(this).remove();
-        });
         $('#browser-pager').remove();
         $(quizClicked).trigger('doneTyping');
         clearInterval(quizRefreshId);
@@ -133,8 +123,8 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
     ];
 
     for (i in toSort) {
-      $('.quiz-browser-header-'+ toSort[i].name +' > a'+ notDone)
-      .addClass(done)
+      $('.quiz-browser-header-'+ toSort[i].name +' > a')
+      .once()
       .attr('myName', toSort[i].name)
       .attr('myEvent', toSort[i].event)
       .click(function(event) {
@@ -148,7 +138,7 @@ Drupal.behaviors.quizQuestionBrowserBehavior = {
         // We need to post the query string to drupal since we are using ajax.
         // The querystring will be added to $_REQUEST on the server.
         $('#edit-browser-table-add-to-get').val(myUrl);
-        $('#edit-browser-table-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
+        $('#edit-browser-table-header-filters-'+ $(this).attr('myName')).trigger($(this).attr('myEvent'));
         event.preventDefault();
         Quiz.setInputEnabled(false);
       });
@@ -264,60 +254,6 @@ $(document).ready(function () {
     if ($('.q-staying', $(this)).attr('checked')) $(this).removeClass('hidden-question');
   });
 });
-
-
-/**
- * Adds new rows to the browser. This function is called from a inline js added to the page using ahah.
- *
- * @param rows
- *   Browser rows(html string)
- * @param newBuildId
- *   Id of the new form(string)
- * @param pager
- *   The browsers new pager(html string)
- */
-Quiz.addBrowserRows = function(rows, newBuildId, pager) {
-  // The previous questions in the browser are added to the question list as invisible questions
-  // Since they cannot be selected anymore we remove them here...
-  $('.hidden-question').remove();
-  // Add the new rows to the browser and replace the pager
-  $('#quiz-question-browser-filters').after(rows);
-  $('#before-pager').after(pager);
-  //$('#quiz-question-browser-pager').replaceWith(pager);
-
-  // Change build id to the new id provided by the server(prevents validation error):
-  $('[name="form_build_id"]').val(newBuildId);
-
-  Drupal.behaviors.quizQuestionBrowserBehavior();
-  Quiz.setInputEnabled(true);
-};
-
-/**
- * Replaces the entire browser. This function is called from a inline js added to the page using ahah.
- *
- * @param renderedBrowser
- *   The entire browser(html string)
- * @param newBuildId
- *   Id of the new form(string)
- */
-Quiz.replaceBrowser = function(renderedBrowser, newBuildId, hiddenRows) {
-  // Change build id to the new id provided by the server:
-  $('.hidden-question').remove();
-  $('[name="form_build_id"]').val(newBuildId);
-
-  var $this = $('#all-ahah-target');
-  var par = $this.parent();
-  var sib = $this.prev();
-  $this.remove();
-
-  if (sib[0])
-    sib.after(renderedBrowser);
-  else
-    par.prepend(renderedBrowser);
-
-  Drupal.attachBehaviors($('#all-ahah-target'));
-  Quiz.setInputEnabled(true);
-};
 
 /**
  * Updates the page part of the query string in the add-to-get hidden field

@@ -573,6 +573,16 @@ function quiz_theme($existing, $type, $theme, $path) {
       'path' => $path . '/theme',
       'template' => 'quiz-results-browser-header',
     ),
+    'quiz_questions_browser_body' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-questions-browser-body',
+    ),
+    'quiz_questions_browser_header' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-questions-browser-header',
+    ),
     'quiz_report_form' => array(
       'render element' => 'form',
       'path' => $path . '/theme',
