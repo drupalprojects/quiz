@@ -3382,7 +3382,7 @@ function _quiz_get_random_questions($quiz) {
           ':question_status' => QUESTION_RANDOM
         )
       );
-      while ($question_node = $result->db_fetch_array()) {
+      while ($question_node = $result->fetchAssoc()) {
         $question_node['random'] = TRUE;
         $question_node['relative_max_score'] = $quiz->max_score_for_random;
         $questions[] = $question_node;
