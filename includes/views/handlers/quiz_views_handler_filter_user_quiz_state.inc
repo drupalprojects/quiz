@@ -9,7 +9,7 @@ class quiz_views_handler_filter_user_quiz_state extends views_handler_filter {
   var $no_operator = TRUE; // for nicer formatting of the form
   var $no_single = TRUE; // always only a single value, at least for now
 
-  function init(&$view, $options) {
+  function init(&$view, &$options) {
     parent::init($view, $options);
     $this->states = array(
       'any' => t('All Results (Do not filter)'),

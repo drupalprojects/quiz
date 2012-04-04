@@ -8,7 +8,7 @@
 class quiz_views_handler_field_question_status extends views_handler_field {
   var $text_map = array();
 
-  function pre_render($values) {
+  function pre_render(&$values) {
     $this->text_map = array(
       QUESTION_RANDOM => t('Random'), // 'Random-ly' better?
       QUESTION_ALWAYS => t('Always'),

@@ -67,7 +67,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
    * Override the default behavior of query() to introduce the medial step of
    * retrieving vids from the provided nids.
    */
-  function query() {
+  function query($group_by = FALSE) {
     $this->ensure_my_table();
     $this->break_phrase();
 
