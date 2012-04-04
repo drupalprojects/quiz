@@ -304,14 +304,10 @@ class MultichoiceQuestion extends QuizQuestion {
       $delete_results->condition('question_vid', $this->node->vid);
     }
 
-    $delete_properties->execute();
-    $delete_answers->execute();
-    $delete_results->execute();
-
     // Delete from table quiz_multichoice_user_answer_multi
     $user_answer_id = array();
     if ($only_this_version) {
-    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':result_id' => $this->rid));
+      $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':result_id' => $this->rid));
     }
     else {
       $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND result_id = :result_id', array(':nid' => $this->node->nid, ':result_id' => $this->rid));
@@ -325,6 +321,9 @@ class MultichoiceQuestion extends QuizQuestion {
         ->condition('user_answer_id', $user_answer_id, 'IN')
         ->execute();
     }
+    $delete_properties->execute();
+    $delete_answers->execute();
+    $delete_results->execute();
     parent::delete($only_this_version);
   }
 
