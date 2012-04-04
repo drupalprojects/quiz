@@ -150,26 +150,13 @@ dl.quiz-report dd {
   background-color: #FFFFDD;
 }
 
-.q-back-button {
+input#edit-op, input#edit-back {
   background: 0 none;
   border: 0 none;
   color: #666699;
 }
 
-.q-back-button:hover {
-  color: #6666ff;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.q-skip-button {
-  float: right;
-  background: 0 none;
-  border: 0 none;
-  color: #666699;
-}
-
-.q-skip-button:hover {
+input.q-skip-button:hover, input#edit-back:hover {
   color: #6666ff;
   cursor: pointer;
   text-decoration: underline;
