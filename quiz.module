@@ -637,9 +637,43 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter() for the quiz node form.
+ */
+function quiz_form_quiz_node_form_alter(&$form, $form_state) {
+  $form['actions']['submit']['#submit'][] = 'quiz_form_quiz_node_form_submit';
+}
+
+/**
+ * Quiz node form submit callback.
+ *
+ * @see quiz_form_quiz_node_form_alter()
+ */
+function quiz_form_quiz_node_form_submit($form, &$form_state) {
+  $node = $form_state['node'];
+
+  if (empty($form_state['values']['nid'])) {
+    drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
+    $form_state['redirect'] = "node/$node->nid/questions";
+  }
+  // If the quiz don't have any questions jump to the manage questions tab.
+  $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
+  if (!is_numeric($res)) {
+    $form_state['redirect'] = 'node/' . $node->nid . '/questions';
+  }
+}
+
+/**
  * Implements hook_insert().
  */
 function quiz_insert($node) {
+  // Apply defaults.
+  $defaults = _quiz_load_user_settings(variable_get('quiz_def_uid', 1)) + _quiz_get_node_defaults();
+  foreach ($defaults as $key => $value) {
+    if (!isset($node->$key)) {
+      $node->$key = $value;
+    }
+  }
+
   _quiz_save_user_settings($node);
 
   // Copy all the questions belonging to the quiz if this is a new translation.
@@ -687,20 +721,7 @@ function quiz_insert($node) {
     ))
     ->execute();
 
-
   _quiz_insert_resultoptions($node);
-
-  if (!isset($node->auto_created) && $node->revision == 0) {
-    drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
-    $_GET['destination'] = url("node/$node->nid/questions");
-  }
-
-  // If the quiz don't have any questions and have been created manually jump to
-  // the manage questions tab.
-  if (!isset($node->auto_created)) {
-    _quiz_redirect_if_empty($node);
-  }
-
 }
 
 /**
@@ -763,8 +784,6 @@ function quiz_update($node) {
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
   quiz_update_max_score_properties(array($node->vid));
-  // If the node has no questions redirect to the manage questions tab
-  _quiz_redirect_if_empty($node);
 }
 
 /**
@@ -886,6 +905,8 @@ function _quiz_get_node_defaults() {
     'allow_resume' => 1,
     'allow_jumping' => 0,
     'show_passed' => 1,
+    'quiz_open' => _quiz_form_prepare_date(),
+    'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
   );
 }
 
@@ -1041,22 +1062,6 @@ function quiz_take_access($node) {
 function quiz_form(&$node, &$form_state) {
 
   $form = array();
-
-  // If this is a new node we try to load the users settings.
-  if (!isset($node->nid)) {
-    $settings_loaded = _quiz_load_user_settings($node);
-    if (!$settings_loaded) {
-      if (arg(0) == 'node') {
-        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.',
-                           array('@quiz' => QUIZ_NAME) ));
-      }
-
-      // The user had no settins stored. We load the settings for the default
-      // user.
-      $node->def_uid = variable_get('quiz_def_uid', 1);
-      _quiz_load_user_settings($node);
-    }
-  }
 
   // We tell quiz_form_alter to check for the manual revisioning permission.
   $form['#quiz_check_revision_access'] = TRUE;
@@ -1493,7 +1498,7 @@ function quiz_node_presave($node) {
     // Convert the action id to the actual id from the MD5 hash.
     // Why the actions module does this I do not know? Maybe to prevent
     // invalid values put into the options value="" field.
-    if ($aid = actions_function_lookup($node->aid)) {
+    if (!empty($node->aid) && $aid = actions_function_lookup($node->aid)) {
       $node->aid = $aid;
     }
 
@@ -1510,13 +1515,20 @@ function quiz_node_presave($node) {
  * Implementation of hook_node_prepare().
  */
 function quiz_node_prepare($node) {
-  if ($node->type == 'quiz') {
-    $defaults = _quiz_get_node_defaults();
-    if (!isset($node->nid)) {
-      foreach ($defaults as $key => $value) {
-        if (!isset($node->$key)) {
-          $node->$key = $value;
-        }
+  if ($node->type == 'quiz' && !isset($node->nid)) {
+    // If this is a new node we apply the user defaults for the quiz settings.
+    $settings = _quiz_load_user_settings();
+    if (!$settings) {
+      if (arg(0) == 'node') {
+        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.',
+        array('@quiz' => QUIZ_NAME) ));
+      }
+      $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+    }
+    $settings += _quiz_get_node_defaults();
+    foreach ($settings as $key => $value) {
+      if (!isset($node->$key)) {
+        $node->$key = $value;
       }
     }
   }
@@ -3186,7 +3198,7 @@ function _quiz_insert_resultoptions($node) {
     ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
 
   foreach ($node->resultoptions as $id => $option) {
-    if ($option['option_name']) {
+    if (!empty($option['option_name'])) {
       // When this function called direct from node form submit the $option['option_summary']['value'] and $option['option_summary']['format'] are we need
       // But when updating a quiz node eg. on manage questions page, this values come from loaded node, not from a submitted form.
       if (is_array($option['option_summary'])) {
@@ -3815,20 +3827,15 @@ function quiz_make_new($title) {
   $new_node->title = $title;
   $new_node->type = 'quiz';
   $new_node->status = 1;
-  $additions = _quiz_get_node_defaults();
-  foreach ($additions as $key => $value) {
+  // Get default user settings.
+  $settings = _quiz_load_user_settings();
+  if (!$settings) {
+    $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+  }
+  $settings += _quiz_get_node_defaults();
+  foreach ($settings as $key => $value) {
     $new_node->{$key} = $value;
   }
-  $new_node->quiz_open = _quiz_form_prepare_date();
-  $new_node->quiz_close = _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30));
-
-  // Get default settings
-  $settings_loaded = _quiz_load_user_settings($new_node);
-  if (!$settings_loaded) {
-    $new_node->def_uid = variable_get('quiz_def_uid', 1);
-    _quiz_load_user_settings($new_node);
-  }
-
   $new_node->auto_created = TRUE;
   $new_node->uid = $user->uid;
   node_save($new_node);
@@ -4030,39 +4037,42 @@ function quiz_delete_results($rids) {
 }
 
 /**
- * Apply the users default settings to a quiz node.
+ * Returns the users default settings.
  *
  * @param $node
  *   Quiz node.
+ * @param $uid
+ *   (optional) The uid of the user to get the settings for. Defaults to the
+ *   current user (NULL).
  *
  * @return
- *   TRUE if success or FALSE if not success.
+ *   An array of settings. The array is empty in case no settings are available.
  */
-function _quiz_load_user_settings(&$node) {
-  global $user;
+function _quiz_load_user_settings($uid = NULL) {
   // The def_uid property is the default user id. It is used if there are no
   // settings store for the current user.
-  $def_uid = isset($node->def_uid) ? $node->def_uid : $user->uid;
+  $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
+
   $query = db_select('quiz_user_settings', 'qus')
     ->fields('qus')
-    ->condition('uid', $def_uid);
+    ->condition('uid', $uid);
   $res = $query->execute()->fetchAssoc();
   if (!empty($res)) {
     foreach ($res as $key => $value) {
       if (!in_array($key, array('nid', 'vid', 'uid'))) {
-        $node->{$key} = $value;
+        $settings[$key] = $value;
       }
     }
     // TODO : Reviews this later.
-    $node->resultoptions[] = db_select('quiz_node_result_options', 'qnro')
+    $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
       ->fields('qnro')
       ->condition('nid', $res['nid'])
       ->condition('vid', $res['vid'])
       ->execute()
       ->fetchAll();
-    return TRUE;
+    return $settings;
   }
-  return FALSE;
+  return array();
 }
 
 /**
@@ -4075,7 +4085,6 @@ function _quiz_save_user_settings($node) {
   global $user;
   // We do not save settings if the node has been created by the system,
   // or if the user haven't requested it
-  $node = (object) $node;
   if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
     return FALSE;
   }
@@ -4132,19 +4141,6 @@ function _quiz_save_user_settings($node) {
   drupal_write_record('quiz_user_settings', $node, $update);
   */
   drupal_set_message(t('Default settings have been saved'));
-}
-
-/**
- * Redirects to the manage questions tab if the quiz has no questions.
- *
- * @param $node
- *   Quiz node.
- */
-function _quiz_redirect_if_empty($node) {
-  $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
-  if (!is_numeric($res)) {
-    $_GET['destination'] = 'node/' . $node->nid . '/questions';
-  }
 }
 
 /**
