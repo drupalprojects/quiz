@@ -1751,37 +1751,30 @@ function quiz_get_pass_rate($nid, $vid) {
  *   The quiz node id.
  */
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
-  /*
-  $sql = "INSERT INTO {quiz_node_relationship} (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-          SELECT src.parent_nid, %d, src.child_nid, src.child_vid, src.question_status, src.weight, src.max_score
-          FROM {quiz_node_relationship} AS src
-          WHERE src.parent_vid = %d AND src.parent_nid = %d AND src.question_status != %d";
-  // TODO Please convert this statement to the D7 database API syntax.
-  /* db_query($sql, $new_quiz_vid, $old_quiz_vid, $quiz_nid, QUESTION_NEVER) */
-  $quiz_questions = db_select('quiz_node_relationship', 'qnr')
+  // query for questions in previous version
+  $result = db_select('quiz_node_relationship', 'qnr')
     ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
-    ->condition('parent_vid', $old_quiz_vid)
     ->condition('parent_nid', $quiz_nid)
+    ->condition('parent_vid', $old_quiz_vid)
     ->condition('question_status', QUESTION_NEVER, '!=')
-    ->execute()
-    ->fetchAssoc();
-
-  if (!empty($quiz_questions)) {
-    $query = db_insert('quiz_node_relationship')
-      ->fields(array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'parent_vid'));
-    foreach ($quiz_questions as $quiz_question) {
-      $value = array(
+    ->execute();
+  
+  // only proceed if query returned data
+  if ($result->rowCount()) {
+    $insert_query = db_insert('quiz_node_relationship')
+      ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'));
+    while ($quiz_questions = $result->fetchAssoc()) {
+      $insert_query->values(array(
         'parent_nid' => $quiz_nid,
-        'parent_vid' => $old_quiz_vid,
+        'parent_vid' => $new_quiz_vid,
         'child_nid' => $quiz_question['child_nid'],
         'child_vid' => $quiz_question['child_vid'],
         'question_status' => $quiz_question['question_status'],
         'weight' => $quiz_question['weight'],
         'max_score' => $quiz_question['max_score']
-      );
-      $query->values($value);
+      ));
     }
-    $query->execute();
+    $insert_query->execute();
   }
 }
 
@@ -2633,7 +2626,7 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_check($quiz, $rid) {
   global $user;
 
-  $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
+  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
@@ -3083,7 +3076,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
     // to replace an unanswered question in $questions with it.
     if (!in_array($answered->vid, $already_answered)) {
       foreach ($questions as $key => $question) {
-        if (!in_array($question['vid'], $already_answered) && $question['random'] === TRUE) {
+        if (!in_array($question['vid'], $already_answered) && isset($question['random']) && $question['random'] === TRUE) {
           $questions[$key]['vid'] = $answered->vid;
           $questions[$key]['nid'] = $answered->nid;
           $questions[$key]['rid'] = $rid;

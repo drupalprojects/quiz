@@ -97,15 +97,15 @@ function quiz_question_node_access($node, $op, $account) {
          return NODE_ACCESS_DENY;
        }
     case 'create':
-      if (!user_access('create quiz', $account)) {
+      if (!user_access('create quiz content', $account)) {
         return NODE_ACCESS_DENY;
       }
     case 'update':
-      if (user_access('edit any quiz', $account) || (user_access('edit own quiz', $account) && ($account->uid == $node->uid))) {
+      if (user_access('edit any quiz content', $account) || (user_access('edit own quiz content', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
     case 'delete':
-      if (user_access('delete any quiz', $account) || (user_access('delete own quiz', $account) && ($account->uid == $node->uid))) {
+      if (user_access('delete any quiz content', $account) || (user_access('delete own quiz content', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
   }
@@ -887,7 +887,7 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
         ->fetchField();
     }
 
-    $response_instance->question->score_weight = ($qnr_max_score == 0) ? 0 : ($qnr_max_score / $response_instance->question->max_score);
+    $response_instance->question->score_weight = ($qnr_max_score == 0 || $response_instance->question->max_score == 0) ? 0 : ($qnr_max_score / $response_instance->question->max_score);
   }
 
   return $response_instance->getReportForm($showpoints, $showfeedback, $allow_scoring);

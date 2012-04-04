@@ -57,7 +57,7 @@ class MultichoiceQuestion extends QuizQuestion {
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
         $short['score_if_not_chosen'] = 0;
-        if ($short['correct'] == 1 && !_quiz_is_int($short['score_if_chosen'], 1)) {
+        if (isset($short['correct']) && $short['correct'] == 1 && !_quiz_is_int($short['score_if_chosen'], 1)) {
           $short['score_if_chosen'] = 1;
         }
       }
