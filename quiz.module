@@ -2387,11 +2387,11 @@ function quiz_quiz_finished($quiz, $score, $rid) {
   if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
 
     //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT tid FROM {taxonomy_term_node}
-                WHERE nid = :nid AND vid = :vid AND tid IN (
+    $selected_tid = db_query("SELECT tid FROM {taxonomy_index}
+                WHERE nid = :nid AND tid IN (
                   SELECT tid
-                  FROM {taxonomy_term_data}
-                  WHERE vid = :vid
+                  FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
+                  WHERE t_t_d.vid = :vid
                 )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
