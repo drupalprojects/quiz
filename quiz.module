@@ -2564,12 +2564,21 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     return;
   }
 
-  $score = db_query('SELECT SUM(qnr.max_score) FROM {quiz_node_relationship} qnr
-    JOIN {quiz_node_properties} qnp ON (qnr.parent_vid = qnp.vid)
-    WHERE qnr.question_status = :status', array(':status' => QUESTION_ALWAYS))->fetchField();
-
   db_update('quiz_node_properties')
-    ->expression('max_score', 'max_score_for_random * number_of_random_questions + :score', array(':score' => (int) $score))
+    ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
+      SELECT SUM(max_score)
+      FROM {quiz_node_relationship} qnr
+      WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
+      AND parent_vid = quiz_node_properties.vid)')
+    ->condition('vid', $quizzes_to_update, 'IN')
+    ->execute();
+  
+  db_update('quiz_node_properties')
+    ->expression('max_score', 
+      '(SELECT SUM(qt.max_score * qt.number)
+      FROM {quiz_terms} qt
+      WHERE qt.nid = quiz_node_properties.nid AND qt.vid = quiz_node_properties.vid)')
+    ->condition('randomization', 3)
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
@@ -2583,15 +2592,19 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
-  $points_awarded = (int) db_query('SELECT SUM(a.points_awarded) FROM {quiz_node_results_answers} a
-    JOIN {quiz_node_results} r ON (a.result_id = r.result_id)')->fetchField();
-
-  $max_score = (int) db_query('SELECT max_score FROM {quiz_node_properties} qnp
-    JOIN {quiz_node_results} r ON (r.vid = qnp.vid)')->fetchField();
-
-  $expression = array(':points_awarded' => $points_awarded, ':max_score' => ($max_score > 0) ? $max_score : 1);
   db_update('quiz_node_results')
-    ->expression('score', 'ROUND(100 * :points_awarded / :max_score)', $expression)
+    ->expression('score',
+      'ROUND(
+        100 * (
+          SELECT SUM(a.points_awarded)
+          FROM {quiz_node_results_answers} a
+          WHERE a.result_id = quiz_node_results.result_id
+        ) / (
+          SELECT max_score
+          FROM {quiz_node_properties} qnp
+          WHERE qnp.vid = quiz_node_results.vid
+        )
+      )', $expression)
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 }
