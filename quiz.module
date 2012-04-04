@@ -3536,8 +3536,15 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
     $query->condition('parent_vid', $quiz_vid);
     $query->condition('parent_nid', $quiz_nid);
   }
+  
+  if ($include_random) {
+    $query->condition('question_status', array(QUESTION_RANDOM, QUESTION_ALWAYS), 'IN');
+  }
+  else {
+    $query->condition('question_status', QUESTION_ALWAYS);
+  }
 
-  $query->condition('question_status', $include_random ? QUESTION_RANDOM : QUESTION_ALWAYS)
+  $query
     ->condition('n.status', 1)
     ->orderBy('weight');
 
