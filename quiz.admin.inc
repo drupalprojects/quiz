@@ -421,11 +421,12 @@ function quiz_questions($node) {
   // Set page title.
   drupal_set_title($node->title);
   if ($node->randomization < 3) {
-    return drupal_render(drupal_get_form('quiz_questions_form', $node));
+    $form = drupal_get_form('quiz_questions_form', $node);
   }
   else {
-    return drupal_render(drupal_get_form('quiz_categorized_form', $node));
+    $form = drupal_get_form('quiz_categorized_form', $node);
   }
+  return drupal_render($form);
 }
 
 /**
