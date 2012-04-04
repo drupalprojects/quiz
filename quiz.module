@@ -4112,6 +4112,7 @@ function _quiz_load_user_settings($uid = NULL) {
  */
 function _quiz_save_user_settings($node) {
   global $user;
+  $node = (object) $node;
   // We do not save settings if the node has been created by the system,
   // or if the user haven't requested it
   if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
@@ -4159,16 +4160,6 @@ function _quiz_save_user_settings($node) {
       'show_passed'             => $node->show_passed,
     ))
     ->execute();
-  /*
-  // We're going to use drupal_write_record so we have to set the uid correctly first.
-  // This is just temporary. We're not changing the nodes stored uid!
-  $node->uid = isset($node->save_def_uid) ? $node->save_def_uid : $user->uid;
-  $node->aid = isset($node->aid) ? $node->aid : '';
-  // Are we updating or inserting?
-  $res = db_query('SELECT uid FROM {quiz_user_settings} WHERE uid = :uid', array(':uid' => $node->uid));
-  $update = is_numeric($res->fetchField()) ? array('uid') : array();
-  drupal_write_record('quiz_user_settings', $node, $update);
-  */
   drupal_set_message(t('Default settings have been saved'));
 }
 
