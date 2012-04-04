@@ -822,12 +822,14 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     '#collapsed' => FALSE,
   );
 
-  $destination = drupal_get_destination();
+  $url_query = drupal_get_destination();
+  $url_query['quiz_nid'] = $quiz->nid;
+  $url_query['quiz_vid'] = $quiz->vid;
   foreach ($types as $type => $info) {
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
-      'query' => $destination,
+      'query' => $url_query,
     );
     $form['additional_questions'][$type] = array(
       '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
