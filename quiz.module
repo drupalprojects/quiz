@@ -623,16 +623,15 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
     }
-    unset($form['buttons']['preview'], $form['buttons']['preview_changes']);
-    $form['buttons']['submit']['#access'] = TRUE;
+    unset($form['actions']['preview'], $form['actions']['preview_changes']);
+    $form['actions']['submit']['#access'] = TRUE;
     // Quiz questions might want to add a cancel button.
     if (isset($form['#cancel_button'])) {
-      $form['buttons']['cancel'] = array(
-        '#markup' => l(t('Cancel'), $form_state['#redirect']),
+      $form['actions']['cancel'] = array(
+        '#markup' => l(t('Cancel'), $form_state['redirect']),
         '#weight' => 6,
       );
     }
-    $form['buttons']['#weight'] = 50;
   }
 }
 

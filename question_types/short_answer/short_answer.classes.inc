@@ -159,7 +159,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#getCreationForm($form_state)
    */
-  public function getCreationForm(array $form_state = NULL) {
+  public function getCreationForm(array &$form_state = NULL) {
     $form['answer'] = array(
       '#type' => 'fieldset',
       '#title' => t('Answer'),

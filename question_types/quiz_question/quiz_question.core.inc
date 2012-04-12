@@ -84,7 +84,7 @@ abstract class QuizQuestion {
    * @param array $form_state
    * @return unknown_type
    */
-  public function getNodeForm(array $form_state = NULL) {
+  public function getNodeForm(array &$form_state = NULL) {
     global $user;
     $form = array();
 
@@ -134,7 +134,7 @@ abstract class QuizQuestion {
 
       // If coming from quiz view, go back there on submit.
       if ($quiz->type == 'quiz') {
-        $form_state['#redirect'] = 'node/' . $quiz->nid . '/questions';
+        $form_state['redirect'] = 'node/' . $quiz->nid . '/questions';
         $form['#cancel_button'] = TRUE;
       }
     }
@@ -453,7 +453,7 @@ abstract class QuizQuestion {
    * @return
    *  Must return a FAPI array.
    */
-  abstract public function getCreationForm(array $form_state = NULL);
+  abstract public function getCreationForm(array &$form_state = NULL);
 
   /**
    * Get the maximum possible score for this question.

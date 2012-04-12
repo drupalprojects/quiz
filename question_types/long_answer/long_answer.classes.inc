@@ -147,7 +147,7 @@ class LongAnswerQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#getCreationForm($form_state)
    */
-  public function getCreationForm(array $form_state = NULL) {
+  public function getCreationForm(array &$form_state = NULL) {
     $form['rubric'] = array(
        '#type' => 'textarea',
        '#title' => t('Rubric'),

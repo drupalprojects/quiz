@@ -374,7 +374,7 @@ class ScaleQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#getCreationForm()
    */
-  public function getCreationForm(array $form_state = NULL) {
+  public function getCreationForm(array &$form_state = NULL) {
     $form = array();
     /*
      * Getting presets from the database

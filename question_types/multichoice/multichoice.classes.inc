@@ -457,7 +457,7 @@ class MultichoiceQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#getCreationForm()
    */
-  public function getCreationForm(array $form_state = NULL) {
+  public function getCreationForm(array &$form_state = NULL) {
     $form = array();
     $type = node_type_get_type($this->node);
     // We add #action to the form because of the use of ajax

@@ -158,7 +158,7 @@ class TrueFalseQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#getCreationForm($form_state)
    */
-  public function getCreationForm(array $form_state = NULL) {
+  public function getCreationForm(array &$form_state = NULL) {
     $form['correct_answer'] = array(
       '#type' => 'radios',
       '#title' => t('Correct answer'),
