@@ -1429,14 +1429,6 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 
   $question_types = array_keys(_quiz_get_question_types());
-  //$placeholders = db_placeholders($question_types, 'text');
-  //$sql = 'SELECT COUNT(nid) FROM {node} WHERE type IN (' . $placeholders . ') AND nid = %d';
-  $questions_count = db_select('node', 'n')
-    ->condition('type', array_keys(_quiz_get_question_types()), 'IN')
-    ->countQuery()
-    ->addTag('node_access')
-    ->execute()
-    ->fetchField();
 
   foreach ($weight_map as $id => $weight) {
     if ($form_state['values']['stayers'][$id] == 0) {
@@ -1446,10 +1438,14 @@ function quiz_questions_form_validate($form, $form_state) {
     list($nid, $vid) = explode('-', $id, 2);
 
     // If a node isn't one of the questionstypes we remove it from the question list
-    $params = $question_types; // Copy array.
-    $params[] = $nid;
-    // TODO Please convert this statement to the D7 database API syntax.
-    if ($questions_count == 0) {
+    $has_questions = (Boolean) db_select('node', 'n')
+      ->fields('n', array('nid'))
+      ->condition('type', $question_types, 'IN')
+      ->addTag('node_access')
+      ->condition('n.nid', $nid)
+      ->execute()
+      ->fetchField();
+    if (!$has_questions) {
       form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
     }
