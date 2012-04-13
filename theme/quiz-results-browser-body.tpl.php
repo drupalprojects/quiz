@@ -21,7 +21,7 @@ foreach ($form['name']['#options'] as $key => $value): ?>
       <?php print$form['started'][$key]['#value'] ?>
     </td><td valign="top">
       <?php print $form['finished'][$key]['#value'] ?>
-      <?php if ($data != t('In progress')): ?>
+      <?php if ($form['finished'][$key]['#value'] != t('In progress')): ?>
         <br/><em>(<?php print t('Duration') ?>: <?php print $form['duration'][$key]['#value'] ?>')</em>
       <?php endif ?>
     </td><td valign ="top">
