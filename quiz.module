@@ -2362,7 +2362,8 @@ function quiz_end_actions($quiz, $rid, $score, $session_data) {
  *
  * Performs actions like sending quiz results over email at the end of quiz.
  */
-function quiz_quiz_finished($quiz, $score, $rid) {
+function quiz_quiz_finished($quiz, $score, $session_data) {
+  $rid = $session_data['result_id'];
   // Load data about the quiz taker
   $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
   $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
