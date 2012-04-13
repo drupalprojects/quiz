@@ -1981,7 +1981,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
 
   $browser['body'] = array('#theme' => 'quiz_results_browser_body');
   
-  $res = _quiz_results_mr_data_provider($browser['#header'], $quiz);
+  $res = _quiz_results_mr_data_provider($browser['header']['#header'], $quiz);
 
   // build data part of form
   $options = array();
