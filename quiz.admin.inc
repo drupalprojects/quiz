@@ -1646,7 +1646,7 @@ function _quiz_question_browser_submit($form, &$form_state) {
   $next_weight = max($form_state['values']['weights']);
 
   // If a question is chosen in the browser, add it to the question list if it isn't already there
-  if (is_array($form_state['values']['browser']['table']['titles'])) {
+  if (isset($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
         if ($form_state['values']['stayers'][$id] == 1) {
