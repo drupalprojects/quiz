@@ -2094,10 +2094,10 @@ function quiz_take_quiz($quiz) {
     }
 
     // Remove session variables, save $rid
-    $rid = $_SESSION['quiz_' . $quiz->nid]['result_id'];
+    $session_data = $_SESSION['quiz_' . $quiz->nid];
     unset($_SESSION['quiz_' . $quiz->nid]);
     // NOTE: End actions might redirect the user somewhere. Code below this line might not get executed...
-    quiz_end_actions($quiz, $rid, $score);
+    quiz_end_actions($quiz, $rid, $score, $session_data);
   }
 
   return $content;
@@ -2336,7 +2336,7 @@ function quiz_end_scoring($quiz, $rid) {
  * @param $score
  *  Score as a number
  */
-function quiz_end_actions($quiz, $rid, $score) {
+function quiz_end_actions($quiz, $rid, $score, $session_data) {
   // Lets piggy back here to perform the quiz defined action since were done
   // with this quiz.
   // We will verify that there is an associated action with this quiz and then
@@ -2349,15 +2349,11 @@ function quiz_end_actions($quiz, $rid, $score) {
     // @todo Add ability to assign multiple actions and pass the actions_do() an
     //   array of aid's
     // @todo Create feature to only fire action if certain score is reached.
-    $context = array(
-      'result_id' => $rid,
-      'score' => $score,
-    );
-    actions_do($quiz->aid, $quiz, $context, $score);
+    actions_do($quiz->aid, $quiz, $score, $session_data);
   }
 
   // Call hook_quiz_finished().
-  module_invoke_all('quiz_finished', $quiz, $score, $rid);
+  module_invoke_all('quiz_finished', $quiz, $score, $session_data);
   return $score;
 }
 
