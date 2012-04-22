@@ -219,10 +219,16 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
         $question_status = $res_o->question_status;
       }
       else {
-        $weight = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship}
-                    WHERE parent_vid = :parent_vid', array())->fetchField();
-        $quiz_randomization = db_query('SELECT randomization FROM {quiz_node_properties}
-                    WHERE nid = :nid AND vid = :vid', array())->fetchField();
+        $weight = 1 + db_query(
+          "SELECT MAX(weight)
+          FROM {quiz_node_relationship}
+          WHERE parent_vid = :parent_vid",
+          array(':parent_vid' => $quiz_vid))->fetchField();
+        $quiz_randomization = db_query(
+          "SELECT randomization
+          FROM {quiz_node_properties}
+          WHERE nid = :nid AND vid = :vid",
+          array(':nid' => $quiz_nid, ':vid' => $quiz_vid))->fetchField();
         $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
       }
       // Insert the newest revision of the question into the quiz
