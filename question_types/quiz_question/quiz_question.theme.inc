@@ -25,5 +25,14 @@ function theme_quiz_question_creation_form($variables) {
  */
 function theme_quiz_question_navigation_form($variables) {
   $form = $variables['form'];
-  return drupal_render_children($form);
+  if (!$form['#last']) {
+    return drupal_render_children($form);
+  }
+  else {
+    $submit = drupal_render($form['submit']) . drupal_render($form['op']);
+    $to_return = '<div>' . drupal_render_children($form) . '</div>';
+    $to_return .= '<div><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></div>';
+    $to_return .= '<div>' . $submit . '</div>';
+    return $to_return;
+  }
 }

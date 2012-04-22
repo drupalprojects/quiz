@@ -180,7 +180,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
       '#attributes' => array('class' => array('q-back-button')),
     );
     if ($is_last) {
-      drupal_set_message(t('This is the last question. If you would like to go back and check some of your answers, click "Back", otherwise click the "Finish" button.'), 'status', FALSE);
+      $form['navigation']['#last'] = TRUE;
     }
   }
 
