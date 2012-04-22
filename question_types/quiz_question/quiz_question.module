@@ -95,19 +95,23 @@ function quiz_question_node_access($node, $op, $account) {
     case 'view':
       if (!user_access('view quiz question outside of a quiz')) {
          return NODE_ACCESS_DENY;
-       }
+      }
+      break;
     case 'create':
       if (!user_access('create quiz content', $account)) {
         return NODE_ACCESS_DENY;
       }
+      break;
     case 'update':
       if (user_access('edit any quiz content', $account) || (user_access('edit own quiz content', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
+      break;
     case 'delete':
       if (user_access('delete any quiz content', $account) || (user_access('delete own quiz content', $account) && ($account->uid == $node->uid))) {
         return NODE_ACCESS_ALLOW;
       }
+      break;
   }
   // Returning nothing from this function would have the same effect.
   return NODE_ACCESS_IGNORE;

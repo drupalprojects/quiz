@@ -773,7 +773,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
         $this->choice_order = $tries['choice_order'];
       }
       unset($tries['choice_order']);
-      if (is_array($tries['answer'])) {
+      if (isset($tries['answer']) && is_array($tries['answer'])) {
         foreach ($tries['answer'] as $answer_id) {
           $this->user_answer_ids[] = $answer_id;
           $this->answer = $this->user_answer_ids; //@todo: Stop using user_answer_ids and only use answer instead...
@@ -870,7 +870,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function score() {
     if ($this->question->choice_boolean || $this->isAllWrong()) {
-      $score = 1;
+      $score = $this->getMaxScore();
       foreach ($this->question->alternatives as $key => $alt) {
         if (in_array($alt['id'], $this->user_answer_ids)) {
           if ($alt['score_if_chosen'] <= $alt['score_if_not_chosen']) {

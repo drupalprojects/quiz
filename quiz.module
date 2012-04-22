@@ -2722,7 +2722,7 @@ function quiz_availability($quiz) {
       array('%num_attempts' => $quiz->takes));
   }
 
-  $user_is_admin = user_access('edit any quiz') || (user_access('edit own quiz') && $quiz->uid == $user->uid);
+  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
   if ($user_is_admin || $quiz->quiz_always == 1) {
     return TRUE;
   }

@@ -143,7 +143,7 @@ abstract class QuizQuestion {
     $form = array_merge($form, $this->getCreationForm($form_state));
 
     // If access to edit quizzes we add the add to quiz fieldset
-    $edit_access = quiz_access_multi_or('edit any quiz', 'edit own quiz', 'administer nodes');
+    $edit_access = quiz_access_multi_or('edit any quiz content', 'edit own quiz content', 'administer nodes');
     if ($edit_access) {
       $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = ' . intval($user->uid);
 
@@ -227,7 +227,7 @@ abstract class QuizQuestion {
         $latest_default[] = $quiz->nid . '-' . $quiz->vid;
       }
     }
-    if ($edit_access || quiz_access_multi_or('create quiz', 'administer nodes')) {
+    if ($edit_access || quiz_access_multi_or('create quiz content', 'administer nodes')) {
       $form['add_directly'] = array(
         '#type' => 'fieldset',
         '#title' => t('Add to @quiz', array('@quiz' => QUIZ_NAME)),

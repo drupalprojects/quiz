@@ -252,8 +252,8 @@ function quiz_get_user_results($uid) {
   $results = array();
   $dbresult = db_query('SELECT DISTINCT(n.nid), n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
-    INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    INNER JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = n.vid
     INNER JOIN {users} u ON u.uid = qnrs.uid
     WHERE n.type = :type
       AND u.uid = :uid
@@ -276,7 +276,7 @@ function quiz_my_results($node) {
   $res = db_query('
     SELECT qnp.nid, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score
     FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = qnp.nid
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid 
     WHERE qnrs.uid = :uid AND qnrs.nid = :nid AND qnrs.is_evaluated = 1
     ORDER BY qnrs.result_id DESC',
     array(':uid' => $user->uid, ':nid' => $node->nid)
