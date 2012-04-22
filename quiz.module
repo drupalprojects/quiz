@@ -2098,7 +2098,7 @@ function quiz_take_quiz($quiz) {
     $session_data = $_SESSION['quiz_' . $quiz->nid];
     unset($_SESSION['quiz_' . $quiz->nid]);
     // NOTE: End actions might redirect the user somewhere. Code below this line might not get executed...
-    quiz_end_actions($quiz, $rid, $score, $session_data);
+    quiz_end_actions($quiz, $score, $session_data);
   }
 
   return $content;
@@ -2337,7 +2337,7 @@ function quiz_end_scoring($quiz, $rid) {
  * @param $score
  *  Score as a number
  */
-function quiz_end_actions($quiz, $rid, $score, $session_data) {
+function quiz_end_actions($quiz, $score, $session_data) {
   // Lets piggy back here to perform the quiz defined action since were done
   // with this quiz.
   // We will verify that there is an associated action with this quiz and then
