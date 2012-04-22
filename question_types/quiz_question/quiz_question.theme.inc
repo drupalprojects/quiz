@@ -25,7 +25,7 @@ function theme_quiz_question_creation_form($variables) {
  */
 function theme_quiz_question_navigation_form($variables) {
   $form = $variables['form'];
-  if (!$form['#last']) {
+  if (!isset($form['#last'])) {
     return drupal_render_children($form);
   }
   else {
