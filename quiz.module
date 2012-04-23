@@ -1626,7 +1626,7 @@ function quiz_get_all_titles() {
     ->condition('n.type', 'quiz')
     ->addTag('node_access')
     ->execute()
-    ->fetchAll();
+    ->fetchAllKeyed();
 }
 
 /**
