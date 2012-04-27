@@ -733,7 +733,6 @@ function quiz_update($node) {
     // Insert a new row in the quiz_node_properties table.
     $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
-    $old_vid = $node->vid;
     quiz_insert($node);
     if (!$old_auto) {
       unset($node->auto_created);
@@ -741,7 +740,7 @@ function quiz_update($node) {
 
     // Create new quiz-question relation entries in the quiz_node_relationship
     // table.
-    quiz_update_quiz_question_relationship($old_vid, $node->vid, $node->nid);
+    quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
   }
 
   // Quiz node vid (revision) was not updated.
@@ -1770,7 +1769,6 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
     ->condition('parent_vid', $old_quiz_vid)
     ->condition('question_status', QUESTION_NEVER, '!=')
     ->execute();
-  
   // only proceed if query returned data
   if ($result->rowCount()) {
     $insert_query = db_insert('quiz_node_relationship')
