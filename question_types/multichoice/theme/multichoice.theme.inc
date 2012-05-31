@@ -87,62 +87,41 @@ function theme_multichoice_answer_node_view($variables) {
  *  Array of data to be presented in the report
  */
 function theme_multichoice_response($variables) {
-  $data = $variables['data'];
+  static $css_added;
+  if (!$css_added) {
+    drupal_add_css(drupal_get_path('module', 'multichoice') . '/theme/multichoice.css');
+    $css_added = TRUE;
+  }
+  
   $rows = array();
-  $p = drupal_get_path('module', 'multichoice') . '/theme/images';
-  foreach ($data as $id => $alternative) {
-    $cols = array();
-    $rowspan = drupal_strlen($alternative['feedback']) > 0 ? 2 : 1;
-    $not = '';
+  foreach ($variables['data'] as &$alternative) {
     if ($alternative['is_chosen']) {
       switch ($alternative['is_correct']) {
         case 0:
-          $cols[] = array(
-            'data' => theme('image', array('path' => "$p/wrong.png", 'alt' => t('Wrong'), 'title' => t('This answer is wrong'), 'attributes' => array('class' => 'feedback-icon'))),
-            'width' => 35,
-            'rowspan' => $rowspan,
-            'class' => 'selector-td',
-          );
+          $icon = '<span class="multichoice-icon wrong" title="' . t('This option is wrong.') . '"></span>';
           break;
         case 1:
-          $cols[] = array('data' => theme('image', array('path' => "$p/almost.png", 'alt' => t('Almost correct'), 'title' => t('This answer is correct, but there is an answer that gives a higher score'), 'attributes' => array('class' => 'feedback-icon'))),
-            'width' => 35,
-            'rowspan' => $rowspan,
-            'class' => 'selector-td',
-          );
+          $icon = '<span class="multichoice-icon almost" title="' . t('This option is correct, but there is another that gives a higher score.') . '"></span>';
           break;
         case 2:
-          $cols[] = array(
-            'data' => theme('image', array('path' => "$p/correct.png", 'alt' => t('Correct'), 'title' => t('This answer is correct'), 'attributes' => array('class' => 'feedback-icon'))),
-            'width' => 35,
-            'rowspan' => $rowspan,
-            'class' => 'selector-td',
-          );
+          $icon = '<span class="multichoice-icon correct" title="' . t('This option is correct.') . '"></span>';
           break;
       }
     }
     else {
-      if ($alternative['is_correct'] == 2) {
-        $cols[] = array(
-          'data' => theme('image', array('path' => "$p/should.png", 'alt' => t('Should have chosen'), 'title' => t("This answer is correct, but you didn't choose it"), 'attributes' => array('class' => 'feedback-icon'))),
-          'width' => 35,
-          'rowspan' => $rowspan,
-          'class' => 'selector-td',
-        );
-      }
-      else {
-        $cols[] = array(
-          'data' => '',
-          'width' => 35,
-          'rowspan' => $rowspan,
-          'class' => 'selector-td',
-        );
-      }
+      $icon = $alternative['is_correct'] == 2 ? '<span class="multichoice-icon should" title="' . t("This option is correct, but you didn't select it.") . '"></span>' : '';
     }
-    $cols[] = $alternative['answer'];
-    $rows[] = $cols;
+    $rowspan = $alternative['feedback'] ? 2 : 1;
+    $rows[] = array(
+      array(
+        'data' => $icon,
+        'rowspan' => $rowspan,
+        'class' => 'selector-td multichoice-icon-cell',
+      ),
+      $alternative['answer']
+    );
     if ($rowspan == 2) {
-      $rows[] = array('<strong>' . t('Feedback:') . '</strong><div class="quiz_answer_feedback">' . $alternative['feedback'] . '</div>');
+      $rows[] = array('<div class="multichoice-label">' . t('Feedback') . ':</div><div class="multichoice-feedback">' . $alternative['feedback'] . '</div>');
     }
   }
   return theme('table', array('header' => NULL, 'rows' => $rows));
