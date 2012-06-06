@@ -514,8 +514,9 @@ function quiz_question_view($node, $view_mode) {
      * @todo: I see no reason why this should be a part of view anymore.
      * In quiz 5 we should stop using hook_view to view the answering form
      */
-    //print_r(drupal_get_form('quiz_question_answering_form', $node));exit;
-    $form_markup = drupal_render(drupal_get_form('quiz_question_answering_form', $node));
+    $form = drupal_get_form('quiz_question_answering_form', $node);
+    $form_markup = drupal_render($form);
+
     if (!empty($form_markup)) {
       $node->content['body']['#markup'] = $form_markup;
     }
