@@ -193,7 +193,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     '#type' => 'submit',
     '#value' => $is_last ? t('Finish') : t('Next'),
   );
-  if ($node->allow_skipping) {
+  if ($quiz->allow_skipping) {
     $form['navigation']['op']  = array(
       '#type' => 'submit',
       '#value' => $is_last ? t('Skip and finish') : t('Skip'),
