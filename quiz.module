@@ -1708,12 +1708,11 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
 
   // Fetch total number of questions.
   if ($include_num_questions) {
-    $sql = 'SELECT COUNT(*) AS num_always_questions, parent_vid
+    $res = db_query('SELECT COUNT(*) AS num_always_questions, parent_vid
             FROM {quiz_node_relationship}
             WHERE parent_vid IN (' . implode(', ', $vids) . ')
-            AND question_status = :question_status
-            GROUP BY parent_vid';
-    $res = db_query($sql, array(':question_status', QUESTION_ALWAYS));
+            AND question_status = ' . QUESTION_ALWAYS . '
+            GROUP BY parent_vid');
     foreach ($res as $res_o) {
       $to_return[$res_o->parent_vid]->num_questions = $to_return[$res_o->parent_vid]->num_random_questions + $res_o->num_always_questions;
     }
@@ -2446,35 +2445,29 @@ function quiz_quiz_scored($quiz, $score, $rid) {
  */
 function quiz_mail($key, &$message, $params) {
   global $user;
-  list($quiz, $score, $rid, $target) = $params;
-  $substitutions = array(
-    '!title' => $quiz->title,
-    '!sitename' => variable_get('site_name', 'Quiz'),
-    '!taker' => $user->name,
-    '!author' => $quiz->name,
-    '!title' => check_plain($quiz->title),
-    '!date' => date("F j, Y, g:i a"),
-    '!desc' => isset($quiz->body[$quiz->language][0]['value'])  ? check_plain($quiz->body[$quiz->language][0]['value']) : '',
-    '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
-    '!total' => $score['possible_score'],
-    '!percentage' => $score['percentage_score'],
-    '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
-    '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $rid))->fetchField()
-  );
 
   switch ($key) {
     case 'notice':
-      if ($target == 'author') {
-        $subject = t(variable_get('quiz_email_results_subject', quiz_email_results_format('subject', 'author')), $substitutions, array('langcode' => $user->language));
-        $body = t(variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')), $substitutions, array('langcode' => $user->language));
-      }
-      else {
-        $subject = t(variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')), $substitutions, array('langcode' => $user->language));
-        $body = t(variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')), $substitutions, array('langcode' => $user->language));
-      }
-      $message['subject'] = $subject;
-      $message['body'][] = $body;
-      break;
+      list($quiz, $score, $rid, $target) = $params;
+      $quiz_body = field_get_items('node', $quiz, 'body');
+      $substitutions = array(
+        '!title' => $quiz->title,
+        '!sitename' => variable_get('site_name', 'Quiz'),
+        '!taker' => $user->name,
+        '!author' => $quiz->name,
+        '!title' => check_plain($quiz->title),
+        '!date' => date("F j, Y, g:i a"),
+        '!desc' => $quiz_body ? $quiz_body[0]['value'] : '',
+        '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
+        '!total' => $score['possible_score'],
+        '!percentage' => $score['percentage_score'],
+        '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
+        '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $rid))->fetchField()
+      );
+      $type = $target != 'author' ? '_taker' : '';
+      $test = variable_get('quiz_email_results_body' . $type, quiz_email_results_format('body', $target));
+      $message['subject'] = t(variable_get('quiz_email_results_subject' . $type, quiz_email_results_format('subject', $target)), $substitutions, array('langcode' => $user->language));
+      $message['body'][] = t($test, $substitutions, array('langcode' => $user->language));
   }
 }
 
