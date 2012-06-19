@@ -1852,12 +1852,19 @@ function quiz_take_quiz($quiz) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
     return array('body' => array('#markup' => t('This quiz is closed')));
   }
+  
+  if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
+    $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
+  }
 
   if (!isset($_POST['op'])) {
     // @todo Starting new quiz... Do we need to show instructions here?
   }
   elseif (isset($_POST['question_nid']) &&  ($_POST['question_nid'] != $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0]['nid'])) {
     // The user has pressed the navigation buttons multiple times...
+  }
+  elseif (isset($_SESSION['quiz_' . $quiz->nid]['question_duration']) && $_SESSION['quiz_' . $quiz->nid]['question_duration'] < -2) {
+    // Timed quiz where the time has gone out 2 seconds ago. Do not store the users results...
   }
   // We maintain two lists: previous questions and upcomming questions.
   // When we go backward, we pop one from the previous and prepend it to the
@@ -2001,15 +2008,18 @@ function quiz_take_quiz($quiz) {
       drupal_goto('node/' . $quiz->nid . '/take');
     }
 
-    if ($_SESSION['quiz_' . $quiz->nid]['question_duration']) {
-      $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
-      $time = ($_SESSION['quiz_' . $quiz->nid]['question_duration'] > 0) ? $_SESSION['quiz_' . $quiz->nid]['question_duration'] : 1;
+    if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
+      $time = $_SESSION['quiz_' . $quiz->nid]['question_duration'];
+      if ($time < 1 && $time > -2) {
+        // The page was probably submitted by the js, we allow the data to be stored
+        $time = 1;
+      }
       db_update('quiz_node_results')
         ->fields(array('time_left' => $time))
         ->condition('result_id', $_SESSION['quiz_' . $quiz->nid]['result_id'])
         ->execute();
 
-      if ($time == 1) {
+      if ($time <= 1) {
         // Quiz has been timed out, run a loop to mark the remaining questions
         // as skipped.
         quiz_jump_to(count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']) + 1, $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
@@ -2149,8 +2159,11 @@ function _quiz_take_quiz_init($quiz) {
   $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] = array();
   $_SESSION['quiz_' . $quiz->nid]['question_number'] = 0;
   $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
-  $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
   $_SESSION['quiz_' . $quiz->nid]['quiz_vid'] = $quiz->vid;
+  
+  if ($quiz->time_limit > 0) {
+    $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
+  }
 }
 
 /**
