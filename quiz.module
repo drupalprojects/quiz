@@ -2030,7 +2030,7 @@ function quiz_take_quiz($quiz) {
           $js = "
             function finished() {
               // Find all buttons with a name of 'op'.
-              var buttons = $('input[type=submit][name=op], button[type=submit][name=op]');
+              var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
               // Filter out the ones that don't have the right op value.
               buttons = buttons.filter(function() {
                 return this.value == $button_op1 || this.value == $button_op2;
