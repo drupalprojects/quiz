@@ -2029,9 +2029,6 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   $form['pager'] = array(
     '#markup' => '<DIV ID ="browser-pager">' . theme('pager', array('tags' => NULL)) . '</DIV>',
   );
-  $form['ahah_target_all_end'] = array(
-    '#markup' => '</DIV>'
-  );
   $form['#submit'][] = 'quiz_results_mr_form_submit';
 
   return $form;
