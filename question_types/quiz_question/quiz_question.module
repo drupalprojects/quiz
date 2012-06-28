@@ -500,7 +500,7 @@ function quiz_question_insert(stdClass $node) {
  */
 //function quiz_question_view($node, $teaser = FALSE, $page = FALSE) {
 function quiz_question_view($node, $view_mode) {
-  if (isset($node->build_mode) && $node->build_mode == NODE_BUILD_SEARCH_INDEX && !variable_get('quiz_index_questions', 1)) {
+  if ($view_mode == 'search_index' && !variable_get('quiz_index_questions', 1)) {
     $node->body = '';
     $node->content = array();
     $node->title = '';
