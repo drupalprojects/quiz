@@ -670,14 +670,30 @@ function quiz_schema() {
  * Implements hook_update_N()
  */
 
+// should have been named quiz_update_7400
 function quiz_update_7100(&$sandbox) {  
   db_add_field('quiz_node_properties', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
   return t('Show passed field added to quiz config.');
 }
+
+// should have been named quiz_update_7401
 function quiz_update_7101(&$sandbox) {  
   db_add_field('quiz_user_settings', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
   return t('Done !');
 }
+
+/**
+ * Implements hook_update_N
+ */
+function quiz_update_7402(&$sandbox) { 	 
+  db_add_field('quiz_node_properties', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
+  db_add_field('quiz_node_properties', 'summary_default_format', array('type' => 'varchar', 'length' => 255)); 
+  db_add_field('quiz_node_result_options', 'option_summary_format', array('type' => 'varchar', 'length' => 255));
+  db_add_field('quiz_user_settings', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
+  db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255)); 
+  return t('Added new format fields to the tables.');
+}
+
 /**
  * Implements hook_uninstall().
  */
