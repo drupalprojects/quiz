@@ -685,13 +685,15 @@ function quiz_update_7101(&$sandbox) {
 /**
  * Implements hook_update_N
  */
-function quiz_update_7402(&$sandbox) { 	 
-  db_add_field('quiz_node_properties', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
-  db_add_field('quiz_node_properties', 'summary_default_format', array('type' => 'varchar', 'length' => 255)); 
-  db_add_field('quiz_node_result_options', 'option_summary_format', array('type' => 'varchar', 'length' => 255));
-  db_add_field('quiz_user_settings', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
-  db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255)); 
-  return t('Added new format fields to the tables.');
+function quiz_update_7402(&$sandbox) {
+  if (!db_field_exists('quiz_node_properties', 'summary_pass_format')) {
+    db_add_field('quiz_node_properties', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
+    db_add_field('quiz_node_properties', 'summary_default_format', array('type' => 'varchar', 'length' => 255)); 
+    db_add_field('quiz_node_result_options', 'option_summary_format', array('type' => 'varchar', 'length' => 255));
+    db_add_field('quiz_user_settings', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
+    db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255)); 
+  }
+  return t("Added new format fields to the tables if they didn't already exist.");
 }
 
 /**
