@@ -50,11 +50,13 @@ function theme_multichoice_answer_node_view($variables) {
   $show_correct = $variables['show_correct'];
   $header = array('', '');
 
+  $p = drupal_get_path('module', 'multichoice');
+  drupal_add_css($p .'/theme/multichoice.css');
+
   foreach ($alternatives as $i => $short) {
     $answer_markup = check_markup($short['answer'], $short['answer_format'], $langcode = '' /* TODO Set this variable. */, FALSE);
     // Find the is_correct status
     $is_correct = ($short['score_if_chosen'] > $short['score_if_not_chosen']);
-    $p = drupal_get_path('module', 'multichoice');
     $image = $is_correct ? 'correct' : 'wrong';
     if (!$show_correct) {
       $image = 'unknown';
@@ -62,17 +64,23 @@ function theme_multichoice_answer_node_view($variables) {
 
     $rows[] = array(
         array(
-          'data' => theme('image', array('path' =>
-            "$p/theme/images/$image.png", 'width' =>
-            t($image), 'height' =>
-            $show_correct ?
-            t('Score if chosen: @sc Score if not chosen: @nc', array(
-              '@sc' => $short['score_if_chosen'],
-              '@nc' => $short['score_if_not_chosen'])
-            ) :
-            t('You are not allowed to view the solution for this question')
-          )),
-          'width' => 35
+          'data' => array(
+            '#theme' => 'html_tag',
+            '#tag' => 'span',
+            '#attributes' => array(
+              'class' => array(
+                'multichoice-icon',
+                $image,
+              ),
+              'title' => $show_correct ?
+                t('Score if chosen: @sc Score if not chosen: @nc', array(
+                  '@sc' => $short['score_if_chosen'],
+                  '@nc' => $short['score_if_not_chosen'])
+                ) :
+                t('You are not allowed to view the solution for this question'),
+            ),
+          ),
+          'class' => array('multichoice-icon-cell'),
         ),
         $answer_markup
       );

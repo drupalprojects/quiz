@@ -16,7 +16,7 @@ table td div.quiz_choice_answer_correct {
 .multichoice-icon.wrong {
   background-position: -32px 0;
 }
-.multichoice-icon.unkown {
+.multichoice-icon.unknown {
   background-position: -64px 0;
 }
 .multichoice-icon.should {
