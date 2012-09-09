@@ -614,6 +614,10 @@ function quiz_theme($existing, $type, $theme, $path) {
  * preview button on a quiz.
  */
 function quiz_form_alter(&$form, $form_state, $form_id) {
+  // Set taking options the first vertical tab item
+  if ('quiz_node_form' == $form_id && isset($form['menu']['#weight'])) {
+    $form['menu']['#weight'] = 1;
+  }
   // Remove revision fieldset if user don't have access to revise quiz manually.
   if (isset($form['#quiz_check_revision_access'])) {
     if (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1)) {
