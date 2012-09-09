@@ -625,7 +625,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
       $form['revision_information']['revision']['#value'] = $form['revision_information']['revision']['#default_value'];
       $form['revision_information']['log']['#type'] = 'value';
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
-      unset($form['revision_information']['#type'], $form['revision_information']['#title'], $form['revision_information']['#description']);
+      $form['revision_information']['#access'] = FALSE;
     }
     unset($form['actions']['preview'], $form['actions']['preview_changes']);
     $form['actions']['submit']['#access'] = TRUE;
