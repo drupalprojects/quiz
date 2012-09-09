@@ -133,7 +133,7 @@ class TrueFalseQuestion extends QuizQuestion {
         1 => t('True'),
         0 => t('False')
       ),
-      '#default_value' => -1, // prevent default value set to 0
+      '#default_value' => NULL, // prevent default value set to NULL
     );
 
     if (isset($rid)) {
