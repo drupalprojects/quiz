@@ -590,9 +590,9 @@ abstract class QuizQuestion {
     if (!isset($this->node->vid)) {
       return FALSE;
     }
-    $answered = db_query('SELECT * FROM {quiz_node_results} qnres
+    $answered = db_query_range('SELECT 1 FROM {quiz_node_results} qnres
             JOIN {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
-            WHERE qnrel.child_vid = :child_vid', array(':child_vid' => $this->node->vid))->fetch();
+            WHERE qnrel.child_vid = :child_vid', 0, 1, array(':child_vid' => $this->node->vid))->fetch();
     return $answered ? TRUE : FALSE;
   }
 

@@ -276,6 +276,7 @@ function quiz_schema() {
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
     'indexes' => array(
       'parent_id' => array('parent_vid'),
+      'child_id' => array('child_vid'),
     ),
   );
 
@@ -351,6 +352,7 @@ function quiz_schema() {
     'primary key' => array('result_id'),
     'indexes' => array(
       'user_results' => array('uid', 'vid', 'nid'),
+      'vid' => array('vid'),
     ),
   );
 
@@ -694,6 +696,15 @@ function quiz_update_7402(&$sandbox) {
     db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255)); 
   }
   return t("Added new format fields to the tables if they didn't already exist.");
+}
+
+/**
+ * Adds index on vid column to the quiz_node_results table and on child_vid to
+ * the quiz_node_relationship table.
+ */
+function quiz_update_7403() {
+  db_add_index('quiz_node_results', 'vid', array('vid'));
+  db_add_index('quiz_node_relationship', 'child_id', array('child_vid'));
 }
 
 /**
