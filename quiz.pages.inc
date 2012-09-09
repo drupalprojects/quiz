@@ -475,15 +475,19 @@ function theme_quiz_jumper($variables) {
     $output .= '<option value="' . $i . '"' . $extra . '>' . $i . '</option>';
   }
   $output .= '</select><span id="quiz-jumper-no-js">' . $current . '</span>';
-  drupal_add_js("
-    Drupal.behaviors.quizJumper = function () {
-      $('#quiz-jumper:not(.quizJumper-processed)').show().addClass('quizJumper-processed').change(function(){
-        $('#edit-jump-to-question').val($(this).val());
-        $('#edit-submit').trigger('click');
-      });
-      $('#quiz-jumper-no-js:not(.quizJumper-processed)').hide().addClass('quizJumper-processed');
-    };
-  ", array('type' => 'inline', 'scope' => JS_DEFAULT));
+  drupal_add_js('
+    (function ($) {
+      Drupal.behaviors.quizJumper = {
+        attach: function(context, settings) {
+          $("#quiz-jumper:not(.quizJumper-processed)", context).show().addClass("quizJumper-processed").change(function(){
+            $("[name=jump_to_question]").val($(this).val());
+            $("#edit-submit").trigger("click");
+          });
+          $("#quiz-jumper-no-js:not(.quizJumper-processed)").hide().addClass("quizJumper-processed");
+        }
+      };
+    })(jQuery);
+  ', array('type' => 'inline', 'scope' => JS_DEFAULT));
   return $output;
 }
 
