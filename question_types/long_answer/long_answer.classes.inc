@@ -287,7 +287,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of save
+   * Implementation of delete
    *
    * @see QuizQuestionResponse#delete()
    */
