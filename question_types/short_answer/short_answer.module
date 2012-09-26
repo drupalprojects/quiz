@@ -142,11 +142,11 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
               SELECT max_score
               FROM {quiz_question_properties}
               WHERE vid = %d
-            ) / %d, is_evaluated = 1
+            ) / %d, is_evaluated = 1, answer_feedback = '%s'
             WHERE question_nid = %d
             AND question_vid = %d
             AND result_id = %d",
-           $values['score'], $values['vid'], $values['max_score'], $values['nid'], $values['vid'], $values['rid']);
+           $values['score'], $values['vid'], $values['max_score'], $values['answer_feedback'], $values['nid'], $values['vid'], $values['rid']);
   $changed = db_affected_rows();
 
   // Now the short answer user data has been updated. We also need to update the data in the quiz tables
@@ -214,7 +214,7 @@ function short_answer_report_submit($values) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score, qt.max_score AS term_max_score, qnra.tid
+  $sql = "SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, rel.max_score AS rel_max_score, qt.max_score AS term_max_score, qnra.tid
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
     JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id AND sa.question_nid = qnra.question_nid AND sa.question_vid = qnra.question_vid)

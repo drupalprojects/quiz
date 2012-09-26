@@ -262,7 +262,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
-    $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, r.title, qnr.time_end, qnr.time_start, qnr.uid
+    $sql = 'SELECT a.result_id, a.question_nid, a.question_vid, a.answer_feedback, r.title, qnr.time_end, qnr.time_start, qnr.uid
             FROM {quiz_short_answer_user_answers} AS a
             INNER JOIN {node_revisions} r ON a.question_vid = r.vid
             INNER JOIN {quiz_node_results} qnr ON a.result_id = qnr.result_id
@@ -316,7 +316,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+      $sql = "SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback
         FROM {quiz_short_answer_user_answers}
         WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
       $r = db_fetch_object(db_query($sql, $question_node->nid, $question_node->vid, $result_id));
@@ -326,6 +326,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         $this->score = $r->score;
         $this->evaluated = $r->is_evaluated;
         $this->answer_id = $r->answer_id;
+        $this->answer_feedback = $r->answer_feedback;
       }
     }
     else {
@@ -434,6 +435,13 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         '<br/>' .
       t('Until the answer is scored, the total score will not be correct.');
     }
+    if (!$allow_scoring && !empty($this->answer_feedback)) {
+      $form['answer_feedback'] = array(
+        '#title' => t('Feedback'),
+        '#type' => 'item',
+        '#value' => '<span class="quiz_answer_feedback">' . $this->answer_feedback . '</span>',
+      );
+    }
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#type' => 'markup',
@@ -465,6 +473,18 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         '#value' => $score,
       );
     }
+  }
+
+  public function getReportFormAnswerFeedback($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
+    if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
+      return array(
+        '#title' => t('Enter feedback'),
+        '#type' => 'textarea',
+        '#default_value' => $this->answer_feedback,
+        '#attributes' => array('class' => 'quiz-report-score'),
+      );
+    }
+    return FALSE;
   }
 
   /**

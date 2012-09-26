@@ -93,6 +93,9 @@ function long_answer_schema() {
       'answer' => array(
         'type' => 'text'
       ),
+      'answer_feedback' => array(
+        'type' => 'text'
+      ),
     ),
     'primary key' => array('answer_id'),
     'unique keys' => array(
@@ -158,3 +161,20 @@ function long_answer_update_6401() {
   }
   return $results;
 }
+
+/**
+ * Implementation of hook_update_N()
+ *
+ * Adding feedback field to table {quiz_short_answer_user_answers}
+ */
+function long_answer_update_6402() {
+  $to_return = array();
+  $spec = array(
+    'type' => 'text',
+    'not null' => FALSE,
+  );
+  db_add_field($to_return, 'quiz_long_answer_user_answers', 'answer_feedback', $spec);
+  return $to_return;
+}
+
+

@@ -109,6 +109,13 @@ function long_answer_score_form($form_state, $node, $answer) {
     '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
+  $form['score_answer']['answer_feedback'] = array(
+    '#title' => t('Feedback'),
+    '#type' => 'textarea',
+    '#description' => t('The text entered here would be shown to attendees'),
+    '#default_value' => $answer->answer_feedback,
+  );
+
   $form['score_answer']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),
@@ -166,6 +173,7 @@ function long_answer_score_form_submit($form, &$form_state) {
     'rid' => $form_state['values']['result_id'],
     'score' => $form_state['values']['score'],
     'max_score' => $form_state['values']['rel_max_score'],
+    'answer_feedback' => $form_state['values']['answer_feedback']
   ));
 
   if ($result == 1) {

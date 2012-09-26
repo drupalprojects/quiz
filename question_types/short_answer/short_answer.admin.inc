@@ -101,6 +101,12 @@ function short_answer_score_form($context, $node, $answer) {
     '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
+  $form['answer_feedback'] = array(
+    '#title' => t('Feedback'),
+    '#type' => 'textarea',
+    '#description' => t('The text entered here would be shown to attendees'),
+    '#default_value' => $answer->answer_feedback,
+  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),
@@ -152,7 +158,6 @@ function short_answer_score_form_submit($form, &$form_state) {
 
   $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
   $result = db_fetch_object(db_query($sql, $form_state['values']['result_id']));
-
   $result = short_answer_score_an_answer(array(
     'quiz' => node_load($result->nid, $result->vid),
     'nid' => $form_state['values']['question_nid'],
@@ -160,6 +165,7 @@ function short_answer_score_form_submit($form, &$form_state) {
     'rid' => $form_state['values']['result_id'],
     'score' => $form_state['values']['score'],
     'max_score' => $form_state['values']['rel_max_score'],
+    'answer_feedback' => $form_state['values']['answer_feedback']
   ));
 
   if ($result == 1) {

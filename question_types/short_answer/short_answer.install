@@ -116,6 +116,9 @@ function short_answer_schema() {
       'answer' => array(
         'type' => 'text'
       ),
+      'answer_feedback' => array(
+        'type' => 'text'
+      ),
     ),
     'primary key' => array('answer_id'),
     'unique keys' => array(
@@ -140,5 +143,20 @@ function short_answer_update_6400() {
     'default' => 0,
   );
   db_change_field($to_return, 'quiz_short_answer_user_answers', 'score', 'score', $spec);
+  return $to_return;
+}
+
+/**
+ * Implementation of hook_update_N()
+ *
+ * Adding feedback field to table {quiz_short_answer_user_answers}
+ */
+function short_answer_update_6401() {
+  $to_return = array();
+  $spec = array(
+    'type' => 'text',
+    'not null' => FALSE,
+  );
+  db_add_field($to_return, 'quiz_short_answer_user_answers', 'answer_feedback', $spec);
   return $to_return;
 }

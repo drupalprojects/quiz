@@ -143,11 +143,11 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
               FROM {quiz_question_properties}
               WHERE nid = %d
               AND vid = %d
-            ) / %d, is_evaluated = 1
+            ) / %d, is_evaluated = 1, answer_feedback = '%s'
             WHERE question_nid = %d
             AND question_vid = %d
             AND result_id = %d",
-           $values['score'], $values['nid'], $values['vid'], $values['max_score'], $values['nid'], $values['vid'], $values['rid']);
+           $values['score'], $values['nid'], $values['vid'], $values['max_score'], $values['answer_feedback'], $values['nid'], $values['vid'], $values['rid']);
   $changed = db_affected_rows();
 
   if ($changed > 0) {
@@ -202,7 +202,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $sql = "SELECT answer_id, answer, la.is_evaluated, la.score, la.question_vid, la.question_nid, la.result_id, rel.max_score AS rel_max_score, qt.max_score AS term_max_score, qnra.tid
+  $sql = "SELECT answer_id, answer, la.is_evaluated, la.score, la.question_vid, la.question_nid, la.result_id, la.answer_feedback, rel.max_score AS rel_max_score, qt.max_score AS term_max_score, qnra.tid
     FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id AND la.question_nid = qnra.question_nid AND la.question_vid = qnra.question_vid)
@@ -219,7 +219,7 @@ function long_answer_get_answer($question_nid, $question_vid, $result_id) {
   if ($answer->rel_max_score === NULL) {
     $answer->rel_max_score = $answer->term_max_score;
   }
-  
+
   return $answer;
 }
 
