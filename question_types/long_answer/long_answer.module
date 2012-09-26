@@ -119,7 +119,8 @@ function long_answer_theme() {
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
-function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_total = TRUE) {
+function long_answer_score_an_answer($values, $update_total = TRUE) {
+  extract($values);
   // Quiz scoring information is spread out across three tables:
   // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
   // 2. The Quiz moduleretains a limited amount of scoring information.
@@ -135,8 +136,9 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
 
   $changed = db_update('quiz_long_answer_user_answers')
     ->fields(array(
-      'score' =>$score * $question_max_score / $quiz_max_score,
-      'is_evaluated' => 1
+      'score' => $score * $question_max_score / $quiz_max_score,
+      'is_evaluated' => 1,
+      'answer_feedback' => $answer_feedback
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -199,7 +201,7 @@ function long_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_to
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
+  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
     WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
@@ -246,7 +248,7 @@ function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $
  */
 function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
   $query = db_select('quiz_long_answer_user_answers', 'a');
-  $query->fields('a', array('result_id', 'question_nid', 'question_vid'));
+  $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback'));
   $query->fields('r', array('title'));
   $query->fields('qnr', array('time_end', 'time_start', 'uid'));
   $query->join('node_revision', 'r', 'a.question_vid = r.vid');
@@ -287,7 +289,7 @@ function long_answer_questions_list() {
  *   The FAPI $form_state['values']
  */
 function long_answer_report_submit($values) {
-  long_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int) $values['score'], FALSE);
+  long_answer_score_an_answer($values, FALSE);
 }
 
 /**

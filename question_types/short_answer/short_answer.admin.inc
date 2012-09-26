@@ -99,6 +99,12 @@ function short_answer_score_form($form, $context, $node, $answer) {
     '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
+  $form['answer_feedback'] = array(
+    '#title' => t('Feedback'),
+    '#type' => 'textarea',
+    '#description' => t('The text entered here would be shown to attendees'),
+    '#default_value' => $answer->answer_feedback,
+  );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),
@@ -147,18 +153,16 @@ function short_answer_score_form_validate($form, $form_state) {
  * Submit the score form
  */
 function short_answer_score_form_submit($form, &$form_state) {
-
-  $sql = 'SELECT nid, vid FROM {quiz_node_results} WHERE result_id = %d';
   $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetchobject();
-  $quiz = node_load($result->nid, $result->vid);
-
-  $nid = $form_state['values']['question_nid'];
-  $vid = $form_state['values']['question_vid'];
-  $rid = $form_state['values']['result_id'];
-  $score = $form_state['values']['score'];
-
-  $result = short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score);
-
+  $result = short_answer_score_an_answer(array(
+    'quiz' => node_load($result->nid, $result->vid),
+    'nid' => $form_state['values']['question_nid'],
+    'vid' => $form_state['values']['question_vid'],
+    'rid' => $form_state['values']['result_id'],
+    'score' => $form_state['values']['score'],
+    'max_score' => $form_state['values']['rel_max_score'],
+    'answer_feedback' => $form_state['values']['answer_feedback']
+  ));
   if ($result == 1) {
     drupal_set_message("The score has been saved.");
     $form_state['redirect'] = 'admin/quiz/reports/score-short-answer';

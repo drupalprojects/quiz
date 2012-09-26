@@ -118,6 +118,9 @@ function short_answer_schema() {
       'answer' => array(
         'type' => 'text'
       ),
+      'answer_feedback' => array(
+        'type' => 'text'
+      ),
     ),
     'primary key' => array('answer_id'),
     'unique keys' => array(
@@ -125,4 +128,16 @@ function short_answer_schema() {
     ),
   );
   return $schema;
+}
+
+
+/**
+ * Adding feedback field to table {quiz_short_answer_user_answers}
+ */
+function short_answer_update_7401() {
+  $spec = array(
+    'type' => 'text',
+    'not null' => FALSE,
+  );
+  db_add_field('quiz_short_answer_user_answers', 'answer_feedback', $spec);
 }

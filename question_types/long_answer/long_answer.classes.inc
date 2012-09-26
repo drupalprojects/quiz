@@ -188,7 +188,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
-    $results = db_query('SELECT a.result_id, a.question_nid, a.question_vid, r.title, n.time_end, n.time_start, n.uid
+    $results = db_query('SELECT a.result_id, a.question_nid, a.question_vid, a.answer_feedback, r.title, n.time_end, n.time_start, n.uid
       FROM {quiz_long_answer_user_answers} AS a
       INNER JOIN {node_revision} AS r ON a.question_vid = r.vid
       INNER JOIN {quiz_node_results} AS qnr ON a.result_id = qnr.result_id
@@ -241,7 +241,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
     if (!isset($answer)) {
       // Question has been answered allready. We fetch the answer data from the database.
-      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback
         FROM {quiz_long_answer_user_answers}
         WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id))->fetch();
 
@@ -250,6 +250,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         $this->score = $r->score;
         $this->evaluated = $r->is_evaluated;
         $this->answer_id = $r->answer_id;
+        $this->answer_feedback = $r->answer_feedback;
       }
     }
     else {
@@ -351,6 +352,13 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '#markup' => check_markup($this->question->rubric),
       );
     }
+    if (!$allow_scoring && !empty($this->answer_feedback)) {
+      $form['answer_feedback'] = array(
+        '#title' => t('Feedback'),
+        '#type' => 'item',
+        '#markup' => '<span class="quiz_answer_feedback">' . $this->answer_feedback . '</span>',
+      );
+    }
     if (!empty($feedback)) {
       $form['feedback'] = array('#markup' => '<span class="quiz_answer_feedback">' . $feedback . '</span>');
     }
@@ -379,6 +387,19 @@ class LongAnswerResponse extends QuizQuestionResponse {
       return array('#markup' => $score);
     }
   }
+
+  public function getReportFormAnswerFeedback($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
+    if (quiz_access_to_score() && $allow_scoring) {
+      return array(
+        '#title' => t('Enter feedback'),
+        '#type' => 'textarea',
+        '#default_value' => $this->answer_feedback,
+        '#attributes' => array('class' => array('quiz-report-score')),
+      );
+    }
+    return FALSE;
+  }
+
 
   /**
    * Implementation of getReportFormSubmit

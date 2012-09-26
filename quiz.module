@@ -229,8 +229,7 @@ function quiz_access_my_results($quiz) {
  */
 function quiz_access_to_score($quiz_creator = NULL) {
   global $user;
-  if ($quiz_creator == NULL) {
-    $quiz = quiz_get_quiz_from_menu();
+  if ($quiz_creator == NULL && ($quiz = quiz_get_quiz_from_menu())) {
     $quiz_creator = $quiz->uid;
   }
   if (user_access('score any quiz')) {
@@ -1856,7 +1855,7 @@ function quiz_take_quiz($quiz) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
     return array('body' => array('#markup' => t('This quiz is closed')));
   }
-  
+
   if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
     $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
   }
@@ -2164,7 +2163,7 @@ function _quiz_take_quiz_init($quiz) {
   $_SESSION['quiz_' . $quiz->nid]['question_number'] = 0;
   $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
   $_SESSION['quiz_' . $quiz->nid]['quiz_vid'] = $quiz->vid;
-  
+
   if ($quiz->time_limit > 0) {
     $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
   }
@@ -2577,9 +2576,9 @@ function quiz_update_max_score_properties($quizzes_to_update) {
       AND parent_vid = {quiz_node_properties}.vid)')
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
-  
+
   db_update('quiz_node_properties')
-    ->expression('max_score', 
+    ->expression('max_score',
       '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
       FROM {quiz_terms} qt
       WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid)')
@@ -3541,7 +3540,7 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
     $query->condition('parent_vid', $quiz_vid);
     $query->condition('parent_nid', $quiz_nid);
   }
-  
+
   if ($include_random) {
     $query->condition('question_status', array(QUESTION_RANDOM, QUESTION_ALWAYS), 'IN');
   }

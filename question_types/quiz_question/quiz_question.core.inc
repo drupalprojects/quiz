@@ -778,8 +778,11 @@ abstract class QuizQuestionResponse {
       'question_nid' => $this->question->nid,
       'result_id' => $this->rid,
     );
-
     return $report;
+  }
+
+  public function getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring) {
+    return FALSE;
   }
 
   /**
@@ -824,6 +827,7 @@ abstract class QuizQuestionResponse {
     }
     $form['question'] = $this->getReportFormQuestion($showpoints, $showfeedback);
     $form['score'] = $this->getReportFormScore($showpoints, $showfeedback, $allow_scoring);
+    $form['answer_feedback'] = $this->getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring);
     $form['max_score'] = array(
       '#type' => 'value',
       '#value' => $this->getMaxScore(),

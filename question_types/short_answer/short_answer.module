@@ -133,7 +133,8 @@ function short_answer_theme($existing, $type, $theme, $path) {
  * @return int
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
-function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_total = TRUE) {
+function short_answer_score_an_answer($values, $update_total = TRUE) {
+  extract($values);
   // When we set the score we make sure that the max score in the quiz the question belongs to is considered
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
 
@@ -142,7 +143,8 @@ function short_answer_score_an_answer($quiz, $nid, $vid, $rid, $score, $update_t
   $changed = db_update('quiz_short_answer_user_answers')
     ->fields(array(
       'score' => $score * $question_max_score / $quiz_max_score,
-      'is_evaluated' => 1
+      'is_evaluated' => 1,
+      'answer_feedback' => $answer_feedback
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -191,7 +193,7 @@ function short_answer_report_validate($values, $form_key) {
  * Submit the result report for short answer
  */
 function short_answer_report_submit($values) {
-  short_answer_score_an_answer($values['quiz'], $values['nid'], $values['vid'], $values['rid'], (int) $values['score'], FALSE);
+  short_answer_score_an_answer($values, FALSE);
 }
 
 /**
@@ -218,7 +220,7 @@ function short_answer_report_submit($values) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, rel.max_score AS rel_max_score
+  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid)

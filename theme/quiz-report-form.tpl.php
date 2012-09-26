@@ -49,9 +49,11 @@ foreach ($form as $key => $sub_form):
 
     <dd>
 	  <p><strong><?php print t('Response')?>: </strong></p>
-
-
       <?php print drupal_render($sub_form['response']); ?>
+    </dd>
+
+    <dd>
+      <?php print drupal_render($sub_form['answer_feedback']); ?>
     </dd>
 
 <?php endforeach; ?>

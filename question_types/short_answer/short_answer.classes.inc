@@ -119,7 +119,7 @@ class ShortAnswerQuestion extends QuizQuestion {
       );
     }
     else {
-      $content['answers'] = array(        
+      $content['answers'] = array(
         '#markup' => '<div class="quiz-answer-hidden">Answer hidden</div>',
         '#weight' => 2,
       );
@@ -195,7 +195,7 @@ class ShortAnswerQuestion extends QuizQuestion {
         '#collapsed' => TRUE,
       );
 
-      $form['answer']['regex_box']['regex_help'] = array(        
+      $form['answer']['regex_box']['regex_help'] = array(
         '#markup' => '<p>' .
       t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
          '</p><p>' .
@@ -255,7 +255,6 @@ class ShortAnswerQuestion extends QuizQuestion {
  * Extension of QuizQuestionResponse
  */
 class ShortAnswerResponse extends QuizQuestionResponse {
-
   /**
    * Get all quiz scores that haven't been evaluated yet.
    *
@@ -270,7 +269,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
     $query = db_select('quiz_short_answer_user_answers', 'a');
-    $query->fields('a', array('result_id', 'question_nid', 'question_vid'));
+    $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback'));
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
     $query->join('node_revision', 'r', 'a.question_vid = r.vid');
@@ -282,7 +281,6 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       $query->condition('n.uid', $user->uid);
     }
     $results = $query->execute();
-
     $unscored = array();
     foreach ($results as $row) {
       $unscored[] = $row;
@@ -324,7 +322,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id
+      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback
         FROM {quiz_short_answer_user_answers}
         WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid',
         array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id)
@@ -335,6 +333,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         $this->score = $r->score;
         $this->evaluated = $r->is_evaluated;
         $this->answer_id = $r->answer_id;
+        $this->answer_feedback = $r->answer_feedback;
       }
     }
     else {
@@ -404,7 +403,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
       if(!$score) {
         $score = 0;
-      }      
+      }
     }
     // Otherwise, we run the scoring automatically.
     else {
@@ -453,6 +452,14 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         '<br/>' .
       t('Until the answer is scored, the total score will not be correct.');
     }
+
+    if (!$allow_scoring && !empty($this->answer_feedback)) {
+      $form['answer_feedback'] = array(
+        '#title' => t('Feedback'),
+        '#type' => 'item',
+        '#markup' => '<span class="quiz_answer_feedback">' . $this->answer_feedback . '</span>',
+      );
+    }
     if (!empty($feedback)) {
       $form['feedback'] = array(
         '#markup' => '<span class="quiz_answer_feedback">' . $feedback . '</span>',
@@ -483,6 +490,19 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       );
     }
   }
+
+  public function getReportFormAnswerFeedback($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
+    if (quiz_access_to_score() && $allow_scoring && $this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
+      return array(
+        '#title' => t('Enter feedback'),
+        '#type' => 'textarea',
+        '#default_value' => $this->answer_feedback,
+        '#attributes' => array('class' => array('quiz-report-score')),
+      );
+    }
+    return FALSE;
+  }
+
 
   /**
    * Implementation of getReportFormSubmit
