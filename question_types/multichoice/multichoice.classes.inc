@@ -505,7 +505,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $form['alternatives']['settings']['choice_random'] = array(
       '#type' => 'checkbox',
       '#title' => t('Random order'),
-      '#description' => t('Present alternatives in random order when quiz is beeing taken.'),
+      '#description' => t('Present alternatives in random order when quiz is being taken.'),
       '#default_value' => $default_settings['choice_random'],
       '#parents' => array('choice_random'),
     );
@@ -679,7 +679,7 @@ class MultichoiceQuestion extends QuizQuestion {
    *  Array with the default settings
    */
   private function getDefaultAltSettings() {
-    // If the node is beeing updated the default settings are those stored in the node
+    // If the node is being updated the default settings are those stored in the node
     if (isset($this->node->nid)) {
       $settings['choice_multi'] = $this->node->choice_multi;
       $settings['choice_random'] = $this->node->choice_random;
@@ -810,7 +810,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     if (empty($this->user_answer_ids)) {
       return t('You must provide an answer');
     }
-    // Perform extra check since FAPI isn't beeing used:
+    // Perform extra check since FAPI isn't being used:
     if (count($this->user_answer_ids) > 1) {
       return t('You are only allowed to select one answer');
     }

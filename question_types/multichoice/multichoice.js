@@ -33,7 +33,7 @@ Multichoice.refreshScores = function(checkbox, scoring) {
  * Updates correct checkboxes according to changes of the score values for an alternative
  *
  * @param textfield
- *  The textfield(score) that is beeing updated
+ *  The textfield(score) that is being updated
  */
 Multichoice.refreshCorrect = function(textfield) {
   var prefix = '#' + Multichoice.getCorrectIdPrefix(textfield.id);
