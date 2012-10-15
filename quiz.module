@@ -2436,12 +2436,11 @@ function quiz_quiz_scored($quiz, $score, $rid) {
   if ($quiz->has_userpoints && $user->uid != 0 && $score['is_evaluated']) {
 
     //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT tid FROM {taxonomy_term_node}
-                WHERE nid = :nid AND vid = :vid AND tid IN (
-                  SELECT tid
-                  FROM {taxonomy_term_data}
-                  WHERE vid = :vid
-                )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
+    $selected_tid = db_query("SELECT ti.tid 
+                FROM {taxonomy_index} ti
+                JOIN {taxonomy_term_data} td
+                  ON td.tid = ti.tid AND td.vid = :vid
+                WHERE ti.nid = :nid", array(':nid' => $quiz->nid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
       '@quiz' => variable_get('quiz_name', QUIZ_NAME),
@@ -2926,7 +2925,7 @@ function _quiz_build_categorized_question_list($quiz) {
   foreach ($terms as $term) {
     $sql = "SELECT n.nid, n.vid, tn.tid
             FROM {node} n
-            JOIN {taxonomy_term_node} tn USING(vid)
+            JOIN {taxonomy_index} tn USING(nid)
             WHERE n.status = 1
             AND n.type IN('" . implode("','", $question_types) . "')
             AND tn.tid = %d"; // $question_types isn't user input. It is considered safe.
@@ -3435,7 +3434,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
   // TODO Please convert this statement to the D7 database API syntax.
   $result = db_query_range("SELECT n.nid, n.vid
     FROM {node} n
-    INNER JOIN {taxonomy_term_node} tn USING (nid)
+    INNER JOIN {taxonomy_index} tn USING (nid)
     WHERE n.status = 1 AND tn.tid IN ($term_ids)
     AND n.type IN ('" . implode("','", array_keys(_quiz_get_question_types()))
     . "') ORDER BY RAND()");
