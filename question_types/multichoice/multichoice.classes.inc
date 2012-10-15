@@ -560,7 +560,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'checkbox',
         '#title' => t('Correct'),
         '#default_value' => $correct_default,
-        '#attributes' => array('onchange' => 'refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
+        '#attributes' => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
       );
       // We add id to be able to update the correct alternatives if the node is updated, without destroying
       // existing answer reports
@@ -616,9 +616,9 @@ class MultichoiceQuestion extends QuizQuestion {
         '#default_value' => $default_value,
         '#description' => t('This score is added to the users total score if the user chooses this alternative.'),
         '#attributes' => array(
-          'onkeypress' => 'refreshCorrect(this)',
-          'onkeyup' => 'refreshCorrect(this)',
-          'onchange' => 'refreshCorrect(this)'
+          'onkeypress' => 'Multichoice.refreshCorrect(this)',
+          'onkeyup' => 'Multichoice.refreshCorrect(this)',
+          'onchange' => 'Multichoice.refreshCorrect(this)'
         ),
         '#parents' => array('alternatives', $i, 'score_if_chosen')
       );
@@ -635,9 +635,9 @@ class MultichoiceQuestion extends QuizQuestion {
         '#default_value' => $default_value,
         '#description' => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
         '#attributes' => array(
-          'onkeypress' => 'refreshCorrect(this)',
-          'onkeyup' => 'refreshCorrect(this)',
-          'onchange' => 'refreshCorrect(this)'
+          'onkeypress' => 'Multichoice.refreshCorrect(this)',
+          'onkeyup' => 'Multichoice.refreshCorrect(this)',
+          'onchange' => 'Multichoice.refreshCorrect(this)'
         ),
         '#parents' => array('alternatives', $i, 'score_if_not_chosen')
       );
@@ -665,6 +665,10 @@ class MultichoiceQuestion extends QuizQuestion {
         'method' => 'before',
       ),
     );
+    $form['#attached']['js'] = array(
+      drupal_get_path('module', 'multichoice') . '/multichoice.js',
+    );
+
     return $form;
   }
 

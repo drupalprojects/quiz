@@ -1,15 +1,8 @@
-/**
- * @file
- * Javascript functions for the multichoice question type.
- */
-/**
- * Refreshes scores when the checkbox named correct is toggled.
- *
- * @param checkbox
- *  The checkbox that was clicked
- */
-function refreshScores(checkbox, scoring) {
-  var prefix = '#' + getCorrectIdPrefix(checkbox.id);
+var Multichoice = Multichoice || {};
+(function($) {
+
+Multichoice.refreshScores = function(checkbox, scoring) {
+  var prefix = '#' + Multichoice.getCorrectIdPrefix(checkbox.id);
   if (checkbox.checked) {
     $(prefix + 'score-if-chosen').val('1');
     $(prefix + 'score-if-not-chosen').val('0');
@@ -42,13 +35,13 @@ function refreshScores(checkbox, scoring) {
  * @param textfield
  *  The textfield(score) that is beeing updated
  */
-function refreshCorrect(textfield) {
-  var prefix = '#' + getCorrectIdPrefix(textfield.id);
+Multichoice.refreshCorrect = function(textfield) {
+  var prefix = '#' + Multichoice.getCorrectIdPrefix(textfield.id);
   var chosenScore;
   var notChosenScore;
 
   // Fetch the score if chosen and score if not chosen values for the active alternative
-  if (isChosen(textfield.id)) {
+  if (Multichoice.isChosen(textfield.id)) {
     chosenScore = new Number(textfield.value);
     notChosenScore = new Number($(prefix + 'score-if-not-chosen').val());
   }
@@ -74,7 +67,7 @@ function refreshCorrect(textfield) {
  * @return
  *  The common prefix for all the alternatives in this alternative fieldset
  */
-function getCorrectIdPrefix(string) {
+Multichoice.getCorrectIdPrefix = function(string) {
   // TODO: Will the regExp below always work?
   var pattern = new RegExp("^(edit-alternatives-[0-9]{1,2}-)(?:correct|score-if-(?:not-|)chosen)$");
   pattern.exec(string);
@@ -89,7 +82,8 @@ function getCorrectIdPrefix(string) {
  * @return
  *  True if the string ends with "score-if-chosen", false otherwise.
  */
-function isChosen(string) {
+Multichoice.isChosen = function(string) {
   var pattern = new RegExp("score-if-chosen$");
   return pattern.test(string);
 }
+})(jQuery);
