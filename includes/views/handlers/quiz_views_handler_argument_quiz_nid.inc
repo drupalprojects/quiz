@@ -53,10 +53,8 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
 
   function title_query() {
     $titles = array();
-    $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
 
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query("SELECT n.title FROM {node_revision} n WHERE n.vid IN ($placeholders)", $this->corresponding_vids);
+    $result = db_query("SELECT n.title FROM {node_revision} n WHERE n.vid IN (:vids)", array(':vids' => implode(', ', $this->corresponding_vids)));
     while ($term = $result->fetch()) {
       $titles[] = check_plain($term->title);
     }
@@ -72,13 +70,8 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     $this->break_phrase();
 
     // Do subselect to get relevant vids, then add where clause
-    if ($this->subselect_vids()) {
-      $placeholders = implode(', ', array_fill(0, count($this->corresponding_vids), '%d'));
-      $this->query->add_where(0, "$this->table_alias.$this->nid_field IN ($placeholders)", $this->corresponding_vids);
-    }
-    else {
-      $this->query->add_where(0, "$this->table_alias.$this->nid_field", $this->corresponding_vids);
-    }
+    $this->subselect_vids();
+    $this->query->add_where(0, "$this->table_alias.$this->nid_field", $this->corresponding_vids);
   }
 
   /**
@@ -121,46 +114,43 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
    * that time. So, called from set_argument().
    */
   function subselect_vids() {
-    $from = 'FROM {quiz_node_properties} qnp';
-    $field = 'qnp.vid';
+    $query = db_select('quiz_node_properties', 'qnp');
     if (count($this->value) > 1) {
       // Guaranteed to produce multiple values; therefore may need the group by
       $use_group_by = TRUE;
-
       $operator = empty($this->options['not']) ? 'IN' : 'NOT IN';
-      $placeholders = implode(', ', array_fill(0, count($this->value), '%d'));
-      $where = "WHERE qnp.nid $operator ($placeholders)";
+      $query->condition('nid', $this->value, $operator);
     }
     else {
       // Multiple values only possible with a NOT; only then do we need group by
       $use_group_by = !empty($this->options['not']);
-
       $operator = empty($this->options['not']) ? '=' : '!=';
-      $where = "WHERE qnp.nid $operator :nid";
+      $query->condition('nid', reset($this->value), $operator);
     }
 
     switch ($this->options['which_vid']) {
       case 'initial':
-      case 'latest':
-        // SQL operation for getting a single vids based on view config settings
-        $operation = ($this->options['which_vid'] == 'initial' ? 'MIN' : 'MAX');
-        // If we need a group by clause, tag it onto the end.
-        $where .= ($use_group_by) ? ' GROUP BY qnp.nid' : '';
-
-        // TODO Please convert this statement to the D7 database API syntax.
-        $result = db_query("SELECT $operation(qnp.vid) AS vid $from $where", array(':nid' => $this->value));
+        // SQL operation for getting the initial vids based on view config settings
+        $query->addExpression('MIN(vid)', 'vid');
         break;
-
-      case 'all':
-        // TODO Please convert this statement to the D7 database API syntax.
-        $result = db_query("SELECT qnp.vid AS vid $from $where", $this->value);
+      case 'latest':
+        // SQL operation for getting the latest vids based on view config settings
+        $query->addExpression('MAX(vid)', 'vid');
+        break;
+      default:
+        // Get them all
+        $query->addField('qnp', 'vid');
         break;
     }
+    if ($use_group_by) {
+      $query->groupBy('nid');
+    }
+    $result = $query->execute();
 
     $this->nid_field = $this->vid_field;
 
     $this->corresponding_vids = array();
-    while ($item = $result->fetch()) {
+    foreach ($result as $item) {
       $this->corresponding_vids[] = $item->vid;
     }
     return (count($this->corresponding_vids) > 1);
