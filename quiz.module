@@ -3307,7 +3307,14 @@ function _quiz_get_summary_text($quiz, $score) {  $summary = array();
     if ($admin) {
       $summary['passfail'] = t('The user passed this quiz.');
     }
+    elseif (variable_get('quiz_use_passfail', 1) == 0) {
+      // If there is only a single summary text, use this.
+      if (trim($quiz->summary_default) != '') {
+        $summary['passfail'] = check_markup($quiz->summary_default, $quiz->format, FALSE);
+      }
+    }
     elseif (trim($quiz->summary_pass) != '') {
+      // If there is a pass summary text, use this.
       $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->summary_pass_format);
     }
   }
