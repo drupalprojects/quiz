@@ -332,7 +332,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node',
-        'field' => 'nid',
+        'field' => 'parent_nid',
         'label' => t('Quiz node id'),
       ),
       'sort' => array(
@@ -355,7 +355,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node_revision',
-        'field' => 'vid',
+        'field' => 'parent_vid',
         'label' => t('Quiz node revision'),
       ),
       'sort' => array(
@@ -380,7 +380,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node',
-        'field' => 'nid',
+        'field' => 'child_nid',
         'label' => t('Question node nid'),
       ),
       'sort' => array(
@@ -403,7 +403,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node_revision',
-        'field' => 'vid',
+        'field' => 'child_vid',
         'label' => t('Question node revision'),
       ),
       'sort' => array(
@@ -467,10 +467,17 @@ function quiz_views_data() {
       'group' => 'Quiz Results',
       'join' => array(
         // This is vid because vid is always more specific.
+		'node' => array(
+      		'left_field' => 'vid',
+      		'field' => 'vid',
+    	),
+    	'node_revisions' => array(
+      		'left_field' => 'vid',
+      		'field' => 'vid',
+    	),
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'vid',
-          'type' => 'LEFT', // I think...
         ),
       ),
     ),
@@ -616,7 +623,10 @@ function quiz_views_data() {
         'validate type' => 'nid',
       ),
       'sort' => array('handler' => 'views_handler_sort'),
-      'filter' => array('handler' => 'views_handler_filter_numeric'),
+	  'filter' => array(
+		'handler' => 'views_handler_filter_numeric',
+		'help' => t('Filter the results based on the score of the quiz.')
+	  ),
     ),
     'is_invalid' => array(
       'title' => t('Is Invalid'),
@@ -663,6 +673,7 @@ function quiz_views_data() {
           'left_table' => 'quiz_node_relationship',
           'left_field' => 'child_nid',
           'field' => 'question_nid',
+          'extra' => 'quiz_node_results_answers.result_id = quiz_node_results.result_id'
         ),
       ),
     ),
@@ -687,11 +698,10 @@ function quiz_views_data() {
       ),
       'sort' => array('handler' => 'views_handler_sort'),
       'relationship' => array(
-        'handler' => 'views_handler_relationship',
-        'base' => 'quiz_node_results',
-        'field' => 'result_id',
-        'base field' => 'result_id',
-        'label' => t('Result'),
+      	'handler' => 'views_handler_relationship',
+      	'base' => 'quiz_node_results',
+      	'field' => 'result_id',
+      	'label' => t('Result ID')
       ),
     ),
     'question_nid' => array(
@@ -711,7 +721,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node',
-        'field' => 'nid',
+        'field' => 'question_nid',
         'label' => t('node'),
       ),
     ),
@@ -732,7 +742,7 @@ function quiz_views_data() {
       'relationship' => array(
         'handler' => 'views_handler_relationship',
         'base' => 'node_revision',
-        'field' => 'vid',
+        'field' => 'question_vid',
         'label' => t('node revision'),
       ),
       'sort' => array('handler' => 'views_handler_sort'),
@@ -775,9 +785,29 @@ function quiz_views_data() {
       'help' => t('Indicates whether or not a quiz answer was correct.'),
       'field' => array(
         'handler' => 'views_handler_field_boolean',
+        'click sortable' => TRUE,
       ),
       'filter' => array(
         'handler' => 'views_handler_filter_boolean_operator',
+      ),
+      'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    'result_id' => array(
+      'title' => t('Result ID'),
+      'help' => t('The ID identifying a particular set of quiz results. This ID is unique with respect to the quiz nid and vid of the quiz, uid of the quizee, and the take of the quiz.'),
+      'field' => array(
+        'handler' => 'views_handler_field_numeric',
+        'click sortable' => TRUE,
+      ),
+      'argument' => array(
+        'handler' => 'views_handler_argument_numeric',
+        'name_field' => 'title',
+        'numeric' => TRUE,
+        'validate type' => 'result_id',
+      ),
+      'filter' => array(
+        'handler' => 'views_handler_filter_numeric',
+        'help' => t('Filter results to a particular result set'),
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
@@ -874,8 +904,8 @@ function quiz_views_data() {
       'title' => t('Answer'),
       'help' => t('Answer text'),
       'field' => array(
-        'handler' => 'views_handler_field_markup',
-        'format' => array('field' => 'answer_format'),
+        'handler' => 'views_handler_field',
+        'click sortable' => TRUE,
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
