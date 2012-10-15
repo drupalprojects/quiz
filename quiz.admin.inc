@@ -1057,7 +1057,8 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     }
     else {
       $form[$fieldset]['max_scores'][$id] = array(
-        '#markup' => '',
+        '#type' => 'value',
+        '#value' => isset($question->max_score) ? $question->max_score : 0,
       );
     }
 
