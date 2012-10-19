@@ -2782,7 +2782,7 @@ function quiz_calculate_score($quiz, $rid) {
   // 1. Fetch all questions and their max scores
   $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
     FROM {quiz_node_results_answers} a
-    LEFT JOIN {node} n ON (question_nid = nid)
+    LEFT JOIN {node} n ON (a.question_nid = n.nid)
     LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = :vid
     WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $rid));
   // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
