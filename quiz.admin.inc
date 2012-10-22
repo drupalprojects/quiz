@@ -1380,11 +1380,11 @@ function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
   $pre = 'quiz_question_browser_';
   $changed_timestamps = _quiz_get_interval_timestamps('changed');
   $filter_sql = '';
-  if (drupal_strlen($_SESSION[$pre . 'title']) > 0) {
+  if (isset($_SESSION[$pre .'title']) && drupal_strlen($_SESSION[$pre .'title']) > 0) {
     $filter_sql .= ' AND n.title LIKE \'%s%%\'';
     $filter_params[] = $_SESSION[$pre . 'title'];
   }
-  if (drupal_strlen($_SESSION[$pre . 'name']) > 0) {
+  if (isset($_SESSION[$pre .'name']) && drupal_strlen($_SESSION[$pre .'name']) > 0) {
     $filter_sql .= ' AND u.name LIKE \'%s%%\'';
     $filter_params[] = $_SESSION[$pre . 'name'];
   }
