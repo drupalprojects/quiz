@@ -197,7 +197,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     $form['navigation']['op']  = array(
       '#type' => 'submit',
       '#value' => $is_last ? t('Leave blank and finish') : t('Leave blank'),
-      '#attributes' => array('class' => 'q-skip-button'),
+      '#attributes' => array('class' => array('q-skip-button')),
     );
     if ($quiz->allow_jumping) {
       $form['jump_to_question'] = array(
