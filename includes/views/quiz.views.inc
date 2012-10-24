@@ -310,8 +310,15 @@ function quiz_views_data() {
     'table' => array(
       'group' => t('Quiz Questions'),
       'join' => array(
-        // This is vid because vid is always more specific. We never work with
-        // nid.
+        // This is vid because vid is always more specific.
+        'node' => array(
+          'left_field' => 'vid',
+          'field' => 'parent_vid',
+        ),
+        'node_revisions' => array(
+          'left_field' => 'vid',
+          'field' => 'parent_vid',
+        ),
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'parent_vid',
@@ -479,14 +486,14 @@ function quiz_views_data() {
       'group' => 'Quiz Results',
       'join' => array(
         // This is vid because vid is always more specific.
-		'node' => array(
-      		'left_field' => 'vid',
-      		'field' => 'vid',
-    	),
-    	'node_revisions' => array(
-      		'left_field' => 'vid',
-      		'field' => 'vid',
-    	),
+        'node' => array(
+          'left_field' => 'vid',
+          'field' => 'vid',
+        ),
+        'node_revisions' => array(
+          'left_field' => 'vid',
+          'field' => 'vid',
+        ),
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'vid',
