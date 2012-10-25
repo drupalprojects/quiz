@@ -98,6 +98,19 @@ function quiz_ctools_plugin_api($module, $api) {
 }
 
 /**
+ * Implements hook_entity_info_alter().
+ */
+function quiz_entity_info_alter(&$info) {
+  // Add a new view mode for displaying the question when taking a quiz
+  $info['node']['view modes'] += array(
+    'question' => array(
+      'label' => t('Question'),
+      'custom settings' => TRUE,
+    ),
+  );
+}
+
+/**
  * Implements hook_permission().
  */
 function quiz_permission() {
@@ -2355,7 +2368,7 @@ function _quiz_take_quiz_init($quiz) {
  */
 function quiz_take_question_view($question_node, $quiz_node) {
   $question_node->allow_skipping = $quiz_node->allow_skipping;
-  node_build_content($question_node, 'teaser');
+  node_build_content($question_node, 'question');
   module_invoke_all('node_build_alter', $question_node, FALSE);
   //$question_node->body = drupal_render($question_node->content);
   return theme('quiz_single_question_node', array('question_node' => $question_node));

@@ -531,15 +531,20 @@ function quiz_question_view($node, $view_mode) {
   $content = '';
 
   if (_quiz_is_taking_context()) {
-    /*
-     * @todo: I see no reason why this should be a part of view anymore.
-     * In quiz 5 we should stop using hook_view to view the answering form
-     */
-    $form = drupal_get_form('quiz_question_answering_form', $node);
-    $form_markup = drupal_render($form);
+    if (empty($node->no_answer_form)) {
+      /*
+       * @todo: I see no reason why this should be a part of view anymore.
+       * In quiz 5 we should stop using hook_view to view the answering form
+       */
+      $form = drupal_get_form('quiz_question_answering_form', $node);
+      $form_markup = drupal_render($form);
 
-    if (!empty($form_markup)) {
-      $node->content['body']['#markup'] = $form_markup;
+      if (!empty($form_markup)) {
+        $node->content['question_form'] = array(
+          '#markup' => $form_markup,
+          '#weight' => 30,
+        );
+      }
     }
   }
   elseif ($view_mode == 'teaser') {
@@ -935,5 +940,15 @@ function quiz_question_add_body_field($type) {
   $instance = field_read_instance('node', 'body', $type);
   $instance['widget']['weight'] = -10;
   $instance['widget']['settings']['rows'] = 6;
+  
+  // Make the question body visible by default for the question view mode
+  $instance['display']['question'] = array(
+    'label' => 'hidden',
+    'type' => 'text_default',
+    'weight' => 1,
+    'settings' => array(),
+    'module' => 'text',
+  );
+  
   field_update_instance($instance);
 }
