@@ -503,7 +503,6 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     return FALSE;
   }
 
-
   /**
    * Implementation of getReportFormSubmit
    *

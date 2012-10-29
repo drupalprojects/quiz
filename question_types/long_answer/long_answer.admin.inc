@@ -113,6 +113,7 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
     '#description' => t('The text entered here would be shown to attendees'),
     '#default_value' => $answer->answer_feedback,
   );
+  
   $form['score_answer']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),

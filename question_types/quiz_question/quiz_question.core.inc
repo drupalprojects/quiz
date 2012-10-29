@@ -883,6 +883,11 @@ abstract class QuizQuestionResponse {
     return array('#markup' => '<span class="quiz-report-score">' . $this->getScore() . '</span>');
   }
 
+
+  public function getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring) {
+    return FALSE;
+  }
+
   /**
    * Get the submit function for the reportForm
    *
