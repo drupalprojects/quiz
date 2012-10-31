@@ -30,9 +30,17 @@ class DDLinesQuestion extends QuizQuestion {
     
   public function getCreationForm(array &$form_state = NULL) {
     
+    $elements = '';
+    if(isset($this->node->translation_source)) {
+      $elements = $this->node->translation_source->ddlines_elements;
+    }
+    elseif(isset($this->node->ddlines_elements)) {
+      $elements = $this->node->ddlines_elements;
+    }
+    
     $form['ddlines_elements'] = array(
       '#type' => 'hidden',
-      '#default_value' => isset($this->node->ddlines_elements) ? $this->node->ddlines_elements : '',
+      '#default_value' => $elements,
     );
     
     $default_settings = $this->getDefaultAltSettings();
@@ -48,14 +56,14 @@ class DDLinesQuestion extends QuizQuestion {
       '#type' => 'checkbox',
       '#title' => t('Enable feedback'),
       '#description' => t('When taking the test, and this option is enabled, a wrong placement of an alternative, will make it jump back. Also, this makes it possible to add comments to both correct and wrong answers.'),
-      '#default_value' => $default_settings['feedback']['enabled'],
+      '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->feedback_enabled : $default_settings['feedback']['enabled'],
       '#parents' => array('feedback_enabled'),
     );
     $form['settings']['hotspot_radius'] = array(
       '#type' => 'textfield',
       '#title' => t('Hotspot radius'),
       '#description' => t('The radius of the hotspot in pixels'),
-      '#default_value' => $default_settings['hotspot']['radius'],
+      '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->hotspot_radius : $default_settings['hotspot']['radius'],
       '#parents' => array('hotspot_radius'),
     );    
     

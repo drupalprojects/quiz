@@ -70,12 +70,12 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
 };
 
 (function ($) {
-	
+  
 Drupal.behaviors.quiz_ddlines = {
   initialized: false,
-	attach: function(context) {
-	  
-	  // Make hotspot radius only accept numbers:
+  attach: function(context) {
+    
+    // Make hotspot radius only accept numbers:
     $('input#edit-hotspot-radius').keypress(function(e) {
       var key_codes = [48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 0, 8];
     
@@ -83,7 +83,7 @@ Drupal.behaviors.quiz_ddlines = {
         e.preventDefault();
       }
     });
-	  
+    
     // Initializing the result page; the correct answer part
     $('.quiz-ddlines-correct-answers', context).each(function() {
       // Id is the node id of the question node
@@ -110,33 +110,33 @@ Drupal.behaviors.quiz_ddlines = {
       QuizElementList.load(engine, true, id);
     });
     
-	  $('.image-preview', context).each(function() {
-	    if(this.initialized) {
-	      return;
-	    }
-	    var self = this;
-	    this.initialized = true;
-	    
-  		// Initialize
-	    var engine = new Engine();
-	    
-	    // Need to wait for IE to make image beeing displayed
+    $('.image-preview', context).each(function() {
+      if(this.initialized) {
+        return;
+      }
+      var self = this;
+      this.initialized = true;
+      
+      // Initialize
+      var engine = new Engine();
+      
+      // Need to wait for IE to make image beeing displayed
       // This is not a great solution, but it do work.
-	    // TODO - figure out what the real problem is, so a better 
-	    // solution may be implemented
-	    setTimeout( function() {
-	      engine.init(self);
+      // TODO - figure out what the real problem is, so a better 
+      // solution may be implemented
+      setTimeout( function() {
+        engine.init(self);
         
-	      // Load elements if they exists:
-	      QuizElementList.load(engine);
-	      
-	      // Show helptext if no alternatives have been added:
-	      if(QuizElementList.size() == 0) {
-	        engine.addHelpText();
-	      }
-	    }, ($.browser.msie ? 1000 : 0));
-	  });		  		  
-	}
+        // Load elements if they exists:
+        QuizElementList.load(engine);
+        
+        // Show helptext if no alternatives have been added:
+        if(QuizElementList.size() == 0) {
+          engine.addHelpText();
+        }
+      }, ($.browser.msie ? 1000 : 0));
+    });           
+  }
 };
 
 // generic functions for dragging of sets:
@@ -219,172 +219,178 @@ function set_drag_finished(event) {
 function Engine() {
   var self = this;
   this.id = null;
-  this.r = null;		
-	this.conf = null;	
-	this.node_id = null;
-	this.helptext = null;
-	
-	this.getSelector = function() {
-	  return "#"+this.id;
-	};
-	
-	this.init = function (container_class, node_id) {
-	
-	  if(!QuizUtil.defined(Engine.counter)) {
-	    Engine.counter = 0;
-	  }
-	  Engine.counter++;
-	  this.id = "ddlines-container-"+Engine.counter;
-	  this.node_id = QuizUtil.defined(node_id) ? node_id : null;
-	  
-		// Add a specific ID and class to div, so CSS may be set only
-		// for our case:
-		$(container_class).attr("id",this.id);
-		$(container_class).addClass("ddlines-container");
-		
-		this.conf = Drupal.settings.quiz_ddlines;
-		
-		if(this.isEditMode()) {
-		  this.conf.feedback.enabled = $('#edit-feedback-enabled').is(':checked') ? "1" : "0";    
-	    $('#edit-feedback-enabled').change(function(){
-	      // Set the conf variable:
-	      self.conf.feedback.enabled = $('#edit-feedback-enabled').is(':checked') ? "1" : "0";
-	      $('#feedback-disabled').css({'display': (self.feedbackEnabled() ? 'none' : 'block')});
-	    });
-	    
-	    // Listen to change events on hotspot radius input:
-	    $('input#edit-hotspot-radius').change(function(e) {
-	      QuizElementList.updateHotspotRadius($(this).val());
-	    });
-	    
-			// Add click-handler to add elements when clicking in canvas:
-			$(this.getSelector()).click(function(event) {
-			  if(event.target.nodeName != 'svg' && QuizUtil.drag_mode /*&& self.helptext == null*/) {
-		      return;
-		    }
-			  
-			  if(event.target.nodeName == 'svg' || event.target.nodeName == 'image' ||
-			    (self.helptext != null && event.target.nodeName == 'tspan')) {
+  this.r = null;    
+  this.conf = null; 
+  this.node_id = null;
+  this.helptext = null;
+  
+  this.getSelector = function() {
+    return "#"+this.id;
+  };
+  
+  this.init = function (container_class, node_id) {
+  
+    if(!QuizUtil.defined(Engine.counter)) {
+      Engine.counter = 0;
+    }
+    Engine.counter++;
+    this.id = "ddlines-container-"+Engine.counter;
+    this.node_id = QuizUtil.defined(node_id) ? node_id : null;
+    
+    // Add a specific ID and class to div, so CSS may be set only
+    // for our case:
+    $(container_class).attr("id",this.id);
+    $(container_class).addClass("ddlines-container");
+    
+    this.conf = Drupal.settings.quiz_ddlines;
+    
+    if(this.isEditMode()) {
+      this.conf.feedback.enabled = $('#edit-feedback-enabled').is(':checked') ? "1" : "0";    
+      $('#edit-feedback-enabled').change(function(){
+        // Set the conf variable:
+        self.conf.feedback.enabled = $('#edit-feedback-enabled').is(':checked') ? "1" : "0";
+        $('#feedback-disabled').css({'display': (self.feedbackEnabled() ? 'none' : 'block')});
+      });
+      
+      // Listen to change events on hotspot radius input:
+      $('input#edit-hotspot-radius').change(function(e) {
+        QuizElementList.updateHotspotRadius($(this).val());
+      });
+      
+      // Add click-handler to add elements when clicking in canvas:
+      $(this.getSelector()).click(function(event) {
+        if(event.target.nodeName != 'svg' && QuizUtil.drag_mode){
+          return;
+        }
+        
+        // Don't create new element when focus is on inputbox
+        if(QuizUtil.current_editor != null && (event.target.nodeName == 'svg' || event.target.nodeName == 'image')) {
+          QuizUtil.current_editor.editingDone();
+          return;
+        }
+        
+        if(event.target.nodeName == 'svg' || event.target.nodeName == 'image' ||
+          (self.helptext != null && event.target.nodeName == 'tspan')) {
           
-			    // Remove help text:
+          // Remove help text:
           if(self.helptext != null) {
             self.helptext.remove();
             self.helptext = null;
           }
           
           // Add element:
-			    self.createNewElement(event);
-			  }
-			});
-			
-			$(this.getSelector()).resizable({
-			   stop: function(event, ui) {
-			     // Update size!
-			     var height=$(self.getSelector()).height();
-			     var width=$(self.getSelector()).width();
-			     self.setSize(width,height);
-			   },
-			   minHeight: 300,
-		     minWidth: 450
-			});				
-			
-			// Add delete handler:
-			$(document).keydown(function(event) {
-			  
-			  // Check if the deletion did not take place within an input field
-	      // 46 is the delete button			  
-	      if(event.target.nodeName != 'INPUT' && event.which == 46) {
-	        // The glow represents the current selected object
-	        if(QuizUtil.current_glow != null) {
-	          QuizUtil.current_glow.set.parent.remove();
-	          QuizUtil.current_glow = null;
-	          $("#quiz-ddlines-toolpane").fadeOut();
-	        }
-	      }
-	    });
-			
-			// Add clearing of data when image is removed
-			$('form.node-quiz_ddlines-form #edit-field-image-und-0-remove-button').mousedown(function() {
-			  QuizElementList.clear();
-			});
-		}
-		
-		// Set size of canvas
-		$(this.getSelector()).height(this.getCanvasHeight()).width(this.getCanvasWidth());		
-		
-		// Create paper
-		this.r = Raphael(this.id, this.getCanvasWidth(), this.getCanvasHeight());
+          self.createNewElement(event);
+        }
+      });
+      
+      $(this.getSelector()).resizable({
+         stop: function(event, ui) {
+           // Update size!
+           var height=$(self.getSelector()).height();
+           var width=$(self.getSelector()).width();
+           self.setSize(width,height);
+         },
+         minHeight: 300,
+         minWidth: 450
+      });       
+      
+      // Add delete handler:
+      $(document).keydown(function(event) {
+        
+        // Check if the deletion did not take place within an input field
+        // 46 is the delete button        
+        if(event.target.nodeName != 'INPUT' && event.which == 46) {
+          // The glow represents the current selected object
+          if(QuizUtil.current_glow != null) {
+            QuizUtil.current_glow.set.parent.remove();
+            QuizUtil.current_glow = null;
+            $("#quiz-ddlines-toolpane").fadeOut();
+          }
+        }
+      });
+      
+      // Add clearing of data when image is removed
+      $('form.node-quiz_ddlines-form #edit-field-image-und-0-remove-button').mousedown(function() {
+        QuizElementList.clear();
+      });
+    }
+    
+    // Set size of canvas
+    $(this.getSelector()).height(this.getCanvasHeight()).width(this.getCanvasWidth());    
+    
+    // Create paper
+    this.r = Raphael(this.id, this.getCanvasWidth(), this.getCanvasHeight());
 
-    // Get image attributes:		
-		var img_width = $(this.getSelector() + ' > img').attr("width");
-		var img_height = $(this.getSelector() + ' > img').attr("height");		
-		var img_uri=$(this.getSelector() + ' > img').attr("src");		
-		this.image = new QuizImage(this, img_uri, img_width, img_height);
-	};
-	
-	this.addHelpText = function() {
-	  if(this.isEditMode()) {
-	    // Add help text:
-	    // Only if this
-	    self.helptext = this.r.text(this.getCanvasWidth()/2,this.getCanvasHeight()/2,Drupal.t("Click anywhere in\nthe canvas to\nadd an alternative"));
-	    self.helptext.attr({'font-size': 50, 'fill': '#FFF', stroke:'#000', 'font-weight': 'bold'});
-	    
-	    self.helptext.mousedown(function(){
+    // Get image attributes:    
+    var img_width = $(this.getSelector() + ' > img').attr("width");
+    var img_height = $(this.getSelector() + ' > img').attr("height");   
+    var img_uri=$(this.getSelector() + ' > img').attr("src");   
+    this.image = new QuizImage(this, img_uri, img_width, img_height);
+  };
+  
+  this.addHelpText = function() {
+    if(this.isEditMode()) {
+      // Add help text:
+      // Only if this
+      self.helptext = this.r.text(this.getCanvasWidth()/2,this.getCanvasHeight()/2,Drupal.t("Click anywhere in\nthe canvas to\nadd an alternative"));
+      self.helptext.attr({'font-size': 50, 'fill': '#FFF', stroke:'#000', 'font-weight': 'bold'});
+      
+      self.helptext.mousedown(function(){
         QuizUtil.drag_mode = false;
       });
-	  }
-	};
-	
-	
-	this.getCanvasHeight = function() {
-	  if(this.isResultMode()) {
-	    return this.conf["correct-"+this.node_id].canvas.height;
-	  }
-	  else {
-	    return parseInt(this.conf.canvas.height);
-	  }
-	};
-	
-	this.getCanvasWidth = function() {
-	  if(this.isResultMode()) {
-	    return this.conf["correct-"+this.node_id].canvas.width;
+    }
+  };
+  
+  
+  this.getCanvasHeight = function() {
+    if(this.isResultMode()) {
+      return this.conf["correct-"+this.node_id].canvas.height;
+    }
+    else {
+      return parseInt(this.conf.canvas.height);
+    }
+  };
+  
+  this.getCanvasWidth = function() {
+    if(this.isResultMode()) {
+      return this.conf["correct-"+this.node_id].canvas.width;
     }
     else {      
       return parseInt(this.conf.canvas.width);
     }
   };
   
-	this.resizePaper = function(width, height) {
-	  this.setSize(width,height);
+  this.resizePaper = function(width, height) {
+    this.setSize(width,height);
     $(this.getSelector()).height(height).width(width);
-	};
-	
-	this.setSize = function(width,height) {
-	  if(this.isEditMode()) {
-  	  this.conf.canvas.width=width;
-  	  this.conf.canvas.height=height;
-  	  
-  	  QuizElementList.updateForm();
-	  }
-	  this.r.setSize(width,height);
-	};
+  };
+  
+  this.setSize = function(width,height) {
+    if(this.isEditMode()) {
+      this.conf.canvas.width=width;
+      this.conf.canvas.height=height;
+      
+      QuizElementList.updateForm();
+    }
+    this.r.setSize(width,height);
+  };
    
   this.redrawConnections = function() {
     for (var i = QuizElementList.elements.length; i--;) {
-  		QuizElementList.elements[i].redrawConnection();
+      QuizElementList.elements[i].redrawConnection();
     }
     this.r.safari();
   };
     
   this.createNewElement = function (event) {
-  	// Create a new element    
+    // Create a new element    
     var x = this.getRelativeX(event.pageX);
     var y = this.getRelativeY(event.pageY);    
-  	var element = new QuizElement(self, Raphael.getColor(0.9), "", undefined, x > 20 ? x-20 : x, y > 80 ? y-80 : y, undefined, x, y);
-  	// Add to list
-  	QuizElementList.add(element);
-  	
-  	element.gotoEditMode();
+    var element = new QuizElement(self, Raphael.getColor(0.9), "", undefined, x > 20 ? x-20 : x, y > 80 ? y-80 : y, undefined, x, y);
+    // Add to list
+    QuizElementList.add(element);
+    
+    element.gotoEditMode();
   };
   
   this.toJson = function() {     
@@ -392,19 +398,19 @@ function Engine() {
   };
     
   this.getPosition = function() {
-  	return $(this.getSelector()).offset();
+    return $(this.getSelector()).offset();
   };
     
   this.getRelativeX = function(x) {
-  	return (x-this.getPosition().left);
+    return (x-this.getPosition().left);
   };
   
   this.getRelativeY = function(y) {
-  	return (y-this.getPosition().top);
+    return (y-this.getPosition().top);
   };
   
   this.isEditMode = function() {
-  	return (this.conf.mode=='edit');
+    return (this.conf.mode=='edit');
   };
   
   this.isResultMode = function() {
@@ -482,11 +488,11 @@ function QuizImage(engine, uri, width, height) {
   
   this.toJson = function() {    
     return '"image":{"left":'+this.image.attr("x")+',"top":'+this.image.attr("y")+',"width":'+this.image.attr("width")+',"height":'+this.image.attr("height")+'}';
-  }
+  };
   
   this.setBounds = function(x,y,width,height) {
     this.image.attr({"x":x, "y":y, "width":width, "height":height});
-  }
+  };
 }
 
 /**
@@ -500,8 +506,8 @@ function QuizLabel(parent, color, id, text, x, y) {
   this.color = color;
   this.text = text;
   
-	this.setText = function(text) {
-	  // Set the new text
+  this.setText = function(text) {
+    // Set the new text
     self.label.text.attr({text: text});
     
     // Recalculate rectangle size.
@@ -517,64 +523,64 @@ function QuizLabel(parent, color, id, text, x, y) {
     if(QuizUtil.defined(self.glow)) {
       self.glow.attr({width: rect_width+8 < QuizUtil.LABEL_MIN_WIDTH+8 ? QuizUtil.LABEL_MIN_WIDTH+8 : rect_width+8});
     }
-	}
-	
-	// Create Raphael objects:
-	this.label = this.parent.engine.r.rect(x, y, 100, 20);
-	
-	// Use same id as previous if this is set
-	if(QuizUtil.defined(id)) {
-		this.label.id = id;
-	}
-	
-	this.label.text = this.parent.engine.r.text(-200,y+10,""); // initially hide the text;
-	this.label.fg = this.parent.engine.r.rect(x-5, y-5, 110, 30); // Foreground object
-	
-	// Set attributes:
-	this.label.attr({fill: "#fff", stroke: this.color, "fill-opacity": 1, "stroke-width": 3, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
-	this.label.text.attr({"font-size": 12, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
+  };
+  
+  // Create Raphael objects:
+  this.label = this.parent.engine.r.rect(x, y, 100, 20);
+  
+  // Use same id as previous if this is set
+  if(QuizUtil.defined(id)) {
+    this.label.id = id;
+  }
+  
+  this.label.text = this.parent.engine.r.text(-200,y+10,""); // initially hide the text;
+  this.label.fg = this.parent.engine.r.rect(x-5, y-5, 110, 30); // Foreground object
+  
+  // Set attributes:
+  this.label.attr({fill: "#fff", stroke: this.color, "fill-opacity": 1, "stroke-width": 3, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
+  this.label.text.attr({"font-size": 12, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
   this.label.fg.attr({"fill-opacity": 0, "stroke-width": 0, "stroke-opacity":0, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
   this.label.fg.toFront();
-	
-	// Create a set so they can be treated as one:
-	this.set = this.parent.engine.r.set();
-	this.set.parent = parent;
-	this.set.push(this.label, this.label.text, this.label.fg);
-	
-	// Create backreference from elements to the set:
-	this.label.set = this.label.text.set = this.label.fg.set = this.set;
-	
+  
+  // Create a set so they can be treated as one:
+  this.set = this.parent.engine.r.set();
+  this.set.parent = parent;
+  this.set.push(this.label, this.label.text, this.label.fg);
+  
+  // Create backreference from elements to the set:
+  this.label.set = this.label.text.set = this.label.fg.set = this.set;
+  
   // Set text if value set:
   this.setText(text);
-	
-	this.toJson = function(){
-		return '"label":{"id":'+this.label.id+',"x":'+this.label.attr("x")+',"y":'+this.label.attr("y")+',"text":"'+this.label.text.attr("text")+'"}';
-	};
-	
-	this.setColor = function(color) {
-	  this.color = color;
-	  this.label.attr({stroke: this.color});
-	};
-	
-	if(this.parent.engine.isEditMode()) {
-		this.set.drag(set_drag_move,set_drag_start,set_drag_finished);
-	}
-	
-	var edit_mode = function () {
+  
+  this.toJson = function(){
+    return '"label":{"id":'+this.label.id+',"x":'+this.label.attr("x")+',"y":'+this.label.attr("y")+',"text":"'+this.label.text.attr("text")+'"}';
+  };
+  
+  this.setColor = function(color) {
+    this.color = color;
+    this.label.attr({stroke: this.color});
+  };
+  
+  if(this.parent.engine.isEditMode()) {
+    this.set.drag(set_drag_move,set_drag_start,set_drag_finished);
+  }
+  
+  var edit_mode = function () {
     // Add an inputbox as overlay:
     // Get dimensions of rect
     //var rect = this;
-	  if(QuizUtil.drag_mode) {
-	    //QuizUtil.drag_mode = false;
-	    return;
-	  }
-	  
-	  if(QuizUtil.current_editor != null) {
-	    QuizUtil.current_editor.editingDone();
-	  }
-	  
-	  var me = QuizUtil.current_editor = this;
-	  
+    if(QuizUtil.drag_mode) {
+      //QuizUtil.drag_mode = false;
+      return;
+    }
+    
+    if(QuizUtil.current_editor != null) {
+      QuizUtil.current_editor.editingDone();
+    }
+    
+    var me = QuizUtil.current_editor = this;
+    
     var topleft=self.label.attr("x")-2;
     var topright=self.label.attr("y")-2;
     var bbox=self.label.getBBox();
@@ -600,9 +606,7 @@ function QuizLabel(parent, color, id, text, x, y) {
       QuizUtil.current_editor = null;
     };
     
-    // Listen on editing finished:
-    //var me = this;
-    $editButton.focusout(this.editingDone);
+    // Listen on editing finished:    
     $editButton.keypress(function(event) {
       // 13 is enter
       if(event.which == 13) {
@@ -696,7 +700,7 @@ function QuizLabel(parent, color, id, text, x, y) {
       $toolPane.css({'border-color': color.hex});
       $colorContainer.css({'border-color': color.hex});
       self.parent.setColor(color.hex);
-    })
+    });
     
     // Colorbutton clicked
     $colorButton.click(function() {
@@ -716,8 +720,11 @@ function QuizLabel(parent, color, id, text, x, y) {
       }      
     });
         
-    $deleteButton.click(function() {
+    $deleteButton.click(function() {      
       $("#quiz-ddlines-toolpane").fadeOut();
+      if(QuizUtil.current_editor != null) {
+        QuizUtil.current_editor.editingDone();
+      }
       self.parent.remove();
     });    
   
@@ -730,7 +737,7 @@ function QuizLabel(parent, color, id, text, x, y) {
       
       $("#quiz-ddlines-toolpane").fadeOut();
     });
-  }
+  };
   
   if(this.parent.engine.isEditMode()) {
     this.set.click(edit_mode);
@@ -740,7 +747,7 @@ function QuizLabel(parent, color, id, text, x, y) {
   this.gotoEditMode = function() {
     focus_mode();
     edit_mode();
-  }
+  };
   
   this.remove = function() {
     this.set.remove();
@@ -790,7 +797,7 @@ function QuizPointer(parent, label, color) {
     self.border.attr({cx: cx, cy: cy, r:(self.radius+2)});
     
     self.parent.redrawConnection();
-  }
+  };
   
   // Start dragging pointer 
   this.pointer_drag_start = function(x,y) {
@@ -918,68 +925,68 @@ function QuizPointer(parent, label, color) {
  */
 function QuizHotspot(parent, color, id, x, y, radius) {
   var self = this;  
-	this.parent = parent;
-	this.color = color;
-	
-	this.radius = parseInt(self.parent.engine.conf.hotspot.radius);
-	
-	this.hotspot = self.parent.engine.r.circle(x, y, this.radius);	
-	this.hotspot.attr({fill: "#fff", stroke: "#000", "fill-opacity": 0.4, "stroke-opacity": 1, "stroke-width": 2});
-	this.hotspot.isHotspot=true;
-	
-	this.border = self.parent.engine.r.circle(x, y, this.radius+2);
-	this.border.attr({stroke: "#fff", "stroke-width": 2, "stroke-opacity": 1});
-	
-	this.ie_fix = self.parent.engine.r.rect(x-this.radius, y-this.radius, this.radius*2, this.radius*2);
-	this.ie_fix.attr({opacity:0});
+  this.parent = parent;
+  this.color = color;
+  
+  this.radius = parseInt(self.parent.engine.conf.hotspot.radius);
+  
+  this.hotspot = self.parent.engine.r.circle(x, y, this.radius);  
+  this.hotspot.attr({fill: "#fff", stroke: "#000", "fill-opacity": 0.4, "stroke-opacity": 1, "stroke-width": 2});
+  this.hotspot.isHotspot=true;
+  
+  this.border = self.parent.engine.r.circle(x, y, this.radius+2);
+  this.border.attr({stroke: "#fff", "stroke-width": 2, "stroke-opacity": 1});
+  
+  this.ie_fix = self.parent.engine.r.rect(x-this.radius, y-this.radius, this.radius*2, this.radius*2);
+  this.ie_fix.attr({opacity:0});
   this.ie_fix.toFront();
-	
-	if(self.parent.engine.isEditMode()) {
-	  this.hotspot.attr({cursor: "move", stroke: this.color});
-	}
-	
-	if(QuizUtil.defined(id)) {
-		this.hotspot.id = id;
-	}
-	
-	if(self.parent.engine.isEditMode()) { 
-  	this.set = self.parent.engine.r.set();
-  	this.set.parent = parent;
-  	this.set.push(this.hotspot, this.border, this.ie_fix);
-  	this.hotspot.set = this.set;
-  	this.border.set = this.set;
-  	this.ie_fix.set = this.set;
-  	
-  	this.hotspot.set.drag(set_drag_move,set_drag_start,set_drag_finished);
-	}	
-	
-	this.connect = function() {
-	  return this.ie_fix;
-	};
-	
-	this.toJson = function() {
-		return '"hotspot":{"id":'+this.hotspot.id+',"x":'+this.hotspot.attr("cx")+',"y":'+this.hotspot.attr("cy")+'}';
-	};
-	
-	this.remove = function() {	  
-	  this.hotspot.remove();
-	  this.border.remove();
-	};
-	
-	this.setColor = function(color) {
-	  this.color = color;
-	  this.hotspot.attr({stroke: this.color});
-	};
-	
-	this.updateHotspotRadius = function(radius) {
-	  var previous_radius = this.radius;
-	  var diff = radius-previous_radius;
-	  this.radius = radius;
-	  
-	  this.hotspot.attr({r: radius});
-	  this.border.attr({r: radius+2});
-	  this.ie_fix.attr({x: this.ie_fix.attr('x')-diff, y: this.ie_fix.attr('y')-diff, width: radius*2, height: radius*2});
-	};
+  
+  if(self.parent.engine.isEditMode()) {
+    this.hotspot.attr({cursor: "move", stroke: this.color});
+  }
+  
+  if(QuizUtil.defined(id)) {
+    this.hotspot.id = id;
+  }
+  
+  if(self.parent.engine.isEditMode()) { 
+    this.set = self.parent.engine.r.set();
+    this.set.parent = parent;
+    this.set.push(this.hotspot, this.border, this.ie_fix);
+    this.hotspot.set = this.set;
+    this.border.set = this.set;
+    this.ie_fix.set = this.set;
+    
+    this.hotspot.set.drag(set_drag_move,set_drag_start,set_drag_finished);
+  } 
+  
+  this.connect = function() {
+    return this.ie_fix;
+  };
+  
+  this.toJson = function() {
+    return '"hotspot":{"id":'+this.hotspot.id+',"x":'+this.hotspot.attr("cx")+',"y":'+this.hotspot.attr("cy")+'}';
+  };
+  
+  this.remove = function() {    
+    this.hotspot.remove();
+    this.border.remove();
+  };
+  
+  this.setColor = function(color) {
+    this.color = color;
+    this.hotspot.attr({stroke: this.color});
+  };
+  
+  this.updateHotspotRadius = function(radius) {
+    var previous_radius = this.radius;
+    var diff = radius-previous_radius;
+    this.radius = radius;
+    
+    this.hotspot.attr({r: radius});
+    this.border.attr({r: radius+2});
+    this.ie_fix.attr({x: this.ie_fix.attr('x')-diff, y: this.ie_fix.attr('y')-diff, width: radius*2, height: radius*2});
+  };
 }
 
 
@@ -990,52 +997,52 @@ function QuizHotspot(parent, color, id, x, y, radius) {
  * and connecting lines
  * 
  */
-function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_id, hotspot_x, hotspot_y, feedback_correct, feedback_wrong, correct_answer) {	
-	
+function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_id, hotspot_x, hotspot_y, feedback_correct, feedback_wrong, correct_answer) {  
+  
   var self = this;
   this.engine = engine;
   
-	text = QuizUtil.defined(text) ? text : "";
-	label_x = QuizUtil.defined(label_x) ? label_x : 5;
-	label_y = QuizUtil.defined(label_y) ? label_y : 5;
-	hotspot_x = QuizUtil.defined(hotspot_x) ? hotspot_x : 55;
-	hotspot_y = QuizUtil.defined(hotspot_y) ? hotspot_y : 100;	
-	this.feedback_wrong = QuizUtil.defined(feedback_wrong)  ? feedback_wrong : engine.conf.feedback.wrong;
+  text = QuizUtil.defined(text) ? text : "";
+  label_x = QuizUtil.defined(label_x) ? label_x : 5;
+  label_y = QuizUtil.defined(label_y) ? label_y : 5;
+  hotspot_x = QuizUtil.defined(hotspot_x) ? hotspot_x : 55;
+  hotspot_y = QuizUtil.defined(hotspot_y) ? hotspot_y : 100;  
+  this.feedback_wrong = QuizUtil.defined(feedback_wrong)  ? feedback_wrong : engine.conf.feedback.wrong;
   this.feedback_correct = QuizUtil.defined(feedback_correct) ? feedback_correct : engine.conf.feedback.correct;
   correct_answer = QuizUtil.defined(correct_answer) ? correct_answer : null;
-	
-	// Create default hotspot and label
-	this.color = color;
-	
-	if(correct_answer != null || label_id !== null) {
-	  this.uiLabel = new QuizLabel(this, color, label_id, text, label_x, label_y);
-	}
-	
-	if(correct_answer != null || hotspot_id !== null) {
-	  this.uiHotspot = new QuizHotspot(this, color, hotspot_id, hotspot_x, hotspot_y);
-	}
-	
-	if(this.engine.isTakeMode()) {
+  
+  // Create default hotspot and label
+  this.color = color;
+  
+  if(correct_answer != null || label_id !== null) {
+    this.uiLabel = new QuizLabel(this, color, label_id, text, label_x, label_y);
+  }
+  
+  if(correct_answer != null || hotspot_id !== null) {
+    this.uiHotspot = new QuizHotspot(this, color, hotspot_id, hotspot_x, hotspot_y);
+  }
+  
+  if(this.engine.isTakeMode()) {
     this.pointer = new QuizPointer(this, this.uiLabel.label, color);
     this.uiLabel.set.drag(this.pointer.pointer_move, this.pointer.pointer_drag_start, this.pointer.pointer_up);
   }
-	
-	this.createConnection = function() {
-	  this.connection = this.engine.r.connection(this.uiLabel.label, (this.engine.isTakeMode() ? this.pointer.connect() : this.uiHotspot.connect()), this.color, "#FFF|5");
-	};
-	
-	this.hideConnection = function() {
-	  this.connection.bg.hide();
+  
+  this.createConnection = function() {
+    this.connection = this.engine.r.connection(this.uiLabel.label, (this.engine.isTakeMode() ? this.pointer.connect() : this.uiHotspot.connect()), this.color, "#FFF|5");
+  };
+  
+  this.hideConnection = function() {
+    this.connection.bg.hide();
     this.connection.line.hide();
-	};
-	
-	if(this.engine.isEditMode() || (this.engine.isResultMode() && hotspot_id !== null && label_id !== null)) {
-		this.createConnection();
-	}
-	
-	if(this.engine.isResultMode() && (correct_answer != null || (label_id === null || hotspot_id === null))) {
+  };
+  
+  if(this.engine.isEditMode() || (this.engine.isResultMode() && hotspot_id !== null && label_id !== null)) {
+    this.createConnection();
+  }
+  
+  if(this.engine.isResultMode() && (correct_answer != null || (label_id === null || hotspot_id === null))) {
     
-    var settings = {color: (correct_answer ? '#00bb27' : '#fe2020'), width: 20, fill: true, opacity: 1}
+    var settings = {color: (correct_answer ? '#00bb27' : '#fe2020'), width: 20, fill: true, opacity: 1};
     
     // Set glow color:
     if(QuizUtil.defined(this.uiLabel)) {
@@ -1045,82 +1052,82 @@ function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_i
       this.uiHotspot.hotspot.glow(settings);
     }
   }
-	
-	this.redrawConnection = function() {
-		if(this.connection) {
+  
+  this.redrawConnection = function() {
+    if(this.connection) {
       this.connection.bg.show();
       this.connection.line.show();
       this.engine.r.connection(this.connection);
-		}
-		this.engine.r.safari();
-	};
-	
-	this.gotoEditMode = function() {
-	  this.uiLabel.gotoEditMode();
-	};
-    	
-	this.toJson = function() {
-	  // Generates JSON
-		return '{"feedback_wrong":"'+this.feedback_wrong+'",'+'"feedback_correct":"'+this.feedback_correct+'","color":"'+this.color+'",'+this.uiLabel.toJson()+','+this.uiHotspot.toJson()+'}';
-	}
-	
-	this.setFeedback = function(correct, wrong) {
-	  this.feedback_correct = correct;
-	  this.feedback_wrong = wrong;
-	  
-	  // Update list:
-	  QuizElementList.updateForm();
-	}
-	
-	this.setText = function(text) {
-		// Set the new text
-		this.uiLabel.setText(text);
-		
-		// Update form element, so it is ready to be saved
-		QuizElementList.updateForm();
-	}
-	
-	this.setColor = function(color) {
-	  this.color = color;
-	  
-	  this.uiLabel.setColor(this.color);
-	  this.uiHotspot.setColor(this.color);
-	  
-	  // Set glow if it exists:
-	  if(QuizUtil.current_glow != null) {
-	    QuizUtil.current_glow.attr({stroke: this.color});
-	  }
-	  
-	  // Set connection color:
-	  this.connection.line.attr({stroke: this.color});
-	}
-	
-	this.remove = function() {	  
-	  // Remove from list:
-	  QuizElementList.remove(this);
-	  
-	  // Remove from canvas:
-		this.uiHotspot.remove();
-		this.uiLabel.remove();
-		this.connection.bg.remove();
-		this.connection.line.remove();
-	}
+    }
+    this.engine.r.safari();
+  };
+  
+  this.gotoEditMode = function() {
+    this.uiLabel.gotoEditMode();
+  };
+      
+  this.toJson = function() {
+    // Generates JSON
+    return '{"feedback_wrong":"'+this.feedback_wrong+'",'+'"feedback_correct":"'+this.feedback_correct+'","color":"'+this.color+'",'+this.uiLabel.toJson()+','+this.uiHotspot.toJson()+'}';
+  };
+  
+  this.setFeedback = function(correct, wrong) {
+    this.feedback_correct = correct;
+    this.feedback_wrong = wrong;
+    
+    // Update list:
+    QuizElementList.updateForm();
+  };
+  
+  this.setText = function(text) {
+    // Set the new text
+    this.uiLabel.setText(text);
+    
+    // Update form element, so it is ready to be saved
+    QuizElementList.updateForm();
+  };
+  
+  this.setColor = function(color) {
+    this.color = color;
+    
+    this.uiLabel.setColor(this.color);
+    this.uiHotspot.setColor(this.color);
+    
+    // Set glow if it exists:
+    if(QuizUtil.current_glow != null) {
+      QuizUtil.current_glow.attr({stroke: this.color});
+    }
+    
+    // Set connection color:
+    this.connection.line.attr({stroke: this.color});
+  };
+  
+  this.remove = function() {    
+    // Remove from list:
+    QuizElementList.remove(this);
+    
+    // Remove from canvas:
+    this.uiHotspot.remove();
+    this.uiLabel.remove();
+    this.connection.bg.remove();
+    this.connection.line.remove();
+  };
 }
 
 QuizElement.fromJson = function(json, engine) {
-	return new QuizElement(
-	     engine, 
-	     json.color, 
-	     QuizUtil.defined(json.label) ? json.label.text : null, 
-	     QuizUtil.defined(json.label) ? json.label.id : null, 
-	     QuizUtil.defined(json.label) ? json.label.x : null, 
-	     QuizUtil.defined(json.label) ? json.label.y : null, 
-	     QuizUtil.defined(json.hotspot) ? json.hotspot.id : null, 
-	     QuizUtil.defined(json.hotspot) ? json.hotspot.x : null, 
+  return new QuizElement(
+       engine, 
+       json.color, 
+       QuizUtil.defined(json.label) ? json.label.text : null, 
+       QuizUtil.defined(json.label) ? json.label.id : null, 
+       QuizUtil.defined(json.label) ? json.label.x : null, 
+       QuizUtil.defined(json.label) ? json.label.y : null, 
+       QuizUtil.defined(json.hotspot) ? json.hotspot.id : null, 
+       QuizUtil.defined(json.hotspot) ? json.hotspot.x : null, 
        QuizUtil.defined(json.hotspot) ? json.hotspot.y : null, 
-	     json.feedback_correct, 
-	     json.feedback_wrong, 
-	     QuizUtil.defined(json.correct) ? json.correct : null);
+       json.feedback_correct, 
+       json.feedback_wrong, 
+       QuizUtil.defined(json.correct) ? json.correct : null);
 };
 /*
 var Glow = {
@@ -1160,98 +1167,98 @@ var Glow = {
  * - Creating/Parsing the jsondata 
  * - Making the form input field being in-sync
  */
-var QuizElementList = {	
-	elements: [],
-	engine: null,
-	add: function(element) {
-		this.elements.push(element);
-		this.updateForm();
-	},
-	remove: function(element) {
-		// Remove from list:
-		for(var i=0; i<this.elements.length; i++) {
-			if(element == this.elements[i]) {
-			  this.elements.splice(i,1);
-			}
-		}		
-		// Update form cache:
-		this.updateForm();
-	},
-	clear: function() {
-	  this.elements = [];
-    
-	  // Update form cache:
+var QuizElementList = { 
+  elements: [],
+  engine: null,
+  add: function(element) {
+    this.elements.push(element);
     this.updateForm();
-	},
-	updateForm: function() {
-	  if(QuizElementList.engine.isEditMode()) {
-	    // Set the value of the hidden form field (ddlines_elements)
-	    $('input[name=ddlines_elements]').val(this.toJson());
-	  }
-	},
-	load: function(engine, display_answers, id) {
-		
-	  QuizElementList.engine = engine;
-	  
-	  var obj=null;
-	  if(engine.isResultMode()) {
-	    obj = display_answers ? engine.conf["answers-"+id] : engine.conf["correct-"+id];
-	  }
-	  else {
-	    json = $('input[name=ddlines_elements]').val();
-	    
-	    if(!json || json.length == 0) {
-	      return;
-	    }
-	    
-	    obj = $.parseJSON(json);
-	  }
-	  
-		// Set canvas size:
-		engine.resizePaper(obj.canvas.width, obj.canvas.height);
-		
-		// Set image position:
+  },
+  remove: function(element) {
+    // Remove from list:
+    for(var i=0; i<this.elements.length; i++) {
+      if(element == this.elements[i]) {
+        this.elements.splice(i,1);
+      }
+    }   
+    // Update form cache:
+    this.updateForm();
+  },
+  clear: function() {
+    this.elements = [];
+    
+    // Update form cache:
+    this.updateForm();
+  },
+  updateForm: function() {
+    if(QuizElementList.engine.isEditMode()) {
+      // Set the value of the hidden form field (ddlines_elements)
+      $('input[name=ddlines_elements]').val(this.toJson());
+    }
+  },
+  load: function(engine, display_answers, id) {
+    
+    QuizElementList.engine = engine;
+    
+    var obj=null;
+    if(engine.isResultMode()) {
+      obj = display_answers ? engine.conf["answers-"+id] : engine.conf["correct-"+id];
+    }
+    else {
+      json = $('input[name=ddlines_elements]').val();
+      
+      if(!json || json.length == 0) {
+        return;
+      }
+      
+      obj = $.parseJSON(json);
+    }
+    
+    // Set canvas size:
+    engine.resizePaper(obj.canvas.width, obj.canvas.height);
+    
+    // Set image position:
     engine.image.setBounds(obj.image.left, obj.image.top, obj.image.width, obj.image.height);
-		
-		// Add elements:
-		if(QuizUtil.defined(obj.elements)) {
-  		for (var i = 0; i < obj.elements.length; i++) {
-  			this.add(QuizElement.fromJson(obj.elements[i], engine));
-  		}
-		}
-		
-		// Update connecting lines between each pair if hotspot 
-		// and label: 
-		engine.redrawConnections();
-	},
-	toJson: function() {
-	  // Get image location:
-	  var elements='';
-		var json = '{' + QuizElementList.engine.image.toJson() + ',' + QuizElementList.engine.toJson();
-		for (var i = 0; i < this.elements.length; i++) {			
-			elements += this.elements[i].toJson() + (i<this.elements.length-1 ? ',' : '');
-		}
-		
-		if(this.elements.length>0) {
-		  json += ',"elements":['+elements+']';
-		}
-		
-		return json+'}';
-	},
-	size: function() {
-	  return this.elements.length;
-	},
-	updateHotspotRadius: function(radius) {
-	  radius = parseInt(radius);
-	  
-	  QuizElementList.engine.conf.hotspot.radius = radius;
-	  
-	  // Update radius for all elements:
+    
+    // Add elements:
+    if(QuizUtil.defined(obj.elements)) {
+      for (var i = 0; i < obj.elements.length; i++) {
+        this.add(QuizElement.fromJson(obj.elements[i], engine));
+      }
+    }
+    
+    // Update connecting lines between each pair if hotspot 
+    // and label: 
+    engine.redrawConnections();
+  },
+  toJson: function() {
+    // Get image location:
+    var elements='';
+    var json = '{' + QuizElementList.engine.image.toJson() + ',' + QuizElementList.engine.toJson();
+    for (var i = 0; i < this.elements.length; i++) {      
+      elements += this.elements[i].toJson() + (i<this.elements.length-1 ? ',' : '');
+    }
+    
+    if(this.elements.length>0) {
+      json += ',"elements":['+elements+']';
+    }
+    
+    return json+'}';
+  },
+  size: function() {
+    return this.elements.length;
+  },
+  updateHotspotRadius: function(radius) {
+    radius = parseInt(radius);
+    
+    QuizElementList.engine.conf.hotspot.radius = radius;
+    
+    // Update radius for all elements:
     for(var i=0; i<this.elements.length; i++) {
       this.elements[i].uiHotspot.updateHotspotRadius(radius);
       this.elements[i].redrawConnection();
     }   
-	}
+  }
 };
 
 var QuizUtil = {
@@ -1277,32 +1284,30 @@ var QuizUtil = {
 var Answers = {
   elements: [],  
   setAnswer: function(label_id, hotspot_id) {
-  	this.elements[label_id] = hotspot_id ;
-  	this.updateForm();
+    this.elements[label_id] = hotspot_id ;
+    this.updateForm();
   },
   removeAnswer: function(label_id) {
     delete this.elements[label_id];
     this.updateForm();
   },
   toJson: function() {
-  	var json = '';
-  	var count=0;
-  	for (var key in this.elements) {	  
-  	  json += (count>0 ? ',' : '') + '{"label_id":'+key+',"hotspot_id":'+this.elements[key]+'}';
-  	  count++;
-  	}
-  	
-  	if(count===0) {
-  	  return '';
-  	}
-  	else {
-  	  return '['+json+']';
-  	}
+    var json = '';
+    var count=0;
+    for (var key in this.elements) {    
+      json += (count>0 ? ',' : '') + '{"label_id":'+key+',"hotspot_id":'+this.elements[key]+'}';
+      count++;
+    }
+    
+    if(count===0) {
+      return '';
+    }
+    else {
+      return '['+json+']';
+    }
   },
   updateForm: function() {
     $('input[name=tries]').val(this.toJson());
   }
 };
 }(jQuery));
-
-
