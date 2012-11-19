@@ -58,7 +58,7 @@ class MatchingQuestion extends QuizQuestion {
     foreach ($this->node->match as $match) {
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
       // match_id is not so it is a new question.
-      if (empty($match['match_id']) || $this->node->revision || isset($this->node->node_export_drupal_version)) {
+      if ($is_new || empty($match['match_id']) || $this->node->revision || isset($this->node->node_export_drupal_version)) {
         if (!empty($match['question']) && !empty($match['answer'])) {
           $id = db_insert('quiz_matching_node')
                   ->fields(array(
