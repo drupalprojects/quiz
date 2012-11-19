@@ -1148,7 +1148,7 @@ function quiz_form(&$node, &$form_state) {
       t('No randomization'),
       t('Random order'),
       t('Random questions'),
-      //t('Categorized random questions'),
+      t('Categorized random questions'),
     ),
     '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
     '#default_value' => $node->randomization,
@@ -1804,6 +1804,33 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
     }
     $insert_query->execute();
   }
+  
+  /* Update terms if any */
+  $result = db_select('quiz_terms', 'qt')
+    ->fields('qt', array('nid', 'tid', 'weight', 'max_score', 'number'))
+    ->condition('vid', $old_quiz_vid)
+    ->execute();
+  // only proceed if query returned data    
+  if ($result->rowCount()) {
+    $insert_query = db_insert('quiz_terms')
+      ->fields(array('nid', 'vid', 'tid', 'weight', 'max_score', 'number'));
+    while ($quiz_term = $result->fetchAssoc()) {
+      $insert_query->values(array(
+        'nid' => $quiz_nid,
+        'vid' => $new_quiz_vid,
+        'tid' => $quiz_term['tid'],
+        'weight' => $quiz_term['weight'],
+        'max_score' => $quiz_term['max_score'],
+        'number' => $quiz_term['number'],        
+      ));
+    }
+    $insert_query->execute();
+  }
+  
+  /*$sql = "INSERT INTO {quiz_terms} (nid, vid, tid, weight, max_score, number)
+          SELECT qt.nid, %d, qt.tid, qt.weight, qt.max_score, qt.number
+          FROM {quiz_terms} qt
+          WHERE qt.vid = %d";*/
 }
 
 
@@ -2288,38 +2315,13 @@ function quiz_store_question_result($quiz, $result, $options) {
         'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
       ));
 
-    //$sql = "UPDATE {quiz_node_results_answers}
-    //        SET is_correct = %d, points_awarded = %d, answer_timestamp = %d, is_skipped = %d";
     $args = array($result->is_correct, $points, REQUEST_TIME, $result->is_skipped);
-    if ($quiz->randomization == 3) {
-      //$sql .= ", tid = %d";
-      //$args[] = $result->tid;
-    }
-    //$sql .= " WHERE question_nid = %d AND question_vid = %d AND result_id = %d";
     $update->condition('question_nid', $result->nid);
     $update->condition('question_vid', $result->vid);
     $update->condition('result_id', $result->rid);
     $update->execute();
-    //array_push($args, $result->nid, $result->vid, $result->rid);
-    //db_query($sql, $args);
   }
   else {
-    /*$sql = "INSERT INTO {quiz_node_results_answers}
-            (question_nid, question_vid, result_id, is_correct, points_awarded,
-            answer_timestamp, is_skipped, number";
-    if ($quiz->randomization == 3) {
-      $sql .= ", tid";
-    }
-    $sql .= ") VALUES (%d, %d, %d, %d, %d, %d, %d, %d";
-    $args = array($result->nid, $result->vid, $result->rid, $result->is_correct, $points, REQUEST_TIME, $result->is_skipped, $options['question_data']['number']);
-    if ($quiz->randomization == 3) {
-      $sql .= ", %d";
-      $args[] = $result->tid;
-    }
-    $sql .= ')';
-    db_query($sql, $args);
-    */
-
      $insert = db_insert('quiz_node_results_answers')
       ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped',    'number', 'tid'))
       ->values(array(
@@ -2946,19 +2948,23 @@ function _quiz_build_categorized_question_list($quiz) {
   }
   $total_count = 0;
   foreach ($terms as $term) {
-    $sql = "SELECT n.nid, n.vid, tn.tid
-            FROM {node} n
-            JOIN {taxonomy_index} tn USING(nid)
-            WHERE n.status = 1
-            AND n.type IN('" . implode("','", $question_types) . "')
-            AND tn.tid = %d"; // $question_types isn't user input. It is considered safe.
+    
+    $query = db_select('node','n');
+    $query->join('taxonomy_index','tn','n.nid = tn.nid');
+    $query->fields('n', array('nid','vid'));
+    $query->fields('tn', array('tid'));
+    $query->condition('n.status',1,'=');
+    $query->condition('n.type',$question_types,'IN');
+    $query->condition('tn.tid',$term->tid,'=');
     if (!empty($nids)) {
-      $sql .= " AND n.nid NOT IN(" . implode(', ', $nids) . ")";
+      $query->condition('n.nid',$nids,'NOT IN');
     }
-    $sql .= " ORDER BY RAND()";
-    $res = db_query_range($sql, $term->tid);
-    $count = 0;
-    while ($question = db_fetch_array($res)) {
+    $query->range(0,$term->number);
+    $query->orderBy('RAND()');
+    
+    $result = $query->execute();
+    $count = 0; 
+    while ($question = $result->fetchAssoc()) {
       $count++;
       $question['tid'] = $term->tid;
       $question['number'] = $count + $total_count;
@@ -2986,10 +2992,9 @@ function _quiz_get_terms($vid) {
   $sql = 'SELECT td.name, qt.*
     FROM {quiz_terms} qt
     JOIN {taxonomy_term_data} td ON qt.tid = td.tid
-    WHERE qt.vid = :qt.vid
+    WHERE qt.vid = :vid
     ORDER BY qt.weight';
-  return db_query($sql, array(':qt.vid' => $vid))
-    ->fetchAssoc();
+  return db_query($sql, array(':vid' => $vid))->fetchAll(); 
 }
 
 /**
@@ -3187,7 +3192,8 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
           AND qnr.time_end = :time_end
           AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
   $rids = array();
-  while ($rids[] = $res->fetchField()) {
+  while ($rid = $res->fetchField()) {
+    $rids[] = $rid; 
   }
   quiz_delete_results($rids);
 }
@@ -3945,8 +3951,8 @@ function quiz_has_been_answered($node) {
   $query->addField('qnr', 'result_id');
   $query->condition('nid', $node->nid);
   $query->condition('vid', $node->vid);
-  $result = $query->execute()->fetch();
-  return !empty($result);
+  $query->range(0,1);
+  return $query->execute()->rowCount() > 0;
 }
 
 /**

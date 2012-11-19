@@ -783,10 +783,6 @@ abstract class QuizQuestionResponse {
     return $report;
   }
 
-  public function getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring) {
-    return FALSE;
-  }
-
   /**
    * Creates the report form for the admin pages, and for when a user gets feedback after answering questions.
    *

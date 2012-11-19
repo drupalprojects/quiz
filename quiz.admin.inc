@@ -473,7 +473,7 @@ function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
   $terms = _quiz_get_terms($quiz->vid);
   foreach ($terms as $term) {
     $form[$term->tid]['name'] = array(
-      '#value' => check_plain($term->name),
+      '#markup' => check_plain($term->name),
     );
     $form[$term->tid]['number'] = array(
       '#type' => 'textfield',
@@ -518,7 +518,7 @@ function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
     '#title' => t('Category'),
     '#description' => t('Type in the name of the term you would like to add questions from.'),
     '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
-    '#field_suffix' => '<a id="browse-for-term" href="#">' . t('browse') . '</a>',
+    '#field_suffix' => '<a id="browse-for-term" href="javascript:void(0)">' . t('browse') . '</a>',
   );
   $form['new']['number'] = array(
     '#type' => 'textfield',
@@ -624,7 +624,8 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
         $existing['nid'] = $form_state['values']['nid'];
         $existing['vid'] = $form_state['values']['vid'];
         $existing['tid'] = $key;
-        $changed[] = $form[$key]['name']['#value'];
+        $existing['weight'] = 1;
+        $changed[] = $form[$key]['name']['#markup'];
         drupal_write_record('quiz_terms', $existing, array('vid', 'tid'));
         break;
       }
@@ -633,7 +634,7 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
           ->condition('tid', $key)
           ->condition('vid', $form_state['values']['vid'])
         ->execute();
-        $removed[] = $form[$key]['name']['#value'];
+        $removed[] = $form[$key]['name']['#markup'];
         break;
       }
     }
@@ -654,6 +655,8 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
  */
 function _quiz_categorized_add_term($form, $form_state) {
   drupal_set_message(t('The term was added'));
+  // Needs to be set to avoid error-message from db:  
+  $form_state['values']['weight'] = 0;  
   drupal_write_record('quiz_terms', $form_state['values']);
   return $form_state['values']['number'];
 }
@@ -701,7 +704,7 @@ function _quiz_search_terms($start, $all = FALSE) {
   if (empty($sql_args)) {
     return $terms;
   }
-  $query = db_select('term_data', 't')
+  $query = db_select('taxonomy_term_data', 't')
     ->fields('t', array('name', 'tid'))
     ->condition('t.vid', $sql_args , 'IN');
   if (!$all) {
@@ -2734,7 +2737,7 @@ function theme_quiz_categorized_form($variables) {
     $cols[] = drupal_render($existing['weight']);
     $rows[] = array(
       'data' => $cols,
-      'class' => 'draggable',
+      'class' => array('draggable'),
     );
   }
   if (!empty($rows)) {
@@ -2749,9 +2752,10 @@ function theme_quiz_categorized_form($variables) {
     $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'existing-terms')));
   }
   $output .= drupal_render_children($form);
-  drupal_add_js(
-    "
-    Drupal.behaviors.quiz_categorized = function() {
+  drupal_add_js(  
+    "(function ($) {
+     Drupal.behaviors.quiz_categorized = {
+     attach: function(context) {
       $('#browse-for-term:not(.quiz-processed)').click(function(event) {
         event.preventDefault();
         $('#edit-term').focus().val('*').trigger('keyup');
@@ -2761,8 +2765,8 @@ function theme_quiz_categorized_form($variables) {
           $(this).val('');
         }
       });
-    };"
-    , array('type' => 'inline', 'scope' => JS_DEFAULT));
+    }};}(jQuery));"
+    , array('type' => 'inline', 'group' => JS_DEFAULT));
   return $output;
 }
 
