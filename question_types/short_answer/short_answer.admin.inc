@@ -78,12 +78,12 @@ function short_answer_score_form($form, $context, $node, $answer) {
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#markup' => check_markup($node->body['und'][0]['value'], $node->body['und'][0]['format'], $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($node->body['und'][0]['value'], $node->body['und'][0]['format']),
   );
   $form['answer'] = array(
     '#type' => 'item',
     '#title' => t('Answer'),
-    '#markup' => check_markup($answer->answer, variable_get('short_answer_markup_filter'), $langcode = '' /* TODO Set this variable. */, FALSE),
+    '#markup' => check_markup($answer->answer, variable_get('short_answer_markup_filter')),
   );
   $form['show_max_score'] = array(
     '#type' => 'item',

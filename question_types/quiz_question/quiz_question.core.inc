@@ -615,6 +615,14 @@ abstract class QuizQuestion {
     $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
   }
+  
+  /**
+   * Utility function that returns the format of the node body  
+   */
+  protected function getFormat() {
+    $body = field_get_items('node', $this->question, 'body');
+    return ($body ? $body[0]['format'] : NULL);
+  }
 }
 
 /**
@@ -920,6 +928,14 @@ abstract class QuizQuestionResponse {
   public function saveResult() {
     $this->is_skipped = FALSE;
     $this->save();
+  }
+  
+  /**
+   * Utility function that returns the format of the node body  
+   */
+  protected function getFormat() {
+    $body = field_get_items('node', $this->question, 'body');
+    return ($body ? $body[0]['format'] : NULL);
   }
 
   /**

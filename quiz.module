@@ -3011,7 +3011,7 @@ function _quiz_get_terms($vid) {
 function quiz_node_map($node, $include_question = TRUE) {
   $new_question = new stdClass();
   if ($include_question) {
-    $new_question->question = check_markup($node->body, $node->format);
+    $new_question->question = check_markup($node->body, $node->body['und'][0]['format']);
   }
   $new_question->title = $node->title;
   $new_question->nid = $node->nid;
@@ -3327,7 +3327,7 @@ function _quiz_get_summary_text($quiz, $score) {  $summary = array();
   if (!$admin) {
     if (!empty($score['result_option'])) {
       // Unscored quiz, return the proper result option.
-      $summary['result'] = check_markup($score['result_option']);
+      $summary['result'] = check_markup($score['result_option'], $quiz->body['und'][0]['format']);
     }
     else {
       $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
@@ -3344,7 +3344,7 @@ function _quiz_get_summary_text($quiz, $score) {  $summary = array();
     elseif (variable_get('quiz_use_passfail', 1) == 0) {
       // If there is only a single summary text, use this.
       if (trim($quiz->summary_default) != '') {
-        $summary['passfail'] = check_markup($quiz->summary_default, $quiz->format, FALSE);
+        $summary['passfail'] = check_markup($quiz->summary_default, $quiz->body['und'][0]['format']);
       }
     }
     elseif (trim($quiz->summary_pass) != '') {

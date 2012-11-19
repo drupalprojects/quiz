@@ -310,9 +310,15 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
   }
   */
 
+  /**
+   * The following code doesn't make any sense, since 
+   * the body is not fetched in the above SQL
+   * 
+   * From where is this function invoked?
+   */
   $questions = array();
   while ($question = $query->fetch()) {
-    $question->question = check_markup($question->body, $question->format, $langcode = '' /* TODO Set this variable. */, FALSE);
+    $question->question = check_markup($question->body, $question->body['und'][0]['format']);
     $questions[] = $question;
   }
   return $questions;

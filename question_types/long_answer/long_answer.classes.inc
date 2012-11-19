@@ -105,7 +105,7 @@ class LongAnswerQuestion extends QuizQuestion {
       $content['answers'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
-        '#markup' => '<div class="quiz-solution">' . check_markup($this->node->rubric) . '</div>',
+        '#markup' => '<div class="quiz-solution">' . check_markup($this->node->rubric, $this->getFormat()) . '</div>',
         '#weight' => 1,
       );
     }
