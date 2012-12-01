@@ -750,7 +750,7 @@ function quiz_insert($node) {
 function quiz_update($node) {
   _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
-  if ($node->revision) {
+  if (isset($node->revision) && $node->revision) {
     // Insert a new row in the quiz_node_properties table.
     $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
