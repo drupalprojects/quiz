@@ -144,7 +144,7 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
     ->fields(array(
       'score' => $score * $question_max_score / $quiz_max_score,
       'is_evaluated' => 1,
-      'answer_feedback' => $answer_feedback
+      'answer_feedback' => empty($answer_feedback) ? '' : $answer_feedback
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)

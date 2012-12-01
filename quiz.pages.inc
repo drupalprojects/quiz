@@ -165,7 +165,6 @@ function quiz_report_form_submit($form, &$form_state) {
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
-  $form_state['redirect'] = 'node/' . $quiz->nid . '/results';
 }
 
 /**
