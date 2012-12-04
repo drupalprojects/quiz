@@ -697,6 +697,21 @@ function quiz_insert($node) {
     quiz_copy_questions($node);
   }
 
+  // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
+  if ($node->is_new && isset($node->clone_from_original_nid)) {
+    $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
+    
+    $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid, TRUE, TRUE, FALSE, TRUE);
+  
+    // Format the current questions for referencing
+    foreach ($questions as $nid => $q) {
+      $questions[$nid]->state = $q->question_status;
+      $questions[$nid]->refresh = 0;
+    }
+    
+    quiz_set_questions($node, $questions);
+  }
+
   _quiz_common_presave_actions($node);
 
   // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
@@ -711,6 +726,7 @@ function quiz_insert($node) {
       'nid'                         => $node->nid,
       'aid'                         => !empty($node->aid) ? $node->aid : 0,
       'number_of_random_questions'  => $node->number_of_random_questions,
+      'max_score_for_random'        => $node->max_score_for_random,
       'randomization'               => $node->randomization,
       'backwards_navigation'        => $node->backwards_navigation,
       'repeat_until_correct'        => $node->repeat_until_correct,
@@ -3140,8 +3156,9 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
+    
+    node_save($quiz);
   }
-  node_save($quiz);
 
   // When node_save() calls all of the node API hooks, old quiz info is
   // automatically inserted into quiz_node_relationship. We could get clever and
