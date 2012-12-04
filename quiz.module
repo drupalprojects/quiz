@@ -117,6 +117,10 @@ function quiz_permission() {
     'score own quiz' => array(
       'title' => t('Score own quiz'),
     ),
+    'score taken quiz answer' => array(
+      'title' => t('score taken quiz answer'),
+      'description' => t('Allows attendee to score questions needing manual evaluation.'),
+    ),
     // Allow a quiz question to be viewed outside of a test.
     'view quiz question outside of a quiz' => array(
       'title' => t('View quiz question outside of a quiz'),
@@ -189,8 +193,8 @@ function quiz_access_results($quiz, $rid = NULL) {
   // If rid is set we must make sure the result belongs to the quiz we are
   // viewing results for.
   if (isset($rid)) {
-    $res = db_query('SELECT qnr.nid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
-    if ($res != $quiz->nid) {
+    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
+    if ($res && $res->nid != $quiz->nid) {
       return FALSE;
     }
   }
@@ -199,6 +203,12 @@ function quiz_access_results($quiz, $rid = NULL) {
   }
   if (user_access('view results for own quiz') && $user->uid == $quiz->uid) {
     return TRUE;
+  }
+  if (user_access('score taken quiz answer')) {
+    //check if the taken user is seeing his result
+    if (isset($rid) && $res && $res->uid == $user->uid) {
+      return TRUE;
+    }
   }
 }
 
@@ -252,6 +262,9 @@ function quiz_access_to_score($quiz_creator = NULL) {
     return TRUE;
   }
   if (user_access('score own quiz') && $user->uid == $quiz_creator) {
+    return TRUE;
+  }
+  if (user_access('score taken quiz answer')) {
     return TRUE;
   }
 }
@@ -536,15 +549,15 @@ function quiz_theme($existing, $type, $theme, $path) {
       'file' => 'quiz.pages.inc',
     ),
     'quiz_take_summary' => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => ''),
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => '', 'rid' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_admin_summary' => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'rid' => NULL),
       'file' => 'quiz.admin.inc',
     ),
     'quiz_user_summary' => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL),
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'rid' => NULL),
       'file' => 'quiz.pages.inc',
     ),
     'quiz_progress' => array(
@@ -1804,13 +1817,13 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
     }
     $insert_query->execute();
   }
-  
+
   /* Update terms if any */
   $result = db_select('quiz_terms', 'qt')
     ->fields('qt', array('nid', 'tid', 'weight', 'max_score', 'number'))
     ->condition('vid', $old_quiz_vid)
     ->execute();
-  // only proceed if query returned data    
+  // only proceed if query returned data
   if ($result->rowCount()) {
     $insert_query = db_insert('quiz_terms')
       ->fields(array('nid', 'vid', 'tid', 'weight', 'max_score', 'number'));
@@ -1821,12 +1834,12 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
         'tid' => $quiz_term['tid'],
         'weight' => $quiz_term['weight'],
         'max_score' => $quiz_term['max_score'],
-        'number' => $quiz_term['number'],        
+        'number' => $quiz_term['number'],
       ));
     }
     $insert_query->execute();
   }
-  
+
   /*$sql = "INSERT INTO {quiz_terms} (nid, vid, tid, weight, max_score, number)
           SELECT qt.nid, %d, qt.tid, qt.weight, qt.max_score, qt.number
           FROM {quiz_terms} qt
@@ -2142,8 +2155,15 @@ function quiz_take_quiz($quiz) {
     else {
       // Get the results and summary text for this quiz.
       $summary = _quiz_get_summary_text($quiz, $score);
+      $data = array(
+        'quiz' => $quiz,
+        'questions' => $questions,
+        'score' => $score,
+        'summary' => $summary,
+        'rid' => $_SESSION['quiz_' . $quiz->nid]['result_id'],
+      );
       // Get the themed summary page.
-      $content['body']['#markup'] = theme('quiz_take_summary', array('quiz' => $quiz, 'questions' => $questions, 'score' => $score, 'summary' => $summary));
+      $content['body']['#markup'] = theme('quiz_take_summary', $data);
     }
     if ($score['is_evaluated']) {
       _quiz_maintain_results($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
@@ -2378,7 +2398,7 @@ function quiz_end_scoring($quiz, $rid) {
 function quiz_end_actions($quiz, $score, $session_data) {
   // Call hook_quiz_finished().
   module_invoke_all('quiz_finished', $quiz, $score, $session_data);
-  
+
   // Lets piggy back here to perform the quiz defined action since were done
   // with this quiz.
   // We will verify that there is an associated action with this quiz and then
@@ -2390,7 +2410,7 @@ function quiz_end_actions($quiz, $score, $session_data) {
     // parameters and perform that function (action) for you.
     actions_do($quiz->aid, $quiz, $score, $session_data);
   }
-  
+
   return $score;
 }
 
@@ -2458,7 +2478,7 @@ function quiz_quiz_scored($quiz, $score, $rid) {
   if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
 
     //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT ti.tid 
+    $selected_tid = db_query("SELECT ti.tid
                 FROM {taxonomy_index} ti
                 JOIN {taxonomy_term_data} td
                   ON td.tid = ti.tid AND td.vid = :vid
@@ -2947,7 +2967,7 @@ function _quiz_build_categorized_question_list($quiz) {
   }
   $total_count = 0;
   foreach ($terms as $term) {
-    
+
     $query = db_select('node','n');
     $query->join('taxonomy_index','tn','n.nid = tn.nid');
     $query->fields('n', array('nid','vid'));
@@ -2960,9 +2980,9 @@ function _quiz_build_categorized_question_list($quiz) {
     }
     $query->range(0,$term->number);
     $query->orderBy('RAND()');
-    
+
     $result = $query->execute();
-    $count = 0; 
+    $count = 0;
     while ($question = $result->fetchAssoc()) {
       $count++;
       $question['tid'] = $term->tid;
@@ -2993,7 +3013,7 @@ function _quiz_get_terms($vid) {
     JOIN {taxonomy_term_data} td ON qt.tid = td.tid
     WHERE qt.vid = :vid
     ORDER BY qt.weight';
-  return db_query($sql, array(':vid' => $vid))->fetchAll(); 
+  return db_query($sql, array(':vid' => $vid))->fetchAll();
 }
 
 /**
@@ -3192,7 +3212,7 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
           AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
   $rids = array();
   while ($rid = $res->fetchField()) {
-    $rids[] = $rid; 
+    $rids[] = $rid;
   }
   quiz_delete_results($rids);
 }

@@ -30,7 +30,14 @@ function quiz_user_results($result_id) {
     $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
-    return theme('quiz_user_summary', array('quiz' => $quiz, 'questions' => $questions, 'score' => $score, 'summary' => $summary));
+    $data = array(
+      'quiz' => $quiz,
+      'questions' => $questions,
+      'score' => $score,
+      'summary' => $summary,
+      'rid' => $result_id,
+    );
+    return theme('quiz_user_summary', $data);
   }
   else {
     drupal_not_found();
@@ -116,6 +123,7 @@ function quiz_report_form_submit($form, &$form_state) {
   /* We go through the form state values and submit all
    * questiontypes with validation functions declared.
    */
+  global $user;
   foreach ($form_state['values'] as $key => $q_values) {
     // Questions has numeric keys in the report form
     if (!is_numeric($key)) {
@@ -132,7 +140,7 @@ function quiz_report_form_submit($form, &$form_state) {
 
     // Load the quiz
     if (!isset($quiz)) {
-      $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid']))->fetchObject();
+      $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid']))->fetchObject();
       $quiz = node_load($result->nid, $result->vid);
       $rid = $q_values['rid'];
     }
@@ -165,6 +173,11 @@ function quiz_report_form_submit($form, &$form_state) {
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
+  if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
+    if ($result && $result->uid == $user->uid) {
+      $form_state['redirect'] = 'node/' . $quiz->nid . '/results/' . $rid;
+    }
+  }
 }
 
 /**
@@ -275,7 +288,7 @@ function quiz_my_results($node) {
   $res = db_query('
     SELECT qnp.nid, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score
     FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid 
+    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     WHERE qnrs.uid = :uid AND qnrs.nid = :nid AND qnrs.is_evaluated = 1
     ORDER BY qnrs.result_id DESC',
     array(':uid' => $user->uid, ':nid' => $node->nid)
@@ -511,6 +524,7 @@ function theme_quiz_take_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
+  $rid =  $variables['rid'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 
@@ -518,7 +532,12 @@ function theme_quiz_take_summary($variables) {
   $output = '';
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
-      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
+      if (user_access('score taken quiz answer')) {
+        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+      }
+      else {
+        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
+      }
       drupal_set_message($msg, 'warning');
     }
     $output .= '<div id="quiz_score_possible">' . t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) . '</div>' . "\n";
@@ -559,12 +578,17 @@ function theme_quiz_user_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
+  $rid = $variables['rid'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 
   if (!$score['is_evaluated']) {
-    $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
-    drupal_set_message($msg, 'status');
+    if (user_access('score taken quiz answer')) {
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+    }
+    else {
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
+    }
   }
 
   // Display overall result.
