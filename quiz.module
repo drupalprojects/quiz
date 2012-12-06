@@ -1925,6 +1925,11 @@ function quiz_take_quiz($quiz) {
   elseif (isset($_SESSION['quiz_' . $quiz->nid]['question_duration']) && $_SESSION['quiz_' . $quiz->nid]['question_duration'] < -2) {
     // Timed quiz where the time has gone out 2 seconds ago. Do not store the users results...
   }
+  // Workaround to show question and feedback in separage pages, when the
+  // feedback time it set to show after each questions
+  elseif ($_POST['op'] == t('Next question')) {
+    drupal_goto("node/{$quiz->nid}/take");
+  }
   // We maintain two lists: previous questions and upcomming questions.
   // When we go backward, we pop one from the previous and prepend it to the
   // upcomming.
@@ -1964,9 +1969,14 @@ function quiz_take_quiz($quiz) {
       require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
       if ($report) {
         $report_form = drupal_get_form('quiz_report_form', array($report));
-        $_SESSION['quiz_' . $quiz->nid]['feedback'] = rawurlencode(drupal_render($report_form));
+        $report_form['op'] = array(
+          '#type' => 'submit',
+          '#value' => t('Next question'),
+        );
+        return $report_form;
       }
     }
+
     if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
       // If the question was answered incorrectly, repeat it
       if ($result && !$result->is_correct && $result->is_evaluated) {
