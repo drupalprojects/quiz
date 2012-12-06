@@ -1968,7 +1968,7 @@ function quiz_take_quiz($quiz) {
       $path = drupal_get_path('module', 'quiz');
       require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
       if ($report) {
-        $report_form = drupal_get_form('quiz_report_form', array($report));
+        $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, TRUE);
         $report_form['op'] = array(
           '#type' => 'submit',
           '#value' => t('Next question'),

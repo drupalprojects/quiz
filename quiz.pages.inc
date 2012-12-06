@@ -85,7 +85,7 @@ function quiz_report_form($form, $form_state, $questions, $showpoints = TRUE, $s
       '#type' => 'submit',
       '#submit' => array('quiz_report_form_submit'),
       '#validate' => array('quiz_report_form_validate'),
-      '#value' => t('Submit'),
+      '#value' => t('Save Score'),
     );
   }
   return $form;
