@@ -1875,7 +1875,7 @@ function quiz_take_quiz($quiz) {
 
   // Make sure we use the same revision of the quiz throughout the quiz taking
   // session.
-  if (isset($_SESSION['quiz_' . $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_' . $quiz->nid]['quiz_vid']) {
+  if (isset($_SESSION['quiz_' . $quiz->nid]['quiz_vid']) && $quiz->vid != $_SESSION['quiz_' . $quiz->nid]['quiz_vid'] && variable_get('quiz_auto_revisioning')) {
     $quiz = node_load($quiz->nid, $_SESSION['quiz_' . $quiz->nid]['quiz_vid']);
   }
 
