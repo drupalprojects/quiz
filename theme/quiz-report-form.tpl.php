@@ -21,11 +21,8 @@
 $p = drupal_get_path('module', 'quiz') .'/theme/';
 $q_image = $p. 'question_bg.png';
 ?>
-
 <h2><?php print t('Question Results');?></h2>
-
-<dl class="quiz-report">
-
+<div class="quiz-report">
 <?php
 foreach ($form as $key => $sub_form):
   if (!is_numeric($key) || isset($sub_form['#no_report'])) continue;
@@ -33,30 +30,25 @@ foreach ($form as $key => $sub_form):
   $c_class = ($sub_form['#is_evaluated']) ? ($sub_form['#is_correct']) ? 'q-correct' : 'q-wrong' : 'q-waiting';
   $skipped = $sub_form['#is_skipped'] ? '<span class="quiz-report-skipped">'. t('(skipped)') .'</span>' : ''?>
 
-	<dt>
+	<div class="dt">
 	  <div class="quiz-report-score-container <?php print $c_class?>">
 	  	<span>
 	      <?php print t('Score')?>
-		  <?php print drupal_render($sub_form['score'])?>
-		  <?php print t('of') .' '. $sub_form['max_score']['#value']?>
-		  <?php print '<br><em>'. $skipped .'</em>'?>
-		</span>
-      </div>
-
+        <?php print drupal_render($sub_form['score'])?>
+        <?php print t('of') .' '. $sub_form['max_score']['#value']?>
+        <?php print '<br><em>'. $skipped .'</em>'?>
+      </span>
+    </div>
 	  <p class="quiz-report-question"><strong><?php print t('Question')?>: </strong></p>
 	  <?php print drupal_render($sub_form['question']);?>
-	</dt>
-
-    <dd>
-	  <p><strong><?php print t('Response')?>: </strong></p>
-      <?php print drupal_render($sub_form['response']); ?>
-    </dd>
-
-    <dd>
-      <?php print drupal_render($sub_form['answer_feedback']); ?>
-    </dd>
-
+	</div>
+  <div class="dd">
+    <p><strong><?php print t('Response')?>: </strong></p>
+    <?php print drupal_render($sub_form['response']); ?>
+  </div>
+  <div class="dd">
+    <?php print drupal_render($sub_form['answer_feedback']); ?>
+  </div>
 <?php endforeach; ?>
-</dl>
-
-<div style="float:right;"><?php print drupal_render_children($form);?></div>
+</div>
+<div class="quiz-score-submit"><?php print drupal_render_children($form);?></div>
