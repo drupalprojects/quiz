@@ -214,7 +214,7 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 1,      
+        'default' => 1,
       ),
     ),
     'primary key' => array('vid'),
@@ -310,12 +310,12 @@ function quiz_schema() {
       ),
       'time_start' => array(
         'type' => 'int',
-        'unsigned' => TRUE,
+        'unsigned' => FALSE,
         'default' => 0,
       ),
       'time_end' => array(
         'type' => 'int',
-        'unsigned' => TRUE,
+        'unsigned' => FALSE,
         'default' => 0,
       ),
       'released' => array(
@@ -673,13 +673,13 @@ function quiz_schema() {
  */
 
 // should have been named quiz_update_7400
-function quiz_update_7100(&$sandbox) {  
+function quiz_update_7100(&$sandbox) {
   db_add_field('quiz_node_properties', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
   return t('Show passed field added to quiz config.');
 }
 
 // should have been named quiz_update_7401
-function quiz_update_7101(&$sandbox) {  
+function quiz_update_7101(&$sandbox) {
   db_add_field('quiz_user_settings', 'show_passed', array('type' => 'int', 'not null' => TRUE,'default' => 1,'size' => 'tiny'));
   return t('Done !');
 }
@@ -690,10 +690,10 @@ function quiz_update_7101(&$sandbox) {
 function quiz_update_7402(&$sandbox) {
   if (!db_field_exists('quiz_node_properties', 'summary_pass_format')) {
     db_add_field('quiz_node_properties', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
-    db_add_field('quiz_node_properties', 'summary_default_format', array('type' => 'varchar', 'length' => 255)); 
+    db_add_field('quiz_node_properties', 'summary_default_format', array('type' => 'varchar', 'length' => 255));
     db_add_field('quiz_node_result_options', 'option_summary_format', array('type' => 'varchar', 'length' => 255));
     db_add_field('quiz_user_settings', 'summary_pass_format', array('type' => 'varchar', 'length' => 255));
-    db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255)); 
+    db_add_field('quiz_user_settings', 'summary_default_format', array('type' => 'varchar','length' => 255));
   }
   return t("Added new format fields to the tables if they didn't already exist.");
 }
@@ -707,10 +707,10 @@ function quiz_update_7403() {
   db_add_index('quiz_node_relationship', 'child_id', array('child_vid'));
 }
 
-/** 
+/**
  * Increase the maximum quiz size
  */
-function quiz_update_7404() {  
+function quiz_update_7404() {
   $results[] = db_change_field('quiz_node_properties', 'number_of_random_questions', 'number_of_random_questions', array(
     'type' => 'int',
     'size' => 'small',
@@ -728,6 +728,19 @@ function quiz_update_7404() {
   return $results;
 }
 
+/**
+ * Change the attribute of time_start and time_end fields in quiz_node_results table to singed.
+ */
+function quiz_update_7405() {
+  $spec = array(
+    'type' => 'int',
+    'unsigned' => FALSE,
+    'default' => 0,
+  );
+  db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
+  db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
+  return t('Changed the attribute of time_start and time_end fields in quiz_node_results table to signed.');
+}
 
 /**
  * Implements hook_uninstall().
