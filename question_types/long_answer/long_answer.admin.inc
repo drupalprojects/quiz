@@ -11,7 +11,7 @@
  * @see theme_long_answer_view_unscored()
  */
 function long_answer_view_unscored() {
-  $unscored = long_answer_get_all_unscored_answers();
+  $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
   return theme('long_answer_view_unscored', array('unscored' => $unscored));
 }
 
@@ -113,7 +113,7 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
     '#description' => t('The text entered here would be shown to attendees'),
     '#default_value' => $answer->answer_feedback,
   );
-  
+
   $form['score_answer']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save this score'),

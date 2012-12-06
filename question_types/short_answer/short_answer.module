@@ -39,7 +39,7 @@ function short_answer_menu() {
     'title' => 'Score short answer questions',
     'description' => 'Score the answers from quizzes that use short answer questions.',
     'page callback' => 'short_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'short_answer.admin.inc',

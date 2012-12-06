@@ -31,7 +31,7 @@ function long_answer_menu() {
     'title' => 'Score long answer questions',
     'description' => 'Score the answers from quizzes that use long answer questions.',
     'page callback' => 'long_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz'),
+    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
     'access callback' => 'quiz_access_multi_or',
     'type' => MENU_NORMAL_ITEM,
     'file' => 'long_answer.admin.inc',
@@ -247,23 +247,7 @@ function long_answer_get_unscored_answers_by_question($nid, $vid, $count = 50, $
  *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
  */
 function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
-  $query = db_select('quiz_long_answer_user_answers', 'a');
-  $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback'));
-  $query->fields('r', array('title'));
-  $query->fields('qnr', array('time_end', 'time_start', 'uid'));
-  $query->join('node_revision', 'r', 'a.question_vid = r.vid');
-  $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
-  $query->join('node', 'n', 'qnr.nid = n.nid');
-  $query->condition('a.is_evaluated', 0);
-
-  if (!user_access('score any quiz')) {
-    $query->condition('n.uid', $_GLOBALS['user']->uid);
-  }
-
-  $unscored = array();
-  foreach ($query->execute() as $result) {
-    $unscored[] = $result;
-  }
+  $unscored = LongAnswerResponse::fetchAllUnscoredAnswers();
   return $unscored;
 }
 

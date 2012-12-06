@@ -277,9 +277,16 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     $query->join('node', 'n', 'qnr.nid = n.nid');
     $query->condition('a.is_evaluated', 0);
 
-    if (!user_access('score any quiz')) {
+    if (user_access('score own quiz') && user_access('score taken quiz answer')) {
+      $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
+    }
+    else if (user_access('score own quiz')) {
       $query->condition('n.uid', $user->uid);
     }
+    else if (user_access('score taken quiz answer')) {
+      $query->condition('qnr.uid', $user->uid);
+    }
+
     $results = $query->execute();
     $unscored = array();
     foreach ($results as $row) {

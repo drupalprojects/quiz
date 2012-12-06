@@ -188,12 +188,25 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
-    $results = db_query('SELECT a.result_id, a.question_nid, a.question_vid, a.answer_feedback, r.title, n.time_end, n.time_start, n.uid
-      FROM {quiz_long_answer_user_answers} AS a
-      INNER JOIN {node_revision} AS r ON a.question_vid = r.vid
-      INNER JOIN {quiz_node_results} AS qnr ON a.result_id = qnr.result_id
-      JOIN {node} n ON qnr.nid = n.nid
-      WHERE a.is_evaluated = :is_evaluated', array(':is_evaluated' => 0));
+    global $user;
+    $query = db_select('quiz_long_answer_user_answers', 'a');
+    $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback'));
+    $query->fields('r', array('title'));
+    $query->fields('qnr', array('time_end', 'time_start', 'uid'));
+    $query->join('node_revision', 'r', 'a.question_vid = r.vid');
+    $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
+    $query->join('node', 'n', 'qnr.nid = n.nid');
+    $query->condition('a.is_evaluated', 0);
+    if (user_access('score own quiz') && user_access('score taken quiz answer')) {
+      $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
+    }
+    else if (user_access('score own quiz')) {
+      $query->condition('n.uid', $user->uid);
+    }
+    else if (user_access('score taken quiz answer')) {
+      $query->condition('qnr.uid', $user->uid);
+    }
+    $results = $query->execute();
     $unscored = array();
     foreach ($results as $row) {
       $unscored[] = $row;

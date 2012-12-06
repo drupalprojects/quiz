@@ -137,6 +137,12 @@ function quiz_question_access_to_score($vid, $rid) {
   if (user_access('score any quiz')) {
     return TRUE;
   }
+  if (user_access('score taken quiz answer')) {
+    $uid = db_query('SELECT uid from {quiz_node_results} qnr WHERE qnr.result_id = :result_id', array(':result_id' => $rid))->fetchField();
+    if($uid == $user->uid) {
+      return TRUE;
+    }
+  }
   if (user_access('score own quiz')) {
     return db_query('SELECT r.uid FROM {node_revision} r
             JOIN {quiz_node_results} qnr ON (r.nid = qnr.nid)
@@ -311,9 +317,9 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
   */
 
   /**
-   * The following code doesn't make any sense, since 
+   * The following code doesn't make any sense, since
    * the body is not fetched in the above SQL
-   * 
+   *
    * From where is this function invoked?
    */
   $questions = array();
