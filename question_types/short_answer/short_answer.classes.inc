@@ -144,6 +144,7 @@ class ShortAnswerQuestion extends QuizQuestion {
       '#size' => 60,
       '#maxlength' => 256,
       '#required' => FALSE,
+      '#attributes' => array('autocomplete' => 'off'),
     );
 
     if (isset($rid)) {
