@@ -607,7 +607,8 @@ function theme_quiz_user_summary($variables) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
   // Get the feedback for all questions.
-  $output .= drupal_render(drupal_get_form('quiz_report_form', $questions, FALSE, TRUE));
+  $form = drupal_get_form('quiz_report_form', $questions, FALSE, TRUE);
+  $output .= drupal_render($form);
   return $output;
 }
 
