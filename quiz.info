@@ -19,6 +19,7 @@ files[] = includes/views/handlers/quiz_views_handler_field_number_questions.inc
 files[] = includes/views/handlers/quiz_views_handler_field_question_status.inc
 files[] = includes/views/handlers/quiz_views_handler_field_score_aggregate.inc
 files[] = includes/views/handlers/quiz_views_handler_field_takes.inc
+files[] = includes/views/handlers/quiz_views_handler_field_node_link_take.inc
 files[] = includes/views/handlers/quiz_views_handler_field_time.inc
 files[] = includes/views/handlers/quiz_views_handler_field_user_quiz_state.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_question_status.inc
