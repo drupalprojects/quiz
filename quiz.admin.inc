@@ -833,7 +833,7 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
     '#type' => 'fieldset',
     '#title' => t('Create new question'),
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
+    '#collapsed' => TRUE,
   );
 
   $url_query = drupal_get_destination();
