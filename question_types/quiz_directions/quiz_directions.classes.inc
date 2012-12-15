@@ -160,7 +160,7 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
    *
    * @see QuizQuestionResponse#getReportForm($showpoints, $showfeedback, $allow_scoring)
    */
-  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE) {
+  public function getReportForm($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return array(
       '#no_report' => TRUE,
     );
