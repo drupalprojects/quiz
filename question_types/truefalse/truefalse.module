@@ -77,3 +77,24 @@ function theme_truefalse_response($variables) {
   $data = $variables['data'];
   return theme('table', array('header' => $metadata, 'rows' => $data));
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function truefalse_field_extra_fields() {
+  $extra['node']['truefalse'] = array(
+    'form' => array(
+      'correct_answer' => array(
+        'label' => t('Correct answer'),
+        'description' => t('The answer for this question.'),
+        'weight' => -4,
+      ),
+      'feedback_fields' => array(
+        'label' => t('Feedback Settings'),
+        'description' => t('Settings pertaining to feedback given along with results.'),
+        'weight' => -4,
+      ),
+    ),
+  );
+  return $extra;
+}

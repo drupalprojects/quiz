@@ -291,3 +291,19 @@ function long_answer_report_validate($values, $form_key) {
     form_set_error($form_key . '][score', t('The score needs to be a number between @min and @max', array('@min' => 0, '@max' => $max)));
   }
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function long_answer_field_extra_fields() {
+  $extra['node']['long_answer'] = array(
+    'form' => array(
+      'rubric' => array(
+        'label' => t('Rubric'),
+        'description' => t('Specify the criteria for grading the response'),
+        'weight' => -4,
+      ),
+    ),
+  );
+  return $extra;
+}
