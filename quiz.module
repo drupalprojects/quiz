@@ -3649,44 +3649,6 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
   return $questions;
 }
 
-
-/**
- * Get all results, or results for a given user and/or quiz.
- *
- * @param $nid
- *   Node ID for the quiz.
- * @param $uid
- *   Optional user ID to constrain results to just that user.
- *
- * @return
- *   A list of results.
- */
-function _quiz_get_results($nid = '', $uid = 0) {
-  $results = array();
-  $args = array();
-  $sql = "SELECT n.nid, n.title, u.name, u.uid, qnrs.result_id, qnrs.score, qnrs.time_start, qnrs.time_end, qnp.pass_rate
-          FROM {node} n
-          INNER JOIN {quiz_node_results} qnrs ON qnrs.nid = n.nid
-          INNER JOIN {users} u ON u.uid = qnrs.uid
-          INNER JOIN {quiz_node_properties} qnp ON qnrs.vid = qnp.vid
-          WHERE n.type = 'quiz'";
-  if ($nid) {
-    $sql .= " AND qnrs.nid = %d";
-    $args[] = $nid;
-  }
-  if ($uid != 0) {
-    $sql .= " AND qnrs.uid = %d";
-    $args[] = $uid;
-  }
-  $sql .= " ORDER BY qnrs.result_id DESC";
-  // TODO Please convert this statement to the D7 database API syntax.
-  $dbresult = db_query(db_rewrite_sql($sql), $args);
-  while ($line = db_fetch_array($dbresult)) {
-    $results[$line['result_id']] = $line;
-  }
-  return $results;
-}
-
 /**
  * Get a list of all available quizzes.
  *
