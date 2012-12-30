@@ -102,3 +102,19 @@ function matching_theme() {
 
   );
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function matching_field_extra_fields() {
+  $extra['node']['matching'] = array(
+    'form' => array(
+      'match' => array(
+        'label' => t('Answer'),
+        'description' => t('The sets of matches for this question.'),
+        'weight' => -4,
+      ),
+    ),
+  );
+  return $extra;
+}

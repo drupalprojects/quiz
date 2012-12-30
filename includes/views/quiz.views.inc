@@ -15,6 +15,9 @@ function quiz_views_handlers() {
       'quiz_views_handler_field_takes' => array(
         'parent' => 'views_handler_field',
       ),
+      'quiz_views_handler_field_node_link_take' => array(
+        'parent' => 'views_handler_field_node_link',
+      ),
       'quiz_views_handler_field_time' => array(
         'parent' => 'views_handler_field',
       ),
@@ -267,6 +270,15 @@ function quiz_views_data() {
       'argument' => array(
         'handler' => 'views_handler_argument_numeric',
         'numeric' => TRUE,
+      ),
+      'sort' => array('handler' => 'views_handler_sort'),
+    ),
+    'take' => array(
+      'field' => array(
+        'title' => t('Take quiz link'),
+        'help' => t('Allows users to take the quiz if available.'),
+        'handler' => 'quiz_views_handler_field_node_link_take',
+        'click sortable' => TRUE,
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),

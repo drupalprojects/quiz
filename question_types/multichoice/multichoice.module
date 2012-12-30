@@ -84,10 +84,11 @@ function multichoice_config_validate($form, $form_state) {
  * Implements hook_theme().
  */
 function multichoice_theme($existing, $type, $theme, $path) {
+  $path = drupal_get_path('module', 'multichoice') . '/theme';
   return array(
     'multichoice_creation_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_answer_node_view' => array(
@@ -95,29 +96,29 @@ function multichoice_theme($existing, $type, $theme, $path) {
         'alternatives' => NULL,
         'show_correct' => NULL,
       ),
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_response' => array(
       'variables' => array(
         'data' => array(),
       ),
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'file' => 'multichoice.theme.inc',
     ),
     'multichoice_alternative_creation' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'template' => 'multichoice-alternative-creation',
     ),
     'multichoice_answering_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'template' => 'multichoice-answering-form',
     ),
     'multichoice_alternative' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'multichoice') . '/theme',
+      'path' => $path,
       'template' => 'multichoice-alternative',
     ),
   );

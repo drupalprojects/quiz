@@ -227,3 +227,19 @@ function short_answer_get_answer($question_nid, $question_vid, $result_id) {
     WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $results ? $results : FALSE;
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function short_answer_field_extra_fields() {
+  $extra['node']['short_answer'] = array(
+    'form' => array(
+      'answer' => array(
+        'label' => t('Answer'),
+        'description' => t('Provide the answer and the method by which the answer will be evaluated.'),
+        'weight' => -4,
+      ),
+    ),
+  );
+  return $extra;
+}
