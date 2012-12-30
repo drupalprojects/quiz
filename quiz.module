@@ -315,15 +315,6 @@ function quiz_element_info() {
   return $types;
 }
 */
-/**
- * Implements hook_init().
- *
- * Add quiz-specific styling.
- */
-function quiz_init() {
-  // @todo Use form api #attached
-  drupal_add_css(drupal_get_path('module', 'quiz') . '/quiz.css');
-}
 
 /*
  * Implementation of hook_cron().

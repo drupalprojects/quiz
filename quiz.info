@@ -4,6 +4,9 @@ description = "Create interactive, multipage quizzes. This module must have at l
 dependencies[] = taxonomy
 core = 7.x
 
+; Always available CSS
+stylesheets[all][] = quiz.css
+
 ; This is (or should be) recommended, but not required.
 ;dependencies[] = jquery_countdown
 
@@ -19,6 +22,7 @@ files[] = includes/views/handlers/quiz_views_handler_field_number_questions.inc
 files[] = includes/views/handlers/quiz_views_handler_field_question_status.inc
 files[] = includes/views/handlers/quiz_views_handler_field_score_aggregate.inc
 files[] = includes/views/handlers/quiz_views_handler_field_takes.inc
+files[] = includes/views/handlers/quiz_views_handler_field_node_link_take.inc
 files[] = includes/views/handlers/quiz_views_handler_field_time.inc
 files[] = includes/views/handlers/quiz_views_handler_field_user_quiz_state.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_question_status.inc
