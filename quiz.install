@@ -216,6 +216,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'mark_doubtful' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('vid'),
     // 'unique keys' => array('vid'),
@@ -366,7 +372,7 @@ function quiz_schema() {
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-    ),
+      ),
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -413,6 +419,12 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 1,
+      ),
+      'is_doubtful' => array(
+	'type' => 'int',
+	'not null' => TRUE,
+	'default'=> 0,
+	'size'=> 'tiny'
       ),
     ),
     'primary key' => array('result_id', 'question_nid', 'question_vid'),
@@ -741,6 +753,22 @@ function quiz_update_7405() {
   db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
   return t('Removed unsigned attribute from field time_start and time_end in quiz_node_results table');
 }
+
+/**
+ * Adding columns mark answers as doubtful
+ */
+function quiz_update_7406(&$sandbox) {
+  $spec = array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default'=> 0,
+    'size'=> 'tiny'
+  );
+  db_add_field('quiz_node_results_answers','is_doubtful', $spec);
+  db_add_field('quiz_node_properties', 'mark_doubtful', $spec);
+  return t('Added new format fields to the tables');
+}
+
 
 /**
  * Implements hook_uninstall().

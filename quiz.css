@@ -1,6 +1,3 @@
-
-
-
 /*
  * Definitions that apply while viewing questions
  */
@@ -250,5 +247,82 @@ input.q-skip-button:hover, input#edit-back:hover {
 #quiz-categorized-form #autocomplete {
   overflow: auto;
   max-height: 300px;
+}
+
+.mark-doubtful .toggle {
+  margin: auto;
+  position: relative;
+  width: 100px;
+  overflow: hidden;
+  height: 18px;
+  line-height: 18px;
+  font-size: 11px;
+  text-align: center;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  -khtml-border-radius: 3px;
+  border-radius: 3px;
+  -moz-box-shadow: 0 0 10px rgba(0,0,0,0.50) inset;
+  -webkit-box-shadow: 0 0 10px rgba(0,0,0,0.50) inset;
+  box-shadow: 0 0 10px rgba(0,0,0,0.50) inset;
+}
+
+.mark-doubtful .toggle.off {
+  background-clip: padding-box;
+  background-image: -webkit-gradient(linear, 0% 0%, 100% 0%, color-stop(50%, red), color-stop(50%, white), color-stop(100%, white));
+  background-image: -moz-linear-gradient(left, red 50%, white 50%, white 100%);
+  background-image: linear-gradient(left, red 50%, white 50%, white 100%);
+}
+
+.mark-doubtful .toggle {
+  background-image: -webkit-gradient(linear, 0% 0%, 100% 0%, color-stop(50%, white), color-stop(50%, green), color-stop(100%, green));
+  background-image: -moz-linear-gradient(left, white 50%, green 50%, green 100%);
+  background-image: linear-gradient(left, white 50%, green 50%, green 100%);
+}
+
+.mark-doubtful .toggle div {
+  position: relative;
+  color: #777;
+  width: 52px;
+  -moz-border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -khtml-border-radius: 2px;
+  border-radius: 2px;
+  background: white;
+  text-shadow: 1px 1px 0 white;
+  background-image: -webkit-gradient(linear, 0% 0%, 0% 100%, color-stop(0%, #FEFEFE), color-stop(100%, #EAEAEA));
+  background-image: -moz-linear-gradient(top, #FEFEFE 0%, #EAEAEA 100%);
+  background-image: linear-gradient(top, #FEFEFE 0%, #EAEAEA 100%);
+  -webkit-transition: left 0.2s;
+  -mox-transition: left 0.2s;
+  -o-transition: left 0.2s;
+  transition: left 0.2s;
+}
+
+
+.mark-doubtful .toggle div:after,
+.mark-doubtful .toggle div:before {
+  color: white;
+  text-shadow: none;
+  width: 50px;
+  position: absolute;
+  top: 0;
+  font-size: 9px;
+  font-weight: bold;
+}
+
+.mark-doubtful .toggle div:before {
+  content: "Doubtful";
+  left: -48px;
+}
+
+.mark-doubtful .toggle div:after {
+  content: "Clear";
+  right: -48px;
+}
+.mark-doubtful .toggle.off div {
+  left: 48px;
 }
 

@@ -742,7 +742,8 @@ function quiz_insert($node) {
       'allow_skipping'              => $node->allow_skipping,
       'allow_resume'                => $node->allow_resume,
       'allow_jumping'               => $node->allow_jumping,
-      'show_passed'                 => $node->show_passed
+      'show_passed'                 => $node->show_passed,
+      'mark_doubtful'		    => $node->mark_doubtful
     ))
     ->execute();
 
@@ -799,7 +800,8 @@ function quiz_update($node) {
         'allow_skipping'              => $node->allow_skipping,
         'allow_resume'                => $node->allow_resume,
         'allow_jumping'               => $node->allow_jumping,
-        'show_passed'                 => $node->show_passed
+        'show_passed'                 => $node->show_passed,
+        'mark_doubtful'		      => $node->mark_doubtful
        ))
       ->condition('vid', $node->vid)
       ->condition('nid', $node->nid)
@@ -933,6 +935,7 @@ function _quiz_get_node_defaults() {
     'show_passed' => 1,
     'quiz_open' => _quiz_form_prepare_date(),
     'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
+    'mark_doubtful' => 0,
   );
 }
 
@@ -968,7 +971,6 @@ function quiz_load($nodes) {
     $fetched_additions = (array) $query->execute()->fetch();
 
     $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
-
     // Fetching result options.
     $query = db_select('quiz_node_result_options', 'qnro');
     $query->fields('qnro');
@@ -1139,7 +1141,12 @@ function quiz_form(&$node, &$form_state) {
     '#default_value' => $node->repeat_until_correct,
     '#description' => t('Require the user to re-try the question until they answer it correctly.'),
   );
-
+  $form['taking']['mark_doubtful'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Mark Doubtful'),
+    '#default_value' => $node->mark_doubtful,
+    '#description' => t('Allow user to mention if they are not sure about the answer'),
+  );
   $form['taking']['show_passed'] = array(
     '#type' => 'checkbox',
     '#title' => t('Show passed status'),
@@ -2335,6 +2342,7 @@ function quiz_store_question_result($quiz, $result, $options) {
         'points_awarded' => $points,
         'answer_timestamp' => REQUEST_TIME,
         'is_skipped' => (int) $result->is_skipped,
+        'is_doubtful' => (int) $result->is_doubtful,
         'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
       ));
 
@@ -2346,7 +2354,7 @@ function quiz_store_question_result($quiz, $result, $options) {
   }
   else {
      $insert = db_insert('quiz_node_results_answers')
-      ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped',    'number', 'tid'))
+      ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped', 'is_doubtful', 'number', 'tid'))
       ->values(array(
         'question_nid' => $result->nid,
         'question_vid' => $result->vid,
@@ -2355,6 +2363,7 @@ function quiz_store_question_result($quiz, $result, $options) {
         'points_awarded' => $points,
         'answer_timestamp' => REQUEST_TIME,
         'is_skipped' => (int) $result->is_skipped,
+        'is_doubtful' => (int) $result->is_doubtful,
         'number' => $options['question_data']['number'],
         'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
       ))

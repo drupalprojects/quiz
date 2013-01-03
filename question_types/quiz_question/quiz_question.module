@@ -183,6 +183,23 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
 
   $is_last = _quiz_is_last_question();
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
+  if ($quiz->mark_doubtful) {
+    $form['is_doubtful'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('doubtful'),
+      '#weight' => 1,
+      '#prefix' => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
+      '#suffix' => '</div>',
+      '#default_value' => 0,
+      '#attached' => array(
+	'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
+      ),
+    );
+    if (isset($node->rid)) {
+      $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->rid, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
+    }
+  }
+
   if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
     $form['navigation']['back'] = array(
       '#type' => 'submit',
@@ -280,7 +297,12 @@ function quiz_question_skip_question($question, $result_id) {
   $response->vid = $question->vid;
   $response->rid = $result_id;
   $response->is_skipped = TRUE;
-
+  if (isset($_POST['is_doubtful'])) {
+    $response->is_doubtful = $_POST['is_doubtful'];
+  }
+  else {
+    $response->is_doubtful = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question->nid, ':question_vid' => $question->vid))->fetchField();
+  }
   return $response;
 }
 

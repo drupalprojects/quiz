@@ -615,9 +615,9 @@ abstract class QuizQuestion {
     $may_view_answers = in_array(TRUE, $results);
     return $may_view_answers;
   }
-  
+
   /**
-   * Utility function that returns the format of the node body  
+   * Utility function that returns the format of the node body
    */
   protected function getFormat() {
     $body = field_get_items('node', $this->question, 'body');
@@ -642,6 +642,7 @@ abstract class QuizQuestionResponse {
   protected $answer = NULL;
   protected $score;
   public $is_skipped;
+  public $is_doubtful;
 
   /**
    * Create a new user response.
@@ -658,8 +659,12 @@ abstract class QuizQuestionResponse {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
-    $this->is_skipped = db_query('SELECT is_skipped FROM {quiz_node_results_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetchField();
+    $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetch();
+    if (is_object($result)) {
+      $this->is_doubtful = $result->is_doubtful;
+      $this->is_skipped = $result->is_skipped;
+    }
   }
 
   /**
@@ -748,6 +753,7 @@ abstract class QuizQuestionResponse {
     $obj->is_correct = (int) $this->isCorrect();
     $obj->is_evaluated = $this->isEvaluated();
     $obj->is_skipped = 0;
+    $obj->is_doubtful = isset($_POST['is_doubtful']) ? $_POST['is_doubtful'] : 0;
     $obj->is_valid = $this->isValid();
     return $obj;
   }
@@ -929,9 +935,9 @@ abstract class QuizQuestionResponse {
     $this->is_skipped = FALSE;
     $this->save();
   }
-  
+
   /**
-   * Utility function that returns the format of the node body  
+   * Utility function that returns the format of the node body
    */
   protected function getFormat() {
     $body = field_get_items('node', $this->question, 'body');
