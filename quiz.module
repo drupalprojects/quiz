@@ -819,6 +819,18 @@ function quiz_update($node) {
  */
 function quiz_field_extra_fields() {
   $extra['node']['quiz'] = array(
+    'display' => array(
+      'take' => array(
+        'label' => t('Take quiz button'),
+        'description' => t('The take button.'),
+        'weight' => 10,
+      ),
+      'stats' => array(
+	'label' => t('Quiz summary'),
+	'description' => t('Quiz summary'),
+	'weight' => 9,
+      ),
+    ),
     'form' => array(
       'taking' => array(
         'label' => t('Taking options'),
