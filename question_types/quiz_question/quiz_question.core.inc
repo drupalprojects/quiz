@@ -260,7 +260,7 @@ abstract class QuizQuestion {
         );
       }
     }
-    if (quiz_access_multi_or('create quiz', 'administer nodes')) {
+    if (quiz_access_multi_or('create quiz content', 'administer nodes')) {
       $form['add_directly']['new'] = array(
         '#type' => 'textfield',
         '#title' => t('Title for new @quiz', array('@quiz' => QUIZ_NAME)),

@@ -154,15 +154,6 @@ function quiz_permission() {
 }
 
 /**
- * Implements hook_node_access().
- */
-function quiz_node_access($node, $op, $account) {
-  // successor of hook_access(), intentionally left empty as 'create quiz', 'edit any quiz',
-  // 'edit own quiz', 'delete own quiz' and 'delete any quiz' permissions
-  // are taken care by node module.
-}
-
-/**
  * Implements hook_admin_paths().
  */
 function quiz_admin_paths() {
@@ -501,14 +492,14 @@ function quiz_menu() {
   $items['node/%node/questions/browser_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_browser_ahah',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
+    'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
   $items['node/%node/questions/term_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_categorized_term_ahah',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
+    'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
