@@ -425,7 +425,12 @@ function theme_quiz_my_results_for_quiz($variables) {
  * @ingroup themeable
  */
 function theme_quiz_score_correct() {
-  return theme('image', array('path' => drupal_get_path('module', 'quiz') . '/images/correct.gif', 'width' => t('correct')));
+  $variables = array(
+    'path' => drupal_get_path('module', 'quiz') . '/images/correct.gif',
+    'alt' => t('correct'),
+    'title' => t('correct'),
+  );
+  return theme('image', $variables);
 }
 
 /**
@@ -434,7 +439,12 @@ function theme_quiz_score_correct() {
  * @ingroup themeable
  */
 function theme_quiz_score_incorrect() {
-  return theme('image', array('path' => drupal_get_path('module', 'quiz') . '/images/incorrect.gif', 'width' => t('incorrect')));
+  $variables = array(
+    'path' => drupal_get_path('module', 'quiz') . '/images/incorrect.gif',
+    'alt' => t('incorrect'),
+    'title' => t('incorrect'),
+  );
+  return theme('image', $variables);
 }
 
 /**
