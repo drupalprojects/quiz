@@ -2661,6 +2661,7 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
+  $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $quizzes_to_update, ':max_score' => 0))->fetchCol();
   db_update('quiz_node_results')
     ->expression('score',
       'ROUND(
@@ -2674,7 +2675,7 @@ function quiz_update_max_score_properties($quizzes_to_update) {
           WHERE qnp.vid = {quiz_node_results}.vid
         )
       )')
-    ->condition('vid', $quizzes_to_update, 'IN')
+    ->condition('vid', $results_to_update, 'IN')
     ->execute();
 }
 
