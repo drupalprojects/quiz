@@ -87,7 +87,7 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
   $form['revise_expl'] = array(
     '#type' => 'item',
     '#title' => t('Revise'),
-    '#value' => t('If a quiz has been answered you should make a new revision to ensure that excisting answer statistics and reports remain correct.'),
+    '#value' => t('If a quiz has been answered you should make a new revision to ensure that existing answer statistics and reports remain correct.'),
     '#description' => t('If the new revision of the question only correct spelling errors etc. you don\'t need to revise.'),
   );
   return $form;
