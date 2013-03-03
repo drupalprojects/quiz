@@ -103,7 +103,7 @@ function scale_config() {
     '#title' => t('Maximum number of alternatives allowed'),
     '#default_value' => variable_get('scale_max_num_of_alts', 10),
   );
-  $form['#validate'] = 'scale_config_validate';
+  $form['#validate'][] = 'scale_config_validate';
   return $form;
 }
 

@@ -56,7 +56,7 @@ function matching_config() {
     '#default_value' => variable_get('quiz_matching_shuffle_options', TRUE),
     '#description' => t('If checked matching questions will be shuffled'),
   );
-  $form['#validate'] = 'matching_config_validate';
+  $form['#validate'][] = 'matching_config_validate';
   return $form;
 }
 

@@ -223,7 +223,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
-    return 5;
+    return variable_get('short_answer_default_max_score', 5);
   }
 
   /**

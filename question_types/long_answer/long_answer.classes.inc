@@ -166,7 +166,7 @@ class LongAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#getMaximumScore()
    */
   public function getMaximumScore() {
-    return 10;
+    return variable_get('long_answer_default_max_score', 10);
   }
 
 }
