@@ -118,7 +118,7 @@ class ScaleQuestion extends QuizQuestion {
     }
 
     // If an identical answer collection already exists
-    if ($answer_collection_id = $this->excistingCollection($alternatives)) {
+    if ($answer_collection_id = $this->existingCollection($alternatives)) {
       if ($preset == 1) {
         $this->setPreset($answer_collection_id);
       }
@@ -220,7 +220,7 @@ class ScaleQuestion extends QuizQuestion {
    *  TRUE if the collection exists
    *  FALSE otherwise
    */
-  private function excistingCollection(array $alternatives, $answer_collection_id = NULL, $last_id = NULL) {
+  private function existingCollection(array $alternatives, $answer_collection_id = NULL, $last_id = NULL) {
     $my_alts = isset($answer_collection_id) ? $alternatives : array_reverse($alternatives);
 
     // Find all answers identical to the next answer in $alternatives
@@ -254,7 +254,7 @@ class ScaleQuestion extends QuizQuestion {
 
     // Do a recursive call to this function on all answer collection candidates
     do {
-      $col_id = $this->excistingCollection($my_alts, $res_o->answer_collection_id, $res_o->id);
+      $col_id = $this->existingCollection($my_alts, $res_o->answer_collection_id, $res_o->id);
       if ($col_id) {
         return $col_id;
       }

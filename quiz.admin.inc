@@ -1812,7 +1812,8 @@ function theme_quiz_admin_summary($variables) {
 
   // Get the feedback for all questions.
   require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz') . '/quiz.pages.inc';
-  $output .= drupal_render(drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE));
+  $report_form = drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE);
+  $output .= drupal_render($report_form);
   return $output;
 }
 

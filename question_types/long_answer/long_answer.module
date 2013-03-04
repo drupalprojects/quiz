@@ -70,7 +70,23 @@ function long_answer_quiz_question_info() {
  * Implements hook_config().
  */
 function long_answer_config() {
-  return FALSE;
+  $form['long_answer_default_max_score'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Default max score'),
+    '#description' => t('Choose the default maximum score for a long answer question.'),
+    '#default_value' => variable_get('long_answer_default_max_score', 10),
+  );
+  $form['#validate'][] = 'long_answer_config_validate';
+  return $form;
+}
+
+/**
+ * Validate the long_answer config form values
+ */
+function long_answer_config_validate($form, $form_state) {
+  if ($form_state['values']['long_answer_default_max_score'] <= 0) {
+    form_set_error('long_answer_default_max_score', t('The default max score must be greater than 0'));
+  }
 }
 
 /**

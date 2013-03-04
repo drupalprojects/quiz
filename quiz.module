@@ -154,15 +154,6 @@ function quiz_permission() {
 }
 
 /**
- * Implements hook_node_access().
- */
-function quiz_node_access($node, $op, $account) {
-  // successor of hook_access(), intentionally left empty as 'create quiz', 'edit any quiz',
-  // 'edit own quiz', 'delete own quiz' and 'delete any quiz' permissions
-  // are taken care by node module.
-}
-
-/**
  * Implements hook_admin_paths().
  */
 function quiz_admin_paths() {
@@ -501,14 +492,14 @@ function quiz_menu() {
   $items['node/%node/questions/browser_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_browser_ahah',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
+    'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
   $items['node/%node/questions/term_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_categorized_term_ahah',
     'type' => MENU_CALLBACK,
-    'access arguments' => array('create quiz'),
+    'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
@@ -2662,21 +2653,24 @@ function quiz_update_max_score_properties($quizzes_to_update) {
     ->condition('vid', $quizzes_to_update, 'IN')
     ->execute();
 
-  db_update('quiz_node_results')
-    ->expression('score',
-      'ROUND(
-        100 * (
-          SELECT COALESCE (SUM(a.points_awarded), 0)
-          FROM {quiz_node_results_answers} a
-          WHERE a.result_id = {quiz_node_results}.result_id
-        ) / (
-          SELECT max_score
-          FROM {quiz_node_properties} qnp
-          WHERE qnp.vid = {quiz_node_results}.vid
-        )
-      )')
-    ->condition('vid', $quizzes_to_update, 'IN')
-    ->execute();
+  $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $quizzes_to_update, ':max_score' => 0))->fetchCol();
+  if (!empty($results_to_update)) {
+    db_update('quiz_node_results')
+      ->expression('score',
+	  'ROUND(
+	  100 * (
+	    SELECT COALESCE (SUM(a.points_awarded), 0)
+	    FROM {quiz_node_results_answers} a
+	    WHERE a.result_id = {quiz_node_results}.result_id
+	  ) / (
+	    SELECT max_score
+	    FROM {quiz_node_properties} qnp
+	    WHERE qnp.vid = {quiz_node_results}.vid
+	  )
+	)')
+      ->condition('vid', $results_to_update, 'IN')
+      ->execute();
+  }
 }
 
 /**

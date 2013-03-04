@@ -437,6 +437,7 @@ function quiz_question_delete_result($rid, $nid, $vid) {
 function quiz_question_config($form, $context) {
   $q_types = _quiz_question_get_implementations();
   $form = array();
+  $form['#validate'] = array();
   // Go through all question types and merge their config forms
   foreach ($q_types as $type => $values) {
     $function = $type . '_config';
@@ -447,7 +448,8 @@ function quiz_question_config($form, $context) {
       $form[$type]['#collapsible'] = TRUE;
       $form[$type]['#collapsed'] = TRUE;
       if (isset($admin_form['#validate'])) {
-        $form['#validate'][] = $admin_form['#validate'];
+        $form['#validate'] = array_merge($form['#validate'], $admin_form['#validate']);
+	unset($form[$type]['#validate']);
       }
     }
   }
