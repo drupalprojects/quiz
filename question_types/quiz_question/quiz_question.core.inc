@@ -539,6 +539,7 @@ abstract class QuizQuestion {
           $insert_values[$nid]['child_nid'] = $this->node->nid;
           $insert_values[$nid]['child_vid'] = $this->node->vid;
           $insert_values[$nid]['max_score'] = $this->getMaximumScore();
+          $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
           $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
           $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
           $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
@@ -554,7 +555,7 @@ abstract class QuizQuestion {
           $delete_qnr->execute();
         }
         $insert_qnr = db_insert('quiz_node_relationship');
-        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status'));
+        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
         foreach ($insert_values as $insert_value) {
           $insert_qnr->values($insert_value);
         }
@@ -570,10 +571,30 @@ abstract class QuizQuestion {
         'child_nid' => $this->node->nid,
         'child_vid' => $this->node->vid,
         'max_score' => $this->getMaximumScore(),
+        'auto_update_max_score' => $this->autoUpdateMaxScore() ? 1 : 0,
       ))
       ->execute();
       $quizzes_to_update[] = $new_node->vid;
     }
+    
+    // Update max_score for relationships if auto update max score is enabled
+    // for question
+    if(isset($this->node->nid)) {
+      $result = db_query(
+          'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', 
+          array(':nid' => $this->node->nid, ':vid' => $this->node->vid));      
+      foreach ($result as $record) {
+        $quizzes_to_update[] = $record->vid;
+      }
+      
+      db_update('quiz_node_relationship')
+        ->fields(array('max_score' => $this->getMaximumScore()))
+        ->condition('child_nid', $this->node->nid)
+        ->condition('child_vid', $this->node->vid)
+        ->condition('auto_update_max_score', 1)
+        ->execute();
+    }
+    
     quiz_update_max_score_properties($quizzes_to_update);
     return $quizzes_kept;
   }
@@ -622,6 +643,15 @@ abstract class QuizQuestion {
   protected function getFormat() {
     $body = field_get_items('node', $this->question, 'body');
     return ($body ? $body[0]['format'] : NULL);
+  }
+  
+  /**
+   * This may be overridden in subclasses. If it returns true,
+   * it means the max_score is updated for all occurrences of 
+   * this question in quizzes.  
+   */
+  protected function autoUpdateMaxScore() {
+    return false;
   }
 }
 

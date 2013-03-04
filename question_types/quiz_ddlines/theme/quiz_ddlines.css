@@ -6,7 +6,7 @@
 */
 div.ddlines-container {
 	position: relative;
-	margin-top: 30px;
+	margin-top: 5px;
 	border: 3px solid #AAA;
 	padding: 0 !important;
 }
@@ -65,7 +65,7 @@ label#settings-for {
 	width: 400px;
 	margin: 0px auto;
 	position: relative;
-	bottom: 104px;
+	bottom: 0px;
 	padding: 5px 10px 10px 10px;
 }
 
@@ -137,5 +137,11 @@ label#settings-for {
 .quiz-ddlines-icon.no-answer {
   background-position: -64px 0;
 }
-
-
+#quiz-report-form .icon-descriptions div {
+  margin-bottom: 5px;
+}
+#quiz-report-form .icon-descriptions img {
+  position: relative;
+  top: 3px;
+  margin-right: 5px;
+}

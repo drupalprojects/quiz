@@ -6,7 +6,7 @@
  * Sponsored by: Senter for IKT i utdanningen
  * Code: paalj
  *
- * @file
+ * @file 
  * Drag and drop with lines question type for the Quiz module.
  *
  */
@@ -74,6 +74,28 @@ function quiz_ddlines_quiz_question_info() {
   );
 }
 
+/**
+ * Implements hook_image_default_styles
+ */
+function quiz_ddlines_image_default_styles() {
+  $styles = array();
+
+  $styles['quiz_ddlines'] = array(
+    'effects' => array(
+      array(
+        'name' => 'image_scale', 
+        'data' => array(
+          'width' => 700,
+          'height' => null,
+          'upscale' => 0,
+        ), 
+        'weight' => 0,
+      ),
+    ),
+  );
+
+  return $styles;
+}
 
 /**
  * Implements hook_theme().
@@ -148,5 +170,14 @@ function quiz_ddlines_config_validate($form, $form_state) {
   }
   
   // Feedback fields may contain nothing or everything; no need to validate it
+}
+
+function _quiz_ddlines_add_js_and_css() {
+  $module_path = drupal_get_path('module', 'quiz_ddlines');
+  
+  drupal_add_js($module_path.'/js/raphael.js');
+  drupal_add_js($module_path.'/js/colorwheel.js');
+  drupal_add_js($module_path.'/js/quiz_ddlines.js');
+  drupal_add_css($module_path.'/theme/quiz_ddlines.css');
 }
  

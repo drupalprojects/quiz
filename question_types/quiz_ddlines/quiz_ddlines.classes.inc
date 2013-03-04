@@ -67,9 +67,22 @@ class DDLinesQuestion extends QuizQuestion {
       '#parents' => array('hotspot_radius'),
     );    
     
+    $form['settings']['execution_mode'] = array(
+      '#type' => 'radios',
+      '#title' => t('Execution mode'),
+      '#description' => t('The mode for taking the test.'),
+      '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->execution_mode : $default_settings['execution_mode'],
+      '#options' => array (
+        0 => t('With lines'),
+        1 => t('Drag label'),
+      ),
+      '#parents' => array('execution_mode'),
+    );    
+    
     drupal_add_library('system','ui.resizable');
     
-    $default_settings['mode'] = 'edit';    
+    $default_settings['mode'] = 'edit';
+    $default_settings['editmode'] = isset($this->node->nid) ? 'update' : 'add';
     $form['#attached']['js'][] = array(
   		'data' => array(
     		'quiz_ddlines' => $default_settings
@@ -77,7 +90,17 @@ class DDLinesQuestion extends QuizQuestion {
   		'type' => 'setting'
     );
     
+    _quiz_ddlines_add_js_and_css();
+    
     return $form;
+  }
+  
+  /**
+   * This makes max_score beeing updated for all occurrences of
+   * this question in quizzes.
+   */
+  protected function autoUpdateMaxScore() {
+    return true;
   }
   
   /**
@@ -93,10 +116,12 @@ class DDLinesQuestion extends QuizQuestion {
     if (isset($this->node->nid)) {      
       $settings['feedback']['enabled'] = $this->node->feedback_enabled;
       $settings['hotspot']['radius'] = $this->node->hotspot_radius;
+      $settings['execution_mode'] = $this->node->execution_mode;
     }      
     else {      
       $settings['feedback']['enabled'] = 0;
       $settings['hotspot']['radius'] = variable_get('quiz_ddlines_hotspot_radius', Defaults::HOTSPOT_RADIUS);
+      $settings['execution_mode'] = 0;
     }
 
     // Pick these from settings:
@@ -154,6 +179,8 @@ class DDLinesQuestion extends QuizQuestion {
   		'type' => 'setting'
     );
     
+    _quiz_ddlines_add_js_and_css();
+    
     return $form;
   }
 
@@ -164,7 +191,9 @@ class DDLinesQuestion extends QuizQuestion {
     // 1 point per correct hotspot location    
     $ddlines_elements = json_decode($this->node->ddlines_elements);
     
-    return isset($ddlines_elements->elements) ? sizeof($ddlines_elements->elements) : 0;
+    $max_score = isset($ddlines_elements->elements) ? sizeof($ddlines_elements->elements) : 0;
+    
+    return $max_score;
   }
 
   /**
@@ -178,7 +207,8 @@ class DDLinesQuestion extends QuizQuestion {
           'vid' => $this->node->vid,
           'feedback_enabled' => $this->node->feedback_enabled,
           'hotspot_radius' => $this->node->hotspot_radius,
-          'ddlines_elements' => $this->node->ddlines_elements,          
+          'ddlines_elements' => $this->node->ddlines_elements,
+          'execution_mode' => $this->node->execution_mode,
         ))
         ->execute();
     }
@@ -188,6 +218,7 @@ class DDLinesQuestion extends QuizQuestion {
           'ddlines_elements' => $this->node->ddlines_elements,
           'hotspot_radius' => $this->node->hotspot_radius,
           'feedback_enabled' => $this->node->feedback_enabled,
+          'execution_mode' => $this->node->execution_mode,
         ))
         ->condition('nid', $this->node->nid)
         ->condition('vid', $this->node->vid)
@@ -206,7 +237,7 @@ class DDLinesQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $res_a = db_query('SELECT feedback_enabled, hotspot_radius, ddlines_elements FROM {quiz_ddlines_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+    $res_a = db_query('SELECT feedback_enabled, hotspot_radius, ddlines_elements, execution_mode FROM {quiz_ddlines_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
@@ -377,7 +408,11 @@ class DDLinesResponse extends QuizQuestionResponse {
     $img_field = field_get_items('node', node_load($this->question->nid), 'field_image');
     $img_rendered = theme('image', array('path' => image_style_url('large',$img_field[0]['uri'])));
     
+    $image_path = base_path() . drupal_get_path('module', 'quiz_ddlines').'/theme/images/';
+    
     $html = '<h3>'.t('Your answers').'</h3>';
+    $html .= '<div class="icon-descriptions"><div><img src="'.$image_path.'icon_ok.gif">'.t('Means alternative is placed on the correct spot').'</div>';
+    $html .= '<div><img src="'.$image_path.'icon_wrong.gif">'.t('Means alternative is placed on the wrong spot, or not placed at all'). '</div></div>';
     $html .= '<div class="quiz-ddlines-user-answers" id="'.$this->question->nid.'">';
     $html .= $img_rendered;
     $html .= '</div>';
@@ -455,9 +490,15 @@ class DDLinesResponse extends QuizQuestionResponse {
     
     $settings["answers-{$this->question->nid}"] = $answers;
     $settings['mode'] = 'result';
-    $settings['hotspot']['radius'] = $this->question->hotspot_radius; 
+    $settings['execution_mode'] = $this->question->execution_mode;
+    $settings['hotspot']['radius'] = $this->question->hotspot_radius;
+    
+    // Image path:
+    $settings['quiz_imagepath'] = base_path() . drupal_get_path('module', 'quiz_ddlines').'/theme/images/';
     
     drupal_add_js(array('quiz_ddlines' => $settings), 'setting');
+    
+    _quiz_ddlines_add_js_and_css();
     
     return array('#markup' => $html);
   }
@@ -509,10 +550,10 @@ class DDLinesResponse extends QuizQuestionResponse {
       $source_id = $element->label->id;
       
       if(isset($this->user_answers[$source_id])) {
-        $results[$element->label->text] = ($this->user_answers[$source_id] == $element->hotspot->id) ? AnswerStatus::CORRECT : AnswerStatus::WRONG;
+        $results[$element->label->id] = ($this->user_answers[$source_id] == $element->hotspot->id) ? AnswerStatus::CORRECT : AnswerStatus::WRONG;
       }
       else {
-        $results[$element->label->text] = AnswerStatus::NO_ANSWER;
+        $results[$element->label->id] = AnswerStatus::NO_ANSWER;
       }
     }
     

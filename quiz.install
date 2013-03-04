@@ -278,6 +278,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'auto_update_max_score' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
     'indexes' => array(
@@ -768,6 +774,21 @@ function quiz_update_7406(&$sandbox) {
   db_add_field('quiz_node_properties', 'mark_doubtful', $spec);
   return t('Added new format fields to the tables');
 }
+
+/**
+ * Adding auto update max score
+ */
+function quiz_update_7407(&$sandbox) {
+  $spec = array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+  );
+  db_add_field('quiz_node_relationship','auto_update_max_score', $spec);
+  return t('Added new auto update max score field to the quiz_node_relationship table');
+}
+
 
 
 /**

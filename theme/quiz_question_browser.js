@@ -17,6 +17,29 @@ var Quiz = Quiz || {inputEnabled:true};
 Drupal.behaviors.quizQuestionBrowserBehavior = {
   attach: function(context, settings) {
 
+    $('.q-row input[id^=edit-auto-update-max-scores]').click(function() {
+      var inputId = '#'+$(this).attr('id').replace('edit-auto-update-max-scores','edit-max-scores');
+      console.log(inputId);
+      
+      if($(this).is(':checked')) {
+        var original = $(inputId).attr('data-original');
+        if(typeof original !== 'undefined' && original !== false) {
+          $(inputId).val($(inputId).attr('data-original'));
+        }
+        
+        $(inputId).parent().addClass('form-disabled');
+        $(inputId).attr('disabled', 'disabled');
+      }
+      else {        
+        var original = $(inputId).attr('data-original');
+        if(typeof original == 'undefined' || original == false) {
+          $(inputId).attr('data-original', $(inputId).val());
+        }
+        $(inputId).parent().removeClass('form-disabled');
+        $(inputId).removeAttr('disabled');
+      }
+    });
+    
     // Question rows in the browser
     $('.quiz-question-browser-row')
     .once()
