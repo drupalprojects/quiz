@@ -312,10 +312,11 @@ class MultichoiceQuestion extends QuizQuestion {
       $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid', array(':nid' => $this->node->nid))->fetchCol();
     }
 
-    db_delete('quiz_multichoice_user_answer_multi')
-      ->condition('user_answer_id', $user_answer_id, 'IN')
-      ->execute();
-
+    if (!empty($user_answer_id)) {
+      db_delete('quiz_multichoice_user_answer_multi')
+        ->condition('user_answer_id', $user_answer_id, 'IN')
+        ->execute();
+    }
     $delete_properties->execute();
     $delete_answers->execute();
     $delete_results->execute();
