@@ -28,7 +28,7 @@ Drupal.behaviors.multichoiceBehavior = {
       oldToggle(context);
       $('.multichoiceStayHidden').hide();
     };
-  };
+  }
 };
 
 })(jQuery);

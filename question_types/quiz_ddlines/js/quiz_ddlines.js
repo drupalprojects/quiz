@@ -70,10 +70,213 @@ Raphael.fn.connection = function (obj1, obj2, line, bg) {
 };
 
 (function ($) {
+var QuizUtil = {
+    // The minimum width of the label
+    LABEL_MIN_WIDTH: 40,
+    
+    CANVAS_PADDING: 10,
   
+    // The glow implementation should be moved into a class, 
+    // but will do for now 
+    current_glow: null,
+    
+    current_editor: null,
+    
+    drag_mode: false,
+    
+    imageChanged: false,
+
+    defined: function (a) {
+      return (typeof a !== 'undefined');
+    },
+    
+    bboxUnion: function(bbox1, bbox2) {
+      bbox1.x = bbox1.x < bbox2.x ? bbox1.x : bbox2.x; 
+      bbox1.y = bbox1.y < bbox2.y ? bbox1.y : bbox2.y;
+      bbox1.x2 = bbox1.x2 > bbox2.x2 ? bbox1.x2 : bbox2.x2;
+      bbox1.y2 = bbox1.y2 > bbox2.y2 ? bbox1.y2 : bbox2.y2;
+      
+      return bbox1;
+    }
+};
+/**
+ * A list of quiz ddlines elements.
+ * 
+ * Responsible for: 
+ * - Holding the elements in-memory 
+ * - Creating/Parsing the jsondata 
+ * - Making the form input field being in-sync
+ */
+var QuizElementList = {
+  elements: [],
+  engine: null,
+  add: function(element) {
+    this.elements.push(element);
+    this.updateForm();
+  },
+  remove: function(element) {
+    // Remove from list:
+    for(var i=0; i<this.elements.length; i++) {
+      if(element == this.elements[i]) {
+        this.elements.splice(i,1);
+      }
+    }   
+    // Update form cache:
+    this.updateForm();
+  },
+  clear: function() {
+    this.elements = [];
+    
+    // Update form cache:
+    this.updateForm();
+  },
+  updateForm: function() {
+    if(this.engine.isEditMode()) {
+      // Set the value of the hidden form field (ddlines_elements)
+      $('input[name=ddlines_elements]').val(this.toJson());
+    }
+  },
+  load: function(engine, display_answers, id) {
+    
+    QuizElementList.engine = engine;
+    
+    var obj=null;
+    if(engine.isResultMode()) {
+      obj = display_answers ? engine.conf["answers-"+id] : engine.conf["correct-"+id];
+    }
+    else {
+      json = $('input[name=ddlines_elements]').val();
+      
+      if(!json || json.length == 0) {
+        return;
+      }
+      
+      obj = $.parseJSON(json);
+    }
+    
+    // Set canvas size:
+    engine.resizePaper(obj.canvas.width, obj.canvas.height);
+    
+    // Set image position:
+    if(!QuizUtil.imageChanged) {
+      engine.image.setBounds(obj.image.left, obj.image.top, obj.image.width, obj.image.height);
+    }
+    
+    // Add elements:
+    if(QuizUtil.defined(obj.elements)) {
+      for (var i = 0; i < obj.elements.length; i++) {
+        this.add(QuizElement.fromJson(obj.elements[i], engine));
+      }
+    }
+    
+    // Update connecting lines between each pair if hotspot 
+    // and label: 
+    engine.redrawConnections();
+  },
+  toJson: function() {
+    // Get image location:
+    var elements='';
+    var json = '{' + this.engine.image.toJson() + ',' + this.engine.toJson();
+    for (var i = 0; i < this.elements.length; i++) {      
+      elements += this.elements[i].toJson() + (i<this.elements.length-1 ? ',' : '');
+    }
+    
+    if(this.elements.length>0) {
+      json += ',"elements":['+elements+']';
+    }
+    
+    return json+'}';
+  },
+  size: function() {
+    return this.elements.length;
+  },
+  updateHotspotRadius: function(radius) {
+    radius = parseInt(radius);
+    
+    this.engine.conf.hotspot.radius = radius;
+    
+    // Update radius for all elements:
+    for(var i=0; i<this.elements.length; i++) {
+      this.elements[i].uiHotspot.updateHotspotRadius(radius);
+      this.elements[i].redrawConnection();
+    }   
+  },
+  adjustCanvasSize: function() {
+    
+    var moveLeft = moveUp = 0;
+    var bbox = this.engine.image.getBBox();
+    var maxElementWidth = 0;
+    
+    /* Auto adjust canvas size */
+    for (var i = 0; i < this.elements.length; i++) {
+      bbox2 = this.elements[i].getBBox();
+      maxElementWidth = maxElementWidth < bbox2.width ? bbox2.width : maxElementWidth; 
+      
+      bbox = QuizUtil.bboxUnion(bbox, bbox2);
+    }
+    
+    var horizontalPadding = this.engine.executionModeLines() ? QuizUtil.CANVAS_PADDING : maxElementWidth * 0.6;    
+    horizontalPadding = horizontalPadding > QuizUtil.CANVAS_PADDING ? horizontalPadding : QuizUtil.CANVAS_PADDING; 
+    
+    moveLeft = -bbox.x + horizontalPadding;
+    moveUp = -bbox.y + QuizUtil.CANVAS_PADDING;
+    
+    /* Update all elements */
+    for (var i = 0; i < this.elements.length; i++) {
+      this.elements[i].move(moveLeft, moveUp);      
+    }
+    
+    // Update image:
+    this.engine.image.move(moveLeft, moveUp);
+    
+    // Update canvas-size
+    this.engine.setSize(bbox.x2-bbox.x+(horizontalPadding*2),bbox.y2-bbox.y+(QuizUtil.CANVAS_PADDING*2));
+    
+    this.updateForm();
+  }
+};
+
+/*
+ * A user's answers
+ */
+var Answers = {
+  elements: [],  
+  setAnswer: function(label_id, hotspot_id) {
+    this.elements[label_id] = hotspot_id ;
+    this.updateForm();
+  },
+  removeAnswer: function(label_id) {
+    delete this.elements[label_id];
+    this.updateForm();
+  },
+  toJson: function() {
+    var json = '';
+    var count=0;
+    for (var key in this.elements) {    
+      json += (count>0 ? ',' : '') + '{"label_id":'+key+',"hotspot_id":'+this.elements[key]+'}';
+      count++;
+    }
+    
+    if(count===0) {
+      return '';
+    }
+    else {
+      return '['+json+']';
+    }
+  },
+  updateForm: function() {
+    $('input[name=tries]').val(this.toJson());
+  }
+};
+
 Drupal.behaviors.quiz_ddlines = {
   initialized: false,
   attach: function(context) {
+    /* Auto adjust canvas size */
+    $('.node-quiz_ddlines-form #edit-submit:not(.canvas-adjusted)').click(function() {
+      QuizElementList.adjustCanvasSize();
+      $(this).addClass('canvas-adjusted');
+    });
     
     // Make hotspot radius only accept numbers:
     $('input#edit-hotspot-radius').keypress(function(e) {
@@ -121,9 +324,7 @@ Drupal.behaviors.quiz_ddlines = {
       var engine = new Engine();
       
       // Need to wait for IE to make image beeing displayed
-      // This is not a great solution, but it do work.
-      // TODO - figure out what the real problem is, so a better 
-      // solution may be implemented
+      // This is not a great solution, but it does work.
       setTimeout( function() {
         engine.init(self);
         
@@ -131,7 +332,7 @@ Drupal.behaviors.quiz_ddlines = {
         QuizElementList.load(engine);
         
         // Show helptext if no alternatives have been added:
-        if(QuizElementList.size() == 0) {
+        if(engine.isNew()) {
           engine.addHelpText();
         }
       }, ($.browser.msie ? 1000 : 0));
@@ -141,7 +342,7 @@ Drupal.behaviors.quiz_ddlines = {
 
 // generic functions for dragging of sets:
 function set_drag_start(x, y, event, set) {
-  var set = QuizUtil.defined(set) ? set : this.set;
+  set = QuizUtil.defined(set) ? set : this.set;
   
   QuizUtil.drag_mode = false;
   
@@ -149,48 +350,49 @@ function set_drag_start(x, y, event, set) {
   set.oy = y;
 }
 function set_drag_move(dx, dy, x, y, event, set) {
-  
   QuizUtil.drag_mode = true;
   
-  var set = QuizUtil.defined(set) ? set : this.set;
-  var inside = true;
+  set = QuizUtil.defined(set) ? set : this.set;
   
-  // Do not allow dragging outside canvas:
-  set.forEach(function(elm){
+  if(QuizElementList.engine.isEditMode()) {
+    var inside = true;
+    // Do not allow dragging outside canvas:
+    set.forEach(function(elm){
+      var elm_x,elm_y,elm_width,elm_height;
+      if(elm.type === "circle") {      
+        var radius = elm.attr("r");
+        elm_x = elm.attr("cx")+(x - elm.set.ox)-radius;
+        elm_y = elm.attr("cy")+(y - elm.set.oy)-radius;
+        elm_width = elm_height = radius*2;
+      }
+      else {
+        elm_x = elm.attr("x")+(x - elm.set.ox);
+        elm_y = elm.attr("y")+(y - elm.set.oy);
+        var elm_bbox = elm.getBBox();
+        elm_width = elm_bbox.width;
+        elm_height = elm_bbox.height;
+      }
+      
+      var going_left = (x - elm.set.ox) < 0;
+      var going_up = (y - elm.set.oy) < 0;
+      
+      if((elm_x<-10 && going_left)
+          || (elm_y<-10 && going_up) 
+          || ((elm_x + elm_width)>QuizElementList.engine.getCanvasWidth()+30 && !going_left)
+          || (elm_y + elm_height)>QuizElementList.engine.getCanvasHeight()+10 && !going_up) {
+        inside = false;
+        return false;
+      }
+    });
     
-    var elm_x,elm_y,elm_width,elm_height;
-    if(elm.type == "circle") {      
-      var radius = elm.attr("r");
-      elm_x = elm.attr("cx")+(x - elm.set.ox)-radius;
-      elm_y = elm.attr("cy")+(y - elm.set.oy)-radius;
-      elm_width = elm_height = radius*2;
-    }
-    else {
-      elm_x = elm.attr("x")+(x - elm.set.ox);
-      elm_y = elm.attr("y")+(y - elm.set.oy);
-      var elm_bbox = elm.getBBox();
-      elm_width = elm_bbox.width;
-      elm_height = elm_bbox.height;
-    }
     
-    var going_left = (x - elm.set.ox) < 0;
-    var going_up = (y - elm.set.oy) < 0;
-    
-    if((elm_x<-10 && going_left)
-        || (elm_y<-10 && going_up) 
-        || ((elm_x + elm_width)>QuizElementList.engine.getCanvasWidth()+30 && !going_left)
-        || (elm_y + elm_height)>QuizElementList.engine.getCanvasHeight()+10 && !going_up) {
-      inside = false;
+    if(!inside) {
       return false;
     }
-  });
-  
-  if(!inside) {
-    return false;
   }
   
   set.forEach(function(elm){
-    if(elm.type == "circle") {
+    if(elm.type === "circle") {
       elm.attr({cx: elm.attr("cx")+(x - elm.set.ox),cy: elm.attr("cy")+(y - elm.set.oy)});
     }
     else {
@@ -259,18 +461,22 @@ function Engine() {
       
       // Add click-handler to add elements when clicking in canvas:
       $(this.getSelector()).click(function(event) {
-        if(event.target.nodeName != 'svg' && QuizUtil.drag_mode){
+        
+        var targetIsSVG = (event.target.nodeName === 'svg' || event.target.nodeName === 'DIV'); 
+        var targetIsImage = (event.target.nodeName === 'image' || event.target.nodeName === 'shape');
+        
+        if(!targetIsSVG && QuizUtil.drag_mode){
           return;
         }
         
         // Don't create new element when focus is on inputbox
-        if(QuizUtil.current_editor != null && (event.target.nodeName == 'svg' || event.target.nodeName == 'image')) {
+        if(QuizUtil.current_editor != null && (targetIsSVG || targetIsImage)) {
           QuizUtil.current_editor.editingDone();
           return;
         }
         
-        if(event.target.nodeName == 'svg' || event.target.nodeName == 'image' ||
-          (self.helptext != null && event.target.nodeName == 'tspan')) {
+        if(targetIsSVG || targetIsImage ||
+          (self.helptext != null && event.target.nodeName === 'tspan')) {
           
           // Remove help text:
           if(self.helptext != null) {
@@ -289,17 +495,16 @@ function Engine() {
            var height=$(self.getSelector()).height();
            var width=$(self.getSelector()).width();
            self.setSize(width,height);
-         },
-         minHeight: 300,
-         minWidth: 450
-      });       
+         }
+         /*minHeight: 300,
+         minWidth: 450*/
+      });
       
       // Add delete handler:
       $(document).keydown(function(event) {
-        
         // Check if the deletion did not take place within an input field
         // 46 is the delete button        
-        if(event.target.nodeName != 'INPUT' && event.which == 46) {
+        if(event.target.nodeName != 'INPUT' && event.which === 46) {
           // The glow represents the current selected object
           if(QuizUtil.current_glow != null) {
             QuizUtil.current_glow.set.parent.remove();
@@ -312,6 +517,8 @@ function Engine() {
       // Add clearing of data when image is removed
       $('form.node-quiz_ddlines-form #edit-field-image-und-0-remove-button').mousedown(function() {
         QuizElementList.clear();
+        
+        QuizUtil.imageChanged = true;
       });
     }
     
@@ -321,7 +528,7 @@ function Engine() {
     // Create paper
     this.r = Raphael(this.id, this.getCanvasWidth(), this.getCanvasHeight());
 
-    // Get image attributes:    
+    // Get image attributes:
     var img_width = $(this.getSelector() + ' > img').attr("width");
     var img_height = $(this.getSelector() + ' > img').attr("height");   
     var img_uri=$(this.getSelector() + ' > img').attr("src");   
@@ -369,8 +576,6 @@ function Engine() {
     if(this.isEditMode()) {
       this.conf.canvas.width=width;
       this.conf.canvas.height=height;
-      
-      QuizElementList.updateForm();
     }
     this.r.setSize(width,height);
   };
@@ -409,20 +614,28 @@ function Engine() {
     return (y-this.getPosition().top);
   };
   
+  this.isNew = function() {
+    return (this.conf.editmode === 'add');
+  };
+  
   this.isEditMode = function() {
-    return (this.conf.mode=='edit');
+    return (this.conf.mode === 'edit');
+  };
+  
+  this.executionModeLines = function() {
+    return (this.conf.execution_mode === '0');
   };
   
   this.isResultMode = function() {
-    return (this.conf.mode=='result');
+    return (this.conf.mode === 'result');
   };
   
   this.isTakeMode = function() {
-    return (this.conf.mode=='take');
+    return (this.conf.mode === 'take');
   };
   
   this.feedbackEnabled = function() {
-    return (this.conf.feedback.enabled == '1');
+    return (this.conf.feedback.enabled === '1');
   };
   
   this.pointInsideCanvas = function(x,y) {
@@ -454,12 +667,39 @@ function Engine() {
  */
 function QuizImage(engine, uri, width, height) {
   
+  /*var self = this;*/
+  
   this.engine = engine;
   this.image = this.engine.r.image(uri, 0, 0, width, height);
   this.image.toFront();
   
   if(this.engine.isEditMode()) {
+    
+    // Center image when added:
+    if(this.engine.isNew()) {
+      this.image.attr({"x": (engine.getCanvasWidth()/2)-(width/2) ,"y": (engine.getCanvasHeight()/2)-(height/2)});
+    }
+    
+    /*
+    var bbox = this.image.getBBox();
+    this.image.resizer = this.engine.r.rect(bbox.x2-20,bbox.y2-20,20,20);
+    this.image.resizer.attr({color: "#00bb27", "fill": "#00bb27", "fill-opacity": 0.9, opacity:0.9, cursor: "se-resize"});
+    */
+    
     this.image.attr({cursor:'move'});
+    /*
+    rstart = function () {
+      this.ox = this.attr("x");
+      this.oy = this.attr("y");
+      
+      self.image.ow = self.image.attr("width");
+      self.image.oh = self.image.attr("height");        
+    },
+    rmove = function (dx, dy) {
+        this.attr({x: this.ox + dx, y: this.oy + dy});
+        self.image.attr({width: self.image.ow + dx, height: self.image.oh + dy});
+    };
+    this.image.resizer.drag(rmove, rstart);*/
     
     // Setup image dragging handling
     function image_drag_move(dx, dy, x, y, event) {
@@ -482,7 +722,9 @@ function QuizImage(engine, uri, width, height) {
     
     var set = this.engine.r.set();
     set.push(this.image);
+    //set.push(this.image.resizer);
     this.image.set = set;
+    //this.image.resizer.set = set;
     set.drag(image_drag_move, image_drag_start, set_drag_finished);
   }
   
@@ -492,6 +734,14 @@ function QuizImage(engine, uri, width, height) {
   
   this.setBounds = function(x,y,width,height) {
     this.image.attr({"x":x, "y":y, "width":width, "height":height});
+  };
+  
+  this.getBBox = function() {
+    return this.image.getBBox();
+  };
+  
+  this.move = function(deltax, deltay) {
+    this.image.attr({"x":this.image.attr("x")+deltax, "y":this.image.attr("y")+deltay});
   };
 }
 
@@ -507,12 +757,17 @@ function QuizLabel(parent, color, id, text, x, y) {
   this.text = text;
   
   this.setText = function(text) {
+    
+    self.label.text.hide();
+    
     // Set the new text
     self.label.text.attr({text: text});
     
     // Recalculate rectangle size.
     var bbox = self.label.text.getBBox();
-    self.label.text.attr({x: self.label.attr("x")+bbox.width/2+10});
+    self.label.text.attr({
+      x: self.label.attr("x")+bbox.width/2+10,
+      y: self.label.attr("y")+10});
     
     // Set new width of parent rectangle:
     var rect_width = bbox.width+20;
@@ -523,10 +778,22 @@ function QuizLabel(parent, color, id, text, x, y) {
     if(QuizUtil.defined(self.glow)) {
       self.glow.attr({width: rect_width+8 < QuizUtil.LABEL_MIN_WIDTH+8 ? QuizUtil.LABEL_MIN_WIDTH+8 : rect_width+8});
     }
+    
+    self.label.text.show();
+  };
+  
+  this.updateTextPosition = function() {
+    this.setText(this.text);
+    
+    // Update position of foreground object:
+    var bbox = self.label.getBBox();
+    self.label.fg.attr({x:bbox.x, y:bbox.y, width:bbox.width, height: bbox.height});
+    self.label.fg.show();
   };
   
   // Create Raphael objects:
   this.label = this.parent.engine.r.rect(x, y, 100, 20);
+  this.label.parent = this;
   
   // Use same id as previous if this is set
   if(QuizUtil.defined(id)) {
@@ -539,7 +806,7 @@ function QuizLabel(parent, color, id, text, x, y) {
   // Set attributes:
   this.label.attr({fill: "#fff", stroke: this.color, "fill-opacity": 1, "stroke-width": 3, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
   this.label.text.attr({"font-size": 12, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
-  this.label.fg.attr({"fill-opacity": 0, "stroke-width": 0, "stroke-opacity":0, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
+  this.label.fg.attr({fill: "#fff", "fill-opacity": 0, "stroke-width": 0, "stroke-opacity":0, cursor: (!this.parent.engine.isResultMode() ? "move" : "default")});
   this.label.fg.toFront();
   
   // Create a set so they can be treated as one:
@@ -552,6 +819,18 @@ function QuizLabel(parent, color, id, text, x, y) {
   
   // Set text if value set:
   this.setText(text);
+  
+  // Move it to center of hotspot if resultpage
+  // and execution modes without lines:
+  if(!this.parent.engine.executionModeLines() && this.parent.engine.isResultMode() && QuizUtil.defined(this.parent.uiHotspot)) {
+    // Get hotspot:
+    var center = this.parent.uiHotspot.getCenter();
+    if (center != null) {
+      this.set.forEach(function(element) {
+        element.attr({x: center.x-(element.attr('width')/2), y:center.y-(element.attr('height')/2)});
+      });
+    }
+  }
   
   this.toJson = function(){
     return '"label":{"id":'+this.label.id+',"x":'+this.label.attr("x")+',"y":'+this.label.attr("y")+',"text":"'+this.label.text.attr("text")+'"}';
@@ -566,13 +845,16 @@ function QuizLabel(parent, color, id, text, x, y) {
     this.set.drag(set_drag_move,set_drag_start,set_drag_finished);
   }
   
-  var edit_mode = function () {
+  var edit_mode = function (event) {
     // Add an inputbox as overlay:
     // Get dimensions of rect
-    //var rect = this;
+    
     if(QuizUtil.drag_mode) {
-      //QuizUtil.drag_mode = false;
-      return;
+      return false;
+    }
+    
+    if(event !== null) {
+      event.stopPropagation();
     }
     
     if(QuizUtil.current_editor != null) {
@@ -590,11 +872,12 @@ function QuizLabel(parent, color, id, text, x, y) {
       'position': 'absolute',
       'left': topleft+'px',
       'top': topright+'px',
-      'z-index': 10000,
+      'z-index': 99999,
       'border': '2px dashed '+self.color,
-      'height': bbox.height+4+'px',
-      'width': bbox.width+4+'px'
+      'height': (bbox.height+4)+'px',
+      'width': (bbox.width+4)+'px'
     });
+    
     
     this.editingDone = function() {
       // Save the text
@@ -609,7 +892,7 @@ function QuizLabel(parent, color, id, text, x, y) {
     // Listen on editing finished:    
     $editButton.keypress(function(event) {
       // 13 is enter
-      if(event.which == 13) {
+      if(event.which === 13) {
         me.editingDone();
       }
     });
@@ -623,6 +906,7 @@ function QuizLabel(parent, color, id, text, x, y) {
       $editButton.focus();
     }, 100);
     
+    return false;
   };
   
   var focus_mode = function () {
@@ -646,9 +930,9 @@ function QuizLabel(parent, color, id, text, x, y) {
     self.set.push(QuizUtil.current_glow);
     QuizUtil.current_glow.set = self.set;
     
-    var topleft=self.label.attr("x")-2;
+    /*var topleft=self.label.attr("x")-2;
     var topright=self.label.attr("y")-2;
-    var bbox=self.label.getBBox();
+    var bbox=self.label.getBBox();*/
     var selected_text=self.label.text.attr("text");
     
     var $toolPane = $('<div id="quiz-ddlines-toolpane"></div>');
@@ -711,9 +995,9 @@ function QuizLabel(parent, color, id, text, x, y) {
       }
       else {
       
-        var position = $toolPane.position();
+        /*var position = $toolPane.position();
         var pos_left = (position.left + 300) + "px";
-        var pos_top = (position.top - 150) + "px";
+        var pos_top = (position.top - 150) + "px";*/
         
         // Set position of container:
         $colorContainer.css({'border-color': self.color}).show();
@@ -746,12 +1030,154 @@ function QuizLabel(parent, color, id, text, x, y) {
   
   this.gotoEditMode = function() {
     focus_mode();
-    edit_mode();
+    edit_mode(null);
   };
   
   this.remove = function() {
     this.set.remove();
   };
+  
+  this.getBBox = function() {
+    return this.label.getBBox();
+  };
+  
+  this.move = function(deltax,deltay) {
+    this.label.attr({"x": this.label.attr("x") + deltax}); 
+    this.label.attr({"y": this.label.attr("y") + deltay});
+  };
+}
+
+function QuizLabelDrag(parent, label, color) {
+  var self = this;
+  
+  this.initial_x = label.attr('x');
+  this.initial_y = label.attr('y');
+  
+  this.label = label;
+  this.parent = parent;
+  this.color = color;
+  this.ox = this.oy = null;
+  
+  var drag_start = function(x,y) {
+    self.ox = x;
+    self.oy = y;
+    self.label.set.toFront();
+  };
+  
+  var drag_move = function(dx,dy,x,y) {
+    
+    /*if(!self.parent.engine.pointInsideCanvas(x,y)) {
+      return;
+    }*/
+    
+    self.label.set.forEach(function(elm){
+      elm.attr({x: elm.attr("x")+(x - self.ox), y: elm.attr("y")+(y - self.oy)});
+    });
+    
+    self.ox = x;
+    self.oy = y;
+    
+    // Hover on hits:
+    x = self.label.attr('x')+(self.label.attr('width')/2);
+    y = self.label.attr('y')+(self.label.attr('height')/2);
+    var hit_hotspot = false;
+    for (var i = QuizElementList.elements.length; i--;) {
+      // Check if x,y is within BBox:
+      var id = QuizElementList.elements[i].uiHotspot.hotspot.id;
+      if(QuizElementList.elements[i].uiHotspot.hotspot.margin.isPointInside(x,y)) {
+        
+        hit_hotspot = true;
+        
+        if(QuizUtil.current_glow === null || QuizUtil.current_glow.parent_id != id) {
+          if(QuizUtil.current_glow != null) {
+            QuizUtil.current_glow.remove();
+            QuizUtil.current_glow = null;
+          }
+          QuizUtil.current_glow = QuizElementList.elements[i].uiHotspot.hotspot.glow({"color": self.color, width: self.label.attr('width'), fill: true, opacity: 1.0});
+          QuizUtil.current_glow.parent_id = id;
+        }
+        
+        break;
+      }
+    }
+    
+    if(!hit_hotspot && QuizUtil.current_glow != null) {
+      QuizUtil.current_glow.remove();
+      QuizUtil.current_glow = null;
+    }
+  };
+  
+  var drag_finish = function(event) {
+    
+    if(QuizUtil.current_glow != null) {
+      QuizUtil.current_glow.remove();
+    }
+    
+    var x = self.label.attr("x") + (self.label.attr("width")/2);
+    var y = self.label.attr("y") + (self.label.attr("height")/2);
+    
+    // Inside any hotspot at all?
+    var targets = self.parent.engine.r.getElementsByPoint(x, y);
+    var selected_hotspot=null;
+    
+    targets.forEach(function(e){
+      if(e.isHotspotMargin) {
+        selected_hotspot = e.hotspot;
+        // Makes callback stop (like break if this was a for loop)
+        return false; 
+      }
+    });
+    
+    var correct_answer = selected_hotspot === null ? false : (self.parent.uiHotspot.hotspot === selected_hotspot);
+    var feedback_enabled = self.parent.engine.feedbackEnabled();
+    
+    if((!feedback_enabled && selected_hotspot !== null) || (feedback_enabled && correct_answer)) {
+      // Glue it to the center of the selected hotspot,
+      // and make it smaller:
+      self.label.text.hide();
+      self.label.fg.hide();
+      self.label.animate({
+        x: selected_hotspot.attr("cx")-(self.label.attr('width')/2), 
+        y: selected_hotspot.attr("cy")-(self.label.attr('height')/2),
+        "stroke-opacity": 0.3,
+        "fill-opacity": 0.95},
+        500, 
+        "bounce", function() {
+          self.label.parent.updateTextPosition();          
+        });        
+    }
+    
+    if(selected_hotspot === null || (feedback_enabled && !correct_answer)) {
+      // Animate back to source!      
+      // Do the animation of the label:
+      self.label.text.hide();
+      self.label.fg.hide();
+      self.label.animate({
+        "stroke-opacity": 1,
+        "fill-opacity": 1,
+        x: self.initial_x, 
+        y: self.initial_y}, 500, "bounce", function() {
+          self.label.parent.updateTextPosition();          
+        });
+      
+      if(selected_hotspot != null && feedback_enabled && !correct_answer){
+        self.parent.engine.showInfoPopup(self.parent.feedback_wrong, self.color);
+      }
+      
+      Answers.removeAnswer(self.label.id);
+    }
+    else if(feedback_enabled && correct_answer) {
+      self.parent.engine.showInfoPopup(self.parent.feedback_correct, self.color);     
+      // Save answer:
+      Answers.setAnswer(self.label.id, selected_hotspot.id);
+    }
+    else if(!feedback_enabled && selected_hotspot !== null) {
+      // Save answer:     
+      Answers.setAnswer(self.label.id, selected_hotspot.id);
+    }
+  };
+  
+  label.set.drag(drag_move, drag_start, drag_finish);
 }
 
 /**
@@ -814,9 +1240,9 @@ function QuizPointer(parent, label, color) {
   
   // Dragging of pointer
   this.pointer_move = function(dx,dy,x,y) {
-    if(!self.parent.engine.pointInsideCanvas(x,y)) {
+    /*if(!self.parent.engine.pointInsideCanvas(x,y)) {
       return;
-    }
+    }*/
     x = self.parent.engine.getRelativeX(x);
     y = self.parent.engine.getRelativeY(y);
     
@@ -833,8 +1259,8 @@ function QuizPointer(parent, label, color) {
         
         hit_hotspot = true;
         
-        if(QuizUtil.current_glow == null || QuizUtil.current_glow.parent_id != id) {
-          if(QuizUtil.current_glow != null) {
+        if(QuizUtil.current_glow === null || QuizUtil.current_glow.parent_id !== id) {
+          if(QuizUtil.current_glow !== null) {
             QuizUtil.current_glow.remove();
             QuizUtil.current_glow = null;
           }          
@@ -846,7 +1272,7 @@ function QuizPointer(parent, label, color) {
       }
     }
     
-    if(!hit_hotspot && QuizUtil.current_glow != null) {
+    if(!hit_hotspot && QuizUtil.current_glow !== null) {
       QuizUtil.current_glow.remove();
       QuizUtil.current_glow = null;
     }
@@ -854,7 +1280,7 @@ function QuizPointer(parent, label, color) {
       
   this.pointer_up = function(event) {
     
-    if(QuizUtil.current_glow != null) {
+    if(QuizUtil.current_glow !== null) {
       QuizUtil.current_glow.remove();
     }
     
@@ -866,7 +1292,7 @@ function QuizPointer(parent, label, color) {
     var selected_hotspot=null;
     
     targets.forEach(function(e){
-      if(e != self.pointer && e.isHotspot) {
+      if(e !== self.pointer && e.isHotspot) {
         // Hit one
         // Check if correct hotspot hit.
         //correct_answer = (self.parent.uiHotspot.hotspot == e);
@@ -877,7 +1303,7 @@ function QuizPointer(parent, label, color) {
       }
     });
     
-    var correct_answer = selected_hotspot==null ? false : (self.parent.uiHotspot.hotspot == selected_hotspot);
+    var correct_answer = selected_hotspot===null ? false : (self.parent.uiHotspot.hotspot == selected_hotspot);
     var feedback_enabled = self.parent.engine.feedbackEnabled();
     
     if((!feedback_enabled && selected_hotspot !== null) || (feedback_enabled && correct_answer)) {
@@ -890,7 +1316,7 @@ function QuizPointer(parent, label, color) {
       });
     }
     
-    if(selected_hotspot == null || (feedback_enabled && !correct_answer)) {
+    if(selected_hotspot === null || (feedback_enabled && !correct_answer)) {
       // Animate back to source!      
       // Remove connecting line:
       self.parent.hideConnection();      
@@ -901,7 +1327,7 @@ function QuizPointer(parent, label, color) {
         self.updateVisual(self.pointer.attr("cx"), self.pointer.attr("cy"), false);
       });
       
-      if(selected_hotspot != null && feedback_enabled && !correct_answer){
+      if(selected_hotspot !== null && feedback_enabled && !correct_answer){
         self.parent.engine.showInfoPopup(self.parent.feedback_wrong, self.color);
       }
       
@@ -933,6 +1359,11 @@ function QuizHotspot(parent, color, id, x, y, radius) {
   this.hotspot = self.parent.engine.r.circle(x, y, this.radius);  
   this.hotspot.attr({fill: "#fff", stroke: "#000", "fill-opacity": 0.4, "stroke-opacity": 1, "stroke-width": 2});
   this.hotspot.isHotspot=true;
+  
+  this.hotspot.margin = self.parent.engine.r.circle(x, y, this.radius+20);
+  this.hotspot.margin.isHotspotMargin = true;
+  this.hotspot.margin.hotspot = this.hotspot; 
+  this.hotspot.margin.hide();
   
   this.border = self.parent.engine.r.circle(x, y, this.radius+2);
   this.border.attr({stroke: "#fff", "stroke-width": 2, "stroke-opacity": 1});
@@ -987,6 +1418,24 @@ function QuizHotspot(parent, color, id, x, y, radius) {
     this.border.attr({r: radius+2});
     this.ie_fix.attr({x: this.ie_fix.attr('x')-diff, y: this.ie_fix.attr('y')-diff, width: radius*2, height: radius*2});
   };
+  
+  this.getCenter = function() {
+    if(this.hotspot) {
+      return {x: this.hotspot.attr('cx'), y:this.hotspot.attr('cy')};
+    }
+    else {
+      return null;
+    }
+  };
+  
+  this.getBBox = function() {
+    return this.hotspot.getBBox();
+  };
+  
+  this.move = function(deltax,deltay) {
+    this.hotspot.attr({"cx": this.hotspot.attr("cx") + deltax}); 
+    this.hotspot.attr({"cy": this.hotspot.attr("cy") + deltay});
+  };
 }
 
 
@@ -1014,26 +1463,36 @@ function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_i
   // Create default hotspot and label
   this.color = color;
   
-  if(correct_answer != null || label_id !== null) {
-    this.uiLabel = new QuizLabel(this, color, label_id, text, label_x, label_y);
-  }
-  
-  if(correct_answer != null || hotspot_id !== null) {
+  if((correct_answer !== null || hotspot_id !== null) && hotspot_x !== null) {
     this.uiHotspot = new QuizHotspot(this, color, hotspot_id, hotspot_x, hotspot_y);
   }
   
+  if(correct_answer !== null || label_id !== null) {
+    this.uiLabel = new QuizLabel(this, color, label_id, text, label_x, label_y);
+  }
+  
   if(this.engine.isTakeMode()) {
-    this.pointer = new QuizPointer(this, this.uiLabel.label, color);
-    this.uiLabel.set.drag(this.pointer.pointer_move, this.pointer.pointer_drag_start, this.pointer.pointer_up);
+    if(this.engine.executionModeLines()) {
+      this.pointer = new QuizPointer(this, this.uiLabel.label, color);
+      this.uiLabel.set.drag(this.pointer.pointer_move, this.pointer.pointer_drag_start, this.pointer.pointer_up);
+    }
+    else {
+      // Make label beeing draggable
+      new QuizLabelDrag(this, this.uiLabel.label, color);
+    }
   }
   
   this.createConnection = function() {
-    this.connection = this.engine.r.connection(this.uiLabel.label, (this.engine.isTakeMode() ? this.pointer.connect() : this.uiHotspot.connect()), this.color, "#FFF|5");
+    if(self.engine.isEditMode() || self.engine.executionModeLines()) {
+      this.connection = this.engine.r.connection(this.uiLabel.label, (this.engine.isTakeMode() ? this.pointer.connect() : this.uiHotspot.connect()), this.color, "#FFF|5");
+    }
   };
   
   this.hideConnection = function() {
-    this.connection.bg.hide();
-    this.connection.line.hide();
+    if(self.engine.isEditMode() || self.engine.executionModeLines()) {
+      this.connection.bg.hide();
+      this.connection.line.hide();
+    }
   };
   
   if(this.engine.isEditMode() || (this.engine.isResultMode() && hotspot_id !== null && label_id !== null)) {
@@ -1042,15 +1501,24 @@ function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_i
   
   if(this.engine.isResultMode() && (correct_answer != null || (label_id === null || hotspot_id === null))) {
     
-    var settings = {color: (correct_answer ? '#00bb27' : '#fe2020'), width: 20, fill: true, opacity: 1};
+    //var settings = {color: (correct_answer ? '#00bb27' : '#fe2020'), width: 20, fill: true, opacity: 1};
+    
+    var imagepath = this.engine.conf.quiz_imagepath + (correct_answer ? "icon_ok" : "icon_wrong") + ".gif";
     
     // Set glow color:
     if(QuizUtil.defined(this.uiLabel)) {
-      this.uiLabel.label.glow(settings);
+      // Create Image:
+      var bbox = this.uiLabel.getBBox();
+      this.engine.r.image(imagepath, bbox.x-8, bbox.y-8, 20, 20);
+      //this.engine.r.image.attr({'width': 16, 'height': 16});
+      
+      //this.uiLabel.label.glow(settings);
     }
-    if(QuizUtil.defined(this.uiHotspot)) {
-      this.uiHotspot.hotspot.glow(settings);
-    }
+    /*if(QuizUtil.defined(this.uiHotspot) && this.engine.executionModeLines()) {
+      //this.uiHotspot.hotspot.glow(settings);
+      var bbox = this.uiHotspot.getBBox();
+      this.engine.r.image(imagepath, bbox.x, bbox.y, 16, 16);
+    }*/
   }
   
   this.redrawConnection = function() {
@@ -1112,6 +1580,22 @@ function QuizElement (engine, color, text, label_id, label_x, label_y, hotspot_i
     this.connection.bg.remove();
     this.connection.line.remove();
   };
+  
+  this.getBBox = function() {
+    var bbox = this.uiLabel.getBBox();
+    
+    if(QuizUtil.defined(this.uiHotspot)) {
+      var bboxHotSpot = this.uiHotspot.getBBox();
+      bbox = QuizUtil.bboxUnion(bbox, bboxHotSpot);
+    }
+    
+    return bbox;
+  };
+  
+  this.move = function(deltax,deltay) {
+    this.uiLabel.move(deltax,deltay);
+    this.uiHotspot.move(deltax,deltay);
+  };
 }
 
 QuizElement.fromJson = function(json, engine) {
@@ -1159,155 +1643,8 @@ var Glow = {
     }
 };*/
 
-/**
- * A list of quiz ddlines elements.
- * 
- * Responsible for: 
- * - Holding the elements in-memory 
- * - Creating/Parsing the jsondata 
- * - Making the form input field being in-sync
- */
-var QuizElementList = { 
-  elements: [],
-  engine: null,
-  add: function(element) {
-    this.elements.push(element);
-    this.updateForm();
-  },
-  remove: function(element) {
-    // Remove from list:
-    for(var i=0; i<this.elements.length; i++) {
-      if(element == this.elements[i]) {
-        this.elements.splice(i,1);
-      }
-    }   
-    // Update form cache:
-    this.updateForm();
-  },
-  clear: function() {
-    this.elements = [];
-    
-    // Update form cache:
-    this.updateForm();
-  },
-  updateForm: function() {
-    if(QuizElementList.engine.isEditMode()) {
-      // Set the value of the hidden form field (ddlines_elements)
-      $('input[name=ddlines_elements]').val(this.toJson());
-    }
-  },
-  load: function(engine, display_answers, id) {
-    
-    QuizElementList.engine = engine;
-    
-    var obj=null;
-    if(engine.isResultMode()) {
-      obj = display_answers ? engine.conf["answers-"+id] : engine.conf["correct-"+id];
-    }
-    else {
-      json = $('input[name=ddlines_elements]').val();
-      
-      if(!json || json.length == 0) {
-        return;
-      }
-      
-      obj = $.parseJSON(json);
-    }
-    
-    // Set canvas size:
-    engine.resizePaper(obj.canvas.width, obj.canvas.height);
-    
-    // Set image position:
-    engine.image.setBounds(obj.image.left, obj.image.top, obj.image.width, obj.image.height);
-    
-    // Add elements:
-    if(QuizUtil.defined(obj.elements)) {
-      for (var i = 0; i < obj.elements.length; i++) {
-        this.add(QuizElement.fromJson(obj.elements[i], engine));
-      }
-    }
-    
-    // Update connecting lines between each pair if hotspot 
-    // and label: 
-    engine.redrawConnections();
-  },
-  toJson: function() {
-    // Get image location:
-    var elements='';
-    var json = '{' + QuizElementList.engine.image.toJson() + ',' + QuizElementList.engine.toJson();
-    for (var i = 0; i < this.elements.length; i++) {      
-      elements += this.elements[i].toJson() + (i<this.elements.length-1 ? ',' : '');
-    }
-    
-    if(this.elements.length>0) {
-      json += ',"elements":['+elements+']';
-    }
-    
-    return json+'}';
-  },
-  size: function() {
-    return this.elements.length;
-  },
-  updateHotspotRadius: function(radius) {
-    radius = parseInt(radius);
-    
-    QuizElementList.engine.conf.hotspot.radius = radius;
-    
-    // Update radius for all elements:
-    for(var i=0; i<this.elements.length; i++) {
-      this.elements[i].uiHotspot.updateHotspotRadius(radius);
-      this.elements[i].redrawConnection();
-    }   
-  }
-};
 
-var QuizUtil = {
-    // The minimum width of the label
-    LABEL_MIN_WIDTH: 40,
-  
-    // The glow implementation should be moved into a class, 
-    // but will do for now 
-    current_glow: null,
-    
-    current_editor: null,
-    
-    drag_mode: false,
 
-    defined: function (a) {
-      return (typeof a !== 'undefined');
-    }
-};
 
-/*
- * A user's answers
- */
-var Answers = {
-  elements: [],  
-  setAnswer: function(label_id, hotspot_id) {
-    this.elements[label_id] = hotspot_id ;
-    this.updateForm();
-  },
-  removeAnswer: function(label_id) {
-    delete this.elements[label_id];
-    this.updateForm();
-  },
-  toJson: function() {
-    var json = '';
-    var count=0;
-    for (var key in this.elements) {    
-      json += (count>0 ? ',' : '') + '{"label_id":'+key+',"hotspot_id":'+this.elements[key]+'}';
-      count++;
-    }
-    
-    if(count===0) {
-      return '';
-    }
-    else {
-      return '['+json+']';
-    }
-  },
-  updateForm: function() {
-    $('input[name=tries]').val(this.toJson());
-  }
-};
+
 }(jQuery));

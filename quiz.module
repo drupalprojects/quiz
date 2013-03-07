@@ -1798,7 +1798,7 @@ function quiz_get_pass_rate($nid, $vid) {
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
   // query for questions in previous version
   $result = db_select('quiz_node_relationship', 'qnr')
-    ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score'))
+    ->fields('qnr', array('parent_nid','child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score'))
     ->condition('parent_nid', $quiz_nid)
     ->condition('parent_vid', $old_quiz_vid)
     ->condition('question_status', QUESTION_NEVER, '!=')
@@ -1806,7 +1806,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
   // only proceed if query returned data
   if ($result->rowCount()) {
     $insert_query = db_insert('quiz_node_relationship')
-      ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'));
+      ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score'));
     while ($quiz_question = $result->fetchAssoc()) {
       $insert_query->values(array(
         'parent_nid' => $quiz_nid,
@@ -1815,7 +1815,8 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
         'child_vid' => $quiz_question['child_vid'],
         'question_status' => $quiz_question['question_status'],
         'weight' => $quiz_question['weight'],
-        'max_score' => $quiz_question['max_score']
+        'max_score' => $quiz_question['max_score'],
+        'auto_update_max_score' => $quiz_question['auto_update_max_score'],
       ));
     }
     $insert_query->execute();
@@ -3059,6 +3060,9 @@ function quiz_node_map($node, $include_question = TRUE) {
   if (isset($node->max_score)) {
     $new_question->max_score = $node->max_score;
   }
+  if (isset($node->auto_update_max_score)) {
+    $new_question->auto_update_max_score = $node->auto_update_max_score;
+  }
   $new_question->weight = $node->weight;
   return $new_question;
 }
@@ -3105,7 +3109,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
 
   $qnr_insert = db_insert('quiz_node_relationship')
-    ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score'));
+    ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score'));
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
       $qnr_insert->values(array(
@@ -3116,6 +3120,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
         'question_status' => $question->state,
         'weight' => $question->weight,
         'max_score' => (int) $question->max_score,
+        'auto_update_max_score' => (int) $question->auto_update_max_score,
       ));
     }
   }
@@ -3608,7 +3613,7 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'type'));
   $query->fields('nr', array('vid', 'title'));
-  $query->fields('qnr', array('question_status', 'weight', 'max_score'));
+  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score'));
   $query->addField('n', 'vid', 'latest_vid');
   $query->join('node_revision', 'nr', 'n.nid = nr.nid');
   $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
@@ -4004,7 +4009,7 @@ function _quiz_user_results_access($user_id) {
  */
 function quiz_copy_questions($node) {
   // Find original questions.
-  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score FROM {quiz_node_relationship}
+  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score FROM {quiz_node_relationship}
           WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
   foreach ($query as $res_o) {
     $original_question = node_load($res_o->child_nid);
@@ -4026,9 +4031,9 @@ function quiz_copy_questions($node) {
 
     // Save the relationship between the new question and the quiz.
     $sql = 'INSERT INTO {quiz_node_relationship}
-            (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score)
-            VALUES(:parent_nid, :parent_vid, :child_nid, :child_vid, :question_status, :weight, :max_score)';
-    db_query($sql, array(':parent_nid' => $node->nid, ':parent_vid' => $node->vid, ':child_nid' => $original_question->nid, ':child_vid' => $original_question->vid, ':question_status' => $res_o->question_status, ':weight' => $res_o->weight, ':max_score' => $res_o->max_score));
+            (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score, auto_update_max_score)
+            VALUES(:parent_nid, :parent_vid, :child_nid, :child_vid, :question_status, :weight, :max_score, :auto_update_max_score)';
+    db_query($sql, array(':parent_nid' => $node->nid, ':parent_vid' => $node->vid, ':child_nid' => $original_question->nid, ':child_vid' => $original_question->vid, ':question_status' => $res_o->question_status, ':weight' => $res_o->weight, ':max_score' => $res_o->max_score, ':auto_update_max_score' => $res_o->auto_update_max_score));
   }
 }
 

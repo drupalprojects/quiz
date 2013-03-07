@@ -32,7 +32,7 @@ function quiz_ddlines_install() {
   if (empty($instance)) {
     
     $help_text = t("<p>Start by uploading a background image. The image is movable within the canvas.<br/> 
-    				The next step is to add the alternatives, by pressing the <em>Add alternative</em> button. 
+    				The next step is to add the alternatives, by clicking in the canvas. 
     				Each alternative consists of a circular hotspot, a label, and a connecting line. You need 
     				to double click the rectangular label to add the text, and move the hotspot to the correct
     				position. When selecting a label, a popup-window is displayed, which gives you the following
@@ -56,7 +56,7 @@ function quiz_ddlines_install() {
       ),
       'widget' => array (
         'settings' => array (
-          'preview_image_style' => 'large', 
+          'preview_image_style' => 'quiz_ddlines', 
       	  'no_ui' => TRUE,
         ),
       ),
@@ -96,6 +96,13 @@ function quiz_ddlines_schema() {
       ),
       'ddlines_elements' => array(
         'type' => 'text',
+      ),
+  	  'execution_mode' => array(
+        'type' => 'int',
+        'description' => "Execution mode. 0->with lines, 1->without lines",
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
       ),
     ),
     'foreign keys' => array(
@@ -194,4 +201,20 @@ function quiz_ddlines_uninstall() {
     variable_del($v);
   }
   drupal_set_message(t("The Quiz drag and drop module has been uninstalled. Nodes of this type may still exist, but they will not function properly."));
+}
+
+/**
+ * Adding Execution mode column. Makes it possible to
+ * run the test in two different modes.
+ */
+function quiz_ddlines_update_7401() {
+  // Add field for execution mode
+  $spec = array(
+    'type' => 'int',
+    'description' => "Execution mode. 0->with lines, 1->without lines",
+    'not null' => TRUE,
+    'unsigned' => TRUE,
+    'default' => 0,
+  ); 
+  db_add_field('quiz_ddlines_node', 'execution_mode', $spec);
 }
