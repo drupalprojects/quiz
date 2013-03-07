@@ -3209,8 +3209,9 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   // Timed quizzes are likely to have expired by this point. But we let
   // the quiz_take_quiz handler handle that.
   $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
-  $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
-
+  if ($quiz->time_limit > 0) {
+    $_SESSION['quiz_' . $quiz->nid]['question_duration'] = $quiz->time_limit;
+  }
   drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
 }
 
