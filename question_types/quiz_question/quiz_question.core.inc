@@ -310,9 +310,6 @@ abstract class QuizQuestion {
     if (isset($this->nodeProperties)) {
       return $this->nodeProperties;
     }
-    $sql = 'SELECT max_score
-            FROM {quiz_question_properties}
-            WHERE nid = %d AND vid = %d';
     $props['max_score'] = db_query('SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
@@ -576,17 +573,17 @@ abstract class QuizQuestion {
       ->execute();
       $quizzes_to_update[] = $new_node->vid;
     }
-    
+
     // Update max_score for relationships if auto update max score is enabled
     // for question
     if(isset($this->node->nid)) {
       $result = db_query(
-          'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', 
-          array(':nid' => $this->node->nid, ':vid' => $this->node->vid));      
+          'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1',
+          array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
       foreach ($result as $record) {
         $quizzes_to_update[] = $record->vid;
       }
-      
+
       db_update('quiz_node_relationship')
         ->fields(array('max_score' => $this->getMaximumScore()))
         ->condition('child_nid', $this->node->nid)
@@ -594,7 +591,7 @@ abstract class QuizQuestion {
         ->condition('auto_update_max_score', 1)
         ->execute();
     }
-    
+
     quiz_update_max_score_properties($quizzes_to_update);
     return $quizzes_kept;
   }
@@ -644,11 +641,11 @@ abstract class QuizQuestion {
     $body = field_get_items('node', $this->question, 'body');
     return ($body ? $body[0]['format'] : NULL);
   }
-  
+
   /**
    * This may be overridden in subclasses. If it returns true,
-   * it means the max_score is updated for all occurrences of 
-   * this question in quizzes.  
+   * it means the max_score is updated for all occurrences of
+   * this question in quizzes.
    */
   protected function autoUpdateMaxScore() {
     return false;
@@ -880,6 +877,7 @@ abstract class QuizQuestionResponse {
     $form['#is_correct'] = $this->isCorrect();
     $form['#is_evaluated'] = $this->isEvaluated();
     $form['#is_skipped'] = $this->is_skipped;
+    $form['#is_doubtful'] = $this->is_doubtful;
     return $form;
   }
 
