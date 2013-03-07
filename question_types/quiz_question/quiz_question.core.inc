@@ -638,8 +638,9 @@ abstract class QuizQuestion {
    * Utility function that returns the format of the node body
    */
   protected function getFormat() {
-    $body = field_get_items('node', $this->question, 'body');
-    return ($body ? $body[0]['format'] : NULL);
+    $node = isset($this->node) ? $this->node : $this->question;
+    $body = field_get_items('node', $node, 'body');
+    return isset($body[0]['format']) ? $body[0]['format'] : NULL;
   }
 
   /**
