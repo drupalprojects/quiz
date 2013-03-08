@@ -447,7 +447,7 @@ function quiz_question_config($form, $context) {
       $form[$type]['#title'] = $values['name'];
       $form[$type]['#collapsible'] = TRUE;
       $form[$type]['#collapsed'] = TRUE;
-      if (isset($admin_form['#validate'])) {
+      if (isset($admin_form['#validate']) && is_array($admin_form['#validate'])) {
         $form['#validate'] = array_merge($form['#validate'], $admin_form['#validate']);
 	unset($form[$type]['#validate']);
       }
