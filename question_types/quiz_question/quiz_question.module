@@ -345,8 +345,9 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
    * From where is this function invoked?
    */
   $questions = array();
+  $question_format = (isset($question->body[LANGUAGE_NONE][0]['format'])) ? $question->body[LANGUAGE_NONE][0]['format'] : NULL;
   while ($question = $query->fetch()) {
-    $question->question = check_markup($question->body, $question->body['und'][0]['format']);
+    $question->question = check_markup($question->body, $question_format);
     $questions[] = $question;
   }
   return $questions;

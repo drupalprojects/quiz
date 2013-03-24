@@ -3046,7 +3046,8 @@ function _quiz_get_terms($vid) {
 function quiz_node_map($node, $include_question = TRUE) {
   $new_question = new stdClass();
   if ($include_question) {
-    $new_question->question = check_markup($node->body, $node->body['und'][0]['format']);
+    $quiz_format = (isset($node->body[LANGUAGE_NONE][0]['format'])) ? $node->body[LANGUAGE_NONE][0]['format'] : NULL ;
+    $new_question->question = check_markup($node->body, $quiz_format);
   }
   $new_question->title = $node->title;
   $new_question->nid = $node->nid;
@@ -3364,10 +3365,11 @@ function _quiz_update_resultoptions($node) {
  */
 function _quiz_get_summary_text($quiz, $score) {  $summary = array();
   $admin = (arg(0) == 'admin');
+  $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
   if (!$admin) {
     if (!empty($score['result_option'])) {
       // Unscored quiz, return the proper result option.
-      $summary['result'] = check_markup($score['result_option'], $quiz->body['und'][0]['format']);
+      $summary['result'] = check_markup($score['result_option'], $quiz_format);
     }
     else {
       $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
@@ -3384,7 +3386,7 @@ function _quiz_get_summary_text($quiz, $score) {  $summary = array();
     elseif (variable_get('quiz_use_passfail', 1) == 0) {
       // If there is only a single summary text, use this.
       if (trim($quiz->summary_default) != '') {
-        $summary['passfail'] = check_markup($quiz->summary_default, $quiz->body['und'][0]['format']);
+        $summary['passfail'] = check_markup($quiz->summary_default, $quiz_format);
       }
     }
     elseif (trim($quiz->summary_pass) != '') {

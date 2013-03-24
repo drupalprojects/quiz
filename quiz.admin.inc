@@ -1803,11 +1803,12 @@ function theme_quiz_admin_summary($variables) {
   $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
   $output .= '<div id="quiz_score_possible">' . t('This person got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
   $output .= '<div id="quiz_score_percent">' . t('Total score: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
+  $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
   if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz->body['und'][0]['format']) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz_format) . '</div>' . "\n";
   }
   if (isset($summary['result'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz->body['und'][0]['format']) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz_format) . '</div>' . "\n";
   }
 
   // Get the feedback for all questions.
