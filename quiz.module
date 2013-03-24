@@ -4185,7 +4185,7 @@ function _quiz_save_user_settings($node) {
       'uid' => $user->uid
     ))
     ->fields(array(
-      'uid'                     => isset($node->uid) ? $node->uid : $node->save_def_uid,
+      'uid'                     => $user->uid,
       'nid'                     => $node->nid,
       'vid'                     => $node->vid,
       'aid'                     => isset($node->aid) ? $node->aid : 0,
