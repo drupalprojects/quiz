@@ -469,27 +469,27 @@ class MatchingResponse extends QuizQuestionResponse {
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
-    $has_feedback = TRUE;
+    $has_feedback = FALSE;
     foreach ($correct_answers as $correct_answer) {
       $answer_data = array();
       $correct = FALSE;
       $id = NULL;
       $answer_data['question'] = check_markup($correct_answer['question'], $this->getFormat());
+      if ($showpoints) {
+        $answer_data['correct_answer'] = $correct_answer['answer'];
+      }
       if ( isset($user_answers[$correct_answer['match_id']])) {
         $id = $user_answers[$correct_answer['match_id']];
         $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
         $answer_data['user_answer'] = isset($correct_answers[$id]) ? check_markup($correct_answers[$id]['answer'], $this->getFormat()) : NULL;
       }
-      if ($showpoints) {
-        $answer_data['correct_answer'] = $correct_answer['answer'];
-      }
       if ($showfeedback && !empty($correct_answer['feedback'])) {
         $answer_data['feedback'] = check_markup($correct_answer['feedback'], $this->getFormat());
+        $has_feedback = TRUE;
       }
       else {
-        //$has_feedback = FALSE;
         if ($showfeedback)  {
-          $answer_data['feedback'] = '';
+          //$answer_data['feedback'] = '';
         }
       }
       $answer_data['is_correct'] = $correct;
@@ -499,7 +499,7 @@ class MatchingResponse extends QuizQuestionResponse {
     if ($showfeedback && $has_feedback) {
       $metadata[] = t('Feedback');
     }
-
+    $metadata[] = t('Valuation');
     return array(
       '#markup' => theme('matching_response', array('metadata' => $metadata, 'data' => $data)),
     );
