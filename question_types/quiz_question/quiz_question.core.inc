@@ -197,7 +197,7 @@ abstract class QuizQuestion {
         // Suplementing with other available quizzes...
         $found = implode(', ', array_merge($already_nids, $latest_nids));
         $sql = "SELECT n.nid, n.vid, title, changed FROM {node} n
-        		JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
+            JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
                 WHERE type = 'quiz' AND qnp.randomization < 3";
         if (drupal_strlen($found) > 0) {
           $sql .= " AND n.nid NOT IN ($found)";
@@ -341,21 +341,19 @@ abstract class QuizQuestion {
     // We call the abstract function saveNodeProperties to save type specific data
     $this->saveNodeProperties($is_new);
 
-    $is_new_node = $is_new || $this->node->revision == 1;
+    db_merge('quiz_question_properties')
+      ->key(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+      ))
+      ->fields(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+        'max_score' => $this->getMaximumScore(),
+      ))
+      ->execute();
 
-    // Save general data
-    if ($is_new_node) {
-      db_query('INSERT INTO {quiz_question_properties} (nid, vid, max_score) VALUES(:nid, :vid, :max_score)', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':max_score' => $this->getMaximumScore()));
-    }
-    else {
-      db_update('quiz_question_properties')
-        ->fields(array(
-          'max_score' => $this->getMaximumScore(),
-        ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
-    }
+
 
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
