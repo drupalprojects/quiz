@@ -734,7 +734,7 @@ function quiz_insert($node) {
       'allow_resume'                => $node->allow_resume,
       'allow_jumping'               => $node->allow_jumping,
       'show_passed'                 => $node->show_passed,
-      'mark_doubtful'		    => $node->mark_doubtful
+      'mark_doubtful'               => $node->mark_doubtful
     ))
     ->execute();
 
@@ -792,7 +792,7 @@ function quiz_update($node) {
         'allow_resume'                => $node->allow_resume,
         'allow_jumping'               => $node->allow_jumping,
         'show_passed'                 => $node->show_passed,
-        'mark_doubtful'		      => $node->mark_doubtful
+        'mark_doubtful'               => $node->mark_doubtful
        ))
       ->condition('vid', $node->vid)
       ->condition('nid', $node->nid)
@@ -817,9 +817,9 @@ function quiz_field_extra_fields() {
         'weight' => 10,
       ),
       'stats' => array(
-	'label' => t('Quiz summary'),
-	'description' => t('Quiz summary'),
-	'weight' => 9,
+        'label' => t('Quiz summary'),
+        'description' => t('Quiz summary'),
+        'weight' => 9,
       ),
     ),
     'form' => array(
@@ -2654,17 +2654,17 @@ function quiz_update_max_score_properties($quizzes_to_update) {
   if (!empty($results_to_update)) {
     db_update('quiz_node_results')
       ->expression('score',
-	  'ROUND(
-	  100 * (
-	    SELECT COALESCE (SUM(a.points_awarded), 0)
-	    FROM {quiz_node_results_answers} a
-	    WHERE a.result_id = {quiz_node_results}.result_id
-	  ) / (
-	    SELECT max_score
-	    FROM {quiz_node_properties} qnp
-	    WHERE qnp.vid = {quiz_node_results}.vid
-	  )
-	)')
+        'ROUND(
+        100 * (
+          SELECT COALESCE (SUM(a.points_awarded), 0)
+          FROM {quiz_node_results_answers} a
+          WHERE a.result_id = {quiz_node_results}.result_id
+        ) / (
+          SELECT max_score
+          FROM {quiz_node_properties} qnp
+          WHERE qnp.vid = {quiz_node_results}.vid
+        )
+      )')
       ->condition('vid', $results_to_update, 'IN')
       ->execute();
   }
@@ -4008,8 +4008,9 @@ function _quiz_user_results_access($user_id) {
  */
 function quiz_copy_questions($node) {
   // Find original questions.
-  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score FROM {quiz_node_relationship}
-          WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
+  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score
+    FROM {quiz_node_relationship}
+    WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
   foreach ($query as $res_o) {
     $original_question = node_load($res_o->child_nid);
 
@@ -4029,10 +4030,18 @@ function quiz_copy_questions($node) {
     node_save($original_question);
 
     // Save the relationship between the new question and the quiz.
-    $sql = 'INSERT INTO {quiz_node_relationship}
-            (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score, auto_update_max_score)
-            VALUES(:parent_nid, :parent_vid, :child_nid, :child_vid, :question_status, :weight, :max_score, :auto_update_max_score)';
-    db_query($sql, array(':parent_nid' => $node->nid, ':parent_vid' => $node->vid, ':child_nid' => $original_question->nid, ':child_vid' => $original_question->vid, ':question_status' => $res_o->question_status, ':weight' => $res_o->weight, ':max_score' => $res_o->max_score, ':auto_update_max_score' => $res_o->auto_update_max_score));
+    db_insert('quiz_node_relationship')
+      ->fields(array(
+        'parent_nid'            => $node->nid,
+        'parent_vid'            => $node->vid,
+        'child_nid'             => $original_question->nid,
+        'child_vid'             => $original_question->vid,
+        'question_status'       => $res_o->question_status,
+        'weight'                => $res_o->weight,
+        'max_score'             => $res_o->max_score,
+        'auto_update_max_score' => $res_o->auto_update_max_score,
+      ))
+      ->execute();
   }
 }
 
