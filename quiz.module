@@ -231,11 +231,11 @@ function quiz_access_my_results($quiz) {
  *  True if access, false otherwise
  */
 function quiz_access_my_result($rid) {
-  global $user;
   if (!user_access('view own quiz results')) {
     return FALSE;
   }
-  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id AND uid = :uid', array(':result_id' => $rid, ':uid' => $user->uid))->fetchField();
+  // Check if the quiz taking has been completed.
+  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
   return $time_end > 0;
 }
 
