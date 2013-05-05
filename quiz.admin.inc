@@ -790,7 +790,6 @@ function quiz_questions_form($form, $form_state, $quiz) {
   // We add the questions from the browser as hidden question rows in the question list. Doing this we can have
   // the question show up in the question list instantly when a question is chosen in the browser(using js).
   _quiz_add_hidden_questions($questions, $hidden_questions, $form_state, $quiz);
-
   // We add the questions to the form array
   _quiz_add_questions_to_form($form, $questions, $quiz, $types);
 
@@ -839,14 +838,27 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   $url_query = drupal_get_destination();
   $url_query['quiz_nid'] = $quiz->nid;
   $url_query['quiz_vid'] = $quiz->vid;
+  $create_question = FALSE;
   foreach ($types as $type => $info) {
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
       'query' => $url_query,
     );
+    $access = node_access('create', $type);
+    if ($access) {
+      $create_question = TRUE;
+    }
     $form['additional_questions'][$type] = array(
       '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
+      '#access' => $access,
+    );
+  }
+  if (!$create_question) {
+    $form['additional_questions']['create'] = array(
+      '#type' => 'markup',
+      '#markup' => t('You have not enabled any question type module or no has permission been given to create any question.'),
+      // @todo revisit UI text
     );
   }
 }
@@ -1117,6 +1129,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
           'attributes' => array('class' => array('handle-changes')),
         )
       ),
+      '#access' => node_access('update', node_load($question->nid, $question->vid)),
     );
     // For js enabled browsers questions are removed by pressing a remove link
     $form[$fieldset]['remove_links'][$id] = array(
@@ -2367,12 +2380,20 @@ function _quiz_get_question_row($sub_form, $id) {
   // We add the class "hidden-class" to hide questions that haven't been added to the quiz yet.
   $hidden_class = ($sub_form['stayers'][$id]['#default_value'] === 0) ? ' hidden-question' : '';
 
+  $action = theme('item_list', array(
+    'items' => array(
+      drupal_render($sub_form['view_links'][$id]),
+      '<SPAN CLASS="q-remove" STYLE="display:none">' . drupal_render($sub_form['remove_links'][$id]) . '</SPAN>',
+    ),
+    'attributes' => array(
+      'class' => array('links', 'inline'),
+    ),
+  ));
   $data_array = array(
     // The checkbox and the title
     drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
-
     $type,
-    $sub_form['view_links'][$id]['#markup'] . '<SPAN CLASS="q-remove" STYLE="display:none"> | ' . $sub_form['remove_links'][$id]['#markup'] . '</SPAN>',
+    $action,
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
     drupal_render($sub_form['max_scores'][$id]),
     drupal_render($sub_form['auto_update_max_scores'][$id]),
