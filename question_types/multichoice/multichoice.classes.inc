@@ -198,31 +198,32 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   function _normalizeAlternative($alternatives) {
+    $copy = $alternatives;
     // answer
     if (is_array($alternatives['answer']) && isset($alternatives['answer']['value'])) {
-      $alternatives['answer'] = $alternatives['answer']['value'];
+      $copy['answer'] = $alternatives['answer']['value'];
     }
     // answer format
     if (is_array($alternatives['answer']) && isset($alternatives['answer']['format'])) {
-      $alternatives['answer_format'] = $alternatives['answer']['format'];
+      $copy['answer_format'] = $alternatives['answer']['format'];
     }
     // feedback if choosen
     if (is_array($alternatives['feedback_if_chosen']) && isset($alternatives['feedback_if_chosen']['value'])) {
-      $alternatives['feedback_if_chosen'] = $alternatives['feedback_if_chosen']['value'];
+      $copy['feedback_if_chosen'] = $alternatives['feedback_if_chosen']['value'];
     }
     // feedback if choosen foramt
     if (is_array($alternatives['feedback_if_chosen']) && isset($alternatives['feedback_if_chosen']['format'])) {
-      $alternatives['feedback_if_chosen_format'] = $alternatives['feedback_if_not_chosen_format']['format'];
+      $copy['feedback_if_chosen_format'] = $alternatives['feedback_if_chosen']['format'];
     }
     // feedback if not chosen
     if (is_array($alternatives['feedback_if_not_chosen']) && isset($alternatives['feedback_if_not_chosen']['value'])) {
-      $alternatives['feedback_if_not_chosen'] = $alternatives['feedback_if_not_chosen']['value'];
+      $copy['feedback_if_not_chosen'] = $alternatives['feedback_if_not_chosen']['value'];
     }
     // feedback if not chosen foramt
     if (is_array($alternatives['feedback_if_not_chosen']) && isset($alternatives['feedback_if_not_chosen']['format'])) {
-      $alternatives['feedback_if_not_chosen_format'] = $alternatives['feedback_if_not_chosen_format']['format'];
+      $copy['feedback_if_not_chosen_format'] = $alternatives['feedback_if_not_chosen']['format'];
     }
-    return $alternatives;
+    return $copy;
   }
 
   /**
