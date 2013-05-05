@@ -1053,7 +1053,7 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
   $form = array();
   $form['#action'] = url("node/$node->nid/take");
   $form['button'] = array(
-    '#type' => 'button',
+    '#type' => 'submit',
     '#value' => t('Start quiz'),
   );
   return $form;
