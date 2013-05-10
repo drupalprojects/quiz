@@ -34,6 +34,26 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
+    // Update or insert the question properties
+    if ($is_new) {
+      db_insert('quiz_matching_properties')
+        ->fields(array(
+          'nid' => $this->node->nid,
+          'vid' => $this->node->vid,
+          'choice_penalty' => $this->node->choice_penalty,
+        ))
+        ->execute();
+    }
+    else {
+      db_update('quiz_matching_properties')
+        ->fields(array(
+          'choice_penalty' => $this->node->choice_penalty,
+        ))
+        ->condition('nid', $this->node->nid)
+        ->condition('vid', $this->node->vid)
+        ->execute();
+    }
+    
     // Loop through each question-answer combination
     foreach ($this->node->match as $match) {
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
@@ -91,7 +111,12 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
+    
+    $delete_properties = db_delete('quiz_matching_properties')->condition('nid', $this->node->nid);
+      
     if ($only_this_version) {
+      $delete_properties->condition('vid', $this->node->vid);
+      
       $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
       db_delete('quiz_matching_user_answers')
         ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
@@ -110,10 +135,13 @@ class MatchingQuestion extends QuizQuestion {
           ->condition('match_id', $match_id, 'IN')
           ->execute();
       }
+
       db_delete('quiz_matching_node')
         ->condition('nid', $this->node->nid)
         ->execute();
     }
+    
+    $delete_properties->execute();
   }
 
   /**
@@ -126,6 +154,13 @@ class MatchingQuestion extends QuizQuestion {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
+    
+    $res_a = db_query('SELECT choice_penalty FROM {quiz_matching_properties}
+            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+
+    if (is_array($res_a)) {
+      $props = array_merge($props, $res_a);
+    }
 
     //$sql = "SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = %d AND vid = %d";
     $query = db_query('SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
@@ -273,6 +308,23 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#getCreationForm($form_state)
    */
   public function getCreationForm(array &$form_state = NULL) {
+    // Get the nodes settings, users settings or default settings
+    $default_settings = $this->getDefaultAltSettings();
+    
+    $form['settings'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Settings'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+    $form['settings']['choice_penalty'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Penalty for guessing'),
+      '#description' => t('Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'),
+      '#default_value' => $default_settings['choice_penalty'],
+      '#parents' => array('choice_penalty'),
+    );
+    
     $form['match'] = array(
       '#type' => 'fieldset',
       '#title' => t('Answer'),
@@ -310,6 +362,24 @@ class MatchingQuestion extends QuizQuestion {
       );
     }
     return $form;
+  }
+  
+  /**
+   * Helper function provding the default settings for the creation form.
+   *
+   * @return
+   *  Array with the default settings
+   */
+  private function getDefaultAltSettings() {
+    // If the node is being updated the default settings are those stored in the node
+    if (isset($this->node->nid)) {
+      $settings['choice_penalty'] = $this->node->choice_penalty;
+    }
+    // The user is creating his first matching node
+    else {
+      $settings['choice_penalty'] = 0;
+    }
+    return $settings;
   }
 
   /**
@@ -439,7 +509,12 @@ class MatchingResponse extends QuizQuestionResponse {
         $wrong_answer++;
       }
     }
-    $score = $correct_answer - $wrong_answer;
+    
+    $score = $correct_answer;
+    if ($this->question->choice_penalty) {
+      $score -= $wrong_answer;
+    }
+    
     return $score < 0 ? 0 : $score;
   }
 

@@ -109,6 +109,11 @@ function matching_theme() {
 function matching_field_extra_fields() {
   $extra['node']['matching'] = array(
     'form' => array(
+      'settings' => array(
+        'label' => t('Settings'),
+        'description' => t('The settings for the matching question.'),
+        'weight' => -5,
+      ),
       'match' => array(
         'label' => t('Answer'),
         'description' => t('The sets of matches for this question.'),
