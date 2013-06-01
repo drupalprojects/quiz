@@ -1290,7 +1290,7 @@ function quiz_form(&$node) {
     '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
     '#weight' => 49,
   );
-  if (quiz_has_been_answered($node)) {
+  if (quiz_has_been_answered($node) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
     $node->revision = 1;
     $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
   }
