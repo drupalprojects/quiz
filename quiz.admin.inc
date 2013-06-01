@@ -1260,6 +1260,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $query->fields('u', array('name'));
   $query->leftJoin('users', 'u', 'n.uid = u.uid');
   $query->condition('type', array_keys($question_types), 'IN');
+  $query->condition('n.language', $quiz->language, '=');
   if (count($child_nid)) {
     $query->condition('nid', $child_nid, 'NOT IN');
   }
