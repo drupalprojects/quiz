@@ -1909,6 +1909,7 @@ function quiz_take_quiz($quiz) {
   }
 
   $q_passed_validation = FALSE;
+  $repeat_until_correct_error = FALSE;
 
   if (quiz_availability($quiz) !== TRUE) {
     drupal_set_message(t('This quiz is not available anymore.'), 'error');
@@ -1964,8 +1965,28 @@ function quiz_take_quiz($quiz) {
       $jumping = TRUE;
     }
 
+    if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
+      // If the question was answered incorrectly, repeat it
+      if ($result && !$result->is_correct && $result->is_evaluated) {
+        $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
+        array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
+        drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
+        $repeat_until_correct_error = TRUE;
+        unset($_SESSION['quiz_' . $quiz->nid]['feedback']);
+      }
+    }
+    elseif ($_POST['op'] == t('Back') && $quiz->backwards_navigation) {
+      $quiz_id = 'quiz_' . $quiz->nid;
+      // We jump back two times. From the next question to the current, and then
+      // from the current to the previous.
+      for ($i = 0; $i < 2; $i++) {
+        $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
+        array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
+      }
+    }
+
     // Stash feedback in the session, since the $_POST gets cleared.
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE && $repeat_until_correct_error === FALSE) {
       // Invoke hook_get_report().
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_' . $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
@@ -1980,24 +2001,6 @@ function quiz_take_quiz($quiz) {
       }
     }
 
-    if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
-      // If the question was answered incorrectly, repeat it
-      if ($result && !$result->is_correct && $result->is_evaluated) {
-        $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
-        array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
-        drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
-        unset($_SESSION['quiz_' . $quiz->nid]['feedback']);
-      }
-    }
-    elseif ($_POST['op'] == t('Back') && $quiz->backwards_navigation) {
-      $quiz_id = 'quiz_' . $quiz->nid;
-      // We jump back two times. From the next question to the current, and then
-      // from the current to the previous.
-      for ($i = 0; $i < 2; $i++) {
-        $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
-        array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
-      }
-    }
     // If anonymous user, refresh url with unique hash to prevent caching.
     if (!$user->uid   && $q_passed_validation === TRUE) {
       drupal_goto('node/' . $quiz->nid . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
