@@ -2540,7 +2540,7 @@ function quiz_mail($key, &$message, $params) {
         '!taker' => $user->name,
         '!author' => $quiz->name,
         '!title' => check_plain($quiz->title),
-        '!date' => date("F j, Y, g:i a"),
+        '!date' => format_date(REQUEST_TIME),
         '!desc' => $quiz_body ? $quiz_body[0]['value'] : '',
         '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
         '!total' => $score['possible_score'],
