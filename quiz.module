@@ -1974,6 +1974,12 @@ function quiz_take_quiz($quiz) {
     $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
   }
 
+  // Check to see if the question navigation form was submitted using the enter key
+  // in a browser that doesn't pass a default submit operation value when this happens.
+  if (!isset($_POST['op']) && isset($_POST['default_submit'])) {
+    $_POST['op'] = $_POST['default_submit'];
+  }
+
   // For quiz progress block
   // To be able to jump from one question to another
   if (isset($_GET['jump_to_question'])) {

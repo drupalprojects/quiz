@@ -163,6 +163,14 @@ input.q-skip-button:hover, input#edit-back:hover {
   text-decoration: underline;
 }
 
+input#edit-submit-hidden {
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  padding: 0;
+  border: none;
+}
+
 .quiz-passed {
   color: #00dd00;
 }
