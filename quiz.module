@@ -2748,7 +2748,6 @@ function quiz_start_check($quiz, $rid) {
 
   // Check to see if this user is allowed to take the quiz again:
   if ($quiz->takes > 0) {
-    $query = "SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = %d AND nid = %d";
     $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $user->uid, ':nid' => $quiz->nid))->fetchField();
     $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
     $taken_times   = format_plural($taken, '1 time', '@count times');
