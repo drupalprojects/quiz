@@ -2174,7 +2174,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
                          ) AS qnrc ON qnrs.uid = qnrc.uid AND qnrs.score = qnrc.top_score";
     $filter['group'] .= " GROUP BY qnrs.uid";
     if (db_driver() == 'pgsql') {
-      $filter['group'] .= " GROUP BY qnrs.uid, u.uid, u.name, qnrs.result_id, qnrs.score, qnrs.is_evaluated, qnrs.time_start, qnrs.time_end, qnp.pass_rate";
+      $filter['group'] .= ", u.uid, u.name, qnrs.result_id, qnrs.score, qnrs.is_evaluated, qnrs.time_start, qnrs.time_end, qnp.pass_rate";
     }
   }
   return $filter;
