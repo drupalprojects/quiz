@@ -1,0 +1,19 @@
+name: Quiz Question
+type: module
+description: 'Helper module for all quiz question types'
+package: Quiz Core
+version: 8.x-1.0
+core: 8.x
+configure: admin/config/quiz
+
+files:
+  - quiz_question.core.inc
+  
+dependencies:
+  - quiz
+  
+stylesheets:
+  all:
+    - quiz.css
+
+

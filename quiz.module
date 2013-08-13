@@ -1,0 +1,1341 @@
+<?php
+/**
+ * @file
+ * Quiz Module
+ *
+ * This module allows the creation of interactive quizzes for site visitors.
+ */
+
+// This module is structured as follows:
+//
+// The main module file:
+// * Defines and general includes are at the top.
+// * Hook implementations come immediately after.
+// * Public functions come next.
+// * Private functions are at the bottom.
+//
+// Where possible, user pages are located in quiz.pages.inc, and admin pages
+// are in quiz.admin.inc. Most utility functions have been left here, even if they
+// are only used by a function in one of the other files. quiz_datetime.inc holds
+// some additional date/time functions.
+//
+// Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
+// Then they are in quiz.admin.inc.
+//
+// Views support is included in includes/views/quiz.views.inc
+define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
+
+module_load_include('inc', 'quiz', 'quiz_datetime');
+
+/*
+ * Define question statuses...
+ */
+define('QUESTION_RANDOM', 0);
+define('QUESTION_ALWAYS', 1);
+define('QUESTION_NEVER', 2);
+
+/**
+ * Quiz name.
+ */
+define('QUIZ_NAME', _quiz_get_quiz_name());
+
+/**
+ * Define feedback statuses.
+ */
+define('QUIZ_FEEDBACK_END',              0);
+define('QUIZ_FEEDBACK_QUESTION',         1);
+define('QUIZ_FEEDBACK_NEVER',            2);
+
+/**
+ * Define options for keeping results.
+ */
+define('QUIZ_KEEP_BEST', 0);
+define('QUIZ_KEEP_LATEST', 1);
+define('QUIZ_KEEP_ALL', 2);
+
+/**
+ * Implements hook_help().
+ */
+function quiz_help($path, $arg) {
+  // This is moved on an experimental basis.
+  include_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz') . '/quiz.help.inc';
+  return _quiz_help($path, $arg);
+}
+
+/**
+ * Implements hook_views_api().
+ */
+function quiz_views_api() {
+  return array(
+    'api' => 2,
+    'path' => QUIZ_VIEWS_DIR,
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function quiz_permission() {
+  return array(
+    // Configure quiz:
+    'administer quiz configuration' => array(
+      'title' => t('Administer quiz configuration'),
+      'description' => t('Control the various settings and behaviours of quiz'),
+      'restrict access' => TRUE,
+    ),
+    // Managing quizzes:
+    'access quiz' => array(
+      'title' => t('Take quiz'),
+      'description' => t('Can access (take) all quizzes.'),
+    ),
+    // viewing results:
+    'view any quiz results' => array(
+      'title' => t('View any quiz results'),
+      'description' => t('Can view results for all quizzes and users.'),
+    ),
+    'view own quiz results' => array(
+      'title' => t('View own quiz results'),
+      'description' => t('Quiz takers can view their own results, also when quiz is not passed.'),
+    ),
+    'view results for own quiz' => array(
+      'title' => t('View results for own quiz'),
+      'description' => t('Quiz makers can view results for their own quizzes.'),
+    ),
+    // deleting results:
+    'delete any quiz results' => array(
+      'title' => t('Delete any quiz results'),
+    ),
+    'delete results for own quiz' => array(
+      'title' => t('Delete results for own quiz'),
+    ),
+    // scoring:
+    'score any quiz' => array(
+      'title' => t('Score any quiz'),
+    ),
+    'score own quiz' => array(
+      'title' => t('Score own quiz'),
+    ),
+    'score taken quiz answer' => array(
+      'title' => t('score taken quiz answer'),
+      'description' => t('Allows attendee to score questions needing manual evaluation.'),
+    ),
+    // Allow a quiz question to be viewed outside of a test.
+    'view quiz question outside of a quiz' => array(
+      'title' => t('View quiz question outside of a quiz'),
+      'description' => t('Questions can only be accessed through taking a quiz (not as individual nodes) unless this permission is given.'),
+    ),
+    // Allow the user to see the correct answer, when viewed outside a quiz
+    'view any quiz question correct response' => array(
+      'title' => t('View any quiz question correct response'),
+      'description' => t('Allow the user to see the correct answer, when viewed outside a quiz.'),
+    ),
+    // Allows users to pick a name for their questions. Otherwise this is auto
+    // generated.
+    'edit question titles' => array(
+      'title' => t('Edit question titles'),
+      'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
+    ),
+    // Allow users to assign an action to be performed when a user has completed
+    // a quiz:
+    'assign any action to quiz events' => array(
+      'title' => t('Assign any action to quiz events'),
+      'description' => t("Enables Drupal's actions system for Quiz triggers."),
+    ),
+    // Control revisioning, only assign this permission to users who understand
+    // who permissions work. Note: If a quiz or question is changed and not
+    // revisioned you will also change existing result reports.
+    'manual quiz revisioning' => array(
+      'title' => t('Manual quiz revisioning'),
+      'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function quiz_admin_paths() {
+  if (variable_get('node_admin_theme')) {
+    return array(
+      'node/*/questions' => TRUE,
+    );
+  }
+}
+
+/**
+ * Helper function to determine if a user has access to the different results
+ * pages.
+ *
+ * @param $quiz
+ *   The quiz node.
+ * @param $rid
+ *   The result id of a result we are trying to access.
+ * @return boolean
+ *   TRUE if user has permission.
+ */
+function quiz_access_results($quiz, $rid = NULL) {
+  global $user;
+
+  if ($quiz->type !== 'quiz') {
+    return FALSE;
+  }
+  // If rid is set we must make sure the result belongs to the quiz we are
+  // viewing results for.
+  if (isset($rid)) {
+    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
+    if ($res && $res->nid != $quiz->nid) {
+      return FALSE;
+    }
+  }
+  if (user_access('view any quiz results')) {
+    return TRUE;
+  }
+  if (user_access('view results for own quiz') && $user->uid == $quiz->uid) {
+    return TRUE;
+  }
+  if (user_access('score taken quiz answer')) {
+    //check if the taken user is seeing his result
+    if (isset($rid) && $res && $res->uid == $user->uid) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Helper function to determine if a user has access to view his quiz results
+ *
+ * @param object $quiz
+ *  The Quiz node
+ */
+function quiz_access_my_results($quiz) {
+  global $user;
+  if ($quiz->type !== 'quiz') {
+    return FALSE;
+  }
+  if (user_access('view own quiz results') && !quiz_access_results($quiz)) {
+    $answered = db_query('SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
+    if ($answered) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Helper function to determine if a user has access to view a specific quiz result.
+ *
+ * @param int $rid
+ *  Result id
+ * @return boolean
+ *  True if access, false otherwise
+ */
+function quiz_access_my_result($rid) {
+  global $user;
+  if (!user_access('view own quiz results')) {
+    return FALSE;
+  }
+  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id AND uid = :uid', array(':result_id' => $rid, ':uid' => $user->uid))->fetchField();
+  return $time_end > 0;
+}
+
+/**
+ * Helper function to determine if a user has access to score a quiz.
+ *
+ * @param $quiz_creator
+ *   uid of the quiz creator.
+ */
+function quiz_access_to_score($quiz_creator = NULL) {
+  global $user;
+  if ($quiz_creator == NULL && ($quiz = quiz_get_quiz_from_menu())) {
+    $quiz_creator = $quiz->uid;
+  }
+  if (user_access('score any quiz')) {
+    return TRUE;
+  }
+  if (user_access('score own quiz') && $user->uid == $quiz_creator) {
+    return TRUE;
+  }
+  if (user_access('score taken quiz answer')) {
+    return TRUE;
+  }
+}
+
+/**
+ * Helper function to check if the user has any of a given list of permissions.
+ *
+ * @param args
+ *   Any number of permissions.
+ * @return
+ *   TRUE if the user has access to any of the arguments given.
+ */
+function quiz_access_multi_or() {
+  $perms = func_get_args();
+  foreach ($perms as $perm) {
+    if (user_access($perm)) {
+      return TRUE;
+    }
+  }
+}
+
+/*
+ * Implementation of hook_cron().
+ */
+/**
+ * @todo Please document this function.
+ * @see http://drupal.org/node/1354
+ */
+function quiz_cron() {
+  // Remove old quiz results that haven't been finished.
+  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
+
+  if ($rm_time) { // $time = 0 for never.
+    db_delete('quiz_node_results')
+    ->condition('time_end', 0)
+    ->where('(:request_time - time_start) > :remove_time', array(
+      ':request_time' => REQUEST_TIME,
+      ':remove_time' => $rm_time
+    ))
+    ->execute();
+  }
+}
+
+/**
+* Implements hook_menu().
+*/
+function quiz_menu() {
+  //New configuration block to Quiz.
+  $items['admin/config/quiz'] = array(
+    'title' => 'Quiz',
+    'description' => 'Quiz page',
+    'weight' => -10,
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('access administration pages'),
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+    'position' => 'left',
+  );
+  //Quiz Settings.
+  $items['admin/config/quiz/settings'] = array(
+    'title' => 'Quiz settings',
+    'description' => 'Change settings for the all Quiz project modules.',
+    'route_name' => 'quiz_settings',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  //Quiz Reports.
+  $items['admin/config/quiz/reports'] = array(
+    'title' => 'Quiz reports and scoring',
+    'description' => 'View reports and score answers.',
+    'route_name' => 'quiz_reports',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['node/%node/options'] = array(
+    'title' => 'Quiz',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_options_form', 1),
+    'file' => 'quiz.pages.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 2,
+  );
+  $items['node/%node/questions'] = array(
+    'title' => 'Questions',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_questions_form', 1),
+    'file' => 'quiz.admin.inc',
+    'access arguments' => array('administer site configuration'),
+    'type' => MENU_LOCAL_TASK,
+    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    'weight' => 3,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function quiz_theme($existing, $type, $theme, $path) {
+  return array(
+    'quiz_view_stats' => array(
+      'variables' => array('node' => NULL),
+      'file' => 'quiz.pages.inc',
+    ),
+    'quiz_categorized_form' => array(
+      'render element' => 'form',
+      'file' => 'quiz.admin.inc'
+    ),
+    'quiz_get_user_results' => array(
+      'variables' => array('results' => NULL),
+      'file' => 'quiz.pages.inc',
+    ),
+    'quiz_take_summary' => array(
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => '', 'rid' => NULL),
+      'file' => 'quiz.pages.inc',
+    ),
+    'quiz_admin_summary' => array(
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'rid' => NULL),
+      'file' => 'quiz.admin.inc',
+    ),
+    'quiz_user_summary' => array(
+      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'rid' => NULL),
+      'file' => 'quiz.pages.inc',
+    ),
+    'quiz_progress' => array(
+      'variables' => array('question_number' => NULL, 'num_questions' => NULL, 'allow_jumping' => NULL, 'time_limit' => NULL),
+      'file' => 'quiz.pages.inc',
+    ),
+    'quiz_no_feedback' => array(
+      'file' => 'quiz.pages.inc',
+      'variables' => array(),
+    ),
+    'quiz_admin_quizzes' => array(
+      'file' => 'quiz.admin.inc',
+      'variables' => array('results' => NULL),
+    ),
+    'quiz_single_question_node' => array(
+      'file' => 'quiz.pages.inc',
+      'variables' => array('question_node' => NULL),
+    ),
+    'question_selection_table' => array(
+      'file' => 'quiz.admin.inc',
+      'render element' => 'form',
+    ),
+    'quiz_score_correct' => array(
+      'file' => 'quiz.pages.inc',
+      'variables' => array(),
+    ),
+    'quiz_score_incorrect' => array(
+      'file' => 'quiz.pages.inc',
+      'variables' => array(),
+    ),
+    'quiz_question_browser' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-question-browser',
+    ),
+    'quiz_results_browser_body' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-results-browser-body',
+    ),
+    'quiz_results_browser_header' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-results-browser-header',
+    ),
+    'quiz_questions_browser_body' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-questions-browser-body',
+    ),
+    'quiz_questions_browser_header' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-questions-browser-header',
+    ),
+    'quiz_report_form' => array(
+      'render element' => 'form',
+      'path' => $path . '/theme',
+      'template' => 'quiz-report-form',
+    ),
+    'quiz_node_form' => array(
+      'render element' => 'form',
+      'file' => 'quiz.admin.inc',
+    ),
+    'quiz_browser' => array(
+      'render element' => 'form',
+      'file' => 'quiz.admin.inc',
+    ),
+    'quiz_jumper' => array(
+      'variables' => array('current' => 0, 'num_questions' => 0),
+      'file' => 'quiz.admin.inc',
+    ),
+    'quiz_my_results_for_quiz' => array(
+      'variables' => array('rows' => array()),
+      'file' => 'quiz.admin.inc'
+    )
+  );
+}
+
+/**
+ * Prepares variables for views exposed form templates.
+ *
+ * Default template: quiz-questions-browser-header.html.twig.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ */
+function template_preprocess_quiz_questions_browser_header(&$vars) {
+  $form = $vars['form'];
+  $rows = array();
+  //Construnct row
+  $row = array();
+  $row[]['data'] = $form['filters']['all'];
+  $row[]['data'] = $form['filters']['title'];
+  $row[]['data'] = $form['filters']['type'];
+  $row[]['data'] = $form['filters']['changed'];
+  $row[]['data'] = $form['filters']['name'];
+  $rows[] = $row;
+  //Theme table
+  $vars['table'] = array(
+    '#theme' => 'table',
+    '#header' => $form['#header'],
+    '#rows' => $rows,
+  );  
+}
+
+/**
+ * Prepares variables for views exposed form templates.
+ *
+ * Default template: quiz-questions-browser-body.html.twig.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - form: A render element representing the form.
+ */
+function template_preprocess_quiz_questions_browser_body(&$vars) {
+  $form = &$vars['form'];
+  $rows = array();
+  
+  $full_options = array();
+  foreach ($form['titles']['#options'] as $key => $value) {
+    $full_options[$key] = $form['titles'][$key];
+    $full_options[$key]['#title'] = '';
+  }
+
+  // We make the question rows
+  foreach ($form['titles']['#options'] as $key => $value) {
+    // Find nid and vid
+    $matches = array();
+    preg_match('/([0-9]+)-([0-9]+)/', $key, $matches);
+    $quest_nid = $matches[1];
+    $quest_vid = $matches[2];
+    //Construnct row
+    $row = array();
+    $row[]['data'] = $full_options[$key];
+    $row[]['data'] = l($value, "node/$quest_nid", array(
+      'html' => TRUE,
+      'query' => array('destination' => $_GET['q']),
+      'attributes' => array('target' => 'blank')
+    ));
+    $row[]['data'] = $form['types'][$key]['#value'];
+    $row[]['data'] = $form['changed'][$key]['#value'];
+    $row[]['data'] = $form['names'][$key]['#value'];
+    $rows[] = $row;
+  }
+  //Theme table
+  $vars['table'] = array(
+    '#theme' => 'table',
+    '#header' => array(),
+    '#rows' => $rows,
+  );
+  
+  if (count($form['titles']['#options']) == 0) {
+    print t('No questions were found');
+  }
+}
+
+/**
+ * Implements hook_node_info().
+ */
+function quiz_node_info() {
+  return array(
+    'quiz' => array(
+      'name' => t('@quiz', array("@quiz" => QUIZ_NAME)),
+      'base' => 'quiz',
+      'description' => 'Create interactive quizzes for site visitors',
+    )
+  );
+}
+
+/**
+ * Get the quiz name variable and set it as a constant so we don't have to keep
+ * calling it in every function.
+ *
+ * @return
+ *   Quiz name variable.
+ */
+function _quiz_get_quiz_name() {
+  // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
+  return variable_get('quiz_name', 'Quiz');
+}
+
+/**
+ * Retrieve list of question types.
+ *
+ * @return
+ *  Array of question types.
+ */
+function _quiz_get_question_types() {
+  static $to_return = array();
+
+  // We vastly improves performance by statically caching the question types.
+  if (!empty($to_return)) {
+    return $to_return;
+  }
+
+  // Get question types from the modules that defines them..
+  $quiz_questions = module_invoke_all('quiz_question_info');
+  if (empty($quiz_questions)) {
+    drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
+    return array();
+  }
+
+  return $quiz_questions;
+}
+
+/**
+ * Retrieve list of published questions assigned to quiz.
+ *
+ * This function should be used for question browsers and similiar... It should not be used to decide what questions
+ * a user should answer when taking a quiz. quiz_build_question_list is written for that purpose.
+ *
+ * @param $quiz_nid
+ *   Quiz node id.
+ * @param $quiz_vid
+ *   Quiz node version id.
+ * @param $include_all_types
+ *   Should the results be filtered on available question types?
+ *   @todo: review this.
+ * @param $nid_keys
+ *   Should nid be used as keys in the array we return?
+ * @param $include_question
+ *   Should the question(the node body) be included for the questions in the
+ *   returned array?
+ *
+ * @return
+ *   An array of questions.
+ */
+function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random = TRUE) {
+  $questions = array();
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'type'));
+  $query->fields('nr', array('vid', 'title'));
+  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score'));
+  $query->addField('n', 'vid', 'latest_vid');
+  $query->join('node_field_revision', 'nr', 'n.nid = nr.nid');
+  $query->join('node_field_data', 'nd', 'n.nid = nd.nid');
+  $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+
+  if ($include_all_types === TRUE && _quiz_get_question_types()) {
+    $query->condition('n.type', array_keys(_quiz_get_question_types()), 'IN');
+  }
+
+  if (!is_null($quiz_vid)) {
+    $query->condition('parent_vid', $quiz_vid);
+    $query->condition('parent_nid', $quiz_nid);
+  }
+
+  if ($include_random) {
+    $query->condition('question_status', array(QUESTION_RANDOM, QUESTION_ALWAYS), 'IN');
+  }
+  else {
+    $query->condition('question_status', QUESTION_ALWAYS);
+  }
+
+  $query
+    ->condition('nd.status', 1)
+    ->orderBy('weight');
+
+
+  $results = $query->execute();
+
+  foreach($results as $result) {
+
+    $node = $result;
+    // Create questions array.
+    if ($nid_keys === FALSE) {
+      //while ($node = db_fetch_object($result)) {
+        $questions[] = quiz_node_map($node, $include_question);
+      //}
+    }
+    else {
+      //while ($node = db_fetch_object($result)) {
+        $n = quiz_node_map($node, $include_question);
+        $questions[$n->nid] = $n;
+      //}
+    }
+  }
+
+  return $questions;
+}
+
+
+/**
+ * Finds out if a quiz has been answered or not.
+ *
+ * @return
+ *   TRUE if there exists answers to the current question.
+ */
+function quiz_has_been_answered($node) {
+  if (!isset($node->nid)) {
+    return FALSE;
+  }
+  $query = db_select('quiz_node_results', 'qnr');
+  $query->addField('qnr', 'result_id');
+  $query->condition('nid', $node->nid);
+  $query->condition('vid', $node->vid);
+  $query->range(0,1);
+  return $query->execute()->rowCount() > 0;
+}
+
+/**
+ * Helper function used when validating integers.
+ *
+ * @param $value
+ *   The value to be validated.
+ * @param $min
+ *   The minimum value $value is allowed to be.
+ * @param $max
+ *   The maximum value $value is allowed to be.
+ *
+ * @return
+ *   TRUE if integer in the allowed range. FALSE otherwise.
+ */
+function _quiz_is_int($value, $min = 1, $max = NULL) {
+  $to_return = ((string) $value === (string) (int) $value);
+  // $value is not an integer.
+  if (!$to_return) {
+    return FALSE;
+  }
+  // $value is too small.
+  if ($value < $min) {
+    return FALSE;
+  }
+  // $value is too big.
+  if (isset($max)) {
+    if ($value > $max) {
+      return FALSE;
+    }
+  }
+  // $value is an integer in the allowed range.
+  return TRUE;
+}
+
+/**
+ * Modify result of option-specific updates.
+ *
+ * @param $node
+ *   The quiz node.
+ */
+function _quiz_update_resultoptions($node) {
+  // Brute force method. Easier to get correct, and probably faster as well.
+  db_delete('quiz_node_result_options')
+    ->condition('vid', $node->vid)
+    ->execute();
+  _quiz_insert_resultoptions($node);
+}
+
+/**
+ * Updates the max_score property on the specified quizzes
+ *
+ * @param $quizzes_to_update
+ *  Array with the vid's of the quizzes to update
+ */
+function quiz_update_max_score_properties($quizzes_to_update) {
+  if (empty($quizzes_to_update)) {
+    return;
+  }
+
+  db_update('quiz_node_properties')
+    ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
+      SELECT COALESCE(SUM(max_score), 0)
+      FROM {quiz_node_relationship} qnr
+      WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
+      AND parent_vid = {quiz_node_properties}.vid)')
+    ->condition('vid', $quizzes_to_update, 'IN')
+    ->execute();
+
+  db_update('quiz_node_properties')
+    ->expression('max_score',
+      '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
+      FROM {quiz_terms} qt
+      WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid)')
+    ->condition('randomization', 3)
+    ->condition('vid', $quizzes_to_update, 'IN')
+    ->execute();
+
+  db_update('node_field_revision')
+    ->fields(array('created' => REQUEST_TIME))
+    ->condition('vid', $quizzes_to_update, 'IN')
+    ->execute();
+
+  db_update('node_field_data')
+    ->fields(array('changed' => REQUEST_TIME))
+    ->condition('vid', $quizzes_to_update, 'IN')
+    ->execute();
+
+  $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $quizzes_to_update, ':max_score' => 0))->fetchCol();
+  if (!empty($results_to_update)) {
+    db_update('quiz_node_results')
+      ->expression('score',
+	  'ROUND(
+	  100 * (
+	    SELECT COALESCE (SUM(a.points_awarded), 0)
+	    FROM {quiz_node_results_answers} a
+	    WHERE a.result_id = {quiz_node_results}.result_id
+	  ) / (
+	    SELECT max_score
+	    FROM {quiz_node_properties} qnp
+	    WHERE qnp.vid = {quiz_node_results}.vid
+	  )
+	)')
+      ->condition('vid', $results_to_update, 'IN')
+      ->execute();
+  }
+}
+
+/**
+ * Limit the year options to the years 1970 - 2030 for form items of type date.
+ *
+ * Some systems don't support all the dates the forms api lets you choose from.
+ * This function limits the options to dates most systems support.
+ *
+ * @param $form_element
+ *   Form element of type date.
+ *
+ * @return
+ *   Form element with a more limited set of years to choose from.
+ */
+function _quiz_limit_year_options($form_element) {
+  $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
+  return $form_element;
+}
+
+
+/**
+ * Returns the users default settings.
+ *
+ * @param $node
+ *   Quiz node.
+ * @param $uid
+ *   (optional) The uid of the user to get the settings for. Defaults to the
+ *   current user (NULL).
+ *
+ * @return
+ *   An array of settings. The array is empty in case no settings are available.
+ */
+function _quiz_load_user_settings($uid = NULL) {
+  // The def_uid property is the default user id. It is used if there are no
+  // settings store for the current user.
+  $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
+
+  $query = db_select('quiz_user_settings', 'qus')
+    ->fields('qus')
+    ->condition('uid', $uid);
+  $res = $query->execute()->fetchAssoc();
+  if (!empty($res)) {
+    foreach ($res as $key => $value) {
+      if (!in_array($key, array('nid', 'vid', 'uid'))) {
+        $settings[$key] = $value;
+      }
+    }
+    // TODO : Reviews this later.
+    $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
+      ->fields('qnro')
+      ->condition('nid', $res['nid'])
+      ->condition('vid', $res['vid'])
+      ->execute()
+      ->fetchAll();
+    return $settings;
+  }
+  return array();
+}
+
+/**
+ * Returns default values for all quiz settings.
+ *
+ * @return
+ *   Array of default values.
+ */
+function _quiz_get_node_defaults() {
+  return array(
+    'aid' => NULL,
+    'number_of_random_questions' => 0,
+    'max_score_for_random' => 1,
+    'pass_rate' => 75,
+    'summary_pass' => '',
+    'summary_pass_format' => filter_fallback_format(),
+    'summary_default' => '',
+    'summary_default_format' => filter_fallback_format(),
+    'randomization' => 0,
+    'backwards_navigation' => 1,
+    'repeat_until_correct' => 0,
+    'feedback_time' => 0,
+    'display_feedback' => 1,
+    'quiz_open' => 0,
+    'quiz_close' => 0,
+    'takes' => 0,
+    'show_attempt_stats' => 1,
+    'keep_results' => 2,
+    'time_limit' => 0,
+    'quiz_always' => 1,
+    'tid' => 0,
+    'has_userpoints' => 0,
+    'allow_skipping' => 1,
+    'allow_resume' => 1,
+    'allow_jumping' => 0,
+    'show_passed' => 1,
+    'quiz_open' => _quiz_form_prepare_date(),
+    'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
+    'mark_doubtful' => 0,
+  );
+}
+
+/**
+ * Takes a time element and prepares to send it to form_date().
+ *
+ * @param $time
+ *   The time to be turned into an array. This can be:
+ *   - A timestamp when from the database.
+ *   - An array (day, month, year) when previewing.
+ *   - NULL for new nodes.
+ *
+ * @return
+ *   An array for form_date (day, month, year).
+ */
+function _quiz_form_prepare_date($time = '', $offset = 0) {
+  // If this is empty, get the current time.
+  if ($time == '') {
+    $time = REQUEST_TIME + $offset * 86400;
+  }
+  // If we are previewing, $time will be an array so just pass it through.
+  $time_array = array();
+  if (is_array($time)) {
+    $time_array = $time;
+  }
+  // Otherwise build the array from the timestamp.
+  elseif (is_numeric($time)) {
+    //TODO: Need to verify
+    /*$time_array = array(
+      'day' => _quiz_date('j', $time),
+      'month' => _quiz_date('n', $time),
+      'year' => _quiz_date('Y', $time),
+    );*/
+    $time_array = '';
+    $time_array = _quiz_date('d-m-Y', $time);
+  }
+  return $time_array;
+}
+
+/**
+ * Fetch settings from a node and save them as the users default settings.
+ *
+ * @param $node
+ *   Quiz node.
+ */
+function _quiz_save_user_settings($node) {
+  global $user;
+  $node = (object) $node;
+  // We do not save settings if the node has been created by the system,
+  // or if the user haven't requested it
+  if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
+    return FALSE;
+  }
+
+  $summary_pass_format = filter_fallback_format();
+  if (isset($node->summary_pass['format']) && !empty($node->summary_pass['format'])) {
+    $summary_pass_format = $node->summary_pass['format'];
+  }
+
+  $summary_default_format = filter_fallback_format();
+  if (isset($node->summary_default['format']) && !empty($node->summary_default['format'])) {
+    $summary_default_format = $node->summary_default['format'];
+  }
+
+  db_merge('quiz_user_settings')
+    ->key(array(
+      'uid' => $user->uid
+    ))
+    ->fields(array(
+      'uid'                     => isset($node->uid) ? $node->uid : $node->save_def_uid,
+      'nid'                     => $node->nid,
+      'vid'                     => $node->vid,
+      'aid'                     => isset($node->aid) ? $node->aid : 0,
+      'pass_rate'               => $node->pass_rate,
+      'summary_pass'            => isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '',
+      'summary_pass_format'     => $summary_pass_format,
+      'summary_default'         => $node->summary_default['value'],
+      'summary_default_format'  => $summary_default_format,
+      'randomization'           => $node->randomization,
+      'backwards_navigation'    => $node->backwards_navigation,
+      'keep_results'            => $node->keep_results,
+      'repeat_until_correct'    => $node->repeat_until_correct,
+      'feedback_time'           => $node->feedback_time,
+      'display_feedback'        => $node->display_feedback,
+      'takes'                   => $node->takes,
+      'show_attempt_stats'      => $node->show_attempt_stats,
+      'time_limit'              => isset($node->time_limit) ? $node->time_limit : 0,
+      'quiz_always'             => $node->quiz_always,
+      'has_userpoints'          => isset($node->has_userpoints) ? $node->has_userpoints : 0,
+      'allow_skipping'          => $node->allow_skipping,
+      'allow_resume'            => $node->allow_resume,
+      'allow_jumping'           => $node->allow_jumping,
+      'show_passed'             => $node->show_passed,
+    ))
+    ->execute();
+  drupal_set_message(t('Default settings have been saved'));
+}
+
+/**
+ * Copies questions when a quiz is translated.
+ *
+ * @param $node
+ *   The new translated quiz node.
+ */
+function quiz_copy_questions($node) {
+  // Find original questions.
+  $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score FROM {quiz_node_relationship}
+          WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
+  foreach ($query as $res_o) {
+    $original_question = node_load($res_o->child_nid);
+
+    // Set variables we can't or won't carry with us to the translated node to
+    // NULL.
+    $original_question->nid = $original_question->vid = $original_question->created = $original_question->changed = NULL;
+    $original_question->revision_timestamp = $original_question->menu = $original_question->path = NULL;
+    $original_question->files = array();
+    if (isset($original_question->book['mlid'])) {
+      $original_question->book['mlid'] = NULL;
+    }
+
+    // Set the correct language.
+    $original_question->language = $node->language;
+
+    // Save the node.
+    node_save($original_question);
+
+    // Save the relationship between the new question and the quiz.
+    $sql = 'INSERT INTO {quiz_node_relationship}
+            (parent_nid, parent_vid, child_nid, child_vid, question_status, weight, max_score, auto_update_max_score)
+            VALUES(:parent_nid, :parent_vid, :child_nid, :child_vid, :question_status, :weight, :max_score, :auto_update_max_score)';
+    db_query($sql, array(':parent_nid' => $node->nid, ':parent_vid' => $node->vid, ':child_nid' => $original_question->nid, ':child_vid' => $original_question->vid, ':question_status' => $res_o->question_status, ':weight' => $res_o->weight, ':max_score' => $res_o->max_score, ':auto_update_max_score' => $res_o->auto_update_max_score));
+  }
+}
+
+/**
+ * Common actions that need to be done before a quiz is inserted or updated
+ *
+ * @param $node
+ *   Quiz node
+ */
+function _quiz_common_presave_actions(&$node) {
+  quiz_translate_form_date($node, 'quiz_open');
+  quiz_translate_form_date($node, 'quiz_close');
+
+  if (empty($node->pass_rate)) {
+    $node->pass_rate = 0;
+  }
+  if ($node->randomization < 2) {
+    $node->number_of_random_questions = 0;
+  }
+}
+
+/**
+ * If a quiz is saved as not randomized we should make sure all random questions
+ * are converted to always.
+ *
+ * @param $node
+ *   Quiz node.
+ */
+function _quiz_check_num_random(&$node) {
+  if ($node->randomization == 2) {
+    return;
+  }
+  db_delete('quiz_node_relationship')
+    ->condition('question_status', QUESTION_RANDOM)
+    ->condition('parent_vid', $node->vid)
+    ->execute();
+}
+
+/**
+ * If a quiz is saved with random categories we should make sure all questions
+ * are removed from the quiz
+ *
+ * @param $node
+ *   Quiz node.
+ */
+function _quiz_check_num_always(&$node) {
+  if ($node->randomization != 3) {
+    return;
+  }
+  db_delete('quiz_node_relationship')
+    ->condition('parent_vid', $node->vid)
+    ->execute();
+}
+
+/**
+ * Get the number of compulsory questions for a quiz.
+ *
+ * @param $nid
+ *   Quiz node id.
+ * @param $vid
+ *   Quiz node version id.
+ * @return
+ *   Number of compulsory questions.
+ */
+function _quiz_get_num_always_questions($vid) {
+  return db_query('SELECT COUNT(*) FROM {quiz_node_relationship} qnr
+          JOIN {node} n ON n.nid = qnr.child_nid
+          JOIN {node_field_data} nd ON nd.nid = qnr.child_nid
+          WHERE nd.status=1 AND qnr.parent_vid = :parent_vid AND qnr.question_status = :question_status', array(':parent_vid' => $vid, ':question_status' => QUESTION_ALWAYS))->fetchField();
+}
+
+/**
+ * Find out if a quiz is available for taking or not
+ *
+ * @param $quiz
+ *  The quiz node
+ * @return
+ *  TRUE if available
+ *  Error message(String) if not available
+ */
+function quiz_availability($quiz) {
+  global $user;
+
+  if ($user->uid == 0 && $quiz->takes > 0) {
+    return t('This quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.',
+      array('%num_attempts' => $quiz->takes));
+  }
+
+  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
+  if ($user_is_admin || $quiz->quiz_always == 1) {
+    return TRUE;
+  }
+
+  // Compare current GMT time to the open and close dates (which should still be
+  // in GMT time).
+  $now = gmmktime();
+
+  if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
+    return t('This quiz is closed');
+  }
+  return TRUE;
+}
+
+/**
+ * Helper function for hook_view().
+ *
+ * Returns a button to use as a link to start taking the quiz.
+ *
+ * @param $form_state
+ *   Form state array.
+ * @param $node
+ *   The quiz node.
+ * @return
+ *   Form with a button linking to the take tab.
+ */
+function quiz_start_quiz_button_form($form, &$form_state, $node) {
+  $form = array();
+  $form['#action'] = url("node/$node->nid/take");
+  $form['button'] = array(
+    '#type' => 'button',
+    '#value' => t('Start quiz'),
+  );
+  return $form;
+}
+
+/**
+ * Get an array of feedback options.
+ *
+ * @return
+ *   An array of feedback options.
+ */
+function _quiz_get_feedback_options() {
+  return array(
+    QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
+    QUIZ_FEEDBACK_QUESTION => t('After each question'),
+    QUIZ_FEEDBACK_NEVER => t('Do not show'),
+  );
+}
+
+/**
+ * Insert call specific to result options.
+ *
+ * This is called by quiz_insert().
+ *
+ * @param $node
+ *   The quiz node.
+ */
+function _quiz_insert_resultoptions($node) {
+  if (!isset($node->resultoptions)) {
+    return;
+  }
+
+  $query = db_insert('quiz_node_result_options')
+    ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
+
+  foreach ($node->resultoptions as $id => $option) {
+    if (!empty($option['option_name'])) {
+      // When this function called direct from node form submit the $option['option_summary']['value'] and $option['option_summary']['format'] are we need
+      // But when updating a quiz node eg. on manage questions page, this values come from loaded node, not from a submitted form.
+      if (is_array($option['option_summary'])) {
+        $option['option_summary_format'] = $option['option_summary']['format'];
+        $option['option_summary'] = $option['option_summary']['value'];
+      }
+      $query->values(array(
+        'nid'                   => $node->nid,
+        'vid'                   => $node->vid,
+        'option_name'           => $option['option_name'],
+        'option_summary'        => $option['option_summary'],
+        'option_summary_format' => $option['option_summary_format'],
+        'option_start'          => $option['option_start'],
+        'option_end'            => $option['option_end']
+      ));
+    }
+  }
+
+  $query->execute();
+}
+
+/*
+ *  Implements hook_node_insert().
+ */
+function quiz_node_insert(\Drupal\Core\Entity\EntityInterface $node) {
+  if ($node->type == 'quiz') {
+    // Apply defaults.
+    $defaults = _quiz_load_user_settings(variable_get('quiz_def_uid', 1)) + _quiz_get_node_defaults();
+    foreach ($defaults as $key => $value) {
+      if (!isset($node->$key)) {
+        $node->$key = $value;
+      }
+    }
+
+    _quiz_save_user_settings($node);
+
+    // Copy all the questions belonging to the quiz if this is a new translation.
+    if ($node->is_new && isset($node->translation_source)) {
+      quiz_copy_questions($node);
+    }
+
+    _quiz_common_presave_actions($node);
+
+    // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
+    _quiz_check_num_random($node);
+    _quiz_check_num_always($node);
+
+    // TODO Please convert this statement to the D7 database API syntax.
+    /* db_query($sql, $node->vid, $node->nid, $node->aid, $node->number_of_random_questions, $node->randomization, $node->backwards_navigation, $node->repeat_until_correct, $node->quiz_open, $node->quiz_close, $node->takes, $node->show_attempt_stats, $node->keep_results, $node->time_limit, $node->pass_rate, $node->summary_pass, $node->summary_default, $node->quiz_always, $node->feedback_time, $node->display_feedback, $tid, isset($node->has_userpoints) ? $node->has_userpoints : 0, $node->allow_skipping, $node->allow_resume, $node->allow_jumping) */
+    db_insert('quiz_node_properties')
+      ->fields(array(
+        'vid'                         => $node->vid,
+        'nid'                         => $node->nid,
+        'aid'                         => !empty($node->aid) ? $node->aid : 0,
+        'number_of_random_questions'  => $node->number_of_random_questions,
+        'randomization'               => $node->randomization,
+        'backwards_navigation'        => $node->backwards_navigation,
+        'repeat_until_correct'        => $node->repeat_until_correct,
+        'quiz_open'                   => $node->quiz_open,
+        'quiz_close'                  => $node->quiz_close,
+        'takes'                       => $node->takes,
+        'show_attempt_stats'          => $node->show_attempt_stats,
+        'keep_results'                => $node->keep_results,
+        'time_limit'                  => $node->time_limit,
+        'pass_rate'                   => $node->pass_rate,
+        'summary_pass'                => is_array($node->summary_pass) ? $node->summary_pass['value'] : $node->summary_pass,
+        'summary_pass_format'         => is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format,
+        'summary_default'             => is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default,
+        'summary_default_format'      => is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format,
+        'quiz_always'                 => $node->quiz_always,
+        'feedback_time'               => $node->feedback_time,
+        'display_feedback'            => $node->display_feedback,
+        'tid'                         => (isset($node->tid) ? $node->tid : 0),
+        'has_userpoints'              => isset($node->has_userpoints) ? $node->has_userpoints : 0,
+        'allow_skipping'              => $node->allow_skipping,
+        'allow_resume'                => $node->allow_resume,
+        'allow_jumping'               => $node->allow_jumping,
+        'show_passed'                 => $node->show_passed,
+        'mark_doubtful'		            => $node->mark_doubtful
+      ))
+      ->execute();
+
+    _quiz_insert_resultoptions($node);    
+  }
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function quiz_node_load($nodes, $types) {
+  if (count(array_intersect(array('quiz'), $types))) {      
+    foreach ($nodes as $nid => &$node) {
+      // Fetching defaults.
+      $default_additions = _quiz_get_node_defaults();
+
+      // Fetching node settings.
+      $query = db_select('quiz_node_properties', 'qnp');
+      foreach (array_keys($default_additions) as $field) {
+        $query->addField('qnp', $field);
+      }
+      $query->condition('vid', $node->vid);
+      $query->condition('nid', $node->nid);
+      $fetched_additions = (array) $query->execute()->fetch();
+
+      $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
+      // Fetching result options.
+      $query = db_select('quiz_node_result_options', 'qnro');
+      $query->fields('qnro');
+      $query->condition('nid', $node->nid);
+      $query->condition('vid', $node->vid);
+      $options = $query->execute();
+      foreach ($options as $option) {
+        $additions->resultoptions[$option->option_id] = (array) $option;
+      }
+
+      foreach ($additions as $property => &$value) {
+        $node->$property = $value;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_view().
+ */
+function quiz_node_view(\Drupal\Core\Entity\EntityInterface $node, \Drupal\entity\Plugin\Core\Entity\EntityDisplay $display, $view_mode, $langcode) {
+
+  drupal_alter('quiz_view', $node, $teaser, $page);
+
+  //TODO: Need to verify 
+  //node_invoke($node, 'prepare');
+  module_invoke('quiz', 'node_prepare');
+
+  // Number of questions is needed on the statistics page.
+  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
+
+  $node->content['stats'] = array(
+    '#markup' => theme('quiz_view_stats', array('node' => $node)),
+    '#weight' => 0,
+  );
+
+  $available = quiz_availability($node);
+  if ($available === TRUE) {
+    // Check the permission before displaying start button.
+    if (user_access('access quiz')) {
+      // Add a link to the take tab as a button if this isn't a teaser view.
+      if (!$teaser) {
+        $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
+        $node->content['take'] = array(
+          '#markup' => drupal_render($quiz_form),
+          '#weight' => 2,
+        );
+      }
+      // Add a link to the take tab if this is a teaser view.
+      else {
+        $node->content['take'] = array(
+          '#markup' =>  l(t('Start quiz'), 'node/' . $node->nid . '/take'),
+          '#weight' => 2,
+        );
+      }
+    }
+  }
+  else {
+    $node->content['take'] = array(
+      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
+      '#weight' => 2,
+    );
+  }
+}
+

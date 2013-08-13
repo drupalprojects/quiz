@@ -1,0 +1,14 @@
+name: Quiz
+type: module
+description: 'Create interactive, multipage quizzes. This module must have at least one question-type module enabled in order to function properly. If in doubt, use the Multichoice module.'
+package: Quiz Core
+version: 8.x-1.0
+core: 8.x
+configure: admin/config/quiz
+
+dependencies:
+  - taxonomy
+  
+stylesheets:
+  all:
+    - quiz.css

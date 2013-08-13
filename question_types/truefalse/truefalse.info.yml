@@ -1,0 +1,16 @@
+name: True False
+type: module
+description: 'Module to create True or False Kind of Questions'
+package: Quiz Question
+version: 8.x-1.0
+core: 8.x
+configure: admin/config/quiz
+
+files:
+  - truefalse.classes.inc
+  - truefalse.test
+
+dependencies:
+  - quiz
+  - quiz_question
+

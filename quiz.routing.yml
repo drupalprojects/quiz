@@ -1,0 +1,13 @@
+quiz_settings:
+  pattern: 'admin/config/quiz/settings'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizSettings'
+  requirements:
+    _permission: 'access administration pages'
+
+quiz_reports:  
+  pattern: 'admin/config/quiz/reports'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizReports'
+  requirements:
+    _permission: 'access administration pages'
