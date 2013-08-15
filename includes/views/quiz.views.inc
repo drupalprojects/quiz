@@ -71,6 +71,7 @@ function quiz_views_data() {
 
     // Table Definition
     'table' => array(
+      'entity type' => 'node',
       'group' => t('Quiz'),
       // Base tables:
       'base' => array(
