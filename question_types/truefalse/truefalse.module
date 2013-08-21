@@ -31,8 +31,8 @@ function truefalse_quiz_question_info() {
     'truefalse' => array(
       'name' => t('True/false question'),
       'description' => t('Quiz questions that allow a user to select "true" or "false" as his response to a statement.'),
-      'question provider' => 'TrueFalseQuestion',
-      'response provider' => 'TrueFalseResponse',
+      'question provider' => 'Drupal\truefalse\TrueFalseQuestion',
+      'response provider' => 'Drupal\truefalse\TrueFalseResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
     ),
   );
@@ -82,19 +82,24 @@ function theme_truefalse_response($variables) {
  * Implements hook_field_extra_fields().
  */
 function truefalse_field_extra_fields() {
-  $extra['node']['truefalse'] = array(
-    'form' => array(
-      'correct_answer' => array(
+  
+  $extra = array();
+    
+  foreach (node_type_get_types() as $bundle_name => $bundle) {
+    if ($bundle_name == 'truefalse') {
+      $extra['node'][$bundle->type]['form']['correct_answer'] = array(
         'label' => t('Correct answer'),
         'description' => t('The answer for this question.'),
         'weight' => -4,
-      ),
-      'feedback_fields' => array(
+      );
+      
+      $extra['node'][$bundle->type]['form']['feedback_fields'] = array(
         'label' => t('Feedback Settings'),
         'description' => t('Settings pertaining to feedback given along with results.'),
         'weight' => -4,
-      ),
-    ),
-  );
+      );
+    } 
+  }
+
   return $extra;
 }

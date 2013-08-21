@@ -740,6 +740,7 @@ function _quiz_search_terms($start, $all = FALSE) {
  *  HTML output to create page.
  */
 function quiz_questions_form($form, $form_state, $quiz) {
+  
   if ($form_state['rebuild']) {
     // Save the active filters in $_SESSION
     $filters = $form_state['values']['browser']['table']['header']['filters'];
@@ -1251,7 +1252,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $query->leftJoin('users', 'u', 'nd.uid = u.uid');
   $query->condition('n.type', array_keys($question_types), 'IN');
   if (count($child_nid)) {
-    $query->condition('nid', $child_nid, 'NOT IN');
+    $query->condition('n.nid', $child_nid, 'NOT IN');
   }
 
   // Apply filter conditions
@@ -1260,7 +1261,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
   $changed_timestamps = _quiz_get_interval_timestamps('changed');
   $filter_sql = '';
   if (isset($_SESSION[$pre . 'title']) && !empty($_SESSION[$pre . 'title'])) {
-    $query->condition('n.title', '%' . db_like($_SESSION[$pre . 'title']) . '%', 'LIKE');
+    $query->condition('nd.title', '%' . db_like($_SESSION[$pre . 'title']) . '%', 'LIKE');
   }
 
   if (isset($_SESSION[$pre . 'name']) && !empty($_SESSION[$pre . 'name'])) {
@@ -1281,6 +1282,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
     }
   }
   $query->range(0, 10);
+  //Need to verify
   //$query->orderByHeader($browser['header']['#header']);
   $options = array();
 

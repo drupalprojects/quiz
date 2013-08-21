@@ -1,0 +1,7 @@
+quiz_question_config:
+  pattern: 'admin/config/quiz/settings/questions_settings'
+  defaults:
+    _form: '\Drupal\quiz\Form\QuizQuestionConfigForm'
+  requirements:
+    _permission: 'administer quiz configuration'
+

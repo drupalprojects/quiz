@@ -10,5 +10,4 @@ dependencies:
   - taxonomy
   
 stylesheets:
-  all:
     - quiz.css

@@ -563,6 +563,45 @@ function _quiz_get_quiz_name() {
 }
 
 /**
+ * Tells whether a question node is being viewed inside/outside of quiz.
+ *
+ * @return
+ *   Boolean.
+ */
+function _quiz_is_taking_context() {
+  return arg(2) == 'take';
+}
+
+/**
+ * Load a quiz node, cache it and validate that it is indeed of type quiz.
+ *
+ * @param $arg
+ *   The Node ID.
+ * @return
+ *   A quiz node object or FALSE if a load failed.
+ */
+function quiz_type_access_load($arg) {
+  
+  static $quiz_nodes = array();
+  if (isset($quiz_nodes[$arg])) {
+    return $quiz_nodes[$arg];
+  }
+  $to_return = (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
+  
+  if ($to_return) {
+    $quiz_nodes[$arg] = $to_return;
+  }
+  return $to_return;
+}
+
+/**
+ * Check if this is the last question of the quiz
+ */
+function _quiz_is_last_question() {
+  return count($_SESSION['quiz_' . intval(arg(1))]['quiz_questions']) < 2;
+}
+
+/**
  * Retrieve list of question types.
  *
  * @return
@@ -609,6 +648,7 @@ function _quiz_get_question_types() {
  *   An array of questions.
  */
 function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random = TRUE) {
+  
   $questions = array();
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'type'));
@@ -712,6 +752,38 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
   }
   // $value is an integer in the allowed range.
   return TRUE;
+}
+
+/**
+ * Map node properties to a question object.
+ *
+ * @param $node
+ *  The question node.
+ * @param $include_question
+ *  Should the question(the question nodes body) be included?
+ *
+ * @return
+ *  Question object.
+ */
+function quiz_node_map($node, $include_question = TRUE) {
+  $new_question = new stdClass();
+  if ($include_question) {
+    $new_question->question = check_markup($node->body, $node->body['und'][0]['format']);
+  }
+  $new_question->title = $node->title;
+  $new_question->nid = $node->nid;
+  $new_question->vid = $node->vid;
+  $new_question->type = $node->type;
+  $new_question->latest_vid = $node->latest_vid;
+  $new_question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
+  if (isset($node->max_score)) {
+    $new_question->max_score = $node->max_score;
+  }
+  if (isset($node->auto_update_max_score)) {
+    $new_question->auto_update_max_score = $node->auto_update_max_score;
+  }
+  $new_question->weight = $node->weight;
+  return $new_question;
 }
 
 /**
@@ -1296,46 +1368,100 @@ function quiz_node_load($nodes, $types) {
  */
 function quiz_node_view(\Drupal\Core\Entity\EntityInterface $node, \Drupal\entity\Plugin\Core\Entity\EntityDisplay $display, $view_mode, $langcode) {
 
-  drupal_alter('quiz_view', $node, $teaser, $page);
+  if($node->type == 'quiz') {
+    
+    drupal_alter('quiz_view', $node, $teaser, $page);
 
-  //TODO: Need to verify 
-  //node_invoke($node, 'prepare');
-  module_invoke('quiz', 'node_prepare');
+    //TODO: Need to verify 
+    //node_invoke($node, 'prepare');
+    module_invoke('quiz', 'node_prepare');
 
-  // Number of questions is needed on the statistics page.
-  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
+    // Number of questions is needed on the statistics page.
+    $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
 
-  $node->content['stats'] = array(
-    '#markup' => theme('quiz_view_stats', array('node' => $node)),
-    '#weight' => 0,
-  );
+    $node->content['stats'] = array(
+      '#markup' => theme('quiz_view_stats', array('node' => $node)),
+      '#weight' => 0,
+    );
 
-  $available = quiz_availability($node);
-  if ($available === TRUE) {
-    // Check the permission before displaying start button.
-    if (user_access('access quiz')) {
-      // Add a link to the take tab as a button if this isn't a teaser view.
-      if (!$teaser) {
-        $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
-        $node->content['take'] = array(
-          '#markup' => drupal_render($quiz_form),
-          '#weight' => 2,
-        );
-      }
-      // Add a link to the take tab if this is a teaser view.
-      else {
-        $node->content['take'] = array(
-          '#markup' =>  l(t('Start quiz'), 'node/' . $node->nid . '/take'),
-          '#weight' => 2,
-        );
+    $available = quiz_availability($node);
+    if ($available === TRUE) {
+      // Check the permission before displaying start button.
+      if (user_access('access quiz')) {
+        // Add a link to the take tab as a button if this isn't a teaser view.
+        if (!$teaser) {
+          $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
+          $node->content['take'] = array(
+            '#markup' => drupal_render($quiz_form),
+            '#weight' => 2,
+          );
+        }
+        // Add a link to the take tab if this is a teaser view.
+        else {
+          $node->content['take'] = array(
+            '#markup' =>  l(t('Start quiz'), 'node/' . $node->nid . '/take'),
+            '#weight' => 2,
+          );
+        }
       }
     }
-  }
-  else {
-    $node->content['take'] = array(
-      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
-      '#weight' => 2,
-    );
+    else {
+      $node->content['take'] = array(
+        '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
+        '#weight' => 2,
+      );
+    }
   }
 }
+
+/**
+ * Makes, saves and returns a new quiz node.
+ *
+ * @param $title
+ *   The title of the new node.
+ *
+ * @return
+ *   New quiz node object.
+ */
+function quiz_make_new($title) {
+  global $user;
+  
+  $new_node = array();
+  // Get default user settings.
+  $settings = _quiz_load_user_settings();
+  
+  if (!$settings) {
+    $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+  }
+  
+  $quiz_default = _quiz_get_node_defaults();
+  //TODO: Find right way to save 'quiz_open' and 'quiz_close'
+  if (isset($quiz_default['quiz_open'])) {
+    $quiz_default['quiz_open'] = strtotime($quiz_default['quiz_open']);
+  }
+  if (isset($quiz_default['quiz_close'])) {
+    $quiz_default['quiz_close'] = strtotime($quiz_default['quiz_close']);
+  }
+  
+  $settings += $quiz_default;
+  
+  foreach ($settings as $key => $value) {
+    $new_node[$key] = $value;
+  }
+  
+  $new_node['uid'] = $user->uid;
+  $new_node['type'] = 'quiz';
+  $new_node['title'] = $title;
+  $new_node['status'] = 1;
+  $new_node['auto_created'] = TRUE;
+  
+  $node = entity_create('node', $new_node);
+  $node->save();
+  
+  if (is_numeric($node->nid)) {
+    drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
+  }
+  return $node;
+}
+
 

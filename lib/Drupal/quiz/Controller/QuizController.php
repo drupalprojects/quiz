@@ -16,7 +16,7 @@ class QuizController implements ControllerInterface {
   */
   public function quizSettings() {
     
-    print_r(entity_get_bundles()); exit;
+//    print_r(entity_get_bundles()); exit;
     
     return array(
       '#markup' => t('This is the demo foobar page.'),
