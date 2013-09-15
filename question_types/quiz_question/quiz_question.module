@@ -80,44 +80,6 @@ function quiz_question_node_info() {
 }
 
 /**
- * Implements hook_node_access().
- */
-function quiz_question_node_access($node, $op, $account) {
-  // We could use the "$node->is_quiz_question" property to check if it's a question type node or not.
-  // But by hook_node_access() definition $node can be a node object or the machine name of the
-  // content type. Using _quiz_question_get_implementations() as a workaround for this.
-  $question_types = array_keys(_quiz_question_get_implementations());
-  $type = is_string($node) ? $node : $node->type;
-  if (!in_array($type, $question_types)) {
-    return NODE_ACCESS_IGNORE;
-  }
-  switch ($op) {
-    case 'view':
-      if (!user_access('view quiz question outside of a quiz')) {
-         return NODE_ACCESS_DENY;
-      }
-      break;
-    case 'create':
-      if (!user_access('create quiz content', $account)) {
-        return NODE_ACCESS_DENY;
-      }
-      break;
-    case 'update':
-      if (user_access('edit any quiz content', $account) || (user_access('edit own quiz content', $account) && ($account->uid == $node->uid))) {
-        return NODE_ACCESS_ALLOW;
-      }
-      break;
-    case 'delete':
-      if (user_access('delete any quiz content', $account) || (user_access('delete own quiz content', $account) && ($account->uid == $node->uid))) {
-        return NODE_ACCESS_ALLOW;
-      }
-      break;
-  }
-  // Returning nothing from this function would have the same effect.
-  return NODE_ACCESS_IGNORE;
-}
-
-/**
  * Figure out if a user has access to score a certain result
  *
  * @param $vid
