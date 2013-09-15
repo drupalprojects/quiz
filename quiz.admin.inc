@@ -1109,11 +1109,17 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       );
     }
 
-    $link_options = array(
-      'attributes' => array('class' => array('handle-changes')),
-    );
+    if (user_access('view quiz question outside of a quiz')) {
+      $link_options = array(
+        'attributes' => array('class' => array('handle-changes')),
+      );
+      $question_titles = l($question->title, 'node/' . $question->nid, $link_options);
+    }
+    else {
+      $question_titles = check_plain($question->title);
+    }
 
-    $form[$fieldset]['titles'][$id] = array('#markup' => l($question->title, 'node/' . $question->nid, $link_options));
+    $form[$fieldset]['titles'][$id] = array('#markup' => $question_titles);
 
 
     $form[$fieldset]['types'][$id] = array(
