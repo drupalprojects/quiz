@@ -735,21 +735,21 @@ function quiz_update_7403() {
  * Increase the maximum quiz size
  */
 function quiz_update_7404() {
-  $results[] = db_change_field('quiz_node_properties', 'number_of_random_questions', 'number_of_random_questions', array(
+  db_change_field('quiz_node_properties', 'number_of_random_questions', 'number_of_random_questions', array(
     'type' => 'int',
     'size' => 'small',
     'unsigned' => TRUE,
     'not null' => TRUE,
     'default' => 0,
   ));
-  $results[] = db_change_field('quiz_node_results_answers', 'number', 'number', array(
+  db_change_field('quiz_node_results_answers', 'number', 'number', array(
     'type' => 'int',
     'size' => 'small',
     'unsigned' => FALSE,
     'not null' => TRUE,
     'default' => 1,
   ));
-  return $results;
+  return t('Increased the maximum quiz size.');
 }
 
 /**
