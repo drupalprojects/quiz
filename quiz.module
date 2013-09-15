@@ -2129,7 +2129,7 @@ function quiz_take_quiz($quiz) {
 
     if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
       $time = $_SESSION['quiz_' . $quiz->nid]['question_duration'];
-      if ($time < 1 && $time > -2) {
+      if ($time < 1) {
         // The page was probably submitted by the js, we allow the data to be stored
         $time = 1;
       }
