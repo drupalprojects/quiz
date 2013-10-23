@@ -367,9 +367,9 @@ function quiz_admin_results($quiz, $rid) {
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
 
   // Make sure we have the right version of the quiz
-  $vid = db_query('SELECT vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
-  if ($quiz->vid != $vid) {
-    $quiz = node_load($quiz->nid, $vid);
+  $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchObject();
+  if ($quiz->vid != $result->vid) {
+    $quiz = node_load($quiz->nid, $result->vid);
   }
 
   // Get all the data we need.
@@ -385,7 +385,8 @@ function quiz_admin_results($quiz, $rid) {
     'questions' => $questions,
     'score' => $score,
     'summary' => $summary,
-    'rid' => $rid
+    'rid' => $rid,
+    'account' => user_load($result->uid)
   );
   return theme('quiz_admin_summary', $data);
 }
@@ -1813,6 +1814,7 @@ function theme_quiz_admin_summary($variables) {
   $score = $variables['score'];
   $summary = $variables['summary'];
   $rid = $variables['rid'];
+  $account = $variables['account'];
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));
   if (!$score['is_evaluated']) {
@@ -1820,8 +1822,8 @@ function theme_quiz_admin_summary($variables) {
   }
   // Display overall result.
   $output = '';
-  $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score']);
-  $output .= '<div id="quiz_score_possible">' . t('This person got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+  $params = array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'], '!username' => theme('username', array('account' => $account)));
+  $output .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
   $output .= '<div id="quiz_score_percent">' . t('Total score: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
   $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
   if (isset($summary['passfail'])) {
