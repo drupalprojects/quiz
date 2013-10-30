@@ -3,10 +3,9 @@ $view = new view;
 $view->name = 'questions_by_quiz';
 $view->description = 'View of all the questions associated with a quiz';
 $view->tag = 'quiz';
-$view->view_php = '';
 $view->base_table = 'quiz_node_properties';
-$view->is_cacheable = FALSE;
-$view->api_version = 2;
+$view->core = 0;
+$view->api_version = '2';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 $handler = $view->new_display('default', 'Defaults', 'default');
 $handler->override_option('relationships', array(
@@ -170,8 +169,8 @@ $handler->override_option('arguments', array(
     'field' => 'nid',
     'validate_user_argument_type' => 'uid',
     'validate_user_roles' => array(
-      '2' => 0,
-      '3' => 0,
+      2 => 0,
+      3 => 0,
     ),
     'relationship' => 'none',
     'default_options_div_prefix' => '',
@@ -201,7 +200,8 @@ $handler->override_option('arguments', array(
   ),
 ));
 $handler->override_option('access', array(
-  'type' => 'none',
+  'type' => 'perm',
+  'perm' => 'administer quiz configuration',
 ));
 $handler->override_option('cache', array(
   'type' => 'none',
@@ -274,6 +274,7 @@ $handler->override_option('tab_options', array(
   'title' => '',
   'description' => '',
   'weight' => 0,
+  'name' => 'navigation',
 ));
 $handler = $view->new_display('page', 'Page', 'page_2');
 $handler->override_option('path', 'admin/quiz/%/questions');
@@ -289,4 +290,5 @@ $handler->override_option('tab_options', array(
   'title' => '',
   'description' => '',
   'weight' => 0,
+  'name' => 'navigation',
 ));

@@ -1,13 +1,11 @@
 <?php
-
 $view = new view;
 $view->name = 'quiz_by_author';
 $view->description = 'View of all the quizzes owned by a particular user (\'author\').';
 $view->tag = 'quiz';
-$view->view_php = '';
 $view->base_table = 'quiz_node_properties';
-$view->is_cacheable = FALSE;
-$view->api_version = 2;
+$view->core = 0;
+$view->api_version = '2';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 $handler = $view->new_display('default', 'Defaults', 'default');
 $handler->override_option('relationships', array(
@@ -211,6 +209,10 @@ $handler->override_option('arguments', array(
   ),
 ));
 $handler->override_option('access', array(
+  'type' => 'perm',
+  'perm' => 'administer quiz configuration',
+));
+$handler->override_option('cache', array(
   'type' => 'none',
 ));
 $handler->override_option('style_plugin', 'table');
@@ -264,4 +266,5 @@ $handler->override_option('tab_options', array(
   'title' => '',
   'description' => '',
   'weight' => 0,
+  'name' => 'navigation',
 ));
