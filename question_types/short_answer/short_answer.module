@@ -160,7 +160,8 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
     ->fields(array(
       'score' => $score * $question_max_score / $quiz_max_score,
       'is_evaluated' => 1,
-      'answer_feedback' => empty($answer_feedback) ? '' : $answer_feedback
+      'answer_feedback' => empty($answer_feedback['value']) ? '' : $answer_feedback['value'],
+      'answer_feedback_format' => $answer_feedback['format'],
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -236,7 +237,7 @@ function short_answer_report_submit($values) {
  *  </code>
  */
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, rel.max_score AS rel_max_score
+  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid)

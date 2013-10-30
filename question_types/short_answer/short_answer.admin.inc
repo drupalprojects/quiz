@@ -101,9 +101,10 @@ function short_answer_score_form($form, $context, $node, $answer) {
   );
   $form['answer_feedback'] = array(
     '#title' => t('Feedback'),
-    '#type' => 'textarea',
+    '#type' => 'text_format',
     '#description' => t('The text entered here would be shown to attendees'),
     '#default_value' => $answer->answer_feedback,
+    '#format' => isset($answer->answer_feedback_format) ? $answer->answer_feedback_format : NULL 
   );
   $form['submit'] = array(
     '#type' => 'submit',

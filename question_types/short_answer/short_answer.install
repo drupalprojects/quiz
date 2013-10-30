@@ -121,6 +121,10 @@ function short_answer_schema() {
       'answer_feedback' => array(
         'type' => 'text'
       ),
+      'answer_feedback_format' => array(
+        'type' => 'varchar',
+        'length' => 255,
+      ),
     ),
     'primary key' => array('answer_id'),
     'unique keys' => array(
@@ -144,3 +148,15 @@ function short_answer_update_7401() {
   }
 }
 
+/**
+ * Adding feedback format field to table {quiz_short_answer_user_answers}
+ */
+function short_answer_update_7402() {
+  if (!db_field_exists('quiz_short_answer_user_answers', 'answer_feedback_format')) {
+    $spec = array(
+        'type' => 'varchar',
+        'length' => 255,
+    );
+    db_add_field('quiz_short_answer_user_answers', 'answer_feedback_format', $spec);
+  }
+}

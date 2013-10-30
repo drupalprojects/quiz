@@ -109,9 +109,10 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
   );
   $form['score_answer']['answer_feedback'] = array(
     '#title' => t('Feedback'),
-    '#type' => 'textarea',
+    '#type' => 'text_format',
     '#description' => t('The text entered here would be shown to attendees'),
     '#default_value' => $answer->answer_feedback,
+    '#format' => isset($answer->answer_feedback_format) ? $answer->answer_feedback_format : NULL
   );
 
   $form['score_answer']['submit'] = array(

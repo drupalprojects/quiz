@@ -154,7 +154,8 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
     ->fields(array(
       'score' => $score * $question_max_score / $quiz_max_score,
       'is_evaluated' => 1,
-      'answer_feedback' => $answer_feedback
+      'answer_feedback' => isset($answer_feedback['value']) ? $answer_feedback['value'] : '', 
+      'answer_feedback_format' => $answer_feedback['format']
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -217,7 +218,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
+  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, la.answer_feedback_format, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
     JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
     WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
