@@ -1978,6 +1978,7 @@ function theme_question_selection_table($form) {
  *   FAPI-array
  */
 function quiz_results_manage_results_form(&$form_state, $quiz) {
+  global $user;
   $form = array();
   $pre = 'quiz_results_mr_';
 
@@ -1989,57 +1990,59 @@ function quiz_results_manage_results_form(&$form_state, $quiz) {
   $form['#action'] = url('node/'. $quiz->nid .'/results');
 
   // We hide the update fieldset if we are to delete results
-  $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
-  $form['update'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Options'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#attributes' => array(
-      'class' => 'container-inline',
-      'id' => 'quiz-results-update',
-      'style' => "display:$display;"
-    ),
-  );
+  if (user_access('delete any quiz results') || (user_access('delete results for own quiz') && ($user->uid == $quiz->uid))) {
+    $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'none' : 'block';
+    $form['update'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Options'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#attributes' => array(
+        'class' => 'container-inline',
+        'id' => 'quiz-results-update',
+        'style' => "display:$display;"
+      ),
+    );
 
-  $form['update']['bulk_action'] = array(
-    '#type' => 'select',
-    '#options' => array(
-      'def' => '',
-      'del' => t('delete'),
-      // In later versions we will be adding score as a third option here
-    ),
-  );
-  $form['update']['update'] = array(
-    '#type' => 'submit',
-    '#value' => t('Update'),
-  );
+    $form['update']['bulk_action'] = array(
+      '#type' => 'select',
+      '#options' => array(
+        'def' => '',
+        'del' => t('delete'),
+        // In later versions we will be adding score as a third option here
+      ),
+    );
+    $form['update']['update'] = array(
+      '#type' => 'submit',
+      '#value' => t('Update'),
+    );
 
-  // We show the delete confirmation fieldset if we are to delete results
-  $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'block' : 'none';
-  $form['confirm_delete'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Confirm deletion'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#attributes' => array(
-      'style' => "display:$display;",
-      'id' => 'quiz-results-confirm-delete'
-    ),
-  );
-  $form['confirm_delete']['help'] = array(
-    '#type' => 'item',
-    '#value' => t('Are you sure you want to delete all of these results?'),
-    '#description' => t('This action cannot be undone'),
-  );
-  $form['confirm_delete']['confirm_delete'] = array(
-    '#type' => 'submit',
-    '#value' => t('Delete all marked results'),
-  );
-  $form['confirm_delete']['cancel'] = array(
-    '#type' => 'markup',
-    '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
-  );
+    // We show the delete confirmation fieldset if we are to delete results
+    $display = isset($_GET['del']) || isset($form_state['storage']['del']) ? 'block' : 'none';
+    $form['confirm_delete'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Confirm deletion'),
+      '#collapsible' => FALSE,
+      '#collapsed' => FALSE,
+      '#attributes' => array(
+        'style' => "display:$display;",
+        'id' => 'quiz-results-confirm-delete'
+      ),
+    );
+    $form['confirm_delete']['help'] = array(
+      '#type' => 'item',
+      '#value' => t('Are you sure you want to delete all of these results?'),
+      '#description' => t('This action cannot be undone'),
+    );
+    $form['confirm_delete']['confirm_delete'] = array(
+      '#type' => 'submit',
+      '#value' => t('Delete all marked results'),
+    );
+    $form['confirm_delete']['cancel'] = array(
+      '#type' => 'markup',
+      '#value' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
+    );
+  }
 
   $form['special_filters'] = array(
     '#type' => 'fieldset',
