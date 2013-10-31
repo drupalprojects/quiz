@@ -108,7 +108,7 @@ function quiz_permission() {
       'title' => t('Delete any quiz results'),
     ),
     'delete results for own quiz' => array(
-      'title' => t('Delete results for own quiz'),
+      'title' => t('Delete own quiz results'),
     ),
     // scoring:
     'score any quiz' => array(
