@@ -33,12 +33,12 @@ abstract class QuizQuestionResponse {
    * @param $answer
    *  The answer (dependent on question type).
    */
-  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
+  public function __construct($result_id, $question_node, $answer = NULL) {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
     $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetch();
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->id(), ':question_vid' => $question_node->getRevisionId()))->fetch();
     if (is_object($result)) {
       $this->is_doubtful = $result->is_doubtful;
       $this->is_skipped = $result->is_skipped;
@@ -123,7 +123,7 @@ abstract class QuizQuestionResponse {
    * - $is_correct
    */
   function toBareObject() {
-    $obj = new stdClass();
+    $obj = new \stdClass();
     $obj->score = $this->getScore(); // This can be 0 for unscored.
     $obj->nid = $this->question->nid;
     $obj->vid = $this->question->vid;
@@ -241,8 +241,8 @@ abstract class QuizQuestionResponse {
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     $node = node_load($this->question->nid);
-    $items = field_get_items('node', $node, 'body');
-    return field_view_value('node', $node, 'body', $items[0]);
+    $items = field_get_items($node, 'body');
+    return field_view_value($node, 'body', $items[0]);
   }
 
   /**
@@ -273,7 +273,7 @@ abstract class QuizQuestionResponse {
 
 
   public function getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring) {
-    return FALSE;
+    return array();
   }
 
   /**
@@ -318,7 +318,7 @@ abstract class QuizQuestionResponse {
    * Utility function that returns the format of the node body
    */
   protected function getFormat() {
-    $body = field_get_items('node', $this->question, 'body');
+    $body = field_get_items($this->question, 'body');
     return ($body ? $body[0]['format'] : NULL);
   }
 

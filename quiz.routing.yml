@@ -1,3 +1,24 @@
+quiz.take:
+  path: 'node/{node}/take'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizTake'
+  requirements:
+    _permission: 'quiz_take_access'
+
+quiz.options:
+  path: 'node/{node}/options'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizOptions'
+  requirements:
+    _permission: 'administer site configuration'
+
+quiz.questions:
+  path: 'node/{node}/questions'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizQuestions'
+  requirements:
+    _permission: 'administer site configuration'
+
 quiz_settings:
   pattern: 'admin/config/quiz/settings'
   defaults:

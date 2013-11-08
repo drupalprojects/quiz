@@ -3,7 +3,7 @@
  * Defines the classes necessary for a True/False quiz.
  *
  * @file
- * Contains Drupal\truefalse\TrueFalseQuestion.
+ * Contains \Drupal\truefalse\TrueFalseQuestion.
  */
 
 namespace Drupal\truefalse;
@@ -24,11 +24,11 @@ class TrueFalseQuestion extends QuizQuestion {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-    if ($is_new || $this->node->revision == 1) {
+    if ($is_new || $this->node->isNewRevision() == 1) {
       $id = db_insert('quiz_truefalse_node')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
+          'nid' => $this->node->id(),
+          'vid' => $this->node->getRevisionId(),
           'correct_answer' => (int) $this->node->correct_answer,
           'feedback' => $this->node->feedback,
         ))
@@ -40,8 +40,8 @@ class TrueFalseQuestion extends QuizQuestion {
           'correct_answer' => (int) $this->node->correct_answer,
           'feedback' => $this->node->feedback,
         ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
     }
   }
@@ -64,14 +64,14 @@ class TrueFalseQuestion extends QuizQuestion {
     parent::delete($only_this_version);
 
     $delete_ans = db_delete('quiz_truefalse_user_answers');
-    $delete_ans->condition('question_nid', $this->node->nid);
+    $delete_ans->condition('question_nid', $this->node->id());
 
     $delete_node = db_delete('quiz_truefalse_node');
-    $delete_node->condition('nid', $this->node->nid);
+    $delete_node->condition('nid', $this->node->id());
 
     if ($only_this_version) {
-      $delete_ans->condition('question_vid', $this->node->vid);
-      $delete_node->condition('vid', $this->node->vid);
+      $delete_ans->condition('question_vid', $this->node->getRevisionId());
+      $delete_node->condition('vid', $this->node->getRevisionId());
     }
 
     $delete_ans->execute();
@@ -89,7 +89,7 @@ class TrueFalseQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $res_a = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+    $res_a = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
@@ -210,6 +210,6 @@ class TrueFalseQuestion extends QuizQuestion {
    * This is a utility function. It is not defined in the interface.
    */
   public function getCorrectAnswer() {
-    return db_query('SELECT correct_answer FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
+    return db_query('SELECT correct_answer FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchField();
   }
 }

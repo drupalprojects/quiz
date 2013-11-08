@@ -10,21 +10,25 @@
  * Implements hook_install().
  */
 function quiz_install() {
-  node_types_rebuild();
+  // Do not allow to delete the quiz's node type machine name.
+  $locked = \Drupal::state()->get('node.type.locked');
+  $locked['quiz'] = 'quiz';
+  \Drupal::state()->set('node.type.locked', $locked);
+
+  // Resets the cached information about entity types.
+  // Equivalent to D7 node_types_rebuild();
+  entity_info_cache_clear();
+
+  // Clear the node type cache, so the new type appears.
+  //\Drupal::cache()->deleteTags(array('node_types' => TRUE));
+
+  // List all available node types.
   $types = node_type_get_types();
+
+  // Adds the default body field to a node type quiz.
   node_add_body_field($types['quiz']);
 
-  // Default the "Show Author and Date" for quiz nodes to OFF.
-  $temp_array = variable_get('theme_settings', array());
-  $temp_array['toggle_node_info_quiz'] = 0;
-  variable_set('theme_settings', $temp_array);
-
-  // Default the comment settings to disabled.
-  variable_set('comment_quiz', '0');
-
-  // Create the quiz_def_uid variable holding an artificial uid to use when storing default settings.
-  variable_set('quiz_def_uid', 1);
-
+  //TODO: Convert variable_set() to D8 config system as defined in quiz.settings.yml.
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
 }
 
@@ -793,9 +797,12 @@ function quiz_update_7407(&$sandbox) {
 
 /**
  * Implements hook_uninstall().
+ *
+ * TODO: Remove this function. Because "variable" does not work in D8.
  */
 function quiz_uninstall() {
-  db_delete('variable')
-    ->condition('name', "quiz_%", 'like')
-    ->execute();
+  // Allow to delete a forum's node type.
+  $locked = \Drupal::state()->get('node.type.locked');
+  unset($locked['quiZ']);
+  \Drupal::state()->set('node.type.locked', $locked);
 }

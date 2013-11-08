@@ -1,0 +1,13 @@
+name: Long Answer
+type: module
+description: 'This provides long answer (essay, multi-paragraph) question types for use by the Quiz module.'
+package: Quiz Question
+version: 8.x-1.0
+core: 8.x
+
+files:
+  - long_answer.test
+
+dependencies:
+  - quiz
+  - quiz_question

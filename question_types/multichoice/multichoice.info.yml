@@ -1,0 +1,13 @@
+name: Quiz Multichoice
+type: module
+description: 'Multiple choice question type for quiz.'
+package: Quiz Question
+version: 8.x-1.0
+core: 8.x
+
+files:
+  - multichoice.test
+
+dependencies:
+  - quiz
+  - quiz_question

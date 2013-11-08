@@ -14,7 +14,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   /**
    * Constructor
    */
-  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
+  public function __construct($result_id, $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
       $r = $this->getCorrectAnswer();
@@ -45,8 +45,8 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function save() {
     db_insert('quiz_truefalse_user_answers')
       ->fields(array(
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
+        'question_nid' => $this->question->id(),
+        'question_vid' => $this->question->getRevisionId(),
         'result_id' => $this->rid,
         'answer' => (int) $this->answer,
         'score' => (int) $this->getScore(),
@@ -61,8 +61,8 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_truefalse_user_answers')
-      ->condition('question_nid', $this->question->nid)
-      ->condition('question_vid', $this->question->vid)
+      ->condition('question_nid', $this->question->id())
+      ->condition('question_vid', $this->question->getRevisionId())
       ->condition('result_id', $this->rid)
       ->execute();
   }
@@ -94,7 +94,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * Implementation of getCorrectAnswer
    */
   public function getCorrectAnswer() {
-    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->vid, ':rid' => $this->rid))->fetch();
+    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->getRevisionId(), ':rid' => $this->rid))->fetch();
   }
 
   /**

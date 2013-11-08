@@ -1,13 +1,13 @@
-name: True False
+name: Short Answer
 type: module
-description: 'Module to create True or False Kind of Questions'
+description: 'Short answer question type for Quiz'
 package: Quiz Question
 version: 8.x-1.0
 core: 8.x
 configure: admin/config/quiz
 
 files:
-  - truefalse.test
+  - short_answer.test
 
 dependencies:
   - quiz

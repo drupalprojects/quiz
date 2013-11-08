@@ -27,10 +27,11 @@ function truefalse_help($path, $args) {
  * Implements hook_quiz_question_info().
  */
 function truefalse_quiz_question_info() {
+  $config = \Drupal::config('node.type.truefalse');
   return array(
     'truefalse' => array(
-      'name' => t('True/false question'),
-      'description' => t('Quiz questions that allow a user to select "true" or "false" as his response to a statement.'),
+      'name' => $config->get('name'),
+      'description' => $config->get('description'),
       'question provider' => 'Drupal\truefalse\TrueFalseQuestion',
       'response provider' => 'Drupal\truefalse\TrueFalseResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
@@ -82,9 +83,7 @@ function theme_truefalse_response($variables) {
  * Implements hook_field_extra_fields().
  */
 function truefalse_field_extra_fields() {
-  
   $extra = array();
-    
   foreach (node_type_get_types() as $bundle_name => $bundle) {
     if ($bundle_name == 'truefalse') {
       $extra['node'][$bundle->type]['form']['correct_answer'] = array(

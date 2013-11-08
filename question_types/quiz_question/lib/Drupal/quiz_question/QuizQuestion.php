@@ -87,7 +87,7 @@ abstract class QuizQuestion {
    * @return unknown_type
    */
   public function getNodeForm(array $form_state = NULL) {
-    global $user;
+    $user = \Drupal::currentUser();
     $form = array();
     
     // mark this form to be processed by quiz_form_alter. quiz_form_alter will among other things
@@ -95,13 +95,13 @@ abstract class QuizQuestion {
     $form['#quiz_check_revision_access'] = TRUE;
 
     // Allow user to set title?
-    if (user_access('edit question titles')) {
+    if ($user->hasPermission('edit question titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
       $form['title'] = array(
         '#type' => 'textfield',
         '#title' => t('Title'),
         '#maxlength' => 255,
-        '#default_value' => $this->node->title,
+        '#default_value' => $this->node->getTitle(),
         '#required' => FALSE,
         '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
       );
@@ -109,7 +109,7 @@ abstract class QuizQuestion {
     else {
       $form['title'] = array(
         '#type' => 'value',
-        '#value' => $this->node->title,
+        '#value' => $this->node->getTitle(),
       );
     }
 
@@ -121,11 +121,11 @@ abstract class QuizQuestion {
       // Store quiz id in the form
       $form['quiz_nid'] = array(
         '#type' => 'value',
-        '#value' => $quiz->nid,
+        '#value' => $quiz->id(),
       );
       $form['quiz_vid'] = array(
         '#type' => 'value',
-        '#value' => $quiz->vid,
+        '#value' => $quiz->getRevisionId(),
       );
 
       // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
@@ -135,8 +135,8 @@ abstract class QuizQuestion {
       );
 
       // If coming from quiz view, go back there on submit.
-      if ($quiz->type == 'quiz') {
-        $form_state['redirect'] = 'node/' . $quiz->nid . '/questions';
+      if ($quiz->getType() == 'quiz') {
+        $form_state['redirect'] = 'node/' . $quiz->id() . '/questions';
         $form['#cancel_button'] = TRUE;
       }
     }
@@ -147,19 +147,19 @@ abstract class QuizQuestion {
     // If access to edit quizzes we add the add to quiz fieldset
     $edit_access = quiz_access_multi_or('edit any quiz content', 'edit own quiz content', 'administer nodes');
     if ($edit_access) {
-      $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = ' . intval($user->uid);
+      $own_filter = quiz_access_multi_or('edit any quiz', 'administer nodes') ? '' : 'AND n.uid = ' . intval($user->id());
 
       // Fieldset allowing question makers to add questions to multiple quizzes when creating or editing a question
       $already = array();
       $already_nids = array();
-      if (isset($this->node->nid) && is_numeric($this->node->nid)) {
+      if ($this->node->id() && is_numeric($this->node->id())) {
         // Finding quizzes this question already belongs to.
         $sql = 'SELECT n.nid, r.parent_vid AS vid, nd.title FROM {quiz_node_relationship} r
                 JOIN {node} n ON n.nid = r.parent_nid
                 JOIN {node_field_data} nd ON nd.nid = r.parent_nid
                 WHERE r.child_vid = :child_vid
                 ORDER BY r.parent_vid DESC';
-        $res = db_query($sql, array(':child_vid' => $this->node->vid));
+        $res = db_query($sql, array(':child_vid' => $this->node->getRevisionId()));
 
         // Store the results
         while ($res_o = $res->fetch()) {
@@ -180,7 +180,7 @@ abstract class QuizQuestion {
       // Finding the last quizzes the current user has been using
       $sql = "SELECT lq.quiz_nid, n.vid, nd.title, lq.id FROM {quiz_question_latest_quizzes} lq
               JOIN {node} n ON n.nid = lq.quiz_nid
-              JOIN {node_field_data} nd ON nd.nid = lq.quiz_nid
+              JOIN {node_field_data} nd ON nd.nid = lq.quiz_nid AND n.vid = nd.vid
               JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
               WHERE lq.uid = :uid AND qnp.randomization < 3";
       if (drupal_strlen($found) > 0) {
@@ -188,7 +188,7 @@ abstract class QuizQuestion {
       }
       $sql .= " ORDER BY lq.id DESC";
       // TODO Please convert this statement to the D7 database API syntax.
-      $res = db_query($sql, array(':uid' => $user->uid));
+      $res = db_query($sql, array(':uid' => $user->id()));
 
       while ($res_o = $res->fetch()) {
         // Array to use as #option in form element
@@ -202,7 +202,7 @@ abstract class QuizQuestion {
         $found = implode(', ', array_merge($already_nids, $latest_nids));
         $sql = "SELECT n.nid, n.vid, nd.title, changed FROM {node} n
         		JOIN {quiz_node_properties} qnp ON qnp.vid = n.vid
-        		JOIN {node_field_data} nd ON nd.vid = n.vid
+        		JOIN {node_field_data} nd ON nd.vid = n.vid AND n.vid = nd.vid
                 WHERE nd.type = 'quiz' AND qnp.randomization < 3";
         if (drupal_strlen($found) > 0) {
           $sql .= " AND n.nid NOT IN ($found)";
@@ -222,16 +222,16 @@ abstract class QuizQuestion {
       if (isset($quiz)) {
         foreach ($latest as $key => $value) {
           $latest_nid = preg_match('/^[0-9]+/', $key);
-          if ($latest_nid == $quiz->nid) {
+          if ($latest_nid == $quiz->id()) {
             unset($latest[$key]);
             break;
           }
         }
         
-        $res = db_query('SELECT title FROM {node_field_revision} WHERE vid = :vid', array(':vid' => $quiz->vid));
-        $latest[$quiz->nid . '-' . $quiz->vid] = check_plain($res->fetchField());
+        $res = db_query('SELECT title FROM {node_field_revision} WHERE vid = :vid', array(':vid' => $quiz->getRevisionId()));
+        $latest[$quiz->id() . '-' . $quiz->getRevisionId()] = check_plain($res->fetchField());
         // $latest_default is to be used as #default_value in form item
-        $latest_default[] = $quiz->nid . '-' . $quiz->vid;
+        $latest_default[] = $quiz->id() . '-' . $quiz->getRevisionId();
       }
     }
     if ($edit_access || quiz_access_multi_or('create quiz content', 'administer nodes')) {
@@ -289,7 +289,7 @@ abstract class QuizQuestion {
    *  Content array
    */
   public function getNodeView() {
-    $type = node_type_load($this->node->type);
+    $type = node_type_load($this->node->getType());
     $content['question_type'] = array(
       '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
       '#weight' => -2,
@@ -320,7 +320,7 @@ abstract class QuizQuestion {
             WHERE nid = %d AND vid = %d';
     $props['max_score'] = db_query('SELECT max_score
             FROM {quiz_question_properties}
-            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
+            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchField();
     $props['is_quiz_question'] = TRUE;
     $this->nodeProperties = $props;
     return $props;
@@ -349,29 +349,29 @@ abstract class QuizQuestion {
     // We call the abstract function saveNodeProperties to save type specific data
     $this->saveNodeProperties($is_new);
 
-    $is_new_node = $is_new || $this->node->revision == 1;
+    $is_new_node = $is_new || $this->node->isNewRevision() == 1;
 
     // Save general data
     if ($is_new_node) {
-      db_query('INSERT INTO {quiz_question_properties} (nid, vid, max_score) VALUES(:nid, :vid, :max_score)', array(':nid' => $this->node->nid, ':vid' => $this->node->vid, ':max_score' => $this->getMaximumScore()));
+      db_query('INSERT INTO {quiz_question_properties} (nid, vid, max_score) VALUES(:nid, :vid, :max_score)', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId(), ':max_score' => $this->getMaximumScore()));
     }
     else {
       db_update('quiz_question_properties')
         ->fields(array(
           'max_score' => $this->getMaximumScore(),
         ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
     }
 
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
-    if ($quizzes_kept && $this->node->revision) {
-      if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
+    if ($quizzes_kept && $this->node->isNewRevision()) {
+      if (user_access('manual quiz revisioning') && !\Drupal::config('quiz_question.settings')->get('quiz_auto_revisioning')) {
         unset($_GET['destination']);
         unset($_REQUEST['edit']['destination']);
-        drupal_goto('quiz_question/' . $this->node->nid . '/' . $this->node->vid . '/revision_actions');
+        drupal_goto('quiz_question/' . $this->node->id() . '/' . $this->node->getRevisionId() . '/revision_actions');
       }
       // For users without the 'manual quiz revisioning' permission we submit the revision_actions form
       // silently with its default values set.
@@ -379,7 +379,7 @@ abstract class QuizQuestion {
         $form_state = array();
         $form_state['values']['op'] = t('Submit');
         require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz_question') . '/quiz_question.pages.inc';
-        drupal_form_submit('quiz_question_revision_actions', $form_state, $this->node->nid, $this->node->vid);
+        drupal_form_submit('quiz_question_revision_actions', $form_state, $this->node->id(), $this->node->getRevisionId());
       }
     }
   }
@@ -398,17 +398,17 @@ abstract class QuizQuestion {
   public function delete($only_this_version = FALSE) {
     // Delete answeres
     $delete = db_delete('quiz_node_results_answers')
-      ->condition('question_nid', $this->node->nid);
+      ->condition('question_nid', $this->node->id());
     if ($only_this_version) {
-      $delete->condition('question_vid', $this->node->vid);
+      $delete->condition('question_vid', $this->node->getRevisionId());
     }
     $delete->execute();
 
     // Delete properties
     $delete = db_delete('quiz_question_properties')
-      ->condition('nid', $this->node->nid);
+      ->condition('nid', $this->node->id());
     if ($only_this_version) {
-      $delete->condition('vid', $this->node->vid);
+      $delete->condition('vid', $this->node->getRevisionId());
     }
     $delete->execute();
   }
@@ -437,13 +437,14 @@ abstract class QuizQuestion {
    *  not thrilled about it...)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    //echo $this->node->type;exit;
+    //echo $this->node->getType();exit;
     $form = array();
     $form['question_nid'] = array(
       '#type' => 'hidden',
-      '#value' => $this->node->nid,
+      '#value' => $this->node->id(),
     );
-    $body = field_get_items($this->node, 'body');
+    $body = $this->node->{'body'}->getValue();
+
     $form['question'] = array(
       '#markup' => check_markup($body[0]['value'], $body[0]['format']),
       '#prefix' => '<div class="quiz-question-body">',
@@ -491,7 +492,7 @@ abstract class QuizQuestion {
       foreach ($this->node->add_directly['already'] as $key => $checked) {
         if ($checked == 0) {
           $nid_vid = explode('-', $key);
-          $dummy_node = new stdClass();
+          $dummy_node = new \stdClass();
           $dummy_node->nid = $nid_vid[0];
           $dummy_node->vid = $nid_vid[1];
           if (quiz_has_been_answered($dummy_node)) {
@@ -499,16 +500,16 @@ abstract class QuizQuestion {
             $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
             $temp_quiz_node->revision = 1;
             $temp_quiz_node->auto_created = TRUE;
-            node_save($temp_quiz_node);
-            $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
+            $temp_quiz_node->save();
+            $nid_vid[1] = $temp_quiz_node->getRevisionId();
+            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->getTitle(), '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
           db_delete('quiz_node_relationship')
             ->condition('parent_nid', $nid_vid[0])
             ->condition('parent_vid', $nid_vid[1])
-            ->condition('child_nid', $this->node->nid)
-            ->condition('child_vid', $this->node->vid)
+            ->condition('child_nid', $this->node->id())
+            ->condition('child_vid', $this->node->getRevisionId())
             ->execute();
         }
         else {
@@ -534,22 +535,22 @@ abstract class QuizQuestion {
             $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
             $temp_quiz_node->revision = 1;
             $temp_quiz_node->auto_created = TRUE;
-            node_save($temp_quiz_node);
-            $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
+            $temp_quiz_node->save();
+            $nid_vid[1] = $temp_quiz_node->getRevisionId();
+            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->getTitle(), '@quiz' => QUIZ_NAME)));
           }
           $quizzes_to_update[] = $nid_vid[1];
           $insert_values[$nid]['parent_nid'] = $nid_vid[0];
           $insert_values[$nid]['parent_vid'] = $nid_vid[1];
-          $insert_values[$nid]['child_nid'] = $this->node->nid;
-          $insert_values[$nid]['child_vid'] = $this->node->vid;
+          $insert_values[$nid]['child_nid'] = $this->node->id();
+          $insert_values[$nid]['child_vid'] = $this->node->getRevisionId();
           $insert_values[$nid]['max_score'] = $this->getMaximumScore();
           $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
           $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
           $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
           $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
-          $delete_values[] = array('vid' => $nid_vid[1], 'nid' => $this->node->nid);
+          $delete_values[] = array('vid' => $nid_vid[1], 'nid' => $this->node->id());
         }
       }
       if (count($insert_values) > 0) {
@@ -572,31 +573,31 @@ abstract class QuizQuestion {
       
       $id = db_insert('quiz_node_relationship')
       ->fields(array(
-        'parent_nid' => $new_node->nid,
-        'parent_vid' => $new_node->vid,
-        'child_nid' => $this->node->nid,
-        'child_vid' => $this->node->vid,
+        'parent_nid' => $new_node->id(),
+        'parent_vid' => $new_node->getRevisionId(),
+        'child_nid' => $this->node->id(),
+        'child_vid' => $this->node->getRevisionId(),
         'max_score' => $this->getMaximumScore(),
         'auto_update_max_score' => $this->autoUpdateMaxScore() ? 1 : 0,
       ))
       ->execute();
-      $quizzes_to_update[] = $new_node->vid;
+      $quizzes_to_update[] = $new_node->getRevisionId();
     }
     
     // Update max_score for relationships if auto update max score is enabled
     // for question
-    if(isset($this->node->nid)) {
+    if($this->node->id()) {
       $result = db_query(
           'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', 
-          array(':nid' => $this->node->nid, ':vid' => $this->node->vid));      
+          array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()));
       foreach ($result as $record) {
         $quizzes_to_update[] = $record->vid;
       }
       
       db_update('quiz_node_relationship')
         ->fields(array('max_score' => $this->getMaximumScore()))
-        ->condition('child_nid', $this->node->nid)
-        ->condition('child_vid', $this->node->vid)
+        ->condition('child_nid', $this->node->id())
+        ->condition('child_vid', $this->node->getRevisionId())
         ->condition('auto_update_max_score', 1)
         ->execute();
     }
@@ -616,12 +617,12 @@ abstract class QuizQuestion {
    *   true if question has been answered or is about to be answered...
    */
   public function hasBeenAnswered() {
-    if (!isset($this->node->vid)) {
+    if (!$this->node->getRevisionId()) {
       return FALSE;
     }
     $answered = db_query_range('SELECT 1 FROM {quiz_node_results} qnres
             JOIN {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
-            WHERE qnrel.child_vid = :child_vid', 0, 1, array(':child_vid' => $this->node->vid))->fetch();
+            WHERE qnrel.child_vid = :child_vid', 0, 1, array(':child_vid' => $this->node->getRevisionId()))->fetch();
     return $answered ? TRUE : FALSE;
   }
 
@@ -632,10 +633,10 @@ abstract class QuizQuestion {
    *   true iff the view may include the correct answers to the question
    */
   public function viewCanRevealCorrect() {
-    global $user;
+    $user = \Drupal::currentUser();
     // permission overrides the hook
     if (user_access('view any quiz question correct response')
-     || $user->uid == $this->node->uid) {
+     || $user->id() == $this->node->getAuthorId()) {
       return TRUE;
     }
     $results = module_invoke_all('answers_access', $this->node);
@@ -647,7 +648,7 @@ abstract class QuizQuestion {
    * Utility function that returns the format of the node body
    */
   protected function getFormat() {
-    $body = field_get_items($this->question, 'body');
+    $body = field_get_items($this->node, 'body');
     return ($body ? $body[0]['format'] : NULL);
   }
   

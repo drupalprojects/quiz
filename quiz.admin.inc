@@ -28,28 +28,28 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_global_settings']['quiz_auto_revisioning'] = array(
     '#type' => 'checkbox',
     '#title' => t('Auto revisioning'),
-    '#default_value' => variable_get('quiz_auto_revisioning', 1),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_auto_revisioning'),
     '#description' => t('It is strongly recommended that auto revisioning is always on. It makes sure that when a question or quiz is changed a new revision is created if the current revision has been answered. If this feature is switched off result reports might be broken because a users saved answer might be connected to a wrong version of the quiz and/or question she was answering. All sorts of errors might appear.'),
   );
 
   $form['quiz_global_settings']['quiz_durod'] = array(
     '#type' => 'checkbox',
     '#title' => t('Delete results when a user is deleted'),
-    '#default_value' => variable_get('quiz_durod', 0),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_durod'),
     '#description' => t('When a user is deleted delete any and all results for that user.'),
   );
 
   $form['quiz_global_settings']['quiz_index_questions'] = array(
     '#type' => 'checkbox',
     '#title' => t('Index questions'),
-    '#default_value' => variable_get('quiz_index_questions', 1),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_index_questions'),
     '#description' => t('If you turn this off questions will not show up in search results.'),
   );
 
   $form['quiz_global_settings']['quiz_default_close'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of days before a @quiz is closed', array('@quiz' => QUIZ_NAME)),
-    '#default_value' => variable_get('quiz_default_close', 30),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_default_close'),
     '#size' => 4,
     '#maxlength' => 4,
     '#description' => t('Supply a number of days to calculate the default close date for new quizzes.'),
@@ -58,7 +58,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_global_settings']['quiz_use_passfail'] = array(
     '#type' => 'checkbox',
     '#title' => t('Allow quiz creators to set a pass/fail option when creating a @quiz.', array('@quiz' => strtolower(QUIZ_NAME))),
-    '#default_value' => variable_get('quiz_use_passfail', 1),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_use_passfail'),
     '#description' => t('Check this to display the pass/fail options in the @quiz form. If you want to prohibit other quiz creators from changing the default pass/fail percentage, uncheck this option.', array('@quiz' => QUIZ_NAME)),
   );
 
@@ -66,7 +66,7 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Maximum Result Options'),
     '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz). Set to 0 to disable result options.'),
-    '#default_value' => variable_get('quiz_max_result_options', 5),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_max_result_options'),
     '#size' => 2,
     '#maxlength' => 2,
     '#required' => FALSE,
@@ -77,7 +77,7 @@ function quiz_admin_settings($form, &$form_state) {
     '#title' => t('Remove Incomplete Quiz Records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days that you like to keep the incomplete quiz records'),
-    '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
+    '#default_value' => (\Drupal::config('quiz.settings')->get('quiz_remove_partial_quiz_record'))? : quiz_remove_partial_quiz_record_value(),
   );
 
   $form['quiz_global_settings']['quiz_autotitle_length'] = array(
@@ -86,7 +86,7 @@ function quiz_admin_settings($form, &$form_state) {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Integer between 0 and 128. If the question creator doesn\'t set a question title the system will make a title automatically. Here you can decide how long the autotitle can be.'),
-    '#default_value' => variable_get('quiz_autotitle_length', 50),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_autotitle_length'),
   );
 
   $target = array(
@@ -114,7 +114,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_addons']['quiz_has_userpoints'] = array(
     '#type' => 'checkbox',
     '#title' => t('Enable UserPoints Module Integration'),
-    '#default_value' => variable_get('quiz_has_userpoints', 0),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_has_userpoints'),
     '#description' => t('!userpoints is an <strong>optional</strong> module for Quiz. It provides ways for users to gain or lose points for performing certain actions on your site like attending @quiz. You will need to install the !userpoints module to use this feature.', $links),
     '#disabled' => !module_exists('userpoints'),
   );
@@ -122,7 +122,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_addons']['quiz_has_timer'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display Timer for Timed Quiz'),
-    '#default_value' => variable_get('quiz_has_timer', 0),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_has_timer'),
     '#description' => t("!jquery_countdown is an <strong>optional</strong> module for Quiz. It is used to display a timer when taking a quiz. Without this timer, the user will not know how long he or she has left to complete the @quiz", $links),
     '#disabled' => !function_exists('jquery_countdown_add'),
   );
@@ -161,7 +161,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_email_settings']['taker']['quiz_email_results'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail results to quiz takers'),
-    '#default_value' => variable_get('quiz_email_results', 0),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_email_results'),
     '#description' => t('Check this to send users their results at the end of a quiz.')
   );
 
@@ -169,14 +169,14 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Configure E-mail Subject'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz.'),
-    '#default_value' => variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')),
+    '#default_value' => (\Drupal::config('quiz.settings')->get('quiz_email_results_subject_taker')) ? : quiz_email_results_format('subject', 'taker'),
   );
 
   $form['quiz_email_settings']['taker']['quiz_email_results_body_taker'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure E-mail Format'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
-    '#default_value' => variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')),
+    '#default_value' => (\Drupal::config('quiz.settings')->get('quiz_email_results_body_taker')) ? : quiz_email_results_format('body', 'taker'),
   );
 
   $form['quiz_email_settings']['author'] = array(
@@ -188,7 +188,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_email_settings']['author']['quiz_results_to_quiz_author'] = array(
     '#type' => 'checkbox',
     '#title' => t('E-mail all results to quiz author.'),
-    '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
+    '#default_value' => \Drupal::config('quiz.settings')->get('quiz_results_to_quiz_author'),
     '#description' => t('Check this to send quiz results for all users to the quiz author.'),
   );
 
@@ -196,14 +196,14 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Configure E-mail Subject'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz. Authors and quiz takers gets the same format.'),
-    '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject', 'author')),
+    '#default_value' => (\Drupal::config('quiz.settings')->get('quiz_email_results_subject')) ? : quiz_email_results_format('subject', 'author'),
   );
 
   $form['quiz_email_settings']['author']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure E-mail Format'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
-    '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')),
+    '#default_value' => (\Drupal::config('quiz.settings')->get('quiz_email_results_body')) ? : quiz_email_results_format('body', 'author'),
   );
 
   $form['def_settings_link'] = array(
@@ -247,9 +247,9 @@ function quiz_settings_form_validate($form, &$form_state) {
  */
 function quiz_settings_form_submit($form, &$form_state) {
   if (QUIZ_NAME != $form_state['values']['quiz_name']) {
-    variable_set('quiz_name', $form_state['values']['quiz_name']);
+    \Drupal::config('quiz.settings')->set('quiz_name', $form_state['values']['quiz_name'])->save();
     define(QUIZ_NAME, $form_state['values']['quiz_name']);
-    menu_rebuild();
+    menu_cache_clear_all(); // Equivalent to D7 menu_rebuild();
   }
 }
 
@@ -262,8 +262,8 @@ function quiz_admin_node_form($form, &$form_state) {
   // Create a dummy node to use as input for quiz_form
   $dummy_node = new stdClass();
   // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
-  $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
-  $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+  $dummy_node->def_uid = \Drupal::config('quiz.settings')->get('quiz_def_uid');
+  $settings = _quiz_load_user_settings(\Drupal::config('quiz.settings')->get('quiz_def_uid'));
   $settings += _quiz_get_node_defaults();
   foreach ($settings as $key => $value) {
     if (!isset($dummy_node->$key)) {
@@ -328,7 +328,7 @@ function quiz_admin_node_form_validate($form, &$form_state) {
  */
 function quiz_admin_node_form_submit($form, &$form_state) {
   // We add the uid for the "default user"
-  $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
+  $form_state['values']['save_def_uid'] = (\Drupal::config('quiz.settings')->get('quiz_def_uid'))? : NULL;
   $form_state['values']['nid'] = 0;
   $form_state['values']['vid'] = 0;
   $form_state['values']['aid'] = '';
@@ -347,7 +347,7 @@ function quiz_admin_node_form_submit($form, &$form_state) {
 function quiz_admin_quizzes() {
   global $user;
   $uid = $user->uid;
-  if (user_access('view any quiz results')) {
+  if (\Drupal::currentUser()->hasPermission('view any quiz results')) {
     $uid = NULL;
   }
   $results = _quiz_get_quizzes($uid);
@@ -591,7 +591,7 @@ function quiz_categorized_form_submit($form, $form_state) {
   $quiz = node_load($form_state['values']['nid'], $form_state['values']['vid']);
   $quiz->number_of_random_questions = 0;
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
-  if (variable_get('quiz_auto_revisioning', 1)) {
+  if (\Drupal::config('quiz.settings')->get('quiz_auto_revisioning')) {
     $is_new_revision = quiz_has_been_answered($quiz);
   }
   else {
@@ -776,7 +776,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
   else {
     // We are coming in fresh and fetches the questions currently on the quiz from the database...
     $include_random = $quiz->randomization == 2;
-    $questions = quiz_get_questions($quiz->nid, $quiz->vid, TRUE, FALSE, FALSE, $include_random);
+    $questions = quiz_get_questions($quiz->id(), $quiz->getRevisionId(), TRUE, FALSE, FALSE, $include_random);
   }
 
   if (empty($questions)) {
@@ -838,16 +838,17 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   );
 
   $url_query = drupal_get_destination();
-  $url_query['quiz_nid'] = $quiz->nid;
-  $url_query['quiz_vid'] = $quiz->vid;
+  $url_query['quiz_nid'] = $quiz->id();
+  $url_query['quiz_vid'] = $quiz->getRevisionId();
   foreach ($types as $type => $info) {
-    $url_type = str_replace('_', '-', $type);
+    // TODO: Verify this string replace make sense.
+    //$url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
       'query' => $url_query,
     );
     $form['additional_questions'][$type] = array(
-      '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
+      '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$type", $options) . '</div>',
     );
   }
 }
@@ -1012,7 +1013,7 @@ function _quiz_add_hidden_questions(&$questions, &$hidden_questions, &$form_stat
     $res->fields('r', array('title'));
     $res->fields('p', array('max_score'));
     $res->addField('n', 'vid', 'latest_vid');
-    $res->join('node_revision', 'r', 'n.nid = r.nid');
+    $res->join('node_field_revision', 'r', 'n.nid = r.nid');
     $res->join('quiz_question_properties', 'p', 'r.vid = p.vid');
     $res->condition('r.vid', $vids, 'in');
 
@@ -1066,7 +1067,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#type' => 'textfield',
         '#size' => 2,
         '#maxlength' => 2,
-        '#disabled' => $question->auto_update_max_score,
+        '#disabled' => isset($question->max_score) ? $question->max_score : 0,
         '#default_value' => isset($question->max_score) ? $question->max_score : 0,
       );
     }
@@ -1157,10 +1158,10 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
     $rev_description = t('This quiz has been answered. To maintain correctnes of existing answer reports changes should be saved as a new revision.');
   }
   else {
-    $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
+    $rev_default = in_array('revision', \Drupal::config('quiz.settings')->get('node_options_quiz'));
     $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
-  if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
+  if (\Drupal::currentUser()->hasPermission('manual quiz revisioning') && !\Drupal::config('quiz.settings')->get('quiz_auto_revisioning')) {
     $form['new_revision'] = array(
       '#type' => 'checkbox',
       '#default_value' => $rev_default,
@@ -1239,7 +1240,7 @@ function _quiz_question_browser_form(&$hidden_questions, $questions, $form_state
 
   $child_nid = db_query('SELECT child_nid FROM {quiz_node_relationship}
       WHERE parent_vid = :parent_vid',
-      array(':parent_vid' => $quiz->vid)
+      array(':parent_vid' => $quiz->getRevisionId())
     )
     ->fetchCol();
   //TODO: Need to verify
@@ -1567,7 +1568,7 @@ function quiz_questions_form_submit($form, &$form_state) {
   // Load the quiz node
   $quiz = node_load(intval(arg(1)));
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
-  if (variable_get('quiz_auto_revisioning', 1)) {
+  if (\Drupal::config('quiz.settings')->get('quiz_auto_revisioning')) {
     $is_new_revision = quiz_has_been_answered($quiz);
   }
   else {
@@ -1751,7 +1752,7 @@ function theme_quiz_admin_quizzes($variables) {
     $header[] = t('Export');
   }
   // Message if there are no quizzes available
-  if (!user_access('view any quiz results')) {
+  if (!\Drupal::currentUser()->hasPermission('view any quiz results')) {
     $no_quizzes = '<p>' . t('No @quiz that you have created was found. You do not have permission to see any other results.', array('@quiz' => QUIZ_NAME)) . '</p>';
   }
   else {
@@ -2020,7 +2021,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
     // build options array for checkboxes for item
     if (empty($res_o->name)) {
       if ($res_o->uid == '0') {
-        $options[$id] = variable_get('anonymous', t('Anonymous'));
+        $options[$id] = (\Drupal::config('quiz.settings')->get('anonymous')) ? : t('Anonymous');
       }
       else {
         $options[$id] = t('ORPHAN %uid', array('%uid' => '#' . $res_o->uid));
@@ -2526,7 +2527,7 @@ function quiz_remove_partial_quiz_record_value() {
  * Adds inline js to automatically set the question's node title.
  */
 function quiz_set_auto_title() {
-  $max_length = variable_get('quiz_autotitle_length', 50);
+  $max_length = \Drupal::config('quiz.settings')->get('quiz_autotitle_length');
   drupal_add_js('
   (function ($) {
   $(document).ready(function () {

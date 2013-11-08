@@ -1,0 +1,19 @@
+type: quiz
+uuid: 81dc1780-4611-11e3-8f96-0800200c9a66
+name: 'Quiz'
+description: 'Create interactive quizzes for site visitors'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

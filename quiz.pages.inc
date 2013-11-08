@@ -10,23 +10,24 @@
  *  Page callback for quiz options form
  */
 function quiz_options_form($form, &$form_state, $node) {
-  
+  $user = \Drupal::currentUser();
+  $config = \Drupal::config('quiz.settings');
   $form = array();
-  
+
   $form['nid'] = array(
     '#type' => 'value',
-    '#value' => $node->nid,
+    '#value' => $node->id(),
   );
   
   $form['vid'] = array(
     '#type' => 'value',
-    '#value' => $node->vid,
+    '#value' => $node->getRevisionId(),
   );
 
   $form['taking'] = array(
     '#type' => 'details',
     '#title' => t('Taking Options'),
-    '#access' => user_access('administer menu'),
+    '#access' => $user->hasPermission('administer menu'),
     '#collapsed' => TRUE,
     '#group' => 'advanced',
     '#tree' => TRUE,
@@ -134,7 +135,7 @@ function quiz_options_form($form, &$form_state, $node) {
     '#description' => t('Display the allowed number of attempts on the starting page for this quiz.'),
   );
 
-  if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
+  if ($user->hasPermission('delete any quiz results') || $user->hasPermission('delete results for own quiz')) {
     $form['taking']['multiple_takes']['keep_results'] = array(
       '#type' => 'radios',
       '#title' => t('These results should be stored for each user'),
@@ -153,7 +154,7 @@ function quiz_options_form($form, &$form_state, $node) {
     );
   }
 
-  if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
+  if (function_exists('jquery_countdown_add') && $config->get('quiz_has_timer')) {
     $form['taking']['addons'] = array(
       '#type' => 'fieldset',
       '#title' => t('Quiz Addons Properties'),
@@ -174,7 +175,7 @@ function quiz_options_form($form, &$form_state, $node) {
     );
   }
   
-  if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
+  if (function_exists('userpoints_userpointsapi') && $config->get('quiz_has_userpoints')) {
     $form['taking']['has_userpoints'] = array(
       '#type' => 'checkbox',
       '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
@@ -187,7 +188,7 @@ function quiz_options_form($form, &$form_state, $node) {
   $form['availability'] = array(
     '#type' => 'details',
     '#title' => t('Availability'),
-    '#access' => user_access('administer menu'),
+    '#access' => $user->hasPermission('administer menu'),
     '#collapsed' => TRUE,
     '#group' => 'advanced',
     '#tree' => TRUE,
@@ -210,7 +211,7 @@ function quiz_options_form($form, &$form_state, $node) {
   $form['availability']['quiz_close'] = array(
     '#type' => 'date',
     '#title' => t('Close Date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
+    '#default_value' => _quiz_form_prepare_date($node->quiz_close, $config->get('quiz_default_close')),
     '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
     '#after_build' => array('_quiz_limit_year_options'),
   );
@@ -219,7 +220,7 @@ function quiz_options_form($form, &$form_state, $node) {
   $form['pass_fail'] = array(
     '#type' => 'details',
     '#title' => t('Pass/Fail'),
-    '#access' => user_access('administer menu'),
+    '#access' => $user->hasPermission('administer menu'),
     '#collapsed' => TRUE,
     '#group' => 'advanced',
     '#tree' => TRUE,
@@ -228,7 +229,7 @@ function quiz_options_form($form, &$form_state, $node) {
   );
   
   // If pass/fail option is checked, present the form elements.
-  if (variable_get('quiz_use_passfail', 1)) {
+  if ($config->get('quiz_use_passfail')) {
     $form['pass_fail']['pass_rate'] = array(
       '#type' => 'textfield',
       '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
@@ -286,13 +287,13 @@ function quiz_options_form($form, &$form_state, $node) {
   );
 
   $options = !empty($node->resultoptions) ? $node->resultoptions : array();
-  $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
+  $num_options = max(count($options), $config->get('quiz_max_result_options'));
 
   if ($num_options > 0) {
     $form['resultoptions'] = array(
       '#type' => 'details',
       '#title' => t('Result Comments'),
-      '#access' => user_access('administer menu'),
+      '#access' => $user->hasPermission('administer menu'),
       '#collapsed' => TRUE,
       '#group' => 'advanced',
       '#tree' => TRUE,
@@ -377,16 +378,87 @@ function quiz_options_form($form, &$form_state, $node) {
  *  Page callback for quiz options validate
  */
 function quiz_options_form_validate($form, &$form_state) {
+  // TODO: Need to find right way.
+  $node = menu_get_object();
+  $node->quiz_always                = $form_state['values']['availability']['quiz_always'];
+  $node->quiz_open                  = $form_state['values']['availability']['quiz_open']; //TODO: Need to verify
+  $node->quiz_close                 = $form_state['values']['availability']['quiz_close']; //TODO: Need to verify
+  $node->time_limit                 = $form_state['values']['taking']['addons']['time_limit'];
+  $node->pass_rate                  = $form_state['values']['pass_fail']['pass_rate'];
+  $node->resultoptions              = $form_state['values']['resultoptions'];
+  $node->allow_skipping             = $form_state['values']['taking']['allow_skipping'];
+  $node->allow_jumping              = $form_state['values']['taking']['allow_jumping'];
+
+  $quiz_open = explode(' ' ,$node->quiz_open);
+  $quiz_close = explode(' ' ,$node->quiz_close);
+
+  // Don't check dates if the quiz is always available.
+  if (!$node->quiz_always && count($quiz_open) == 3 && count($quiz_close) == 3) {
+    if (mktime(0, 0, 0, $quiz_open[1], $quiz_open[0], $quiz_open[2]) > mktime(0, 0, 0, $quiz_close[1], $quiz_close[0], $quiz_close[2])) {
+      form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
+    }
+  }
+
+  if (!empty($node->pass_rate)) {
+    if (!_quiz_is_int($node->pass_rate, 0, 100)) {
+      form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
+    }
+  }
+
+  if (isset($node->time_limit)) {
+    if (!_quiz_is_int($node->time_limit, 0)) {
+      form_set_error('time_limit', t('Time limit must be a non negative interger'));
+    }
+  }
+
+  if (isset($node->resultoptions) && count($node->resultoptions) > 0) {
+    $taken_values = array();
+    $num_options = 0;
+    foreach ($node->resultoptions as $option) {
+      if (!empty($option['option_name'])) {
+        $num_options++;
+        if (empty($option['option_summary'])) {
+          form_set_error('option_summary', t('Option has no summary text.'));
+        }
+        if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
+
+          // Check for a number between 0-100.
+          foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
+            if (!_quiz_is_int($option[$bound], 0, 100)) {
+              form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
+            }
+          }
+
+          // Check that range end >= start.
+          if ($option['option_start'] > $option['option_end']) {
+            form_set_error('option_start', t('The start must be less than the end of the range.'));
+          }
+
+          // Check that range doesn't collide with any other range.
+          $option_range = range($option['option_start'], $option['option_end']);
+          if ($intersect = array_intersect($taken_values, $option_range)) {
+            form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
+          }
+          else {
+            $taken_values = array_merge($taken_values, $option_range);
+          }
+        }
+      }
+      elseif (!_quiz_is_empty_html($option['option_summary']['value'])) {
+        form_set_error('option_summary', t('Option has a summary, but no name.'));
+      }
+    }
+  }
+  if ($node->allow_jumping && !$node->allow_skipping) {
+    form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
+  }
 }
 
 /**
  *  Page callback for quiz options submit
  */
 function quiz_options_form_submit($form, &$form_state) {
-  
-  $nid = arg(1);
-  $node = node_load($nid);
-  //TODO: Need to verify
+  $node = menu_get_object();
   $node->nid                        = $form_state['values']['nid'];
   $node->vid                        = $form_state['values']['vid'];
   //Taking
@@ -406,8 +478,8 @@ function quiz_options_form_submit($form, &$form_state) {
   $node->time_limit                 = $form_state['values']['taking']['addons']['time_limit'];
   //Availability
   $node->quiz_always                = $form_state['values']['availability']['quiz_always'];
-  $node->quiz_open                  = strtotime($form_state['values']['availability']['quiz_open']); //TODO: Need to verify
-  $node->quiz_close                 = strtotime($form_state['values']['availability']['quiz_close']); //TODO: Need to verify
+  $node->quiz_open                  = strtotime(str_replace(' ', '-', $form_state['values']['availability']['quiz_open'])); //TODO: Need to verify
+  $node->quiz_close                 = strtotime(str_replace(' ', '-', $form_state['values']['availability']['quiz_close'])); //TODO: Need to verify
   //Pass/Fail
   $node->pass_rate                  = $form_state['values']['pass_fail']['pass_rate'];
   $node->summary_pass               = $form_state['values']['pass_fail']['summary_pass'];
@@ -421,7 +493,7 @@ function quiz_options_form_submit($form, &$form_state) {
 
   _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
-  if (isset($node->revision) && $node->revision) {
+  if ($node->isNewRevision()) { //TODO: Need to handle new revisions.
     // Insert a new row in the quiz_node_properties table.
     $old_auto = isset($node->auto_created);
     $node->auto_created = TRUE;
@@ -432,7 +504,7 @@ function quiz_options_form_submit($form, &$form_state) {
 
     // Create new quiz-question relation entries in the quiz_node_relationship
     // table.
-    quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
+    quiz_update_quiz_question_relationship($node->old_vid, $node->getRevisionId(), $node->id()); //TODO: find equivalent for $node->old_vid in D8.
   }
 
   // Quiz node vid (revision) was not updated.
@@ -441,7 +513,7 @@ function quiz_options_form_submit($form, &$form_state) {
     _quiz_common_presave_actions($node);
     $resource = db_update('quiz_node_properties')
       ->fields(array(
-        'vid'                         => $node->vid,
+        'vid'                         => $node->getRevisionId(),
         'aid'                         => $node->aid,
         'randomization'               => $node->randomization,
         'backwards_navigation'        => $node->backwards_navigation,
@@ -468,14 +540,14 @@ function quiz_options_form_submit($form, &$form_state) {
         'show_passed'                 => $node->show_passed,
         'mark_doubtful'		            => $node->mark_doubtful
        ))
-      ->condition('vid', $node->vid)
-      ->condition('nid', $node->nid)
+      ->condition('vid', $node->getRevisionId())
+      ->condition('nid', $node->id())
       ->execute();
     _quiz_update_resultoptions($node);
   }
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
-  quiz_update_max_score_properties(array($node->vid));
+  quiz_update_max_score_properties(array($node->getRevisionId()));
   drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
 }
 

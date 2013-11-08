@@ -1,0 +1,27 @@
+quiz_name: 'Quiz'
+anonymous: ''
+comment_quiz: 0
+quiz_def_uid: 1
+node_admin_theme: 1
+quiz_remove_partial_quiz_record: 0
+quiz_default_close: 30
+quiz_def_uid: 1
+quiz_auto_revisioning: 1
+quiz_durod: 0
+quiz_index_questions: 1
+quiz_use_passfail: 1
+quiz_has_userpoints: 0
+quiz_max_result_options: 5
+quiz_has_timer: 0
+quiz_email_results: 0
+quiz_email_results_subject_taker: ''
+quiz_email_results_body_taker: ''
+quiz_email_results_subject: ''
+quiz_email_results_body: ''
+quiz_results_to_quiz_author: 0
+node_options_quiz: []
+quiz_autotitle_length: 50
+configurable_timezones: 1
+date_default_timezone: 0
+theme_settings:
+  toggle_node_info_quiz: 0

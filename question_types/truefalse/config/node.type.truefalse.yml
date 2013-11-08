@@ -1,0 +1,20 @@
+type: truefalse
+uuid: ee67e080-46ef-11e3-8f96-0800200c9a66
+name: 'True/false question'
+description: 'Quiz questions that allow a user to select "true" or "false" as his response to a statement'
+create_body_label: 'Question'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

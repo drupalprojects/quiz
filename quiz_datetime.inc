@@ -50,14 +50,16 @@ function quiz_translate_form_date(&$node, $date) {
  * @return timestamp
  */
 function _quiz_mktime($hour, $minute, $second, $month, $day, $year, $offset = NULL) {
-  global $user;
+  //D8 way to load $user. Instead "global $user";
+  $user = \Drupal::currentUser();
+
   //print $user->timezone. " and ". variable_get('date_default_timezone', 0);
   $timestamp = gmmktime($hour, $minute, $second, $month, $day, $year);
-  if (variable_get('configurable_timezones', 1) && $user->uid && strlen($user->timezone)) {
-    return $timestamp - $user->timezone;
+  if (\Drupal::config('quiz.settings')->get('configurable_timezones') && $user->id() && strlen($user->getTimeZone())) {
+    return $timestamp - $user->getTimeZone();
   }
   else {
-    return $timestamp - variable_get('date_default_timezone', 0);
+    return $timestamp - \Drupal::config('quiz.settings')->get('date_default_timezone');
   }
 }
 
@@ -81,16 +83,17 @@ function _quiz_mktime($hour, $minute, $second, $month, $day, $year, $offset = NU
  * @return gmdate() formatted date value
  */
 function _quiz_date($format, $timestamp, $offset = NULL) {
-  global $user;
+  //D8 way to load $user. Instead "global $user";
+  $user = \Drupal::currentUser();
 
   if (isset($offset)) {
     $timestamp += $offset;
   }
-  elseif (variable_get('configurable_timezones', 1) && $user->uid && strlen($user->timezone)) {
-    $timestamp += $user->timezone;
+  elseif (\Drupal::config('quiz.settings')->get('configurable_timezones') && $user->id() && strlen($user->getTimeZone())) {
+    return format_date($timestamp, 'custom', $format, $user->getTimeZone());
   }
   else {
-    $timestamp += variable_get('date_default_timezone', 0);
+    $timestamp += \Drupal::config('quiz.settings')->get('date_default_timezone');
   }
 
   // make sure we apply the site first day of the week setting for dow requests
