@@ -563,7 +563,8 @@ function quiz_options_form_submit($form, &$form_state) {
  *  Result id
  */
 function quiz_user_results($result_id) {
-  global $user;
+  $user = \Drupal::currentUser();
+
   $result = db_query('SELECT qnp.nid, qnp.vid, qnrs.uid
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
@@ -572,7 +573,7 @@ function quiz_user_results($result_id) {
   if ($result->nid) {
     // User can view own results (quiz_menu sets access to 'own results').
     // User with role 'user results' can view other user's results.
-    if ($result->uid != $user->uid && !user_access('view any quiz results')) {
+    if ($result->uid != $user->id() && !$user->hasPermission('view any quiz results')) {
       drupal_access_denied();
       return;
     }
@@ -616,7 +617,7 @@ function quiz_report_form($form, $form_state, $questions, $showpoints = TRUE, $s
   // The submit button is only shown if one or more of the questions has input elements
   $show_submit = FALSE;
   foreach ($questions as $question) {
-    $module = quiz_question_module_for_type($question->type);
+    $module = quiz_question_module_for_type($question->getType());
     if (!$module) {
       return array();
     }
@@ -1141,11 +1142,11 @@ function theme_quiz_user_summary($variables) {
   $summary = $variables['summary'];
   $rid = $variables['rid'];
   // Set the title here so themers can adjust.
-  drupal_set_title($quiz->title);
+  drupal_set_title($quiz->getTitle());
 
   if (!$score['is_evaluated']) {
     if (user_access('score taken quiz answer')) {
-      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->id() . '/results/' . $rid)));
     }
     else {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
@@ -1194,10 +1195,10 @@ function theme_quiz_no_feedback() {
  *  Themed html feedback
  */
 function theme_quiz_single_question_node($variables) {
-  $node = $variables['question_node'];
+  $content = $variables['content'];
   // This might seem meaningless, but it is designed this way to allow themes to add more
   // meaningful stuff here...
-  return drupal_render($node->content['body']);
+  return drupal_render($content['body']);
 }
 
 /**

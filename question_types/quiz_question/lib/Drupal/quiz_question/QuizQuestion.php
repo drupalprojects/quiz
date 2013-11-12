@@ -315,12 +315,21 @@ abstract class QuizQuestion {
     if (isset($this->nodeProperties)) {
       return $this->nodeProperties;
     }
+
+    //TODO: Find right way.
+    if ($this->node instanceof \stdClass) {
+      $params = array(':nid' => $this->node->nid, ':vid' => $this->node->vid);
+    }
+    else {
+      $params = array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId());
+    }
+
     $sql = 'SELECT max_score
             FROM {quiz_question_properties}
             WHERE nid = %d AND vid = %d';
     $props['max_score'] = db_query('SELECT max_score
             FROM {quiz_question_properties}
-            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchField();
+            WHERE nid = :nid AND vid = :vid', $params)->fetchField();
     $props['is_quiz_question'] = TRUE;
     $this->nodeProperties = $props;
     return $props;

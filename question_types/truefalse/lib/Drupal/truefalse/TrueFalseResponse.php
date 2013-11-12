@@ -94,7 +94,13 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * Implementation of getCorrectAnswer
    */
   public function getCorrectAnswer() {
-    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->getRevisionId(), ':rid' => $this->rid))->fetch();
+    if ($this->question instanceof \stdClass) {
+      $params = array(':qvid' => $this->question->vid, ':rid' => $this->rid);
+    }
+    else {
+      $params = array(':qvid' => $this->question->getRevisionId(), ':rid' => $this->rid);
+    }
+    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', $params)->fetch();
   }
 
   /**

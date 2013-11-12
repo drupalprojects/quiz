@@ -89,7 +89,14 @@ class TrueFalseQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $res_a = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchAssoc();
+    if ($this->node instanceof \stdClass) {
+      $params = array(':nid' => $this->node->nid, ':vid' => $this->node->vid);
+    }
+    else {
+      $params = array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId());
+    }
+
+    $res_a = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', $params)->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);

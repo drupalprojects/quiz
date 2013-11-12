@@ -408,14 +408,6 @@ function _quiz_results_mr_store_filters($form_state) {
   $_SESSION[$pre . 'not_in_progress'] = $filters['not_in_progress'];
 }
 
-function quiz_browser_body_callback($form, $form_state) {
-  return $form['table']['body'];
-}
-
-function quiz_questions_browser_body_callback($form, $form_state) {
-  return $form['question_list']['browser']['table']['body'];
-}
-
 // MANAGE QUESTIONS
 
 /**
@@ -740,7 +732,7 @@ function _quiz_search_terms($start, $all = FALSE) {
  *  HTML output to create page.
  */
 function quiz_questions_form($form, $form_state, $quiz) {
-  
+
   if ($form_state['rebuild']) {
     // Save the active filters in $_SESSION
     $filters = $form_state['values']['browser']['table']['header']['filters'];
@@ -761,7 +753,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
-  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/theme/quiz_question_browser.js');
+  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/templates/quiz_question_browser.js');
 
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
@@ -919,7 +911,7 @@ function _quiz_get_questions_from_form_state(&$form_state, &$questions_to_add) {
   $cur_questions = array();
   $vids = array();
   foreach ($form_state['post']['weights'] as $id => $value) {
-    $cur_question = new stdClass();
+    $cur_question = new \stdClass();
 
     // Find nid and vid
     $matches = array();
@@ -1619,7 +1611,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     }
   }
 
-  if ($quiz->type == 'quiz') {
+  if ($quiz->getType() == 'quiz') {
     // Update the quiz node properties.
     $success = db_update('quiz_node_properties')
       ->fields(array(
@@ -1627,20 +1619,20 @@ function quiz_questions_form_submit($form, &$form_state) {
         'max_score_for_random' => $quiz->max_score_for_random,
         'tid' => $term_id,
       ))
-      ->condition('vid', $quiz->vid)
-      ->condition('nid', $quiz->nid)
+      ->condition('vid', $quiz->getRevisionId())
+      ->condition('nid', $quiz->id())
       ->execute();
 
     // Get sum of max_score
     $query = db_select('quiz_node_relationship', 'qnr');
     $query->addExpression('SUM(max_score)', 'sum');
-    $query->condition('parent_vid', $quiz->vid);
+    $query->condition('parent_vid', $quiz->getRevisionId());
     $query->condition('question_status', QUESTION_ALWAYS);
     $score = $query->execute()->fetchAssoc();
 
     $success2 = db_update('quiz_node_properties')
       ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))
-      ->condition('vid', $quiz->vid)
+      ->condition('vid', $quiz->getRevisionId())
       ->execute();
   }
 
@@ -1883,7 +1875,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   $form = array();
   $pre = 'quiz_results_mr_';
 
-  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/theme/quiz_results_browser.js');
+  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') .'/templates/quiz_results_browser.js');
   /* not_in_progress is a filter to filter away questions that are in progress...
    By default we don't want to show questions in progress... */
   if (!isset($_SESSION[$pre . 'not_in_progress'])) {
@@ -1939,7 +1931,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
     '#value' => t('Delete all marked results'),
   );
   $form['confirm_delete']['cancel'] = array(
-    '#markup' => l(t('cancel'), $_GET['q'], array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
+    '#markup' => l(t('cancel'), current_path(), array('attributes' => array('id' => 'quiz-results-cancel-delete'))),
   );
 
   $form['special_filters'] = array(
@@ -2016,7 +2008,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   $options = array();
   //while ($res_o = db_fetch_object($res)) {
   foreach ($res as $res_o) {
-    $id = $quiz->nid . '-' . $res_o->result_id;
+    $id = $quiz->id() . '-' . $res_o->result_id;
 
     // build options array for checkboxes for item
     if (empty($res_o->name)) {
@@ -2044,7 +2036,7 @@ function quiz_results_manage_results_form($form, &$form_state, $quiz) {
   }
 
   // We copy the checkboxes that have been chosen in the previous stage, and unset them to avoid having them loaded again.
-  $default_value = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->nid . '-' . (isset($_GET['del']) ? $_GET['del'] : ''));
+  $default_value = isset($form_state['storage']['del']) ? $form_state['storage']['del'] : array($quiz->id() . '-' . (isset($_GET['del']) ? $_GET['del'] : ''));
   unset($form_state['storage']['del']);
 
   $browser['body']['name'] = array(
@@ -2123,7 +2115,7 @@ function _quiz_results_mr_prepare_filter($quiz) {
 
   // Prepare the filter array
   $filter = array(
-    'params' => array(':quiz_nid' => $quiz->nid),
+    'params' => array(':quiz_nid' => $quiz->id()),
     'join' => '',
     'where' => '',
     'group' => '',
@@ -2290,11 +2282,11 @@ function quiz_results_mr_form_submit($form, &$form_state) {
  * @return Html string with links.
  */
 function _quiz_results_mr_get_hover($quiz, $rid) {
-  $to_return = array(l(t('view'), 'node/' . $quiz->nid . '/results/' . $rid));
+  $to_return = array(l(t('view'), 'node/' . $quiz->id() . '/results/' . $rid));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
-    $to_return[] = l(t('delete'), 'admin/quiz/reports/results/' . $quiz->nid, array(
+    $to_return[] = l(t('delete'), 'admin/quiz/reports/results/' . $quiz->id(), array(
       'query' => array('del' => $rid),
-      'attributes' => array('class' => 'hover-del', 'id' => $quiz->nid . '-' . $rid . '-del'),
+      'attributes' => array('class' => 'hover-del', 'id' => $quiz->id() . '-' . $rid . '-del'),
     ));
   }
   return implode(' | ', $to_return);

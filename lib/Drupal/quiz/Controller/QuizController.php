@@ -21,9 +21,8 @@ class QuizController implements ContainerInjectionInterface {
     if (isset($node->rendered_content)) {
       return $node->rendered_content;
     }
-    //$to_be_rendered = quiz_take_quiz($node); //TODO: change to native method
-    $form = drupal_get_form('kf_quiz_attend_form', $node);
-    return drupal_render($form);
+    $to_be_rendered = quiz_take_quiz($node);
+    return drupal_render($to_be_rendered);
   }
 
   public function quizOptions(NodeInterface $node) {
@@ -36,6 +35,17 @@ class QuizController implements ContainerInjectionInterface {
     module_load_include('admin.inc', 'quiz');
     $form = drupal_get_form('quiz_questions_form', $node);
     return drupal_render($form);
+  }
+
+  public function quizResults(NodeInterface $node) {
+    module_load_include('admin.inc', 'quiz');
+    $form = drupal_get_form('quiz_results_manage_results_form', $node);
+    return drupal_render($form);
+  }
+
+  public function quizUserResults($result_id) {
+    module_load_include('pages.inc', 'quiz');
+    return quiz_user_results($result_id);
   }
 
   /**

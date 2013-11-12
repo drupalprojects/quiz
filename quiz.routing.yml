@@ -19,6 +19,20 @@ quiz.questions:
   requirements:
     _permission: 'administer site configuration'
 
+quiz.results:
+  path: 'node/{node}/results'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizResults'
+  requirements:
+    _permission: 'quiz_access_results'
+
+quiz.user-results:
+  path: 'user/quiz/{result_id}/userresults'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizUserResults'
+  requirements:
+    _permission: 'quiz_access_my_result'
+
 quiz_settings:
   pattern: 'admin/config/quiz/settings'
   defaults:

@@ -37,8 +37,15 @@ abstract class QuizQuestionResponse {
     $this->rid = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
+
+    if ($question_node instanceof \stdClass) {
+      $params = array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid);
+    }
+    else {
+      $params = array(':result_id' => $result_id, ':question_nid' => $question_node->id(), ':question_vid' => $question_node->getRevisionId());
+    }
     $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->id(), ':question_vid' => $question_node->getRevisionId()))->fetch();
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', $params)->fetch();
     if (is_object($result)) {
       $this->is_doubtful = $result->is_doubtful;
       $this->is_skipped = $result->is_skipped;
@@ -125,8 +132,8 @@ abstract class QuizQuestionResponse {
   function toBareObject() {
     $obj = new \stdClass();
     $obj->score = $this->getScore(); // This can be 0 for unscored.
-    $obj->nid = $this->question->nid;
-    $obj->vid = $this->question->vid;
+    $obj->nid = $this->question->id();
+    $obj->vid = $this->question->getRevisionId();
     $obj->rid = $this->rid;
     $obj->is_correct = (int) $this->isCorrect();
     $obj->is_evaluated = $this->isEvaluated();
@@ -168,8 +175,8 @@ abstract class QuizQuestionResponse {
       'is_evaluated' => $this->isEvaluated(),
       'is_correct' => $this->isCorrect(),
       'score' => $this->getScore(),
-      'question_vid' => $this->question->vid,
-      'question_nid' => $this->question->nid,
+      'question_vid' => $this->question->getRevisionId(),
+      'question_nid' => $this->question->id(),
       'result_id' => $this->rid,
     );
     return $report;
@@ -193,11 +200,11 @@ abstract class QuizQuestionResponse {
     $form = array();
     $form['nid'] = array(
       '#type' => 'value',
-      '#value' => $this->question->nid,
+      '#value' => $this->question->id(),
     );
     $form['vid'] = array(
       '#type' => 'value',
-      '#value' => $this->question->vid,
+      '#value' => $this->question->getRevisionId(),
     );
     $form['rid'] = array(
       '#type' => 'value',
@@ -240,9 +247,10 @@ abstract class QuizQuestionResponse {
    *  FAPI form array holding the question
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
-    $node = node_load($this->question->nid);
-    $items = field_get_items($node, 'body');
-    return field_view_value($node, 'body', $items[0]);
+    $node = node_load($this->question->id());
+    $items = $node->{'body'}->getValue();
+
+    return field_view_value($node, 'body', $items[0]['value']);
   }
 
   /**
