@@ -1,48 +1,63 @@
 quiz.take:
-  path: 'node/{node}/take'
+  path: '/node/{node}/take'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizTake'
   requirements:
     _permission: 'quiz_take_access'
 
 quiz.options:
-  path: 'node/{node}/options'
+  path: '/node/{node}/options'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizOptions'
   requirements:
     _permission: 'administer site configuration'
 
 quiz.questions:
-  path: 'node/{node}/questions'
+  path: '/node/{node}/questions'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizQuestions'
   requirements:
     _permission: 'administer site configuration'
 
 quiz.results:
-  path: 'node/{node}/results'
+  path: '/node/{node}/results'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizResults'
   requirements:
     _permission: 'quiz_access_results'
 
 quiz.user-results:
-  path: 'user/quiz/{result_id}/userresults'
+  path: '/user/quiz/{result_id}/userresults'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizUserResults'
   requirements:
     _permission: 'quiz_access_my_result'
 
-quiz_settings:
-  pattern: 'admin/config/quiz/settings'
+quiz.admin_config_quiz:
+  path: '/admin/config/quiz'
   defaults:
-    _content: '\Drupal\quiz\Controller\QuizController::quizSettings'
+    _content: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
   requirements:
     _permission: 'access administration pages'
 
-quiz_reports:  
-  pattern: 'admin/config/quiz/reports'
+quiz.settings_config:
+  path: '/admin/config/quiz/config'
   defaults:
-    _content: '\Drupal\quiz\Controller\QuizController::quizReports'
+    _content: '\Drupal\quiz\Controller\QuizController::quizSettingsConfig'
   requirements:
     _permission: 'access administration pages'
+
+quiz.settings_quiz_form:
+  path: '/admin/config/quiz/quiz_form'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizSettingsQuizForm'
+  requirements:
+    _permission: 'access administration pages'
+
+quiz.settings_results:
+  path: '/admin/config/quiz/results'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizSettingsQuizResults'
+  requirements:
+    _permission: 'view any quiz results' # @todo: Need to add access callback 'quiz_access_multi_or', D8 way.
+

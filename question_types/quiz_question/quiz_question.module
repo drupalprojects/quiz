@@ -38,10 +38,10 @@ function quiz_question_menu() {
   //TODO: Need to verify
   //Empty form
   // Menu items for admin view of each question type.
-  $items['admin/config/quiz/settings/questions_settings'] = array(
+  $items['admin/config/quiz/questions_settings'] = array(
     'title' => 'Question configuration',
     'description' => 'Configure the question types.',
-    'route_name' => 'quiz_question_config',
+    'route_name' => 'quiz.question_config',
     'type' => MENU_NORMAL_ITEM,
   );
   return $items;
@@ -819,17 +819,12 @@ function _quiz_question_response_get_instance($rid, $question, $answer = NULL, $
     $dummy_node->vid = $vid;
     $question = _quiz_question_get_instance($dummy_node, TRUE)->node;
 
-    $dummy_node = array();
-    $dummy_node['nid'] = $question->nid;
-    $dummy_node['type'] = $question->type;
-    $dummy_node['vid'] = $question->vid;
-    $dummy_node['title'] = $question->title;
-    $dummy_node['max_score'] = $question->max_score;
-    $dummy_node['is_quiz_question'] = $question->is_quiz_question;
-    $dummy_node['correct_answer'] = $question->correct_answer;
-    $dummy_node['feedback'] = $question->feedback;
-
-    $question = entity_create('node', $dummy_node);
+    // Quick fix. convert stdClass object to Node object.
+    if ($question instanceof \stdClass) {
+      $dummy_node = array();
+      $dummy_node = (array) $question;
+      $question = entity_create('node', $dummy_node);
+    }
   }
   if (!$question) {
     return FALSE;

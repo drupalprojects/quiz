@@ -378,17 +378,19 @@ function quiz_options_form($form, &$form_state, $node) {
  *  Page callback for quiz options validate
  */
 function quiz_options_form_validate($form, &$form_state) {
-  // TODO: Need to find right way.
-  $node = menu_get_object();
+  $node = new \stdClass();
+
   $node->quiz_always                = $form_state['values']['availability']['quiz_always'];
   $node->quiz_open                  = $form_state['values']['availability']['quiz_open']; //TODO: Need to verify
   $node->quiz_close                 = $form_state['values']['availability']['quiz_close']; //TODO: Need to verify
-  $node->time_limit                 = $form_state['values']['taking']['addons']['time_limit'];
   $node->pass_rate                  = $form_state['values']['pass_fail']['pass_rate'];
   $node->resultoptions              = $form_state['values']['resultoptions'];
   $node->allow_skipping             = $form_state['values']['taking']['allow_skipping'];
   $node->allow_jumping              = $form_state['values']['taking']['allow_jumping'];
 
+  if (isset($form_state['values']['taking']['addons']['time_limit'])) {
+    $node->time_limit = $form_state['values']['taking']['addons']['time_limit'];
+  }
   $quiz_open = explode(' ' ,$node->quiz_open);
   $quiz_close = explode(' ' ,$node->quiz_close);
 
@@ -1088,14 +1090,14 @@ function theme_quiz_take_summary($variables) {
   $summary = $variables['summary'];
   $rid =  $variables['rid'];
   // Set the title here so themers can adjust.
-  drupal_set_title($quiz->title);
+  drupal_set_title($quiz->getTitle());
 
   // Display overall result.
   $output = '';
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
       if (user_access('score taken quiz answer')) {
-        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->id() . '/results/' . $rid)));
       }
       else {
         $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));

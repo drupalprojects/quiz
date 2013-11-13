@@ -48,24 +48,19 @@ class QuizController implements ContainerInjectionInterface {
     return quiz_user_results($result_id);
   }
 
-  /**
-  * This will return the output of the foobar page.
-  */
-  public function quizSettings() {
-    
-//    print_r(entity_get_bundles()); exit;
-    
-    return array(
-      '#markup' => t('This is the demo foobar page.'),
-    );
+  public function quizSettingsConfig() {
+    module_load_include('admin.inc', 'quiz');
+    return drupal_get_form('Drupal\quiz\Form\QuizAdminSettings');
   }
-  /**
-  * This will return the output of the foobar page.
-  */
-  public function quizReports() {
-    return array(
-      '#markup' => t('This is the demo foobar page.'),
-    );
+
+  public function quizSettingsQuizForm() {
+    module_load_include('admin.inc', 'quiz');
+    return drupal_get_form('quiz_admin_node_form');
+  }
+
+  public function quizSettingsQuizResults() {
+    module_load_include('admin.inc', 'quiz');
+    return quiz_admin_quizzes();
   }
 }
 

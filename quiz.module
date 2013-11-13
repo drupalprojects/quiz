@@ -339,31 +339,38 @@ function _quiz_delete_users_results($uid) {
  *  TODO: Migrate all menu url from D7 Quiz. Total 17 urls.
  */
 function quiz_menu() {
-  //New configuration block to Quiz.
+
+  // New configuration block to Quiz.
   $items['admin/config/quiz'] = array(
     'title' => 'Quiz',
     'description' => 'Quiz page',
     'weight' => -10,
-    'page callback' => 'system_admin_menu_block_page',
-    'access arguments' => array('access administration pages'),
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
+    'route_name' => 'quiz.admin_config_quiz',
     'position' => 'left',
   );
-  //Quiz Settings.
-  $items['admin/config/quiz/settings'] = array(
-    'title' => 'Quiz settings',
-    'description' => 'Change settings for the all Quiz project modules.',
-    'route_name' => 'quiz_settings',
-    'access arguments' => array('administer site configuration'),
+
+  // Quiz Settings.
+  $items['admin/config/quiz/config'] = array(
+    'title' => '@quiz configuration',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'Configure the Quiz module.',
+    'route_name' => 'quiz.settings_config',
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['admin/config/quiz/quiz_form'] = array(
+    'title' => '@quiz form configuration',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'Configure default values for the quiz creation form.',
+    'route_name' => 'quiz.settings_quiz_form',
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   //Quiz Reports.
-  $items['admin/config/quiz/reports'] = array(
-    'title' => 'Quiz reports and scoring',
-    'description' => 'View reports and score answers.',
-    'route_name' => 'quiz_reports',
-    'access arguments' => array('administer site configuration'),
+  $items['admin/config/quiz/results'] = array(
+    'title' => '@quiz results',
+    'title arguments' => array('@quiz' => QUIZ_NAME),
+    'description' => 'View results.',
+    'route_name' => 'quiz.settings_results',
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -541,7 +548,7 @@ function template_preprocess_quiz_questions_browser_body(&$vars) {
     $row[]['data'] = $full_options[$key];
     $row[]['data'] = l($value, "node/$quest_nid", array(
       'html' => TRUE,
-      'query' => array('destination' => isset($_GET['q']) ? $_GET['q'] : ''),
+      'query' => array('destination' => current_path()),
       'attributes' => array('target' => 'blank')
     ));
     $row[]['data'] = $form['types'][$key]['#value'];
@@ -1666,13 +1673,12 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
  * @return
  *   Content array.
  */
-function quiz_take_quiz($quiz) {
+function quiz_take_quiz(NodeInterface $quiz) {
   $user = \Drupal::currentUser();
   $allow_skipping = $quiz->allow_skipping;
 
   if (!isset($quiz)) {
     throw new NotFoundHttpException(); // Equivalent to drupal_not_found() in D7;
-    return;
   }
 
   // If anonymous user and no unique hash, refresh with a unique string to
@@ -1963,8 +1969,10 @@ function quiz_take_quiz($quiz) {
   // If we're at the end of the quiz.
   if (!empty($quiz_end) && isset($_SESSION['quiz_' . $quiz->id()]['result_id'])) {
     // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
+
     $questions = _quiz_get_answers($quiz, $_SESSION['quiz_' . $quiz->id()]['result_id']);
     $score = quiz_end_scoring($quiz, $_SESSION['quiz_' . $quiz->id()]['result_id']);
+
     if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
       $content['body']['#markup'] = theme('quiz_no_feedback');
     }
@@ -2468,7 +2476,7 @@ function _quiz_get_answers($quiz, $rid) {
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
                    WHERE ra.result_id = :rid
                    ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->getRevisionId(), ':rid' => $rid));
-  while ($line = $ids->fetch()) {
+  foreach ($ids as $line) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
       if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
@@ -2478,6 +2486,7 @@ function _quiz_get_answers($quiz, $rid) {
         $line->max_score = $line->term_max_score;
       }
     }
+
     $module = quiz_question_module_for_type($line->type);
     if (!$module) {
       continue;
@@ -2488,6 +2497,8 @@ function _quiz_get_answers($quiz, $rid) {
       continue;
     }
     $questions[$line->question_nid] = $report;
+
+
     // Add max score info to the question.
     if (!isset($questions[$line->question_nid]->score_weight)) {
       if ($questions[$line->question_nid]->max_score == 0) {
@@ -3129,8 +3140,84 @@ function _quiz_format_duration($time_in_sec) {
   return "$hours:$min:$sec";
 }
 
+/**
+ * This functions returns the default email subject and body format which will
+ * be used at the end of quiz.
+ */
+function quiz_email_results_format($type, $target) {
+  global $user;
+  if ($type == 'subject') {
+    if ($target == 'author') {
+      return t('!title Results Notice from !sitename');
+    }
+    if ($target == 'taker') {
+      return t('!title Results Notice from !sitename');
+    }
+  }
+  if ($type == 'body') {
+    if ($target == 'author') {
+      return t('Dear !author') . "\n\n" .
+      t('!taker attended the quiz !title on !date') . "\n" .
+      t('Test Description : !desc') . "\n" .
+      t('!taker got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
+      t('You can access the result here !url') . "\n";
+    }
+    if ($target == 'taker') {
+      return t('Dear !taker') . "\n\n" .
+      t('You attended the quiz !title on !date') . "\n" .
+      t('Test Description : !desc') . "\n" .
+      t('You got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
+      t('You can access the result here !url') . "\n";
+    }
+  }
+}
 
-  function quiz_questions_browser_body_callback($form, $form_state) {
+/**
+ * Get a list of all available quizzes.
+ *
+ * @param $uid
+ *   An optional user ID. If supplied, only quizzes created by that user will be
+ *   returned.
+ *
+ * @return
+ *   A list of quizzes.
+ */
+function _quiz_get_quizzes($uid = 0) {
+  $results = array();
+  $args = array();
+  $query = db_select('node', 'n')
+    ->fields('n', array('nid', 'vid'))
+    ->fields('nd', array('title', 'uid', 'created'))
+    ->fields('u', array('name'));
+  $query->leftJoin('node_field_data', 'nd', 'nd.nid = n.nid AND nd.vid = n.vid');
+  $query->leftJoin('users', 'u', 'u.uid = nd.uid');
+  $query->condition('n.type', 'quiz');
+  if ($uid != 0) {
+    $query->condition('nd.uid', $uid);
+  }
+  $query->orderBy('n.nid');
+  $quizzes = $query->execute();
+  foreach ($quizzes as $quiz) {
+    $results[$quiz->nid] = (array) $quiz;
+  }
+
+  return $results;
+}
+
+  /**
+ * Helper function used when validating plain text.
+ *
+ * @param $value
+ *   The value to be validated.
+ *
+ * @return
+ *   TRUE if plain text FALSE otherwise.
+ */
+function _quiz_is_plain($value) {
+  return ($value === check_plain($value));
+}
+
+function quiz_questions_browser_body_callback($form, $form_state) {
   return $form['question_list']['browser']['table']['body'];
 }
 
