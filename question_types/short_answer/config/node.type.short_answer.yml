@@ -1,0 +1,20 @@
+type: short_answer
+uuid: 2a2525f0-4ceb-11e3-8f96-0800200c9a66
+name: 'Short answer question'
+description: 'Quiz questions that allow a user to enter a line of text.'
+create_body_label: 'Question'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

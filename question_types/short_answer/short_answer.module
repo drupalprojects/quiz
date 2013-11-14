@@ -35,25 +35,18 @@ function short_answer_permission() {
  * Implements hook_menu().
  */
 function short_answer_menu() {
-  $items['admin/quiz/reports/score-short-answer'] = array(
+  $items['admin/config/quiz/score-short-answer'] = array(
     'title' => 'Score short answer questions',
     'description' => 'Score the answers from quizzes that use short answer questions.',
-    'page callback' => 'short_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
-    'access callback' => 'quiz_access_multi_or',
+    'route_name' => 'short_answer.score_short_answer',
     'type' => MENU_NORMAL_ITEM,
-    'file' => 'short_answer.admin.inc',
   );
   // Pass vid and rid to this path.
-  $items['admin/quiz/reports/score-short-answer/%/%'] = array(
+  $items['admin/config/quiz/score-short-answer/%/%'] = array(
     'title' => 'Score short answer response',
     'description' => 'Score a response to a short answer question.',
-    'page callback' => 'short_answer_edit_score',
-    'page arguments' => array(4, 5),
+    'route_name' => 'short_answer.score_short_answer_pages',
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array(4, 5),
-    'access callback' => 'quiz_question_access_to_score',
-    'file' => 'short_answer.admin.inc'
   );
 
   return $items;
@@ -63,10 +56,11 @@ function short_answer_menu() {
  * Implements hook_quiz_question_info().
  */
 function short_answer_quiz_question_info() {
+  $config = \Drupal::config('node.type.short_answer');
   return array(
     'short_answer' => array(
-      'name' => t('Short answer question'),
-      'description' => t('Quiz questions that allow a user to enter a line of text.'),
+      'name' => $config->get('name'),
+      'description' => $config->get('description'),
       'question provider' => 'Drupal\short_answer\ShortAnswerQuestion',
       'response provider' => 'Drupal\short_answer\ShortAnswerResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
@@ -82,7 +76,7 @@ function short_answer_config() {
     '#type' => 'textfield',
     '#title' => t('Default max score'),
     '#description' => t('Choose the default maximum score for a short answer question.'),
-    '#default_value' => variable_get('short_answer_default_max_score', 5),
+    '#default_value' => \Drupal::config('short_answer.settings')->get('short_answer_default_max_score'),
   );
   $form['#validate'][] = 'short_answer_config_validate';
   return $form;
@@ -105,23 +99,15 @@ function short_answer_theme($existing, $type, $theme, $path) {
   return array(
     'short_answer_view_unscored' => array(
       'variables' => array('unscored' => array()),
-      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_response_form' => array(
       'render element' => 'form',
-      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
     ),
     'short_answer_user_answer' => array(
       'variables' => array('answer' => NULL, 'correct' => NULL),
-      'path' => $module_path . '/theme',
       'file' => 'short_answer.theme.inc',
-    ),
-    'short_answer_answering_form' => array(
-      'render element' => 'form',
-      'path' => $module_path . '/theme',
-      'template' => 'short-answer-answering-form',
     ),
   );
 }
@@ -154,7 +140,7 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
   // When we set the score we make sure that the max score in the quiz the question belongs to is considered
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
 
-  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
+  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->getRevisionId(), ':cvid' => $vid))->fetchField();
 
   $changed = db_update('quiz_short_answer_user_answers')
     ->fields(array(

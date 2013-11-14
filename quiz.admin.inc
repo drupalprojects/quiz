@@ -141,13 +141,16 @@ function quiz_admin_quizzes() {
  *   The result id
  */
 function quiz_admin_results($quiz, $rid) {
-  $breadcrumb = drupal_get_breadcrumb();
+
+  // @todo: Find D8 way to get breadcrumb.
+/*  $breadcrumb = drupal_get_breadcrumb();
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
+*/
 
   // Make sure we have the right version of the quiz
   $vid = db_query('SELECT vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
-  if ($quiz->vid != $vid) {
-    $quiz = node_load($quiz->nid, $vid);
+  if ($quiz->getRevisionId() != $vid) {
+    $quiz = node_load($quiz->id(), $vid);
   }
 
   // Get all the data we need.
@@ -156,8 +159,10 @@ function quiz_admin_results($quiz, $rid) {
   $summary = _quiz_get_summary_text($quiz, $score);
 
   // Lets add the quiz title to the breadcrumb array.
-  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . $quiz->nid);
+  // @todo: Find D8 way to set breadcrumb.
+  //$breadcrumb[] = l($quiz->getTitle(), 'admin/quiz/reports/results/' . $quiz->id());
   //drupal_set_breadcrumb($breadcrumb);
+
   $data = array(
     'quiz' => $quiz,
     'questions' => $questions,
@@ -1569,6 +1574,7 @@ function theme_quiz_admin_summary($variables) {
   $score = $variables['score'];
   $summary = $variables['summary'];
   $rid = $variables['rid'];
+  $body = $quiz->{'body'}->getValue();
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));
   if (!$score['is_evaluated']) {
@@ -1580,14 +1586,14 @@ function theme_quiz_admin_summary($variables) {
   $output .= '<div id="quiz_score_possible">' . t('This person got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
   $output .= '<div id="quiz_score_percent">' . t('Total score: @score %', array('@score' => $score['percentage_score'])) . '</div>' . "\n";
   if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $quiz->body['und'][0]['format']) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['passfail'], $body[0]['format']) . '</div>' . "\n";
   }
   if (isset($summary['result'])) {
-    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $quiz->body['und'][0]['format']) . '</div>' . "\n";
+    $output .= '<div id="quiz_summary">' . check_markup($summary['result'], $body[0]['format']) . '</div>' . "\n";
   }
 
   // Get the feedback for all questions.
-  require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz') . '/quiz.pages.inc';
+  module_load_include('pages.inc', 'quiz');
   $report_form = drupal_get_form('quiz_report_form', $questions, TRUE, TRUE, TRUE);
   $output .= drupal_render($report_form);
   return $output;

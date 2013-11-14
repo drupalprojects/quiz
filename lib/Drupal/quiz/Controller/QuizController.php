@@ -62,5 +62,26 @@ class QuizController implements ContainerInjectionInterface {
     module_load_include('admin.inc', 'quiz');
     return quiz_admin_quizzes();
   }
+
+  public function quizResultsPage(NodeInterface $node, $quiz_rid) {
+    module_load_include('admin.inc', 'quiz');
+    return quiz_admin_results($node, $quiz_rid);
+  }
+
+  public function quizMyResults(NodeInterface $node) {
+    module_load_include('pages.inc', 'quiz');
+    return quiz_my_results($node);
+  }
+
+  public function quizMyResultsPage(NodeInterface $node, $quiz_rid) {
+    module_load_include('pages.inc', 'quiz');
+    return quiz_user_results($quiz_rid);
+  }
+
+  public function quizUserMyResults($user_id) {
+    module_load_include('pages.inc', 'quiz');
+    return quiz_get_user_results($user_id);
+  }
+
 }
 

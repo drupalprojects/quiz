@@ -26,7 +26,7 @@ function theme_short_answer_view_unscored($variables) {
       $rows[] = array(
         $item->title,
         date('Y-m-d H:i', $item->time_end),
-        l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('score this response'), 'admin/config/quiz/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
   }

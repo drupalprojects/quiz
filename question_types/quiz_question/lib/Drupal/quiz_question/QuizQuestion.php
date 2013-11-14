@@ -428,10 +428,10 @@ abstract class QuizQuestion {
    * When a new question is created and initially submited, this is
    * called to validate that the settings are acceptible.
    *
-   * @param $form
-   *  The processed form.
+   * @param $form_state
+   *  The processed $form_state.
    */
-  abstract public function validateNode(array &$form);
+  abstract public function validateNode(array &$form_state);
 
   /**
    * Get the form through which the user will answer the question.

@@ -49,10 +49,19 @@ class TrueFalseQuestion extends QuizQuestion {
   /**
    * Implementation of validateNode
    *
-   * @see QuizQuestion#validateNode($form)
+   * @see QuizQuestion#validateNode($form_state)
    */
-  public function validateNode(array &$form) {
+  public function validateNode(array &$form_state) {
     // This space intentionally left blank. :)
+  }
+
+  /**
+   * Implementation of entityBuilder
+   */
+  public function entityBuilder(&$form_state) {
+    $this->node->correct_answer = $form_state['values']['correct_answer'];
+    $this->node->feedback = $form_state['values']['feedback'];
+    $this->node->add_directly = $form_state['values']['add_directly'];
   }
 
   /**
@@ -133,7 +142,6 @@ class TrueFalseQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    //$form['#theme'] = 'truefalse_answering_form';
 
     // 'tries' is unfortunately required by quiz.module
     $form['tries'] = array(

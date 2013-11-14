@@ -171,16 +171,14 @@ function quiz_question_form_validate($form, &$form_state) {
   if (empty($form_state['values']['body'][0]['value'])) {
     form_set_error('body', t('Question text is empty.'));
   }
-  _quiz_question_get_instance($node)->validateNode($form);
+  _quiz_question_get_instance($node)->validateNode($form_state);
 }
 
 /**
  * Entity form builder to add the quiz_question information to the node.
  */
 function quiz_question_form_builder($entity_type, $entity, &$form, &$form_state) {
-  $entity->correct_answer = $form_state['values']['correct_answer'];
-  $entity->feedback = $form_state['values']['feedback'];
-  $entity->add_directly = $form_state['values']['add_directly'];
+  _quiz_question_get_instance($entity)->entityBuilder($form_state);
 }
 
 /**
@@ -696,19 +694,6 @@ function _quiz_question_get_instance($node, $use_cached = FALSE) {
       // We just return a cached instance of the QuizQuestion
       return $question_instances[$vid];
     }
-
-    // If $node don't have a type it is a dummy node
-    if (!$node->getType()) {
-      // To substanitally improve performance(especially on the result page) we avoid node_load()...
-      $sql = 'SELECT d.type, r.nid, r.vid, r.title, p.max_score
-              FROM {node_field_revision} r
-              JOIN {node} n ON r.nid = n.nid
-              JOIN {node_field_data} d ON d.nid = n.nid
-              JOIN {quiz_question_properties} p ON r.vid = p.vid
-              WHERE r.vid = :vid';
-      $node = db_query($sql, array(':vid' => $node->getRevisionId()))->fetch();
-      $using_dummy_node = TRUE;
-    }
     $name = $node->getType();
   }
   elseif (is_object($node) && $node instanceof \stdClass) {
@@ -719,7 +704,7 @@ function _quiz_question_get_instance($node, $use_cached = FALSE) {
     }
 
     // If $node don't have a type it is a dummy node
-    if (!isset($node->type) || !$node->type) {
+    if (!isset($node->type) || !($name = $node->type)) {
       // To substanitally improve performance(especially on the result page) we avoid node_load()...
       $sql = 'SELECT d.type, r.nid, r.vid, r.title, p.max_score
               FROM {node_field_revision} r
@@ -728,9 +713,14 @@ function _quiz_question_get_instance($node, $use_cached = FALSE) {
               JOIN {quiz_question_properties} p ON r.vid = p.vid
               WHERE r.vid = :vid';
       $node = db_query($sql, array(':vid' => $node->vid))->fetch();
+
+      // @todo: Do it in proper way.
+      $node = (array) $node;
+      $node = entity_create('node', $node);
+      $name = $node->getType();
+
       $using_dummy_node = TRUE;
     }
-    $name = $node->type;
   }
   elseif (is_array($node)) {
     $name = $node['type'];
@@ -748,7 +738,7 @@ function _quiz_question_get_instance($node, $use_cached = FALSE) {
   if (empty($constructor)) {
     return FALSE;
   }
-  
+
   // We create a new instance of QuizQuestion
   $to_return = new $constructor($node);
   

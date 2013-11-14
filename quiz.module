@@ -407,10 +407,36 @@ function quiz_menu() {
     'weight' => 3,
   );
 
+  $items['node/%node/results/%quiz_rid'] = array(
+    'title' => 'Results',
+    'route_name' => 'quiz.results_page',
+    'type' => MENU_CALLBACK, // , MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
+  );
+
+  $items['node/%node/myresults'] = array(
+    'title' => 'My results',
+    'route_name' => 'quiz.my_results',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+
+  $items['node/%node/myresults/%quiz_rid'] = array(
+    'title' => 'User results',
+    'route_name' => 'quiz.my_results_page',
+    'type' => MENU_CALLBACK,
+  );
+
+  // User pages.
+  $items['user/%/myresults'] = array(
+    'title' => 'My results',
+    'route_name' => 'quiz.user_my_results',
+    'type' => MENU_LOCAL_TASK,
+  );
+
   //User result
   $items['user/quiz/%/userresults'] = array(
     'title' => 'User results',
-    'route_name' => 'quiz.user-results',
+    'route_name' => 'quiz.user_results',
     'type' => MENU_CALLBACK,
   );
 
@@ -3145,7 +3171,7 @@ function _quiz_format_duration($time_in_sec) {
  * be used at the end of quiz.
  */
 function quiz_email_results_format($type, $target) {
-  global $user;
+
   if ($type == 'subject') {
     if ($target == 'author') {
       return t('!title Results Notice from !sitename');
@@ -3217,7 +3243,61 @@ function _quiz_is_plain($value) {
   return ($value === check_plain($value));
 }
 
-function quiz_questions_browser_body_callback($form, $form_state) {
+/**
+ * Update a score for a quiz.
+ *
+ * This updates the quiz node results table.
+ *
+ * It is used in cases where a quiz score is changed after the quiz has been
+ * taken. For example, if a long answer question is scored later by a human,
+ * then the quiz should be updated when that answer is scored.
+ *
+ * Important: The value stored in the table is the *percentage* score.
+ *
+ * @param $quiz
+ *   The quiz node for the quiz that is being scored.
+ * @param $rid
+ *   The result ID to update.
+ * @return
+ *   The score as an integer representing percentage. E.g. 55 is 55%.
+ */
+function quiz_update_total_score($quiz, $rid) {
+  $score = quiz_calculate_score($quiz, $rid);
+  db_update('quiz_node_results')
+    ->fields(array(
+      'score' => $score['percentage_score'],
+    ))
+    ->condition('result_id', $rid)
+    ->execute();
+  if ($score['is_evaluated']) {
+    // Call hook_quiz_scored().
+    module_invoke_all('quiz_scored', $quiz, $score, $rid);
+    _quiz_maintain_results($quiz, $rid);
+    db_update('quiz_node_results')
+      ->fields(array('is_evaluated' =>  1))
+      ->condition('result_id', $rid)
+      ->execute();
+  }
+  return $score['percentage_score'];
+}
+
+/**
+ * Retrieves the quiz node from the menu router.
+ *
+ * @return
+ *   Quiz node, if found, or FALSE if quiz node can't be retrieved from the menu
+ *   router.
+ */
+function quiz_get_quiz_from_menu() {
+  if ($to_return = menu_get_object('quiz_type_access', 4)) {
+    return $to_return;
+  }
+  //TODO: FIX it. This seems to return NULL in feedback page.
+  $node = menu_get_object();
+  return (is_object($node) && $node->getType() == 'quiz') ? $node : FALSE;
+}
+
+  function quiz_questions_browser_body_callback($form, $form_state) {
   return $form['question_list']['browser']['table']['body'];
 }
 

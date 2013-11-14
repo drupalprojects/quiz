@@ -32,11 +32,11 @@ class ShortAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
-    if ($is_new || $this->node->revision == 1) {
+    if ($is_new || $this->node->isNewRevision() == 1) {
       $id = db_insert('quiz_short_answer_node_properties')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
+          'nid' => $this->node->id(),
+          'vid' => $this->node->getRevisionId(),
           'correct_answer' => $this->node->correct_answer,
           'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
         ))
@@ -49,8 +49,8 @@ class ShortAnswerQuestion extends QuizQuestion {
           'correct_answer' => $this->node->correct_answer,
           'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
         ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
     }
   }
@@ -58,12 +58,21 @@ class ShortAnswerQuestion extends QuizQuestion {
   /**
    * Implementation of validateNode
    *
-   * @see QuizQuestion#validateNode($form)
+   * @see QuizQuestion#validateNode($form_state)
    */
-  public function validateNode(array &$form) {
-    if ($this->node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($this->node->correct_answer)) {
+  public function validateNode(array &$form_state) {
+    if ($form_state['values']['correct_answer_evaluation'] != self::ANSWER_MANUAL && empty($form_state['values']['correct_answer'])) {
       form_set_error('correct_answer', t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
+  }
+
+  /**
+   * Implementation of entityBuilder
+   */
+  public function entityBuilder(&$form_state) {
+    $this->node->correct_answer = $form_state['values']['correct_answer'];
+    $this->node->correct_answer_evaluation = $form_state['values']['correct_answer_evaluation'];
+    $this->node->add_directly = $form_state['values']['add_directly'];
   }
 
   /**
@@ -74,14 +83,14 @@ class ShortAnswerQuestion extends QuizQuestion {
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
     $delete_ans = db_delete('quiz_short_answer_user_answers');
-    $delete_ans->condition('question_nid', $this->node->nid);
+    $delete_ans->condition('question_nid', $this->node->id());
 
     $delete_node = db_delete('quiz_short_answer_node_properties');
-    $delete_node->condition('nid', $this->node->nid);
+    $delete_node->condition('nid', $this->node->id());
 
     if ($only_this_version) {
-      $delete_ans->condition('question_vid', $this->node->vid);
-      $delete_node->condition('vid', $this->node->vid);
+      $delete_ans->condition('question_vid', $this->node->getRevisionId());
+      $delete_node->condition('vid', $this->node->getRevisionId());
     }
 
     $delete_ans->execute();
@@ -99,7 +108,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
     $res_a = db_query('SELECT correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties}
-      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchAssoc();
     $this->nodeProperties = (is_array($res_a)) ? array_merge($props, $res_a) : $props;
     return $this->nodeProperties;
   }
@@ -133,8 +142,6 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    //$form['#theme'] = 'short_answer_answering_form';
-
     $form['tries'] = array(
       '#type' => 'textfield',
       '#title' => t('Answer'),

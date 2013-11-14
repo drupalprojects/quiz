@@ -5,6 +5,7 @@
  * Page callback file for the quiz module.
  */
 
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  *  Page callback for quiz options form
@@ -594,7 +595,7 @@ function quiz_user_results($result_id) {
     return theme('quiz_user_summary', $data);
   }
   else {
-    drupal_not_found();
+    throw new NotFoundHttpException();
   }
 }
 
@@ -677,7 +678,7 @@ function quiz_report_form_submit($form, &$form_state) {
   /* We go through the form state values and submit all
    * questiontypes with validation functions declared.
    */
-  global $user;
+  $user = \Drupal::currentUser();
   foreach ($form_state['values'] as $key => $q_values) {
     // Questions has numeric keys in the report form
     if (!is_numeric($key)) {
@@ -705,7 +706,7 @@ function quiz_report_form_submit($form, &$form_state) {
     call_user_func($q_values['submit'], $q_values);
   }
   // Scores may have been changed. We take the necessary actions
-  quiz_update_total_score_fast($rid, $quiz->vid);
+  quiz_update_total_score_fast($rid, $quiz->getRevisionId());
   $changed = db_update('quiz_node_results')
   ->fields(array(
     'is_evaluated' =>  1,
@@ -722,14 +723,14 @@ function quiz_report_form_submit($form, &$form_state) {
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
 
-  $score_data = quiz_get_score_array($rid, $quiz->vid, TRUE);
+  $score_data = quiz_get_score_array($rid, $quiz->getRevisionId(), TRUE);
 
   module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
-    if ($result && $result->uid == $user->uid) {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/results/' . $rid;
+    if ($result && $result->uid == $user->id()) {
+      $form_state['redirect'] = 'node/' . $quiz->id() . '/results/' . $rid;
     }
   }
 }
@@ -738,7 +739,7 @@ function quiz_report_form_submit($form, &$form_state) {
  * Helper function to remove the message saying the quiz haven't been scored
  */
 function _quiz_remove_unscored_message() {
-  if (is_array($_SESSION['messages']['warning'])) {
+  if (isset($_SESSION['messages']['warning']) && is_array($_SESSION['messages']['warning'])) {
     // Search for the message, and remove it if we find it.
     foreach ($_SESSION['messages']['warning'] as $key => $val) {
       if ($val == t('This quiz has not been scored yet.')) {
@@ -764,6 +765,7 @@ function _quiz_remove_unscored_message() {
  *  Quiz node version id
  */
 function quiz_update_total_score_fast($rid, $quiz_vid) {
+
 	$subq1 = db_select('quiz_node_results_answers', 'a');
 	$subq1
 		->condition('a.result_id', $rid)
@@ -790,6 +792,7 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
  * @param unknown_type $is_evaluated
  */
 function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
+
   $properties = db_query('SELECT max_score, number_of_random_questions
           FROM {quiz_node_properties}
           WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
@@ -816,9 +819,10 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
  */
 function quiz_get_user_results($uid) {
   $results = array();
-  $dbresult = db_query('SELECT DISTINCT(n.nid), n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
+  $dbresult = db_query('SELECT DISTINCT(n.nid), nd.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
     INNER JOIN {quiz_node_properties} qnp ON n.nid = qnp.nid
+    INNER JOIN { node_field_data} nd ON n.nid = nd.nid AND n.vid = nd.vid
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     INNER JOIN {users} u ON u.uid = qnrs.uid
     WHERE n.type = :type
@@ -837,7 +841,7 @@ function quiz_get_user_results($uid) {
  * Show results for the current quiz
  */
 function quiz_my_results($node) {
-  global $user;
+  $user = \Drupal::currentUser();
   $results = array();
   $res = db_query('
     SELECT qnp.nid, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score
@@ -845,7 +849,7 @@ function quiz_my_results($node) {
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     WHERE qnrs.uid = :uid AND qnrs.nid = :nid AND qnrs.is_evaluated = 1
     ORDER BY qnrs.result_id DESC',
-    array(':uid' => $user->uid, ':nid' => $node->nid)
+    array(':uid' => $user->id(), ':nid' => $node->id())
   );
   // Create an array out of the results.
   while ($line = $res->fetchAssoc()) {

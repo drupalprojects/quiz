@@ -51,11 +51,6 @@ function truefalse_config() {
  */
 function truefalse_theme() {
   return array(
-    'truefalse_answering_form' => array(
-      'render element' => 'form',
-      'path' => drupal_get_path('module', 'truefalse') . '/theme',
-      'template' => 'truefalse-answering-form',
-    ),
     'truefalse_response' => array(
       'variables' => array(
         'metadata' => array(),

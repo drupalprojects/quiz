@@ -26,7 +26,7 @@ quiz.results:
   requirements:
     _permission: 'quiz_access_results'
 
-quiz.user-results:
+quiz.user_results:
   path: '/user/quiz/{result_id}/userresults'
   defaults:
     _content: '\Drupal\quiz\Controller\QuizController::quizUserResults'
@@ -60,4 +60,32 @@ quiz.settings_results:
     _content: '\Drupal\quiz\Controller\QuizController::quizSettingsQuizResults'
   requirements:
     _permission: 'view any quiz results' # @todo: Need to add access callback 'quiz_access_multi_or', D8 way.
+
+quiz.results_page:
+  path: '/node/{node}/results/{quiz_rid}'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizResultsPage'
+  requirements:
+    _permission: 'quiz_access_results'
+
+quiz.my_results:
+  path: '/node/{node}/myresults'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizMyResults'
+  requirements:
+    _permission: 'quiz_access_my_results'
+
+quiz.my_results_page:
+  path: '/node/{node}/myresults/{quiz_rid}'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizMyResultsPage'
+  requirements:
+    _permission: 'quiz_access_my_results'
+
+quiz.user_my_results:
+  path: '/user/{user_id}/myresults'
+  defaults:
+    _content: '\Drupal\quiz\Controller\QuizController::quizUserMyResults'
+  requirements:
+    _permission: '_quiz_user_results_access'
 

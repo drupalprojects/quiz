@@ -1,0 +1,16 @@
+short_answer.score_short_answer:
+  path: '/admin/config/quiz/score-short-answer'
+  defaults:
+    _content: '\Drupal\short_answer\Controller\ShortAnswerController::scoreShortAnswer'
+  requirements:
+    _permission: 'score any quiz, score own quiz, score taken quiz answer'
+    # @todo: add access callback in D8 way 'quiz_access_multi_or'
+
+short_answer.score_short_answer_pages:
+  path: '/admin/config/quiz/score-short-answer/{vid}/{rid}'
+  defaults:
+    _content: '\Drupal\short_answer\Controller\ShortAnswerController::scoreShortAnswerPages'
+  requirements:
+    _permission: 'quiz_question_access_to_score'
+    # @todo: add access callback in D8 way 'quiz_question_access_to_score'
+

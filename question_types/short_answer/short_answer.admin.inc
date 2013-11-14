@@ -6,6 +6,7 @@
  */
 
 use Drupal\short_answer\ShortAnswerResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * Generate a view of all unscored short_answer questions.
@@ -32,20 +33,17 @@ function short_answer_view_unscored() {
 function short_answer_edit_score($vid, $rid) {
   $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
   if (!$nid) {
-    drupal_not_found();
-    return;
+    throw new NotFoundHttpException();
   }
 
   $node = node_load($nid, $vid);
-  if (!$node || $node->type != 'short_answer') {
-    drupal_not_found();
-    return;
+  if (!$node || $node->getType() != 'short_answer') {
+    throw new NotFoundHttpException();
   }
 
-  $answer = (object) short_answer_get_answer($node->nid, $node->vid, $rid);
+  $answer = (object) short_answer_get_answer($node->id(), $node->getRevisionId(), $rid);
   if (!$answer) {
-    drupal_not_found();
-    return;
+    throw new NotFoundHttpException();
   }
 
   if ($node->max_score > 0) {
@@ -55,7 +53,7 @@ function short_answer_edit_score($vid, $rid) {
     $answer->rel_score = 0;
   }
 
-  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)), PASS_THROUGH);
+  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->getTitle())), PASS_THROUGH);
 
   return drupal_get_form('short_answer_score_form', $node, $answer);
 }
@@ -72,15 +70,17 @@ function short_answer_edit_score($vid, $rid) {
  */
 function short_answer_score_form($form, $context, $node, $answer) {
 
-  if (!$node || $node->type != 'short_answer' || !$answer) {
-    drupal_not_found();
-    return;
+  if (!$node || $node->getType() != 'short_answer' || !$answer) {
+    throw new NotFoundHttpException();
   }
+
+  $body = $node->{'body'}->getValue();
+
   // Set up the form
   $form['question'] = array(
     '#type' => 'item',
     '#title' => t('Question'),
-    '#markup' => check_markup($node->body['und'][0]['value'], $node->body['und'][0]['format']),
+    '#markup' => check_markup($body[0]['value'], $body[0]['format']),
   );
   $form['answer'] = array(
     '#type' => 'item',
@@ -167,7 +167,7 @@ function short_answer_score_form_submit($form, &$form_state) {
   ));
   if ($result == 1) {
     drupal_set_message("The score has been saved.");
-    $form_state['redirect'] = 'admin/quiz/reports/score-short-answer';
+    $form_state['redirect'] = 'admin/config/quiz/score-short-answer';
   }
   else {
     drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
