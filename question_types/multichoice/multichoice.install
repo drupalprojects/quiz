@@ -16,16 +16,9 @@ function multichoice_install() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('multichoice')
 //cache_clear_all('autoload:', 'cache');
-  variable_set('node_options_multichoice', array('status'));
+  \Drupal::config('multichoice.settings')->set('node_options_multichoice', array('status'));
 }
 
-/**
- * Implements hook_enable().
- */
-function multichoice_enable() {
-  // Add body field to multichoice node
-  quiz_question_add_body_field('multichoice');
-}
 
 /**
  * Implements hook_schema().
@@ -228,12 +221,5 @@ function multichoice_schema() {
 function multichoice_uninstall() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_uninstall_schema('multichoice')
-  $var = array(
-    'multichoice_def_scoring',
-    'multichoice_def_num_of_alts',
-  );
-  foreach ($var as $v) {
-    variable_del($v);
-  }
   drupal_set_message(t("The multichoice module has been uninstalled. multichoice nodes may still exist, but they will not function properly."));
 }

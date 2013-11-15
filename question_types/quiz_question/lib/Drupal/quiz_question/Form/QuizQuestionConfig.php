@@ -25,8 +25,10 @@ class QuizQuestionConfig extends ConfigFormBase {
    */
   public function buildForm(array $form, array &$form_state) {
     $q_types = _quiz_question_get_implementations();
-    $form = array();
+
     $form['#validate'] = array();
+    $form['#submit'] = array();
+
     // Go through all question types and merge their config forms
     foreach ($q_types as $type => $values) {
       $function = $type . '_config';
@@ -40,17 +42,13 @@ class QuizQuestionConfig extends ConfigFormBase {
           $form['#validate'] = array_merge($form['#validate'], $admin_form['#validate']);
           unset($form[$type]['#validate']);
         }
+        if (isset($admin_form['#submit'])) {
+          $form['#submit'] = array_merge($form['#submit'], $admin_form['#submit']);
+          unset($form[$type]['#submit']);
+        }
       }
     }
+    $form['#submit'][] = 'quiz_question_config_submit';
     return parent::buildForm($form, $form_state);
   }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitForm(array &$form, array &$form_state) {
-    //Add functionality here
-    parent::submitForm($form, $form_state);
-  }
-
 }

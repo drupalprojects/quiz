@@ -27,25 +27,18 @@ function long_answer_help($path, $arg) {
  * Implements hook_menu().
  */
 function long_answer_menu() {
-  $items['admin/quiz/reports/score-long-answer'] = array(
+  $items['admin/config/quiz/score-long-answer'] = array(
     'title' => 'Score long answer questions',
     'description' => 'Score the answers from quizzes that use long answer questions.',
-    'page callback' => 'long_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
-    'access callback' => 'quiz_access_multi_or',
+    'route_name' => 'long_answer.score_long_answer',
     'type' => MENU_NORMAL_ITEM,
-    'file' => 'long_answer.admin.inc',
   );
   // Pass vid and rid to this path.
-  $items['admin/quiz/reports/score-long-answer/%/%'] = array(
+  $items['admin/config/quiz/score-long-answer/%/%'] = array(
     'title' => 'Score long answer response',
     'description' => 'Score a response to a long answer question.',
-    'page callback' => 'long_answer_edit_score',
-    'page arguments' => array(4, 5),
+    'route_name' => 'long_answer.score_long_answer_page',
     'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array(4, 5),
-    'access callback' => 'quiz_question_access_to_score',
-    'file' => 'long_answer.admin.inc'
   );
 
   return $items;
@@ -74,9 +67,10 @@ function long_answer_config() {
     '#type' => 'textfield',
     '#title' => t('Default max score'),
     '#description' => t('Choose the default maximum score for a long answer question.'),
-    '#default_value' => variable_get('long_answer_default_max_score', 10),
+    '#default_value' => \Drupal::config('long_answer.settings')->get('long_answer_default_max_score'),
   );
   $form['#validate'][] = 'long_answer_config_validate';
+  $form['#submit'][] = 'long_answer_config_submit';
   return $form;
 }
 
@@ -90,24 +84,30 @@ function long_answer_config_validate($form, $form_state) {
 }
 
 /**
+ * Submit the long_answer config form values
+ */
+function long_answer_config_submit($form, $form_state) {
+  $config = \Drupal::config('long_answer.settings');
+  $config->set('long_answer_default_max_score', $form_state['values']['long_answer_default_max_score'])
+    ->save();
+}
+
+/**
  * Implements hook_theme().
  */
 function long_answer_theme() {
   return array(
     'long_answer_view_unscored' => array(
       'variables' => array('unscored' => array()),
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
       'file' => 'long_answer.theme.inc',
     ),
     'long_answer_response_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
       'file' => 'long_answer.theme.inc',
     ),
     'long_answer_answering_form' => array(
       'render element' => 'form',
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
-      'template' => 'long-answer-answering-form',
+      'file' => 'long_answer.theme.inc',
     ),
   );
 }
@@ -148,7 +148,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
   // First, we update the long answer table
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
 
-  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
+  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->getRevisionId(), ':cvid' => $vid))->fetchField();
 
   $changed = db_update('quiz_long_answer_user_answers')
     ->fields(array(

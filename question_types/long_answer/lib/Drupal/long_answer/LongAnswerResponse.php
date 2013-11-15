@@ -25,23 +25,23 @@ class LongAnswerResponse extends QuizQuestionResponse {
    *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
    */
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
-    global $user;
+    $user = \Drupal::currentUser();
     $query = db_select('quiz_long_answer_user_answers', 'a');
     $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback'));
-    $query->fields('r', array('title'));
-    $query->fields('qnr', array('time_end', 'time_start', 'uid'));
-    $query->join('node_revision', 'r', 'a.question_vid = r.vid');
+    $query->fields('nd', array('title', 'uid'));
+    $query->fields('qnr', array('time_end', 'time_start'));
     $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');
+    $query->join('node_field_data', 'nd', 'nd.nid = n.nid AND nd.vid = n.vid');
     $query->condition('a.is_evaluated', 0);
-    if (user_access('score own quiz') && user_access('score taken quiz answer')) {
-      $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
+    if ($user->hasPermission('score own quiz') && $user->hasPermission('score taken quiz answer')) {
+      $query->condition(db_or()->condition('nd.uid', $user->id())->condition('qnr.uid', $user->id()));
     }
     else if (user_access('score own quiz')) {
-      $query->condition('n.uid', $user->uid);
+      $query->condition('nd.uid', $user->id());
     }
     else if (user_access('score taken quiz answer')) {
-      $query->condition('qnr.uid', $user->uid);
+      $query->condition('qnr.uid', $user->id());
     }
     $results = $query->execute();
     $unscored = array();
@@ -93,7 +93,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
       // Question has been answered allready. We fetch the answer data from the database.
       $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback
         FROM {quiz_long_answer_user_answers}
-        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id))->fetch();
+        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->id(), ':qvid' => $question_node->getRevisionId(), ':rid' => $result_id))->fetch();
 
       if (!empty($r)) {
         $this->answer = $r->answer;
@@ -130,8 +130,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $this->answer_id = db_insert('quiz_long_answer_user_answers')
       ->fields(array(
         'answer' => $this->answer,
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
+        'question_nid' => $this->question->id(),
+        'question_vid' => $this->question->getRevisionId(),
         'result_id' => $this->rid,
       ))
       ->execute();
@@ -144,8 +144,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_long_answer_user_answers')
-      ->condition('question_nid', $this->question->nid)
-      ->condition('question_vid', $this->question->vid)
+      ->condition('question_nid', $this->question->id())
+      ->condition('question_vid', $this->question->getRevisionId())
       ->condition('result_id', $this->rid)
       ->execute();
   }
@@ -157,7 +157,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function score() {
     return (int) db_query('SELECT score FROM {quiz_long_answer_user_answers}
-      WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
+      WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->getRevisionId()))->fetchField();
   }
 
   /**

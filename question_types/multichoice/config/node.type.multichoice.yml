@@ -1,0 +1,20 @@
+type: multichoice
+uuid: cedf25b0-4d2b-11e3-8f96-0800200c9a66
+name: 'Multiple choice question'
+description: 'This provides multiple choice questions for use by the Quiz module.'
+create_body_label: 'Question'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

@@ -24,11 +24,11 @@ class LongAnswerQuestion extends QuizQuestion {
     if (!isset($this->node->feedback)) {
       $this->node->feedback = '';
     }
-    if ($is_new || $this->node->revision == 1) {
+    if ($is_new || $this->node->isNewRevision() == 1) {
       $id = db_insert('quiz_long_answer_node_properties')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
+          'nid' => $this->node->id(),
+          'vid' => $this->node->getRevisionId(),
           'rubric' => $this->node->rubric,
         ))
         ->execute();
@@ -36,8 +36,8 @@ class LongAnswerQuestion extends QuizQuestion {
     else {
       db_update('quiz_long_answer_node_properties')
         ->fields(array('rubric' => $this->node->rubric))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
     }
   }
@@ -45,9 +45,17 @@ class LongAnswerQuestion extends QuizQuestion {
   /**
    * Implementation of validateNode
    *
-   * @see QuizQuestion#validateNode($form)
+   * @see QuizQuestion#validateNode($form_state)
    */
-  public function validateNode(array &$form) { }
+  public function validateNode(array &$form_state) { }
+
+  /**
+   * Implementation of entityBuilder
+   */
+  public function entityBuilder(&$form_state) {
+    $this->node->rubric = $form_state['values']['rubric'];
+    $this->node->add_directly = $form_state['values']['add_directly'];
+  }
 
   /**
    * Implementation of delete
@@ -57,20 +65,20 @@ class LongAnswerQuestion extends QuizQuestion {
   public function delete($only_this_version = FALSE) {
     if ($only_this_version) {
       db_delete('quiz_long_answer_user_answers')
-        ->condition('question_nid', $this->node->nid)
-        ->condition('question_vid', $this->node->vid)
+        ->condition('question_nid', $this->node->id())
+        ->condition('question_vid', $this->node->getRevisionId())
         ->execute();
       db_delete('quiz_long_answer_node_properties')
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
     }
     else {
       db_delete('quiz_long_answer_node_properties')
-        ->condition('nid', $this->node->nid)
+        ->condition('nid', $this->node->id())
         ->execute();
       db_delete('quiz_long_answer_user_answers')
-        ->condition('question_nid', $this->node->nid)
+        ->condition('question_nid', $this->node->id())
         ->execute();
     }
     parent::delete($only_this_version);
@@ -88,7 +96,7 @@ class LongAnswerQuestion extends QuizQuestion {
     $props = parent::getNodeProperties();
 
     $res_a = db_query('SELECT rubric FROM {quiz_long_answer_node_properties}
-      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);

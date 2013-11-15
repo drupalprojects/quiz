@@ -16,8 +16,9 @@
  */
 function theme_multichoice_creation_form($variables) {
   $form = $variables['form'];
-  $path = drupal_get_path('module', 'multichoice') . '/js/multichoice.js';
-  drupal_add_js($path);
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'multichoice') . '/js/multichoice.js',
+  );
 
   // We open the settings fieldset if there is errors involving the choice_multi setting
   $errors = form_get_errors();
@@ -138,10 +139,11 @@ function theme_multichoice_response($variables) {
 
 function theme_multichoice_alternative_creation($variables) {
   $form = $variables['form'];
+  $form['#attached']['js'] = array(
+    drupal_get_path('module', 'multichoice') . '/js/multichoice-alternative-creation.js',
+  );
+
   $output = '';
-  
-  $p = drupal_get_path('module', 'multichoice');
-  drupal_add_js($p .'/js/multichoice-alternative-creation.js', 'module');
 
   // Get the title from the checkbox, and then unset it. We will place it as a table header
   $title_correct = check_plain($form['correct']['#title']);

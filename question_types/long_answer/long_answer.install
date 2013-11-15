@@ -11,16 +11,8 @@
 function long_answer_install() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('long_answer')
-  variable_set('node_options_long_answer', array('status'));
-  //cache_clear_all('autoload:', 'cache');
-}
-
-/**
- * Implements hook_enable().
- */
-function long_answer_enable() {
-  // Add body field to long answer node
-  quiz_question_add_body_field('long_answer');
+  \Drupal::config('long_answer.settings')->set('node_options_long_answer', array('status'));
+  entity_info_cache_clear();
 }
 
 /**
@@ -35,7 +27,7 @@ function long_answer_uninstall() {
   // Delete data from other tables
 
   // Clear the cache.
-  //cache_clear_all('variables', 'cache');
+  entity_info_cache_clear();
   drupal_set_message(t('The Long Answer module has been uninstalled and related data has been deleted.'));
 
 }

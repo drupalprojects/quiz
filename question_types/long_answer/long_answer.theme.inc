@@ -27,7 +27,7 @@ function theme_long_answer_view_unscored($variables) {
       $rows[] = array(
         check_plain($item->title),
         date('Y-m-d H:i', $item->time_end),
-        l(t('Score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('Score this response'), 'admin/config/quiz/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
       );
     }
   }
@@ -45,3 +45,14 @@ function theme_long_answer_response_form($variables) {
   $form = $variables['form'];
   return drupal_render_children($form);
 }
+
+  /**
+   * Theme the long_answer answering form
+   *
+   * @param $form
+   *  The response form
+   */
+  function theme_long_answer_answering_form($variables) {
+    $form = $variables['form'];
+    return drupal_render_children($form);
+  }

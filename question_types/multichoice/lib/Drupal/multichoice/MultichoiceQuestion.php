@@ -32,6 +32,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * Forgive some possible logical flaws in the user input.
    */
   private function forgive() {
+    $config = \Drupal::config('multichoice.settings');
     if ($this->node->choice_multi == 1) {
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
@@ -44,11 +45,11 @@ class MultichoiceQuestion extends QuizQuestion {
             $short['score_if_not_chosen'] = 0;
           }
           else {
-            if (variable_get('multichoice_def_scoring', 0) == 0) {
+            if ($config->get('multichoice_def_scoring') == 0) {
               $short['score_if_chosen'] = -1;
               $short['score_if_not_chosen'] = 0;
             }
-            elseif (variable_get('multichoice_def_scoring', 0) == 1) {
+            elseif ($config->get('multichoice_def_scoring') == 1) {
               $short['score_if_chosen'] = 0;
               $short['score_if_not_chosen'] = 1;
             }
@@ -86,7 +87,7 @@ class MultichoiceQuestion extends QuizQuestion {
       if (isset($_GET['destination'])) {
         $link_options['query'] = array('destination' => $_GET['destination']);
       }
-      $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit', $link_options);
+      $go_back = l(t('go back'), 'node/' . $this->node->id() . '/edit', $link_options);
       if ($num_corrects == 1) {
         drupal_set_message(
           t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.',
@@ -112,9 +113,9 @@ class MultichoiceQuestion extends QuizQuestion {
    *  Whether or not to check for user access to the filter we're trying to apply
    * @return HTML markup
    */
-  private function checkMarkup($alternativeIndex, $field, $check_user_access = FALSE) {
-    $alternative = $this->node->alternatives[$alternativeIndex];
-    return check_markup($alternative[$field]['value'], $alternative[$field]['format']);
+  private function checkMarkup(array &$form_state, $alternativeIndex, $field, $check_user_access = FALSE) {
+    $alternative = $form_state['values']['alternatives'][$alternativeIndex];
+    return check_markup($alternative[$field]['value'], $alternative[$field] ['format']);
   }
 
   /**
@@ -127,7 +128,7 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see sites/all/modules/quiz-HEAD/question_types/quiz_question/QuizQuestion#save()
    */
   public function saveNodeProperties($is_new = FALSE) {
-    $is_new = $is_new || $this->node->revision == 1;
+    $is_new = $is_new || $this->node->isNewRevision() == 1;
 
     // Before we save we forgive some possible user errors
     $this->forgive();
@@ -138,8 +139,8 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($is_new) {
       $id = db_insert('quiz_multichoice_properties')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
+          'nid' => $this->node->id(),
+          'vid' => $this->node->getRevisionId(),
           'choice_multi' => $this->node->choice_multi,
           'choice_random' => $this->node->choice_random,
           'choice_boolean' => $this->node->choice_boolean,
@@ -160,14 +161,14 @@ class MultichoiceQuestion extends QuizQuestion {
           'choice_random' => $this->node->choice_random,
           'choice_boolean' => $this->node->choice_boolean,
         ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
+        ->condition('nid', $this->node->id())
+        ->condition('vid', $this->node->getRevisionId())
         ->execute();
 
       // We fetch ids for the existing answers belonging to this question
       // We need to figure out if an existing alternative has been changed or deleted.
       $res = db_query('SELECT id FROM {quiz_multichoice_answers}
-              WHERE question_nid = :nid AND question_vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+              WHERE question_nid = :nid AND question_vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()));
 
       // We start by assuming that all existing alternatives needs to be deleted
       $ids_to_delete = array();
@@ -220,8 +221,8 @@ class MultichoiceQuestion extends QuizQuestion {
         'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen']['format'],
         'score_if_chosen' => $alternatives['score_if_chosen'],
         'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
-        'question_nid' => $this->node->nid,
-        'question_vid' => $this->node->vid
+        'question_nid' => $this->node->id(),
+        'question_vid' => $this->node->getRevisionId()
       ))
       ->execute();
   }
@@ -246,8 +247,8 @@ class MultichoiceQuestion extends QuizQuestion {
         'score_if_not_chosen' => $short['score_if_not_chosen'],
       ))
       ->condition('id', $short['id'])
-      ->condition('question_nid', $this->node->nid)
-      ->condition('question_vid', $this->node->vid)
+      ->condition('question_nid', $this->node->id())
+      ->condition('question_vid', $this->node->getRevisionId())
       ->execute();
   }
 
@@ -256,12 +257,12 @@ class MultichoiceQuestion extends QuizQuestion {
    *
    * QuizQuestion#validate()
    */
-  public function validateNode(array &$form) {
-    if ($this->node->choice_multi == 0) {
+  public function validateNode(array &$form_state) {
+    if ($form_state['values']['choice_multi'] == 0) {
       $found_one_correct = FALSE;
-      for ($i = 0; (isset($this->node->alternatives[$i]) && is_array($this->node->alternatives[$i])); $i++) {
-        $short = $this->node->alternatives[$i];
-        if (drupal_strlen($this->checkMarkup($i, 'answer')) < 1) {
+      for ($i = 0; (isset($form_state['values']['alternatives'][$i]) && is_array($form_state['values']['alternatives'][$i])); $i++) {
+        $short = $form_state['values']['alternatives'][$i];
+        if (drupal_strlen($this->checkMarkup($form_state, $i, 'answer')) < 1) {
           continue;
         }
         if ($short['correct'] == 1) {
@@ -278,9 +279,9 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     else {
-      for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
-        $short = $this->node->alternatives[$i];
-        if (strlen($this->checkMarkup($i, 'answer')) < 1) {
+      for ($i = 0; isset($form_state['values']['alternatives'][$i]); $i++) {
+        $short = $form_state['values']['alternatives'][$i];
+        if (strlen($this->checkMarkup($form_state, $i, 'answer')) < 1) {
           continue;
         }
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
@@ -294,27 +295,38 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   /**
+   * Implementation of entityBuilder
+   */
+  public function entityBuilder(&$form_state) {
+    $this->node->choice_multi = $form_state['values']['choice_multi'];
+    $this->node->choice_random = $form_state['values']['choice_random'];
+    $this->node->choice_boolean = $form_state['values']['choice_boolean'];
+    $this->node->alternatives = $form_state['values']['alternatives'];
+    $this->node->add_directly = $form_state['values']['add_directly'];
+  }
+
+  /**
    * Implementation of delete
    *
    * @see QuizQuestion#delete()
    */
   public function delete($only_this_version = FALSE) {
-    $delete_properties = db_delete('quiz_multichoice_properties')->condition('nid', $this->node->nid);
-    $delete_answers = db_delete('quiz_multichoice_answers')->condition('question_nid', $this->node->nid);
-    $delete_results = db_delete('quiz_multichoice_user_answers')->condition('question_nid', $this->node->nid);
+    $delete_properties = db_delete('quiz_multichoice_properties')->condition('nid', $this->node->id());
+    $delete_answers = db_delete('quiz_multichoice_answers')->condition('question_nid', $this->node->id());
+    $delete_results = db_delete('quiz_multichoice_user_answers')->condition('question_nid', $this->node->id());
 
     if ($only_this_version) {
-      $delete_properties->condition('vid', $this->node->vid);
-      $delete_answers->condition('question_vid', $this->node->vid);
-      $delete_results->condition('question_vid', $this->node->vid);
+      $delete_properties->condition('vid', $this->node->getRevisionId());
+      $delete_answers->condition('question_vid', $this->node->getRevisionId());
+      $delete_results->condition('question_vid', $this->node->getRevisionId());
     }
 
     // Delete from table quiz_multichoice_user_answer_multi
     if ($only_this_version) {
-      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
+      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchCol();
     }
     else {
-      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid', array(':nid' => $this->node->nid))->fetchCol();
+      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid', array(':nid' => $this->node->id()))->fetchCol();
     }
 
     db_delete('quiz_multichoice_user_answer_multi')
@@ -339,7 +351,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $props = parent::getNodeProperties();
 
     $res_a = db_query('SELECT choice_multi, choice_random, choice_boolean FROM {quiz_multichoice_properties}
-            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->id(), ':vid' => $this->node->getRevisionId()))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
@@ -350,7 +362,7 @@ class MultichoiceQuestion extends QuizQuestion {
             feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
             FROM {quiz_multichoice_answers}
             WHERE question_nid = :question_nid AND question_vid = :question_vid
-            ORDER BY id', array(':question_nid' => $this->node->nid, ':question_vid' => $this->node->vid));
+            ORDER BY id', array(':question_nid' => $this->node->id(), ':question_vid' => $this->node->getRevisionId()));
     $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = $res->fetchAssoc()) {
       $props['alternatives'][] = $res_arr;
@@ -459,9 +471,10 @@ class MultichoiceQuestion extends QuizQuestion {
    * @see QuizQuestion#getCreationForm()
    */
   public function getCreationForm(array &$form_state = NULL) {
+    $config = \Drupal::config('multichoice.settings');
     $form = array();
     $node_types = node_type_get_types();    
-    $type = $node_types[$this->node->type];
+    $type = $node_types[$this->node->getType()];
     // We add #action to the form because of the use of ajax
     $options = array();
     $get = $_GET;
@@ -471,10 +484,10 @@ class MultichoiceQuestion extends QuizQuestion {
     }
 
     // TODO The second parameter to this function call should be an array.
-    $action = url('node/add/' . $type->type, $options);
-    if (isset($this->node->nid)) {
+    $action = url('node/add/' . $type->id(), $options);
+    if ($this->node->id()) {
       // TODO The second parameter to this function call should be an array.
-      $action = url('node/' . $this->node->nid . '/edit', $options);
+      $action = url('node/' . $this->node->id() . '/edit', $options);
     }
     $form['#action'] = $action;
 
@@ -532,7 +545,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $choice_count = $form_state['choice_count'];
     }
     else {
-      $choice_count = max(variable_get('multichoice_def_num_of_alts', 2), isset($this->node->alternatives) ? count($this->node->alternatives) : 0);
+      $choice_count = max($config->get('multichoice_def_num_of_alts'), isset($this->node->alternatives) ? count($this->node->alternatives) : 0);
     }
 
     for (; $i < $choice_count; $i++) {
@@ -562,7 +575,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'checkbox',
         '#title' => t('Correct'),
         '#default_value' => $correct_default,
-        '#attributes' => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
+        '#attributes' => array('onchange' => 'Multichoice.refreshScores(this, ' . $config->get('multichoice_def_scoring') . ')'),
       );
       // We add id to be able to update the correct alternatives if the node is updated, without destroying
       // existing answer reports
@@ -682,7 +695,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   private function getDefaultAltSettings() {
     // If the node is being updated the default settings are those stored in the node
-    if (isset($this->node->nid)) {
+    if ($this->node->id()) {
       $settings['choice_multi'] = $this->node->choice_multi;
       $settings['choice_random'] = $this->node->choice_random;
       $settings['choice_boolean'] = $this->node->choice_boolean;
@@ -706,10 +719,10 @@ class MultichoiceQuestion extends QuizQuestion {
    *  The users default node settings
    */
   private function getUserSettings() {
-    global $user;
+    $user = \Drupal::currentUser();
     $res = db_query('SELECT choice_multi, choice_boolean, choice_random
             FROM {quiz_multichoice_user_settings}
-            WHERE uid = :uid', array(':uid' => $user->uid))->fetchAssoc();
+            WHERE uid = :uid', array(':uid' => $user->id()))->fetchAssoc();
     if ($res) {
       return $res;
     }
@@ -722,9 +735,9 @@ class MultichoiceQuestion extends QuizQuestion {
    * Fetches the users default settings from the creation form
    */
   private function saveUserSettings() {
-    global $user;
+    $user = \Drupal::currentUser();
     db_merge('quiz_multichoice_user_settings')
-      ->key(array('uid' => $user->uid))
+      ->key(array('uid' => $user->id()))
       ->fields(array(
         'choice_random' => $this->node->choice_random,
         'choice_multi' => $this->node->choice_multi,

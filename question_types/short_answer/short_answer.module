@@ -79,16 +79,26 @@ function short_answer_config() {
     '#default_value' => \Drupal::config('short_answer.settings')->get('short_answer_default_max_score'),
   );
   $form['#validate'][] = 'short_answer_config_validate';
+  $form['#submit'][] = 'short_answer_config_submit';
   return $form;
 }
 
 /**
- * Validate the long_answer config form values
+ * Validate the short_answer config form values
  */
 function short_answer_config_validate($form, $form_state) {
   if ($form_state['values']['short_answer_default_max_score'] <= 0) {
     form_set_error('short_answer_default_max_score', t('The default max score must be greater than 0'));
   }
+}
+
+/**
+ * Submit the short_answer config form values
+ */
+function short_answer_config_submit($form, $form_state) {
+  $config = \Drupal::config('short_answer.settings');
+  $config->set('short_answer_default_max_score', $form_state['values']['short_answer_default_max_score'])
+    ->save();
 }
 
 /**

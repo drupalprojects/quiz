@@ -44,7 +44,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     else {
       $res = db_query('SELECT answer_id FROM {quiz_multichoice_user_answers} ua
               LEFT OUTER JOIN {quiz_multichoice_user_answer_multi} uam ON(uam.user_answer_id = ua.id)
-              WHERE ua.result_id = :result_id AND ua.question_nid = :question_nid AND ua.question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $this->question->nid, ':question_vid' => $this->question->vid));
+              WHERE ua.result_id = :result_id AND ua.question_nid = :question_nid AND ua.question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $this->question->id(), ':question_vid' => $this->question->getRevisionId()));
       while ($res_o = $res->fetch()) {
         $this->user_answer_ids[] = $res_o->answer_id;
       }
@@ -79,8 +79,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
         'result_id' => $this->rid,
-        'question_vid' => $this->question->vid,
-        'question_nid' => $this->question->nid,
+        'question_vid' => $this->question->getRevisionId(),
+        'question_nid' => $this->question->id(),
         'choice_order' => $this->choice_order
       ))
       ->execute();
@@ -100,7 +100,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function delete() {
     $user_answer_id = array();
-    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->question->nid, ':vid' => $this->question->vid, ':result_id' => $this->rid));
+    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->question->id(), ':vid' => $this->question->getRevisionId(), ':result_id' => $this->rid));
     while ($user_answer = $query->fetch()) {
       $user_answer_id[] = $user_answer->id;
     }
@@ -113,8 +113,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
 
     db_delete('quiz_multichoice_user_answers')
       ->condition('result_id', $this->rid)
-      ->condition('question_nid', $this->question->nid)
-      ->condition('question_vid', $this->question->vid)
+      ->condition('question_nid', $this->question->id())
+      ->condition('question_vid', $this->question->getRevisionId())
       ->execute();
   }
 
@@ -257,7 +257,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
       return;
     }
     $result = db_query('SELECT choice_order FROM {quiz_multichoice_user_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_nid' => $this->question->nid, ':question_vid' => $this->question->vid))->fetchField();
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_nid' => $this->question->id(), ':question_vid' => $this->question->getRevisionId()))->fetchField();
     if (!$result) {
       return;
     }

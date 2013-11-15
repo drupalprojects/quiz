@@ -1,0 +1,14 @@
+long_answer.score_long_answer:
+  path: '/admin/config/quiz/score-long-answer'
+  defaults:
+    _content: '\Drupal\long_answer\Controller\LongAnswerController::scoreLongAnswer'
+  requirements:
+    _permission: 'score any quiz, score own quiz, score taken quiz answer'
+    # @todo: add access callback in D8 way 'quiz_access_multi_or'
+
+long_answer.score_long_answer_page:
+  path: '/admin/config/quiz/score-long-answer/{vid}/{rid}'
+  defaults:
+    _content: '\Drupal\long_answer\Controller\LongAnswerController::scoreLongAnswerPage'
+  requirements:
+    _permission: 'quiz_question_access_to_score'
