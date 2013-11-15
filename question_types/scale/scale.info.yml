@@ -1,6 +1,6 @@
-name: Short Answer
+name: Scale
 type: module
-description: 'Short answer question type for Quiz'
+description: 'Scale question type for quiz.'
 package: Quiz Question
 version: 8.x-1.0
 core: 8.x

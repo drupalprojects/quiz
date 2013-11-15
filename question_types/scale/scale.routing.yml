@@ -1,0 +1,6 @@
+scale.collection_manage:
+  path: '/scale/collection/manage'
+  defaults:
+    _content: '\Drupal\scale\Controller\ScaleController::collectionManage'
+  requirements:
+    _permission: 'create quiz content'
