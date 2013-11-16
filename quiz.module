@@ -2511,7 +2511,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
     );
     $params = array(
       'points' => $score['numeric_score'],
-      'description' => t('Attened @title @quiz on @time', $variables),
+      'description' => t('Attended @title @quiz on @time', $variables),
       'tid' => $selected_tid,
       'uid' => $taker->uid,
     );
@@ -2551,7 +2551,7 @@ function quiz_quiz_scored($quiz, $score, $rid) {
     );
     $params = array(
       'points' => $score['numeric_score'],
-      'description' => t('Attened @title @quiz on @time', $variables),
+      'description' => t('Attended @title @quiz on @time', $variables),
       'tid' => $selected_tid,
     );
     if ($quiz->userpoints_tid != 0) {
