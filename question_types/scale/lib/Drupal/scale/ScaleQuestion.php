@@ -70,13 +70,14 @@ class ScaleQuestion extends QuizQuestion {
    * @param $col_id - answer collection id of the collection this user wants to have as a preset
    */
   private function setPreset($col_id) {
+    $user = \Drupal::currentUser();
     db_merge('quiz_scale_user')
       ->key(array(
-        'uid' => $GLOBALS['user']->uid,
+        'uid' => $user->id(),
         'answer_collection_id' => $col_id
       ))
       ->fields(array(
-        'uid' => $GLOBALS['user']->uid,
+        'uid' => $user->id(),
         'answer_collection_id' => $col_id
       ))
       ->execute();

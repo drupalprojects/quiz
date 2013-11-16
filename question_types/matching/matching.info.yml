@@ -1,6 +1,6 @@
-name: Quiz Multichoice
+name: Matching question
 type: module
-description: 'Multiple choice question type for quiz.'
+description: 'Provide a way to create matching type of questions.'
 package: Quiz Question
 version: 8.x-1.0
 core: 8.x

@@ -1767,7 +1767,8 @@ function quiz_take_quiz(NodeInterface $quiz) {
   // Workaround to show question and feedback in separage pages, when the
   // feedback time it set to show after each questions
   elseif ($_POST['op'] == t('Next question')) {
-    drupal_goto("node/{$quiz->id()}/take");
+    $url = ("node/{$quiz->id()}/take");
+    return new RedirectResponse($url);
   }
   // We maintain two lists: previous questions and upcomming questions.
   // When we go backward, we pop one from the previous and prepend it to the
@@ -1835,7 +1836,8 @@ function quiz_take_quiz(NodeInterface $quiz) {
     }
     // If anonymous user, refresh url with unique hash to prevent caching.
     if (!$user->id()   && $q_passed_validation === TRUE) {
-      drupal_goto('node/' . $quiz->id() . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
+      $url = url('node/' . $quiz->id() . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
+      return new RedirectResponse($url);
     }
   }
   // Check for a skip.
@@ -1896,7 +1898,8 @@ function quiz_take_quiz(NodeInterface $quiz) {
       // Avoid caching for anonymous users
       if (!$user->id()) {
         drupal_set_message($q_passed_validation, 'error');
-        drupal_goto('node/' . $quiz->id() . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
+        $url = url('node/' . $quiz->id() . '/take', array('query' => array('quizkey' => md5(mt_rand() . REQUEST_TIME))));
+        return new RedirectResponse($url);
       }
     }
 

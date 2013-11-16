@@ -1,0 +1,20 @@
+type: matching
+uuid: 742bba10-4e80-11e3-8f96-0800200c9a66
+name: 'Matching'
+description: 'Matching question type for quiz module. A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.'
+create_body_label: 'Question'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

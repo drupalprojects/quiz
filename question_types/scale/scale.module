@@ -265,7 +265,7 @@ function scale_collection_form_submit($form, &$form_state) {
 
   foreach ($form_state['values'] as $key => $alternatives) {
     if ($col_id = _scale_get_col_id($key)) {
-      $s_q = new ScaleQuestion(new stdClass());
+      $s_q = new ScaleQuestion(new \stdClass());
       $s_q->initUtil($col_id);
 
       switch ($alternatives['to-do']) { // @todo: Rename to-do to $op

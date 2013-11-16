@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * @file
+ * Matching question type for quiz module
+ *
+ * Allows the creation of matching questions, which associate one term
+ * with another
+ */
+
+/**
+ * Implements hook_help().
+ */
+function matching_help($path, $args) {
+  switch ($path) {
+    case 'admin/modules#description':
+      return t('Matching question type for quiz module.');
+    case 'node/add#matching':
+    case 'admin/help#matching':
+      return t('A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.');
+    default:
+      break;
+  }
+}
+
+/**
+ * Implements hook_quiz_question_info().
+ */
+function matching_quiz_question_info() {
+  return array(
+    'matching' => array(
+      'name' => t('Matching'),
+      'description' => t('Matching question type for quiz module. A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.'),
+      'question provider' => '\Drupal\matching\MatchingQuestion',
+      'response provider' => '\Drupal\matching\MatchingResponse',
+      'module' => 'quiz_question', // All wrapper functions are in that module.
+    ),
+  );
+}
+
+/**
+ * hook_config
+ *
+ * @return FAPI array
+ */
+function matching_config() {
+  $config = \Drupal::config('matching.settings');
+
+  $form['quiz_matching_form_size'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Match Question Size'),
+    '#description' => t('Number of questions allowed to wrap under a matching type question.'),
+    '#default_value' => $config->get('quiz_matching_form_size'),
+  );
+  $form['quiz_matching_shuffle_options'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Shuffle Matching Questions'),
+    '#default_value' => $config->get('quiz_matching_shuffle_options'),
+    '#description' => t('If checked matching questions will be shuffled'),
+  );
+  $form['#validate'][] = 'matching_config_validate';
+  $form['#submit'][] = 'matching_config_submit';
+  return $form;
+}
+
+/**
+ * Validate the matching config form values
+ */
+function matching_config_validate($form, $form_state) {
+  if (!_quiz_is_int($form_state['values']['quiz_matching_form_size'], 2, 50)) {
+    form_set_error('quiz_matching_form_size', t('The number of questions must be between 2 and 50'));
+  }
+}
+
+/**
+ * Submit the matching config form values
+ */
+function matching_config_submit($form, $form_state) {
+  $config = \Drupal::config('matching.settings');
+  $config->set('quiz_matching_form_size', $form_state['values']['quiz_matching_form_size'])
+    ->set('quiz_matching_shuffle_options', $form_state['values']['quiz_matching_shuffle_options'])
+    ->save();
+}
+
+/**
+ * Implements hook_theme().
+ */
+function matching_theme() {
+  return array(
+    'matching_question_form' => array(
+      'render element' => 'form',
+      'file' => 'matching.theme.inc',
+    ),
+    'matching_response' => array(
+      'variables' => array('metadata' => NULL, 'data' => NULL),
+      'file' => 'matching.theme.inc',
+    ),
+    'matching_subquestion_form' => array(
+      'render element' => 'form',
+      'file' => 'matching.theme.inc',
+    ),
+    'matching_match_node_view' => array(
+      'variables' => array('subquestions' => NULL),
+      'file' => 'matching.theme.inc',
+    ),
+    'matching_answering_form' => array(
+      'render element' => 'form',
+      'file' => 'matching.theme.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function matching_field_extra_fields() {
+  $extra['node']['matching'] = array(
+    'form' => array(
+      'match' => array(
+        'label' => t('Answer'),
+        'description' => t('The sets of matches for this question.'),
+        'weight' => -4,
+      ),
+    ),
+  );
+  return $extra;
+}

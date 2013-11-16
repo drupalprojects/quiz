@@ -5,6 +5,7 @@ namespace Drupal\quiz\Controller;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\node\NodeInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class QuizController implements ContainerInjectionInterface {
   
@@ -22,6 +23,12 @@ class QuizController implements ContainerInjectionInterface {
       return $node->rendered_content;
     }
     $to_be_rendered = quiz_take_quiz($node);
+
+    // Manage redirection.
+    if ($to_be_rendered  instanceof RedirectResponse) {
+      return $to_be_rendered;
+    }
+
     return drupal_render($to_be_rendered);
   }
 
