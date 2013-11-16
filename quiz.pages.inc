@@ -592,6 +592,7 @@ function theme_quiz_take_summary($variables) {
  * @ingroup themeable
  */
 function theme_quiz_user_summary($variables) {
+  global $user;
   $quiz = $variables['quiz'];
   $questions = $variables['questions'];
   $score = $variables['score'];
@@ -625,7 +626,8 @@ function theme_quiz_user_summary($variables) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
   // Get the feedback for all questions.
-  $form = drupal_get_form('quiz_report_form', $questions, FALSE, TRUE);
+  $allow_scoring = quiz_allow_score_access($quiz);
+  $form = drupal_get_form('quiz_report_form', $questions, FALSE, TRUE, $allow_scoring);
   $output .= drupal_render($form);
   return $output;
 }

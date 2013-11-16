@@ -2034,7 +2034,8 @@ function quiz_take_quiz($quiz) {
       $path = drupal_get_path('module', 'quiz');
       require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
       if ($report && $report->type != 'quiz_directions') {
-        $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, TRUE);
+        $allow_scoring = quiz_allow_score_access($quiz);
+        $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, $allow_scoring);
         $report_form['op'] = array(
           '#type' => 'submit',
           '#value' => t('Next question'),
@@ -4043,6 +4044,18 @@ function _quiz_check_num_always(&$node) {
   db_delete('quiz_node_relationship')
     ->condition('parent_vid', $node->vid)
     ->execute();
+}
+
+/**
+ * Checks if the user has access to save score for his quiz.
+ */
+function quiz_allow_score_access($quiz, $account = NULL) {
+  global $user;
+  if ($account == NULL) {
+    $account = $user;
+  }
+  $access = user_access('score any quiz') || (user_access('score own quiz') && $quiz->uid && $account->uid);
+  return $access;
 }
 
 /**
