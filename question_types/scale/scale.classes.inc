@@ -249,7 +249,7 @@ class ScaleQuestion extends QuizQuestion {
       $res_o2 = db_query('SELECT * FROM {quiz_scale_answer}
               WHERE answer_collection_id = :answer_collection_id
               AND id = :id', array(':answer_collection_id' => $answer_collection_id, ':id' => ($last_id + 2)))->fetch();
-      return ($res_o2) ? $answer_collection_id : FALSE;
+      return ($res_o2) ? FALSE : $answer_collection_id;
     }
 
     // Do a recursive call to this function on all answer collection candidates
