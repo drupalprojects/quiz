@@ -2355,11 +2355,11 @@ function quiz_store_question_result($quiz, $result, $options) {
     $scale = db_query("SELECT (max_score_for_random / (
                   SELECT max_score
                   FROM {quiz_question_properties}
-                  WHERE nid = :nid AND vid = :vid
+                  WHERE nid = :question_nid AND vid = :question_vid
                 )) as scale
                 FROM {quiz_node_properties}
-                WHERE vid = :vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':vid' => $quiz->vid))->fetchField();
+                WHERE vid = :quiz_vid
+               ", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':quiz_vid' => $quiz->vid))->fetchField();
   }
   elseif ($quiz->randomization == 3) {
     if (isset($options['question_data']['tid'])) {
