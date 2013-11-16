@@ -2033,7 +2033,7 @@ function quiz_take_quiz($quiz) {
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_' . $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
       require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
-      if ($report) {
+      if ($report && $report->type != 'quiz_directions') {
         $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, TRUE);
         $report_form['op'] = array(
           '#type' => 'submit',
