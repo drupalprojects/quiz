@@ -3668,7 +3668,10 @@ function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_typ
   $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
 
   if ($include_all_types === TRUE) {
-    $query->condition('n.type', array_keys(_quiz_get_question_types()), 'IN');
+    $question_types = _quiz_get_question_types();
+    if (count($question_types) > 0) {
+      $query->condition('n.type', array_keys($question_types), 'IN');
+    }
   }
 
   if (!is_null($quiz_vid)) {
