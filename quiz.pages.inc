@@ -240,7 +240,7 @@ function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
           FROM {quiz_node_properties}
           WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
   $total_score = db_query('SELECT SUM(points_awarded)
-          FROM (quiz_node_results_answers)
+          FROM {quiz_node_results_answers}
           WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
 
   return array(
