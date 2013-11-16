@@ -178,13 +178,13 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     '#type' => 'submit',
     '#value' => $is_last ? t('Finish') : t('Next'),
   );
-  
-  if ($is_last) {
-  	$form['#attributes']['class'][] = 'confirm';
-  	$form['#attributes']['data-confirm-message'] = t('By proceeding you won\'t be able to go back and edit your answers');
-  	$form['#attached'] = array(
+
+  if ($is_last && $quiz->backwards_navigation) {
+    $form['#attributes']['class'][] = 'confirm';
+    $form['#attributes']['data-confirm-message'] = t("By proceeding you won't be able to go back and edit your answers.");
+    $form['#attached'] = array(
       'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_confirm.js'),
-  	);
+    );
   }
   if ($quiz->allow_skipping) {
     $form['navigation']['op']  = array(
