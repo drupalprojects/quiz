@@ -1,0 +1,10 @@
+name: Cloze
+type: module
+description: 'Question with certain words removed the participant will have to fill-in the missing words'
+package: Quiz Question
+version: 8.x-1.0
+core: 8.x
+
+dependencies:
+  - quiz
+  - quiz_question
