@@ -507,16 +507,16 @@ function _quiz_get_last_days($num_days) {
 }
 
 function theme_quiz_stats_revision_selector($variables) {
+  $content = $variables['content'];
+  $html = '';
 
-  print_r(array_keys($variables)); exit;
-
-  print '<p>' . $content['explanation'] . '</p>' . "\n";
-  print '<p>';
+  $html .= '<p>' . $content['explanation'] . '</p>' . "\n";
+  $html .= '<p>';
   $counter = 1;
   foreach ($content['links'] as $key => $value) {
-    print ' | '. l(t('revision !num', array('!num' => $counter++)), $value);
+    $html .= ' | '. l(t('revision !num', array('!num' => $counter++)), $value);
   }
-  print ' |</p>';
+  $html .= ' |</p>';
 
   return $html;
 }
