@@ -1,0 +1,36 @@
+quiz_stats.quiz_statistics:
+  path: '/admin/config/quiz/stats/creator'
+  defaults:
+    _content: '\Drupal\quiz_stats\Controller\QuizStatsController::quizStatistics'
+  requirements:
+    _permission: 'access author stats'
+
+quiz_stats.quiz_statistics_report:
+  path: '/node/{node}/statistics'
+  defaults:
+    _content: '\Drupal\quiz_stats\Controller\QuizStatsController::quizStatisticsReport'
+  requirements:
+    _permission: 'access user stats'
+    # Need to add access callback "quiz_type_confirm".
+
+quiz_stats.quiz_statistics_page:
+  path: '/node/{node}/statistics/{vid}'
+  defaults:
+    _content: '\Drupal\quiz_stats\Controller\QuizStatsController::quizStatisticsPage'
+  requirements:
+    _permission: 'access user stats'
+    # Need to add access callback "quiz_stats_validate_vid".
+
+quiz_stats.quiz_user_statistics:
+  path: '/user/{uid}/stats'
+  defaults:
+    _content: '\Drupal\quiz_stats\Controller\QuizStatsController::quizUserStatistics'
+  requirements:
+    _permission: 'access user stats'
+
+quiz_stats.quiz_user_statistics_view:
+  path: '/user/{uid}/stats/{vid}/view'
+  defaults:
+    _content: '\Drupal\quiz_stats\Controller\QuizStatsController::quizUserStatisticsView'
+  requirements:
+    _permission: 'access user stats'

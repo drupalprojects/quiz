@@ -16,7 +16,7 @@
  *  Themed html
  */
 function quiz_stats_revision_selector_page($quiz) {
-  $res = db_query('SELECT vid FROM {node_revision} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz->nid));
+  $res = db_query('SELECT vid FROM {node_revision} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz->id()));
   $count = 0; //uses this variable to slightly increase performance
   $vids = array();
   while ($res_o = $res->fetch()) {
@@ -28,7 +28,8 @@ function quiz_stats_revision_selector_page($quiz) {
   }
   elseif ($count == 1) {
     // If there is only one revision we jump directly to that revision
-    drupal_goto("node/{$quiz->nid}/statistics/{$vids[0]}");
+    $url = url("node/{$quiz->id()}/statistics/{$vids[0]}");
+    return new \Symfony\Component\HttpFoundation\RedirectResponse($url);
   }
   else {
     $content = array();
@@ -37,7 +38,7 @@ function quiz_stats_revision_selector_page($quiz) {
     Because of this you have to choose the revision you want to see statistics from.', array('!num' => $count));
     $content['links'] = array();
     foreach ($vids as $key => $value) {
-      $content['links'][] = 'node/' . $quiz->nid . '/statistics/' . $value;
+      $content['links'][] = 'node/' . $quiz->id() . '/statistics/' . $value;
     }
     return theme('quiz_stats_revision_selector', array('content' => $content));
   }
@@ -51,7 +52,7 @@ function quiz_stats_revision_selector_page($quiz) {
  * @return
  *   HTML table
  */
-function quiz_stats_get_basic_stats($uid = 0) {
+function quiz_stats_get_basic_stats($node=NULL, $uid = 0) {
   $results = _quiz_get_quizzes($uid);
   return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', array('results' => $results));
 }
@@ -466,7 +467,7 @@ function theme_quiz_stats_get_basic_stats($variables) {
   $p = drupal_get_path('module', 'quiz_stats');
   $chart_icon = theme('image', array('path' => "$p/chart.png", 'width' => t('Charts'), 'height' => t('See charts')));
   foreach ($results as $result) {
-    $title_link = user_access('access author stats') ? 'node/' . $result['nid'] . '/statistics' : 'user/' . arg(1) . '/stats/';
+    $title_link = \Drupal::currentUser()->hasPermission('access author stats') ? 'node/' . $result['nid'] . '/statistics' : 'user/' . arg(1) . '/stats/';
     $row = array(
       'title' => l($chart_icon . ' ' . $result['title'], $title_link, array('html' => TRUE)),
       'creator' => l($result['name'], 'user/' . $result['uid']),
@@ -503,4 +504,45 @@ function _quiz_get_last_days($num_days) {
     $to_return[date('Y.m.j', $timestamp)] = $to_add;
   }
   return $to_return;
+}
+
+function theme_quiz_stats_revision_selector($variables) {
+
+  print_r(array_keys($variables)); exit;
+
+  print '<p>' . $content['explanation'] . '</p>' . "\n";
+  print '<p>';
+  $counter = 1;
+  foreach ($content['links'] as $key => $value) {
+    print ' | '. l(t('revision !num', array('!num' => $counter++)), $value);
+  }
+  print ' |</p>';
+
+  return $html;
+}
+
+
+function theme_quiz_stats_charts($variables) {
+  $chart = $variables['charts'];
+  $html = '';
+  $chart_found = FALSE;
+  if (!function_exists('_quiz_stats_print_chart')) {
+    function _quiz_stats_print_chart(&$chart) {
+      if (is_array($chart)) {
+        $html .= '<h2 class="quiz-charts-title">' . $chart['title'] . '</h2>' . "\n"
+          . $chart['chart']. "\n"
+          . $chart['explanation'] . "\n";
+        $chart_found = TRUE;
+      }
+    }
+  }
+  _quiz_stats_print_chart($charts['takeup']);
+  _quiz_stats_print_chart($charts['top_scorers']);
+  _quiz_stats_print_chart($charts['status']);
+  _quiz_stats_print_chart($charts['grade_range']);
+  if (!$chart_found) {
+    $html .=  t('There are no statistics for this quiz (or quiz revision). This is probably because nobody has yet run this quiz (or quiz revision). If the quiz has multiple revisions, it is possible that the other revisions do have statistics. If this is the last revision, taking the quiz should generate some statistics.');
+  }
+
+  return $html;
 }

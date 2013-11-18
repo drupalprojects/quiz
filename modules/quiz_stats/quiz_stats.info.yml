@@ -1,0 +1,10 @@
+name: Quiz Statistics
+type: module
+description: 'Creates a report to compare and analyse the results of quiz attendees.'
+package: Quiz Addon
+version: 8.x-1.0
+core: 8.x
+
+dependencies:
+  - quiz
+  # - chart #Add Once Chart module ported to D8.
