@@ -1917,7 +1917,8 @@ function quiz_take_quiz(NodeInterface $quiz) {
     if (count($_SESSION['quiz_' . $quiz->id()]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->id()]['previous_quiz_questions']) > $number_of_questions) {
       drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
       unset($_SESSION['quiz_' . $quiz->id()]);
-      quiz_goto('node/' . $quiz->id() . '/take');
+      $url = url('node/' . $quiz->id() . '/take');
+      return new RedirectResponse($url);
     }
     
     if (isset($_SESSION['quiz_' . $quiz->id()]['question_duration'])) {

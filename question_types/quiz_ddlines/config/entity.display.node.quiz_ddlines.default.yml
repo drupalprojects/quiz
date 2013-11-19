@@ -1,0 +1,19 @@
+id: node.quiz_ddlines.default
+uuid: d8c85f70-50e5-11e3-8f96-0800200c9a66
+targetEntityType: node
+bundle: quiz_ddlines
+mode: default
+status: 1
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: '0'
+    settings: {  }
+  field_image:
+    label: hidden
+    type: image
+    settings:
+      image_style: medium
+      image_link: ''
+    weight: '-1'

@@ -1,0 +1,20 @@
+id: node.quiz_ddlines.default
+uuid: 6bf5a380-50e5-11e3-8f96-0800200c9a66
+targetEntityType: node
+bundle: quiz_ddlines
+mode: default
+status: 1
+content:
+  body:
+    type: text_textarea_with_summary
+    weight: '0'
+    settings:
+      rows: '9'
+      summary_rows: '3'
+      placeholder: ''
+  field_image:
+    type: image_image
+    settings:
+      progress_indicator: throbber
+      preview_image_style: thumbnail
+    weight: '-1'

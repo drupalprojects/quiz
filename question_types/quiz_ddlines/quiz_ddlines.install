@@ -1,0 +1,166 @@
+<?php
+
+/**
+ * Sponsored by: Senter for IKT i utdanningen
+ * Code: paalj
+ *
+ * @file
+ * Drag and drop Install (a quiz question type)
+ */
+
+/**
+ * Implements hook_install().
+ */
+function quiz_ddlines_install() {
+  entity_info_cache_clear();
+}
+
+/**
+ * Implements hook_schema().
+ */
+function quiz_ddlines_schema() {
+  $schema['quiz_ddlines_node'] = array(
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'feedback_enabled' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+	  'hotspot_radius' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 10,
+      ),
+      'ddlines_elements' => array(
+        'type' => 'text',
+      ),
+  	  'execution_mode' => array(
+        'type' => 'int',
+        'description' => "Execution mode. 0->with lines, 1->without lines",
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'foreign keys' => array(
+      'node' => array(
+        'table' => 'node',
+        'columns' => array('nid' => 'nid'),
+      ),    
+    ),
+    'primary key' => array(
+      'vid', 'nid'
+    ),
+  );
+  
+  // Place to store user answers
+  $schema['quiz_ddlines_user_answers'] = array(
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'result_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'question_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'question_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array(
+      'id'
+    ),
+    'indexes' => array(
+      'answer_id' => array('result_id', 'question_nid', 'question_vid'),
+    ),
+  );
+  
+  $schema['quiz_ddlines_user_answer_multi'] = array(
+    'fields' => array(
+      'user_answer_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),       
+      'hotspot_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,        
+        'not null' => TRUE,
+      ),
+      'label_id' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,        
+        'not null' => TRUE,
+      ),
+    ),
+    'foreign keys' => array(
+      'answer_id' => array(
+        'table' => 'quiz_ddlines_user_answers',
+        'columns' => array('user_answer_id' => 'id'),
+      ),    
+    ),
+    'indexes' => array(
+      'answer_id' => array('user_answer_id'),
+    ),
+  );
+  
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function quiz_ddlines_uninstall() {
+  // Delete instance:
+  $field_instance = \Drupal\field\Field::fieldInfo()->getInstance('node', 'field_image', 'quiz_ddlines');
+  if ($field_instance) {
+    $field_instance->delete();
+  }
+
+  // Purge field data now to allow taxonomy and options module to be uninstalled
+  // if this is the only field remaining. We need to run it twice because
+  // field_purge_batch() will not remove the instance and the field in the same
+  // pass.
+  field_purge_batch(10);
+  field_purge_batch(10);
+
+  drupal_set_message(t("The Quiz drag and drop module has been uninstalled. Nodes of this type may still exist, but they will not function properly."));
+}
+
+/**
+ * Adding Execution mode column. Makes it possible to
+ * run the test in two different modes.
+ */
+function quiz_ddlines_update_7401() {
+  // Add field for execution mode
+  $spec = array(
+    'type' => 'int',
+    'description' => "Execution mode. 0->with lines, 1->without lines",
+    'not null' => TRUE,
+    'unsigned' => TRUE,
+    'default' => 0,
+  ); 
+  db_add_field('quiz_ddlines_node', 'execution_mode', $spec);
+}

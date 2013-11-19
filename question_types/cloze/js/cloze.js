@@ -3,7 +3,7 @@
 Drupal.behaviors.cloze = {
   attach: function (context, settings) {
     // We get the answer from the drupal setting
-    var answer = Drupal.settings.answer;
+    var answer = drupalSettings.answer;
     /* The answer has been converted to upper case becaue the keys entered are displayed as upper case*/
     /* Hence to avoid case insensitive part, I have made it to upper case*/
 

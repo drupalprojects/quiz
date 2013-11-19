@@ -1,0 +1,20 @@
+id: node.quiz_ddlines.teaser
+uuid: b6fe9f80-50e5-11e3-8f96-0800200c9a66
+targetEntityType: node
+bundle: quiz_ddlines
+mode: teaser
+status: 1
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: '0'
+    settings:
+      trim_length: '600'
+  field_image:
+    label: hidden
+    type: image
+    settings:
+      image_style: medium
+      image_link: content
+    weight: '-1'

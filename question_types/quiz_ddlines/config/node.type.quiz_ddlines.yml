@@ -1,0 +1,20 @@
+type: quiz_ddlines
+uuid: 6b0acfb0-4eb3-11e3-8f96-0800200c9a66
+name: 'Drag and drop question with lines'
+description: 'This provides drag and drop question types with lines for the Quiz module.'
+create_body_label: 'Question'
+help: ''
+has_title: true
+title_label: Title
+settings:
+  node:
+    preview: 1
+    options:
+      status: status
+      # Promoted to front page.
+      promote: promote
+      sticky: '0'
+      revision: '0'
+    submitted: true
+status: true
+langcode: en

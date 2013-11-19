@@ -1,0 +1,6 @@
+quiz_ddlines_canvas_width: 700
+quiz_ddlines_canvas_height: 500
+quiz_ddlines_hotspot_radius: 10
+quiz_ddlines_pointer_radius: 5
+quiz_ddlines_feedback_correct: ''
+quiz_ddlines_feedback_wrong: ''

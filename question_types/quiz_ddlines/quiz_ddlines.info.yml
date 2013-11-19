@@ -1,0 +1,10 @@
+name: Drag and drop with lines for Quiz
+type: module
+description: 'Drag and drop with lines question type for quiz.'
+package: Quiz Question
+version: 8.x-1.0
+core: 8.x
+
+dependencies:
+  - quiz
+  - quiz_question
