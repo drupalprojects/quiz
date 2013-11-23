@@ -406,7 +406,9 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
         $existing['nid'] = $form_state['values']['nid'];
         $existing['vid'] = $form_state['values']['vid'];
         $existing['tid'] = $key;
-        $existing['weight'] = 1;
+        if (empty($existing['weight'])) {
+          $existing['weight'] = 1;
+        }
         $changed[] = $form[$key]['name']['#markup'];
         drupal_write_record('quiz_terms', $existing, array('vid', 'tid'));
         break;
@@ -852,7 +854,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#value' => isset($question->max_score) ? $question->max_score : 0,
       );
     }
-    
+
     $form[$fieldset]['auto_update_max_scores'][$id] = array(
       '#type' => 'checkbox',
       '#default_value' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : 0,
@@ -1314,7 +1316,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_sc
     }
     else {
       $question->state = QUESTION_ALWAYS;
-    }     
+    }
     $question->weight = $weight;
     $question->max_score = $max_scores[$id];
     $question->auto_update_max_score = $auto_update_max_scores[$id];
