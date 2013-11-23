@@ -632,7 +632,9 @@ function _quiz_categorized_update_terms(&$form, &$form_state) {
         $existing['nid'] = $form_state['values']['nid'];
         $existing['vid'] = $form_state['values']['vid'];
         $existing['tid'] = $key;
-        $existing['weight'] = 1;
+        if (empty($existing['weight'])) {
+          $existing['weight'] = 1;
+        }
         $changed[] = $form[$key]['name']['#markup'];
         drupal_write_record('quiz_terms', $existing, array('vid', 'tid'));
         break;
