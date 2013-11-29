@@ -1,4 +1,4 @@
-name: Quiz Multichoice
+name: Multichoice
 type: module
 description: 'Multiple choice question type for quiz.'
 package: Quiz Question

@@ -7,4 +7,4 @@ core: 8.x
 
 dependencies:
   - quiz
-  # - chart #Add Once Chart module ported to D8.
+  - chart #Add Once Chart module ported to D8.

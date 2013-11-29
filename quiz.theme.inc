@@ -201,6 +201,9 @@ function theme_quiz_report_form($variables) {
     $output .= '</span>';
     $output .= '</div>';
 	  $output .= '<p class="quiz-report-question"><strong>' . t('Question') . ': </strong></p>';
+
+    // Fix for html entities.
+    $sub_form['question']['#markup'] = decode_entities($sub_form['question']['#markup']);
 	  $output .= drupal_render($sub_form['question']);
     $output .= '</div>';
     $output .= '<div class="dd">';

@@ -4,7 +4,7 @@ description: 'Create interactive, multipage quizzes. This module must have at le
 package: Quiz Core
 version: 8.x-1.0
 core: 8.x
-configure: admin/config/quiz
+configure: quiz.config
 
 dependencies:
   - taxonomy

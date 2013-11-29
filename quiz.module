@@ -379,14 +379,14 @@ function quiz_menu() {
     'title' => 'Options',
     'route_name' => 'quiz.options',
     'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    //'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 2,
   );
   $items['node/%node/questions'] = array(
     'title' => 'Questions',
     'route_name' => 'quiz.questions',
     'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    //'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 3,
   );
 
@@ -395,7 +395,7 @@ function quiz_menu() {
     'title' => 'Take',
     'route_name' => 'quiz.take',
     'type' => MENU_LOCAL_TASK,
-    'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
+    //'context' => MENU_CONTEXT_PAGE | MENU_CONTEXT_INLINE,
     'weight' => 1,
   );
 

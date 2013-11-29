@@ -39,6 +39,8 @@ class QuizController implements ContainerInjectionInterface {
   }
 
   public function quizQuestions(NodeInterface $node) {
+    $path = drupal_get_path('module', 'quiz');
+    drupal_add_css($path . '/quiz.css');
     module_load_include('admin.inc', 'quiz');
     $form = drupal_get_form('quiz_questions_form', $node);
     return drupal_render($form);

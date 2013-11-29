@@ -89,3 +89,8 @@ quiz.user_my_results:
   requirements:
     _permission: '_quiz_user_results_access'
 
+quiz.config:
+  path: 'admin/config/quiz'
+
+  requirements:
+    _permission: 'administer site configuration'
