@@ -1217,16 +1217,16 @@ function quiz_questions_form_validate($form, &$form_state) {
 
   // Make sure the number of random questions is a positive number
   if (isset($form_state['values']['num_random_questions']) && !_quiz_is_int($form_state['values']['num_random_questions'], 0)) {
-    form_set_error('num_random_questions', 'The number of random questions needs to be a positive number');
+    form_set_error('num_random_questions', $form_state, 'The number of random questions needs to be a positive number');
   }
 
   // Make sure the max score for random questions is a positive number
   if (isset($form_state['values']['max_score_for_random']) && !_quiz_is_int($form_state['values']['max_score_for_random'], 0)) {
-    form_set_error('max_score_for_random', 'The max score for random questions needs to be a positive number');
+    form_set_error('max_score_for_random', $form_state, 'The max score for random questions needs to be a positive number');
   }
 
   if (empty($weight_map)) {
-    form_set_error('none', 'No questions were included.');
+    form_set_error('none', $form_state, 'No questions were included.');
     return;
   }
 
@@ -1248,13 +1248,13 @@ function quiz_questions_form_validate($form, &$form_state) {
       ->execute()
       ->fetchField();
     if (!$has_questions) {
-      form_set_error('none', 'One of the supplied questions was invalid. It has been removed from the quiz.');
+      form_set_error('none', $form_state, 'One of the supplied questions was invalid. It has been removed from the quiz.');
       unset($form_state['values']['weights'][$id]);
     }
 
     // We also make sure that we don't have duplicate questions in the quiz.
     elseif (in_array($nid, $already_checked)) {
-      form_set_error('none', 'A duplicate question has been removed. You can only ask a question once per quiz.');
+      form_set_error('none', $form_state, 'A duplicate question has been removed. You can only ask a question once per quiz.');
       unset($form_state['values']['weights'][$id]);
     }
     else {
