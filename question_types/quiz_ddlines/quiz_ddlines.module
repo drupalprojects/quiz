@@ -88,8 +88,8 @@ function quiz_ddlines_config() {
     '#default_value' => $config->get('quiz_ddlines_feedback_wrong'),
   );
   
-  $form['#validate'] = 'quiz_ddlines_config_validate';
-  $form['#submit'] = 'quiz_ddlines_config_submit';
+  $form['#validate'][] = 'quiz_ddlines_config_validate';
+  $form['#submit'][] = 'quiz_ddlines_config_submit';
   return $form;
 }
 

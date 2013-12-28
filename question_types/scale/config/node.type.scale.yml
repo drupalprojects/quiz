@@ -12,7 +12,7 @@ settings:
     options:
       status: status
       # Promoted to front page.
-      promote: promote
+      promote: false
       sticky: '0'
       revision: '0'
     submitted: true
