@@ -398,19 +398,19 @@ function quiz_options_form_validate($form, &$form_state) {
   // Don't check dates if the quiz is always available.
   if (!$node->quiz_always && count($quiz_open) == 3 && count($quiz_close) == 3) {
     if (mktime(0, 0, 0, $quiz_open[1], $quiz_open[0], $quiz_open[2]) > mktime(0, 0, 0, $quiz_close[1], $quiz_close[0], $quiz_close[2])) {
-      form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
+      form_set_error('quiz_close', $form_state, t('Please make sure the close date is after the open date.'));
     }
   }
 
   if (!empty($node->pass_rate)) {
     if (!_quiz_is_int($node->pass_rate, 0, 100)) {
-      form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
+      form_set_error('pass_rate', $form_state, t('The pass rate value must be a number between 0 and 100.'));
     }
   }
 
   if (isset($node->time_limit)) {
     if (!_quiz_is_int($node->time_limit, 0)) {
-      form_set_error('time_limit', t('Time limit must be a non negative interger'));
+      form_set_error('time_limit', $form_state, t('Time limit must be a non negative interger'));
     }
   }
 
@@ -421,26 +421,26 @@ function quiz_options_form_validate($form, &$form_state) {
       if (!empty($option['option_name'])) {
         $num_options++;
         if (empty($option['option_summary'])) {
-          form_set_error('option_summary', t('Option has no summary text.'));
+          form_set_error('option_summary', $form_state, t('Option has no summary text.'));
         }
         if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
 
           // Check for a number between 0-100.
           foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
             if (!_quiz_is_int($option[$bound], 0, 100)) {
-              form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
+              form_set_error($bound, $form_state, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
             }
           }
 
           // Check that range end >= start.
           if ($option['option_start'] > $option['option_end']) {
-            form_set_error('option_start', t('The start must be less than the end of the range.'));
+            form_set_error('option_start', $form_state, t('The start must be less than the end of the range.'));
           }
 
           // Check that range doesn't collide with any other range.
           $option_range = range($option['option_start'], $option['option_end']);
           if ($intersect = array_intersect($taken_values, $option_range)) {
-            form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
+            form_set_error('option_start', $form_state, t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
           }
           else {
             $taken_values = array_merge($taken_values, $option_range);
@@ -448,12 +448,12 @@ function quiz_options_form_validate($form, &$form_state) {
         }
       }
       elseif (!_quiz_is_empty_html($option['option_summary']['value'])) {
-        form_set_error('option_summary', t('Option has a summary, but no name.'));
+        form_set_error('option_summary', $form_state, t('Option has a summary, but no name.'));
       }
     }
   }
   if ($node->allow_jumping && !$node->allow_skipping) {
-    form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
+    form_set_error('allow_skipping', $form_state, t('If jumping is allowed skipping also has to be allowed.'));
   }
 }
 

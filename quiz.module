@@ -555,7 +555,7 @@ function quiz_theme() {
 function template_preprocess_quiz_questions_browser_body(&$vars) {
   $form = &$vars['form'];
   $rows = array();
-  
+
   $full_options = array();
   foreach ($form['titles']['#options'] as $key => $value) {
     $full_options[$key] = $form['titles'][$key];
@@ -588,7 +588,7 @@ function template_preprocess_quiz_questions_browser_body(&$vars) {
     '#header' => array(),
     '#rows' => $rows,
   );
-  
+
   if (count($form['titles']['#options']) == 0) {
     print t('No questions were found');
   }
@@ -625,13 +625,13 @@ function _quiz_is_taking_context() {
  *   A quiz node object or FALSE if a load failed.
  */
 function quiz_type_access_load($arg) {
-  
+
   static $quiz_nodes = array();
   if (isset($quiz_nodes[$arg])) {
     return $quiz_nodes[$arg];
   }
   $to_return = (($node = node_load($arg)) && $node->getType() == 'quiz') ? $node : FALSE;
-  
+
   if ($to_return) {
     $quiz_nodes[$arg] = $to_return;
   }
@@ -692,7 +692,7 @@ function _quiz_get_question_types() {
  *   An array of questions.
  */
 function quiz_get_questions($quiz_nid = NULL, $quiz_vid = NULL, $include_all_types = TRUE, $nid_keys = FALSE, $include_question = TRUE, $include_random = TRUE) {
-  
+
   $questions = array();
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'type'));
@@ -1369,43 +1369,41 @@ function quiz_node_insert(EntityInterface $node) {
       ))
       ->execute();
 
-    _quiz_insert_resultoptions($node);    
+    _quiz_insert_resultoptions($node);
   }
 }
 
 /**
  * Implements hook_node_load().
  */
-function quiz_node_load($nodes, $types) {
-  if (count(array_intersect(array('quiz'), $types))) {
-    foreach ($nodes as $nid => $node) {
-      if ($node->getType() == 'quiz') {
-        // Fetching defaults.
-        $default_additions = _quiz_get_node_defaults();
+function quiz_node_load($nodes) {  
+  foreach ($nodes as $nid => $node) {
+    if ($node->getType() == 'quiz') {
+      // Fetching defaults.
+      $default_additions = _quiz_get_node_defaults();
 
-        // Fetching node settings.
-        $query = db_select('quiz_node_properties', 'qnp');
-        foreach (array_keys($default_additions) as $field) {
-          $query->addField('qnp', $field);
-        }
-        $query->condition('vid', $node->getRevisionId());
-        $query->condition('nid', $node->id());
-        $fetched_additions = (array) $query->execute()->fetch();
+      // Fetching node settings.
+      $query = db_select('quiz_node_properties', 'qnp');
+      foreach (array_keys($default_additions) as $field) {
+        $query->addField('qnp', $field);
+      }
+      $query->condition('vid', $node->getRevisionId());
+      $query->condition('nid', $node->id());
+      $fetched_additions = (array) $query->execute()->fetch();
 
-        $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
-        // Fetching result options.
-        $query = db_select('quiz_node_result_options', 'qnro');
-        $query->fields('qnro');
-        $query->condition('nid', $node->id());
-        $query->condition('vid', $node->getRevisionId());
-        $options = $query->execute();
-        foreach ($options as $option) {
-          $additions->resultoptions[$option->option_id] = (array) $option;
-        }
+      $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
+      // Fetching result options.
+      $query = db_select('quiz_node_result_options', 'qnro');
+      $query->fields('qnro');
+      $query->condition('nid', $node->id());
+      $query->condition('vid', $node->getRevisionId());
+      $options = $query->execute();
+      foreach ($options as $option) {
+        $additions->resultoptions[$option->option_id] = (array) $option;
+      }
 
-        foreach ($additions as $property => &$value) {
-          $node->$property = $value;
-        }
+      foreach ($additions as $property => &$value) {
+        $node->$property = $value;
       }
     }
   }
@@ -1417,11 +1415,11 @@ function quiz_node_load($nodes, $types) {
 function quiz_node_view(EntityInterface $node, EntityDisplay $display, $view_mode, $langcode) {
 
   if($node->getType() == 'quiz') {
-    
+
     // drupal_alter() is deprecated in D8.
     \Drupal::moduleHandler()->alter('quiz_view', $node, $teaser, $page);
 
-    //TODO: Need to verify 
+    //TODO: Need to verify
     //node_invoke($node, 'prepare');
     //\Drupal::moduleHandler()->invoke('quiz', 'node_prepare_form', array($node));
 
@@ -1506,15 +1504,15 @@ function quiz_node_delete(EntityInterface $node) {
  */
 function quiz_make_new($title) {
   $user = \Drupal::currentUser();
-  
+
   $new_node = array();
   // Get default user settings.
   $settings = _quiz_load_user_settings();
-  
+
   if (!$settings) {
     $settings = _quiz_load_user_settings(\Drupal::config('quiz.settings')->get('quiz_def_uid'));
   }
-  
+
   $quiz_default = _quiz_get_node_defaults();
   //TODO: Find right way to save 'quiz_open' and 'quiz_close'
   if (isset($quiz_default['quiz_open'])) {
@@ -1523,22 +1521,22 @@ function quiz_make_new($title) {
   if (isset($quiz_default['quiz_close'])) {
     $quiz_default['quiz_close'] = strtotime($quiz_default['quiz_close']);
   }
-  
+
   $settings += $quiz_default;
-  
+
   foreach ($settings as $key => $value) {
     $new_node[$key] = $value;
   }
-  
+
   $new_node['uid'] = $user->id();
   $new_node['type'] = 'quiz';
   $new_node['title'] = $title;
   $new_node['status'] = 1;
   $new_node['auto_created'] = TRUE;
-  
+
   $node = entity_create('node', $new_node);
   $node->save();
-  
+
   if (is_numeric($node->id())) {
     drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
   }
@@ -1920,7 +1918,7 @@ function quiz_take_quiz(NodeInterface $quiz) {
       $url = url('node/' . $quiz->id() . '/take');
       return new RedirectResponse($url);
     }
-    
+
     if (isset($_SESSION['quiz_' . $quiz->id()]['question_duration'])) {
       $time = $_SESSION['quiz_' . $quiz->id()]['question_duration'];
       if ($time < 1 && $time > -2) {
@@ -1995,7 +1993,7 @@ function quiz_take_quiz(NodeInterface $quiz) {
     drupal_set_title($quiz->getTitle());
     $quiz_end = TRUE;
   }
-  
+
   // If we're at the end of the quiz.
   if (!empty($quiz_end) && isset($_SESSION['quiz_' . $quiz->id()]['result_id'])) {
     // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
@@ -2380,7 +2378,7 @@ function quiz_create_rid($quiz) {
     ))
     ->execute();
   if (!is_numeric($rid)) {
-    form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
+    form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')), $form_state);
     return FALSE;
   }
   return $rid;

@@ -101,7 +101,7 @@ function quiz_ddlines_config_validate($form, $form_state) {
   $int_fields = array('quiz_ddlines_canvas_width', 'quiz_ddlines_canvas_height', 'quiz_ddlines_hotspot_radius', 'quiz_ddlines_pointer_radius');
   foreach ($int_fields as $field) {
     if (!_quiz_is_int($form_state['values'][$field])) {
-      form_set_error($field, t('The value must be a positive number'));
+      form_set_error($field, $form_state, t('The value must be a positive number'));
     } 
   }
   

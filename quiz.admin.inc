@@ -321,11 +321,11 @@ function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
 function quiz_categorized_form_validate($form, &$form_state) {
   if (_quiz_is_int(arg(1))) {
     if (node_last_changed(arg(1)) > $form_state['values']['timestamp']) {
-      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
+      form_set_error('changed', $form_state, t('This content has been modified by another user, changes cannot be saved.'));
     }
   }
   else {
-    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
+    form_set_error('changed', $form_state, t('A critical error has occured. Please report error code 28 on the quiz project page.'));
     return;
   }
   if (!empty($form_state['values']['term'])) {
@@ -337,24 +337,24 @@ function quiz_categorized_form_validate($form, &$form_state) {
         $tid = key($terms);
       }
       elseif ($num_terms > 1) {
-        form_set_error('term', t('You need to be more specific, or use the autocomplete feature. The term name you entered matches several terms: %terms', array('%terms' => implode(', ', $terms))));
+        form_set_error('term', $form_state, t('You need to be more specific, or use the autocomplete feature. The term name you entered matches several terms: %terms', array('%terms' => implode(', ', $terms))));
       }
       elseif ($num_terms == 0) {
-        form_set_error('term', t("The term name you entered doesn't match any registered question terms."));
+        form_set_error('term', $form_state, t("The term name you entered doesn't match any registered question terms."));
       }
     }
     if (in_array($tid, array_keys($form))) {
-      form_set_error('term', t('The category you are trying to add has already been added to this quiz.'));
+      form_set_error('term', $form_state, t('The category you are trying to add has already been added to this quiz.'));
     }
     else {
       form_set_value($form['tid'], $tid, $form_state);
     }
 
     if (!_quiz_is_int($form_state['values']['number'])) {
-      form_set_error('number', t('The number of questions needs to be a positive integer'));
+      form_set_error('number', $form_state, t('The number of questions needs to be a positive integer'));
     }
     if (!_quiz_is_int($form_state['values']['max_score'], 0)) {
-      form_set_error('max_score', t('The max score needs to be a positive integer or 0'));
+      form_set_error('max_score', $form_state, t('The max score needs to be a positive integer or 0'));
     }
   }
 }
@@ -1204,11 +1204,11 @@ function _quiz_question_browser_prepare_filter_sql(&$filter_params) {
 function quiz_questions_form_validate($form, &$form_state) {
   if (_quiz_is_int(arg(1))) {
     if (node_last_changed(intval(arg(1))) > $form_state['values']['timestamp']) {
-      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
+      form_set_error('changed', $form_state, t('This content has been modified by another user, changes cannot be saved.'));
     }
   }
   else {
-    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
+    form_set_error('changed', $form_state, t('A critical error has occured. Please report error code 28 on the quiz project page.'));
     return;
   }
 
@@ -1269,7 +1269,7 @@ function quiz_questions_form_validate($form, &$form_state) {
       continue;
     }
     if (!_quiz_is_int($max_score, 0)) {
-      form_set_error("max_scores][$id", t('Max score needs to be a positive number'));
+      form_set_error("max_scores][$id", $form_state, t('Max score needs to be a positive number'));
     }
   }
 }

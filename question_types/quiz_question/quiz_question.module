@@ -169,7 +169,7 @@ function quiz_question_form_validate($form, &$form_state) {
 
   // Check to make sure that there is a question.
   if (empty($form_state['values']['body'][0]['value'])) {
-    form_set_error('body', t('Question text is empty.'));
+    form_set_error('body', $form_state, t('Question text is empty.'));
   }
   _quiz_question_get_instance($node)->validateNode($form_state);
 }
@@ -664,7 +664,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
 /**
  * Implements hook_node_load().
  */
-function quiz_question_node_load($nodes, $types) {
+function quiz_question_node_load($nodes) {
   $q_types = array_keys(_quiz_question_get_implementations());
   foreach ($nodes as $nid=>$node) {
     if (in_array($node->getType(), $q_types)) {

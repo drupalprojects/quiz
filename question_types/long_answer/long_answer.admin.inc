@@ -157,7 +157,7 @@ function long_answer_score_form_validate($form, $form_state) {
   $given = $form_state['values']['score'];
   if (!_quiz_is_int($given, 0, $max)) {
     $args = array('@score' => $given, '@max' => $max);
-    form_set_error('score', t('The given score (@score) must be an integer between 0 and @max', $args));
+    form_set_error('score', $form_state, t('The given score (@score) must be an integer between 0 and @max', $args));
   }
 }
 

@@ -275,7 +275,7 @@ class MultichoiceQuestion extends QuizQuestion {
         }
       }
       if (!$found_one_correct) {
-        form_set_error('choice_multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
+        form_set_error('choice_multi', $form_state, t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
       }
     }
     else {
@@ -285,10 +285,10 @@ class MultichoiceQuestion extends QuizQuestion {
           continue;
         }
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
-          form_set_error("alternatives][$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
+          form_set_error("alternatives][$i][score_if_not_chosen", $form_state, t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
         }
         elseif ($short['score_if_chosen'] > $short['score_if_not_chosen'] && !$short['correct']) {
-          form_set_error("alternatives][$i][score_if_chosen", t('The alternative is not marked as correct, but gives more points if you select it.'));
+          form_set_error("alternatives][$i][score_if_chosen", $form_state, t('The alternative is not marked as correct, but gives more points if you select it.'));
         }
       }
     }

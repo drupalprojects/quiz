@@ -25,7 +25,7 @@ function quiz_translate_form_date(&$node, $date) {
   }
   else {
     if (!_quiz_is_int($prefix, 1, 2147483647)) {
-      form_set_error('quiz_open', t('Please supply a valid date.'));
+      form_set_error('quiz_open', $form_state, t('Please supply a valid date.'));
     }
   }
 }

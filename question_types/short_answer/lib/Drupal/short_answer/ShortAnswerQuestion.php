@@ -62,7 +62,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function validateNode(array &$form_state) {
     if ($form_state['values']['correct_answer_evaluation'] != self::ANSWER_MANUAL && empty($form_state['values']['correct_answer'])) {
-      form_set_error('correct_answer', t('An answer must be specified for any evaluation type other than manual scoring.'));
+      form_set_error('correct_answer', $form_state, t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
   }
 

@@ -64,7 +64,7 @@ class ClozeQuestion extends QuizQuestion {
    */
   public function validateNode(array &$form_state) {
     if (substr_count($form_state['values']['body']['0']['value'], '[') !== substr_count($form_state['values']['body']['0']['value'], ']')) {
-      form_set_error('body', t('Please check the question format.'));
+      form_set_error('body', $form_state, t('Please check the question format.'));
     }
   }
 

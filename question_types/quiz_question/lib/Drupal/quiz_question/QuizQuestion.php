@@ -97,6 +97,7 @@ abstract class QuizQuestion {
     // Allow user to set title?
     if ($user->hasPermission('edit question titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
+      /*
       $form['title'] = array(
         '#type' => 'textfield',
         '#title' => t('Title'),
@@ -105,6 +106,7 @@ abstract class QuizQuestion {
         '#required' => FALSE,
         '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
       );
+      */
     }
     else {
       $form['title'] = array(

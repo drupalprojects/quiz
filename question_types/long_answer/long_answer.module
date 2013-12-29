@@ -79,7 +79,7 @@ function long_answer_config() {
  */
 function long_answer_config_validate($form, $form_state) {
   if ($form_state['values']['long_answer_default_max_score'] <= 0) {
-    form_set_error('long_answer_default_max_score', t('The default max score must be greater than 0'));
+    form_set_error('long_answer_default_max_score', $form_state, t('The default max score must be greater than 0'));
   }
 }
 
