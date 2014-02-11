@@ -682,6 +682,9 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
  * Implements hook_insert().
  */
 function quiz_insert($node) {
+  // Need to set max_score if this is a cloned node
+  $max_score = 0;
+
   // Apply defaults.
   $defaults = _quiz_load_user_settings(variable_get('quiz_def_uid', 1)) + _quiz_get_node_defaults();
   foreach ($defaults as $key => $value) {
@@ -700,6 +703,8 @@ function quiz_insert($node) {
   // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
   if ($node->is_new && isset($node->clone_from_original_nid)) {
     $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
+    
+    $max_score = $old_quiz->max_score;
     
     $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid, TRUE, TRUE, FALSE, TRUE);
   
@@ -751,7 +756,8 @@ function quiz_insert($node) {
       'allow_resume'                => $node->allow_resume,
       'allow_jumping'               => $node->allow_jumping,
       'show_passed'                 => $node->show_passed,
-      'mark_doubtful'               => $node->mark_doubtful
+      'mark_doubtful'               => $node->mark_doubtful,
+      'max_score'                   => $max_score,
     ))
     ->execute();
 
@@ -958,6 +964,7 @@ function _quiz_get_node_defaults() {
     'quiz_open' => _quiz_form_prepare_date(),
     'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
     'mark_doubtful' => 0,
+    'max_score' => 0,
   );
 }
 
