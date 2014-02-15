@@ -179,7 +179,9 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     '#value' => $is_last ? t('Finish') : t('Next'),
   );
 
-  if ($is_last && $quiz->backwards_navigation) {
+  if ($is_last && $quiz->backwards_navigation && !$quiz->repeat_until_correct) {
+    // Display a confirmation dialogue if this is the last question and a user
+    // is able to navigate backwards but not forced to answer correctly.
     $form['#attributes']['class'][] = 'confirm';
     $form['#attributes']['data-confirm-message'] = t("By proceeding you won't be able to go back and edit your answers.");
     $form['#attached'] = array(
