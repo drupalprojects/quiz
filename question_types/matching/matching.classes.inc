@@ -499,8 +499,10 @@ class MatchingResponse extends QuizQuestionResponse {
     $wrong_answer = 0;
     $correct_answer = 0;
     $user_answers = isset($this->answer['answer']) ? $this->answer['answer'] : $this->answer;
+    $MatchingQuestion = new MatchingQuestion($this->question);
+    $correct_answers = $MatchingQuestion->getCorrectAnswer();
     foreach ((array) $user_answers as $key => $value) {
-      if ($key == $value) {
+      if ($correct_answers[$key]['answer'] == $correct_answers[$value]['answer']) {
         $correct_answer++;
       }
       elseif ($value == 0 || $value == 'def') {

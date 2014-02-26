@@ -75,6 +75,29 @@ function quiz_views_api() {
 }
 
 /**
+ * Implements hook_ctools_plugin_directory() to let the system know
+ * where our task and task_handler plugins are.
+ */
+function quiz_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'page_manager') {
+    return 'plugins/page_manager/' . $plugin_type;
+  }
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function quiz_ctools_plugin_api($module, $api) {
+
+  if ($module == 'page_manager' && $api == 'pages_default') {
+    return array('version' => 1);
+  }
+}
+
+/**
  * Implements hook_permission().
  */
 function quiz_permission() {
@@ -2799,7 +2822,7 @@ function quiz_start_check($quiz, $rid) {
   if ($quiz->quiz_always != 1) {
     // Compare current GMT time to the open and close dates (which should still
     // be in GMT time).
-    $now = gmmktime();
+    $now = time();
 
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       if ($user_is_admin) {
@@ -2873,7 +2896,7 @@ function quiz_availability($quiz) {
 
   // Compare current GMT time to the open and close dates (which should still be
   // in GMT time).
-  $now = gmmktime();
+  $now = time();
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
     return t('This quiz is closed');
