@@ -669,6 +669,17 @@ function quiz_views_data() {
         'group field' => 'nid',
       ),
     ),
+    'is_evaluated' => array(
+      'title' => t('Is Evaluated'),
+      'help' => t('Indicates whether or not a quiz result is evaluated. This is a simple database boolean; this "evaluated" flag indicates if the quiz result has been graded.'),
+      'field' => array(
+        'handler' => 'views_handler_field_boolean',
+       ),
+       'filter' => array(
+         'handler' => 'views_handler_filter_boolean_operator',
+       ),
+       'sort' => array('handler' => 'views_handler_sort'),
+    ),
     'quiz_state' => array(
       'title' => t('Quiz State'),
       'help' => t('The state of the quiz for the provided user. Calculated on the fly; can be "Finished," "In Progress," or "Not Started".'),
