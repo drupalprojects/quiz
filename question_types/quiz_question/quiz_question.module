@@ -205,15 +205,8 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     }
   }
 
-  // Add hidden next button as the first button, so it is the default for the form
-  $form['navigation']['submit-hidden'] = $form['navigation']['submit'];
-  $form['navigation']['submit-hidden']['#weight'] = -20;
 
-  // Add a hidden form element with the default operation to take if the form is
-  // submitted with the enter key in IE 8 or other browser that don't submit a default
-  // button in this case.
-  $form['navigation']['default_submit'] = $form['navigation']['submit'];
-  $form['navigation']['default_submit']['#type'] = 'hidden';
+    $form['#submit'][] = 'quiz_question_evaluate_question';
 
   return $form;
 }

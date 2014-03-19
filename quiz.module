@@ -2039,9 +2039,9 @@ function quiz_take_quiz($quiz) {
   // Workaround to show question and feedback in separage pages, when the
   // feedback time it set to show after each questions
   if (WAS_ON_RESULTS_PAGE_LETS_GO_TO_NEXT_QUESTION) {
-    drupal_goto("node/{$quiz->nid}/take");
+    //drupal_goto("node/{$quiz->nid}/take");
   }
-  if (USER_SUBMITTED_QUESTION_AND_WE_NEED_TO_RECORD_IT) {
+  if (TRUE || USER_SUBMITTED_QUESTION_AND_WE_NEED_TO_RECORD_IT) {
     //@todo but, probably move to a submit function on the question answer
     // Previous quiz questions: Questions that have been asked already. We save
     // a record of all of them so that a user can navigate backward all the way
