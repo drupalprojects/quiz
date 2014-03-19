@@ -739,17 +739,17 @@ function quiz_insert($node) {
   // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
   if ($node->is_new && isset($node->clone_from_original_nid)) {
     $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
-    
+
     $max_score = $old_quiz->max_score;
-    
+
     $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid, TRUE, TRUE, FALSE, TRUE);
-  
+
     // Format the current questions for referencing
     foreach ($questions as $nid => $q) {
       $questions[$nid]->state = $q->question_status;
       $questions[$nid]->refresh = 0;
     }
-    
+
     quiz_set_questions($node, $questions);
   }
 
@@ -2075,25 +2075,16 @@ function quiz_take_quiz($quiz) {
     if ($quiz->repeat_until_correct && $_POST['op'] != t('Back') && $q_passed_validation === TRUE) {
       // If the question was answered incorrectly, repeat it
       if ($result && !$result->is_correct && $result->is_evaluated) {
-        $last_q = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
-        array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], $last_q);
-        drupal_set_message(t('The answer was incorrect. Please try again.'), 'error');
-        $repeat_until_correct_error = TRUE;
-        unset($_SESSION['quiz_' . $quiz->nid]['feedback']);
+        // @TODO - repeat a question by triggering a validation error
       }
     }
     elseif ($_POST['op'] == t('Back') && $quiz->backwards_navigation) {
-      $quiz_id = 'quiz_' . $quiz->nid;
-      // We jump back two times. From the next question to the current, and then
-      // from the current to the previous.
-      for ($i = 0; $i < 2; $i++) {
-        $last_q = array_pop($_SESSION[$quiz_id]['previous_quiz_questions']);
-        array_unshift($_SESSION[$quiz_id]['quiz_questions'], $last_q);
-      }
+      // @TODO back button submit handler
     }
 
     // Stash feedback in the session, since the $_POST gets cleared.
     if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE && $repeat_until_correct_error === FALSE) {
+      // @TODO show feedback after a question form has been submitted - possibly after multiple submissions?
       // Invoke hook_get_report().
       $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_' . $quiz->nid]['result_id']);
       $path = drupal_get_path('module', 'quiz');
@@ -2117,18 +2108,7 @@ function quiz_take_quiz($quiz) {
   // Check for a skip.
   if (isset($_POST['op']) && ($_POST['op'] == t('Leave blank') || $_POST['op'] == t('Leave blank and finish')) && $allow_skipping) {
 
-    if (!isset($_SESSION['quiz_'. $quiz->nid]['result_id'])) {
-      $_SESSION['quiz_'. $quiz->nid]['result_id'] = quiz_create_rid($quiz);
-    }
-    $q_passed_validation = TRUE;
-    // Advance the question.
-    if (!isset($jumping) || (isset($jumping) && !$jumping)) {
-      $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'][] = $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0];
-
-      // Load the last asked question.
-      $former_question_array = array_shift($_SESSION['quiz_' . $quiz->nid]['quiz_questions']);
-      $former_question = node_load($former_question_array['nid'], $former_question_array['vid']);
-    }
+    // @TODO submit handler attached to quiz submit
     // Call hook_skip_question().
     $module = quiz_question_module_for_type($former_question->type);
     if (!$module) {
@@ -2143,6 +2123,7 @@ function quiz_take_quiz($quiz) {
 
   if (isset($check_jump) && $check_jump) {
     if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
+      // @TODO replace with a fapi form submit
       quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
     }
   }
@@ -2151,6 +2132,7 @@ function quiz_take_quiz($quiz) {
   // If this quiz is in progress, load the next questions and return it via the theme.
   if (!empty($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) || is_string($q_passed_validation)) {
 
+    // @TODO replace this entire thing, we won't need it
     // If we got no error when validating the question
     if (!is_string($q_passed_validation) || $_POST['op'] == t('Back') && $quiz->backwards_navigation) {
       $question_node = node_load(
@@ -2277,6 +2259,7 @@ function quiz_take_quiz($quiz) {
       $content['body']['#markup'] = theme('quiz_no_feedback');
     }
     else {
+      //@TODO this should be moved to a page handler
       // Get the results and summary text for this quiz.
       $summary = _quiz_get_summary_text($quiz, $score);
       $data = array(
@@ -2310,27 +2293,13 @@ function quiz_take_quiz($quiz) {
  *  The question number we want to jump to
  */
 function quiz_jump_to($question_num, $quiz, $rid) {
-  $num_next = count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']);
-  $num_previous = count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
-  if ($question_num > $num_next + $num_previous + 1) {
-    // Trying to jump too far. We allow skipping all questions because of jQuery countdown...
-    return;
-  }
-  if ($question_num <= $num_previous) {
-    for ($i = 0; $i < $num_previous - $question_num + 1; $i++) {
-      array_unshift($_SESSION['quiz_' . $quiz->nid]['quiz_questions'], array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']));
-    }
-  }
-  elseif ($question_num > $num_previous + 1) {
-    for ($i = 0; $i < $question_num - $num_previous - 1; $i++) {
-      $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'][] = array_shift($_SESSION['quiz_' . $quiz->nid]['quiz_questions']);
-    }
+  // @TODO refactor. "jumping" should be as easy as a drupal_goto
     _quiz_cleanup_after_jumping($quiz, $rid);
-  }
 }
 
 function _quiz_take_quiz_init($quiz) {
   // Create question list.
+  // @TODO question list should be stored with the result methinks ala moodle
   $questions = quiz_build_question_list($quiz);
   if ($questions === FALSE) {
     drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
@@ -2343,6 +2312,7 @@ function _quiz_take_quiz_init($quiz) {
   }
 
   // Initialize session variables.
+  // @TODO consider killing this
   $_SESSION['quiz_' . $quiz->nid]['result_id'] = quiz_create_rid($quiz);
   $_SESSION['quiz_' . $quiz->nid]['quiz_questions'] = $questions;
   $_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions'] = array();
@@ -2367,6 +2337,8 @@ function _quiz_take_quiz_init($quiz) {
  *   A string containing the body of the node.
  */
 function quiz_take_question_view($question_node, $quiz_node) {
+  // @TODO this should probably return part of a form so that multipage can
+  // deal with it
   $question_node->allow_skipping = $quiz_node->allow_skipping;
   node_build_content($question_node, 'question');
   module_invoke_all('node_build_alter', $question_node, FALSE);
@@ -2521,6 +2493,7 @@ function quiz_end_scoring($quiz, $rid) {
  */
 function quiz_end_actions($quiz, $score, $session_data) {
   // Call hook_quiz_finished().
+  // @TODO consider hook_entity_update if we make quiz results rules capable
   module_invoke_all('quiz_finished', $quiz, $score, $session_data);
 
   // Lets piggy back here to perform the quiz defined action since were done
@@ -2528,6 +2501,8 @@ function quiz_end_actions($quiz, $score, $session_data) {
   // We will verify that there is an associated action with this quiz and then
   // perform that action.
   if (!empty($quiz->aid)) {
+    // @TODO get rid of this. Replace with rules. Make quiz results entities or
+    // something
     // Some actions are reliant on objects and I am unsure which ones, for now I
     // have simply passed the actions_do() function an empty array. By passing
     // this function a single id then it will retrieve the callback, get the
@@ -2544,6 +2519,7 @@ function quiz_end_actions($quiz, $score, $session_data) {
  * Performs actions like sending quiz results over email at the end of quiz.
  */
 function quiz_quiz_finished($quiz, $score, $session_data) {
+  // @TODO convert to entity/rules
   $rid = $session_data['result_id'];
   // Load data about the quiz taker
   $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
@@ -2594,6 +2570,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  * Performs actions like sending quiz results over email at the end of quiz.
  */
 function quiz_quiz_scored($quiz, $score, $rid) {
+  // @TODO Rules
   $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $rid))->fetch();
   if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
     drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $rid, 'taker'));
@@ -3205,7 +3182,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
-    
+
     node_save($quiz);
   }
 
