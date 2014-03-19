@@ -2012,6 +2012,7 @@ function quiz_take_quiz($quiz) {
 
   // Check to see if the question navigation form was submitted using the enter key
   // in a browser that doesn't pass a default submit operation value when this happens.
+  //@todo this might not be an issue with fapi?
   if (!isset($_POST['op']) && isset($_POST['default_submit'])) {
     $_POST['op'] = $_POST['default_submit'];
   }
@@ -2019,6 +2020,7 @@ function quiz_take_quiz($quiz) {
   // For quiz progress block
   // To be able to jump from one question to another
   if (isset($_GET['jump_to_question'])) {
+    //@todo probably just drupal_goto to the menu handler
     if ($quiz->allow_jumping || _quiz_is_int($_GET['jump_to_question'])) {
        quiz_jump_to($_GET['jump_to_question'], $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
        // Doing drupal_goto() to prevent showing message last question was skipped
@@ -2027,28 +2029,20 @@ function quiz_take_quiz($quiz) {
     }
   }
 
-  if (!isset($_POST['op'])) {
-    // @todo Starting new quiz... Do we need to show instructions here?
-  }
-  elseif (isset($_POST['question_nid']) &&  ($_POST['question_nid'] != $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][0]['nid'])) {
-    // The user has pressed the navigation buttons multiple times...
-  }
-  elseif (isset($_SESSION['quiz_' . $quiz->nid]['question_duration']) && $_SESSION['quiz_' . $quiz->nid]['question_duration'] < -2) {
+
+  if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration']) && $_SESSION['quiz_' . $quiz->nid]['question_duration'] < -2) {
     // Timed quiz where the time has gone out 2 seconds ago. Do not store the users results...
+    // @todo figure out how to handle this with fapi
   }
+
+
   // Workaround to show question and feedback in separage pages, when the
   // feedback time it set to show after each questions
-  elseif ($_POST['op'] == t('Next question')) {
+  if (WAS_ON_RESULTS_PAGE_LETS_GO_TO_NEXT_QUESTION) {
     drupal_goto("node/{$quiz->nid}/take");
   }
-  // We maintain two lists: previous questions and upcomming questions.
-  // When we go backward, we pop one from the previous and prepend it to the
-  // upcomming.
-  // @todo This can be maintained more efficiently with a single array of all
-  //   questions and then a pointer to the current question. That makes
-  //   rewinding much easier.
-  // Check for answer submission.
-  elseif ($_POST['op'] == t('Finish') || $_POST['op'] == t('Next') || $_POST['op'] == t('Back') && $quiz->backwards_navigation) {
+  if (USER_SUBMITTED_QUESTION_AND_WE_NEED_TO_RECORD_IT) {
+    //@todo but, probably move to a submit function on the question answer
     // Previous quiz questions: Questions that have been asked already. We save
     // a record of all of them so that a user can navigate backward all the way
     // to the beginning of the quiz.
