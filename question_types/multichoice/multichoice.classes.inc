@@ -419,23 +419,20 @@ class MultichoiceQuestion extends QuizQuestion {
   }
 
   /**
-   * Generates the question form.
+   * Generates the question element.
    *
    * This is called whenever a question is rendered, either
    * to an administrator or to a quiz taker.
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
+    $element = parent::getAnsweringForm($form_state, $rid);
     //$form['#theme'] = 'multichoice_answering_form';
 
     /* We use an array looking key to be able to store multiple answers in tries.
      * At the moment all user answers have to be stored in tries. This is something we plan
      * to fix in quiz 5.x.
      */
-    $form['tries[answer]'] = array(
-      '#options' => array(),
-      '#theme' => 'multichoice_alternative',
-    );
+    $element['#theme'] = 'multichoice_alternative';
     if (isset($rid)) {
       // This question has already been answered. We load the answer.
       $response = new MultichoiceResponse($rid, $this->node);
@@ -444,37 +441,37 @@ class MultichoiceQuestion extends QuizQuestion {
       $short = $this->node->alternatives[$i];
       $answer_markup = check_markup($short['answer']['value'], $short['answer']['format']);
       if (drupal_strlen($answer_markup) > 0) {
-        $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
+        $element['#options'][$short['id']] = $answer_markup;
       }
     }
     if ($this->node->choice_random) {
       // We save the choice order so that the order will be the same in the answer report
-      $form['tries[choice_order]'] = array(
+      $element['#choice_order'] = array(
         '#type' => 'hidden',
         '#value' => implode(',', $this->shuffle($form['tries[answer]']['#options'])),
       );
     }
     if ($this->node->choice_multi) {
-      $form['tries[answer]']['#type'] = 'checkboxes';
-      $form['tries[answer]']['#title'] = t('Choose');
+      $element['#type'] = 'checkboxes';
+      $element['#title'] = t('Choose');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
-          $form['tries[answer]']['#default_value'] = $response->getResponse();
+          $element['#default_value'] = $response->getResponse();
         }
       }
     }
     else {
-      $form['tries[answer]']['#type'] = 'radios';
-      $form['tries[answer]']['#title'] = t('Choose one');
+      $element['#type'] = 'radios';
+      $element['#title'] = t('Choose one');
       if (isset($response)) {
         $selection = $response->getResponse();
         if (is_array($selection)) {
-          $form['tries[answer]']['#default_value'] = array_pop($selection);
+          $element['#default_value'] = array_pop($selection);
         }
       }
     }
 
-    return $form;
+    return $element;
   }
 
   /**

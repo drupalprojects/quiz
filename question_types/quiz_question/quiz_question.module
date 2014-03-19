@@ -138,9 +138,11 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_answering_form($form, $form_state, $node, $include_nid_in_id = FALSE) {
   $question = _quiz_question_get_instance($node);
-  $form = $question->getAnsweringForm($form_state, isset($node->rid) ? $node->rid : NULL);
+  // Element for a single question
+  $element = $question->getAnsweringForm($form_state, isset($node->rid) ? $node->rid : NULL);
   $quiz = quiz_type_access_load(arg(1));
 
+  $form['question'][$node->nid] = $element;
   $form['#attributes']['class'] = array('answering-form');
 
   $is_last = _quiz_is_last_question();
@@ -202,11 +204,11 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
       );
     }
   }
-  
+
   // Add hidden next button as the first button, so it is the default for the form
   $form['navigation']['submit-hidden'] = $form['navigation']['submit'];
   $form['navigation']['submit-hidden']['#weight'] = -20;
-  
+
   // Add a hidden form element with the default operation to take if the form is
   // submitted with the enter key in IE 8 or other browser that don't submit a default
   // button in this case.
@@ -940,7 +942,7 @@ function quiz_question_add_body_field($type) {
   $instance = field_read_instance('node', 'body', $type);
   $instance['widget']['weight'] = -10;
   $instance['widget']['settings']['rows'] = 6;
-  
+
   // Make the question body visible by default for the question view mode
   $instance['display']['question'] = array(
     'label' => 'hidden',
@@ -949,6 +951,6 @@ function quiz_question_add_body_field($type) {
     'settings' => array(),
     'module' => 'text',
   );
-  
+
   field_update_instance($instance);
 }
