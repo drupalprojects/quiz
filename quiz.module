@@ -4404,12 +4404,29 @@ function _quiz_is_last_question() {
 }
 
 /**
+ * Validation callback for quiz question submit.
+ */
+function quiz_question_answering_form_validate($form, $form_state) {
+  $quiz = node_load(arg(1));
+  $current_question = node_load($form_state['values']['question_nid']);
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz_' . $quiz->nid]['result_id'], $current_question, $form_state['values'][$current_question->nid]);
+  if ($qi_instance->isValid() != 1) {
+    if ($quiz->repeat_until_correct && !$result->is_correct) {
+      // Skip until correct would be rad, right?
+    }
+    // So in an ideal world we pass the validation to some method on the quiz
+    // question class. But for now let's just display the error.
+    form_set_error('', $result->is_valid);
+  }
+}
+
+/**
  * Submit handler for the question answering form.
  *
  * There is no validation code here, but there may be feedback code for
  * correct feedback.
  */
-function quiz_question_answer_form_submit(&$form, &$form_state) {
+function quiz_question_answering_form_submit(&$form, &$form_state) {
   $quiz = node_load(arg(1));
   $current_question = node_load($form_state['values']['question_nid']);
   $questions = quiz_build_question_list($quiz);
@@ -4420,26 +4437,9 @@ function quiz_question_answer_form_submit(&$form, &$form_state) {
   }
   // Call hook_evaluate_question().
   $types = _quiz_get_question_types();
-  $module = $types[$current_question->type]['module'];
-  $result = module_invoke($module, 'evaluate_question', $current_question, $_SESSION['quiz_' . $quiz->nid]['result_id'], $form_state['values'][$current_question->nid]);
-  $former_question_array = array('number' => 1);
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz_' . $quiz->nid]['result_id'], $current_question, $form_state['values'][$current_question->nid]);
+  $qi_instance->delete();
+  $qi_instance->saveResult();
+  $result = $qi_instance->toBareObject();
   quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
-
-  // Stash feedback in the session, since the $_POST gets cleared.
-  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION && $_POST['op'] != t('Back') && $q_passed_validation === TRUE && $repeat_until_correct_error === FALSE) {
-    // @TODO show feedback after a question form has been submitted - possibly after multiple submissions?
-    // Invoke hook_get_report().
-    $report = module_invoke($module, 'get_report', $former_question_array['nid'], $former_question_array['vid'], $_SESSION['quiz_' . $quiz->nid]['result_id']);
-    $path = drupal_get_path('module', 'quiz');
-    require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
-    if ($report && $report->type != 'quiz_directions') {
-      $allow_scoring = quiz_allow_score_access($quiz);
-      $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, $allow_scoring);
-      $report_form['op'] = array(
-        '#type' => 'submit',
-        '#value' => t('Next question'),
-      );
-      return $report_form;
-    }
-  }
 }

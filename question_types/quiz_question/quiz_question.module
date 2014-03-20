@@ -203,9 +203,6 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     }
   }
 
-
-  $form['#submit'][] = 'quiz_question_answer_form_submit';
-
   return $form;
 }
 
@@ -223,35 +220,6 @@ function _quiz_question_teaser_content($node) {
     '#weight' => -100,
   );
   return $content;
-}
-
-/**
- * Implements hook_evaluate_question().
- *
- * @param $question
- *  The question node
- * @param $result_id
- *  Result id
- * @param $answer
- *  The users answer to the question
- * @return
- *  Object with nid, vid, rid, score, is_correct flags set.
- */
-function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
-  $response = _quiz_question_response_get_instance($result_id, $question, $answer);
-
-  // If a result_id is set, we are taking a quiz.
-  if ($result_id && isset($answer)) {
-    // We don't know whether or not the user has gone back a question. However,
-    // we do know that deleting a question for this result set should be safe in
-    // the case where the user has not gone back (since there will be no entries
-    // to delete). So we always run the delete.
-    $response->delete();
-    $response->saveResult();
-  }
-
-  // Convert the response to a bare object.
-  return $response->toBareObject();
 }
 
 /**
@@ -524,11 +492,13 @@ function quiz_question_view($node, $view_mode) {
        * In quiz 5 we should stop using hook_view to view the answering form
        */
       $form = drupal_get_form('quiz_question_answering_form', $node);
+      $feedback = quiz_question_feedback(node_load(arg(1)), $node);
       $form_markup = drupal_render($form);
+      $feedback_markup = drupal_render($feedback);
 
       if (!empty($form_markup)) {
         $node->content['question_form'] = array(
-          '#markup' => $form_markup,
+          '#markup' => $feedback_markup . $form_markup,
           '#weight' => 30,
         );
       }
@@ -935,4 +905,26 @@ function quiz_question_add_body_field($type) {
   );
 
   field_update_instance($instance);
+}
+
+function quiz_question_feedback($quiz, $question) {
+  // Stash feedback in the session, since the $_POST gets cleared.
+  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    $types = _quiz_get_question_types();
+    $module = $types[$question->type]['module'];
+    // @TODO show feedback after a question form has been submitted - possibly after multiple submissions?
+    // Invoke hook_get_report().
+    $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+    $path = drupal_get_path('module', 'quiz');
+    require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
+    if ($report && $report->type != 'quiz_directions') {
+      $allow_scoring = quiz_allow_score_access($quiz);
+      $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, $allow_scoring);
+      $report_form['op'] = array(
+        '#type' => 'submit',
+        '#value' => t('Next question'),
+      );
+      return $report_form;
+    }
+  }
 }
