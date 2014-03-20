@@ -5,7 +5,6 @@
  * This module provides the basic facilities for adding quiz question types to a quiz.
  * @file
  */
-
 /*
  * The system remembers what quizzes a user has been involved in lately. This constant determines
  * how many quizzes the system will remember for each user
@@ -62,7 +61,6 @@ function quiz_question_theme() {
   );
 }
 
-
 /**
  * Implements hook_node_info().
  */
@@ -101,7 +99,7 @@ function quiz_question_access_to_score($vid, $rid) {
   }
   if (user_access('score taken quiz answer')) {
     $uid = db_query('SELECT uid from {quiz_node_results} qnr WHERE qnr.result_id = :result_id', array(':result_id' => $rid))->fetchField();
-    if($uid == $user->uid) {
+    if ($uid == $user->uid) {
       return TRUE;
     }
   }
@@ -156,7 +154,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
       '#suffix' => '</div>',
       '#default_value' => 0,
       '#attached' => array(
-	'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
+        'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
       ),
     );
     if (isset($node->rid)) {
@@ -191,7 +189,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     );
   }
   if ($quiz->allow_skipping) {
-    $form['navigation']['op']  = array(
+    $form['navigation']['op'] = array(
       '#type' => 'submit',
       '#value' => $is_last ? t('Leave blank and finish') : t('Leave blank'),
       '#attributes' => array('class' => array('q-skip-button')),
@@ -206,7 +204,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
   }
 
 
-    $form['#submit'][] = 'quiz_question_evaluate_question';
+  $form['#submit'][] = 'quiz_question_answer_form_submit';
 
   return $form;
 }
@@ -240,11 +238,6 @@ function _quiz_question_teaser_content($node) {
  *  Object with nid, vid, rid, score, is_correct flags set.
  */
 function quiz_question_evaluate_question($question, $result_id, $answer = NULL) {
-  if (empty($answer) && isset($_POST['tries'])) {
-    // FIXME this use of POST array is hacky. We will try to use FAPI mor accurately in Quiz 5.x
-    $answer = $_POST['tries'];
-  }
-  unset($_POST['tries']);
   $response = _quiz_question_response_get_instance($result_id, $question, $answer);
 
   // If a result_id is set, we are taking a quiz.
@@ -266,7 +259,6 @@ function quiz_question_evaluate_question($question, $result_id, $answer = NULL) 
  */
 function quiz_question_skip_question($question, $result_id) {
   unset($_POST['tries']); // Unset any answer that might have been set.
-
   // Delete any old answers for this question (for backwards nav).
   _quiz_question_response_get_instance($result_id, $question)->delete();
 
@@ -296,26 +288,26 @@ function quiz_question_list_questions($count = 0, $offset = 0) {
     ->execute();
 
   /*
-  $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
+    $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
     INNER JOIN {node_revision} AS r USING(vid)
     WHERE n.type IN (%s) ORDER BY n.type, n.changed";
-  $types = array();
-  foreach (array_keys(_quiz_question_get_implementations()) as $key) {
+    $types = array();
+    foreach (array_keys(_quiz_question_get_implementations()) as $key) {
     $types[] = "'" . $key . "'";
-  }
-  $type = implode(',', $types);
+    }
+    $type = implode(',', $types);
 
-  if ($count == 0) {
+    if ($count == 0) {
     // Return all results
     // TODO Please convert this statement to the D7 database API syntax.
     $result = db_query(db_rewrite_sql($sql), $type);
-  }
-  else {
+    }
+    else {
     // return only $count results
     // TODO Please convert this statement to the D7 database API syntax.
     $result = db_query_range(db_rewrite_sql($sql), $type);
-  }
-  */
+    }
+   */
 
   /**
    * The following code doesn't make any sense, since
@@ -429,7 +421,7 @@ function quiz_question_config($form, $context) {
       $form[$type]['#collapsed'] = TRUE;
       if (isset($admin_form['#validate']) && is_array($admin_form['#validate'])) {
         $form['#validate'] = array_merge($form['#validate'], $admin_form['#validate']);
-	unset($form[$type]['#validate']);
+        unset($form[$type]['#validate']);
       }
     }
   }
@@ -587,7 +579,6 @@ function _quiz_delete_question(&$node, $only_this_version) {
   // FIXME QuizQuestion class makes these relationships, so it should handle their 'deletion' too
   // FIXME alternately, move the relationship handling out of QuizQuestion class
   // @todo reconsider this QUESTION_NEVER status, since the node is actually gone
-
   // then remove it from {quiz_node_relationship} linking table
   //$base_sql = "UPDATE {quiz_node_relationship} SET question_status = " . QUESTION_NEVER;
   $select_sql = 'SELECT parent_vid FROM {quiz_node_relationship}';
@@ -613,6 +604,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
 
   $quizzes_to_update = array();
   while ($quizzes_to_update[] = $res->fetchField()) {
+
   }
   quiz_update_max_score_properties($quizzes_to_update);
 }
@@ -837,8 +829,8 @@ function quiz_question_refresh_latest_quizzes($nid) {
  */
 function quiz_question_remove_latest_quizzes($nid) {
   db_delete('quiz_question_latest_quizzes')
-  ->condition('quiz_nid', $nid)
-  ->execute();
+    ->condition('quiz_nid', $nid)
+    ->execute();
 }
 
 /**
@@ -895,21 +887,18 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
     $vid = db_query('SELECT vid FROM {quiz_node_results}
-      WHERE result_id = :rid',
-      array(':rid' => $answer['result_id']))
+      WHERE result_id = :rid', array(':rid' => $answer['result_id']))
       ->fetchField();
 
     $qnr_max_score = db_query('SELECT qnr.max_score FROM {quiz_node_relationship} qnr
-      WHERE qnr.child_vid = :child_vid AND qnr.parent_vid = :parent_vid',
-      array(':child_vid' => $question->vid, ':parent_vid' => $vid))
+      WHERE qnr.child_vid = :child_vid AND qnr.parent_vid = :parent_vid', array(':child_vid' => $question->vid, ':parent_vid' => $vid))
       ->fetchField();
 
     if ($qnr_max_score === FALSE) {
       $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_node_results} qnr
          JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id)
          JOIN {quiz_terms} qt ON (qt.vid = qnr.vid AND qt.tid = qnra.tid)
-         WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid',
-        array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
+         WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid', array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
         ->fetchField();
     }
 
@@ -927,7 +916,7 @@ function quiz_question_add_body_field($type) {
   $node_type = node_type_get_type($type);
   if (!$node_type) {
     watchdog('quiz', 'Attempt to add body field was failed as question content type %type is not defined.', array('%type' => $type), WATCHDOG_ERROR);
-    watchdog('quiz', '<pre>'.  print_r(node_type_get_types(), 1), array(), WATCHDOG_ERROR);
+    watchdog('quiz', '<pre>' . print_r(node_type_get_types(), 1), array(), WATCHDOG_ERROR);
     return;
   }
   node_add_body_field($node_type, 'Question');

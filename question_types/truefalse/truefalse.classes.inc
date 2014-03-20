@@ -122,11 +122,11 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
+    $element = parent::getAnsweringForm($form_state, $rid);
     //$form['#theme'] = 'truefalse_answering_form';
 
     // 'tries' is unfortunately required by quiz.module
-    $form['tries'] = array(
+    $element += array(
       '#type' => 'radios',
       '#title' => t('Choose one'),
       '#options' => array(
@@ -139,9 +139,9 @@ class TrueFalseQuestion extends QuizQuestion {
     if (isset($rid)) {
       $response = new TrueFalseResponse($rid, $this->node);
       $default = $response->getResponse();
-      $form['tries']['#default_value'] = is_null($default) ? NULL : $default;
+      $element['#default_value'] = is_null($default) ? NULL : $default;
     }
-    return $form;
+    return $element;
   }
 
   /**
