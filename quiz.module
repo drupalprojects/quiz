@@ -1971,6 +1971,8 @@ function quiz_take_quiz($quiz) {
     // from the database.
     if ($quiz->allow_resume) {
       if ($rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
+        $quiz_result = quiz_result_load($rid);
+        $quiz = node_load($quiz_result->nid, $quiz_result->vid);
         // Resume a quiz from the database.
         drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
       }
@@ -1998,21 +2000,8 @@ function quiz_take_quiz($quiz) {
 
   $questions = quiz_get_questions($quiz->nid, $quiz->vid);
   $question_node = node_load($questions[0]->nid);
+  $quiz_result = quiz_result_load($rid);
   // Below this area, should have $quiz, $questions, $quiz_question (for now), and $rid
-
-
-
-
-  if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
-    $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
-  }
-
-  // Check to see if the question navigation form was submitted using the enter key
-  // in a browser that doesn't pass a default submit operation value when this happens.
-  //@todo this might not be an issue with fapi?
-  if (!isset($_POST['op']) && isset($_POST['default_submit'])) {
-    $_POST['op'] = $_POST['default_submit'];
-  }
 
   // For quiz progress block
   // To be able to jump from one question to another
@@ -2033,20 +2022,7 @@ function quiz_take_quiz($quiz) {
     //drupal_goto("node/{$quiz->nid}/take/xxx");
   }
   // Check for a skip.
-  if (isset($_POST['op']) && ($_POST['op'] == t('Leave blank') || $_POST['op'] == t('Leave blank and finish')) && $allow_skipping) {
 
-    // @TODO submit handler attached to quiz submit
-    // Call hook_skip_question().
-    $module = quiz_question_module_for_type($former_question->type);
-    if (!$module) {
-      return array('body' => array('#markup' => ' '));
-    }
-    $result = module_invoke($module, 'skip_question', $former_question, $_SESSION['quiz_' . $quiz->nid]['result_id']);
-
-
-    // Store that the question was skipped:
-    quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $former_question_array));
-  }
 
   if (isset($check_jump) && $check_jump) {
     if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
@@ -2056,7 +2032,7 @@ function quiz_take_quiz($quiz) {
   }
 
   // Added the progress info to the view.
-  $number_of_questions = quiz_get_number_of_questions($quiz->vid);
+  $number_of_questions = count($questions);
 
   $question_number = $number_of_questions - count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']);
   $question_node->question_number = $question_number;
@@ -4401,5 +4377,5 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
  *   A quiz result.
  */
 function quiz_result_load($rid) {
-  return db_query('SELECT * FROM {quiz_node_results} WHERE result_id = :rid', array(':rid' => $rid));
+  return db_query('SELECT * FROM {quiz_node_results} WHERE result_id = :rid', array(':rid' => $rid))->fetch();
 }
