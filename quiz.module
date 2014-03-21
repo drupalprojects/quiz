@@ -1977,31 +1977,31 @@ function quiz_take_quiz($quiz) {
     }
   }
 
-  if ($rid) {
+  if (!$rid) {
+    // @todo The fuck what is the difference between this and quiz_start_check()?
+    if (quiz_availability($quiz) !== TRUE) {
+      drupal_set_message(t('This quiz is not available anymore.'), 'error');
+      return array('body' => array('#markup' => t('This quiz is closed')));
+    }
+
     // Can user start quiz?
     if (quiz_start_check($quiz)) {
+      // Set up a new attempt.
       $rid = _quiz_take_quiz_init($quiz);
-      if ($rid) {
-        // Yess
-        // Set up a new attempt.
-        $questions = quiz_get_questions($quiz->nid, $quiz->vid);
-        $question_node = node_load($questions[0]->nid);
 
-        $_SESSION["quiz_{$quiz->nid}"]['rid'] = $rid;
+      $_SESSION['quiz'][$quiz->nid]['rid'] = $rid;
 
-        // Call hook_quiz_begin().
-        module_invoke_all('quiz_begin', $quiz, $rid);
-      }
+      // Call hook_quiz_begin().
+      module_invoke_all('quiz_begin', $quiz, $rid);
     }
   }
 
-  // Below this area, should have $quiz, $quiz_question (for now), and $rid
+  $questions = quiz_get_questions($quiz->nid, $quiz->vid);
+  $question_node = node_load($questions[0]->nid);
+  // Below this area, should have $quiz, $questions, $quiz_question (for now), and $rid
 
 
-  if (quiz_availability($quiz) !== TRUE) {
-    drupal_set_message(t('This quiz is not available anymore.'), 'error');
-    return array('body' => array('#markup' => t('This quiz is closed')));
-  }
+
 
   if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration'])) {
     $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
@@ -2024,12 +2024,6 @@ function quiz_take_quiz($quiz) {
       // and also for skip to work as expected.
       drupal_goto("node/{$quiz->nid}/take");
     }
-  }
-
-
-  if (isset($_SESSION['quiz_' . $quiz->nid]['question_duration']) && $_SESSION['quiz_' . $quiz->nid]['question_duration'] < -2) {
-    // Timed quiz where the time has gone out 2 seconds ago. Do not store the users results...
-    // @todo figure out how to handle this with fapi
   }
 
 
