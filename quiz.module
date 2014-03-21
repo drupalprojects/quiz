@@ -1971,6 +1971,7 @@ function quiz_take_quiz($quiz) {
     // from the database.
     if ($quiz->allow_resume) {
       if ($rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
+        $_SESSION['quiz'][$quiz->nid]['rid'] = $rid;
         $quiz_result = quiz_result_load($rid);
         $quiz = node_load($quiz_result->nid, $quiz_result->vid);
         // Resume a quiz from the database.
@@ -2002,7 +2003,6 @@ function quiz_take_quiz($quiz) {
   $question_node = node_load($questions[0]->nid);
   $quiz_result = quiz_result_load($rid);
   // Below this area, should have $quiz, $questions, $quiz_question (for now), and $rid
-
   // For quiz progress block
   // To be able to jump from one question to another
   if (isset($_GET['jump_to_question'])) {
@@ -2101,52 +2101,41 @@ function quiz_take_quiz($quiz) {
     $_SESSION['quiz_' . $quiz->nid]['question_start_time'] = REQUEST_TIME;
   }
 
-  // If we're not yet at the end.
-  if (empty($quiz_end)) {
-    $content['body']['question']['#markup'] = quiz_take_question_view($question_node, $quiz);
-    $content['body']['question']['#weight'] = 0;
-    // If we had feedback from the last question.
-    if (isset($_SESSION['quiz_' . $quiz->nid]['feedback']) && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-      $content['body']['feedback']['#markup'] = rawurldecode($_SESSION['quiz_' . $quiz->nid]['feedback']);
-      $content['body']['feedback']['#weight'] = -100;
-    }
-    drupal_set_title($quiz->title);
-    unset($_SESSION['quiz_' . $quiz->nid]['feedback']);
-  }
+  $content['body']['question']['#markup'] = quiz_take_question_view($question_node, $quiz);
+  drupal_set_title($quiz->title);
 
-
-  // If we're at the end of the quiz.
-  if (!empty($quiz_end)) {
-    // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
-    $questions = _quiz_get_answers($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
-    $score = quiz_end_scoring($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_NEVER) {
-      $content['body']['#markup'] = theme('quiz_no_feedback');
-    }
-    else {
-      //@TODO this should be moved to a page handler
-      // Get the results and summary text for this quiz.
-      $summary = _quiz_get_summary_text($quiz, $score);
-      $data = array(
-        'quiz' => $quiz,
-        'questions' => $questions,
-        'score' => $score,
-        'summary' => $summary,
-        'rid' => $_SESSION['quiz_' . $quiz->nid]['result_id'],
-      );
-      // Get the themed summary page.
-      $content['body']['#markup'] = theme('quiz_take_summary', $data);
-    }
-    if ($score['is_evaluated']) {
-      _quiz_maintain_results($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
-    }
-
-    // Remove session variables, save $rid
-    $session_data = $_SESSION['quiz_' . $quiz->nid];
-    unset($_SESSION['quiz_' . $quiz->nid]);
-  }
 
   return $content;
+}
+
+/**
+ * Score a quiz and mark it as complete.
+ */
+function quiz_finalize_result() {
+  // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
+  $questions = _quiz_get_answers($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+  $score = quiz_end_scoring($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+  // Remove session variables, save $rid
+  $session_data = $_SESSION['quiz_' . $quiz->nid];
+  unset($_SESSION['quiz'][$quiz->nid]);
+}
+
+function some_Result_page_handler() {
+  //@TODO this should be moved to a page handler
+  // Get the results and summary text for this quiz.
+  $summary = _quiz_get_summary_text($quiz, $score);
+  $data = array(
+    'quiz' => $quiz,
+    'questions' => $questions,
+    'score' => $score,
+    'summary' => $summary,
+    'rid' => $_SESSION['quiz_' . $quiz->nid]['result_id'],
+  );
+  // Get the themed summary page.
+  $content['body']['#markup'] = theme('quiz_take_summary', $data);
+  if ($score['is_evaluated']) {
+    _quiz_maintain_results($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+  }
 }
 
 /**
@@ -4361,9 +4350,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       $question_array = $question;
     }
   }
-  // Call hook_evaluate_question().
-  $types = _quiz_get_question_types();
-  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz_' . $quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+  $qi_instance = _quiz_question_response_get_instance($_SESSION[$quiz->nid]['rid'], $current_question, $form_state['values']['question'][$current_question->nid]);
   $qi_instance->delete();
   $qi_instance->saveResult();
   $result = $qi_instance->toBareObject();
