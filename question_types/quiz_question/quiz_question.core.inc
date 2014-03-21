@@ -429,10 +429,6 @@ abstract class QuizQuestion {
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     //echo $this->node->type;exit;
     $form = array();
-    $form['question_nid'] = array(
-      '#type' => 'hidden',
-      '#value' => $this->node->nid,
-    );
     return $form;
   }
 

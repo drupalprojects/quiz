@@ -140,6 +140,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
   $element = $question->getAnsweringForm($form_state, isset($node->rid) ? $node->rid : NULL);
   $quiz = quiz_type_access_load(arg(1));
 
+  $form['question']['#tree'] = TRUE;
   $form['question'][$node->nid] = $element;
   $form['#attributes']['class'] = array('answering-form');
 

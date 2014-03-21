@@ -446,7 +446,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     if ($this->node->choice_random) {
       // We save the choice order so that the order will be the same in the answer report
-      $element['#choice_order'] = array(
+      $element['choice_order'] = array(
         '#type' => 'hidden',
         '#value' => implode(',', $this->shuffle($form['tries[answer]']['#options'])),
       );
@@ -811,19 +811,23 @@ class MultichoiceResponse extends QuizQuestionResponse {
     parent::__construct($result_id, $question_node, $tries);
     $this->user_answer_ids = array();
     // tries is the tries part of the post data
-    if (is_array($tries)) {
+    if (isset($tries)) {
+      if (!is_array($tries)) {
+        // Account for single-select
+        $tries = array($tries);
+      }
       if (isset($tries['choice_order'])) {
         $this->choice_order = $tries['choice_order'];
       }
       unset($tries['choice_order']);
-      if (isset($tries['answer']) && is_array($tries['answer'])) {
-        foreach ($tries['answer'] as $answer_id) {
+      if (isset($tries) && is_array($tries)) {
+        foreach ($tries as $answer_id) {
           $this->user_answer_ids[] = $answer_id;
           $this->answer = $this->user_answer_ids; //@todo: Stop using user_answer_ids and only use answer instead...
         }
       }
-      elseif (isset($tries['answer'])) {
-        $this->user_answer_ids[] = $tries['answer'];
+      elseif (isset($tries)) {
+        $this->user_answer_ids[] = $tries;
       }
     }
     // We load the answer from the database
