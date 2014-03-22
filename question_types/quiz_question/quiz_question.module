@@ -915,7 +915,7 @@ function quiz_question_feedback($quiz, $question) {
     $module = $types[$question->type]['module'];
     // @TODO show feedback after a question form has been submitted - possibly after multiple submissions?
     // Invoke hook_get_report().
-    $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+    $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $_SESSION['quiz'][$quiz->nid]['rid']);
     $path = drupal_get_path('module', 'quiz');
     require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
     if ($report && $report->type != 'quiz_directions') {

@@ -2008,7 +2008,7 @@ function quiz_take_quiz($quiz) {
   if (isset($_GET['jump_to_question'])) {
     //@todo probably just drupal_goto to the menu handler
     if ($quiz->allow_jumping || _quiz_is_int($_GET['jump_to_question'])) {
-      quiz_jump_to($_GET['jump_to_question'], $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+      quiz_jump_to($_GET['jump_to_question'], $quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
       // Doing drupal_goto() to prevent showing message last question was skipped
       // and also for skip to work as expected.
       drupal_goto("node/{$quiz->nid}/take");
@@ -2027,7 +2027,7 @@ function quiz_take_quiz($quiz) {
   if (isset($check_jump) && $check_jump) {
     if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
       // @TODO replace with a fapi form submit
-      quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+      quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
     }
   }
 
@@ -2056,13 +2056,13 @@ function quiz_take_quiz($quiz) {
     }
     db_update('quiz_node_results')
       ->fields(array('time_left' => $time))
-      ->condition('result_id', $_SESSION['quiz_' . $quiz->nid]['result_id'])
+      ->condition('result_id', $_SESSION['quiz'][$quiz->nid]['rid'])
       ->execute();
 
     if ($time <= 1) {
       // Quiz has been timed out, run a loop to mark the remaining questions
       // as skipped.
-      quiz_jump_to(count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']) + 1, $quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+      quiz_jump_to(count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']) + 1, $quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
       $quiz_end = TRUE;
       unset($content['progress']);
       $show_validation_message = FALSE;
@@ -2113,8 +2113,8 @@ function quiz_take_quiz($quiz) {
  */
 function quiz_finalize_result() {
   // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
-  $questions = _quiz_get_answers($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
-  $score = quiz_end_scoring($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+  $questions = _quiz_get_answers($quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
+  $score = quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
   // Remove session variables, save $rid
   $session_data = $_SESSION['quiz_' . $quiz->nid];
   unset($_SESSION['quiz'][$quiz->nid]);
@@ -2129,12 +2129,12 @@ function some_Result_page_handler() {
     'questions' => $questions,
     'score' => $score,
     'summary' => $summary,
-    'rid' => $_SESSION['quiz_' . $quiz->nid]['result_id'],
+    'rid' => $_SESSION['quiz'][$quiz->nid]['rid'],
   );
   // Get the themed summary page.
   $content['body']['#markup'] = theme('quiz_take_summary', $data);
   if ($score['is_evaluated']) {
-    _quiz_maintain_results($quiz, $_SESSION['quiz_' . $quiz->nid]['result_id']);
+    _quiz_maintain_results($quiz, $_SESSION['quiz'][$quiz->nid]['rid']);
   }
 }
 
@@ -3143,7 +3143,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
     $_SESSION['quiz_' . $quiz->nid]['quiz_questions'][] = array_pop($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
   }
 
-  $_SESSION['quiz_' . $quiz->nid]['result_id'] = $rid;
+  $_SESSION['quiz'][$quiz->nid]['rid'] = $rid;
   $_SESSION['quiz_' . $quiz->nid]['question_number'] = count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']);
 
   // Timed quizzes are likely to have expired by this point. But we let
@@ -4324,7 +4324,7 @@ function _quiz_is_last_question() {
 function quiz_question_answering_form_validate($form, $form_state) {
   $quiz = node_load(arg(1));
   $current_question = node_load(key($form_state['values']['question']));
-  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz_' . $quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['rid'], $current_question, $form_state['values']['question'][$current_question->nid]);
   if ($qi_instance->isValid() != 1) {
     if ($quiz->repeat_until_correct && !$result->is_correct) {
       // Skip until correct would be rad, right?
@@ -4350,7 +4350,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       $question_array = $question;
     }
   }
-  $qi_instance = _quiz_question_response_get_instance($_SESSION[$quiz->nid]['rid'], $current_question, $form_state['values']['question'][$current_question->nid]);
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['rid'], $current_question, $form_state['values']['question'][$current_question->nid]);
   $qi_instance->delete();
   $qi_instance->saveResult();
   $result = $qi_instance->toBareObject();
