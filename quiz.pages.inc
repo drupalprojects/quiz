@@ -474,8 +474,7 @@ function theme_quiz_progress($variables) {
   // Determine the percentage finished (not used, but left here for other implementations).
   //$progress = ($question_number*100)/$num_of_question;
 
-  // Get the current question # by adding one.
-  $current_question = $question_number + 1;
+  $current_question = $question_number;
 
   if ($variables['allow_jumping']) {
     $current_question = theme('quiz_jumper', array('current' => $current_question, 'num_questions' => $num_of_question));
