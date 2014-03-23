@@ -367,9 +367,10 @@ function quiz_schema() {
         'default' => 0
       ),
       'layout' => array(
-        'type' => 'text',
-        'not null' => TRUE,
         'serialize' => TRUE,
+        'type' => 'text',
+        'description' => "Serialized layout data.",
+        'size' => 'medium',
       ),
     ),
     'primary key' => array('result_id'),
@@ -385,6 +386,12 @@ function quiz_schema() {
   $schema['quiz_node_results_answers'] = array(
     'description' => 'Table storing information about the results for the questions',
     'fields' => array(
+      'result_answer_id' => array(
+        'description' => 'The result answer ID',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -444,7 +451,10 @@ function quiz_schema() {
         'size' => 'tiny'
       ),
     ),
-    'primary key' => array('result_id', 'question_nid', 'question_vid'),
+    'primary key' => array('result_answer_id'),
+    'unique keys' => array(
+      'result_answer' => array('result_id', 'question_nid', 'question_vid'),
+    ),
     'indexes' => array(
       'result_id' => array('result_id'),
     ),
@@ -813,23 +823,40 @@ function quiz_update_7409(&$sandbox) {
 }
 
 /**
- * Add new layout field to the quiz_node_results table.
- */
-function quiz_update_7410() {
-  $spec = array(
-    'type' => 'text',
-    'not null' => TRUE,
-    'serialize' => TRUE,
-  );
-  db_add_field('quiz_node_results', 'layout', $spec);
-  return t('Added new layout field to the quiz_node_results table');
-}
-
-/**
  * Implements hook_uninstall().
  */
 function quiz_uninstall() {
   db_delete('variable')
     ->condition('name', "quiz_%", 'like')
     ->execute();
+}
+
+/**
+ * Add new layout field to the quiz_node_results table.
+ */
+function quiz_update_7410() {
+  $spec = array(
+    'serialize' => TRUE,
+    'type' => 'text',
+    'description' => "Serialized layout data.",
+    'size' => 'medium',
+  );
+  db_add_field('quiz_node_results', 'layout', $spec);
+  return t('Added new layout field to the quiz_node_results table');
+}
+
+/**
+ * Add new result_answer_id field to the quiz_node_results_answers table.
+ */
+function quiz_update_7411() {
+  db_drop_primary_key('quiz_node_results_answers');
+  db_add_unique_key('quiz_node_results_answers', 'result_answer', array('result_id', 'question_nid', 'question_vid'));
+  $spec = array(
+    'description' => 'The result answer ID.',
+    'type' => 'serial',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  );
+  db_add_field('quiz_node_results_answers', 'result_answer_id', $spec, array('primary key' => array('result_answer_id')));
+  return t('Added new result_answer_id field to the quiz_node_results_answers table');
 }

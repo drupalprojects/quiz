@@ -1998,7 +1998,10 @@ function quiz_take_quiz($quiz) {
     }
   }
 
-  $question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid']);
+  if (!$question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid'])) {
+    $question_node = node_load($quiz_result->layout[0]['nid']);
+    $_SESSION['quiz'][$quiz->nid]['current'] = 0;
+  }
   // Below this area, should have $quiz, $questions, $quiz_question (for now), and $rid
   // For quiz progress block
   // To be able to jump from one question to another
@@ -4352,7 +4355,17 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   $qi_instance->saveResult();
   $result = $qi_instance->toBareObject();
   quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
-  $_SESSION['quiz'][$quiz->nid]['current'] ++;
+
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  // What to do?
+  if (isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']+1])) {
+    // There is a next question.
+    $_SESSION['quiz'][$quiz->nid]['current']++;
+  }
+  else {
+    // End of the quiz?
+    quiz_end_scoring($quiz, $quiz_result->result_id);
+  }
 }
 
 /**
@@ -4360,17 +4373,23 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
  */
 function quiz_entity_info() {
   return array(
-    'quiz_attempt' => array(
+    'quiz_result' => array(
       'label' => t('Quiz attempt'),
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_results',
-      'uri callback' => 'quiz_result_uri',
       'entity keys' => array(
         'id' => 'result_id',
       ),
-      'label callback' => 'quiz_result_label',
       'views controller class' => 'EntityDefaultViewsController',
-      'access callback' => 'quiz_access_my_result',
+    ),
+    'quiz_result_answer' => array(
+      'label' => t('Quiz result answer'),
+      'controller class' => 'EntityAPIController',
+      'base table' => 'quiz_node_results_answers',
+      'entity keys' => array(
+        'id' => 'result_answer_id',
+      ),
+      'views controller class' => 'EntityDefaultViewsController',
     ),
   );
 }
@@ -4379,5 +4398,5 @@ function quiz_entity_info() {
  * Shortcut to entity_load_single().
  */
 function quiz_result_load($rid) {
-  return entity_load_single('quiz_attempt', $rid);
+  return entity_load_single('quiz_result', $rid);
 }
