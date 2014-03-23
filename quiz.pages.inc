@@ -35,7 +35,7 @@ function quiz_user_results($result_id) {
       'questions' => $questions,
       'score' => $score,
       'summary' => $summary,
-      'rid' => $result_id,
+      'result_id' => $result_id,
     );
     return theme('quiz_user_summary', $data);
   }
@@ -140,9 +140,9 @@ function quiz_report_form_submit($form, &$form_state) {
 
     // Load the quiz
     if (!isset($quiz)) {
-      $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['rid']))->fetchObject();
+      $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
       $quiz = node_load($result->nid, $result->vid);
-      $rid = $q_values['rid'];
+      $rid = $q_values['result_id'];
     }
 
     $q_values['quiz'] = $quiz;
@@ -542,7 +542,7 @@ function theme_quiz_take_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid =  $variables['rid'];
+  $rid =  $variables['result_id'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 
@@ -597,7 +597,7 @@ function theme_quiz_user_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid = $variables['rid'];
+  $rid = $variables['result_id'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 

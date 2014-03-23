@@ -385,7 +385,7 @@ function quiz_admin_results($quiz, $rid) {
     'questions' => $questions,
     'score' => $score,
     'summary' => $summary,
-    'rid' => $rid,
+    'result_id' => $rid,
     'account' => user_load($result->uid)
   );
   return theme('quiz_admin_summary', $data);
@@ -1816,7 +1816,7 @@ function theme_quiz_admin_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid = $variables['rid'];
+  $rid = $variables['result_id'];
   $account = $variables['account'];
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));

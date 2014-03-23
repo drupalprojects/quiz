@@ -837,7 +837,7 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->question->vid,
     );
-    $form['rid'] = array(
+    $form['result_id'] = array(
       '#type' => 'value',
       '#value' => $this->rid,
     );

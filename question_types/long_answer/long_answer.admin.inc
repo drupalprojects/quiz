@@ -168,7 +168,7 @@ function long_answer_score_form_submit($form, &$form_state) {
     'quiz' => node_load($result->nid, $result->vid),
     'nid' => $form_state['values']['question_nid'],
     'vid' => $form_state['values']['question_vid'],
-    'rid' => $form_state['values']['result_id'],
+    'result_id' => $form_state['values']['result_id'],
     'score' => $form_state['values']['score'],
     'max_score' => $form_state['values']['rel_max_score'],
     'answer_feedback' => $form_state['values']['answer_feedback']
