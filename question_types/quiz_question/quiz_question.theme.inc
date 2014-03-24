@@ -29,10 +29,8 @@ function theme_quiz_question_navigation_form($variables) {
     return drupal_render_children($form);
   }
   else {
-    $submit = drupal_render($form['submit']) . drupal_render($form['op']);
-    $to_return = '<div>' . drupal_render_children($form) . '</div>';
-    $to_return .= '<div><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></div>';
-    $to_return .= '<div>' . $submit . '</div>';
+    $to_return = '<div><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></div>';
+    $to_return .= '<div>' . drupal_render_children($form) . '</div>';
     return $to_return;
   }
 }

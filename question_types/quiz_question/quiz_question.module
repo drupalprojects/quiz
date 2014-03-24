@@ -144,7 +144,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
   $form['question'][$node->nid] = $element;
   $form['#attributes']['class'] = array('answering-form');
 
-  $is_last = _quiz_is_last_question();
+  $is_last = _quiz_is_last_question($quiz);
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
   if ($quiz->mark_doubtful) {
     $form['is_doubtful'] = array(
@@ -167,7 +167,6 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     $form['navigation']['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
-      '#attributes' => array('class' => array('q-back-button')),
     );
     if ($is_last) {
       $form['navigation']['#last'] = TRUE;
@@ -926,6 +925,52 @@ function quiz_question_feedback($quiz, $question) {
   }
 }
 
-function a_func() {
-  dpm('func');
+/**
+ * Submit handler for the question answering form.
+ *
+ * There is no validation code here, but there may be feedback code for
+ * correct feedback.
+ */
+function quiz_question_answering_form_submit(&$form, &$form_state) {
+  $quiz = node_load(arg(1));
+  $current_question = node_load(key($form_state['values']['question']));
+  $questions = quiz_build_question_list($quiz);
+  foreach ($questions as $question) {
+    if ($question['nid'] == $current_question->nid) {
+      $question_array = $question;
+    }
+  }
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+  $qi_instance->delete();
+  $qi_instance->saveResult();
+  $result = $qi_instance->toBareObject();
+  quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
+
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  // What to do?
+  if (!_quiz_is_last_question($quiz)) {
+    // There is a next question.
+    $_SESSION['quiz'][$quiz->nid]['current']+=1;
+  }
+  else {
+    // End of the quiz?
+    quiz_end_scoring($quiz, $quiz_result->result_id);
+  }
+}
+
+/**
+ * Validation callback for quiz question submit.
+ */
+function quiz_question_answering_form_validate($form, $form_state) {
+  $quiz = node_load(arg(1));
+  $current_question = node_load(key($form_state['values']['question']));
+  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+  if ($qi_instance->isValid() != 1) {
+    if ($quiz->repeat_until_correct && !$result->is_correct) {
+      // Skip until correct would be rad, right?
+    }
+    // So in an ideal world we pass the validation to some method on the quiz
+    // question class. But for now let's just display the error.
+    form_set_error('', $qi_instance->isValid());
+  }
 }

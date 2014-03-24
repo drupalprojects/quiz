@@ -100,7 +100,7 @@ function theme_multichoice_response($variables) {
     drupal_add_css(drupal_get_path('module', 'multichoice') . '/theme/multichoice.css');
     $css_added = TRUE;
   }
-  
+
   $rows = array();
   foreach ($variables['data'] as &$alternative) {
     if ($alternative['is_chosen']) {

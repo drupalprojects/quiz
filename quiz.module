@@ -2034,7 +2034,7 @@ function quiz_take_quiz($quiz) {
   // Added the progress info to the view.
   $result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $number_of_questions = count($result->layout);
-  $question_number = $_SESSION['quiz'][$quiz->nid]['current']+1;
+  $question_number = $_SESSION['quiz'][$quiz->nid]['current'] + 1;
   $question_node->question_number = $question_number;
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'question_number' => $question_number,
@@ -4314,58 +4314,9 @@ function _quiz_is_empty_html($html) {
 /**
  * Check if this is the last question of the quiz
  */
-function _quiz_is_last_question() {
-  return count($_SESSION['quiz_' . intval(arg(1))]['quiz_questions']) < 2;
-}
-
-/**
- * Validation callback for quiz question submit.
- */
-function quiz_question_answering_form_validate($form, $form_state) {
-  $quiz = node_load(arg(1));
-  $current_question = node_load(key($form_state['values']['question']));
-  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
-  if ($qi_instance->isValid() != 1) {
-    if ($quiz->repeat_until_correct && !$result->is_correct) {
-      // Skip until correct would be rad, right?
-    }
-    // So in an ideal world we pass the validation to some method on the quiz
-    // question class. But for now let's just display the error.
-    form_set_error('', $qi_instance->isValid());
-  }
-}
-
-/**
- * Submit handler for the question answering form.
- *
- * There is no validation code here, but there may be feedback code for
- * correct feedback.
- */
-function quiz_question_answering_form_submit(&$form, &$form_state) {
-  $quiz = node_load(arg(1));
-  $current_question = node_load(key($form_state['values']['question']));
-  $questions = quiz_build_question_list($quiz);
-  foreach ($questions as $question) {
-    if ($question['nid'] == $current_question->nid) {
-      $question_array = $question;
-    }
-  }
-  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
-  $qi_instance->delete();
-  $qi_instance->saveResult();
-  $result = $qi_instance->toBareObject();
-  quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
-
+function _quiz_is_last_question($quiz) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  // What to do?
-  if (isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']+1])) {
-    // There is a next question.
-    $_SESSION['quiz'][$quiz->nid]['current']++;
-  }
-  else {
-    // End of the quiz?
-    quiz_end_scoring($quiz, $quiz_result->result_id);
-  }
+  return !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 
 /**
