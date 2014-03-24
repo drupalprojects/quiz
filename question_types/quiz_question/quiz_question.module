@@ -163,7 +163,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
     }
   }
 
-  if (!empty($quiz->backwards_navigation) && !empty($node->question_number)) {
+  if (!empty($quiz->backwards_navigation) && $node->question_number != 1) {
     $form['navigation']['back'] = array(
       '#type' => 'submit',
       '#value' => t('Back'),
@@ -242,6 +242,10 @@ function quiz_question_skip_question($question, $result_id) {
     $response->is_doubtful = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question->nid, ':question_vid' => $question->vid))->fetchField();
   }
   return $response;
+}
+
+function quiz_question_goto($quiz, $index) {
+  $_SESSION['quiz'][$quiz->nid]['current'] = $index;
 }
 
 /**
@@ -947,9 +951,14 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   // What to do?
-  if (!_quiz_is_last_question($quiz)) {
+
+  if ($form_state['values']['op'] == t('Back')) {
+    // Back a question.
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current']-1);
+  }
+  elseif (!_quiz_is_last_question($quiz)) {
     // There is a next question.
-    $_SESSION['quiz'][$quiz->nid]['current']+=1;
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current']+1);
   }
   else {
     // End of the quiz?
