@@ -961,8 +961,10 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   }
   else {
-    // End of the quiz?
-    quiz_end_scoring($quiz, $quiz_result->result_id);
+    // No more questions. Score quiz.
+    quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
+    // Delete old results if necessary.
+    _quiz_maintain_results($quiz, $quiz_result->result_id);
     $form_state['redirect'] = "node/{$quiz->nid}/myresults/{$quiz_result->result_id}";
     unset($_SESSION['quiz'][$quiz->nid]);
   }

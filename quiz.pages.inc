@@ -12,21 +12,11 @@
  *  Result id
  */
 function quiz_user_results($result_id) {
-  global $user;
-  $result = db_query('SELECT qnp.nid, qnp.vid, qnrs.uid
-    FROM {quiz_node_properties} qnp
-    INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
-    WHERE qnrs.result_id = :rid', array(':rid' => $result_id))->fetch();
+  $result = quiz_result_load($result_id);
 
   if ($result->nid) {
-    // User can view own results (quiz_menu sets access to 'own results').
-    // User with role 'user results' can view other user's results.
-    if ($result->uid != $user->uid && !user_access('view any quiz results')) {
-      drupal_access_denied();
-      return;
-    }
-
     $quiz = node_load($result->nid, $result->vid);
+    $current_quiz = node_load($result->nid);
     $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
@@ -37,10 +27,14 @@ function quiz_user_results($result_id) {
       'summary' => $summary,
       'result_id' => $result_id,
     );
-    return theme('quiz_user_summary', $data);
-  }
-  else {
-    drupal_not_found();
+    if (user_access('view own quiz results') || $current_quiz->display_feedback) {
+      // User can view own quiz results OR the current quiz has "display solution".
+      return theme('quiz_user_summary', $data);
+    }
+    else {
+      // User cannot view own results or show solution. Show summary.
+      return theme('quiz_take_summary', $data);
+    }
   }
 }
 
@@ -341,12 +335,10 @@ function theme_quiz_get_user_results($variables) {
       'title'       => l($result['title'], 'node/' . $result['nid']),
       'time_start'  => format_date($result['time_start'], 'short'),
       'time_end'    => ($result['time_end'] > 0) ? format_date($result['time_end'], 'short') . '<br />' . t('Duration :  @value', array('@value' => $interval)) : t('In Progress'),
-
       'score'       => $score,
       'evaluated'   => $result['is_evaluated'] ? t('Yes') : t('No'),
       'op'          => l(t('View answers'), 'user/quiz/' . $result['result_id'] . '/userresults'),
     );
-
   }
 
   if (empty($rows)) {

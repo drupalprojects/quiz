@@ -248,12 +248,12 @@ function quiz_access_my_results($quiz) {
   if ($quiz->type !== 'quiz') {
     return FALSE;
   }
-  if (user_access('view own quiz results') && !quiz_access_results($quiz)) {
+
     $answered = db_query('SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
     if ($answered) {
       return TRUE;
     }
-  }
+
 }
 
 /**
@@ -265,9 +265,6 @@ function quiz_access_my_results($quiz) {
  *  True if access, false otherwise
  */
 function quiz_access_my_result($rid) {
-  if (!user_access('view own quiz results')) {
-    return FALSE;
-  }
   // Check if the quiz taking has been completed.
   $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
   return $time_end > 0;
