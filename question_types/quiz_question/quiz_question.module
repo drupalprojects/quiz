@@ -954,15 +954,16 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
   if ($form_state['values']['op'] == t('Back')) {
     // Back a question.
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current']-1);
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
   }
   elseif (!_quiz_is_last_question($quiz)) {
     // There is a next question.
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current']+1);
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   }
   else {
     // End of the quiz?
     quiz_end_scoring($quiz, $quiz_result->result_id);
+    $form_state['redirect'] = "node/{$quiz->nid}/myresults/{$quiz_result->result_id}";
   }
 }
 
