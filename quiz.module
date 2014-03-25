@@ -2106,36 +2106,6 @@ function quiz_take_quiz($quiz) {
 }
 
 /**
- * Score a quiz and mark it as complete.
- */
-function quiz_finalize_result() {
-  // IMPORTANT: Because of a bug _quiz_get_answers always have to be called before quiz_end_scoring... :/
-  $questions = _quiz_get_answers($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-  $score = quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-  // Remove session variables, save $rid
-  $session_data = $_SESSION['quiz'][$quiz->nid];
-  unset($_SESSION['quiz'][$quiz->nid]);
-}
-
-function some_Result_page_handler() {
-  //@TODO this should be moved to a page handler
-  // Get the results and summary text for this quiz.
-  $summary = _quiz_get_summary_text($quiz, $score);
-  $data = array(
-    'quiz' => $quiz,
-    'questions' => $questions,
-    'score' => $score,
-    'summary' => $summary,
-    'result_id' => $_SESSION['quiz'][$quiz->nid]['result_id'],
-  );
-  // Get the themed summary page.
-  $content['body']['#markup'] = theme('quiz_take_summary', $data);
-  if ($score['is_evaluated']) {
-    _quiz_maintain_results($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-  }
-}
-
-/**
  * Set the current session to jump to a specific question number
  *
  * @param int $question_num
