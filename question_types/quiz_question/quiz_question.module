@@ -495,9 +495,11 @@ function quiz_question_view($node, $view_mode) {
        * In quiz 5 we should stop using hook_view to view the answering form
        */
       $form = drupal_get_form('quiz_question_answering_form', $node);
-      $feedback = quiz_question_feedback(node_load(arg(1)), $node);
-      $form_markup = drupal_render($form);
-      $feedback_markup = drupal_render($feedback);
+      if ($quiz->feedback_time = QUIZ_FEEDBACK_QUESTION) {
+        $feedback = quiz_question_feedback(node_load(arg(1)), $node);
+        $form_markup = drupal_render($form);
+        $feedback_markup = drupal_render($feedback);
+      }
 
       if (!empty($form_markup)) {
         $node->content['question_form'] = array(
