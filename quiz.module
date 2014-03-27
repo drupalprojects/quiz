@@ -2018,6 +2018,11 @@ function quiz_take_quiz($quiz) {
     return array('body' => array('#markup' => t('This quiz is not available.')));
   }
 
+  if (arg(3) == '') {
+    // @todo this is where quiz_take_quiz should end.
+    drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
+  }
+
   $_SESSION['quiz'][$quiz->nid]['current'] = arg(3) - 1;
   if (!$question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid'])) {
     $question_node = node_load($quiz_result->layout[0]['nid']);
