@@ -11,7 +11,7 @@
  * @param $result_id
  *  Result id
  */
-function quiz_user_results($result_id) {
+function quiz_user_results($node, $result_id) {
   $result = quiz_result_load($result_id);
 
   if ($result->nid) {

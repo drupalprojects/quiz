@@ -249,11 +249,10 @@ function quiz_access_my_results($quiz) {
     return FALSE;
   }
 
-    $answered = db_query('SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
-    if ($answered) {
-      return TRUE;
-    }
-
+  $answered = db_query('SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1))->fetchField();
+  if ($answered) {
+    return TRUE;
+  }
 }
 
 /**
@@ -264,7 +263,7 @@ function quiz_access_my_results($quiz) {
  * @return boolean
  *  True if access, false otherwise
  */
-function quiz_access_my_result($rid) {
+function quiz_access_my_result($node, $rid) {
   // Check if the quiz taking has been completed.
   $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
   return $time_end > 0;
@@ -377,6 +376,29 @@ function quiz_menu() {
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
   );
+
+  // Take question.
+  // @todo Thought - the 4th argument could be a "page" instead of a question
+  // number
+  $items['node/%node/take/%'] = array(
+    'title' => 'Take',
+    'page callback' => 'quiz_take',
+    'page arguments' => array(1, 3),
+    'access callback' => 'quiz_take_question_access',
+    'access arguments' => array(1, 3),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // Result
+  $items['node/%node/take/%/feedback'] = array(
+    'title' => 'Take',
+    'page callback' => 'quiz_take_question_feedback',
+    'page arguments' => array(1, 3),
+    'access callback' => 'quiz_take_question_access',
+    'access arguments' => array(1, 3),
+    'type' => MENU_LOCAL_TASK,
+  );
+
 
   // Admin pages.
   $items['admin/quiz'] = array(
@@ -1977,12 +1999,6 @@ function quiz_take_quiz($quiz) {
   }
 
   if (!$rid) {
-    // @todo The fuck what is the difference between this and quiz_start_check()?
-    if (quiz_availability($quiz) !== TRUE) {
-      drupal_set_message(t('This quiz is not available anymore.'), 'error');
-      return array('body' => array('#markup' => t('This quiz is closed')));
-    }
-
     // Can user start quiz?
     if (quiz_start_check($quiz)) {
       // Set up a new attempt.
@@ -1993,8 +2009,16 @@ function quiz_take_quiz($quiz) {
       // Call hook_quiz_begin().
       module_invoke_all('quiz_begin', $quiz, $quiz_result->result_id);
     }
+    else {
+      return array('body' => array('#markup' => t('This quiz is closed.')));
+    }
   }
 
+  if (!quiz_availability($quiz)) {
+    return array('body' => array('#markup' => t('This quiz is not available.')));
+  }
+
+  $_SESSION['quiz'][$quiz->nid]['current'] = arg(3) - 1;
   if (!$question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid'])) {
     $question_node = node_load($quiz_result->layout[0]['nid']);
     $_SESSION['quiz'][$quiz->nid]['current'] = 0;
@@ -2042,13 +2066,12 @@ function quiz_take_quiz($quiz) {
 
   /**
    * @todo: wat do?
-  if (count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
+    if (count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
     drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
     unset($_SESSION['quiz'][$quiz->nid]);
     drupal_goto('node/' . $quiz->nid . '/take');
-  }
+    }
    */
-
   if (isset($_SESSION['quiz'][$quiz->nid]['question_duration'])) {
     $time = $_SESSION['quiz'][$quiz->nid]['question_duration'];
     if ($time < 1) {
@@ -4321,4 +4344,26 @@ function quiz_entity_info() {
  */
 function quiz_result_load($rid) {
   return entity_load_single('quiz_result', $rid);
+}
+
+/**
+ * Check if the user has access to take this question in this quiz.
+ */
+function quiz_take_question_access($quiz, $question) {
+  return TRUE;
+}
+
+/**
+ * Show feedback for a question response.
+ */
+function quiz_take_question_feedback($quiz, $question_number) {
+  $rid = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  $quiz_result = quiz_result_load($rid);
+  $question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid']);
+
+  if ($quiz->feedback_time = QUIZ_FEEDBACK_QUESTION) {
+    $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
+    $feedback_markup = drupal_render($feedback);
+  }
+  return $feedback_markup;
 }
