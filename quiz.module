@@ -2021,38 +2021,16 @@ function quiz_take_quiz($quiz) {
     drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
 }
 function quiz_take_question($quiz, $question_number) {
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $question_index = arg(3) - 1;
-  if (!$question_node = node_load($quiz_result->layout[$question_index]['nid'])) {
-    // Couldn't find this question in the layout. Start over.
-    $question_node = node_load($quiz_result->layout[0]['nid']);
-    $_SESSION['quiz'][$quiz->nid]['current'] = 0;
-  }
-  // Below this area, should have $quiz, $questions, $quiz_question (for now), and $rid
-  // For quiz progress block
-  // To be able to jump from one question to another
-  if (isset($_GET['jump_to_question'])) {
-    //@todo probably just drupal_goto to the menu handler
-    if ($quiz->allow_jumping || _quiz_is_int($_GET['jump_to_question'])) {
-      quiz_jump_to($_GET['jump_to_question'], $quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-      // Doing drupal_goto() to prevent showing message last question was skipped
-      // and also for skip to work as expected.
-      drupal_goto("node/{$quiz->nid}/take");
-    }
-  }
-
-
-  if (isset($check_jump) && $check_jump) {
-    if ($quiz->allow_jumping && _quiz_is_int($_POST['jump_to_question'])) {
-      // @TODO replace with a fapi form submit
-      quiz_jump_to($_POST['jump_to_question'], $quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-    }
+  $question_index = $question_number - 1;
+  if ((!$quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id'])) || (!$question_node = node_load($quiz_result->layout[$question_index]['nid']))) {
+    // Couldn't find a result or this question in the layout. Start over.
+    drupal_goto("node/{$quiz->nid}");
+    unset($_SESSION['quiz'][$quiz->nid]);
   }
 
   // Added the progress info to the view.
   $result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $number_of_questions = count($result->layout);
-  $question_number = $_SESSION['quiz'][$quiz->nid]['current'] + 1;
   $question_node->question_number = $question_number;
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'question_number' => $question_number,
