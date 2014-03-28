@@ -958,7 +958,6 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     // Back a question.
     quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
     $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] - 1);
-
   }
   elseif (!_quiz_is_last_question($quiz)) {
     // There is a next question.
@@ -981,13 +980,12 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 function quiz_question_answering_form_validate($form, $form_state) {
   $quiz = node_load(arg(1));
   $current_question = node_load(key($form_state['values']['question']));
-  $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
-  if ($qi_instance->isValid() != 1) {
-    if ($quiz->repeat_until_correct && !$result->is_correct) {
-      // Skip until correct would be rad, right?
-    }
-    // So in an ideal world we pass the validation to some method on the quiz
-    // question class. But for now let's just display the error.
-    form_set_error('', $qi_instance->isValid());
+  $quiz_question = _quiz_question_get_instance(node_load($current_question->nid));
+
+  $quiz_question->getAnsweringFormValidate($form, $form_state);
+
+
+  if ($quiz->repeat_until_correct && !$result->is_correct) {
+    // Skip until correct here would be rad, right?
   }
 }

@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Defines the classes necessary for a True/False quiz.
  *
@@ -109,8 +108,8 @@ class TrueFalseQuestion extends QuizQuestion {
     }
     else {
       $content['answers'] = array(
-      '#markup' => '<div class="quiz-answer-hidden">' . t('Answer hidden') . '</div>',
-      '#weight' => 2,
+        '#markup' => '<div class="quiz-answer-hidden">' . t('Answer hidden') . '</div>',
+        '#weight' => 2,
       );
     }
     return $content;
@@ -124,7 +123,6 @@ class TrueFalseQuestion extends QuizQuestion {
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $element = parent::getAnsweringForm($form_state, $rid);
     //$form['#theme'] = 'truefalse_answering_form';
-
     // 'tries' is unfortunately required by quiz.module
     $element += array(
       '#type' => 'radios',
@@ -142,6 +140,15 @@ class TrueFalseQuestion extends QuizQuestion {
       $element['#default_value'] = is_null($default) ? NULL : $default;
     }
     return $element;
+  }
+
+  /**
+   * Question response validator.
+   */
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+    if (is_null(reset($form_state['values']['question']))) {
+      form_set_error('', t('You must provide an answer'));
+    }
   }
 
   /**
@@ -200,7 +207,6 @@ class TrueFalseQuestion extends QuizQuestion {
     return 1;
   }
 
-
   /**
    * Get the answer to this question.
    *
@@ -209,6 +215,7 @@ class TrueFalseQuestion extends QuizQuestion {
   public function getCorrectAnswer() {
     return db_query('SELECT correct_answer FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
   }
+
 }
 
 /**
@@ -231,15 +238,6 @@ class TrueFalseResponse extends QuizQuestionResponse {
     else {
       $this->answer = $answer;
     }
-  }
-
-  /**
-   * Implementation of isValid
-   *
-   * @see QuizQuestionResponse#isValid()
-   */
-  public function isValid() {
-    return ($this->answer === NULL) ? t('You must provide an answer') : TRUE;
   }
 
   /**
@@ -342,4 +340,5 @@ class TrueFalseResponse extends QuizQuestionResponse {
       '#markup' => theme('truefalse_response', array('metadata' => $metadata, 'data' => $data)),
     );
   }
+
 }
