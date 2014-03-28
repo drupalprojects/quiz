@@ -2022,8 +2022,9 @@ function quiz_take_quiz($quiz) {
 }
 function quiz_take_question($quiz, $question_number) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $_SESSION['quiz'][$quiz->nid]['current'] = arg(3) - 1;
-  if (!$question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid'])) {
+  $question_index = arg(3) - 1;
+  if (!$question_node = node_load($quiz_result->layout[$question_index]['nid'])) {
+    // Couldn't find this question in the layout. Start over.
     $question_node = node_load($quiz_result->layout[0]['nid']);
     $_SESSION['quiz'][$quiz->nid]['current'] = 0;
   }
