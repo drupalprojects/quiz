@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * The main classes for the multichoice question type.
  *
@@ -31,9 +30,7 @@ class MultichoiceQuestion extends QuizQuestion {
       for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
         $short = &$this->node->alternatives[$i];
         // If the scoring data doesn't make sense, use the data from the "correct" checkbox to set the score data
-        if ($short['score_if_chosen'] == $short['score_if_not_chosen']
-         || !is_numeric($short['score_if_chosen'])
-         || !is_numeric($short['score_if_not_chosen'])) {
+        if ($short['score_if_chosen'] == $short['score_if_not_chosen'] || !is_numeric($short['score_if_chosen']) || !is_numeric($short['score_if_not_chosen'])) {
           if ($short['correct'] == 1) {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
@@ -84,15 +81,11 @@ class MultichoiceQuestion extends QuizQuestion {
       $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit', $link_options);
       if ($num_corrects == 1) {
         drupal_set_message(
-          t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.',
-            array('!go_back' => $go_back)),
-          'warning');
+          t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
       }
       else {
         drupal_set_message(
-          t('Your question doesn\'t allow multiple answers. More than one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.',
-            array('!go_back' => $go_back)),
-          'warning');
+          t('Your question doesn\'t allow multiple answers. More than one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
       }
     }
   }
@@ -411,8 +404,8 @@ class MultichoiceQuestion extends QuizQuestion {
       $this->shuffle($this->node->alternatives);
     }
     $content['answers'] = array(
-       '#markup' => theme('multichoice_answer_node_view', array('alternatives' => $this->node->alternatives, 'show_correct' => $this->viewCanRevealCorrect())),
-       '#weight' => 2,
+      '#markup' => theme('multichoice_answer_node_view', array('alternatives' => $this->node->alternatives, 'show_correct' => $this->viewCanRevealCorrect())),
+      '#weight' => 2,
     );
 
     return $content;
@@ -726,6 +719,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     // We try to fetch the users settings
     elseif ($settings = $this->getUserSettings()) {
+
     }
     // The user is creating his first multichoice node
     else {
@@ -792,12 +786,23 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     return max($max, 1);
   }
+
+  /**
+   * Question response validator.
+   */
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+    if (!$this->node->choice_multi && is_null(reset($form_state['values']['question']))) {
+      form_set_error('', t('You must provide an answer'));
+    }
+  }
+
 }
 
 /**
  * Extension of QuizQuestionResponse
  */
 class MultichoiceResponse extends QuizQuestionResponse {
+
   /**
    * ID of the answers.
    */
@@ -842,25 +847,6 @@ class MultichoiceResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of isValid
-   *
-   * @see QuizQuestionResponse#isValid()
-   */
-  public function isValid() {
-    if ($this->question->choice_multi) {
-      return TRUE;
-    }
-    if (empty($this->user_answer_ids)) {
-      return t('You must provide an answer');
-    }
-    // Perform extra check since FAPI isn't being used:
-    if (count($this->user_answer_ids) > 1) {
-      return t('You are only allowed to select one answer');
-    }
-    return TRUE;
-  }
-
-  /**
    * Implementation of save
    *
    * @see QuizQuestionResponse#save()
@@ -880,7 +866,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
       $query->values(array($user_answer_id, $this->user_answer_ids[$i]));
     }
-      $query->execute();
+    $query->execute();
   }
 
   /**
@@ -1013,7 +999,6 @@ class MultichoiceResponse extends QuizQuestionResponse {
               $alternative['is_correct'] = 0;
             }
           }
-
           else {
             $alternative['is_correct'] = $short['score_if_chosen'] > $short['score_if_not_chosen'] ? 2 : 0;
           }
@@ -1063,6 +1048,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     }
     $alternatives = $newAlternatives;
   }
+
   /**
    * Run check_markup() on the field of the specified choice alternative
    *
@@ -1081,4 +1067,5 @@ class MultichoiceResponse extends QuizQuestionResponse {
     }
     return check_markup($alternative, $format, $langcode = '' /* TODO Set this variable. */, $check_user_access);
   }
+
 }

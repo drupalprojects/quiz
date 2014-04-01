@@ -639,6 +639,10 @@ abstract class QuizQuestion {
   protected function autoUpdateMaxScore() {
     return false;
   }
+
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+
+  }
 }
 
 /**
