@@ -2024,8 +2024,8 @@ function quiz_take_question($quiz, $question_number) {
   $question_index = $question_number - 1;
   if ((!$quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id'])) || (!$question_node = node_load($quiz_result->layout[$question_index]['nid']))) {
     // Couldn't find a result or this question in the layout. Start over.
-    drupal_goto("node/{$quiz->nid}");
     unset($_SESSION['quiz'][$quiz->nid]);
+    drupal_goto("node/{$quiz->nid}");
   }
 
   // Added the progress info to the view.
