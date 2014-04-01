@@ -1,4 +1,5 @@
 <?php
+
 /**
  * matching.classes
  *
@@ -53,7 +54,7 @@ class MatchingQuestion extends QuizQuestion {
         ->condition('vid', $this->node->vid)
         ->execute();
     }
-    
+
     // Loop through each question-answer combination
     foreach ($this->node->match as $match) {
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
@@ -61,14 +62,14 @@ class MatchingQuestion extends QuizQuestion {
       if ($is_new || empty($match['match_id']) || $this->node->revision || isset($this->node->node_export_drupal_version)) {
         if (!empty($match['question']) && !empty($match['answer'])) {
           $id = db_insert('quiz_matching_node')
-                  ->fields(array(
-                    'nid' => $this->node->nid,
-                    'vid' => $this->node->vid,
-                    'question' => $match['question'],
-                    'answer' => $match['answer'],
-                    'feedback' => $match['feedback'],
-                  ))
-                  ->execute();
+            ->fields(array(
+              'nid' => $this->node->nid,
+              'vid' => $this->node->vid,
+              'question' => $match['question'],
+              'answer' => $match['answer'],
+              'feedback' => $match['feedback'],
+            ))
+            ->execute();
         }
       }
       // match_id is set, user may remove or update existing question.
@@ -111,12 +112,12 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
-    
+
     $delete_properties = db_delete('quiz_matching_properties')->condition('nid', $this->node->nid);
-      
+
     if ($only_this_version) {
       $delete_properties->condition('vid', $this->node->vid);
-      
+
       $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
       db_delete('quiz_matching_user_answers')
         ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
@@ -140,7 +141,7 @@ class MatchingQuestion extends QuizQuestion {
         ->condition('nid', $this->node->nid)
         ->execute();
     }
-    
+
     $delete_properties->execute();
   }
 
@@ -154,7 +155,7 @@ class MatchingQuestion extends QuizQuestion {
       return $this->nodeProperties;
     }
     $props = parent::getNodeProperties();
-    
+
     $res_a = db_query('SELECT choice_penalty FROM {quiz_matching_properties}
             WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
 
@@ -210,8 +211,8 @@ class MatchingQuestion extends QuizQuestion {
       }
     }
     $content['answers'] = array(
-       '#markup' => theme('matching_match_node_view', array('subquestions' => $subquestions)),
-       '#weight' => 2,
+      '#markup' => theme('matching_match_node_view', array('subquestions' => $subquestions)),
+      '#weight' => 2,
     );
     return $content;
   }
@@ -223,7 +224,6 @@ class MatchingQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
     $form = parent::getAnsweringForm($form_state, $rid);
-    //$form['#theme'] = 'matching_answering_form';
 
     if (isset($rid)) {
       // The question has already been answered. We load the answers
@@ -231,25 +231,38 @@ class MatchingQuestion extends QuizQuestion {
       $responses = $response->getResponse();
     }
     list($matches, $select_option) = $this->getSubquestions();
-    $form['subquestions']['#theme'] = 'matching_subquestion_form';
+    //$form['matching']['#theme'] = 'matching_subquestion_form';
     foreach ($matches as $match) {
-      $form['subquestions'][$match['match_id']]['#question'] = check_markup($match['question']);
-      $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']'] = array(
+      $form['matching'][$match['match_id']] = array(
+        '#title' => $match['question'],
         '#type' => 'select',
         '#options' => $this->customShuffle($select_option),
       );
       if (isset($rid)) {
         // If this question already has been answered
-        $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
+        $form['matching'][$match['match_id']]['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
       }
     }
     $form['scoring_info'] = array(
       '#markup' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
     );
     if (variable_get('quiz_matching_shuffle_options', TRUE)) {
-      $form['subquestions'] = $this->customShuffle($form['subquestions']);
+      $form['matching'] = $this->customShuffle($form['matching']);
     }
     return $form;
+  }
+
+  /**
+   * Question response validator.
+   */
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+    $question_answer = reset($form_state['values']['question']);
+    foreach ($question_answer['matching'] as $value) {
+      if ($value != 'def') {
+        return TRUE;
+      }
+    }
+    return t('You need to match at least one of the items.');
   }
 
   /**
@@ -310,7 +323,7 @@ class MatchingQuestion extends QuizQuestion {
   public function getCreationForm(array &$form_state = NULL) {
     // Get the nodes settings, users settings or default settings
     $default_settings = $this->getDefaultAltSettings();
-    
+
     $form['settings'] = array(
       '#type' => 'fieldset',
       '#title' => t('Settings'),
@@ -324,7 +337,7 @@ class MatchingQuestion extends QuizQuestion {
       '#default_value' => $default_settings['choice_penalty'],
       '#parents' => array('choice_penalty'),
     );
-    
+
     $form['match'] = array(
       '#type' => 'fieldset',
       '#title' => t('Answer'),
@@ -340,30 +353,30 @@ class MatchingQuestion extends QuizQuestion {
       );
       $form['match'][$i]['match_id'] = array(
         '#type' => 'value',
-        '#default_value' => isset($this->node->match[$i -1]['match_id']) ? $this->node->match[$i -1]['match_id'] : ''
+        '#default_value' => isset($this->node->match[$i - 1]['match_id']) ? $this->node->match[$i - 1]['match_id'] : ''
       );
       $form['match'][$i]['question'] = array(
         '#type' => 'textarea',
         '#rows' => 2,
-        '#default_value' => isset($this->node->match[$i -1]['question']) ? $this->node->match[$i -1]['question'] : '',
+        '#default_value' => isset($this->node->match[$i - 1]['question']) ? $this->node->match[$i - 1]['question'] : '',
         '#required' => $i < 3,
       );
       $form['match'][$i]['answer'] = array(
         '#type' => 'textarea',
         '#rows' => 2,
-        '#default_value' => isset($this->node->match[$i -1]['answer']) ? $this->node->match[$i -1]['answer'] : '',
+        '#default_value' => isset($this->node->match[$i - 1]['answer']) ? $this->node->match[$i - 1]['answer'] : '',
         '#required' => $i < 3,
       );
 
       $form['match'][$i]['feedback'] = array(
         '#type' => 'textarea',
         '#rows' => 2,
-        '#default_value' => isset($this->node->match[$i -1]['feedback']) ? $this->node->match[$i -1]['feedback'] : ''
+        '#default_value' => isset($this->node->match[$i - 1]['feedback']) ? $this->node->match[$i - 1]['feedback'] : ''
       );
     }
     return $form;
   }
-  
+
   /**
    * Helper function provding the default settings for the creation form.
    *
@@ -410,14 +423,15 @@ class MatchingQuestion extends QuizQuestion {
     $query = db_query('SELECT match_id, question, answer, feedback FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
     while ($result = $query->fetch()) {
       $correct_answers[$result->match_id] = array(
-        'match_id'  => $result->match_id,
-        'question'  => $result->question,
-        'answer'    => $result->answer,
-        'feedback'  => $result->feedback,
+        'match_id' => $result->match_id,
+        'question' => $result->question,
+        'answer' => $result->answer,
+        'feedback' => $result->feedback,
       );
     }
     return $correct_answers;
   }
+
 }
 
 /**
@@ -440,20 +454,6 @@ class MatchingResponse extends QuizQuestionResponse {
       }
     }
     $this->is_correct = $this->isCorrect();
-  }
-
-  /**
-   * Implementation of isValid
-   *
-   * @see QuizQuestionResponse#isValid()
-   */
-  public function isValid() {
-    foreach ($this->answer as $value) {
-      if ($value != 'def') {
-        return TRUE;
-      }
-    }
-    return t('You need to match at least one of the items.');
   }
 
   /**
@@ -506,17 +506,18 @@ class MatchingResponse extends QuizQuestionResponse {
         $correct_answer++;
       }
       elseif ($value == 0 || $value == 'def') {
+
       }
       else {
         $wrong_answer++;
       }
     }
-    
+
     $score = $correct_answer;
     if ($this->question->choice_penalty) {
       $score -= $wrong_answer;
     }
-    
+
     return $score < 0 ? 0 : $score;
   }
 
@@ -555,7 +556,7 @@ class MatchingResponse extends QuizQuestionResponse {
       if ($showpoints) {
         $answer_data['correct_answer'] = $correct_answer['answer'];
       }
-      if ( isset($user_answers[$correct_answer['match_id']])) {
+      if (isset($user_answers[$correct_answer['match_id']])) {
         $id = $user_answers[$correct_answer['match_id']];
         $correct = isset($correct_answers[$id]) && $correct_answer['answer'] == $correct_answers[$id]['answer'];
         $answer_data['user_answer'] = isset($correct_answers[$id]) ? check_markup($correct_answers[$id]['answer'], $this->getFormat()) : NULL;
@@ -565,7 +566,7 @@ class MatchingResponse extends QuizQuestionResponse {
         $has_feedback = TRUE;
       }
       else {
-        if ($showfeedback)  {
+        if ($showfeedback) {
           //$answer_data['feedback'] = '';
         }
       }
@@ -581,4 +582,5 @@ class MatchingResponse extends QuizQuestionResponse {
       '#markup' => theme('matching_response', array('metadata' => $metadata, 'data' => $data)),
     );
   }
+
 }
