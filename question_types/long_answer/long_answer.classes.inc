@@ -7,11 +7,11 @@
  *  Classes modelling the long answer question and the long answer question response
  */
 
-
 /**
  * Extension of QuizQuestion.
  */
 class LongAnswerQuestion extends QuizQuestion {
+
   /**
    * Implementation of saveNodeProperties
    * @see QuizQuestion#saveNodeProperties($is_new)
@@ -43,7 +43,9 @@ class LongAnswerQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#validateNode($form)
    */
-  public function validateNode(array &$form) { }
+  public function validateNode(array &$form) {
+
+  }
 
   /**
    * Implementation of delete
@@ -124,22 +126,30 @@ class LongAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $rid)
    */
   public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
-    $form['#theme'] = 'long_answer_answering_form';
+    $element = parent::getAnsweringForm($form_state, $rid);
 
-    $form['tries'] = array(
+    $element += array(
       '#type' => 'textarea',
       '#title' => t('Answer'),
       '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
       '#rows' => 15,
       '#cols' => 60,
-      '#required' => FALSE, // See isValid() in LongAnswerResponse
+      //'#theme' =>'long_answer_answering_form',
     );
     if (isset($rid)) {
       $response = new LongAnswerResponse($rid, $this->node);
-      $form['tries']['#default_value'] = $response->getResponse();
+      $element['#default_value'] = $response->getResponse();
     }
-    return $form;
+    return $element;
+  }
+
+  /**
+   * Question response validator.
+   */
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+    if (reset($form_state['values']['question']) == '') {
+      form_set_error('', t('You must provide an answer'));
+    }
   }
 
   /**
@@ -149,13 +159,13 @@ class LongAnswerQuestion extends QuizQuestion {
    */
   public function getCreationForm(array &$form_state = NULL) {
     $form['rubric'] = array(
-       '#type' => 'textarea',
-       '#title' => t('Rubric'),
-       '#description' => t('Specify the criteria for grading the response.'),
-       '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
-       '#size' => 60,
-       '#maxlength' => 2048,
-       '#required' => FALSE,
+      '#type' => 'textarea',
+      '#title' => t('Rubric'),
+      '#description' => t('Specify the criteria for grading the response.'),
+      '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
+      '#size' => 60,
+      '#maxlength' => 2048,
+      '#required' => FALSE,
     );
     return $form;
   }
@@ -271,18 +281,6 @@ class LongAnswerResponse extends QuizQuestionResponse {
       $this->answer = $answer;
       $this->evaluated = FALSE;
     }
-  }
-
-  /**
-   * Implementation of isValid
-   *
-   * @see QuizQuestionResponse#isValid()
-   */
-  public function isValid() {
-    if (trim($this->answer) == '') {
-      return t('You must provide an answer');
-    }
-    return TRUE;
   }
 
   /**
@@ -415,7 +413,6 @@ class LongAnswerResponse extends QuizQuestionResponse {
     return FALSE;
   }
 
-
   /**
    * Implementation of getReportFormSubmit
    *
@@ -433,5 +430,5 @@ class LongAnswerResponse extends QuizQuestionResponse {
   public function getReportFormValidate($showfeedback = TRUE, $showpoints = TRUE, $allow_scoring = FALSE) {
     return $allow_scoring ? 'long_answer_report_validate' : FALSE;
   }
-}
 
+}
