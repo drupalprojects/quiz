@@ -49,9 +49,9 @@ function multichoice_quiz_question_info() {
   );
 }
 /**
- * Implements hook_config().
+ * Implements hook_quiz_question_config().
  */
-function multichoice_config() {
+function multichoice_quiz_question_config() {
   $form['multichoice_def_num_of_alts'] = array(
     '#type' => 'textfield',
     '#title' => t('Default number of alternatives'),

@@ -75,9 +75,9 @@ function short_answer_quiz_question_info() {
 }
 
 /**
- * Implements hook_config().
+ * Implements hook_quiz_question_config().
  */
-function short_answer_config() {
+function short_answer_quiz_question_config() {
   $form['short_answer_default_max_score'] = array(
     '#type' => 'textfield',
     '#title' => t('Default max score'),

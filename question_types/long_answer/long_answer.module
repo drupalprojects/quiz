@@ -67,9 +67,9 @@ function long_answer_quiz_question_info() {
 }
 
 /**
- * Implements hook_config().
+ * Implements hook_quiz_question_config().
  */
-function long_answer_config() {
+function long_answer_quiz_question_config() {
   $form['long_answer_default_max_score'] = array(
     '#type' => 'textfield',
     '#title' => t('Default max score'),
