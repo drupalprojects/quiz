@@ -136,7 +136,7 @@ class ShortAnswerQuestion extends QuizQuestion {
     $form = parent::getAnsweringForm($form_state, $rid);
     //$form['#theme'] = 'short_answer_answering_form';
 
-    $form['tries'] = array(
+    $form = array(
       '#type' => 'textfield',
       '#title' => t('Answer'),
       '#description' => t('Enter your answer here'),
@@ -149,10 +149,19 @@ class ShortAnswerQuestion extends QuizQuestion {
 
     if (isset($rid)) {
       $response = new ShortAnswerResponse($rid, $this->node);
-      $form['tries']['#default_value'] = $response->getResponse();
+      $form['#default_value'] = $response->getResponse();
     }
 
     return $form;
+  }
+
+  /**
+   * Question response validator.
+   */
+  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+    if (reset($form_state['values']['question']) == '') {
+      form_set_error('', t('You must provide an answer'));
+    }
   }
 
   /**
@@ -231,11 +240,11 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function evaluateAnswer($user_answer) {
     $score = 0;
-    
+
     // Ignore white spaces for correct answer and user's answer.
     $user_answer = trim($user_answer);
     $this->node->correct_answer = trim($this->node->correct_answer);
-    
+
     switch ($this->node->correct_answer_evaluation) {
       case self::ANSWER_MATCH:
         if ($user_answer == $this->node->correct_answer) {
@@ -359,18 +368,6 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         $this->evaluated = $this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL;
       }
     }
-  }
-
-  /**
-   * Implementation of isValid
-   *
-   * @see QuizQuestionResponse#isValid()
-   */
-  public function isValid() {
-    if (trim($this->answer) == '') {
-      return t('You must provide an answer');
-    }
-    return TRUE;
   }
 
   /**
