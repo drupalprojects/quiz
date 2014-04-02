@@ -5,6 +5,13 @@
  * This file provides metadata to the Views 2 API for views integration.
  *
  */
+
+/**
+ * Implements hook_views_handlers().
+ *
+ * @todo use hook_views_data_alter to assign these field/filter handlers to the
+ * automatically generated Entity API views definitions.
+ */
 function quiz_views_handlers() {
   return array(
     'info' => array(
