@@ -200,3 +200,13 @@ function multichoice_field_extra_fields() {
   );
   return $extra;
 }
+
+/**
+ * Implements hook_views_api().
+ */
+function multichoice_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'multichoice'),
+  );
+}

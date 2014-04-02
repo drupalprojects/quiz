@@ -4332,6 +4332,15 @@ function quiz_entity_info() {
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
+    'quiz' => array(
+      'label' => t('Quiz properties'),
+      'controller class' => 'EntityAPIController',
+      'base table' => 'quiz_node_properties',
+      'entity keys' => array(
+        'id' => 'nid',
+      ),
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
   );
 }
 
