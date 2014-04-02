@@ -307,6 +307,7 @@ function quiz_views_data() {
   ); // End quiz_node_properties
 
 
+  /**
   $data['quiz_node_relationship'] = array(
     'table' => array(
       'group' => t('Quiz Questions'),
@@ -478,9 +479,9 @@ function quiz_views_data() {
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
-  ); // End quiz_node_relationship
+  );*/ // End quiz_node_relationship
 
-
+/*
   $data['quiz_node_results'] = array(
     // Table Definition
     'table' => array(
@@ -692,9 +693,9 @@ function quiz_views_data() {
         'help' => t('Filter the results based on the state of quizzes with respect to users (i.e., whether they have started, finished, or are in progress on the quiz).'),
       ),
     )
-  ); // End quiz_node_results
+  );*/ // End quiz_node_results
 
-
+/*
   $data['quiz_node_results_answers'] = array(
     // Table Definition
     'table' => array(
@@ -853,7 +854,7 @@ function quiz_views_data() {
       ),
       'sort' => array('handler' => 'views_handler_sort'),
     ),
-  ); // End quiz_node_results_answers
+  );*/ // End quiz_node_results_answers
 
 
   $data['quiz_multichoice_answers'] = array(

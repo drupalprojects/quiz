@@ -4365,3 +4365,27 @@ function quiz_take_question_feedback_submit($form, &$form_state) {
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
 }
+
+/**
+ * Implements hook_entity_property_info_alter().
+ *
+ * Define our special schema fields and relationships.
+ */
+function quiz_entity_property_info_alter(&$info) {
+  $info['quiz_question_relationship']['properties']['child_nid']['type'] = 'node';
+  $info['quiz_question_relationship']['properties']['child_vid']['type'] = 'integer';
+  $info['quiz_question_relationship']['properties']['parent_nid']['type'] = 'node';
+  $info['quiz_question_relationship']['properties']['parent_vid']['type'] = 'integer';
+
+  $info['quiz_result_answer']['properties']['result_id']['type'] = 'quiz_result';
+
+  $info['quiz_result']['properties']['nid']['type'] = 'node';
+  $info['quiz_result']['properties']['vid']['type'] = 'integer';
+  $info['quiz_result']['properties']['time_start']['type'] = 'date';
+  $info['quiz_result']['properties']['time_end']['type'] = 'date';
+  $info['quiz_result']['properties']['released']['type'] = 'date';
+  $info['quiz_result']['properties']['score']['type'] = 'integer';
+  $info['quiz_result']['properties']['is_invalid']['type'] = 'boolean';
+  $info['quiz_result']['properties']['is_evaluated']['type'] = 'boolean';
+  $info['quiz_result']['properties']['time_left']['type'] = 'duration';
+}
