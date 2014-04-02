@@ -247,6 +247,12 @@ function quiz_schema() {
   $schema['quiz_node_relationship'] = array(
     'description' => 'Table storing what questions belong to what quizzes',
     'fields' => array(
+      'qnr_id' => array(
+        'type' => 'serial',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
       'parent_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -858,5 +864,21 @@ function quiz_update_7411() {
     'not null' => TRUE,
   );
   db_add_field('quiz_node_results_answers', 'result_answer_id', $spec, array('primary key' => array('result_answer_id')));
-  return t('Added new result_answer_id field to the quiz_node_results_answers table');
+  return t('Added new result_answer_id field to the quiz_node_results_answers table.');
+}
+
+/**
+ * Add new qnr_id field to the quiz_node_relationship table.
+ */
+function quiz_update_7412() {
+  db_drop_primary_key('quiz_node_relationship');
+  db_add_unique_key('quiz_node_relationship', 'parent_child', array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'));
+  $spec = array(
+    'type' => 'serial',
+    'size' => 'normal',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  );
+  db_add_field('quiz_node_relationship', 'qnr_id', $spec, array('primary key' => array('qnr_id')));
+  return t('Added new qnr_id field to the quiz_node_relationship table.');
 }

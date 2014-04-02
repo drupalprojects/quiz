@@ -4323,6 +4323,15 @@ function quiz_entity_info() {
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
+    'quiz_question_relationship' => array(
+      'label' => t('Quiz question relationship'),
+      'controller class' => 'EntityAPIController',
+      'base table' => 'quiz_node_relationship',
+      'entity keys' => array(
+        'id' => 'result_answer_id',
+      ),
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
   );
 }
 
