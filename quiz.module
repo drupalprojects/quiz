@@ -4328,7 +4328,7 @@ function quiz_entity_info() {
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_relationship',
       'entity keys' => array(
-        'id' => 'result_answer_id',
+        'id' => 'qnr_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
