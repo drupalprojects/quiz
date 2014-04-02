@@ -359,22 +359,22 @@ function quiz_admin_quizzes() {
  *
  * @param $quiz
  *   The quiz node
- * @param $rid
+ * @param $result_id
  *   The result id
  */
-function quiz_admin_results($quiz, $rid) {
+function quiz_admin_results($quiz, $result_id) {
   $breadcrumb = drupal_get_breadcrumb();
   $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
 
   // Make sure we have the right version of the quiz
-  $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchObject();
+  $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
   if ($quiz->vid != $result->vid) {
     $quiz = node_load($quiz->nid, $result->vid);
   }
 
   // Get all the data we need.
-  $questions = _quiz_get_answers($quiz, $rid);
-  $score = quiz_calculate_score($quiz, $rid);
+  $questions = _quiz_get_answers($quiz, $result_id);
+  $score = quiz_calculate_score($quiz, $result_id);
   $summary = _quiz_get_summary_text($quiz, $score);
 
   // Lets add the quiz title to the breadcrumb array.
@@ -385,7 +385,7 @@ function quiz_admin_results($quiz, $rid) {
     'questions' => $questions,
     'score' => $score,
     'summary' => $summary,
-    'result_id' => $rid,
+    'result_id' => $result_id,
     'account' => user_load($result->uid)
   );
   return theme('quiz_admin_summary', $data);
@@ -1816,7 +1816,7 @@ function theme_quiz_admin_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid = $variables['result_id'];
+  $result_id = $variables['result_id'];
   $account = $variables['account'];
   // To adjust the title uncomment and edit the line below:
   // drupal_set_title(check_plain($quiz->title));
@@ -2309,16 +2309,16 @@ function quiz_results_mr_form_submit($form, &$form_state) {
  *
  * @param $quiz
  *   The quiz node
- * @param $rid
+ * @param $result_id
  *   Result id
  * @return Html string with links.
  */
-function _quiz_results_mr_get_hover($quiz, $rid) {
-  $to_return = array(l(t('view'), 'node/' . $quiz->nid . '/results/' . $rid));
+function _quiz_results_mr_get_hover($quiz, $result_id) {
+  $to_return = array(l(t('view'), 'node/' . $quiz->nid . '/results/' . $result_id));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
     $to_return[] = l(t('delete'), 'admin/quiz/reports/results/' . $quiz->nid, array(
-      'query' => array('del' => $rid),
-      'attributes' => array('class' => 'hover-del', 'id' => $quiz->nid . '-' . $rid . '-del'),
+      'query' => array('del' => $result_id),
+      'attributes' => array('class' => 'hover-del', 'id' => $quiz->nid . '-' . $result_id . '-del'),
     ));
   }
   return implode(' | ', $to_return);
@@ -2327,13 +2327,13 @@ function _quiz_results_mr_get_hover($quiz, $rid) {
 /**
  * Delete a single result, or all results for a given user and a given quiz.
  *
- * @param $rid
+ * @param $result_id
  *   result if for the result to be deleted
  * @param $nid
  *   Node id for the quiz the result belongs to. If set all the users results for this quiz will be deleted.
  */
-function _quiz_delete_results($rid, $nid = NULL) {
-  $rids = array();
+function _quiz_delete_results($result_id, $nid = NULL) {
+  $result_ids = array();
 
   // We are to delete all results for a certain user on a certain quiz.
   if (isset($nid)) {
@@ -2344,17 +2344,17 @@ function _quiz_delete_results($rid, $nid = NULL) {
               SELECT uid
               FROM {quiz_node_results}
               WHERE result_id = :result_id
-            )', array(':nid' => $nid, ':result_id' => $rid));
+            )', array(':nid' => $nid, ':result_id' => $result_id));
 
     while ($result = $res->fetchField()) {
-      $rids[] = $result;
+      $result_ids[] = $result;
     }
   }
   // We are only to delete one specific result
   else {
-    $rids[] = $rid;
+    $result_ids[] = $result_id;
   }
-  quiz_delete_results($rids);
+  quiz_delete_results($result_ids);
 }
 
 // HELPER FUNCTIONS

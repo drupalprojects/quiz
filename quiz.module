@@ -204,12 +204,12 @@ function quiz_admin_paths() {
  *
  * @param $quiz
  *   The quiz node.
- * @param $rid
+ * @param $result_id
  *   The result id of a result we are trying to access.
  * @return boolean
  *   TRUE if user has permission.
  */
-function quiz_access_results($quiz, $rid = NULL) {
+function quiz_access_results($quiz, $result_id = NULL) {
   global $user;
 
   if ($quiz->type !== 'quiz') {
@@ -217,8 +217,8 @@ function quiz_access_results($quiz, $rid = NULL) {
   }
   // If rid is set we must make sure the result belongs to the quiz we are
   // viewing results for.
-  if (isset($rid)) {
-    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
+  if (isset($result_id)) {
+    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
     if ($res && $res->nid != $quiz->nid) {
       return FALSE;
     }
@@ -231,7 +231,7 @@ function quiz_access_results($quiz, $rid = NULL) {
   }
   if (user_access('score taken quiz answer')) {
     //check if the taken user is seeing his result
-    if (isset($rid) && $res && $res->uid == $user->uid) {
+    if (isset($result_id) && $res && $res->uid == $user->uid) {
       return TRUE;
     }
   }
@@ -258,14 +258,14 @@ function quiz_access_my_results($quiz) {
 /**
  * Helper function to determine if a user has access to view a specific quiz result.
  *
- * @param int $rid
+ * @param int $result_id
  *  Result id
  * @return boolean
  *  True if access, false otherwise
  */
-function quiz_access_my_result($node, $rid) {
+function quiz_access_my_result($node, $result_id) {
   // Check if the quiz taking has been completed.
-  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
+  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
   return $time_end > 0;
 }
 
@@ -956,11 +956,11 @@ function _quiz_common_presave_actions(&$node) {
 function quiz_delete($node) {
   $res = db_query('SELECT result_id FROM {quiz_node_results}
           WHERE nid = :nid', array(':nid' => $node->nid));
-  $rids = array();
-  while ($rid = $res->fetchField()) {
-    $rids[] = $rid;
+  $result_ids = array();
+  while ($result_id = $res->fetchField()) {
+    $result_ids[] = $result_id;
   }
-  quiz_delete_results($rids);
+  quiz_delete_results($result_ids);
 
   // Remove quiz node records from table quiz_node_properties
   db_delete('quiz_node_properties')
@@ -1025,8 +1025,8 @@ function _quiz_get_node_defaults() {
 /**
  * Result_id, menu argument loader.
  */
-function quiz_rid_load($rid) {
-  return (!empty($rid) && is_numeric($rid)) ? $rid : 0;
+function quiz_rid_load($result_id) {
+  return (!empty($result_id) && is_numeric($result_id)) ? $result_id : 0;
 }
 
 /**
@@ -1701,11 +1701,11 @@ function quiz_user_cancel($edit, $account, $method) {
  */
 function _quiz_delete_users_results($uid) {
   $res = db_query("SELECT result_id FROM {quiz_node_results} WHERE uid = :uid", array(':uid' => $uid));
-  $rids = array();
-  while ($rid = $res->fetchField()) {
-    $rids[] = $rid;
+  $result_ids = array();
+  while ($result_id = $res->fetchField()) {
+    $result_ids[] = $result_id;
   }
-  quiz_delete_results($rids);
+  quiz_delete_results($result_ids);
 }
 
 /**
@@ -1978,8 +1978,8 @@ function quiz_take_quiz($quiz) {
 
   // Make sure we use the same revision of the quiz throughout the quiz taking
   // session.
-  $rid = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
-  if ($rid && $quiz_result = quiz_result_load($rid)) {
+  $result_id = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
+  if ($result_id && $quiz_result = quiz_result_load($result_id)) {
     // Enforce that we have the same quiz version.
     $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   }
@@ -1987,10 +1987,10 @@ function quiz_take_quiz($quiz) {
     // User doesn't have attempt in session. If we allow resuming we can load it
     // from the database.
     if ($quiz->allow_resume) {
-      if ($rid = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
-        $_SESSION['quiz'][$quiz->nid]['result_id'] = $rid;
+      if ($result_id = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
+        $_SESSION['quiz'][$quiz->nid]['result_id'] = $result_id;
         $_SESSION['quiz'][$quiz->nid]['current'] = 0;
-        $quiz_result = quiz_result_load($rid);
+        $quiz_result = quiz_result_load($result_id);
         $quiz = node_load($quiz_result->nid, $quiz_result->vid);
         // Resume a quiz from the database.
         drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
@@ -1998,7 +1998,7 @@ function quiz_take_quiz($quiz) {
     }
   }
 
-  if (!$rid) {
+  if (!$result_id) {
     // Can user start quiz?
     if (quiz_start_check($quiz)) {
       // Set up a new attempt.
@@ -2125,9 +2125,9 @@ function quiz_take_question($quiz, $question_number) {
  * @param int $question_num
  *  The question number we want to jump to
  */
-function quiz_jump_to($question_num, $quiz, $rid) {
+function quiz_jump_to($question_num, $quiz, $result_id) {
   // @TODO refactor. "jumping" should be as easy as a drupal_goto
-  _quiz_cleanup_after_jumping($quiz, $rid);
+  _quiz_cleanup_after_jumping($quiz, $result_id);
 }
 
 /**
@@ -2246,12 +2246,12 @@ function quiz_store_question_result($quiz, $result, $options) {
   }
   $points = round($result->score * $scale);
   // Insert result data, or update existing data.
-  $rid_count = db_query("SELECT COUNT('result_id') AS count
+  $result_id_count = db_query("SELECT COUNT('result_id') AS count
               FROM {quiz_node_results_answers}
               WHERE question_nid = :question_nid
               AND question_vid = :question_vid
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->rid))->fetchField();
-  if ($rid_count > 0) {
+  if ($result_id_count > 0) {
     $update = db_update('quiz_node_results_answers')
       ->fields(array(
       'is_correct' => (int) $result->is_correct,
@@ -2290,9 +2290,9 @@ function quiz_store_question_result($quiz, $result, $options) {
 /**
  * Score a completed quiz.
  */
-function quiz_end_scoring($quiz, $rid) {
+function quiz_end_scoring($quiz, $result_id) {
   global $user;
-  $score = quiz_calculate_score($quiz, $rid);
+  $score = quiz_calculate_score($quiz, $result_id);
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
   }
@@ -2302,7 +2302,7 @@ function quiz_end_scoring($quiz, $rid) {
       'time_end' => REQUEST_TIME,
       'score' => $score['percentage_score'],
     ))
-    ->condition('result_id', $rid)
+    ->condition('result_id', $result_id)
     ->execute();
   if ($user->uid) {
     $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
@@ -2318,7 +2318,7 @@ function quiz_end_scoring($quiz, $rid) {
  *
  * @param $quiz
  *  The quiz node
- * @param $rid
+ * @param $result_id
  *  Result id
  * @param $score
  *  Score as a number
@@ -2352,18 +2352,18 @@ function quiz_end_actions($quiz, $score, $session_data) {
  */
 function quiz_quiz_finished($quiz, $score, $session_data) {
   // @TODO convert to entity/rules
-  $rid = $session_data['result_id'];
+  $result_id = $session_data['result_id'];
   // Load data about the quiz taker
   $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $rid))->fetch();
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_query('SELECT mail FROM {users} WHERE uid = :uid', array(':uid' => $quiz->uid))->fetchField();
-    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $rid, 'author'));
+    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $result_id, 'author'));
   }
 
   if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $rid, 'taker'));
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
@@ -2401,11 +2401,11 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  *
  * Performs actions like sending quiz results over email at the end of quiz.
  */
-function quiz_quiz_scored($quiz, $score, $rid) {
+function quiz_quiz_scored($quiz, $score, $result_id) {
   // @TODO Rules
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $rid))->fetch();
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $result_id))->fetch();
   if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $rid, 'taker'));
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t('The results has been sent to the users e-mail address.'));
   }
 
@@ -2444,7 +2444,7 @@ function quiz_mail($key, &$message, $params) {
 
   switch ($key) {
     case 'notice':
-      list($quiz, $score, $rid, $target) = $params;
+      list($quiz, $score, $result_id, $target) = $params;
       $quiz_body = field_get_items('node', $quiz, 'body');
       $substitutions = array(
         '!title' => $quiz->title,
@@ -2457,8 +2457,8 @@ function quiz_mail($key, &$message, $params) {
         '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
         '!total' => $score['possible_score'],
         '!percentage' => $score['percentage_score'],
-        '!url' => url('user/quiz/' . $rid . '/userresults', array('absolute' => TRUE)),
-        '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $rid))->fetchField()
+        '!url' => url('user/quiz/' . $result_id . '/userresults', array('absolute' => TRUE)),
+        '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $result_id))->fetchField()
       );
       $type = $target != 'author' ? '_taker' : '';
       $test = variable_get('quiz_email_results_body' . $type, quiz_email_results_format('body', $target));
@@ -2512,26 +2512,26 @@ function quiz_email_results_format($type, $target) {
  *
  * @param $quiz
  *   The quiz node for the quiz that is being scored.
- * @param $rid
+ * @param $result_id
  *   The result ID to update.
  * @return
  *   The score as an integer representing percentage. E.g. 55 is 55%.
  */
-function quiz_update_total_score($quiz, $rid) {
-  $score = quiz_calculate_score($quiz, $rid);
+function quiz_update_total_score($quiz, $result_id) {
+  $score = quiz_calculate_score($quiz, $result_id);
   db_update('quiz_node_results')
     ->fields(array(
       'score' => $score['percentage_score'],
     ))
-    ->condition('result_id', $rid)
+    ->condition('result_id', $result_id)
     ->execute();
   if ($score['is_evaluated']) {
     // Call hook_quiz_scored().
-    module_invoke_all('quiz_scored', $quiz, $score, $rid);
-    _quiz_maintain_results($quiz, $rid);
+    module_invoke_all('quiz_scored', $quiz, $score, $result_id);
+    _quiz_maintain_results($quiz, $result_id);
     db_update('quiz_node_results')
       ->fields(array('is_evaluated' => 1))
-      ->condition('result_id', $rid)
+      ->condition('result_id', $result_id)
       ->execute();
   }
   return $score['percentage_score'];
@@ -2723,11 +2723,11 @@ function quiz_availability($quiz) {
  *
  * @param $quiz
  *   The quiz node.
- * @return $rid
+ * @return $result_id
  *   The result id.
  */
 function quiz_create_rid($quiz) {
-  $rid = db_insert('quiz_node_results')
+  $result_id = db_insert('quiz_node_results')
     ->fields(array(
       'nid' => $quiz->nid,
       'vid' => $quiz->vid,
@@ -2735,11 +2735,11 @@ function quiz_create_rid($quiz) {
       'time_start' => REQUEST_TIME,
     ))
     ->execute();
-  if (!is_numeric($rid)) {
+  if (!is_numeric($result_id)) {
     form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
     return FALSE;
   }
-  return $rid;
+  return $result_id;
 }
 
 /**
@@ -2747,19 +2747,19 @@ function quiz_create_rid($quiz) {
  *
  * @param $quiz
  *   The quiz node.
- * @param $rid
+ * @param $result_id
  *   Quiz result ID.
  *
  * @return array
  *   Contains three elements: question_count, num_correct and percentage_score.
  */
-function quiz_calculate_score($quiz, $rid) {
+function quiz_calculate_score($quiz, $result_id) {
   // 1. Fetch all questions and their max scores
   $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
     FROM {quiz_node_results_answers} a
     LEFT JOIN {node} n ON (a.question_nid = n.nid)
     LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = :vid
-    WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $rid));
+    WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
   // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
   // Fetched from the db, not calculated....
   $scores = array();
@@ -2780,7 +2780,7 @@ function quiz_calculate_score($quiz, $rid) {
     $function = $mod . '_quiz_question_score';
 
     if (function_exists($function)) {
-      $score = $function($quiz, $question->question_nid, $question->question_vid, $rid);
+      $score = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
       // Allow for max score to be considered.
       $scores[] = $score;
     }
@@ -3064,10 +3064,10 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
  *   The current quiz(node).
  * @param $uid
  *   The ID of the current user.
- * @param $rid
+ * @param $result_id
  *   The result ID found for the current quiz.
  */
-function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
+function _quiz_resume_existing_quiz($quiz, $uid, $result_id) {
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   $already_answered = array();
@@ -3076,7 +3076,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   $answered_questions = db_query('SELECT question_nid AS nid, question_vid AS vid, number
           FROM {quiz_node_results_answers}
           WHERE result_id = :rid
-          ORDER BY number, answer_timestamp', array(':rid' => $rid));
+          ORDER BY number, answer_timestamp', array(':rid' => $result_id));
   //while ($answered = db_fetch_object($answered_questions)) {
   foreach ($answered_questions as $answered) {
     foreach ($questions as $question) {
@@ -3093,7 +3093,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
         if (!in_array($question['vid'], $already_answered) && isset($question['random']) && $question['random'] === TRUE) {
           $questions[$key]['vid'] = $answered->vid;
           $questions[$key]['nid'] = $answered->nid;
-          $questions[$key]['result_id'] = $rid;
+          $questions[$key]['result_id'] = $result_id;
           $already_answered[] = $answered->vid;
           continue 2;
         }
@@ -3108,7 +3108,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
   $next_number = count($already_answered) + 1;
   foreach ($questions as $question) {
     if (in_array($question['vid'], $already_answered)) {
-      $question['result_id'] = $rid;
+      $question['result_id'] = $result_id;
       $_SESSION['quiz'][$quiz->nid]['previous_quiz_questions'][] = $question;
     }
     else {
@@ -3124,7 +3124,7 @@ function _quiz_resume_existing_quiz($quiz, $uid, $rid) {
     $_SESSION['quiz'][$quiz->nid]['quiz_questions'][] = array_pop($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']);
   }
 
-  $_SESSION['quiz'][$quiz->nid]['result_id'] = $rid;
+  $_SESSION['quiz'][$quiz->nid]['result_id'] = $result_id;
   $_SESSION['quiz'][$quiz->nid]['question_number'] = count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']);
 
   // Timed quizzes are likely to have expired by this point. But we let
@@ -3149,11 +3149,11 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
           AND qnr.nid = :nid
           AND qnr.time_end = :time_end
           AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
-  $rids = array();
-  while ($rid = $res->fetchField()) {
-    $rids[] = $rid;
+  $result_ids = array();
+  while ($result_id = $res->fetchField()) {
+    $result_ids[] = $result_id;
   }
-  quiz_delete_results($rids);
+  quiz_delete_results($result_ids);
 }
 
 /**
@@ -3181,13 +3181,13 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
 
   // Get any quiz that is open, for this user, and has not already
   // been completed.
-  $rid = db_query('SELECT result_id FROM {quiz_node_results} qnr
+  $result_id = db_query('SELECT result_id FROM {quiz_node_results} qnr
           INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
           WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
           AND qnr.vid = :vid
           AND qnr.uid = :uid
           AND qnr.time_end = :time_end', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid, ':time_end' => 0))->fetchField();
-  return (int) $rid;
+  return (int) $result_id;
 }
 
 /**
@@ -3611,13 +3611,13 @@ function _quiz_get_quizzes($uid = 0) {
 /**
  * Get answer data for a specific result.
  *
- * @param $rid
+ * @param $result_id
  *   Result id.
  *
  * @return
  *   Array of answers.
  */
-function _quiz_get_answers($quiz, $rid) {
+function _quiz_get_answers($quiz, $result_id) {
   $questions = array();
   $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score, qt.max_score as term_max_score
                    FROM {quiz_node_results_answers} ra
@@ -3626,7 +3626,7 @@ function _quiz_get_answers($quiz, $rid) {
                    LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.parent_vid = r.vid
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
                    WHERE ra.result_id = :rid
-                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $rid));
+                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $result_id));
   while ($line = $ids->fetch()) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
@@ -3642,7 +3642,7 @@ function _quiz_get_answers($quiz, $rid) {
       continue;
     }
     // Invoke hook_get_report().
-    $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $rid);
+    $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $result_id);
     if (!$report) {
       continue;
     }
@@ -3670,15 +3670,15 @@ function _quiz_get_answers($quiz, $rid) {
  *
  * @param object $quiz
  *  The quiz node we want to clean up results for
- * @param int $rid
+ * @param int $result_id
  *  Result id for the result we want to clean up
  */
-function _quiz_cleanup_after_jumping($quiz, $rid) {
+function _quiz_cleanup_after_jumping($quiz, $result_id) {
   foreach ($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions'] as $previous_question) {
     // tried db_merge() instead of separate SELECT and INSERT query
     // but it marks all the questions as skipped.
     $condition = array(
-      ':rid' => $rid,
+      ':rid' => $result_id,
       ':nid' => $previous_question['nid'],
       ':vid' => $previous_question['vid']
     );
@@ -3686,7 +3686,7 @@ function _quiz_cleanup_after_jumping($quiz, $rid) {
     if (empty($duplicate)) {
       db_insert('quiz_node_results_answers')
         ->fields(array(
-          'result_id' => $rid,
+          'result_id' => $result_id,
           'question_nid' => $previous_question['nid'],
           'question_vid' => $previous_question['vid'],
           'is_skipped' => 1,
@@ -3981,12 +3981,12 @@ function quiz_copy_questions($node) {
  *
  * @param $quiz
  *  The quiz node to be maintained
- * @param $rid
+ * @param $result_id
  *  The result id of the latest result for the current user
  * @return
  *  TRUE if results where deleted.
  */
-function _quiz_maintain_results($quiz, $rid) {
+function _quiz_maintain_results($quiz, $result_id) {
   global $user;
 
   // Do not delete results for anonymous users
@@ -4009,47 +4009,47 @@ function _quiz_maintain_results($quiz, $rid) {
       $res = db_query('SELECT result_id FROM {quiz_node_results}
           WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
       );
-      $rids = array();
-      while ($rid2 = $res->fetchField()) {
-        $rids[] = $rid2;
+      $result_ids = array();
+      while ($result_id2 = $res->fetchField()) {
+        $result_ids[] = $result_id2;
       }
-      quiz_delete_results($rids);
-      return !empty($rids);
+      quiz_delete_results($result_ids);
+      return !empty($result_ids);
     case QUIZ_KEEP_LATEST:
       $res = db_query('SELECT result_id FROM {quiz_node_results}
-              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':result_id' => $rid));
-      $rids = array();
-      while ($rid2 = $res->fetchField()) {
-        $rids[] = $rid2;
+              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':result_id' => $result_id));
+      $result_ids = array();
+      while ($result_id2 = $res->fetchField()) {
+        $result_ids[] = $result_id2;
       }
-      quiz_delete_results($rids);
-      return !empty($rids);
+      quiz_delete_results($result_ids);
+      return !empty($result_ids);
   }
 }
 
 /**
  * Delete quiz results.
  *
- * @param $rids
+ * @param $result_ids
  *   Result ids for the results to be deleted.
  */
-function quiz_delete_results($rids) {
-  if (empty($rids)) {
+function quiz_delete_results($result_ids) {
+  if (empty($result_ids)) {
     return;
   }
   $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
           WHERE result_id IN(:result_id)';
-  $result = db_query($sql, array(':result_id' => $rids));
+  $result = db_query($sql, array(':result_id' => $result_ids));
   foreach ($result as $record) {
     quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
   }
 
   db_delete('quiz_node_results_answers')
-    ->condition('result_id', $rids, 'IN')
+    ->condition('result_id', $result_ids, 'IN')
     ->execute();
 
   db_delete('quiz_node_results')
-    ->condition('result_id', $rids, 'IN')
+    ->condition('result_id', $result_ids, 'IN')
     ->execute();
 }
 
@@ -4347,8 +4347,8 @@ function quiz_entity_info() {
 /**
  * Shortcut to entity_load_single().
  */
-function quiz_result_load($rid) {
-  return entity_load_single('quiz_result', $rid);
+function quiz_result_load($result_id) {
+  return entity_load_single('quiz_result', $result_id);
 }
 
 /**
@@ -4362,8 +4362,8 @@ function quiz_take_question_access($quiz, $question) {
  * Show feedback for a question response.
  */
 function quiz_take_question_feedback($quiz, $question_number) {
-  $rid = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  $quiz_result = quiz_result_load($rid);
+  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  $quiz_result = quiz_result_load($result_id);
   $question_node = node_load($quiz_result->layout[$question_number - 1]['nid']);
   $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
   return $feedback;

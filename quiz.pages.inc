@@ -146,7 +146,7 @@ function quiz_report_form_submit($form, &$form_state) {
     if (!isset($quiz)) {
       $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
       $quiz = node_load($result->nid, $result->vid);
-      $rid = $q_values['result_id'];
+      $result_id = $q_values['result_id'];
     }
 
     $q_values['quiz'] = $quiz;
@@ -155,14 +155,14 @@ function quiz_report_form_submit($form, &$form_state) {
     call_user_func($q_values['submit'], $q_values);
   }
   // Scores may have been changed. We take the necessary actions
-  quiz_update_total_score_fast($rid, $quiz->vid);
+  quiz_update_total_score_fast($result_id, $quiz->vid);
   $changed = db_update('quiz_node_results')
   ->fields(array(
     'is_evaluated' =>  1,
   ))
-  ->condition('result_id', $rid)
+  ->condition('result_id', $result_id)
   ->execute();
-  $results_got_deleted = _quiz_maintain_results($quiz, $rid);
+  $results_got_deleted = _quiz_maintain_results($quiz, $result_id);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
   if($changed > 0) {
@@ -172,14 +172,14 @@ function quiz_report_form_submit($form, &$form_state) {
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
 
-  $score_data = quiz_get_score_array($rid, $quiz->vid, TRUE);
+  $score_data = quiz_get_score_array($result_id, $quiz->vid, TRUE);
 
-  module_invoke_all('quiz_scored', $quiz, $score_data, $rid);
+  module_invoke_all('quiz_scored', $quiz, $score_data, $result_id);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
     if ($result && $result->uid == $user->uid) {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/results/' . $rid;
+      $form_state['redirect'] = 'node/' . $quiz->nid . '/results/' . $result_id;
     }
   }
 }
@@ -208,15 +208,15 @@ function _quiz_remove_unscored_message() {
 /**
  * Updates the total score using only one mySql query.
  *
- * @param $rid
+ * @param $result_id
  *  Result id
  * @param $quiz_vid
  *  Quiz node version id
  */
-function quiz_update_total_score_fast($rid, $quiz_vid) {
+function quiz_update_total_score_fast($result_id, $quiz_vid) {
 	$subq1 = db_select('quiz_node_results_answers', 'a');
 	$subq1
-		->condition('a.result_id', $rid)
+		->condition('a.result_id', $result_id)
 		->addExpression('SUM(a.points_awarded)');
 	$res1 = $subq1->execute()->fetchField();
 
@@ -228,24 +228,24 @@ function quiz_update_total_score_fast($rid, $quiz_vid) {
 
 	db_update('quiz_node_results')
 		->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
-		->condition('result_id', $rid)
+		->condition('result_id', $result_id)
 		->execute();
 }
 
 /**
  * Returns an array of score information for a quiz
  *
- * @param unknown_type $rid
+ * @param unknown_type $result_id
  * @param unknown_type $quiz_vid
  * @param unknown_type $is_evaluated
  */
-function quiz_get_score_array($rid, $quiz_vid, $is_evaluated) {
+function quiz_get_score_array($result_id, $quiz_vid, $is_evaluated) {
   $properties = db_query('SELECT max_score, number_of_random_questions
           FROM {quiz_node_properties}
           WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
   $total_score = db_query('SELECT SUM(points_awarded)
           FROM {quiz_node_results_answers}
-          WHERE result_id = :result_id', array(':result_id' => $rid))->fetchField();
+          WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
   return array(
     'question_count' => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
@@ -541,7 +541,7 @@ function theme_quiz_take_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid =  $variables['result_id'];
+  $result_id =  $variables['result_id'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 
@@ -550,7 +550,7 @@ function theme_quiz_take_summary($variables) {
   if (!empty($score['possible_score'])) {
     if (!$score['is_evaluated']) {
       if (user_access('score taken quiz answer')) {
-        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+        $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $result_id)));
       }
       else {
         $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
@@ -596,13 +596,13 @@ function theme_quiz_user_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $rid = $variables['result_id'];
+  $result_id = $variables['result_id'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 
   if (!$score['is_evaluated']) {
     if (user_access('score taken quiz answer')) {
-      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $rid)));
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final. <a class="self-score" href="!result_url">Click here</a> to give scores on your own.', array('@quiz' => QUIZ_NAME, '!result_url' => url('node/' . $quiz->nid . '/results/' . $result_id)));
     }
     else {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));

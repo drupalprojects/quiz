@@ -220,14 +220,14 @@ class MatchingQuestion extends QuizQuestion {
   /**
    * Implementation of getAnsweringForm
    *
-   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
+    $form = parent::getAnsweringForm($form_state, $result_id);
 
-    if (isset($rid)) {
+    if (isset($result_id)) {
       // The question has already been answered. We load the answers
-      $response = new MatchingResponse($rid, $this->node);
+      $response = new MatchingResponse($result_id, $this->node);
       $responses = $response->getResponse();
     }
     list($matches, $select_option) = $this->getSubquestions();

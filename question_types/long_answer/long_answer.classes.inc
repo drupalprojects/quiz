@@ -123,10 +123,10 @@ class LongAnswerQuestion extends QuizQuestion {
   /**
    * Implementation of getAnweringForm
    *
-   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $element = parent::getAnsweringForm($form_state, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
+    $element = parent::getAnsweringForm($form_state, $result_id);
 
     $element += array(
       '#type' => 'textarea',
@@ -136,8 +136,8 @@ class LongAnswerQuestion extends QuizQuestion {
       '#cols' => 60,
       //'#theme' =>'long_answer_answering_form',
     );
-    if (isset($rid)) {
-      $response = new LongAnswerResponse($rid, $this->node);
+    if (isset($result_id)) {
+      $response = new LongAnswerResponse($result_id, $this->node);
       $element['#default_value'] = $response->getResponse();
     }
     return $element;

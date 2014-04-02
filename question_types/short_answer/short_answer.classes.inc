@@ -130,10 +130,10 @@ class ShortAnswerQuestion extends QuizQuestion {
   /**
    * Implementation of getAnsweringForm
    *
-   * @see QuizQuestion#getAnsweringForm($form_state, $rid)
+   * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
+    $form = parent::getAnsweringForm($form_state, $result_id);
     //$form['#theme'] = 'short_answer_answering_form';
 
     $form = array(
@@ -147,8 +147,8 @@ class ShortAnswerQuestion extends QuizQuestion {
       '#attributes' => array('autocomplete' => 'off'),
     );
 
-    if (isset($rid)) {
-      $response = new ShortAnswerResponse($rid, $this->node);
+    if (isset($result_id)) {
+      $response = new ShortAnswerResponse($result_id, $this->node);
       $form['#default_value'] = $response->getResponse();
     }
 

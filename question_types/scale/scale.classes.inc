@@ -346,10 +346,10 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Implementation of getAnsweringForm
    *
-   * @see getAnsweringForm($form_state, $rid)
+   * @see getAnsweringForm($form_state, $result_id)
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $form = parent::getAnsweringForm($form_state, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
+    $form = parent::getAnsweringForm($form_state, $result_id);
     //$form['#theme'] = 'scale_answering_form';
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
@@ -363,8 +363,8 @@ class ScaleQuestion extends QuizQuestion {
       '#title' => t('Choose one'),
       '#options' => $options,
     );
-    if (isset($rid)) {
-      $response = new ScaleResponse($rid, $this->node);
+    if (isset($result_id)) {
+      $response = new ScaleResponse($result_id, $this->node);
       $form['#default_value'] = $response->getResponse();
     }
     return $form;

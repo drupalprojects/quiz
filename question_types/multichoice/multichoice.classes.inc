@@ -417,8 +417,8 @@ class MultichoiceQuestion extends QuizQuestion {
    * This is called whenever a question is rendered, either
    * to an administrator or to a quiz taker.
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
-    $element = parent::getAnsweringForm($form_state, $rid);
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
+    $element = parent::getAnsweringForm($form_state, $result_id);
     //$form['#theme'] = 'multichoice_answering_form';
 
     /* We use an array looking key to be able to store multiple answers in tries.
@@ -426,9 +426,9 @@ class MultichoiceQuestion extends QuizQuestion {
      * to fix in quiz 5.x.
      */
     $element['#theme'] = 'multichoice_alternative';
-    if (isset($rid)) {
+    if (isset($result_id)) {
       // This question has already been answered. We load the answer.
-      $response = new MultichoiceResponse($rid, $this->node);
+      $response = new MultichoiceResponse($result_id, $this->node);
     }
     for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];

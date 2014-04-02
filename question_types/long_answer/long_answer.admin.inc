@@ -22,12 +22,12 @@ function long_answer_view_unscored() {
  *
  * @param $vid
  *  The VID of the question and answer to load.
- * @param $rid
+ * @param $result_id
  *  The result ID of the answer to load.
  * @return
  *  Text to display.
  */
-function long_answer_edit_score($vid, $rid) {
+function long_answer_edit_score($vid, $result_id) {
 
   // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
   // and we need to be able to access old nodes in node_revision.vid.
@@ -43,7 +43,7 @@ function long_answer_edit_score($vid, $rid) {
     return;
   }
 
-  $answer = (object) long_answer_get_answer($node->nid, $node->vid, $rid);
+  $answer = (object) long_answer_get_answer($node->nid, $node->vid, $result_id);
   if (!$answer) {
     drupal_not_found();
     return;

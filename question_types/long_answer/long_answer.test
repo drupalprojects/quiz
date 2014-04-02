@@ -317,11 +317,11 @@ class LongAnswerFunctionalTest extends DrupalWebTestCase {
 
   public function testEditScore() {
     $node = $this->createLongAnswerQuestion();
-    $rid = 1;
+    $result_id = 1;
     $answer_text = 'This is a test answer';
-    $answer_id = long_answer_save_answer($node->nid, $node->vid, $rid, $answer_text);
+    $answer_id = long_answer_save_answer($node->nid, $node->vid, $result_id, $answer_text);
 
-    $form = long_answer_edit_score($node->vid, $rid);
+    $form = long_answer_edit_score($node->vid, $result_id);
 
     print_r($form);
 

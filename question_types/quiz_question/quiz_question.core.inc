@@ -419,14 +419,14 @@ abstract class QuizQuestion {
    *
    * @param $form_state
    *  The FAPI form_state array
-   * @param $rid
+   * @param $result_id
    *  The result id.
    * @return
    *  Must return a FAPI array. At the moment all form elements that takes
    *  user response must have a key named "tries". (This is a Quiz 3.x legacy AFAIK. I'm
    *  not thrilled about it...)
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
     //echo $this->node->type;exit;
     $form = array();
     return $form;
@@ -651,7 +651,7 @@ abstract class QuizQuestion {
  */
 abstract class QuizQuestionResponse {
   // Result id
-  protected $rid = 0;
+  protected $result_id = 0;
 
   protected $is_correct = FALSE;
   protected $evaluated = TRUE;
@@ -759,7 +759,7 @@ abstract class QuizQuestionResponse {
    *
    * Convert data to an object that has the following properties:
    * - $score
-   * - $rid
+   * - $result_id
    * - $nid
    * - $vid
    * - $is_correct

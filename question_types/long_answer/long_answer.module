@@ -125,7 +125,7 @@ function long_answer_theme() {
  *  Node ID of question.
  * @param $vid
  *  Version ID of question.
- * @param $rid
+ * @param $result_id
  *  Result ID for the quiz results.
  * @param $score
  *  The numeric score to assign the result.
@@ -154,7 +154,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
       'score' => $score * $question_max_score / $quiz_max_score,
       'is_evaluated' => 1,
       'answer_feedback' => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
-      'answer_feedback_format' => $answer_feedback['format']
+      'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -180,12 +180,12 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
         'is_correct' => $is_correct,
       ))
       ->condition('question_vid', $vid)
-      ->condition('result_id', $rid)
+      ->condition('result_id', $result_id)
       ->execute();
 
     // Third, we update the main quiz results table
     if ($update_total) {
-      quiz_update_total_score($quiz, $rid);
+      quiz_update_total_score($quiz, $result_id);
     }
   }
 
@@ -200,7 +200,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
  *  Node ID of question.
  * @param $vid
  *  Version ID of question.
- * @param $rid
+ * @param $result_id
  *  Result ID for the quiz results.
  *
  * @return Assoc array

@@ -140,9 +140,9 @@ class DDLinesQuestion extends QuizQuestion {
    * This is called whenever a question is rendered, either
    * to an administrator or to a quiz taker.
    */
-  public function getAnsweringForm(array $form_state = NULL, $rid) {
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
     
-    $form = parent::getAnsweringForm($form_state, $rid);
+    $form = parent::getAnsweringForm($form_state, $result_id);
     
     $form['helptext'] = array(
       '#markup' => t('Answer this question by dragging each rectangular label to the correct circular hotspot.'),

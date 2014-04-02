@@ -22,12 +22,12 @@ function short_answer_view_unscored() {
  *
  * @param $vid
  *  The VID of the question and answer to load.
- * @param $rid
+ * @param $result_id
  *  The result ID of the answer to load.
  * @return
  *  Text to display.
  */
-function short_answer_edit_score($vid, $rid) {
+function short_answer_edit_score($vid, $result_id) {
   $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
   if (!$nid) {
     drupal_not_found();
@@ -40,7 +40,7 @@ function short_answer_edit_score($vid, $rid) {
     return;
   }
 
-  $answer = (object) short_answer_get_answer($node->nid, $node->vid, $rid);
+  $answer = (object) short_answer_get_answer($node->nid, $node->vid, $result_id);
   if (!$answer) {
     drupal_not_found();
     return;
