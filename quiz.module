@@ -4306,7 +4306,7 @@ function _quiz_is_last_question($quiz) {
 function quiz_entity_info() {
   return array(
     'quiz_result' => array(
-      'label' => t('Quiz attempt'),
+      'label' => t('Quiz result'),
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_results',
       'entity keys' => array(
@@ -4381,6 +4381,7 @@ function quiz_entity_property_info_alter(&$info) {
 
   $info['quiz_result']['properties']['nid']['type'] = 'node';
   $info['quiz_result']['properties']['vid']['type'] = 'integer';
+  $info['quiz_result']['properties']['uid']['type'] = 'user';
   $info['quiz_result']['properties']['time_start']['type'] = 'date';
   $info['quiz_result']['properties']['time_end']['type'] = 'date';
   $info['quiz_result']['properties']['released']['type'] = 'date';
