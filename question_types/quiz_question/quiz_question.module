@@ -916,7 +916,7 @@ function quiz_question_feedback($quiz, $question) {
   $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $_SESSION['quiz'][$quiz->nid]['result_id']);
   $path = drupal_get_path('module', 'quiz');
   require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
-  if ($report && $report->type != 'quiz_directions') {
+  if ($report) {
     $allow_scoring = quiz_allow_score_access($quiz);
     $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, $allow_scoring);
     return $report_form;
