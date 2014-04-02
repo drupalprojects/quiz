@@ -4396,6 +4396,8 @@ function quiz_jumper($form, $form_state, $current_question, $num_of_questions) {
     '#type' => 'select',
     '#options' => drupal_map_assoc(range(1, $num_of_questions)),
     '#default_value' => arg(3),
+    '#prefix' => t('Question'),
+    '#suffix' => t('of @num', array('@num' => $num_of_questions)),
   );
   $form['submit'] = array(
     '#type' => 'submit',

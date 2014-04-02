@@ -477,14 +477,21 @@ function theme_quiz_progress($variables) {
 
   $current_question = $question_number;
 
-  if ($variables['allow_jumping']) {
-    $current_question = drupal_get_form('quiz_jumper', $current_question, $num_of_question);
-    $current_question = drupal_render($current_question);
-  }
+
 
   $output  = '';
   $output .= '<div id="quiz_progress">';
-  $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
+
+  if ($variables['allow_jumping']) {
+    // Show jump form.
+    $current_question = drupal_get_form('quiz_jumper', $current_question, $num_of_question);
+    $output .= drupal_render($current_question);
+  }
+  else {
+    // Just text.
+    $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
+  }
+
   $output .= '</div>' . "\n";
   // Add div to be used by jQuery countdown
   if ($variables['time_limit']) {

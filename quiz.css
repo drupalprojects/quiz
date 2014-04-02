@@ -236,8 +236,8 @@ input#edit-submit-hidden {
   font-style: italic;
 }
 
-#quiz-jumper {
-  display: none;
+#quiz-jumper .form-item-question-number {
+  display: inline;
 }
 
 #quiz-categorized-form #autocomplete {
