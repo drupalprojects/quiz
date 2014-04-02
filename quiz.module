@@ -4346,11 +4346,13 @@ function quiz_take_question_access($quiz, $question) {
 function quiz_take_question_feedback($quiz, $question_number) {
   $rid = $_SESSION['quiz'][$quiz->nid]['result_id'];
   $quiz_result = quiz_result_load($rid);
-  $question_node = node_load($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']]['nid']);
+  $question_node = node_load($quiz_result->layout[$question_number - 1]['nid']);
+  $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
+  return $feedback;
+}
 
-  if ($quiz->feedback_time = QUIZ_FEEDBACK_QUESTION) {
-    $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
-    $feedback_markup = drupal_render($feedback);
-  }
-  return $feedback_markup;
+function quiz_take_question_feedback_submit($form, &$form_state) {
+  $quiz = node_load(arg(1));
+  quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+  $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
 }

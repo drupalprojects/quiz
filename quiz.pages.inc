@@ -82,6 +82,16 @@ function quiz_report_form($form, $form_state, $questions, $showpoints = TRUE, $s
       '#value' => t('Save Score'),
     );
   }
+
+  if (count($questions) == 1) {
+    // Just one question. Send to next question.
+    $form['next'] = array(
+      '#type' => 'submit',
+      '#submit' => array('quiz_take_question_feedback_submit'),
+      '#value' => t('Next question'),
+    );
+  }
+
   return $form;
 }
 
@@ -284,8 +294,7 @@ function quiz_my_results($node) {
     FROM {quiz_node_properties} qnp
     INNER JOIN {quiz_node_results} qnrs ON qnrs.vid = qnp.vid
     WHERE qnrs.uid = :uid AND qnrs.nid = :nid AND qnrs.is_evaluated = 1
-    ORDER BY qnrs.result_id DESC',
-    array(':uid' => $user->uid, ':nid' => $node->nid)
+    ORDER BY qnrs.result_id DESC', array(':uid' => $user->uid, ':nid' => $node->nid)
   );
   // Create an array out of the results.
   while ($line = $res->fetchAssoc()) {

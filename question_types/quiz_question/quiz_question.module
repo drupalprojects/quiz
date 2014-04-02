@@ -967,9 +967,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_END) {
-      $form_state['redirect'] = "node/{$quiz->nid}/myresults/{$quiz_result->result_id}";
-    }
+    $form_state['redirect'] = "node/{$quiz->nid}/myresults/{$quiz_result->result_id}";
 
     // Remove all information about this quiz from the session.
     // @todo but for anon, we might have to keep some so they could access results
