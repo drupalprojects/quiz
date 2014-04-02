@@ -134,35 +134,42 @@ function quiz_question_validate($node, &$form) {
 /**
  * Get the form to show to the quiz taker.
  */
-function quiz_question_answering_form($form, $form_state, $node, $rid) {
-  $question = _quiz_question_get_instance($node);
-  // Element for a single question
-  $element = $question->getAnsweringForm($form_state, $rid);
-  $quiz = quiz_type_access_load(arg(1));
+function quiz_question_answering_form($form, $form_state, $nodes, $rid) {
+  if (!is_array($nodes)) {
+    $nodes = array($nodes->nid => $nodes);
+  }
 
   $form['question']['#tree'] = TRUE;
-  $form['question'][$node->nid] = $element;
   $form['#attributes']['class'] = array('answering-form');
 
-  $is_last = _quiz_is_last_question($quiz);
-  $form['navigation']['#theme'] = 'quiz_question_navigation_form';
-  if ($quiz->mark_doubtful) {
-    $form['is_doubtful'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('doubtful'),
-      '#weight' => 1,
-      '#prefix' => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
-      '#suffix' => '</div>',
-      '#default_value' => 0,
-      '#attached' => array(
-        'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
-      ),
-    );
-    if (isset($node->rid)) {
-      $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->rid, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
+  foreach ($nodes as $node) {
+    $question = _quiz_question_get_instance($node);
+    // Element for a single question
+    $element = $question->getAnsweringForm($form_state, $rid);
+    $quiz = quiz_type_access_load(arg(1));
+
+    $form['question'][$node->nid] = $element;
+
+    if ($quiz->mark_doubtful) {
+      $form['is_doubtful'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('doubtful'),
+        '#weight' => 1,
+        '#prefix' => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
+        '#suffix' => '</div>',
+        '#default_value' => 0,
+        '#attached' => array(
+          'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
+        ),
+      );
+      if (isset($node->rid)) {
+        $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->rid, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
+      }
     }
   }
 
+  $form['navigation']['#theme'] = 'quiz_question_navigation_form';
+  $is_last = _quiz_is_last_question($quiz);
   if (!empty($quiz->backwards_navigation) && $node->question_number != 1) {
     $form['navigation']['back'] = array(
       '#type' => 'submit',
