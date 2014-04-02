@@ -389,9 +389,9 @@ function quiz_menu() {
     'type' => MENU_LOCAL_TASK,
   );
 
-  // Result
+  // Feedback
   $items['node/%node/take/%/feedback'] = array(
-    'title' => 'Take',
+    'title' => 'Feedback',
     'page callback' => 'quiz_take_question_feedback',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_take_question_access',
