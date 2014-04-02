@@ -294,7 +294,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         'answer' => $this->answer,
         'question_nid' => $this->question->nid,
         'question_vid' => $this->question->vid,
-        'result_id' => $this->rid,
+        'result_id' => $this->result_id,
       ))
       ->execute();
   }
@@ -308,7 +308,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     db_delete('quiz_long_answer_user_answers')
       ->condition('question_nid', $this->question->nid)
       ->condition('question_vid', $this->question->vid)
-      ->condition('result_id', $this->rid)
+      ->condition('result_id', $this->result_id)
       ->execute();
   }
 
@@ -319,7 +319,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function score() {
     return (int) db_query('SELECT score FROM {quiz_long_answer_user_answers}
-      WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
+      WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
   }
 
   /**

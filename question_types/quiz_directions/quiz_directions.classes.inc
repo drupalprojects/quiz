@@ -123,12 +123,12 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
       // reset the timer.
       $sql = 'UPDATE {quiz_node_results} SET time_start=%d WHERE result_id = %d';
       // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, REQUEST_TIME, $this->rid) */
+      /* db_query($sql, REQUEST_TIME, $this->result_id) */
       db_update('quiz_node_results')
   ->fields(array(
     'time_start' => REQUEST_TIME,
   ))
-  ->condition('result_id', $this->rid)
+  ->condition('result_id', $this->result_id)
   ->execute();
     }
 

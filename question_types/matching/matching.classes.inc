@@ -469,7 +469,7 @@ class MatchingResponse extends QuizQuestionResponse {
     foreach ($this->answer as $key => $value) {
       $insert->values(array(
         'match_id' => $key,
-        'result_id' => $this->rid,
+        'result_id' => $this->result_id,
         'answer' => (int) $value,
         'score' => ($key == $value) ? 1 : 0,
       ));
@@ -486,7 +486,7 @@ class MatchingResponse extends QuizQuestionResponse {
     $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->question->nid, ':vid' => $this->question->vid))->fetchCol();
     db_delete('quiz_matching_user_answers')
       ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
-      ->condition('result_id', $this->rid)
+      ->condition('result_id', $this->result_id)
       ->execute();
   }
 

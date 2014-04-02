@@ -676,7 +676,7 @@ abstract class QuizQuestionResponse {
    *  The answer (dependent on question type).
    */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
-    $this->rid = $result_id;
+    $this->result_id = $result_id;
     $this->question = $question_node;
     $this->answer = $answer;
     $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
@@ -769,7 +769,7 @@ abstract class QuizQuestionResponse {
     $obj->score = $this->getScore(); // This can be 0 for unscored.
     $obj->nid = $this->question->nid;
     $obj->vid = $this->question->vid;
-    $obj->rid = $this->rid;
+    $obj->result_id = $this->result_id;
     $obj->is_correct = (int) $this->isCorrect();
     $obj->is_evaluated = $this->isEvaluated();
     $obj->is_skipped = 0;
@@ -812,7 +812,7 @@ abstract class QuizQuestionResponse {
       'score' => $this->getScore(),
       'question_vid' => $this->question->vid,
       'question_nid' => $this->question->nid,
-      'result_id' => $this->rid,
+      'result_id' => $this->result_id,
     );
     return $report;
   }
@@ -843,7 +843,7 @@ abstract class QuizQuestionResponse {
     );
     $form['result_id'] = array(
       '#type' => 'value',
-      '#value' => $this->rid,
+      '#value' => $this->result_id,
     );
     if ($submit = $this->getReportFormSubmit($showpoints, $showfeedback, $allow_scoring)) {
       $form['submit'] = array(

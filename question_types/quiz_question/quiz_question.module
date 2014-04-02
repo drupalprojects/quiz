@@ -162,8 +162,8 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
           'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
         ),
       );
-      if (isset($node->rid)) {
-        $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->rid, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
+      if (isset($node->result_id)) {
+        $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->result_id, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
       }
     }
   }
@@ -253,7 +253,7 @@ function quiz_question_skip_question($question, $result_id) {
   $response = new stdClass();
   $response->nid = $question->nid;
   $response->vid = $question->vid;
-  $response->rid = $result_id;
+  $response->result_id = $result_id;
   $response->is_skipped = TRUE;
   if (isset($_POST['is_doubtful'])) {
     $response->is_doubtful = $_POST['is_doubtful'];

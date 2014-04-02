@@ -383,7 +383,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
         'answer' => $this->answer,
         'question_nid' => $this->question->nid,
         'question_vid' => $this->question->vid,
-        'result_id' => $this->rid,
+        'result_id' => $this->result_id,
         'score' => $this->getScore(FALSE),
         'is_evaluated' => $this->is_evaluated,
       ))
@@ -399,7 +399,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     db_delete('quiz_short_answer_user_answers')
       ->condition('question_nid', $this->question->nid)
       ->condition('question_vid', $this->question->vid)
-      ->condition('result_id', $this->rid)
+      ->condition('result_id', $this->result_id)
       ->execute();
   }
 
@@ -411,7 +411,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function score() {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
-      $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_vid' => $this->question->vid))->fetchField();
+      $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
       if(!$score) {
         $score = 0;
       }

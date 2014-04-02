@@ -854,7 +854,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function save() {
     $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
-        'result_id' => $this->rid,
+        'result_id' => $this->result_id,
         'question_vid' => $this->question->vid,
         'question_nid' => $this->question->nid,
         'choice_order' => $this->choice_order
@@ -876,7 +876,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function delete() {
     $user_answer_id = array();
-    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->question->nid, ':vid' => $this->question->vid, ':result_id' => $this->rid));
+    $query = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid AND result_id = :result_id', array(':nid' => $this->question->nid, ':vid' => $this->question->vid, ':result_id' => $this->result_id));
     while ($user_answer = $query->fetch()) {
       $user_answer_id[] = $user_answer->id;
     }
@@ -888,7 +888,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     }
 
     db_delete('quiz_multichoice_user_answers')
-      ->condition('result_id', $this->rid)
+      ->condition('result_id', $this->result_id)
       ->condition('question_nid', $this->question->nid)
       ->condition('question_vid', $this->question->vid)
       ->execute();
@@ -1032,7 +1032,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
       return;
     }
     $result = db_query('SELECT choice_order FROM {quiz_multichoice_user_answers}
-            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $this->rid, ':question_nid' => $this->question->nid, ':question_vid' => $this->question->vid))->fetchField();
+            WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_nid' => $this->question->nid, ':question_vid' => $this->question->vid))->fetchField();
     if (!$result) {
       return;
     }

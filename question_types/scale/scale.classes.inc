@@ -583,7 +583,7 @@ class ScaleResponse extends QuizQuestionResponse {
     $id = db_insert('quiz_scale_user_answers')
       ->fields(array(
         'answer_id' => $this->answer_id,
-        'result_id' => $this->rid,
+        'result_id' => $this->result_id,
         'question_vid' => $this->question->vid,
         'question_nid' => $this->question->nid,
       ))
@@ -597,7 +597,7 @@ class ScaleResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_scale_user_answers')
-      ->condition('result_id', $this->rid)
+      ->condition('result_id', $this->result_id)
       ->condition('question_nid', $this->question->nid)
       ->condition('question_vid', $this->question->vid)
       ->execute();
