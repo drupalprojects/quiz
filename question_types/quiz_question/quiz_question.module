@@ -241,29 +241,6 @@ function _quiz_question_teaser_content($node) {
   return $content;
 }
 
-/**
- * Implements hook_skip_question().
- */
-function quiz_question_skip_question($question, $result_id) {
-  unset($_POST['tries']); // Unset any answer that might have been set.
-  // Delete any old answers for this question (for backwards nav).
-  _quiz_question_response_get_instance($result_id, $question)->delete();
-
-  // This is the standard response:
-  $response = new stdClass();
-  $response->nid = $question->nid;
-  $response->vid = $question->vid;
-  $response->result_id = $result_id;
-  $response->is_skipped = TRUE;
-  if (isset($_POST['is_doubtful'])) {
-    $response->is_doubtful = $_POST['is_doubtful'];
-  }
-  else {
-    $response->is_doubtful = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question->nid, ':question_vid' => $question->vid))->fetchField();
-  }
-  return $response;
-}
-
 function quiz_question_goto($quiz, $index) {
   $_SESSION['quiz'][$quiz->nid]['current'] = $index;
 }

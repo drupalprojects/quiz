@@ -158,18 +158,6 @@ function multichoice_more_choices_submit($form, &$form_state) {
   }
   $form_state['rebuild'] = TRUE;
 }
-/**
- * Recursive helper function to set the validated property. (Taken from the skip validation module.)
- *
- * @param &$elements
- *   The elements that are currently being processed.
- */
-function _multichoice_skip_validation(&$elements) {
-  $elements['#validated'] = TRUE;
-  foreach (element_children($elements) as $key) {
-    _multichoice_skip_validation($elements[$key]);
-  }
-}
 
 /**
  * Implements hook_user_cancel().

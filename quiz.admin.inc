@@ -2360,21 +2360,6 @@ function _quiz_delete_results($result_id, $nid = NULL) {
 // HELPER FUNCTIONS
 
 /**
- * Recursive helper function to set the validated property. (Taken from the skip validation module.)
- *
- * TODO: DELETE
- *
- * @param &$elements
- *   The elements that are currently being processed.
- */
-function _quiz_skip_validation(&$elements) {
-  $elements['#validated'] = TRUE;
-  foreach (element_children($elements) as $key) {
-    _quiz_skip_validation($elements[$key]);
-  }
-}
-
-/**
  * Helper function for theme_question_selection_table
  *
  * TODO: DELETE
