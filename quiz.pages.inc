@@ -478,7 +478,8 @@ function theme_quiz_progress($variables) {
   $current_question = $question_number;
 
   if ($variables['allow_jumping']) {
-    $current_question = theme('quiz_jumper', array('current' => $current_question, 'num_questions' => $num_of_question));
+    $current_question = drupal_get_form('quiz_jumper', $current_question, $num_of_question);
+    $current_question = drupal_render($current_question);
   }
 
   $output  = '';
@@ -497,28 +498,19 @@ function theme_quiz_progress($variables) {
  * @see http://drupal.org/node/1354
  */
 function theme_quiz_jumper($variables) {
-  $current = $variables['current'];
-  $num_questions = $variables['num_questions'];
-  $output = '<select name="quiz-jumper" class="form-select" id="quiz-jumper">';
-  for ($i = 1; $i <= $num_questions; $i++) {
-    $extra = $i == $current ? ' selected="selected"' : '';
-    $output .= '<option value="' . $i . '"' . $extra . '>' . $i . '</option>';
-  }
-  $output .= '</select><span id="quiz-jumper-no-js">' . $current . '</span>';
   drupal_add_js('
     (function ($) {
       Drupal.behaviors.quizJumper = {
         attach: function(context, settings) {
           $("#quiz-jumper:not(.quizJumper-processed)", context).show().addClass("quizJumper-processed").change(function(){
-            $("[name=jump_to_question]").val($(this).val());
-            $("#edit-submit").trigger("click");
+            $("#quiz-jumper #edit-submit").trigger("click");
           });
           $("#quiz-jumper-no-js:not(.quizJumper-processed)").hide().addClass("quizJumper-processed");
         }
       };
     })(jQuery);
   ', array('type' => 'inline', 'scope' => JS_DEFAULT));
-  return $output;
+  return '';
 }
 
 /**

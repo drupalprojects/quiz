@@ -4390,3 +4390,23 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_result']['properties']['is_evaluated']['type'] = 'boolean';
   $info['quiz_result']['properties']['time_left']['type'] = 'duration';
 }
+
+function quiz_jumper($form, $form_state, $current_question, $num_of_questions) {
+  $form['question_number'] = array(
+    '#type' => 'select',
+    '#options' => drupal_map_assoc(range(1, $num_of_questions)),
+    '#default_value' => arg(3),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Jump'),
+    '#attributes' => array('class' => array('js-hide')),
+  );
+  return $form;
+}
+
+function quiz_jumper_submit($form, &$form_state) {
+  $quiz = node_load(arg(1));
+  quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
+  $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
+}
