@@ -262,7 +262,7 @@ class MatchingQuestion extends QuizQuestion {
         return TRUE;
       }
     }
-    return t('You need to match at least one of the items.');
+    form_set_error('', t('You need to match at least one of the items.'));
   }
 
   /**
@@ -502,7 +502,7 @@ class MatchingResponse extends QuizQuestionResponse {
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     foreach ((array) $user_answers as $key => $value) {
-      if ($correct_answers[$key]['answer'] == $correct_answers[$value]['answer']) {
+      if ($value != 0 && $correct_answers[$key]['answer'] == $correct_answers[$value]['answer']) {
         $correct_answer++;
       }
       elseif ($value == 0 || $value == 'def') {

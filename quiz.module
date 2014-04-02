@@ -2018,12 +2018,22 @@ function quiz_take_quiz($quiz) {
     return array('body' => array('#markup' => t('This quiz is not available.')));
   }
 
-    drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
+  drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
 }
+
 function quiz_take_question($quiz, $question_number) {
   $question_index = $question_number - 1;
-  if ((!$quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id'])) || (!$question_node = node_load($quiz_result->layout[$question_index]['nid']))) {
-    // Couldn't find a result or this question in the layout. Start over.
+  $question_node = NULL;
+
+  if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
+    $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+    if (!empty($quiz_result->layout[$question_index]['nid'])) {
+      $question_node = node_load($quiz_result->layout[$question_index]['nid']);
+    }
+  }
+
+  if (!$question_node) {
+    // Question disappeared or invalid session. Start over.
     unset($_SESSION['quiz'][$quiz->nid]);
     drupal_goto("node/{$quiz->nid}");
   }
