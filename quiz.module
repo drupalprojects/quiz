@@ -1978,7 +1978,7 @@ function quiz_take_quiz($quiz) {
 
   // Make sure we use the same revision of the quiz throughout the quiz taking
   // session.
-  $rid = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  $rid = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
   if ($quiz_result = quiz_result_load($rid)) {
     // Enforce that we have the same quiz version.
     $quiz = node_load($quiz_result->nid, $quiz_result->vid);
@@ -2027,6 +2027,8 @@ function quiz_take_question($quiz, $question_number) {
     unset($_SESSION['quiz'][$quiz->nid]);
     drupal_goto("node/{$quiz->nid}");
   }
+
+  $_SESSION['quiz'][$quiz->nid]['current'] = $question_index;
 
   // Added the progress info to the view.
   $result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
