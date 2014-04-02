@@ -1979,7 +1979,7 @@ function quiz_take_quiz($quiz) {
   // Make sure we use the same revision of the quiz throughout the quiz taking
   // session.
   $rid = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
-  if ($quiz_result = quiz_result_load($rid)) {
+  if ($rid && $quiz_result = quiz_result_load($rid)) {
     // Enforce that we have the same quiz version.
     $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   }
