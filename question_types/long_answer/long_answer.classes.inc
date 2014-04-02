@@ -147,7 +147,7 @@ class LongAnswerQuestion extends QuizQuestion {
    * Question response validator.
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
-    if (reset($form_state['values']['question']) == '') {
+    if ($form_state['values']['question'][$this->node->nid] == '') {
       form_set_error('', t('You must provide an answer'));
     }
   }

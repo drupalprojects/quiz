@@ -256,7 +256,7 @@ class MatchingQuestion extends QuizQuestion {
    * Question response validator.
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
-    $question_answer = reset($form_state['values']['question']);
+    $question_answer = $form_state['values']['question'][$this->node->nid];
     foreach ($question_answer as $value) {
       if ($value != 'def') {
         return TRUE;
