@@ -394,7 +394,7 @@ function quiz_menu() {
     'title' => 'Feedback',
     'page callback' => 'quiz_take_question_feedback',
     'page arguments' => array(1, 3),
-    'access callback' => 'quiz_take_question_access',
+    'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
     'type' => MENU_LOCAL_TASK,
   );
@@ -4328,10 +4328,40 @@ function quiz_result_load($result_id) {
 }
 
 /**
- * Check if the user has access to take this question in this quiz.
+ * Meun check to see if user has access to take this question.
  */
-function quiz_take_question_access($quiz, $question) {
-  return TRUE;
+function quiz_take_question_access($quiz, $question_number) {
+  if ($question_number == 1) {
+    // First question.
+    return TRUE;
+  }
+
+  if ($quiz->allow_skipping) {
+    // Access to go to any question. Yay.
+    return TRUE;
+  }
+
+  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  $quiz_result = quiz_result_load($result_id);
+  $question_index = $question_number - 1;
+  $qinfo_last = $quiz_result->layout[$question_index - 1];
+  $qinfo = $quiz_result->layout[$question_index];
+
+  if (!$quiz->backwards_navigation) {
+    // No backwards navigation.
+    if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+      // Already have an answer for the requested question.
+      return FALSE;
+    }
+  }
+
+  // Enforce normal navigation.
+  $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
+  $result = db_query($sql, array(':result_id' => $result_id, ':nid' => $qinfo_last['nid'], ':vid' => $qinfo_last['vid']));
+  if ($qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
+    //  Previous answer was submitted.
+    return TRUE;
+  }
 }
 
 /**
@@ -4396,4 +4426,31 @@ function quiz_jumper_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
   quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
+}
+
+/**
+ * Menu access check for question feedback.
+ */
+function quiz_question_feedback_access($quiz, $question_number) {
+  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    $question_index = $question_number - 1;
+    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+    $quiz_result = quiz_result_load($result_id);
+    $qinfo = $quiz_result->layout[$question_index];
+
+    if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Load a specific result answer.
+ */
+function quiz_result_answer_load($result_id, $nid, $vid) {
+  $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
+  $result = db_query($sql, array(':result_id' => $result_id, ':nid' => $nid, ':vid' => $vid));
+  if ($row = $result->fetch()) {
+    return entity_load_single('quiz_result_answer', $row->result_answer_id);
+  }
 }
