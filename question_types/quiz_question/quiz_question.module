@@ -221,8 +221,29 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
  */
 function quiz_question_answering_form_submit_blank($form, &$form_state) {
   $quiz = node_load(arg(1));
+  $questions = quiz_build_question_list($quiz);
+  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  foreach ($form_state['input']['question'] as $nid => $input) {
+    // Loop over all question inputs provided, and record them as skipped.
+    $question = node_load($nid);
+
+    foreach ($questions as $question_item) {
+      if ($question_item['nid'] == $question->nid) {
+        $question_array = $question_item;
+      }
+    }
+
+    $qi_instance = _quiz_question_response_get_instance($result_id, $question, NULL);
+    $qi_instance->delete();
+    $qi_instance->saveResult();
+    $bare_object = $qi_instance->toBareObject();
+    quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+  }
+
+  // Advance to next question.
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
+
 }
 
 /**

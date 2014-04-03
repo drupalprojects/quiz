@@ -2285,8 +2285,7 @@ function quiz_end_scoring($quiz, $result_id) {
   // was necessary before.
   foreach ($quiz_result->layout as $idx => $qinfo) {
     // Load the Quiz answer submission from the database.
-    $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
-    $db_result = db_query($sql, array(':result_id' => $result_id, ':nid' => $qinfo['nid'], ':vid' => $qinfo['vid']));
+    $qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid']);
     $current_question = node_load($qinfo['nid'], $qinfo['vid']);
 
     $questions = quiz_build_question_list($quiz);
@@ -2296,7 +2295,7 @@ function quiz_end_scoring($quiz, $result_id) {
       }
     }
 
-    if (!$db_result->fetch()) {
+    if (!$qra) {
       $qi_instance = _quiz_question_response_get_instance($result_id, $current_question, NULL);
       $qi_instance->delete();
       $qi_instance->saveResult();
@@ -4336,7 +4335,7 @@ function quiz_take_question_access($quiz, $question_number) {
     return TRUE;
   }
 
-  if ($quiz->allow_skipping) {
+  if ($quiz->allow_jumping) {
     // Access to go to any question. Yay.
     return TRUE;
   }
