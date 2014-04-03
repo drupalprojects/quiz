@@ -2073,10 +2073,7 @@ function quiz_take_question($quiz, $question_number) {
     if ($time <= 1) {
       // Quiz has been timed out, run a loop to mark the remaining questions
       // as skipped.
-      quiz_jump_to(count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) + 1, $quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
-      $quiz_end = TRUE;
-      unset($content['progress']);
-      $show_validation_message = FALSE;
+      // @todo we just need to run quiz_end_score here, I think
       drupal_set_message(t('You have run out of time.'), 'error');
     }
     else {
@@ -2117,17 +2114,6 @@ function quiz_take_question($quiz, $question_number) {
 
 
   return $content;
-}
-
-/**
- * Set the current session to jump to a specific question number
- *
- * @param int $question_num
- *  The question number we want to jump to
- */
-function quiz_jump_to($question_num, $quiz, $result_id) {
-  // @TODO refactor. "jumping" should be as easy as a drupal_goto
-  _quiz_cleanup_after_jumping($quiz, $result_id);
 }
 
 /**
@@ -3687,43 +3673,6 @@ function _quiz_get_answers($quiz, $result_id) {
     }
   }
   return $questions;
-}
-
-/**
- * Clean up result data when the user jumps forward in a quiz
- *
- * When jumping in a quiz we might be skipping lots of questions. We need
- * to update the result data according to this...
- *
- * @param object $quiz
- *  The quiz node we want to clean up results for
- * @param int $result_id
- *  Result id for the result we want to clean up
- */
-function _quiz_cleanup_after_jumping($quiz, $result_id) {
-  foreach ($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions'] as $previous_question) {
-    // tried db_merge() instead of separate SELECT and INSERT query
-    // but it marks all the questions as skipped.
-    $condition = array(
-      ':rid' => $result_id,
-      ':nid' => $previous_question['nid'],
-      ':vid' => $previous_question['vid']
-    );
-    $duplicate = db_query('SELECT * FROM {quiz_node_results_answers} WHERE result_id = :rid AND question_nid = :nid AND question_vid = :vid', $condition)->fetchAssoc();
-    if (empty($duplicate)) {
-      db_insert('quiz_node_results_answers')
-        ->fields(array(
-          'result_id' => $result_id,
-          'question_nid' => $previous_question['nid'],
-          'question_vid' => $previous_question['vid'],
-          'is_skipped' => 1,
-          'answer_timestamp' => REQUEST_TIME,
-          'number' => $previous_question['number'],
-          'tid' => isset($previous_question['tid']) ? $previous_question['tid'] : 0,
-        ))
-        ->execute();
-    }
-  }
 }
 
 /**
