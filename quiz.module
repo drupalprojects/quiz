@@ -4330,6 +4330,10 @@ function quiz_result_load($result_id) {
  * Meun check to see if user has access to take this question.
  */
 function quiz_take_question_access($quiz, $question_number) {
+  if (!$question_number) {
+    return FALSE;
+  }
+
   if ($question_number == 1) {
     // First question.
     return TRUE;
@@ -4431,14 +4435,16 @@ function quiz_jumper_submit($form, &$form_state) {
  * Menu access check for question feedback.
  */
 function quiz_question_feedback_access($quiz, $question_number) {
-  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-    $question_index = $question_number - 1;
-    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-    $quiz_result = quiz_result_load($result_id);
-    $qinfo = $quiz_result->layout[$question_index];
+  if ($question_number >= 1) {
+    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+      $question_index = $question_number - 1;
+      $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+      $quiz_result = quiz_result_load($result_id);
+      $qinfo = $quiz_result->layout[$question_index];
 
-    if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
-      return TRUE;
+      if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+        return TRUE;
+      }
     }
   }
 }
