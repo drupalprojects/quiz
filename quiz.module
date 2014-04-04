@@ -1714,26 +1714,6 @@ function _quiz_delete_users_results($uid) {
  */
 
 /**
- * Load a quiz node, cache it and validate that it is indeed of type quiz.
- *
- * @param $arg
- *   The Node ID.
- * @return
- *   A quiz node object or FALSE if a load failed.
- */
-function quiz_type_access_load($arg) {
-  static $quiz_nodes = array();
-  if (isset($quiz_nodes[$arg])) {
-    return $quiz_nodes[$arg];
-  }
-  $to_return = (($node = node_load($arg)) && $node->type == 'quiz') ? $node : FALSE;
-  if ($to_return) {
-    $quiz_nodes[$arg] = $to_return;
-  }
-  return $to_return;
-}
-
-/**
  * Validate that a node is of type quiz, and that the user has access to it.
  *
  * @param $node

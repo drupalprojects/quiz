@@ -146,7 +146,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $question = _quiz_question_get_instance($node);
     // Element for a single question
     $element = $question->getAnsweringForm($form_state, $result_id);
-    $quiz = quiz_type_access_load(arg(1));
+    $quiz = node_load(arg(1));
 
     $form['question'][$node->nid] = $element;
 
