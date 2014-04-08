@@ -37,7 +37,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    */
 
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'multichoice', 'quiz_directions', 'quiz_question', 'querypath', 'questions_import', 'short_answer', 'truefalse', 'long_answer', 'matching', 'questions_export');
+    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'short_answer');
 
     // array of drupal user permission
     $permission = array('administer site configuration', 'access administration pages',

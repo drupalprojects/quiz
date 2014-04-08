@@ -48,7 +48,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    */
 
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'multichoice', 'quiz_directions', 'quiz_question', 'querypath', 'questions_import', 'short_answer', 'truefalse', 'long_answer', 'matching', 'questions_export');
+    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'long_answer');
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
