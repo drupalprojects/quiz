@@ -94,12 +94,12 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
 
     $load = node_load($node->nid);
 
-    $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
-    $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
-    $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be long_answer'));
-    $this->assertEqual($node->correct_answer, $this->correct_answer, t('Correct answer of stored node should be equal the original correct answer'));
-    $this->assertEqual($node->maximum_score, $this->maximum_score, t('Maximum Score of stored node should be equal the original maximum score'));
-    $this->assertEqual($node->correct_answer_evaluation, $this->correct_answer_evaluation, t('Correct answer evaluation method should be equal the correct answer'));
+    $this->assertEqual($load->title, $this->title, t('Title of stored node should equal the original title.'));
+    $this->assertEqual($load->body, $this->body, t('Body of stored node should be equal to original body.'));
+    $this->assertEqual($load->type, $this->question_node_type, t('Stored node type should be long_answer'));
+    $this->assertEqual($load->correct_answer, $this->correct_answer, t('Correct answer of stored node should be equal the original correct answer'));
+    $this->assertEqual($load->maximum_score, $this->maximum_score, t('Maximum Score of stored node should be equal the original maximum score'));
+    $this->assertEqual($load->correct_answer_evaluation, $this->correct_answer_evaluation, t('Correct answer evaluation method should be equal the correct answer'));
 
     return $load;
   }

@@ -81,34 +81,9 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $node = $this->drupalCreateNode($settings);
     $load = node_load($node->nid);
 
-    // @todo verify save
+    $this->assertEqual($load->maximum_score, $this->max_score, t('Stored score should be the same as original score.'));
 
     return $load;
-  }
-
-  /**
-   * Create and then update a node.
-   */
-  public function unitTestCreateQuestionNode() {
-    $node = $this->createLongAnswerQuestion();
-
-    if (!$node) {
-      throw new Exception('Expected to have a node to work with.');
-    }
-    $this->nid1 = $node->nid;
-    $this->assertTrue(!empty($node->title), t('check that node title is not empty @title', array('@title' => $node->title)));
-    $this->assertTrue(!empty($this->title), t('check that original title is not empty @title', array('@title' => $this->title)));
-    $this->assertEqual(strlen($node->title), strlen($this->title), t('check that length of original title and stored title are same.'));
-
-    $this->assertEqual($node->maximum_score, $this->max_score, t('Stored score should be the same as original score.'));
-  }
-
-  /**
-   * Test that the appropriate data was stored in the node properties table.
-   */
-  public function unitTestCheckNodeProperties() {
-    $max = db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = :nid', array(':nid' => $this->nid1))->fetchField();
-    $this->assertEqual($max, $this->max_score, t('Test that max score was appropriately stored in database.'));
   }
 
   /**
