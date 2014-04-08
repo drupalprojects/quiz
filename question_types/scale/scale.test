@@ -1,7 +1,68 @@
 <?php
 
-/*
+/**
  * @file
- * Test suite for scale questions type module.
+ * Test suite for scale question type module.
  *
  */
+
+/**
+ * Test class for scale questions.
+ */
+class ScaleTestCase extends DrupalWebTestCase {
+
+  /**
+   * The getInfo() method provides information about the test.
+   * In order for the test to be run, the getInfo() method needs
+   * to be implemented.
+   */
+  public static function getInfo() {
+    return array(
+      'name' => t('Scale unit test'),
+      'description' => t('Unit test for scale question type.'),
+      'group' => t('Quiz'),
+    );
+  }
+
+  /**
+   * Implementing setUp() to enable scale module testing
+   */
+  function setUp() {
+    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'scale');
+
+    // Create and log in our test user. Should be cleaned up as I something
+    // was wrong with permissions and I basically kept adding potentially
+    // useful ones until it worked.
+    // array of drupal permission
+    $permission = array(
+      'access administration pages',
+      'access quiz',
+      'administer blocks',
+      'administer quiz configuration',
+      'administer site configuration',
+      'administer taxonomy',
+      'create scale content',
+      'create quiz content',
+      'edit any scale content',
+    );
+
+    // create a drupal test user with specified permissions
+    $user = $this->drupalCreateUser($permission);
+    $this->drupalLogin($user);
+  }
+
+  /**
+   * Create a new question with default settings.
+   */
+  public function testCreateQuestion() {
+    $settings = array();
+    $settings['type'] = 'scale';
+
+    $node = $this->drupalCreateNode($settings);
+    $load = node_load($node->nid);
+
+    return $load;
+  }
+
+  // @todo write tests
+}

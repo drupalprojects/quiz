@@ -58,13 +58,6 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
 
     // login into drupal site
     $this->drupalLogin($user);
-
-    // create one quiz, which will be the default in the import form
-    $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName();
-    $quiz_settings['comment'] = $this->randomName();
-    $quiz_settings['type'] = 'quiz';
-    //$this->drupalCreateNode($quiz_settings);
   }
 
   /*

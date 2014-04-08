@@ -58,14 +58,6 @@ class MatchingUnitTest extends DrupalWebTestCase {
     // create a drupal test user with specified permissions
     $user = $this->drupalCreateUser($permission);
     $this->drupalLogin($user);
-
-    // create one quiz, which will be the default in the import form
-    $quiz_settings = array(
-      'title' => $this->randomName(),
-      'comment' => $this->randomName(),
-      'type' => 'quiz',
-    );
-    // $this->drupalCreateNode($quiz_settings);
   }
 
   /*
