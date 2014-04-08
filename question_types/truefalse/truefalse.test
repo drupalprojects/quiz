@@ -14,10 +14,6 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   var $question_node_type = 'true_false';
   var $title = '';
   var $body = '';
-  var $node_id = NULL;
-  // to generate a string of random size
-  var $rand_min = 1;
-  var $rand_max = 64;
 
   // member functions definition starts here
 

@@ -12,12 +12,8 @@ class MatchingUnitTest extends DrupalWebTestCase {
 
   // initializing attributes
   var $question_node_type = 'matching';
-  var $node_id = NULL;
   var $title = '';
   var $body = '';
-  // used to generate a string of random size
-  var $rand_min = 1;
-  var $rand_max = 256;
 
   // member functions definition starts here
 

@@ -14,10 +14,6 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   var $question_node_type = 'short_answer';
   var $title = '';
   var $body = '';
-  var $node_id = NULL;
-  // To generate a string of random size
-  var $rand_min = 1;
-  var $rand_max = 127;
 
   // member functions definition starts here
 

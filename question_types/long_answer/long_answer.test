@@ -16,9 +16,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   var $max_score = 1234; // Impossible value, given max limit of 3 digits.
   var $title = '';
   var $body = '';
-  // used to generate a string of random size
-  var $rand_min = 1;
-  var $rand_max = 256;
 
   // member functions definition starts here
 
