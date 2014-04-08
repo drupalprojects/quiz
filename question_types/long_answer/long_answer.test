@@ -69,9 +69,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * Utility function for creating a new test question.
+   * Creating a new long answer question.
    */
-  public function createLongAnswerQuestion() {
+  public function testCreateLongAnswerQuestion() {
     $this->title = $this->randomName();
     $this->body = $this->randomName();
     $this->max_score = rand(1, 10);
@@ -90,40 +90,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     ;
   }
 
-  /*
-    public function createQuiz() {
-    $title = 'Test Quiz';
-    $body = 'This is a sample quiz.';
-    $settings = array(
-    'type' => 'quiz',
-    'title' => $title,
-    'body' => $body,
-    'revisions' => TRUE,
-    );
-
-    $node = $this->drupalCreateNode($settings);
-
-    return $node;
-    }
-   */
-
-  /**
-   * Run a bundle of Node API tests.
-   *
-   * This tests CRUD and revision functionality on a single node.
-   */
-  public function testNodeAPI() {
-    $this->unitTestCreateQuestionNode();
-    $this->unitTestCheckNodeProperties();
-    $this->unitTestUpdateQuestionNode();
-
-    $this->unitTestListQuestions();
-
-    // Revisions
-    $this->unitTestCreateQuestionRevision();
-
-    $this->unitTestDeleteQuestionNode();
-  }
 
   /**
    * Create and then update a node.
@@ -139,10 +105,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->assertTrue(!empty($this->title), t('check that original title is not empty @title', array('@title' => $this->title)));
     $this->assertEqual(strlen($node->title), strlen($this->title), t('check that length of original title and stored title are same.'));
 
-    $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
-    $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
     $this->assertEqual($node->maximum_score, $this->max_score, t('Stored score should be the same as original score.'));
-    $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be long_answer'));
   }
 
   /**
@@ -151,14 +114,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   public function unitTestCheckNodeProperties() {
     $max = db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = :nid', array(':nid' => $this->nid1))->fetchField();
     $this->assertEqual($max, $this->max_score, t('Test that max score was appropriately stored in database.'));
-  }
-
-  /**
-   * Check that question exists in DB.
-   */
-  public function unitTestListQuestions() {
-    $questions = long_answer_questions_list();
-    $this->assertEqual(count($questions), 1, t('Verify that the question exists.'));
   }
 
   /**
@@ -172,37 +127,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
 
     $nodeCopy = node_load($node->nid, $node->vid);
     $this->assertEqual($nodeCopy->maximum_score, $newScore, t('Check that stored score is the same as newly assigned score.'));
-  }
-
-  /**
-   * Test creation of node revision.
-   */
-  public function unitTestCreateQuestionRevision() {
-    $node = node_load($this->nid1);
-    $oldVid = $node->vid;
-    $node->revision = 1;
-    node_save($node);
-
-    $oldMax = $node->maximum_score;
-
-    $nodeCopy = node_load($node->nid, $node->vid);
-    $this->assertNotEqual($nodeCopy->vid, $oldVid, t('Check that VID of new version is not the same as old VID.'));
-    $this->assertEqual($oldMax, $nodeCopy->maximum_score, t('Check that new VID has an entry in node properties.'));
-  }
-
-  /**
-   * Test deeting of question node.
-   */
-  public function unitTestDeleteQuestionNode() {
-    $node = node_load($this->nid1);
-    if ($node === FALSE) {
-      throw new Exception("Expected fixture to have valid nid1");
-    }
-    unset($node);
-
-    node_delete($this->nid1);
-    $node = node_load($this->nid);
-    $this->assertFalse($node, t('Test that node was deleted'));
   }
 
   /**

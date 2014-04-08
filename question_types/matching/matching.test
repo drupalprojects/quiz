@@ -69,9 +69,9 @@ class MatchingUnitTest extends DrupalWebTestCase {
   /**
    * function to create true false type question node for testing.
    */
-  public function createMatchingQuestion() {
+  public function testCreateQuestion() {
     // matching question node attributes
-    $this->title = $this->randomName(mt_rand($this->min, $this->max));
+    $this->title = $this->randomName();
     $this->body = $this->randomName();
 
     // array of node attributes to create a test node
@@ -93,49 +93,6 @@ class MatchingUnitTest extends DrupalWebTestCase {
 
     // create drupal node
     return $this->drupalCreateNode($settings);
-  }
-
-  /**
-   * function to test matching type question node creation.
-   */
-  public function unitTestCreateMatchingQuestionNode() {
-    $node = $this->createMatchingQuestion();
-    // raise an exception if node is not created.
-    if (!$node) {
-      throw new Exception('Expected to have a node to work with.');
-    }
-    $this->node_id = $node->nid;
-    $this->assertEqual($node->title, $this->title, t('Title of stored node should equal the original title.'));
-    $this->assertEqual($node->body, $this->body, t('Body of stored node should be equal to original body.'));
-    $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be matching'));
-  }
-
-  /**
-   * @function
-   * function tests whether node properties has been saved appropriately or not.
-   */
-  public function unitTestCheckMatchingNodeProperties() {
-    //$node = node_load($this->node_id);
-    //$this->assertEqual(count($node->match), count($this->match), t('Test that all match questions was appropriately stored in database.'));
-  }
-
-  /**
-   * Check that question exists in DB.
-   */
-  public function unitTestCheckMatchingQuestionsList() {
-    $questions = matching_questions_list();
-    $this->assertEqual(count($questions), 1, t('Verify that the question exists.'));
-  }
-
-  /**
-   * Run a bundle of Node API tests.
-   *
-   * This tests CRUD and all the functionality on a singlea node.
-   */
-  public function testMatchingNodeOperations() {
-    $this->unitTestCreateMatchingQuestionNode();
-    $this->unitTestCheckMatchingNodeProperties();
-    $this->unitTestCheckMatchingQuestionsList();
   }
 
 }
