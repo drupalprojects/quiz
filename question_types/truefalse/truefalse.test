@@ -1,10 +1,13 @@
 <?php
 
-/*
+/**
  * @file
  * Unit tests for the truefalse Module.
  */
 
+/**
+ * Test class for true false questions.
+ */
 class TrueFalseUnitTest extends DrupalWebTestCase {
 
   // initialing attributes
@@ -18,7 +21,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
 
   // member functions definition starts here
 
-  /*
+  /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
@@ -31,10 +34,9 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
     );
   }
 
-  /*
+  /**
    * Implementing setUp() to enable truefalse module testing
    */
-
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'truefalse');
 
@@ -60,21 +62,19 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
     $this->drupalLogin($user);
   }
 
-  /*
+  /**
    * checks whether hook_quiz_question for true/false questions type has been
    * defined or not.
    */
-
   public function testTrueFalseQuizQuestionInfo() {
     $info = truefalse_quiz_question_info();
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
     $this->assertTrue(isset($info['true_false']), t('Check that true/false question type exists.'));
   }
 
-  /*
+  /**
    * function to create true false type question node for testing.
    */
-
   public function createTrueFalseQuestion() {
     $this->title = $this->randomName();
     $this->body = $this->randomName();

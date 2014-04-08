@@ -1,11 +1,13 @@
 <?php
 
-/*
+/**
  * @file
  * Unit tests for the short_answer Module.
- *
  */
 
+/**
+ * Test class for short answer.
+ */
 class ShortAnswerUnitTest extends DrupalWebTestCase {
 
   // initialing attributes
@@ -19,7 +21,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
 
   // member functions definition starts here
 
-  /*
+  /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
@@ -32,10 +34,9 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     );
   }
 
-  /*
+  /**
    * Implementing setUp() to enable short_answer module testing
    */
-
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'short_answer');
 
@@ -59,21 +60,19 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $this->drupalLogin($user);
   }
 
-  /*
+  /**
    * checks whether hook_quiz_question for true/false questions type has been
    * defined or not.
    */
-
   public function testShortAnswerQuizQuestionInfo() {
     $info = short_answer_quiz_question_info();
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
     $this->assertTrue(isset($info['short_answer']), t('Check that short answer question type exists.'));
   }
 
-  /*
+  /**
    * function to create true false type question node for testing.
    */
-
   public function createShortAnswerQuestion() {
     // score range
     $score_min = 1;
@@ -119,10 +118,9 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $this->unitTestShortAnswerQuestionsList();
   }
 
-  /*
+  /**
    * function to test short answer question node  creation.
    */
-
   public function unitTestShortAnswerCreateQuestionNode() {
     $node = $this->createShortAnswerQuestion();
 
@@ -139,11 +137,10 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $this->assertEqual($node->correct_answer_evaluation, $this->correct_answer_evaluation, t('Correct answer evaluation method should be equal the correct answer'));
   }
 
-  /*
+  /**
    * @function
    * function tests whether node properties has been saved appropriately or not.
    */
-
   public function unitTestCheckShortAnswerNodeProperties() {
     $sql = "SELECT maximum_score, correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties} WHERE nid = :nid";
     $node = db_query($sql, array(':nid' => $this->node_id))->fetch();

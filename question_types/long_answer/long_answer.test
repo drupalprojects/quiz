@@ -1,8 +1,12 @@
 <?php
 
 /**
- * Unit tests for the long_answer Module.
  * @file
+ * Unit tests for the long_answer Module.
+ */
+
+/**
+ * Test class for long answer.
  */
 class LongAnswerUnitTest extends DrupalWebTestCase {
 
@@ -18,7 +22,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
 
   // member functions definition starts here
 
-  /*
+  /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
@@ -31,10 +35,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     );
   }
 
-  /*
+  /**
    * Implementing setUp() to enable truefalse module testing
    */
-
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'long_answer');
 
@@ -58,18 +61,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $user = $this->drupalCreateUser($permission);
     $this->assertTrue(is_object, t('Check that user has been created with specified permission.'));
     $this->drupalLogin($user);
-
-    // create one quiz, which will be the default in the import form
-    $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName();
-    $quiz_settings['comment'] = $this->randomName();
-    $quiz_settings['type'] = 'quiz';
-    //$this->drupalCreateNode($quiz_settings);
   }
-
-  //public function testModuleIsEnabled() {
-  //  $this->assertTrue(in_array('long_answer', module_list(FALSE, TRUE, TRUE)), t('Test that module is installed.'));
-  //}
 
   /**
    * Check that hook_quiz_question_info is working.
@@ -86,7 +78,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   public function createLongAnswerQuestion() {
     $this->title = $this->randomName();
     $this->body = $this->randomName();
-    $this->max_score = rand(1,10);
+    $this->max_score = rand(1, 10);
 
     // array of node attributes
     $settings = array(
@@ -274,6 +266,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     //$this->assertEqual($removed, 1, t('A single answer should be deleted.'));
   }
 
+  /**
+   * Get unscored answers.
+   */
   public function unitTestGetUnscoredAnswers() {
 
     $unanswered = long_answer_get_all_unscored_answers();

@@ -3,7 +3,10 @@
 /**
  * @file
  * Unit tests for the matching Module.
- *
+ */
+
+/**
+ * Test class for matching questions.
  */
 class MatchingUnitTest extends DrupalWebTestCase {
 
@@ -18,12 +21,11 @@ class MatchingUnitTest extends DrupalWebTestCase {
 
   // member functions definition starts here
 
-  /*
+  /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
    */
-
   public static function getInfo() {
     return array(
       'name' => t('Matching Questions unit test'),
@@ -32,10 +34,9 @@ class MatchingUnitTest extends DrupalWebTestCase {
     );
   }
 
-  /*
+  /**
    * Implementing setUp() to enable truefalse module testing
    */
-
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'matching');
 
@@ -60,21 +61,19 @@ class MatchingUnitTest extends DrupalWebTestCase {
     $this->drupalLogin($user);
   }
 
-  /*
+  /**
    * checks whether hook_quiz_question for true/false questions type has been
    * defined or not.
    */
-
   public function testMatchingQuizQuestionInfo() {
     $info = matching_quiz_question_info();
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
     $this->assertTrue(isset($info['matching']), t('Check that matching question type exists.'));
   }
 
-  /*
+  /**
    * function to create true false type question node for testing.
    */
-
   public function createMatchingQuestion() {
     // matching question node attributes
     $this->title = $this->randomName(mt_rand($this->min, $this->max));
@@ -101,10 +100,9 @@ class MatchingUnitTest extends DrupalWebTestCase {
     return $this->drupalCreateNode($settings);
   }
 
-  /*
+  /**
    * function to test matching type question node creation.
    */
-
   public function unitTestCreateMatchingQuestionNode() {
     $node = $this->createMatchingQuestion();
     // raise an exception if node is not created.
@@ -117,11 +115,10 @@ class MatchingUnitTest extends DrupalWebTestCase {
     $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be matching'));
   }
 
-  /*
+  /**
    * @function
    * function tests whether node properties has been saved appropriately or not.
    */
-
   public function unitTestCheckMatchingNodeProperties() {
     //$node = node_load($this->node_id);
     //$this->assertEqual(count($node->match), count($this->match), t('Test that all match questions was appropriately stored in database.'));
