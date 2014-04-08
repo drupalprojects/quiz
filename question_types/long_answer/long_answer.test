@@ -61,8 +61,8 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
 
     // create one quiz, which will be the default in the import form
     $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName($this->getRandSize());
-    $quiz_settings['comment'] = $this->randomName($this->getRandSize());
+    $quiz_settings['title'] = $this->randomName();
+    $quiz_settings['comment'] = $this->randomName();
     $quiz_settings['type'] = 'quiz';
     //$this->drupalCreateNode($quiz_settings);
   }
@@ -84,9 +84,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    * Utility function for creating a new test question.
    */
   public function createLongAnswerQuestion() {
-    $this->title = $this->randomName($this->getRandSize());
-    $this->body = $this->randomName($this->getRandSize());
-    $this->max_score = $this->getRandSize();
+    $this->title = $this->randomName();
+    $this->body = $this->randomName();
+    $this->max_score = rand(1,10);
 
     // array of node attributes
     $settings = array(
