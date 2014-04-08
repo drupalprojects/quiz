@@ -167,7 +167,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    * Test that the appropriate data was stored in the node properties table.
    */
   public function unitTestCheckNodeProperties() {
-    $max = db_result(db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = %d', $this->nid1));
+    $max = db_query('SELECT maximum_score FROM {quiz_long_answer_node_properties} WHERE nid = :nid', array(':nid' => $this->nid1))->fetchField();
     $this->assertEqual($max, $this->max_score, t('Test that max score was appropriately stored in database.'));
   }
 

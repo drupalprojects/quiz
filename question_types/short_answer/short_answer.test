@@ -159,8 +159,8 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    */
 
   public function unitTestCheckShortAnswerNodeProperties() {
-    $sql = "SELECT maximum_score, correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties} WHERE nid = %d";
-    $node = db_fetch_object(db_query($sql, $this->node_id));
+    $sql = "SELECT maximum_score, correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties} WHERE nid = :nid";
+    $node = db_query($sql, array(':nid' => $this->node_id))->fetch();
     $this->assertEqual($node->maximum_score, $this->maximum_score, t('Test that maximum  score was appropriately stored in database.'));
     $this->assertEqual($node->correct_answer, $this->correct_answer, t('Test that correct answer was appropriately stored in database'));
     $this->assertEqual($node->correct_answer_evaluation, $this->correct_answer_evaluation, t('Test that correct answer evaluation was appropriately stored in database'));
