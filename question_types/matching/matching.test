@@ -71,6 +71,7 @@ class MatchingUnitTest extends QuizQuestionTestCase {
       'title' => $this->title,
       'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
       'revisions' => TRUE,
+      'choice_penalty' => 0,
     );
 
     $this->match = array();
