@@ -40,11 +40,17 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'short_answer');
 
     // array of drupal user permission
-    $permission = array('administer site configuration', 'access administration pages',
-      'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
-      'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
-      'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-      'allow any number of answers', 'export questions');
+    $permission = array(
+      'access administration pages',
+      'access quiz',
+      'administer blocks',
+      'administer quiz configuration',
+      'administer site configuration',
+      'administer taxonomy',
+      'create short_answer content',
+      'create quiz content',
+      'edit any short_answer content',
+    );
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
@@ -59,18 +65,6 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $quiz_settings['type'] = 'quiz';
     // create a test drupal quiz node.
     //$this->drupalCreateNode($quiz_settings);
-  }
-
-  /*
-   * @function
-   *   generates a rand integer between the specified range
-   *
-   * @return
-   *   random Integer value
-   */
-
-  public function getRandSize() {
-    return mt_rand($this->min, $this->max);
   }
 
   /*

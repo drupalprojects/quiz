@@ -19,17 +19,6 @@ class MatchingUnitTest extends DrupalWebTestCase {
   // member functions definition starts here
 
   /*
-   * @function
-   *   generates a rand integer between the specified range
-   *
-   * @return
-   *   random Integer value
-   */
-  public function getRandSize() {
-    return mt_rand($this->min, $this->max);
-  }
-
-  /*
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
@@ -54,11 +43,17 @@ class MatchingUnitTest extends DrupalWebTestCase {
     // was wrong with permissions and I basically kept adding potentially
     // useful ones until it worked.
     // array of drupal permission
-    $permission = array('administer site configuration', 'access administration pages',
-      'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
-      'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
-      'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-      'allow any number of answers', 'export questions');
+    $permission = array(
+      'access administration pages',
+      'access quiz',
+      'administer blocks',
+      'administer quiz configuration',
+      'administer site configuration',
+      'administer taxonomy',
+      'create matching content',
+      'create quiz content',
+      'edit any matching content',
+    );
 
     // create a drupal test user with specified permissions
     $user = $this->drupalCreateUser($permission);
