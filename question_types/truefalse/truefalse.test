@@ -77,21 +77,10 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $node = $this->drupalCreateNode($settings);
 
     $load = node_load($node->nid);
-    // @todo verify save
-    return $load;
-  }
 
-  /**
-   * Test updating of a question.
-   */
-  public function unitTestUpdateTrueFalseQuestionNode() {
-    $node = node_load($this->node_id);
-    $new_correct_answer = !$this->correct_answer;
-    $node->title = $this->randomName(100);
-    $node->correct_answer = $new_correct_answer;
-    node_save($node);
-    $nodeCopy = node_load($node->nid, $node->vid);
-    $this->assertEqual($nodeCopy->correct_answer, $new_correct_answer, t('Check that stored score is the same as newly assigned score.'));
+    $this->assertEqual($load->correct_answer, $this->correct_answer, t('Check that stored score is the same as newly assigned score.'));
+
+    return $load;
   }
 
 }
