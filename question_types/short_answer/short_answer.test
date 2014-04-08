@@ -1,6 +1,5 @@
 <?php
 
-
 /*
  * @file
  * Unit tests for the short_answer Module.
@@ -8,12 +7,12 @@
  */
 
 class ShortAnswerUnitTest extends DrupalWebTestCase {
+
   // initialing attributes
   var $question_node_type = 'short_answer';
   var $title = '';
   var $body = '';
   var $node_id = NULL;
-
   // To generate a string of random size
   var $rand_min = 1;
   var $rand_max = 127;
@@ -36,17 +35,16 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   /*
    * Implementing setUp() to enable short_answer module testing
    */
+
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
-    'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
-    'short_answer', 'truefalse', 'long_answer',  'matching', 'questions_export');
+    parent::setUp('taxonomy', 'quiz', 'views', 'multichoice', 'quiz_directions', 'quiz_question', 'querypath', 'questions_import', 'short_answer', 'truefalse', 'long_answer', 'matching', 'questions_export');
 
     // array of drupal user permission
     $permission = array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
-    'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
-    'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export questions');
+      'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
+      'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
+      'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
+      'allow any number of answers', 'export questions');
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
@@ -70,6 +68,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    * @return
    *   random Integer value
    */
+
   public function getRandSize() {
     return mt_rand($this->min, $this->max);
   }
@@ -78,6 +77,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    * checks whether hook_quiz_question for true/false questions type has been
    * defined or not.
    */
+
   public function testShortAnswerQuizQuestionInfo() {
     $info = short_answer_quiz_question_info();
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
@@ -87,6 +87,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   /*
    * function to create true false type question node for testing.
    */
+
   public function createShortAnswerQuestion() {
     // score range
     $score_min = 1;
@@ -111,7 +112,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $settings = array(
       'type' => $this->question_node_type,
       'title' => $this->title,
-      'body' => $this->body,
+      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
       'correct_answer' => $this->correct_answer,
       'maximum_score' => $this->maximum_score,
       'correct_answer_evaluation' => $this->correct_answer_evaluation,
@@ -135,6 +136,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   /*
    * function to test short answer question node  creation.
    */
+
   public function unitTestShortAnswerCreateQuestionNode() {
     $node = $this->createShortAnswerQuestion();
 
@@ -155,6 +157,7 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
    * @function
    * function tests whether node properties has been saved appropriately or not.
    */
+
   public function unitTestCheckShortAnswerNodeProperties() {
     $sql = "SELECT maximum_score, correct_answer, correct_answer_evaluation FROM {quiz_short_answer_node_properties} WHERE nid = %d";
     $node = db_fetch_object(db_query($sql, $this->node_id));
@@ -170,4 +173,5 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
     $questions = short_answer_questions_list();
     $this->assertEqual(count($questions), 1, t('Verify that the question exists.'));
   }
+
 }

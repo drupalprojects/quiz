@@ -12,7 +12,6 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   var $title = '';
   var $body = '';
   var $node_id = NULL;
-
   // to generate a string of random size
   var $rand_min = 1;
   var $rand_max = 64;
@@ -35,17 +34,16 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   /*
    * Implementing setUp() to enable truefalse module testing
    */
+
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
-    'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
-    'short_answer', 'truefalse', 'long_answer',  'matching', 'questions_export');
+    parent::setUp('taxonomy', 'quiz', 'views', 'multichoice', 'quiz_directions', 'quiz_question', 'querypath', 'questions_import', 'short_answer', 'truefalse', 'long_answer', 'matching', 'questions_export');
 
     // array of drupal user permission
     $permission = array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
-    'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
-    'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export questions');
+      'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
+      'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
+      'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
+      'allow any number of answers', 'export questions');
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
@@ -70,6 +68,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
    * @return
    *   random Integer value
    */
+
   public function getRandSize() {
     return mt_rand($this->min, $this->max);
   }
@@ -78,6 +77,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
    * checks whether hook_quiz_question for true/false questions type has been
    * defined or not.
    */
+
   public function testTrueFalseQuizQuestionInfo() {
     $info = truefalse_quiz_question_info();
     $this->assertEqual(count($info), 1, t('Check that info was returned.'));
@@ -87,6 +87,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   /*
    * function to create true false type question node for testing.
    */
+
   public function createTrueFalseQuestion() {
     $this->title = $this->randomName($this->getRandSize());
     $this->body = $this->randomName($this->getRandSize());
@@ -95,7 +96,7 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
     $settings = array(
       'type' => $this->question_node_type,
       'title' => $this->title,
-      'body' => $this->body,
+      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
       'correct_answer' => $this->correct_answer,
       'revisions' => TRUE,
     );
@@ -130,25 +131,22 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
     node_save($node);
     $nodeCopy = node_load($node->nid, $node->vid);
     $this->assertEqual($nodeCopy->correct_answer, $new_correct_answer, t('Check that stored score is the same as newly assigned score.'));
-
   }
 
   /**
    * Test deleting of true false question node.
    */
-
   public function unitTestDeleteTrueFalseQuestionNode() {
-  /*  $node = node_load($this->node_id);
-    if ($node === FALSE) {
+    /*  $node = node_load($this->node_id);
+      if ($node === FALSE) {
       throw new Exception("Expected fixture to have valid node_id");
-    }
-    unset($node);
-    node_delete($this->node_id);
-    $node = node_load($this->nid);
-    $this->assertFalse($node, t('Test that node was deleted'));
-    * */
+      }
+      unset($node);
+      node_delete($this->node_id);
+      $node = node_load($this->nid);
+      $this->assertFalse($node, t('Test that node was deleted'));
+     * */
   }
-
 
   /**
    * Run a bundle of Node API tests.
@@ -162,8 +160,6 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
     $this->unitTestCreateTrueFalseQuestionRevision();
     $this->unitTestUpdateTrueFalseQuestionNode();
   }
-
-
 
   /**
    * Test creation of node revision.

@@ -15,7 +15,6 @@ function matching_install() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('matching')
   variable_set('node_options_matching', array('status'));
-  cache_clear_all('autoload:', 'cache');
 }
 
 /**
@@ -62,7 +61,7 @@ function matching_schema() {
       'nid', 'vid'
     ),
   );
-  
+
   $schema['quiz_matching_node'] = array(
     'fields' => array(
       'match_id' => array(
@@ -168,12 +167,12 @@ function matching_update_7400() {
       'nid', 'vid'
     ),
   );
-  
+
   db_create_table('quiz_matching_properties', $schema);
-  
+
   // Insert default properties for all of the existing matching questions
   $result = db_query("SELECT nid, vid FROM {node} WHERE type='matching'");
-  
+
   foreach ($result as $question) {
     db_insert('quiz_matching_properties')
           ->fields(array(

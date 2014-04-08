@@ -15,7 +15,6 @@ function long_answer_install() {
   // TODO The drupal_(un)install_schema functions are called automatically in D7.
   // drupal_install_schema('long_answer')
   variable_set('node_options_long_answer', array('status'));
-  cache_clear_all('autoload:', 'cache');
 }
 
 /**

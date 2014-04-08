@@ -4,7 +4,6 @@
  * Unit tests for the long_answer Module.
  * @file
  */
-
 class LongAnswerUnitTest extends DrupalWebTestCase {
 
   // intializing attributes
@@ -13,7 +12,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   var $max_score = 1234; // Impossible value, given max limit of 3 digits.
   var $title = '';
   var $body = '';
-
   // used to generate a string of random size
   var $rand_min = 1;
   var $rand_max = 256;
@@ -40,6 +38,7 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    * @return
    *   random Integer value
    */
+
   public function getRandSize() {
     return rand($this->min, $this->max);
   }
@@ -47,20 +46,19 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   /*
    * Implementing setUp() to enable truefalse module testing
    */
+
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'autoload', 'multichoice',
-    'quiz_directions', 'quiz_question', 'querypath', 'questions_import',
-    'short_answer', 'truefalse', 'long_answer',  'matching', 'questions_export');
+    parent::setUp('taxonomy', 'quiz', 'views', 'multichoice', 'quiz_directions', 'quiz_question', 'querypath', 'questions_import', 'short_answer', 'truefalse', 'long_answer', 'matching', 'questions_export');
 
     // Create and log in our test user. Should be cleaned up as I something
     // was wrong with permissions and I basically kept adding potentially
     // useful ones until it worked.
 
     $permission = array('administer site configuration', 'access administration pages',
-    'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
-    'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
-    'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
-    'allow any number of answers', 'export questions');
+      'administer quiz', 'access quiz', 'administer blocks', 'import questions', 'create quiz content',
+      'administer quiz configuration', 'use PHP for block visibility', 'administer blocks',
+      'create multichoice', 'edit any multichoice', 'administer taxonomy', 'allow multiple correct answers',
+      'allow any number of answers', 'export questions');
 
     // create user with a set of permission
     $user = $this->drupalCreateUser($permission);
@@ -100,31 +98,32 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $settings = array(
       'type' => $this->question_node_type,
       'title' => $this->title,
-      'body' => $this->body,
+      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
       'maximum_score' => $this->max_score,
       'revisions' => TRUE,
     );
 
     // create test drupal node
-    return $this->drupalCreateNode($settings);;
+    return $this->drupalCreateNode($settings);
+    ;
   }
 
   /*
-  public function createQuiz() {
+    public function createQuiz() {
     $title = 'Test Quiz';
     $body = 'This is a sample quiz.';
     $settings = array(
-      'type' => 'quiz',
-      'title' => $title,
-      'body' => $body,
-      'revisions' => TRUE,
+    'type' => 'quiz',
+    'title' => $title,
+    'body' => $body,
+    'revisions' => TRUE,
     );
 
     $node = $this->drupalCreateNode($settings);
 
     return $node;
-  }
-  */
+    }
+   */
 
   /**
    * Run a bundle of Node API tests.
@@ -164,7 +163,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $this->assertEqual($node->type, $this->question_node_type, t('Stored node type should be long_answer'));
   }
 
-
   /**
    * Test that the appropriate data was stored in the node properties table.
    */
@@ -192,7 +190,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
 
     $nodeCopy = node_load($node->nid, $node->vid);
     $this->assertEqual($nodeCopy->maximum_score, $newScore, t('Check that stored score is the same as newly assigned score.'));
-
   }
 
   /**
@@ -231,7 +228,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    */
   public function testEvaluateQuestion() {
     //$result = long_answer_evaluate_question($question, 1);
-
     //$this->assertTrue((count($result) > 0), t('See if a result was returned from the evaluator.'));
     //$this->assertEqual($result->is_correct, 0, t('Test that answer was not marked correct.'));
   }
@@ -252,7 +248,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
    */
   public function unitTestSaveAnswer() {
     //$answer_id = long_answer_save_answer(1, 1, 1, 'THIS IS A TEST ANSWER');
-
     // FIXME: This should just select * from the table and check to make sure there is an entry.
     // We should not assume IDs are serial.
     //$this->assertEqual($answer_id, 1, 'Answer ID is set to 1 -- first answer');
@@ -296,7 +291,6 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     $unanswered = long_answer_get_unscored_answers_by_question(1, 1);
     $this->assertEqual(count($unanswered), 1, t('There should be only one unanswered question for the quiz.'));
   }
-
 
 }
 
