@@ -1,0 +1,26 @@
+<?php
+
+/**
+ * @file
+ * Unit tests for the quiz question Module.
+ */
+
+/**
+ * Base test class for Quiz questions.
+ */
+abstract class QuizQuestionTestCase extends DrupalWebTestCase {
+
+  /**
+   * Create a Quiz Question node and return it for use.
+   */
+  abstract function testCreateQuizQuestion();
+
+  /**
+   * Test the quiz question implementation.
+   */
+  public function testQuizQuestionImplementation() {
+    $qq = _quiz_question_get_implementations();
+    $this->assertTrue(isset($qq[$this->question_node_type]), t('Check that the question implementation is correct.'));
+  }
+
+}

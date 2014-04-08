@@ -8,7 +8,7 @@
 /**
  * Test class for matching questions.
  */
-class MatchingUnitTest extends DrupalWebTestCase {
+class MatchingUnitTest extends QuizQuestionTestCase {
 
   // initializing attributes
   var $question_node_type = 'matching';
@@ -58,18 +58,9 @@ class MatchingUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * checks whether hook_quiz_question for matching questions type has been
-   * defined or not.
-   */
-  public function testMatchingQuizQuestionInfo() {
-    $qq = _quiz_question_get_implementations();
-    $this->assertTrue(isset($qq['matching']), t('Check that matching question type exists.'));
-  }
-
-  /**
    * function to create true false type question node for testing.
    */
-  public function testCreateQuestion() {
+  public function testCreateQuizQuestion() {
     // matching question node attributes
     $this->title = $this->randomName();
     $this->body = $this->randomName();
@@ -92,7 +83,12 @@ class MatchingUnitTest extends DrupalWebTestCase {
     }
 
     // create drupal node
-    return $this->drupalCreateNode($settings);
+    $node = $this->drupalCreateNode($settings);
+    $load = node_load($node->nid);
+
+    // @todo verify save
+
+    return $load;
   }
 
 }

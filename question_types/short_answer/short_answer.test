@@ -8,7 +8,7 @@
 /**
  * Test class for short answer.
  */
-class ShortAnswerUnitTest extends DrupalWebTestCase {
+class ShortAnswerUnitTest extends QuizQuestionTestCase {
 
   // initialing attributes
   var $question_node_type = 'short_answer';
@@ -57,18 +57,9 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * checks whether hook_quiz_question for short answer questions type has been
-   * defined or not.
-   */
-  public function testShortAnswerQuizQuestionInfo() {
-    $qq = _quiz_question_get_implementations();
-    $this->assertTrue(isset($qq['short_answer']), t('Check that short_answer type exists.'));
-  }
-
-  /**
    * function to create true false type question node for testing.
    */
-  public function createShortAnswerQuestion() {
+  public function testCreateQuizQuestion() {
     // score range
     $score_min = 1;
     $score_max = 16;
@@ -99,7 +90,10 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
       'revisions' => TRUE,
     );
 
-    return $this->drupalCreateNode($settings);
+    $node = $this->drupalCreateNode($settings);
+
+    $load = node_load($node->nid);
+    return $load;
   }
 
   /**

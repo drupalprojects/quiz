@@ -8,7 +8,7 @@
 /**
  * Test class for long answer.
  */
-class LongAnswerUnitTest extends DrupalWebTestCase {
+class LongAnswerUnitTest extends QuizQuestionTestCase {
 
   // intializing attributes
   var $question_node_type = 'long_answer';
@@ -61,17 +61,9 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * Check that hook_quiz_question_info for long answer is working.
-   */
-  public function testLongAnswerQuizQuestionInfo() {
-    $qq = _quiz_question_get_implementations();
-    $this->assertTrue(isset($qq['long_answer']), t('Check that true/false question type exists.'));
-  }
-
-  /**
    * Creating a new long answer question.
    */
-  public function testCreateLongAnswerQuestion() {
+  public function testCreateQuizQuestion() {
     $this->title = $this->randomName();
     $this->body = $this->randomName();
     $this->max_score = rand(1, 10);
@@ -86,10 +78,13 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
     );
 
     // create test drupal node
-    return $this->drupalCreateNode($settings);
-    ;
-  }
+    $node = $this->drupalCreateNode($settings);
+    $load = node_load($node->nid);
 
+    // @todo verify save
+
+    return $load;
+  }
 
   /**
    * Create and then update a node.

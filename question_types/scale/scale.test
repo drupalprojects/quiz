@@ -8,7 +8,7 @@
 /**
  * Test class for scale questions.
  */
-class ScaleTestCase extends DrupalWebTestCase {
+class ScaleTestCase extends QuizQuestionTestCase {
 
   /**
    * The getInfo() method provides information about the test.
@@ -53,12 +53,14 @@ class ScaleTestCase extends DrupalWebTestCase {
   /**
    * Create a new question with default settings.
    */
-  public function testCreateQuestion() {
+  public function testCreateQuizQuestion() {
     $settings = array();
     $settings['type'] = 'scale';
 
     $node = $this->drupalCreateNode($settings);
     $load = node_load($node->nid);
+
+    // Verify save
 
     return $load;
   }

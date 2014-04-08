@@ -8,7 +8,7 @@
 /**
  * Test class for true false questions.
  */
-class TrueFalseUnitTest extends DrupalWebTestCase {
+class TrueFalseUnitTest extends QuizQuestionTestCase {
 
   // initialing attributes
   var $question_node_type = 'true_false';
@@ -59,18 +59,9 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * checks whether hook_quiz_question for true/false questions type has been
-   * defined or not.
-   */
-  public function testTrueFalseQuizQuestionInfo() {
-    $qq = _quiz_question_get_implementations();
-    $this->assertTrue(isset($qq['truefalse']), t('Check that true/false question type exists.'));
-  }
-
-  /**
    * Create true false type question node for testing.
    */
-  public function testCreateQuestion() {
+  public function testCreateQuizQuestion() {
     $this->title = $this->randomName();
     $this->body = $this->randomName();
     $this->correct_answer = array_rand(array(0, 1));
@@ -83,7 +74,11 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
       'revisions' => TRUE,
     );
     // create a test drupal node
-    return $this->drupalCreateNode($settings);
+    $node = $this->drupalCreateNode($settings);
+
+    $load = node_load($node->nid);
+    // @todo verify save
+    return $load;
   }
 
   /**
