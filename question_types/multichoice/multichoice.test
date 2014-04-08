@@ -1,18 +1,21 @@
 <?php
 
-/*
+/**
  * @file
  * Test suite for choice Questions type module.
  *
  */
 
+/**
+ * Test class for multichoice questions.
+ */
 class ChoiceTestCase extends DrupalWebTestCase {
-  /*
+
+  /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
    * to be implemented.
    */
-
   public static function getInfo() {
     return array(
       'name' => t('Choice unit test'),
@@ -21,10 +24,9 @@ class ChoiceTestCase extends DrupalWebTestCase {
     );
   }
 
-  /*
+  /**
    * Implementing setUp() to enable truefalse module testing
    */
-
   function setUp() {
     parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'multichoice');
 
@@ -47,14 +49,6 @@ class ChoiceTestCase extends DrupalWebTestCase {
     // create a drupal test user with specified permissions
     $user = $this->drupalCreateUser($permission);
     $this->drupalLogin($user);
-
-    // create one quiz, which will be the default in the import form
-    $quiz_settings = array();
-    $quiz_settings['title'] = $this->randomName();
-    $quiz_settings['comment'] = $this->randomName();
-    $quiz_settings['type'] = 'quiz';
-    // $this->drupalCreateNode($quiz_settings);
-    // don't' create a questions node here.
   }
 
   /**
@@ -105,6 +99,34 @@ class ChoiceTestCase extends DrupalWebTestCase {
     $this->assertEqual($load->alternatives[1]['answer']['format'], 'filtered_html', 'Alternative format 1 was saved and loaded correctly.');
 
     return $load;
+  }
+
+  /**
+   * Test multiple answers.
+   */
+  function testMultipleAnswers() {
+    // @todo
+  }
+
+  /**
+   * Test random order of choices.
+   */
+  function testRandomOrder() {
+    // @todo
+  }
+
+  /**
+   * Test scoring.
+   */
+  function testScoring() {
+    // @todo
+  }
+
+  /**
+   * Test simple scoring.
+   */
+  function testSimpleScoring() {
+    // @todo
   }
 
 }
