@@ -58,13 +58,12 @@ class MatchingUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * checks whether hook_quiz_question for true/false questions type has been
+   * checks whether hook_quiz_question for matching questions type has been
    * defined or not.
    */
   public function testMatchingQuizQuestionInfo() {
-    $info = matching_quiz_question_info();
-    $this->assertEqual(count($info), 1, t('Check that info was returned.'));
-    $this->assertTrue(isset($info['matching']), t('Check that matching question type exists.'));
+    $qq = _quiz_question_get_implementations();
+    $this->assertTrue(isset($qq['matching']), t('Check that matching question type exists.'));
   }
 
   /**

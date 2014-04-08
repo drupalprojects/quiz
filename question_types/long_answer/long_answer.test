@@ -61,12 +61,11 @@ class LongAnswerUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * Check that hook_quiz_question_info is working.
+   * Check that hook_quiz_question_info for long answer is working.
    */
   public function testLongAnswerQuizQuestionInfo() {
-    $info = long_answer_quiz_question_info();
-    $this->assertEqual(count($info), 1, t('Check that info was returned.'));
-    $this->assertTrue(isset($info['long_answer']), t('Check that long answer question type exists.'));
+    $qq = _quiz_question_get_implementations();
+    $this->assertTrue(isset($qq['long_answer']), t('Check that true/false question type exists.'));
   }
 
   /**

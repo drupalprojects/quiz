@@ -57,13 +57,12 @@ class ShortAnswerUnitTest extends DrupalWebTestCase {
   }
 
   /**
-   * checks whether hook_quiz_question for true/false questions type has been
+   * checks whether hook_quiz_question for short answer questions type has been
    * defined or not.
    */
   public function testShortAnswerQuizQuestionInfo() {
-    $info = short_answer_quiz_question_info();
-    $this->assertEqual(count($info), 1, t('Check that info was returned.'));
-    $this->assertTrue(isset($info['short_answer']), t('Check that short answer question type exists.'));
+    $qq = _quiz_question_get_implementations();
+    $this->assertTrue(isset($qq['short_answer']), t('Check that short_answer type exists.'));
   }
 
   /**

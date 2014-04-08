@@ -63,9 +63,8 @@ class TrueFalseUnitTest extends DrupalWebTestCase {
    * defined or not.
    */
   public function testTrueFalseQuizQuestionInfo() {
-    $info = truefalse_quiz_question_info();
-    $this->assertEqual(count($info), 1, t('Check that info was returned.'));
-    $this->assertTrue(isset($info['true_false']), t('Check that true/false question type exists.'));
+    $qq = _quiz_question_get_implementations();
+    $this->assertTrue(isset($qq['truefalse']), t('Check that true/false question type exists.'));
   }
 
   /**
