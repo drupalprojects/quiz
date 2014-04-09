@@ -843,7 +843,7 @@ function quiz_uninstall() {
 /**
  * Add new layout field to the quiz_node_results table.
  */
-function quiz_update_7410() {
+function quiz_update_7500() {
   $spec = array(
     'serialize' => TRUE,
     'type' => 'text',
@@ -857,7 +857,7 @@ function quiz_update_7410() {
 /**
  * Add new result_answer_id field to the quiz_node_results_answers table.
  */
-function quiz_update_7411() {
+function quiz_update_7501() {
   db_drop_primary_key('quiz_node_results_answers');
   db_add_unique_key('quiz_node_results_answers', 'result_answer', array('result_id', 'question_nid', 'question_vid'));
   $spec = array(
@@ -873,7 +873,7 @@ function quiz_update_7411() {
 /**
  * Add new qnr_id field to the quiz_node_relationship table.
  */
-function quiz_update_7412() {
+function quiz_update_7502() {
   db_drop_primary_key('quiz_node_relationship');
   db_add_unique_key('quiz_node_relationship', 'parent_child', array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'));
   $spec = array(
