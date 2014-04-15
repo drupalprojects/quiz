@@ -1566,10 +1566,6 @@ function _quiz_userpoints_type() {
  * Implements hook_validate().
  */
 function quiz_validate($node) {
-  if (isset($node->nid) && !$node->nid && empty($_POST)) {
-    return;
-  }
-
   // Don't check dates if the quiz is always available.
   if (!$node->quiz_always) {
     if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
@@ -1628,6 +1624,8 @@ function quiz_validate($node) {
     }
   }
   if ($node->allow_jumping && !$node->allow_skipping) {
+    // @todo when we have pages of questions, we have to check that jumping is
+    // not enabled, and randomization is not enabled unless there is only 1 page
     form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
   }
 }

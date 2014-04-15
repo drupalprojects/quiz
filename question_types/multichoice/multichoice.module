@@ -169,11 +169,6 @@ function multichoice_user_cancel($edit, $account, $method) {
 }
 
 /**
- * Implementation of hook user.
- */
-function multichoice_user_OLD($op, &$edit, &$account, $category = NULL) { }
-
-/**
  * Implements hook_field_extra_fields().
  */
 function multichoice_field_extra_fields() {
