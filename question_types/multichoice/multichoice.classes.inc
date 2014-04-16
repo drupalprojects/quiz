@@ -441,7 +441,7 @@ class MultichoiceQuestion extends QuizQuestion {
       // We save the choice order so that the order will be the same in the answer report
       $element['choice_order'] = array(
         '#type' => 'hidden',
-        '#value' => implode(',', $this->shuffle($form['tries[answer]']['#options'])),
+        '#value' => implode(',', $this->shuffle($element['#options'])),
       );
     }
     if ($this->node->choice_multi) {
