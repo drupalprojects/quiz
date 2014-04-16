@@ -264,7 +264,7 @@ function quiz_get_score_array($result_id, $quiz_vid, $is_evaluated) {
  * @return
  *  HTML output for page.
  */
-function quiz_get_user_results($uid) {
+function quiz_get_user_results($account) {
   $results = array();
   $dbresult = db_query('SELECT DISTINCT(n.nid), n.title, qnp.pass_rate, qnrs.result_id, qnrs.time_start, qnrs.time_end, qnrs.score, qnrs.is_evaluated
     FROM {node} n
@@ -273,7 +273,7 @@ function quiz_get_user_results($uid) {
     INNER JOIN {users} u ON u.uid = qnrs.uid
     WHERE n.type = :type
       AND u.uid = :uid
-    ORDER BY qnrs.result_id DESC', array(':type' => 'quiz', ':uid' => $uid));
+    ORDER BY qnrs.result_id DESC', array(':type' => 'quiz', ':uid' => $account->uid));
 
   // Create an array out of the results.
   foreach ($dbresult as $result) {

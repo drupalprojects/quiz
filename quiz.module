@@ -368,7 +368,7 @@ function quiz_cron() {
 function quiz_menu() {
 
   // Take quiz.
-  $items['node/%node/take'] = array(
+  $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
     'page callback' => 'quiz_take',
     'page arguments' => array(1),
@@ -380,23 +380,23 @@ function quiz_menu() {
   // Take question.
   // @todo Thought - the 4th argument could be a "page" instead of a question
   // number
-  $items['node/%node/take/%'] = array(
+  $items['node/%quiz_menu/take/%'] = array(
     'title' => 'Take',
     'page callback' => 'quiz_take_question',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_take_question_access',
     'access arguments' => array(1, 3),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_IS_LOCAL_TASK,
   );
 
   // Feedback
-  $items['node/%node/take/%/feedback'] = array(
+  $items['node/%quiz_menu/take/%/feedback'] = array(
     'title' => 'Feedback',
     'page callback' => 'quiz_take_question_feedback',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
-    'type' => MENU_LOCAL_TASK,
+    'type' => MENU_IS_LOCAL_TASK,
   );
 
 
@@ -469,7 +469,7 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%node/results'] = array(
+  $items['node/%quiz_menu/results'] = array(
     'title' => 'Results',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_results_manage_results_form', 1),
@@ -480,7 +480,7 @@ function quiz_menu() {
     'weight' => 3,
   );
 
-  $items['node/%node/myresults'] = array(
+  $items['node/%quiz_menu/myresults'] = array(
     'title' => 'My results',
     'page callback' => 'quiz_my_results',
     'page arguments' => array(1),
@@ -491,28 +491,28 @@ function quiz_menu() {
     'weight' => 3,
   );
 
-  $items['node/%node/myresults/%quiz_rid'] = array(
+  $items['node/%quiz_menu/myresults/%quiz_rid'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(1, 3),
-    'access arguments' => array(1, 3),
     'access callback' => 'quiz_access_my_result',
-    'type' => MENU_LOCAL_TASK,
+    'access arguments' => array(1, 3),
+    'type' => MENU_IS_LOCAL_TASK,
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%node/results/%quiz_rid'] = array(
+  $items['node/%quiz_menu/results/%quiz_rid'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
     'page arguments' => array(1, 3),
-    'type' => MENU_LOCAL_TASK, // , MENU_SUGGESTED_ITEM, MENU_LOCAL_TASK, MENU_DEFAULT_LOCAL_TASK
-    'file' => 'quiz.admin.inc',
-    'access arguments' => array(1, 3),
     'access callback' => 'quiz_access_results',
+    'access arguments' => array(1, 3),
+    'type' => MENU_IS_LOCAL_TASK,
+    'file' => 'quiz.admin.inc',
   );
 
   // Add questions to quiz.
-  $items['node/%node/questions'] = array(
+  $items['node/%quiz_menu/questions'] = array(
     'title' => 'Manage questions',
     'page callback' => 'quiz_questions',
     'page arguments' => array(1),
@@ -524,7 +524,7 @@ function quiz_menu() {
   );
 
   // User pages.
-  $items['user/%/myresults'] = array(
+  $items['user/%user/myresults'] = array(
     'title' => 'My results',
     'page callback' => 'quiz_get_user_results',
     'page arguments' => array(1),
@@ -544,21 +544,21 @@ function quiz_menu() {
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%node/questions/browser_ahah'] = array(//TODO: Add node access instead of user access...
+  $items['node/%quiz_menu/questions/browser_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_browser_ahah',
     'type' => MENU_CALLBACK,
     'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%node/questions/term_ahah'] = array(//TODO: Add node access instead of user access...
+  $items['node/%quiz_menu/questions/term_ahah'] = array(//TODO: Add node access instead of user access...
     'page callback' => 'quiz_categorized_term_ahah',
     'type' => MENU_CALLBACK,
     'access arguments' => array('create quiz content'),
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%node/results/browser_ahah'] = array(
+  $items['node/%quiz_menu/results/browser_ahah'] = array(
     'page callback' => 'quiz_results_mr_browser_ahah',
     'type' => MENU_CALLBACK,
     'access callback' => 'quiz_access_results',
@@ -1037,7 +1037,24 @@ function quiz_rid_to_arg() {
 }
 
 /**
+ * Menu loader callback. Load a quiz node if the given node ID is a quiz.
+ */
+function quiz_menu_load($nid) {
+  if (!is_numeric($nid)) {
+    return FALSE;
+  }
+  $node = node_load($nid);
+  if (!isset($node->type) || $node->type != 'quiz') {
+    return FALSE;
+  }
+  return $node;
+}
+
+/**
  * Implements hook_load().
+ *
+ * Load up quiz properties onto quiz nodes.
+ * @todo this is not a good way to do it. should use 1 query
  */
 function quiz_load($nodes) {
   foreach ($nodes as $nid => &$node) {
