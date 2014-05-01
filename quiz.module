@@ -1057,7 +1057,7 @@ function quiz_load($nodes) {
  */
 //function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 function quiz_view($node, $view_mode) {
-  drupal_alter('quiz_view', $node, $teaser, $page);
+  drupal_alter('quiz_view', $node, $view_mode);
   node_invoke($node, 'prepare');
 
   // Number of questions is needed on the statistics page.
@@ -1073,7 +1073,7 @@ function quiz_view($node, $view_mode) {
     // Check the permission before displaying start button.
     if (user_access('access quiz')) {
       // Add a link to the take tab as a button if this isn't a teaser view.
-      if (!$teaser) {
+      if ($view_mode !== 'teaser') {
         $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
         $node->content['take'] = array(
           '#markup' => drupal_render($quiz_form),
