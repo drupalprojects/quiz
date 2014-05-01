@@ -469,17 +469,6 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%quiz_menu/results'] = array(
-    'title' => 'Results',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quiz_results_manage_results_form', 1),
-    'access arguments' => array(1),
-    'access callback' => 'quiz_access_results',
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz.admin.inc',
-    'weight' => 3,
-  );
-
   $items['node/%quiz_menu/myresults'] = array(
     'title' => 'My results',
     'page callback' => 'quiz_my_results',
@@ -501,7 +490,7 @@ function quiz_menu() {
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%quiz_menu/results/%quiz_rid'] = array(
+  $items['node/%quiz_menu/quiz-results/%quiz_rid'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
     'page arguments' => array(1, 3),
@@ -4257,11 +4246,16 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_result']['properties']['nid']['type'] = 'node';
   $info['quiz_result']['properties']['vid']['type'] = 'integer';
   $info['quiz_result']['properties']['uid']['type'] = 'user';
+  $info['quiz_result']['properties']['time_start']['label'] = 'Date started';
   $info['quiz_result']['properties']['time_start']['type'] = 'date';
+  $info['quiz_result']['properties']['time_end']['label'] = 'Date finished';
   $info['quiz_result']['properties']['time_end']['type'] = 'date';
   $info['quiz_result']['properties']['released']['type'] = 'date';
+  $info['quiz_result']['properties']['score']['label'] = 'Score';
   $info['quiz_result']['properties']['score']['type'] = 'integer';
+  $info['quiz_result']['properties']['is_invalid']['label'] = 'Invalid';
   $info['quiz_result']['properties']['is_invalid']['type'] = 'boolean';
+  $info['quiz_result']['properties']['is_evaluated']['label'] = 'Evaluated';
   $info['quiz_result']['properties']['is_evaluated']['type'] = 'boolean';
   $info['quiz_result']['properties']['time_left']['type'] = 'duration';
 }
