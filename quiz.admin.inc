@@ -1627,7 +1627,7 @@ function theme_quiz_admin_quizzes($variables) {
 
   while (list($key, $result) = each($results)) {
     $cols = array(
-      l($result['title'], 'node/' . $result['nid'] . '/results'),
+      l($result['title'], 'node/' . $result['nid'] . '/quiz/results'),
       check_plain($result['name']),
       format_date($result['created'], 'short'),
     );
@@ -1784,7 +1784,7 @@ function theme_question_selection_table($variables) {
  * @return Html string with links.
  */
 function _quiz_results_mr_get_hover($quiz, $result_id) {
-  $to_return = array(l(t('view'), 'node/' . $quiz->nid . '/results/' . $result_id));
+  $to_return = array(l(t('view'), 'node/' . $quiz->nid . '/quiz/results/' . $result_id));
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
     $to_return[] = l(t('delete'), 'admin/quiz/reports/results/' . $quiz->nid, array(
       'query' => array('del' => $result_id),
@@ -1887,75 +1887,6 @@ function _quiz_get_question_row($sub_form, $id) {
     'id' => 'q-' . $id,
     'data' => $data_array
   );
-}
-
-/**
- * Finds and returns the last table rows(HTML) in a table(HTML)
- *
- * TODO: DELETE
- *
- * @param $table
- *   HTML string with a table
- * @param $num_rows
- *   The number of rows to return(int)
- * @return
- *   last table row in the table(html string)
- */
-function _quiz_get_last_table_rows($table, $num_rows = 1) {
-  $matches = array();
-  $num_matches = preg_match_all('/<tr.*?<\/tr>/is', $table, $matches);
-  $to_return = '';
-  $num_rows_to_return = ($num_matches > $num_rows) ? $num_rows : $num_matches;
-  for ($i = $num_matches - 1; $i > $num_matches - 1 - $num_rows_to_return; $i--) {
-    $to_return .= $matches[0][$i];
-  }
-  return $to_return;
-}
-
-/**
- * Finds and returns all table rows with a certain class(HTML) in a table(HTML)
- *
- * TODO: DELETE
- *
- * @param $table
- *   HTML string with a table
- * @return
- *   all table rows with a certain class in a table(html string)
- */
-function _quiz_get_browser_content($table, $class) {
-  $matches = array();
-  $n_matches = preg_match('/<tr class="' . $class . '.*<\/tr>/is', $table, $matches);
-  return $matches[0];
-}
-
-/**
- * Adds variables from a querystring to $_GET
- *
- * This is to help the pager system work with ajax
- *
- * @see quiz_browser_ahah()
- *
- * @param $to_add
- *   query string
- */
-function _quiz_add_to_get($to_add) {
-  $pre = 'quiz_question_browser_';
-  parse_str($to_add, $output);
-  $vars = array('sort', 'order', 'page');
-  if (empty($to_add)) {
-    unset($_SESSION[$pre . 'page']);
-  }
-  foreach ($vars as $value) {
-    if (isset($output[$value])) {
-      $_GET[$value] = $_SESSION[$pre . $value] = $output[$value];
-    }
-    elseif (isset($_GET[$value])) {
-      continue;
-    }
-    elseif (isset($_SESSION[$pre . $value])) {
-      $_GET[$value] = $_SESSION[$pre . $value];
-    }
-  }
 }
 
 /**

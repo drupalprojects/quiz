@@ -179,7 +179,7 @@ function quiz_report_form_submit($form, &$form_state) {
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
     if ($result && $result->uid == $user->uid) {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/results/' . $result_id;
+      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/results/' . $result_id;
     }
   }
 }

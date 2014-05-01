@@ -134,7 +134,7 @@ abstract class QuizQuestion {
 
       // If coming from quiz view, go back there on submit.
       if ($quiz->type == 'quiz') {
-        $form_state['redirect'] = 'node/' . $quiz->nid . '/questions';
+        $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/questions';
         $form['#cancel_button'] = TRUE;
       }
     }
