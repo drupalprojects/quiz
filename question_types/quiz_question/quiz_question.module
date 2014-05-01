@@ -133,6 +133,11 @@ function quiz_question_validate($node, &$form) {
 
 /**
  * Get the form to show to the quiz taker.
+ *
+ * @param $nodes
+ *   A list of question nodes to get answers from.
+ * @param $result_id
+ *   The result ID for this attempt.
  */
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $quiz_result = quiz_result_load($result_id);
@@ -1008,13 +1013,13 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
   if (!_quiz_is_last_question($quiz)) {
     // There is a next question.
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
     if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']) . '/feedback';
+      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1) . '/feedback';
     }
     else {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
+      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 2);
     }
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   }
   else {
     // No more questions. Score quiz.
