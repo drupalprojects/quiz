@@ -1,0 +1,7 @@
+name = Quiz pages
+package = Quiz
+description = Provides support for pages of questions.
+core = 7.x
+dependencies[] = quiz
+dependencies[] = quiz_question
+files[] = quiz_page.classes.inc

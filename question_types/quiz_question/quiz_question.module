@@ -135,8 +135,29 @@ function quiz_question_validate($node, &$form) {
  * Get the form to show to the quiz taker.
  */
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
+  $quiz_result = quiz_result_load($result_id);
+  $questions = quiz_get_questions($quiz_result->nid, $quiz_result->vid);
+
   if (!is_array($nodes)) {
-    $nodes = array($nodes->nid => $nodes);
+    // One single question (or page?)
+    if ($nodes->type == 'quiz_page') {
+      foreach ($quiz_result->layout as $question) {
+        if ($question['nid'] == $nodes->nid) {
+          // Found a page
+          $nodes = array();
+          foreach ($quiz_result->layout as $question2) {
+            if ($question2['qnr_pid'] == $question['qnr_id']) {
+              // This question belongs in the requested page.
+              $nodes[] = node_load($question2['nid']);
+            }
+          }
+          break;
+        }
+      }
+    }
+    else {
+      $nodes = array($nodes->nid => $nodes);
+    }
   }
 
   $form['question']['#tree'] = TRUE;
@@ -243,7 +264,6 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
   // Advance to next question.
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
-
 }
 
 /**
@@ -262,7 +282,23 @@ function _quiz_question_teaser_content($node) {
   return $content;
 }
 
+/**
+ * Go to the next question, if the next question is in a page, then go to the
+ * next page.
+ */
 function quiz_question_goto($quiz, $index) {
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  $current = $_SESSION['quiz'][$quiz->nid]['current'];
+  if ($quiz_result->layout[$current]['type'] == 'quiz_page') {
+    // We are currently on a page, so the next "question" should be the next page.
+    foreach ($quiz_result->layout as $idx => $question) {
+      if ($idx > $index && $question['type'] == 'quiz_page') {
+        $index = $idx;
+        break;
+      }
+    }
+  }
+
   $_SESSION['quiz'][$quiz->nid]['current'] = $index;
 }
 
@@ -1010,10 +1046,13 @@ function quiz_question_answering_form_validate($form, $form_state) {
   $quiz = node_load(arg(1));
   foreach ($form_state['values']['question'] as $nid => $answer) {
     $current_question = node_load($nid);
-  }
-  $quiz_question = _quiz_question_get_instance(node_load($current_question->nid));
 
-  $quiz_question->getAnsweringFormValidate($form, $form_state);
+    if ($current_question) {
+      // There was an answer submitted.
+      $quiz_question = _quiz_question_get_instance(node_load($current_question->nid));
+      $quiz_question->getAnsweringFormValidate($form, $form_state);
+    }
+  }
 
 
   if ($quiz->repeat_until_correct && !$result->is_correct) {

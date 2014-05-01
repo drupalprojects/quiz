@@ -21,15 +21,6 @@
 class QuizDirectionsQuestion extends QuizQuestion {
 
   /**
-   * Constructor
-   */
-  public function __construct(stdClass $node) {
-    parent::__construct($node);
-    $this->node->no_skip_button = TRUE; // No skip button
-    $this->node->not_a_question = TRUE;
-  }
-
-  /**
    * Implementation of validateNode
    *
    * @see QuizQuestion#validateNode($form)
@@ -87,6 +78,10 @@ class QuizDirectionsQuestion extends QuizQuestion {
    */
   public function getMaximumScore() {
     return 0;
+  }
+
+  public function isGraded() {
+    return FALSE;
   }
 }
 

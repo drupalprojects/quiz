@@ -253,6 +253,13 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
+      'qnr_pid' => array(
+        'type' => 'int',
+        'size' => 'normal',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
       'parent_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -884,4 +891,19 @@ function quiz_update_7502() {
   );
   db_add_field('quiz_node_relationship', 'qnr_id', $spec, array('primary key' => array('qnr_id')));
   return t('Added new qnr_id field to the quiz_node_relationship table.');
+}
+
+/**
+ * Add new qnr_pid field to the quiz_node_relationship table.
+ */
+function quiz_update_7503() {
+  $spec = array(
+    'type' => 'int',
+    'size' => 'normal',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+  );
+  db_add_field('quiz_node_relationship', 'qnr_pid', $spec);
+  return t('Added new qnr_pid field to the quiz_node_relationship table.');
 }

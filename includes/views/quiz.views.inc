@@ -64,6 +64,10 @@ function quiz_views_handlers() {
       'quiz_views_handler_argument_user_uid_nullable' => array(
         'parent' => 'views_handler_argument_user_uid',
       ),
+      // Filters
+      'quiz_views_handler_filter_quiz_question_type' => array(
+        'parent' => 'views_handler_filter_node_type',
+      ),
     ),
   );
 }
@@ -125,6 +129,17 @@ function quiz_views_data_alter(&$data) {
       'left_field' => 'child_nid',
       'field' => 'question_nid',
       'extra' => 'quiz_node_results_answers.result_id = quiz_node_results.result_id',
+    ),
+  );
+
+  // Filter for the node being a quiz question.
+  $data['node']['quiz_question_type'] = array(
+    'title' => t('Question type'),
+    'help' => t('Filter by quiz question type.'),
+    'real field' => 'type',
+    'filter' => array(
+      'label' => 'Quiz question type',
+      'handler' => 'quiz_views_handler_filter_quiz_question_type',
     ),
   );
 }

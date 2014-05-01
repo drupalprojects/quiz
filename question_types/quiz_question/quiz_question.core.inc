@@ -540,7 +540,7 @@ abstract class QuizQuestion {
           $delete_qnr->execute();
         }
         $insert_qnr = db_insert('quiz_node_relationship');
-        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
+        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score', 'qnr_id'));
         foreach ($insert_values as $insert_value) {
           $insert_qnr->values($insert_value);
         }
@@ -642,6 +642,19 @@ abstract class QuizQuestion {
 
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
 
+  }
+
+  /**
+   * Is this question graded?
+   *
+   * Questions like Quiz Directions, Quiz Page, and Scale are not.
+   *
+   * By default, questions are expected to be gradeable
+   *
+   * @return bool
+   */
+  public function isGraded() {
+    return TRUE;
   }
 }
 
