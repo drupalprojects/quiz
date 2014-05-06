@@ -434,19 +434,19 @@ class MultichoiceQuestion extends QuizQuestion {
       $short = $this->node->alternatives[$i];
       $answer_markup = check_markup($short['answer']['value'], $short['answer']['format']);
       if (drupal_strlen($answer_markup) > 0) {
-        $element['#options'][$short['id']] = $answer_markup;
+        $element['user_answer']['#options'][$short['id']] = $answer_markup;
       }
     }
     if ($this->node->choice_random) {
       // We save the choice order so that the order will be the same in the answer report
       $element['choice_order'] = array(
         '#type' => 'hidden',
-        '#value' => implode(',', $this->shuffle($element['#options'])),
+        '#value' => implode(',', $this->shuffle($element['user_answer']['#options'])),
       );
     }
     if ($this->node->choice_multi) {
-      $element['#type'] = 'checkboxes';
-      $element['#title'] = t('Choose');
+      $element['user_answer']['#type'] = 'checkboxes';
+      $element['user_answer']['#title'] = t('Choose');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
           $element['#default_value'] = $response->getResponse();
@@ -454,12 +454,12 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
     else {
-      $element['#type'] = 'radios';
-      $element['#title'] = t('Choose one');
+      $element['user_answer']['#type'] = 'radios';
+      $element['user_answer']['#title'] = t('Choose one');
       if (isset($response)) {
         $selection = $response->getResponse();
         if (is_array($selection)) {
-          $element['#default_value'] = array_pop($selection);
+          $element['user_answer']['#default_value'] = array_pop($selection);
         }
       }
     }
@@ -810,29 +810,34 @@ class MultichoiceResponse extends QuizQuestionResponse {
   protected $choice_order;
 
   /**
-   * Constructor
+   * Constructor.
+   * 
+   * @param type $result_id
+   * @param stdClass $question_node
+   * @param type $values
+   *   Form state values.
    */
-  public function __construct($result_id, stdClass $question_node, $tries = NULL) {
-    parent::__construct($result_id, $question_node, $tries);
+  public function __construct($result_id, stdClass $question_node, $values = NULL) {
+    parent::__construct($result_id, $question_node, $values);
     $this->user_answer_ids = array();
     // tries is the tries part of the post data
-    if (isset($tries)) {
-      if (!is_array($tries)) {
+    if (isset($values)) {
+      if (!is_array($values)) {
         // Account for single-select
-        $tries = array($tries);
+        $values = array($values);
       }
-      if (isset($tries['choice_order'])) {
-        $this->choice_order = $tries['choice_order'];
+      if (isset($values['choice_order'])) {
+        $this->choice_order = $values['choice_order'];
       }
-      unset($tries['choice_order']);
-      if (isset($tries) && is_array($tries)) {
-        foreach ($tries as $answer_id) {
+      unset($values['choice_order']);
+      if (isset($values) && is_array($values)) {
+        foreach ($values as $answer_id) {
           $this->user_answer_ids[] = $answer_id;
           $this->answer = $this->user_answer_ids; //@todo: Stop using user_answer_ids and only use answer instead...
         }
       }
-      elseif (isset($tries)) {
-        $this->user_answer_ids[] = $tries;
+      elseif (isset($values)) {
+        $this->user_answer_ids[] = $values;
       }
     }
     // We load the answer from the database
