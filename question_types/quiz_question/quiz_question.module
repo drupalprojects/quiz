@@ -165,7 +165,6 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     }
   }
 
-  $form['question']['#tree'] = TRUE;
   $form['#attributes']['class'] = array('answering-form');
 
   foreach ($nodes as $node) {
@@ -174,7 +173,10 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $element = $question->getAnsweringForm($form_state, $result_id);
     $quiz = node_load(arg(1));
 
-    $form['question'][$node->nid] = $element;
+    $form['questions'][] = array(
+      'header' => field_view_field('node', $node, 'body'),
+      'question' => array('#tree' => TRUE, $node->nid => $element),
+    );
 
     if ($quiz->mark_doubtful) {
       $form['is_doubtful'] = array(
@@ -548,19 +550,17 @@ function quiz_question_view($node, $view_mode) {
   $content = '';
 
   if (_quiz_is_taking_context()) {
-    if (empty($node->no_answer_form)) {
-      /*
-       * @todo: I see no reason why this should be a part of view anymore.
-       * In quiz 5 we should stop using hook_view to view the answering form
-       */
-      $form = drupal_get_form('quiz_question_answering_form', $node, $_SESSION['quiz'][arg(1)]['result_id']);
+    $node->body = '';
+    /*
+     * @todo: I see no reason why this should be a part of view anymore.
+     * In quiz 5 we should stop using hook_view to view the answering form
+     */
+    $form = drupal_get_form('quiz_question_answering_form', $node, $_SESSION['quiz'][arg(1)]['result_id']);
 
-
-      $node->content['question_form'] = array(
-        '#markup' => drupal_render($form),
-        '#weight' => 30,
-      );
-    }
+    $node->content['question_form'] = array(
+      '#markup' => drupal_render($form),
+      '#weight' => 30,
+    );
   }
   elseif ($view_mode == 'teaser') {
     $node->content['question_teaser'] = _quiz_question_teaser_content($node);
