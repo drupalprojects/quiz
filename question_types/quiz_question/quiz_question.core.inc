@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * Classes used in the Quiz Question module.
  *
@@ -24,7 +23,6 @@
  *
  * @file
  */
-
 
 /**
  * A base implementation of a quiz_question, adding a layer of abstraction between the
@@ -51,7 +49,6 @@ abstract class QuizQuestion {
    * The current node for this question.
    */
   public $node = NULL;
-
   // Extra node properties
   public $nodeProperties = NULL;
 
@@ -167,7 +164,7 @@ abstract class QuizQuestion {
           $already_nids[] = $res_o->nid;
 
           // Store in array to use as #options
-          $already[$res_o->nid .'-'. $res_o->vid] = check_plain($res_o->title);
+          $already[$res_o->nid . '-' . $res_o->vid] = check_plain($res_o->title);
         }
       }
       $found = implode(', ', $already_nids);
@@ -188,7 +185,7 @@ abstract class QuizQuestion {
 
       while ($res_o = $res->fetch()) {
         // Array to use as #option in form element
-        $latest[$res_o->quiz_nid .'-'. $res_o->vid] = check_plain($res_o->title);
+        $latest[$res_o->quiz_nid . '-' . $res_o->vid] = check_plain($res_o->title);
         // Array to use in later queries
         $latest_nids[] = $res_o->quiz_nid;
       }
@@ -208,7 +205,7 @@ abstract class QuizQuestion {
         $res = db_query($sql);
         while ($res_o = $res->fetch()) {
           // array to be used as #options in form element
-          $latest[$res_o->nid .'-'. $res_o->vid] = check_plain($res_o->title);
+          $latest[$res_o->nid . '-' . $res_o->vid] = check_plain($res_o->title);
         }
       }
 
@@ -228,44 +225,6 @@ abstract class QuizQuestion {
         // $latest_default is to be used as #default_value in form item
         $latest_default[] = $quiz->nid . '-' . $quiz->vid;
       }
-    }
-    if ($edit_access || quiz_access_multi_or('create quiz content', 'administer nodes')) {
-      $form['add_directly'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Add to @quiz', array('@quiz' => QUIZ_NAME)),
-        '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
-        '#weight' => -3,
-        '#tree' => TRUE,
-        '#group' => 'additional_settings',
-      );
-    }
-    if ($edit_access) {
-      if (count($already) > 0) {
-        $form['add_directly']['already'] = array(
-          '#type' => 'checkboxes',
-          '#title' => t('This question is already a member of'),
-          '#description' => t('If you uncheck any of the checkboxes this question will be removed from the corresponding @quiz. If the @quiz has been answered a new revision of the @quiz will be created automatically.', array('@quiz' => QUIZ_NAME)),
-          '#options' => $already,
-          '#default_value' => array_keys($already),
-        );
-      }
-      if (count($latest) > 0) {
-        $form['add_directly']['latest'] = array(
-          '#type' => 'checkboxes',
-          '#title' => t('The @latest latest @quiz nodes this question isn\'t a member of', array('@latest' => count($latest), '@quiz' => QUIZ_NAME)),
-          '#description' => t('If you check any of the checkboxes this question will be added to the corresponding @quiz. If the @quiz has been answered a new revision will be created automatically.', array('@quiz' => QUIZ_NAME)),
-          '#options' => $latest,
-          '#default_value' => $latest_default,
-        );
-      }
-    }
-    if (quiz_access_multi_or('create quiz content', 'administer nodes')) {
-      $form['add_directly']['new'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Title for new @quiz', array('@quiz' => QUIZ_NAME)),
-        '#description' => t('Write in the name of the new @quiz you want to create and add this question to.', array('@quiz' => QUIZ_NAME)),
-      );
     }
     if ($this->hasBeenAnswered()) {
       $log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
@@ -290,12 +249,12 @@ abstract class QuizQuestion {
       '#weight' => -2,
     );
     /*
-    $question_body = field_get_items('node', $this->node, 'body');
-    $content['question'] = array(
+      $question_body = field_get_items('node', $this->node, 'body');
+      $content['question'] = array(
       '#markup' => '<div class="question-body">' . $question_body[0]['safe_value'] . '</div>',
       '#weight' => -1,
-    );
-    */
+      );
+     */
     return $content;
   }
 
@@ -453,135 +412,58 @@ abstract class QuizQuestion {
   abstract public function saveNodeProperties($is_new = FALSE);
 
   /**
-   * Handle the add to quiz part of the quiz_question_form
-   *
-   * @return
-   *  TRUE if at least one of the questions were kept.
-   *  FALSE otherwise
+   * Save this Question to the specified Quiz.
    */
   function saveRelationships() {
-    $quizzes_kept = FALSE;
-    unset($_SESSION['quiz_question_kept']);
-    /*
-     * If the question already is part of quizzes we might have to remove some
-     * relationships
-     */
-    $quizzes_to_update = array();
-    if (isset($this->node->add_directly['already']) && is_array($this->node->add_directly['already'])) {
-      foreach ($this->node->add_directly['already'] as $key => $checked) {
-        if ($checked == 0) {
-          $nid_vid = explode('-', $key);
-          $dummy_node = new stdClass();
-          $dummy_node->nid = $nid_vid[0];
-          $dummy_node->vid = $nid_vid[1];
-          if (quiz_has_been_answered($dummy_node)) {
-            // We need to revise the quiz node if it has been answered
-            $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
-            $temp_quiz_node->revision = 1;
-            $temp_quiz_node->auto_created = TRUE;
-            node_save($temp_quiz_node);
-            $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
-          }
-          $quizzes_to_update[] = $nid_vid[1];
-          db_delete('quiz_node_relationship')
-            ->condition('parent_nid', $nid_vid[0])
-            ->condition('parent_vid', $nid_vid[1])
-            ->condition('child_nid', $this->node->nid)
-            ->condition('child_vid', $this->node->vid)
-            ->execute();
-        }
-        else {
-          $quizzes_kept = TRUE;
-          $_SESSION['quiz_question_kept'][] = $key;
-        }
-      }
+    $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
+    $nid_vid[0] = $quiz_node->nid;
+    $nid_vid[1] = $quiz_node->vid;
+
+    if (quiz_has_been_answered($quiz_node)) {
+      // We need to revise the quiz node if it has been answered
+      $quiz_node->revision = 1;
+      $quiz_node->auto_created = TRUE;
+      node_save($quiz_node);
+      $nid_vid[0] = $quiz_node->nid;
+      $nid_vid[1] = $quiz_node->vid;
+      drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $quiz_node->title, '@quiz' => QUIZ_NAME)));
     }
 
-    /*
-     * The quiz question might have been added to new quizzes
-     */
-    if (isset($this->node->add_directly['latest']) && is_array($this->node->add_directly['latest'])) {
-      $to_insert = 'VALUES';
-      $insert_values = array();
-      foreach ($this->node->add_directly['latest'] as $nid => $checked) {
-        if ($checked != 0) {
-          $nid_vid = explode('-', $checked);
-          $dummy_node = new stdClass();
-          $dummy_node->nid = $nid_vid[0];
-          $dummy_node->vid = $nid_vid[1];
-          if (quiz_has_been_answered($dummy_node)) {
-            $temp_quiz_node = node_load($dummy_node->nid, $dummy_node->vid);
-            $temp_quiz_node->revision = 1;
-            $temp_quiz_node->auto_created = TRUE;
-            node_save($temp_quiz_node);
-            $nid_vid[1] = $temp_quiz_node->vid;
-            drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $temp_quiz_node->title, '@quiz' => QUIZ_NAME)));
-          }
-          $quizzes_to_update[] = $nid_vid[1];
-          $insert_values[$nid]['parent_nid'] = $nid_vid[0];
-          $insert_values[$nid]['parent_vid'] = $nid_vid[1];
-          $insert_values[$nid]['child_nid'] = $this->node->nid;
-          $insert_values[$nid]['child_vid'] = $this->node->vid;
-          $insert_values[$nid]['max_score'] = $this->getMaximumScore();
-          $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
-          $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
-          $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
-          $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+    $nid = $this->node->nid;
 
-          $delete_values[] = array('vid' => $nid_vid[1], 'nid' => $this->node->nid);
-        }
-      }
-      if (count($insert_values) > 0) {
-        foreach ($delete_values as $delete_value) {
-          $delete_qnr = db_delete('quiz_node_relationship');
-          $delete_qnr->condition('parent_vid', $delete_value['vid']);
-          $delete_qnr->condition('child_nid', $delete_value['nid']);
-          $delete_qnr->execute();
-        }
-        $insert_qnr = db_insert('quiz_node_relationship');
-        $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score', 'qnr_id'));
-        foreach ($insert_values as $insert_value) {
-          $insert_qnr->values($insert_value);
-        }
-        $insert_qnr->execute();
-      }
+    $insert_values[$nid]['parent_nid'] = $quiz_node->nid;
+    $insert_values[$nid]['parent_vid'] = $quiz_node->vid;
+    $insert_values[$nid]['child_nid'] = $this->node->nid;
+    $insert_values[$nid]['child_vid'] = $this->node->vid;
+    $insert_values[$nid]['max_score'] = $this->getMaximumScore();
+    $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
+    $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
+    $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
+    $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+
+    $insert_qnr = db_insert('quiz_node_relationship');
+    $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score', 'qnr_id'));
+    foreach ($insert_values as $insert_value) {
+      $insert_qnr->values($insert_value);
     }
-    if (drupal_strlen($this->node->add_directly['new']) > 0) {
-      $new_node = quiz_make_new($this->node->add_directly['new']);
-      $id = db_insert('quiz_node_relationship')
-      ->fields(array(
-        'parent_nid' => $new_node->nid,
-        'parent_vid' => $new_node->vid,
-        'child_nid' => $this->node->nid,
-        'child_vid' => $this->node->vid,
-        'max_score' => $this->getMaximumScore(),
-        'auto_update_max_score' => $this->autoUpdateMaxScore() ? 1 : 0,
-      ))
-      ->execute();
-      $quizzes_to_update[] = $new_node->vid;
-    }
+    $insert_qnr->execute();
 
     // Update max_score for relationships if auto update max score is enabled
     // for question
-    if(isset($this->node->nid)) {
-      $result = db_query(
-          'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1',
-          array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
-      foreach ($result as $record) {
-        $quizzes_to_update[] = $record->vid;
-      }
-
-      db_update('quiz_node_relationship')
-        ->fields(array('max_score' => $this->getMaximumScore()))
-        ->condition('child_nid', $this->node->nid)
-        ->condition('child_vid', $this->node->vid)
-        ->condition('auto_update_max_score', 1)
-        ->execute();
+    $result = db_query(
+      'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+    foreach ($result as $record) {
+      $quizzes_to_update[] = $record->vid;
     }
 
+    db_update('quiz_node_relationship')
+      ->fields(array('max_score' => $this->getMaximumScore()))
+      ->condition('child_nid', $this->node->nid)
+      ->condition('child_vid', $this->node->vid)
+      ->condition('auto_update_max_score', 1)
+      ->execute();
+
     quiz_update_max_score_properties($quizzes_to_update);
-    return $quizzes_kept;
   }
 
   /**
@@ -613,8 +495,7 @@ abstract class QuizQuestion {
   public function viewCanRevealCorrect() {
     global $user;
     // permission overrides the hook
-    if (user_access('view any quiz question correct response')
-     || $user->uid == $this->node->uid) {
+    if (user_access('view any quiz question correct response') || $user->uid == $this->node->uid) {
       return TRUE;
     }
     $results = module_invoke_all('answers_access', $this->node);
@@ -656,6 +537,7 @@ abstract class QuizQuestion {
   public function isGraded() {
     return TRUE;
   }
+
 }
 
 /**
@@ -663,15 +545,13 @@ abstract class QuizQuestion {
  * that data.
  */
 abstract class QuizQuestionResponse {
+
   // Result id
   protected $result_id = 0;
-
   protected $is_correct = FALSE;
   protected $evaluated = TRUE;
-
   // The question node(not a quiz question instance)
   public $question = NULL;
-
   protected $answer = NULL;
   protected $score;
   public $is_skipped;
@@ -928,7 +808,6 @@ abstract class QuizQuestionResponse {
     return array('#markup' => '<span class="quiz-report-score">' . $this->getScore() . '</span>');
   }
 
-
   public function getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring) {
     return FALSE;
   }
@@ -1000,4 +879,3 @@ abstract class QuizQuestionResponse {
    */
   abstract public function getResponse();
 }
-

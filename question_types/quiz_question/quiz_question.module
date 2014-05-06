@@ -878,24 +878,6 @@ function quiz_question_get_max_score($nid, $vid) {
 }
 
 /**
- * Implements hook_field_extra_fields().
- */
-function quiz_question_field_extra_fields() {
-  $extra = array();
-  $question_types = array_keys(_quiz_question_get_implementations());
-  if (!empty($question_types)) {
-    foreach ($question_types as $type_name) {
-      $extra['node'][$type_name]['form']['add_directly'] = array(
-        'label' => t('Add directly'),
-        'description' => t('Fieldset for adding a question directly into quizzes'),
-        'weight' => -3,
-      );
-    }
-  }
-  return $extra;
-}
-
-/**
  * Returns a result report for a question response.
  *
  * The retaurned value is a form array because in some contexts the scores in the form

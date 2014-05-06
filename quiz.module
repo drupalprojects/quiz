@@ -4309,7 +4309,8 @@ function quiz_add_question_to_quiz($question) {
     }
   }
   // Otherwise let's add a relationship!
-  $question->add_directly['latest'][] = "{$quiz->nid}-{$quiz->vid}";
+  $question->quiz_nid = $quiz->nid;
+  $question->quiz_vid = $quiz->vid;
   _quiz_question_get_instance($question)->saveRelationships();
 }
 
