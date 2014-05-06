@@ -792,7 +792,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if (!$this->node->choice_multi && is_null($form_state['values']['question'][$this->node->nid])) {
-      form_set_error('', t('You must provide an answer'));
+      form_set_error('', t('You must provide an answer.'));
     }
   }
 
