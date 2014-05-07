@@ -141,7 +141,6 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $quiz_result = quiz_result_load($result_id);
-  $questions = quiz_get_questions($quiz_result->nid, $quiz_result->vid);
 
   if (!is_array($nodes)) {
     // One single question (or page?)
@@ -199,10 +198,14 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     }
   }
 
-  $form['navigation']['#theme'] = 'quiz_question_navigation_form';
   $is_last = _quiz_is_last_question($quiz);
+
+  $form['navigation']['#type'] = 'actions';
+  $form['navigation']['#theme'] = 'quiz_question_navigation_form';
+
   if (!empty($quiz->backwards_navigation) && $node->question_number != 1) {
     $form['navigation']['back'] = array(
+      '#weight' => 10,
       '#type' => 'submit',
       '#value' => t('Back'),
       '#submit' => array('quiz_question_answering_form_submit_back'),
@@ -210,11 +213,15 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     );
     if ($is_last) {
       $form['navigation']['#last'] = TRUE;
+      $form['navigation']['last_text'] = array(
+        '#weight' => 0,
+        '#markup' => '<p><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></p>',
+      );
     }
   }
 
-  // Add navigation at the bottom:
   $form['navigation']['submit'] = array(
+    '#weight' => 30,
     '#type' => 'submit',
     '#value' => $is_last ? t('Finish') : t('Next'),
   );
@@ -230,18 +237,13 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   }
   if ($quiz->allow_skipping) {
     $form['navigation']['skip'] = array(
+      '#weight' => 20,
       '#type' => 'submit',
       '#value' => $is_last ? t('Leave blank and finish') : t('Leave blank'),
       '#access' => ($node->type == 'quiz_directions') ? FALSE : TRUE,
       '#submit' => $is_last ? array('quiz_question_answering_form_submit') : array('quiz_question_answering_form_submit_blank'),
       '#limit_validation_errors' => array(),
     );
-    if ($quiz->allow_jumping) {
-      $form['jump_to_question'] = array(
-        '#type' => 'hidden',
-        '#default_value' => 0,
-      );
-    }
   }
 
   return $form;
