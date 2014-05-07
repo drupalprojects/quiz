@@ -214,6 +214,7 @@ $handler->display->display_options['filters']['title']['id'] = 'title';
 $handler->display->display_options['filters']['title']['table'] = 'node';
 $handler->display->display_options['filters']['title']['field'] = 'title';
 $handler->display->display_options['filters']['title']['operator'] = 'contains';
+$handler->display->display_options['filters']['title']['group'] = 1;
 $handler->display->display_options['filters']['title']['exposed'] = TRUE;
 $handler->display->display_options['filters']['title']['expose']['operator_id'] = 'title_op';
 $handler->display->display_options['filters']['title']['expose']['label'] = 'Question title';
@@ -228,6 +229,7 @@ $handler->display->display_options['filters']['title']['expose']['remember_roles
 $handler->display->display_options['filters']['quiz_question_type']['id'] = 'quiz_question_type';
 $handler->display->display_options['filters']['quiz_question_type']['table'] = 'node';
 $handler->display->display_options['filters']['quiz_question_type']['field'] = 'quiz_question_type';
+$handler->display->display_options['filters']['quiz_question_type']['group'] = 1;
 $handler->display->display_options['filters']['quiz_question_type']['exposed'] = TRUE;
 $handler->display->display_options['filters']['quiz_question_type']['expose']['operator_id'] = 'quiz_question_type_op';
 $handler->display->display_options['filters']['quiz_question_type']['expose']['label'] = 'Question type';
@@ -237,19 +239,20 @@ $handler->display->display_options['filters']['quiz_question_type']['expose']['r
   2 => '2',
   1 => 0,
   3 => 0,
-);
-/* Filter criterion: Content: Question type */
-$handler->display->display_options['filters']['quiz_question_type_1']['id'] = 'quiz_question_type_1';
-$handler->display->display_options['filters']['quiz_question_type_1']['table'] = 'node';
-$handler->display->display_options['filters']['quiz_question_type_1']['field'] = 'quiz_question_type';
-$handler->display->display_options['filters']['quiz_question_type_1']['value'] = array(
-  'all' => 'all',
-  'quiz_page' => 'quiz_page',
-  'truefalse' => 'truefalse',
+  5 => 0,
+  6 => 0,
+  4 => 0,
 );
 /* Filter criterion: Content: Published */
 $handler->display->display_options['filters']['status']['id'] = 'status';
 $handler->display->display_options['filters']['status']['table'] = 'node';
 $handler->display->display_options['filters']['status']['field'] = 'status';
 $handler->display->display_options['filters']['status']['value'] = 1;
+$handler->display->display_options['filters']['status']['group'] = 1;
 $handler->display->display_options['filters']['status']['expose']['operator'] = FALSE;
+/* Filter criterion: Content: Quiz question */
+$handler->display->display_options['filters']['quiz_question']['id'] = 'quiz_question';
+$handler->display->display_options['filters']['quiz_question']['table'] = 'node';
+$handler->display->display_options['filters']['quiz_question']['field'] = 'quiz_question';
+$handler->display->display_options['filters']['quiz_question']['value'] = '1';
+$handler->display->display_options['filters']['quiz_question']['group'] = 1;
