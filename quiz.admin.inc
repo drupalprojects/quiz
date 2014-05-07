@@ -1680,65 +1680,6 @@ function quiz_set_auto_title() {
 }
 
 /**
- * Returns an array with options for the score filters.
- *
- * @see _quiz_get_score_intervals()
- *
- * @return $options
- *   array of options for the score filter
- */
-function _quiz_get_score_options() {
-  return array(
-    t('No filter'),
-    t('Passed'),
-    t('Failed'),
-    t('= 100 %'),
-    t('> 90 %'),
-    t('> 75 %'),
-    t('> 50 %'),
-    t('> 25 %'),
-    t('< 90 %'),
-    t('< 75 %'),
-    t('< 50 %'),
-    t('< 25 %'),
-  );
-}
-
-/**
- * Returns an array with sql where clauses correscponding to the options in the score filters.
- *
- * @see _quiz_questions_browser_form()
- *
- * @return $changed_timestamps
- *   array of timestamps and sql filters
- */
-function _quiz_get_score_intervals($quiz) {
-  // Create datastructure to help create where clause in the sql for the changed filter...
-  $scores = array(
-    NULL,
-    '>= qnp.pass_rate',
-    '< qnp.pass_rate',
-    '= 100',
-    '> 90',
-    '> 75',
-    '> 50',
-    '> 25',
-    '< 90',
-    '< 75',
-    '< 50',
-    '< 25',
-  );
-
-  foreach ($scores as $key => &$val) {
-    if ($val == NULL) {
-      continue;
-    }
-    $scores[$key] = ' AND score ' . $val;
-  }
-  return $scores;
-}
-
-/**
  * Themes a categorized quiz form
  */
 function theme_quiz_categorized_form($variables) {
