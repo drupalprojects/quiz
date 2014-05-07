@@ -169,11 +169,14 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
 
   foreach ($nodes as $node) {
     $question = _quiz_question_get_instance($node);
+    $class = drupal_html_class('quiz-question-' . $node->type);
     // Element for a single question
     $element = $question->getAnsweringForm($form_state, $result_id);
     $quiz = node_load(arg(1));
 
-    $form['questions'][] = array(
+    $form['questions'][$node->nid] = array(
+      '#attributes' => array('class' => array($class)),
+      '#type' => 'container',
       'header' => field_view_field('node', $node, 'body'),
       'question' => array('#tree' => TRUE, $node->nid => $element),
     );
