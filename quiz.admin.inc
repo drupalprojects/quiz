@@ -421,8 +421,9 @@ function quiz_questions($node) {
   // Set page title.
   drupal_set_title($node->title);
   if ($node->randomization < 3) {
-    $qqform = drupal_render(drupal_get_form('quiz_questions_form', $node));
-    $qaform = views_get_view('quiz_question_bank')->preview();
+    $mq_form = drupal_get_form('quiz_questions_form', $node);
+    $manage_questions = drupal_render($mq_form);
+    $question_bank = views_get_view('quiz_question_bank')->preview();
 
     // Insert into vert tabs
     $form['vert_tabs'] = array(
@@ -432,12 +433,12 @@ function quiz_questions($node) {
     $form['vert_tabs']['question_admin'] = array(
       '#type' => 'fieldset',
       '#title' => t('Manage questions'),
-      '#value' => $qqform,
+      '#value' => $manage_questions,
     );
     $form['vert_tabs']['global_questions'] = array(
       '#type' => 'fieldset',
       '#title' => t('Question bank'),
-      '#value' => $qaform,
+      '#value' => $question_bank,
     );
   }
   else {
