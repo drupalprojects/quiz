@@ -899,8 +899,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
   if ($quiz->randomization == 2) {
     $form['question_list']['compulsories'] = array('#tree' => TRUE);
   }
-
-  $my_dest = $_GET['q'];
+  
   foreach ($questions as $question) {
     // @todo replace entire form with usage of question instance
     $question_node = node_load($question->nid, $question->vid);
@@ -987,7 +986,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     $form[$fieldset]['view_links'][$id] = array(
       '#markup' => l(
         t('Edit'), 'node/' . $question->nid . '/edit', array(
-        'query' => array('destination' => $my_dest),
+        'query' => drupal_get_destination(),
         'attributes' => array('class' => array('handle-changes')),
         )
       ),

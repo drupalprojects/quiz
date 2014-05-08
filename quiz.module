@@ -2929,7 +2929,6 @@ function quiz_node_map($node) {
  *   Boolean TRUE if update was successful, FALSE otherwise.
  */
 function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
-  $old_vid = $quiz->vid;
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
@@ -2951,14 +2950,13 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
     return TRUE; // This is not an error condition.
   }
 
-  $qnr_insert = db_insert('quiz_node_relationship')
-    ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_pid', 'qnr_id'));
   foreach ($questions as $question) {
     if ($question->state != QUESTION_NEVER) {
-      $qnr_insert->values(array(
+      $question_inserts[$question->qnr_id] = array(
         'parent_nid' => $quiz->nid,
         'parent_vid' => $quiz->vid,
         'child_nid' => $question->nid,
+        // Update to latest OR use the version given.
         'child_vid' => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
         'question_status' => $question->state,
         'weight' => $question->weight,
@@ -2966,12 +2964,22 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
         'auto_update_max_score' => (int) $question->auto_update_max_score,
         'qnr_pid' => $question->qnr_pid,
         'qnr_id' => !$set_new_revision ? $question->qnr_id : NULL,
-      ));
+        'old_qnr_id' => $question->qnr_id,
+      );
+      drupal_write_record('quiz_node_relationship', $question_inserts[$question->qnr_id]);
     }
   }
-  if (count($questions)) {
-    $qnr_insert->execute();
+
+  // Update the parentage when a new revision is created.
+  foreach ($question_inserts as $question_insert) {
+    db_update('quiz_node_relationship')
+      ->condition('qnr_pid', $question_insert['old_qnr_id'])
+      ->condition('parent_vid', $quiz->vid)
+      ->condition('parent_nid', $quiz->nid)
+      ->fields(array('qnr_pid' => $question_insert['qnr_id']))
+      ->execute();
   }
+
   quiz_update_max_score_properties(array($quiz->vid));
   return TRUE;
 }
