@@ -2568,7 +2568,7 @@ function quiz_start_check($quiz) {
   if ($quiz->quiz_always != 1) {
     // Compare current GMT time to the open and close dates (which should still
     // be in GMT time).
-    $now = time();
+    $now = REQUEST_TIME;
 
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       if ($user_is_admin) {
@@ -2638,7 +2638,7 @@ function quiz_availability($quiz) {
 
   // Compare current GMT time to the open and close dates (which should still be
   // in GMT time).
-  $now = time();
+  $now = REQUEST_TIME;
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
     return t('This quiz is closed');
