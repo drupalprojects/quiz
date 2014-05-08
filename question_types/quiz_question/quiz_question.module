@@ -977,11 +977,12 @@ function quiz_question_feedback($quiz, $question) {
  */
 function quiz_question_answering_form_submit(&$form, &$form_state) {
   $quiz = node_load(arg(1));
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  $questions = $quiz_result->layout;
 
   if (!empty($form_state['values']['question'])) {
     foreach ($form_state['values']['question'] as $nid => $answer) {
       $current_question = node_load($nid);
-      $questions = quiz_build_question_list($quiz);
       foreach ($questions as $question) {
         if ($question['nid'] == $current_question->nid) {
           $question_array = $question;
@@ -995,8 +996,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     }
   }
 
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  // What to do?
+  // Wat do?
 
   if (!_quiz_is_last_question($quiz)) {
     // There is a next question.
