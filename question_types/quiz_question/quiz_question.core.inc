@@ -108,32 +108,29 @@ abstract class QuizQuestion {
       );
     }
 
-    // Quiz id used here to tie creation of a question to a specific quiz
-    if (isset($_GET['quiz_nid']) && is_numeric($_GET['quiz_nid'])) {
-      $vid = (_quiz_is_int($_GET['quiz_vid'], 0)) ? $_GET['quiz_vid'] : NULL;
-      $quiz = node_load((int) $_GET['quiz_nid'], $vid);
+    // Store quiz id in the form
+    $form['quiz_nid'] = array(
+      '#type' => 'hidden',
+    );
+    $form['quiz_vid'] = array(
+      '#type' => 'hidden',
+    );
 
-      // Store quiz id in the form
-      $form['quiz_nid'] = array(
-        '#type' => 'value',
-        '#value' => $quiz->nid,
-      );
-      $form['quiz_vid'] = array(
-        '#type' => 'value',
-        '#value' => $quiz->vid,
-      );
+    if (isset($_GET['quiz_nid']) && isset($_GET['quiz_vid'])) {
+      $form['quiz_nid']['#value'] = intval($_GET['quiz_nid']);
+      $form['quiz_vid']['#value'] = intval($_GET['quiz_vid']);
+    }
 
-      // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
-      $form['is_quiz_question'] = array(
-        '#type' => 'value',
-        '#value' => TRUE
-      );
+    // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
+    $form['is_quiz_question'] = array(
+      '#type' => 'value',
+      '#value' => TRUE
+    );
 
-      // If coming from quiz view, go back there on submit.
-      if ($quiz->type == 'quiz') {
-        $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/questions';
-        $form['#cancel_button'] = TRUE;
-      }
+    // If coming from quiz view, go back there on submit.
+    if ($quiz->type == 'quiz') {
+      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/questions';
+      $form['#cancel_button'] = TRUE;
     }
 
     //Add question type specific content
