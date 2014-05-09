@@ -2010,7 +2010,8 @@ function quiz_take_question($quiz, $question_number) {
     $_SESSION['quiz'][$quiz->nid]['question_start_time'] = REQUEST_TIME;
   }
 
-  $content['body']['question']['#markup'] = quiz_take_question_view($question_node, $quiz);
+  $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
+  $content['body']['question']['#markup'] = drupal_render($question_form);
   drupal_set_title($quiz->title);
 
 

@@ -554,20 +554,7 @@ function quiz_question_view($node, $view_mode) {
   }
   $content = '';
 
-  if (_quiz_is_taking_context()) {
-    /*
-     * @todo: I see no reason why this should be a part of view anymore.
-     * In quiz 5 we should stop using hook_view to view the answering form
-     */
-    $form = drupal_get_form('quiz_question_answering_form', $node, $_SESSION['quiz'][arg(1)]['result_id']);
-    $node->body = '';
-
-    $node->content['question_form'] = array(
-      '#markup' => drupal_render($form),
-      '#weight' => 30,
-    );
-  }
-  elseif ($view_mode == 'teaser') {
+  if ($view_mode == 'teaser') {
     $node->content['question_teaser'] = _quiz_question_teaser_content($node);
   }
   else {
