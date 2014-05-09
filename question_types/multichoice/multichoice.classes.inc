@@ -811,33 +811,33 @@ class MultichoiceResponse extends QuizQuestionResponse {
 
   /**
    * Constructor.
-   * 
+   *
    * @param type $result_id
    * @param stdClass $question_node
    * @param type $values
    *   Form state values.
    */
   public function __construct($result_id, stdClass $question_node, $values = NULL) {
-    parent::__construct($result_id, $question_node, $values);
+    parent::__construct($result_id, $question_node, $values['user_answer']);
     $this->user_answer_ids = array();
     // tries is the tries part of the post data
-    if (isset($values)) {
-      if (!is_array($values)) {
+    if (isset($values['user_answer'])) {
+      if (!is_array($values['user_answer'])) {
         // Account for single-select
-        $values = array($values);
+        $values['user_answer'] = array($values['user_answer']);
       }
       if (isset($values['choice_order'])) {
         $this->choice_order = $values['choice_order'];
       }
       unset($values['choice_order']);
-      if (isset($values) && is_array($values)) {
-        foreach ($values as $answer_id) {
+      if (isset($values['user_answer']) && is_array($values['user_answer'])) {
+        foreach ($values['user_answer'] as $answer_id) {
           $this->user_answer_ids[] = $answer_id;
           $this->answer = $this->user_answer_ids; //@todo: Stop using user_answer_ids and only use answer instead...
         }
       }
-      elseif (isset($values)) {
-        $this->user_answer_ids[] = $values;
+      elseif (isset($values['user_answer'])) {
+        $this->user_answer_ids[] = $values['user_answer'];
       }
     }
     // We load the answer from the database
