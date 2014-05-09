@@ -469,34 +469,21 @@ function quiz_menu() {
     'file' => 'quiz.admin.inc',
   );
 
-  $items['node/%quiz_menu/myresults'] = array(
-    'title' => 'My results',
-    'page callback' => 'quiz_my_results',
-    'page arguments' => array(1),
-    'access callback' => 'quiz_access_my_results',
-    'access arguments' => array(1),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz.pages.inc',
-    'weight' => 3,
-  );
-
-  $items['node/%quiz_menu/myresults/%quiz_rid'] = array(
+  $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_access_my_result',
     'access arguments' => array(1, 3),
-    'type' => MENU_IS_LOCAL_TASK,
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%quiz_menu/quiz/results/%quiz_rid'] = array(
+  $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(1, 4),
     'access callback' => 'quiz_access_results',
-    'access arguments' => array(1, 3),
-    'type' => MENU_IS_LOCAL_TASK,
+    'access arguments' => array(1, 4),
     'file' => 'quiz.admin.inc',
   );
 
@@ -947,7 +934,12 @@ function _quiz_get_node_defaults() {
  * Result_id, menu argument loader.
  */
 function quiz_rid_load($result_id) {
-  return (!empty($result_id) && is_numeric($result_id)) ? $result_id : 0;
+  if ($result_id > 0) {
+    return $result_id;
+  }
+  else {
+    return FALSE;
+  }
 }
 
 /**
@@ -1838,7 +1830,7 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
       drupal_write_record('quiz_node_relationship', $quiz_question);
     }
 
-      // Update the parentage when a new revision is created.
+    // Update the parentage when a new revision is created.
     // @todo this is copy pasta from quiz_set_questions
     foreach ($questions as $question) {
       db_update('quiz_node_relationship')
@@ -2976,7 +2968,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
 
   // Update the parentage when a new revision is created.
-   // @todo this is copy pasta from quiz_update_quiz_question_relationship
+  // @todo this is copy pasta from quiz_update_quiz_question_relationship
   foreach ($question_inserts as $question_insert) {
     db_update('quiz_node_relationship')
       ->condition('qnr_pid', $question_insert['old_qnr_id'])
@@ -4105,6 +4097,7 @@ function _quiz_is_empty_html($html) {
  * Check if this is the last question or page of this quiz.
  */
 function _quiz_is_last_question($quiz) {
+  $last_page = FALSE;
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $current = $_SESSION['quiz'][$quiz->nid]['current'];
   foreach ($quiz_result->layout as $idx => $question) {
