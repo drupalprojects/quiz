@@ -379,23 +379,21 @@ function quiz_menu() {
   // Take question.
   // @todo Thought - the 4th argument could be a "page" instead of a question
   // number
-  $items['node/%quiz_menu/take/%'] = array(
+  $items['node/%quiz_menu/take/%question_number'] = array(
     'title' => 'Take',
     'page callback' => 'quiz_take_question',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_take_question_access',
     'access arguments' => array(1, 3),
-    'type' => MENU_IS_LOCAL_TASK,
   );
 
   // Feedback
-  $items['node/%quiz_menu/take/%/feedback'] = array(
+  $items['node/%quiz_menu/take/%question_number/feedback'] = array(
     'title' => 'Feedback',
     'page callback' => 'quiz_take_question_feedback',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
-    'type' => MENU_IS_LOCAL_TASK,
   );
 
 
@@ -4325,4 +4323,11 @@ function quiz_action_info() {
   );
 
   return $actions;
+}
+
+/**
+ * Workaround for menu_translate bug.
+ */
+function question_number_to_arg() {
+  return 0;
 }
