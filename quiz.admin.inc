@@ -738,8 +738,6 @@ function quiz_questions_form($form, $form_state, $quiz) {
     'question_status' => array('#tree' => TRUE),
   );
 
-  $form['#attached']['js'] = array(drupal_get_path('module', 'quiz') . '/theme/quiz_question_browser.js');
-
   // Add randomization settings if this quiz allows randomized questions
   _quiz_add_fields_for_random_quiz($form, $quiz);
 
@@ -899,7 +897,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
   if ($quiz->randomization == 2) {
     $form['question_list']['compulsories'] = array('#tree' => TRUE);
   }
-  
+
   foreach ($questions as $question) {
     // @todo replace entire form with usage of question instance
     $question_node = node_load($question->nid, $question->vid);
@@ -952,7 +950,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     // Add checkboxes to remove questions in js disabled browsers...
     $form[$fieldset]['stayers'][$id] = array(
       '#type' => 'checkbox',
-      '#default_value' => (isset($question->staying) && $question->staying === FALSE) ? 0 : 1,
+      '#default_value' => 0,
       '#attributes' => array('class' => array('q-staying')),
     );
 
@@ -1084,9 +1082,6 @@ function quiz_questions_form_validate($form, $form_state) {
   $question_types = array_keys(_quiz_get_question_types());
 
   foreach ($weight_map as $id => $weight) {
-    if ($form_state['values']['stayers'][$id] == 0) {
-      continue;
-    } // The question isn't to be added...
 
     list($nid, $vid) = explode('-', $id, 2);
 
@@ -1116,9 +1111,6 @@ function quiz_questions_form_validate($form, $form_state) {
   // We make sure max score is a positive number
   $max_scores = $form_state['values']['max_scores'];
   foreach ($max_scores as $id => $max_score) {
-    if ($form_state['values']['stayers'][$id] == 0) {
-      continue;
-    }
     if (!_quiz_is_int($max_score, 0)) {
       form_set_error("max_scores][$id", t('Max score needs to be a positive number'));
     }
@@ -1146,8 +1138,7 @@ function quiz_questions_form_validate($form, $form_state) {
 function _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids, $qnr_pids, $compulsories = NULL) {
   $questions = array();
   foreach ($weight_map as $id => $weight) {
-    // Do not add hidden questions to $questions
-    if ($stayers[$id] == 0) {
+    if ($stayers[$id]) {
       continue;
     }
     list($nid, $vid) = explode('-', $id, 2);
@@ -1220,7 +1211,7 @@ function quiz_questions_form_submit($form, &$form_state) {
 
 
   // Store what questions belong to the quiz
-  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories);
+  $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories, $stayers);
 
   // If using random questions and no term ID is specified, make sure we have enough.
   if (empty($term_id)) {
@@ -1300,9 +1291,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
   if (isset($form_state['values']['browser']['table']['titles'])) {
     foreach ($form_state['values']['browser']['table']['titles'] as $id) {
       if ($id !== 0) {
-        if ($form_state['values']['stayers'][$id] == 1) {
-          continue;
-        }
         $matches = array();
         preg_match('/([0-9]+)-([0-9]+)/', $id, $matches);
         $nid = $matches[1];
@@ -1450,7 +1438,7 @@ function theme_question_selection_table($variables) {
   drupal_add_tabledrag('question-list', 'order', 'sibling', 'question-list-weight');
 
   // Building headers
-  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Auto update max score'));
+  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Auto update max score'), t('Delete'));
   if (isset($form['compulsories'])) {
     $headers[] = t('Compulsory');
   }
@@ -1542,9 +1530,6 @@ function _quiz_get_question_row($sub_form, $id) {
   $question_types = _quiz_get_question_types();
   $type = $sub_form['types'][$id]['#markup'];
 
-  // We add the class "hidden-class" to hide questions that haven't been added to the quiz yet.
-  $hidden_class = ($sub_form['stayers'][$id]['#default_value'] === 0) ? ' hidden-question' : '';
-
   $action = theme('item_list', array(
     'items' => array(
       drupal_render($sub_form['view_links'][$id]),
@@ -1557,12 +1542,13 @@ function _quiz_get_question_row($sub_form, $id) {
   $qnr_pid = $sub_form['qnr_pids'][$id]['#default_value'];
   $data_array = array(
     // The checkbox and the title
-    ($qnr_pid ? theme('indentation', array('size' => 1)) : NULL) . drupal_render($sub_form['stayers'][$id]) . drupal_render($sub_form['titles'][$id]),
+    ($qnr_pid ? theme('indentation', array('size' => 1)) : NULL) . drupal_render($sub_form['titles'][$id]),
     $type,
     $action,
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
     drupal_render($sub_form['max_scores'][$id]),
     drupal_render($sub_form['auto_update_max_scores'][$id]),
+    drupal_render($sub_form['stayers'][$id]),
   );
   if (isset($sub_form['compulsories'])) {
     $data_array[] = drupal_render($sub_form['compulsories'][$id]);
@@ -1577,7 +1563,7 @@ function _quiz_get_question_row($sub_form, $id) {
   $leaf_class = $sub_form['types'][$id]['#question_type'] != 'quiz_page' ? 'tabledrag-leaf' : '';
 
   return array(
-    'class' => array('q-row', 'draggable', $hidden_class, $leaf_class),
+    'class' => array('q-row', 'draggable', $leaf_class),
     'id' => 'q-' . $id,
     'data' => $data_array
   );
