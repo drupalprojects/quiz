@@ -1821,28 +1821,33 @@ function quiz_get_pass_rate($nid, $vid) {
 function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
   // query for questions in previous version
   $result = db_select('quiz_node_relationship', 'qnr')
-    ->fields('qnr', array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id'))
+    ->fields('qnr', array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
     ->condition('parent_nid', $quiz_nid)
     ->condition('parent_vid', $old_quiz_vid)
     ->condition('question_status', QUESTION_NEVER, '!=')
     ->execute();
+
   // only proceed if query returned data
   if ($result->rowCount()) {
-    $insert_query = db_insert('quiz_node_relationship')
-      ->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id'));
-    while ($quiz_question = $result->fetchAssoc()) {
-      $insert_query->values(array(
-        'parent_nid' => $quiz_nid,
-        'parent_vid' => $new_quiz_vid,
-        'child_nid' => $quiz_question['child_nid'],
-        'child_vid' => $quiz_question['child_vid'],
-        'question_status' => $quiz_question['question_status'],
-        'weight' => $quiz_question['weight'],
-        'max_score' => $quiz_question['max_score'],
-        'auto_update_max_score' => $quiz_question['auto_update_max_score'],
-      ));
+    $questions = $result->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($questions as &$quiz_question) {
+      $quiz_question['old_qnr_id'] = $quiz_question['qnr_id'];
+      $quiz_question['parent_nid'] = $quiz_nid;
+      $quiz_question['parent_vid'] = $new_quiz_vid;
+      unset($quiz_question['qnr_id']);
+      drupal_write_record('quiz_node_relationship', $quiz_question);
     }
-    $insert_query->execute();
+
+      // Update the parentage when a new revision is created.
+    // @todo this is copy pasta from quiz_set_questions
+    foreach ($questions as $question) {
+      db_update('quiz_node_relationship')
+        ->condition('qnr_pid', $question['old_qnr_id'])
+        ->condition('parent_nid', $quiz_nid)
+        ->condition('parent_vid', $new_quiz_vid)
+        ->fields(array('qnr_pid' => $question['qnr_id']))
+        ->execute();
+    }
   }
 
   /* Update terms if any */
@@ -2971,6 +2976,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   }
 
   // Update the parentage when a new revision is created.
+   // @todo this is copy pasta from quiz_update_quiz_question_relationship
   foreach ($question_inserts as $question_insert) {
     db_update('quiz_node_relationship')
       ->condition('qnr_pid', $question_insert['old_qnr_id'])
