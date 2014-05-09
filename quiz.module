@@ -263,7 +263,7 @@ function quiz_access_my_results($quiz) {
  * @return boolean
  *  True if access, false otherwise
  */
-function quiz_access_my_result($node, $result_id) {
+function quiz_access_my_result($result_id) {
   // Check if the quiz taking has been completed.
   $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
   return $time_end > 0;
@@ -472,9 +472,9 @@ function quiz_menu() {
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
-    'page arguments' => array(1, 3),
+    'page arguments' => array(3),
     'access callback' => 'quiz_access_my_result',
-    'access arguments' => array(1, 3),
+    'access arguments' => array(3),
     'file' => 'quiz.pages.inc',
   );
 
@@ -500,21 +500,12 @@ function quiz_menu() {
   );
 
   // User pages.
-  $items['user/%user/myresults'] = array(
-    'title' => 'My results',
-    'page callback' => 'quiz_get_user_results',
-    'page arguments' => array(1),
-    'access callback' => '_quiz_user_results_access',
-    'access arguments' => array(1),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz.pages.inc',
-  );
 
-  $items['user/quiz/%/userresults'] = array(
+  $items['user/%/quiz-results/%/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
-    'page arguments' => array(2),
-    'access arguments' => array(2),
+    'page arguments' => array(3),
+    'access arguments' => array(3),
     'access callback' => 'quiz_access_my_result',
     'type' => MENU_CALLBACK,
     'file' => 'quiz.pages.inc',
