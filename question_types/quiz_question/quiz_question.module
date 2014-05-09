@@ -1014,7 +1014,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);
-    $form_state['redirect'] = "node/{$quiz->nid}/myresults/{$quiz_result->result_id}";
+    $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
 
     quiz_end_actions($quiz, $score, $_SESSION['quiz'][$quiz->nid]);
 
