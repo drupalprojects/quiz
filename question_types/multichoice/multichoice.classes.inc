@@ -869,7 +869,9 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $query = db_insert('quiz_multichoice_user_answer_multi')
       ->fields(array('user_answer_id', 'answer_id'));
     for ($i = 0; $i < count($this->user_answer_ids); $i++) {
-      $query->values(array($user_answer_id, $this->user_answer_ids[$i]));
+      if ($this->user_answer_ids[$i]) {
+        $query->values(array($user_answer_id, $this->user_answer_ids[$i]));
+      }
     }
     $query->execute();
   }
