@@ -931,6 +931,11 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
         '#maxlength' => 2,
         '#disabled' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
         '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+        '#states' => array(
+          'disabled' => array(
+            "#edit-auto-update-max-scores-$id" => array('checked' => TRUE),
+          )
+        ),
       );
     }
     else {
