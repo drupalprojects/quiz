@@ -4083,22 +4083,31 @@ function _quiz_is_empty_html($html) {
 }
 
 /**
- * Check if this is the last question or page of this quiz.
+ * Show the finish button?
  */
-function _quiz_is_last_question($quiz) {
-  $last_page = FALSE;
+function _quiz_show_finish_button($quiz) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $current = $_SESSION['quiz'][$quiz->nid]['current'];
   foreach ($quiz_result->layout as $idx => $question) {
     if ($question['type'] == 'quiz_page') {
       if ($current == $idx) {
+        // Found a page that we are on
+        $in_page = TRUE;
         $last_page = TRUE;
       }
       else {
+        // Found a quiz page that we are not on.
         $last_page = FALSE;
       }
     }
+
+    if (!$question['qnr_pid']) {
+      // A question without a parent showed up.
+      $in_page = FALSE;
+      $last_page = FALSE;
+    }
   }
+
   return $last_page || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 

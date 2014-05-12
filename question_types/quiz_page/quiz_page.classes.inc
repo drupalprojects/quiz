@@ -59,6 +59,13 @@ class QuizPagesQuestion extends QuizQuestion {
     return FALSE;
   }
 
+  function getAnsweringForm() {
+    $element = array(
+      '#type' => 'hidden',
+    );
+    return $element;
+  }
+
 }
 
 /**

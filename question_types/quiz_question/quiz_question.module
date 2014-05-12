@@ -148,7 +148,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       foreach ($quiz_result->layout as $question) {
         if ($question['nid'] == $nodes->nid) {
           // Found a page
-          $nodes = array();
+          $nodes = array(node_load($nodes->nid));
           foreach ($quiz_result->layout as $question2) {
             if ($question2['qnr_pid'] == $question['qnr_id']) {
               // This question belongs in the requested page.
@@ -198,12 +198,12 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     }
   }
 
-  $is_last = _quiz_is_last_question($quiz);
+  $is_last = _quiz_show_finish_button($quiz);
 
   $form['navigation']['#type'] = 'actions';
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
 
-  if (!empty($quiz->backwards_navigation) && $node->question_number != 1) {
+  if (!empty($quiz->backwards_navigation) && $quiz_result->layout[0]['number'] != arg(3)) {
     $form['navigation']['back'] = array(
       '#weight' => 10,
       '#type' => 'submit',
@@ -295,22 +295,9 @@ function _quiz_question_teaser_content($node) {
 }
 
 /**
- * Go to the next question, if the next question is in a page, then go to the
- * next page.
+ * Go to the next question.
  */
 function quiz_question_goto($quiz, $index) {
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $current = $_SESSION['quiz'][$quiz->nid]['current'];
-  if ($quiz_result->layout[$current]['type'] == 'quiz_page') {
-    // We are currently on a page, so the next "question" should be the next page.
-    foreach ($quiz_result->layout as $idx => $question) {
-      if ($idx > $index && $question['type'] == 'quiz_page') {
-        $index = $idx;
-        break;
-      }
-    }
-  }
-
   $_SESSION['quiz'][$quiz->nid]['current'] = $index;
 }
 
@@ -980,20 +967,22 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       $qi_instance->saveResult();
       $result = $qi_instance->toBareObject();
       quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
+
+      // Increment the counter.
+      quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
     }
   }
 
   // Wat do?
 
-  if (!_quiz_is_last_question($quiz)) {
+  if (isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // There is a next question.
     if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1) . '/feedback';
+      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']) . '/feedback';
     }
     else {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 2);
+      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
     }
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   }
   else {
     // No more questions. Score quiz.

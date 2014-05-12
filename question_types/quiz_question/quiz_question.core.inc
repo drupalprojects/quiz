@@ -127,12 +127,6 @@ abstract class QuizQuestion {
       '#value' => TRUE
     );
 
-    // If coming from quiz view, go back there on submit.
-    if ($quiz->type == 'quiz') {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/questions';
-      $form['#cancel_button'] = TRUE;
-    }
-
     //Add question type specific content
     $form = array_merge($form, $this->getCreationForm($form_state));
 
@@ -291,12 +285,9 @@ abstract class QuizQuestion {
    * @param $result_id
    *  The result id.
    * @return
-   *  Must return a FAPI array. At the moment all form elements that takes
-   *  user response must have a key named "tries". (This is a Quiz 3.x legacy AFAIK. I'm
-   *  not thrilled about it...)
+   *  Must return a FAPI array.
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
-    //echo $this->node->type;exit;
     $form = array();
     return $form;
   }
@@ -353,7 +344,7 @@ abstract class QuizQuestion {
       $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
       $insert_qnr = db_insert('quiz_node_relationship');
-      $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score', 'qnr_id'));
+      $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
       foreach ($insert_values as $insert_value) {
         $insert_qnr->values($insert_value);
       }
@@ -361,6 +352,7 @@ abstract class QuizQuestion {
 
       // Update max_score for relationships if auto update max score is enabled
       // for question
+      $quizzes_to_update = array();
       $result = db_query(
         'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
       foreach ($result as $record) {
