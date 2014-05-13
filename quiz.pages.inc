@@ -299,27 +299,17 @@ function theme_quiz_score_incorrect() {
  * @ingroup themeable
  */
 function theme_quiz_progress($variables) {
-  $question_number = $variables['question_number'];
-  $num_of_question = $variables['num_questions'];
-  // TODO Number of parameters in this theme funcion does not match number of parameters found in hook_theme.
-  // Determine the percentage finished (not used, but left here for other implementations).
-  //$progress = ($question_number*100)/$num_of_question;
-
-  $current_question = $question_number;
-
-
-
   $output  = '';
   $output .= '<div id="quiz_progress">';
 
   if ($variables['allow_jumping']) {
     // Show jump form.
-    $current_question = drupal_get_form('quiz_jumper', $current_question, $num_of_question);
+    $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
     $output .= drupal_render($current_question);
   }
   else {
     // Just text.
-    $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $current_question, '@y' => $num_of_question));
+    $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $variables['current'], '@y' => count($variables['questions'])));
   }
 
   $output .= '</div>' . "\n";

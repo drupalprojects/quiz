@@ -173,10 +173,13 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $element = $question->getAnsweringForm($form_state, $result_id);
     $quiz = node_load(arg(1));
 
+    // Hide the label of the body field if this is an informative question.
+    $options = !$question->isGraded() ? array('label' => 'hidden') : array();
+
     $form['questions'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
       '#type' => 'container',
-      'header' => field_view_field('node', $node, 'body'),
+      'header' => field_view_field('node', $node, 'body', $options),
       'question' => array('#tree' => TRUE, $node->nid => $element),
     );
 
@@ -960,6 +963,11 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       foreach ($questions as $question) {
         if ($question['nid'] == $current_question->nid) {
           $question_array = $question;
+          if ($question_array['type'] == 'quiz_page') {
+            // A page was part of this submission, so we want to take the counter
+            // down.
+            $_SESSION['quiz'][$quiz->nid]['current']--;
+          }
         }
       }
       $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);

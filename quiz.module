@@ -1922,14 +1922,44 @@ function quiz_take_quiz($quiz) {
   drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
 }
 
+/**
+ * Take a quiz questions.
+ *
+ * @param type $quiz
+ *   A quiz node.
+ * @param type $question_number
+ *   A question number, starting at 1. Pages do not have question numbers. Quiz
+ *   directions are considered part of the numbering.
+ */
 function quiz_take_question($quiz, $question_number) {
   $question_index = $question_number - 1;
   $question_node = NULL;
 
   if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-    if (!empty($quiz_result->layout[$question_index]['nid'])) {
-      $question_node = node_load($quiz_result->layout[$question_index]['nid']);
+    $question_numberx = 0;
+    foreach ($quiz_result->layout as $question) {
+      if ($question['type'] == 'quiz_page') {
+        continue;
+      }
+      $question_numberx++;
+
+      if ($question_number == $question_numberx) {
+        // Found this question.
+        if ($question['qnr_pid']) {
+          // Find the parent.
+          foreach ($quiz_result->layout as $pquestion) {
+            if ($pquestion['qnr_id'] == $question['qnr_pid']) {
+              // Load the page that the requested question belongs to.
+              $question_node = node_load($pquestion['nid']);
+            }
+          }
+        }
+        else {
+          // Load the question.
+          $question_node = node_load($question['nid']);
+        }
+      }
     }
   }
 
@@ -1942,14 +1972,21 @@ function quiz_take_question($quiz, $question_number) {
   $_SESSION['quiz'][$quiz->nid]['current'] = $question_index;
 
   // Added the progress info to the view.
-  $result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $number_of_questions = count($result->layout);
-  $question_node->question_number = $question_number;
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  $i = 0;
+  $questions = array();
+  foreach ($quiz_result->layout as $idx => $question) {
+    if ($question['type'] != 'quiz_page') {
+      $i++;
+      $questions[$i] = $i;
+    }
+  }
   $content['progress']['#markup'] = theme('quiz_progress', array(
-    'question_number' => $question_number,
-    'num_questions' => $number_of_questions,
+    'questions' => $questions,
+    'current' => arg(3),
     'allow_jumping' => $quiz->allow_jumping,
-    'time_limit' => $quiz->time_limit));
+    'time_limit' => $quiz->time_limit,
+  ));
   $content['progress']['#weight'] = -50;
 
   /**
@@ -4250,13 +4287,13 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_result']['properties']['time_left']['type'] = 'duration';
 }
 
-function quiz_jumper($form, $form_state, $current_question, $num_of_questions) {
+function quiz_jumper($form, $form_state, $questions, $current) {
   $form['question_number'] = array(
     '#type' => 'select',
-    '#options' => drupal_map_assoc(range(1, $num_of_questions)),
-    '#default_value' => arg(3),
+    '#options' => $questions,
+    '#default_value' => $current,
     '#prefix' => t('Question'),
-    '#suffix' => t('of @num', array('@num' => $num_of_questions)),
+    '#suffix' => t('of @num', array('@num' => count($questions))),
   );
   $form['submit'] = array(
     '#type' => 'submit',
