@@ -206,7 +206,9 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $form['navigation']['#type'] = 'actions';
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
 
-  if (!empty($quiz->backwards_navigation) && $quiz_result->layout[0]['number'] != arg(3)) {
+  if (!empty($quiz->backwards_navigation) && (arg(3) != 1)) {
+    // Backwards navigation enabled, and we are looking at not the first
+    // question. @todo detect when on the first page.
     $form['navigation']['back'] = array(
       '#weight' => 10,
       '#type' => 'submit',
@@ -298,10 +300,15 @@ function _quiz_question_teaser_content($node) {
 }
 
 /**
- * Go to the next question.
+ * Update the session for this quiz to the active question.
+ *
+ * @param type $quiz
+ *   A Quiz node.
+ * @param type $question_number
+ *   Question number starting at 1.
  */
-function quiz_question_goto($quiz, $index) {
-  $_SESSION['quiz'][$quiz->nid]['current'] = $index;
+function quiz_question_goto($quiz, $question_number) {
+  $_SESSION['quiz'][$quiz->nid]['current'] = $question_number;
 }
 
 /**
@@ -963,11 +970,6 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       foreach ($questions as $question) {
         if ($question['nid'] == $current_question->nid) {
           $question_array = $question;
-          if ($question_array['type'] == 'quiz_page') {
-            // A page was part of this submission, so we want to take the counter
-            // down.
-            $_SESSION['quiz'][$quiz->nid]['current']--;
-          }
         }
       }
       $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
@@ -989,7 +991,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']) . '/feedback';
     }
     else {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
+      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
     }
   }
   else {
@@ -1015,7 +1017,17 @@ function quiz_question_answering_form_submit_back(&$form, &$form_state) {
   // Back a question.
   $quiz = node_load(arg(1));
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
-  $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  $question = $quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']];
+  if ($question['qnr_pid']) {
+    foreach ($quiz_result->layout as $question2) {
+      if ($question2['qnr_id'] == $question['qnr_pid']) {
+        quiz_question_goto($quiz, $question2['number']);
+      }
+    }
+  }
+
+  $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
 }
 
 /**

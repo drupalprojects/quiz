@@ -1872,11 +1872,6 @@ function quiz_update_quiz_question_relationship($old_quiz_vid, $new_quiz_vid, $q
 function quiz_take_quiz($quiz) {
   global $user;
 
-  if (!isset($quiz)) {
-    drupal_not_found();
-    return;
-  }
-
   // Make sure we use the same revision of the quiz throughout the quiz taking
   // session.
   $result_id = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
@@ -1905,7 +1900,7 @@ function quiz_take_quiz($quiz) {
       // Set up a new attempt.
       $quiz_result = _quiz_take_quiz_init($quiz);
       $_SESSION['quiz'][$quiz->nid]['result_id'] = $quiz_result->result_id;
-      $_SESSION['quiz'][$quiz->nid]['current'] = 0;
+      $_SESSION['quiz'][$quiz->nid]['current'] = 1;
 
       // Call hook_quiz_begin().
       module_invoke_all('quiz_begin', $quiz, $quiz_result->result_id);
@@ -1919,7 +1914,7 @@ function quiz_take_quiz($quiz) {
     return array('body' => array('#markup' => t('This quiz is not available.')));
   }
 
-  drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1));
+  drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current']));
 }
 
 /**
@@ -1932,34 +1927,22 @@ function quiz_take_quiz($quiz) {
  *   directions are considered part of the numbering.
  */
 function quiz_take_question($quiz, $question_number) {
-  $question_index = $question_number - 1;
-  $question_node = NULL;
-
   if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-    $question_numberx = 0;
-    foreach ($quiz_result->layout as $question) {
-      if ($question['type'] == 'quiz_page') {
-        continue;
-      }
-      $question_numberx++;
+    $question = $quiz_result->layout[$question_number];
 
-      if ($question_number == $question_numberx) {
-        // Found this question.
-        if ($question['qnr_pid']) {
-          // Find the parent.
-          foreach ($quiz_result->layout as $pquestion) {
-            if ($pquestion['qnr_id'] == $question['qnr_pid']) {
-              // Load the page that the requested question belongs to.
-              $question_node = node_load($pquestion['nid']);
-            }
-          }
-        }
-        else {
-          // Load the question.
-          $question_node = node_load($question['nid']);
+    if ($question['qnr_pid']) {
+      // Find the parent.
+      foreach ($quiz_result->layout as $pquestion) {
+        if ($pquestion['qnr_id'] == $question['qnr_pid']) {
+          // Load the page that the requested question belongs to.
+          $question_node = node_load($pquestion['nid']);
         }
       }
+    }
+    else {
+      // Load the question.
+      $question_node = node_load($question['nid']);
     }
   }
 
@@ -1969,16 +1952,16 @@ function quiz_take_question($quiz, $question_number) {
     drupal_goto("node/{$quiz->nid}");
   }
 
-  $_SESSION['quiz'][$quiz->nid]['current'] = $question_index;
+  // Mark this as the current question.
+  quiz_question_goto($quiz, $question_number);
 
   // Added the progress info to the view.
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $i = 0;
   $questions = array();
   foreach ($quiz_result->layout as $idx => $question) {
-    if ($question['type'] != 'quiz_page') {
-      $i++;
-      $questions[$i] = $i;
+    if (!empty($question['number'])) {
+      // Question has a number associated with it. Show it in the jumper.
+      $questions[$idx] = $question['number'];
     }
   }
   $content['progress']['#markup'] = theme('quiz_progress', array(
@@ -2081,26 +2064,6 @@ function _quiz_take_quiz_init($quiz) {
   drupal_write_record('quiz_node_results', $quiz_result, array('result_id'));
 
   return $quiz_result;
-}
-
-/**
- * Create the view for a question the user is about to take.
- *
- * @param $question_node
- *   The question node that should be rendered.
- * @param $quiz_node
- *   The quiz node.
- * @return
- *   A string containing the body of the node.
- */
-function quiz_take_question_view($question_node, $quiz_node) {
-  // @TODO this should probably return part of a form so that multipage can
-  // deal with it
-  $question_node->allow_skipping = $quiz_node->allow_skipping;
-  node_build_content($question_node, 'question');
-  module_invoke_all('node_build_alter', $question_node, FALSE);
-  //$question_node->body = drupal_render($question_node->content);
-  return theme('quiz_single_question_node', array('question_node' => $question_node));
 }
 
 /**
@@ -2816,8 +2779,11 @@ function quiz_build_question_list($quiz) {
     AND qnr.question_status = :question_status
     AND n.status = 1
     ORDER BY qnr2.weight, qnr.weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
+  $i = 0;
   while ($question_node = $query->fetchAssoc()) {
-    $questions[] = $question_node;
+    // Just to make it easier on us, let's use a 1-based index.
+    $i++;
+    $questions[$i] = $question_node;
   }
 
   // Get random questions for the remainder.
@@ -2835,9 +2801,15 @@ function quiz_build_question_list($quiz) {
     shuffle($questions);
   }
   $count = 0;
+  $display_count = 0;
   foreach ($questions as &$question) {
+    $question_node = node_load($question['nid'], $question['vid']);
     $count++;
+    $display_count++;
     $question['number'] = $count;
+    if ($question['type'] != 'quiz_page') {
+    $question['display_number'] = $display_count;
+    }
   }
   return $questions;
 }
@@ -4219,7 +4191,7 @@ function quiz_take_question_access($quiz, $question_number) {
 
   $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   $quiz_result = quiz_result_load($result_id);
-  $question_index = $question_number - 1;
+  $question_index = $question_number;
   $qinfo_last = $quiz_result->layout[$question_index - 1];
   $qinfo = $quiz_result->layout[$question_index];
 
