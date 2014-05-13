@@ -27,7 +27,7 @@ function quiz_user_results($result_id) {
       'summary' => $summary,
       'result_id' => $result_id,
     );
-    if (user_access('view own quiz results') || $current_quiz->display_feedback) {
+    if (user_access('view own quiz results') || $current_quiz->feedback_time == QUIZ_FEEDBACK_END) {
       // User can view own quiz results OR the current quiz has "display solution".
       return theme('quiz_user_summary', $data);
     }
@@ -435,7 +435,7 @@ function theme_quiz_user_summary($variables) {
     t('You got %num_correct of %question_count possible points.', array('%num_correct' => $score['numeric_score'], '%question_count' => $score['possible_score'])) .
     '</div>';
   $output .= '<div id="quiz_score_percent">' .
-    t('Your score was: @score %', array('@score' => $score['percentage_score'])) .
+    t('Your score was: @score%', array('@score' => $score['percentage_score'])) .
     '</div>';
 
   if (isset($summary['passfail'])) {

@@ -10,10 +10,25 @@
  */
 abstract class QuizQuestionTestCase extends DrupalWebTestCase {
 
-  /**
-   * Create a Quiz Question node and return it for use.
-   */
-  abstract function testCreateQuizQuestion();
+  function setUp($modules) {
+    parent::setUp($modules);
+    $admin_permission = array(
+      'access quiz',
+      "create {$this->question_node_type} content",
+      'create quiz content',
+      "edit any {$this->question_node_type} content",
+      'edit any quiz content',
+      'edit question titles',
+    );
+
+    $user_permission = array(
+      'access quiz',
+    );
+
+
+    $this->admin = $this->drupalCreateUser($admin_permission);
+    $this->user = $this->drupalCreateUser($user_permission);
+  }
 
   /**
    * Test the quiz question implementation.

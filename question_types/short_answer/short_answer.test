@@ -15,13 +15,6 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
   var $title = '';
   var $body = '';
 
-  // member functions definition starts here
-
-  /**
-   * The getInfo() method provides information about the test.
-   * In order for the test to be run, the getInfo() method needs
-   * to be implemented.
-   */
   public static function getInfo() {
     return array(
       'name' => t('Short Answer unit test'),
@@ -30,30 +23,8 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
     );
   }
 
-  /**
-   * Implementing setUp() to enable short_answer module testing
-   */
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'short_answer');
-
-    // array of drupal user permission
-    $permission = array(
-      'access administration pages',
-      'access quiz',
-      'administer blocks',
-      'administer quiz configuration',
-      'administer site configuration',
-      'administer taxonomy',
-      'create short_answer content',
-      'create quiz content',
-      'edit any short_answer content',
-    );
-
-    // Create and log in our test user. Should be cleaned up as I something
-    // was wrong with permissions and I basically kept adding potentially
-    // useful ones until it worked.
-    $user = $this->drupalCreateUser($permission);
-    $this->drupalLogin($user);
+    parent::setUp(array('matching'));
   }
 
   /**

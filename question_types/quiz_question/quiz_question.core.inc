@@ -316,7 +316,7 @@ abstract class QuizQuestion {
    * Save this Question to the specified Quiz.
    */
   function saveRelationships() {
-    if ($this->node->quiz_nid && $this->node->quiz_vid) {
+    if (!empty($this->node->quiz_nid) && !empty($this->node->quiz_vid)) {
       $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
       $nid_vid[0] = $quiz_node->nid;
       $nid_vid[1] = $quiz_node->vid;
@@ -393,18 +393,23 @@ abstract class QuizQuestion {
   /**
    * Determines if the user can view the correct answers
    *
+   * @todo grabbing the node context here probably isn't a great idea
+   *
    * @return boolean
    *   true iff the view may include the correct answers to the question
    */
   public function viewCanRevealCorrect() {
     global $user;
-    // permission overrides the hook
-    if (user_access('view any quiz question correct response') || $user->uid == $this->node->uid) {
+    $quiz_node = node_load(arg(1));
+
+    $reveal_correct[] = user_access('view any quiz question correct response');
+    $reveal_correct[] = ($user->uid == $this->node->uid);
+    // display_feedback is actually "display solution" @todo should change since
+    // we have a "feedback time" as well
+    $reveal_correct[] = $quiz_node->display_feedback;
+    if (array_filter($reveal_correct)) {
       return TRUE;
     }
-    $results = module_invoke_all('answers_access', $this->node);
-    $may_view_answers = in_array(TRUE, $results);
-    return $may_view_answers;
   }
 
   /**

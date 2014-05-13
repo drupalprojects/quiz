@@ -10,18 +10,8 @@
  */
 class TrueFalseUnitTest extends QuizQuestionTestCase {
 
-  // initialing attributes
-  var $question_node_type = 'true_false';
-  var $title = '';
-  var $body = '';
+  var $question_node_type = 'truefalse';
 
-  // member functions definition starts here
-
-  /**
-   * The getInfo() method provides information about the test.
-   * In order for the test to be run, the getInfo() method needs
-   * to be implemented.
-   */
   public static function getInfo() {
     return array(
       'name' => t('TrueFalse unit test'),
@@ -30,57 +20,123 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     );
   }
 
-  /**
-   * Implementing setUp() to enable truefalse module testing
-   */
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'truefalse');
-
-    // array of drupal user permission
-    $permission = array(
-      'access administration pages',
-      'access quiz',
-      'administer blocks',
-      'administer quiz configuration',
-      'administer site configuration',
-      'administer taxonomy',
-      'create truefalse content',
-      'create quiz content',
-      'edit any truefalse content',
-    );
-
-    // Create and log in our test user. Should be cleaned up as I something
-    // was wrong with permissions and I basically kept adding potentially
-    // useful ones until it worked.
-    $user = $this->drupalCreateUser($permission);
-
-    // login into drupal site
-    $this->drupalLogin($user);
+    parent::setUp('truefalse');
   }
 
   /**
-   * Create true false type question node for testing.
+   * Test adding and taking a truefalse question.
    */
-  public function testCreateQuizQuestion() {
-    $this->title = $this->randomName();
-    $this->body = $this->randomName();
-    $this->correct_answer = array_rand(array(0, 1));
-    // array containing drupal node attributes
-    $settings = array(
-      'type' => $this->question_node_type,
-      'title' => $this->title,
-      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
-      'correct_answer' => $this->correct_answer,
-      'revisions' => TRUE,
-    );
-    // create a test drupal node
-    $node = $this->drupalCreateNode($settings);
+  function testCreateQuizQuestion() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
 
-    $load = node_load($node->nid);
+    // Create the quiz and question.
+    $quiz_node = $this->drupalCreateNode(array('type' => 'quiz'));
+    $question_node = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'title' => 'TF 1 title',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+    ));
 
-    $this->assertEqual($load->correct_answer, $this->correct_answer, t('Check that stored score is the same as newly assigned score.'));
+    // Link the question.
+    $question_node->quiz_nid = $quiz_node->nid;
+    $question_node->quiz_vid = $quiz_node->vid;
+    $qq = _quiz_question_get_instance($question_node);
+    $qq->saveRelationships();
 
-    return $load;
+    // Test that question appears in lists.
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $this->assertText('TF 1 title');
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertNoText('TF 1 title');
+    $this->assertText('TF 1 body text');
+    $this->assertText('True');
+    $this->assertText('False');
+
+    // Test validation.
+    $this->drupalPost(NULL, array(), t('Finish'));
+    $this->assertText('You must provide an answer.');
+
+    // Test correct question.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 1,
+      ), t('Finish'));
+    $this->assertText('You got 1 of 1 possible points.');
+
+    // Test incorrect question.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 0,
+      ), t('Finish'));
+    $this->assertText('You got 0 of 1 possible points.');
+  }
+
+  function testQuestionFeedback() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    // Create the quiz and question.
+    $quiz_node = $this->drupalCreateNode(array('type' => 'quiz'));
+    $question_node = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'title' => 'TF 1 title',
+      'correct_answer' => 1,
+      'feedback' => 'Feedback about TF 1 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+    ));
+
+    // Link the question.
+    $question_node->quiz_nid = $quiz_node->nid;
+    $question_node->quiz_vid = $quiz_node->vid;
+    $qq = _quiz_question_get_instance($question_node);
+    $qq->saveRelationships();
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+
+    // Test incorrect question. No feedback, no answer.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 0,
+      ), t('Finish'));
+    $this->assertText('Answer hidden');
+    $this->assertNoText('Feedback about TF 1 title');
+
+    // Set the quiz to display feedback.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
+    node_save($quiz_node);
+
+    // Test incorrect question. Feedback, no answer.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 0,
+      ), t('Finish'));
+    //$this->assertNoText('True');
+    $this->assertText('Answer hidden');
+    $this->assertText('Feedback about TF 1 title');
+
+    // This is really "Display solution"
+    $quiz_node->display_feedback = 1;
+    node_save($quiz_node);
+
+    // Test incorrect question. Feedback, answer.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 0,
+      ), t('Finish'));
+    $this->assertNoText('Answer hidden');
+    $this->assertText('Feedback about TF 1 title');
   }
 
 }

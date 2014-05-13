@@ -10,11 +10,6 @@
  */
 class ChoiceTestCase extends QuizQuestionTestCase {
 
-  /**
-   * The getInfo() method provides information about the test.
-   * In order for the test to be run, the getInfo() method needs
-   * to be implemented.
-   */
   public static function getInfo() {
     return array(
       'name' => t('Choice unit test'),
@@ -23,31 +18,10 @@ class ChoiceTestCase extends QuizQuestionTestCase {
     );
   }
 
-  /**
-   * Implementing setUp() to enable truefalse module testing
-   */
+  var $question_node_type = 'multichoice';
+
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'multichoice');
-
-    // Create and log in our test user. Should be cleaned up as I something
-    // was wrong with permissions and I basically kept adding potentially
-    // useful ones until it worked.
-    // array of drupal permission
-    $permission = array(
-      'access administration pages',
-      'access quiz',
-      'administer blocks',
-      'administer quiz configuration',
-      'administer site configuration',
-      'administer taxonomy',
-      'create multichoice content',
-      'create quiz content',
-      'edit any multichoice content',
-    );
-
-    // create a drupal test user with specified permissions
-    $user = $this->drupalCreateUser($permission);
-    $this->drupalLogin($user);
+    parent::setUp('multichoice');
   }
 
   /**
