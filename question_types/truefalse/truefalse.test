@@ -21,7 +21,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
   }
 
   function setUp() {
-    parent::setUp('truefalse');
+    parent::setUp(array('truefalse'));
   }
 
   /**

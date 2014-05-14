@@ -21,7 +21,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
   var $question_node_type = 'multichoice';
 
   function setUp() {
-    parent::setUp('multichoice');
+    parent::setUp(array('multichoice'));
   }
 
   /**
@@ -29,6 +29,8 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
    */
   public function testCreateQuizQuestion() {
     $settings = array();
+    $settings['title'] = 'MCQ 1 Title';
+    $settings['body'] = array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text')));
     $settings['type'] = 'multichoice';
 
     $settings['alternatives'][0]['answer']['value'] = 'A';
@@ -80,6 +82,8 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
   }
 
   public function testQuestionFeedback() {
+    $this->drupalLogin($this->admin);
+
     // Create the quiz and question.
     $quiz_node = $this->drupalCreateNode(array(
       'type' => 'quiz',
@@ -94,12 +98,20 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $qq = _quiz_question_get_instance($question_node);
     $qq->saveRelationships();
 
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
     // Test incorrect question. No feedback, no answer.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
       ), t('Finish'));
+    $this->assertNoPattern('/multichoice-icon correct/', 'Did not find correct answer.');
+    $this->assertNoPattern('/multichoice-icon should/', 'Did not find correct suggestion.');
+    $this->assertNoPattern('/multichoice-icon almost/', 'Did not find partial correct answer.');
+    $this->assertNoText('You did not choose A');
     $this->assertNoText('You chose B');
+    $this->assertNoText('You did not choose C');
 
     // Test incorrect question. Feedback, no answer.
     $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
@@ -108,8 +120,12 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
       ), t('Finish'));
-    $this->assertText('Answer hidden');
+    $this->assertNoPattern('/multichoice-icon correct/', 'Did not find correct answer.');
+    $this->assertNoPattern('/multichoice-icon should/', 'Did not find correct suggestion.');
+    $this->assertNoPattern('/multichoice-icon almost/', 'Did not find partial correct answer.');
+    $this->assertText('You did not choose A');
     $this->assertText('You chose B');
+    $this->assertText('You did not choose C');
 
     // Test incorrect question. Feedback, answer.
     // This is really "Display solution"
@@ -119,8 +135,10 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
       ), t('Finish'));
-    $this->assertNoText('Answer hidden');
+    $this->assertPattern('/multichoice-icon correct/', 'Found correct answer.');
+    $this->assertText('You did not choose A');
     $this->assertText('You chose B');
+    $this->assertText('You did not choose C');
   }
 
   /**
