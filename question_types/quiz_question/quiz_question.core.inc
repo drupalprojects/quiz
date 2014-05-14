@@ -461,6 +461,7 @@ abstract class QuizQuestionResponse {
   protected $evaluated = TRUE;
   // The question node(not a quiz question instance)
   public $question = NULL;
+  public $quizQuestion = NULL;
   protected $answer = NULL;
   protected $score;
   public $is_skipped;
@@ -480,6 +481,7 @@ abstract class QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     $this->result_id = $result_id;
     $this->question = $question_node;
+    $this->quizQuestion = _quiz_question_get_instance($question_node);
     $this->answer = $answer;
     $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
             WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetch();
@@ -487,6 +489,14 @@ abstract class QuizQuestionResponse {
       $this->is_doubtful = $result->is_doubtful;
       $this->is_skipped = $result->is_skipped;
     }
+  }
+
+  /**
+   *
+   * @return QuizQuestion
+   */
+  function getQuizQuestion() {
+    return $this->quizQuestion;
   }
 
   /**

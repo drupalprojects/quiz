@@ -114,6 +114,10 @@ function theme_multichoice_response($variables) {
         case 2:
           $icon = '<span class="multichoice-icon correct" title="' . t('This option is correct.') . '"></span>';
           break;
+        case 3:
+          // The answer is unknown.
+          $icon = '<span class="multichoice-icon unknown" title="' . t('This option is unknown.') . '"></span>';
+          break;
       }
     }
     else {
