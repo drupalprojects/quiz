@@ -10,10 +10,7 @@
  */
 class ShortAnswerUnitTest extends QuizQuestionTestCase {
 
-  // initialing attributes
   var $question_node_type = 'short_answer';
-  var $title = '';
-  var $body = '';
 
   public static function getInfo() {
     return array(
@@ -24,55 +21,134 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
   }
 
   function setUp() {
-    parent::setUp(array('matching'));
+    parent::setUp(array('short_answer'));
   }
 
   /**
-   * function to create true false type question node for testing.
+   * Test case insensitive graded questions.
    */
-  public function testCreateQuizQuestion() {
-    // score range
-    $score_min = 1;
-    $score_max = 16;
+  public function testGradeAnswerInsensitive() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
 
-    // evaluation type
-    $evaluation = array(
-      0 => 'exact_match',
-      1 => 'case_insensitive_match',
-      2 => 'regular_expression',
-      3 => 'manual_score',
-    );
+    $question_node = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
+      'correct_answer' => 'the Zero One Infinity rule',
+    ));
 
-    // short answer question node attributes
-    $this->title = $this->randomName();
-    $this->body = $this->randomName();
-    $this->correct_answer = $this->randomName();
-    $this->maximum_score = rand($score_min, $score_max);
-    $this->correct_answer_evaluation = array_rand($evaluation);
+    $quiz = $this->linkQuestionToQuiz($question_node);
+  }
 
-    // array of node attributes to create a test node
-    $settings = array(
+  /**
+   * Test case sensitive graded questions.
+   */
+  public function testGradeAnswerSensitive() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MATCH,
+      'correct_answer' => 'the Zero One Infinity rule',
+    ));
+    $quiz = $this->linkQuestionToQuiz($question_node);
+  }
+
+  /**
+   * Test regex graded questions.
+   */
+  public function testGradeAnswerRegex() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_REGEX,
+      'correct_answer' => '/Zero One Infinity rule/',
+    ));
+    $quiz = $this->linkQuestionToQuiz($question_node);
+  }
+
+  /**
+   * Test manually graded questions.
+   */
+  public function testGradeAnswerManual() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
+      'correct_answer' => 'the Zero One Infinity rule',
+    ));
+    $quiz = $this->linkQuestionToQuiz($question_node);
+  }
+
+  /**
+   * Test the question feedback.
+   */
+  function testQuestionFeedback() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
+      'correct_answer' => 'This is the correct answer.',
+    ));
+    $quiz = $this->linkQuestionToQuiz($question_node);
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+
+    // Test incorrect question. No feedback, no answer.
+    $quiz->feedback_time == QUIZ_FEEDBACK_NEVER;
+    $quiz->display_feedback = 0;
+    node_save($quiz);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'This is an incorrect answer.',
+      ), t('Finish'));
+    $this->assertNoText('Answer hidden');
+    $this->assertNoText('This is an incorrect answer.');
+    $this->assertNoText('This is the correct answer.');
+
+    // Test incorrect question. Feedback, no answer.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
+    node_save($quiz_node);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'This is an incorrect answer.',
+      ), t('Finish'));
+    $this->assertText('Answer hidden');
+    $this->assertText('This is an incorrect answer.');
+    $this->assertNoText('This is the correct answer.');
+
+    // Test incorrect question. Show answer.
+    $quiz_node->display_feedback = 1;
+    node_save($quiz_node);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'This is an incorrect answer.',
+      ), t('Finish'));
+    $this->assertNoText('Answer hidden');
+    $this->assertText('This is an incorrect answer.');
+    $this->assertText('This is the correct answer.');
+  }
+
+  /**
+   * Test adding and taking a truefalse question.
+   */
+  function testCreateQuizQuestion($settings = array()) {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->drupalCreateNode(array(
       'type' => $this->question_node_type,
-      'title' => $this->title,
-      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
-      'correct_answer' => $this->correct_answer,
-      'maximum_score' => $this->maximum_score,
-      'correct_answer_evaluation' => $this->correct_answer_evaluation,
-      'revisions' => TRUE,
-    );
+      'title' => 'SA 1 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'SA 1 body text'))),
+      ) + $settings);
 
-    $node = $this->drupalCreateNode($settings);
-
-    $load = node_load($node->nid);
-
-    $this->assertEqual($load->title, $this->title, t('Title of stored node should equal the original title.'));
-    $this->assertEqual($load->body, $this->body, t('Body of stored node should be equal to original body.'));
-    $this->assertEqual($load->type, $this->question_node_type, t('Stored node type should be long_answer'));
-    $this->assertEqual($load->correct_answer, $this->correct_answer, t('Correct answer of stored node should be equal the original correct answer'));
-    $this->assertEqual($load->maximum_score, $this->maximum_score, t('Maximum Score of stored node should be equal the original maximum score'));
-    $this->assertEqual($load->correct_answer_evaluation, $this->correct_answer_evaluation, t('Correct answer evaluation method should be equal the correct answer'));
-
-    return $load;
+    return $question_node;
   }
 
 }
