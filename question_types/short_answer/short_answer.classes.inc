@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * The main classes for the short answer question type.
  *
@@ -194,7 +193,7 @@ class ShortAnswerQuestion extends QuizQuestion {
       '#title' => t('Pick an evaluation method'),
       '#description' => t('Choose how the answer shall be evaluated.'),
       '#options' => $options,
-      '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_MATCH,
+      '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_INSENSITIVE_MATCH,
       '#required' => FALSE,
     );
     if ($access_regex) {
@@ -207,21 +206,21 @@ class ShortAnswerQuestion extends QuizQuestion {
 
       $form['answer']['regex_box']['regex_help'] = array(
         '#markup' => '<p>' .
-      t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
-         '</p><p>' .
-      t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
-         '</p>',
+        t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
+        '</p><p>' .
+        t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
+        '</p>',
       );
     }
 
     $form['answer']['correct_answer'] = array(
-       '#type' => 'textfield',
-       '#title' => t('Correct answer'),
-       '#description' => t('Specify the answer. If this question is manually scored, no answer needs to be supplied.'),
-       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : '',
-       '#size' => 60,
-       '#maxlength' => 256,
-       '#required' => FALSE,
+      '#type' => 'textfield',
+      '#title' => t('Correct answer'),
+      '#description' => t('Specify the answer. If this question is manually scored, no answer needs to be supplied.'),
+      '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : '',
+      '#size' => 60,
+      '#maxlength' => 256,
+      '#required' => FALSE,
     );
     return $form;
   }
@@ -264,12 +263,14 @@ class ShortAnswerQuestion extends QuizQuestion {
     }
     return $score;
   }
+
 }
 
 /**
  * Extension of QuizQuestionResponse
  */
 class ShortAnswerResponse extends QuizQuestionResponse {
+
   /**
    * Get all quiz scores that haven't been evaluated yet.
    *
@@ -327,10 +328,8 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    */
   public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
     return db_query('SELECT result_id FROM {quiz_short_answer_user_answers}
-      WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid',
-      array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid)
-    )->fetchCol();
-
+      WHERE is_evaluated = :is_evaluated AND question_nid = :question_nid AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid)
+      )->fetchCol();
   }
 
   /**
@@ -346,9 +345,8 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     if (!isset($answer)) {
       $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback, answer_feedback_format
         FROM {quiz_short_answer_user_answers}
-        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid',
-        array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id)
-      )->fetch();
+        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id)
+        )->fetch();
 
       if (!empty($r)) {
         $this->answer = $r->answer;
@@ -412,7 +410,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     // Manual scoring means we go with what is in the DB.
     if ($this->question->correct_answer_evaluation == ShortAnswerQuestion::ANSWER_MANUAL) {
       $score = db_query('SELECT score FROM {quiz_short_answer_user_answers} WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
-      if(!$score) {
+      if (!$score) {
         $score = 0;
       }
     }
@@ -448,6 +446,10 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       return $form;
     }
 
+    if (!$this->getQuizQuestion()->viewCanRevealCorrect()) {
+      $this->question->correct_answer = t('Answer hidden');
+    }
+
     $form['answer'] = array(
       '#markup' => theme('short_answer_user_answer', array('answer' => check_plain($answer->answer), 'correct' => check_plain($this->question->correct_answer))),
     );
@@ -461,7 +463,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     else {
       $feedback = t('This answer has not yet been scored.') .
         '<br/>' .
-      t('Until the answer is scored, the total score will not be correct.');
+        t('Until the answer is scored, the total score will not be correct.');
     }
 
     if (!$allow_scoring && !empty($this->answer_feedback)) {
@@ -538,4 +540,5 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     }
     return FALSE;
   }
+
 }
