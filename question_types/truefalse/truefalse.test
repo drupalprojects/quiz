@@ -34,6 +34,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $question_node = $this->drupalCreateNode(array(
       'type' => 'truefalse',
       'title' => 'TF 1 title',
+      'feedback' => 'Feedback about TF 1 title',
       'correct_answer' => 1,
       'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
     ));
@@ -105,17 +106,19 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
 
     // Test incorrect question. No feedback, no answer.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_NEVER;
+    $quiz_node->display_feedback = 0;
+    node_save($quiz_node);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
     $this->assertNoText('Feedback about TF 1 title');
 
-    // Set the quiz to display feedback.
-    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
-    node_save($quiz_node);
-
     // Test incorrect question. Feedback, no answer.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
+    $quiz_node->display_feedback = 0;
+    node_save($quiz_node);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
@@ -123,11 +126,10 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->assertText('Answer hidden');
     $this->assertText('Feedback about TF 1 title');
 
-    // This is really "Display solution"
+    // Test incorrect question. Feedback, answer.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
     $quiz_node->display_feedback = 1;
     node_save($quiz_node);
-
-    // Test incorrect question. Feedback, answer.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
