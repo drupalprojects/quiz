@@ -406,7 +406,7 @@ abstract class QuizQuestion {
     $reveal_correct[] = ($user->uid == $this->node->uid);
     // display_feedback is actually "display solution" @todo should change since
     // we have a "feedback time" as well
-    $reveal_correct[] = $quiz_node->display_feedback;
+    $reveal_correct[] = ($quiz_node->type == 'quiz') ? $quiz_node->display_feedback : FALSE;
     if (array_filter($reveal_correct)) {
       return TRUE;
     }
