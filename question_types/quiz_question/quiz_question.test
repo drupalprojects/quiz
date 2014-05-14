@@ -38,4 +38,23 @@ abstract class QuizQuestionTestCase extends DrupalWebTestCase {
     $this->assertTrue(isset($qq[$this->question_node_type]), t('Check that the question implementation is correct.'));
   }
 
+  /**
+   * Link a question to a new or provided quiz.
+   */
+  public function linkQuestionToQuiz($question_node, $quiz_node = NULL) {
+    if (!$quiz_node) {
+      $quiz_node = $this->drupalCreateNode(array(
+        'type' => 'quiz',
+        'display_feedback' => 0,
+        'feedback_time' => QUIZ_FEEDBACK_NEVER,
+      ));
+    }
+
+    $question_node->quiz_nid = $quiz_node->nid;
+    $question_node->quiz_vid = $quiz_node->vid;
+    $qq = _quiz_question_get_instance($question_node);
+    $qq->saveRelationships();
+    return $quiz_node;
+  }
+
 }
