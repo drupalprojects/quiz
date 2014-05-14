@@ -357,7 +357,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '<br/>' .
         t('Until the answer is scored, the total score will not be correct.');
     }
-    if ($allow_scoring) {
+    if ($this->getQuizQuestion()->viewCanRevealCorrect() || $allow_scoring) {
+      // If the user can view the correct answer (the rubrik) or allow scoring.
       $form['rubric'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),

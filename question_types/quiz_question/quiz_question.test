@@ -22,18 +22,19 @@ abstract class QuizQuestionTestCase extends DrupalWebTestCase {
    */
   function setUp($modules, $more_admin_permissions = array(), $more_user_permissions = array()) {
     parent::setUp($modules);
-    $admin_permission = array(
+
+    $admin_permission = array_merge(array(
       'access quiz',
       "create {$this->question_node_type} content",
       'create quiz content',
       "edit any {$this->question_node_type} content",
       'edit any quiz content',
       'edit question titles',
-    ) + $more_admin_permissions;
+      ), $more_admin_permissions);
 
-    $user_permission = array(
+    $user_permission = array_merge(array(
       'access quiz',
-    ) + $more_user_permissions;
+      ), $more_user_permissions);
 
 
     $this->admin = $this->drupalCreateUser($admin_permission);
