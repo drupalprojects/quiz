@@ -26,7 +26,7 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
    */
   public function getInfo() {
     return array(
-      'name' => t('Long answer unit test'),
+      'name' => t('Long answer'),
       'description' => t('Suite of unit tests for verifying functionality for essay question functions.'),
       'group' => t('Quiz'),
     );

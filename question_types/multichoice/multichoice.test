@@ -8,12 +8,12 @@
 /**
  * Test class for multichoice questions.
  */
-class ChoiceTestCase extends QuizQuestionTestCase {
+class MultichoiceTestCase extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Choice unit test'),
-      'description' => t('Unit test for true or false question type.'),
+      'name' => t('Multichoice'),
+      'description' => t('Unit test for the multichoice question type.'),
       'group' => t('Quiz'),
     );
   }
@@ -62,16 +62,65 @@ class ChoiceTestCase extends QuizQuestionTestCase {
     $settings['choice_random'] = 0;
     $settings['choice_boolean'] = 0;
     $node = $this->drupalCreateNode($settings);
-    $load = node_load($node->nid);
+    $node = node_load($node->nid);
 
-    $this->assertNotNull($load->alternatives[0]['id'], 'Alternative 0 was created as part of question save.');
-    $this->assertNotNull($load->alternatives[1]['id'], 'Alternative 1 was created as part of question save.');
-    $this->assertEqual($load->alternatives[0]['answer']['value'], 'A', 'Alternative text 0 was saved and loaded correctly.');
-    $this->assertEqual($load->alternatives[1]['answer']['value'], 'B', 'Alternative text 0 was saved and loaded correctly.');
-    $this->assertEqual($load->alternatives[0]['answer']['format'], 'filtered_html', 'Alternative format 1 was saved and loaded correctly.');
-    $this->assertEqual($load->alternatives[1]['answer']['format'], 'filtered_html', 'Alternative format 1 was saved and loaded correctly.');
+    $this->assertNotNull($node->alternatives[0]['id'], 'Alternative A was created as part of question save.');
+    $this->assertNotNull($node->alternatives[1]['id'], 'Alternative B was created as part of question save.');
+    $this->assertNotNull($node->alternatives[2]['id'], 'Alternative C was created as part of question save.');
 
-    return $load;
+    $this->assertEqual($node->alternatives[0]['answer']['value'], 'A', 'Alternative text A was saved and loaded correctly.');
+    $this->assertEqual($node->alternatives[1]['answer']['value'], 'B', 'Alternative text B was saved and loaded correctly.');
+    $this->assertEqual($node->alternatives[2]['answer']['value'], 'C', 'Alternative text C was saved and loaded correctly.');
+
+    $this->assertEqual($node->alternatives[0]['answer']['format'], 'filtered_html', 'Alternative format A was saved and loaded correctly.');
+    $this->assertEqual($node->alternatives[1]['answer']['format'], 'filtered_html', 'Alternative format B was saved and loaded correctly.');
+    $this->assertEqual($node->alternatives[1]['answer']['format'], 'filtered_html', 'Alternative format C was saved and loaded correctly.');
+
+    return $node;
+  }
+
+  public function testQuestionFeedback() {
+    // Create the quiz and question.
+    $quiz_node = $this->drupalCreateNode(array(
+      'type' => 'quiz',
+      'display_feedback' => 0,
+      'feedback_time' => QUIZ_FEEDBACK_NEVER,
+    ));
+    $question_node = $this->testCreateQuizQuestion($quiz_node);
+
+    // Link the question.
+    $question_node->quiz_nid = $quiz_node->nid;
+    $question_node->quiz_vid = $quiz_node->vid;
+    $qq = _quiz_question_get_instance($question_node);
+    $qq->saveRelationships();
+
+    // Test incorrect question. No feedback, no answer.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
+      ), t('Finish'));
+    $this->assertNoText('You chose B');
+
+    // Test incorrect question. Feedback, no answer.
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
+    node_save($quiz_node);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
+      ), t('Finish'));
+    $this->assertText('Answer hidden');
+    $this->assertText('You chose B');
+
+    // Test incorrect question. Feedback, answer.
+    // This is really "Display solution"
+    $quiz_node->display_feedback = 1;
+    node_save($quiz_node);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
+      ), t('Finish'));
+    $this->assertNoText('Answer hidden');
+    $this->assertText('You chose B');
   }
 
   /**

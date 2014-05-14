@@ -14,7 +14,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('TrueFalse unit test'),
+      'name' => t('True/False'),
       'description' => t('Unit test for true or false question type.'),
       'group' => t('Quiz'),
     );
@@ -31,13 +31,22 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     // Login as our privileged user.
     $this->drupalLogin($this->admin);
 
-    // Create the quiz and question.
-    $quiz_node = $this->drupalCreateNode(array('type' => 'quiz'));
     $question_node = $this->drupalCreateNode(array(
       'type' => 'truefalse',
       'title' => 'TF 1 title',
       'correct_answer' => 1,
       'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+    ));
+
+    return $question_node;
+  }
+
+  function testTakeQuestion() {
+    $question_node = $this->testCreateQuizQuestion();
+
+    // Create the quiz and question.
+    $quiz_node = $this->drupalCreateNode(array(
+      'type' => 'quiz',
     ));
 
     // Link the question.
@@ -88,7 +97,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
       'type' => 'quiz',
       'display_feedback' => 0,
       'feedback_time' => QUIZ_FEEDBACK_NEVER,
-      ));
+    ));
     $question_node = $this->drupalCreateNode(array(
       'type' => 'truefalse',
       'title' => 'TF 1 title',

@@ -17,7 +17,7 @@ class ScaleTestCase extends QuizQuestionTestCase {
    */
   public static function getInfo() {
     return array(
-      'name' => t('Scale unit test'),
+      'name' => t('Scale'),
       'description' => t('Unit test for scale question type.'),
       'group' => t('Quiz'),
     );

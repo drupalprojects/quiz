@@ -17,7 +17,7 @@ class MatchingUnitTest extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Matching Questions unit test'),
+      'name' => t('Matching'),
       'description' => t('Unit test for matching question type.'),
       'group' => t('Quiz'),
     );

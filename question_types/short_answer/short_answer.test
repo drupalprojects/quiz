@@ -17,7 +17,7 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Short Answer unit test'),
+      'name' => t('Short answer'),
       'description' => t('Unit test for Short answers question type.'),
       'group' => t('Quiz'),
     );
