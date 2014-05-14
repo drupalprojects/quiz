@@ -367,6 +367,7 @@ abstract class QuizQuestion {
         ->execute();
 
       quiz_update_max_score_properties($quizzes_to_update);
+      quiz_update_max_score_properties(array($quiz_node->vid));
     }
   }
 

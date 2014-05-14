@@ -736,7 +736,7 @@ function quiz_insert($node) {
   $entity->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
   $entity->tid = (isset($node->tid) ? $node->tid : 0);
   $entity->max_score = $max_score;
-  entity_save('quiz', $entity);
+  drupal_write_record('quiz_node_properties', $entity);
 
   _quiz_insert_resultoptions($node);
 }
@@ -771,7 +771,7 @@ function quiz_update($node) {
     $entity->summary_pass_format = is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format;
     $entity->summary_default = is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default;
     $entity->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
-    entity_save('quiz', $entity);
+    drupal_write_record('quiz_node_properties', $entity, array('nid', 'vid'));
     _quiz_update_resultoptions($node);
   }
   _quiz_check_num_random($node);
@@ -4326,6 +4326,7 @@ function quiz_add_question_to_quiz($question) {
   $question->quiz_nid = $quiz->nid;
   $question->quiz_vid = $quiz->vid;
   _quiz_question_get_instance($question)->saveRelationships();
+  quiz_update_max_score_properties(array($quiz->vid));
 }
 
 /**
