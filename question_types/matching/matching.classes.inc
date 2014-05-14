@@ -570,7 +570,12 @@ class MatchingResponse extends QuizQuestionResponse {
           //$answer_data['feedback'] = '';
         }
       }
-      $answer_data['is_correct'] = $correct;
+      if ($this->getQuizQuestion()->viewCanRevealCorrect()) {
+        $answer_data['is_correct'] = $correct;
+      }
+      else {
+        $answer_data['is_correct'] = 2;
+      }
       $data[] = $answer_data;
     }
 

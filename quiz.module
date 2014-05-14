@@ -575,6 +575,10 @@ function quiz_theme($existing, $type, $theme, $path) {
       'file' => 'quiz.pages.inc',
       'variables' => array(),
     ),
+    'quiz_score_unknown' => array(
+      'file' => 'quiz.pages.inc',
+      'variables' => array(),
+    ),
     'quiz_question_browser' => array(
       'render element' => 'form',
       'path' => $path . '/theme',

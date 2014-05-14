@@ -287,6 +287,20 @@ function theme_quiz_score_incorrect() {
 }
 
 /**
+ * Pass the unknown mark to the theme so that theme authors can use an image.
+ *
+ * @ingroup themeable
+ */
+function theme_quiz_score_unknown() {
+  $variables = array(
+    'path' => drupal_get_path('module', 'quiz') . '/images/unselected.gif',
+    'alt' => t('unknown'),
+    'title' => t('unknown'),
+  );
+  return theme('image', $variables);
+}
+
+/**
  * Theme a progress indicator for use during a quiz.
  *
  * @param $question_number
