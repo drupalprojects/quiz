@@ -21,7 +21,7 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
   }
 
   function setUp() {
-    parent::setUp(array('short_answer'));
+    parent::setUp(array('short_answer'), array('score any quiz'));
   }
 
   /**
@@ -35,8 +35,28 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
       'correct_answer' => 'the Zero One Infinity rule',
     ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
 
-    $quiz = $this->linkQuestionToQuiz($question_node);
+    // Test incorrect.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'This is an incorrect answer.',
+      ), t('Finish'));
+    $this->assertText('Your score: 0%');
+
+    // Test correct.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'the Zero One Infinity rule',
+      ), t('Finish'));
+    $this->assertText('Your score: 100%');
+
+    // Test correct.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'the zero one Infinity rule',
+      ), t('Finish'));
+    $this->assertText('Your score: 100%');
   }
 
   /**
@@ -50,35 +70,103 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MATCH,
       'correct_answer' => 'the Zero One Infinity rule',
     ));
-    $quiz = $this->linkQuestionToQuiz($question_node);
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    // Test incorrect.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'the zero one Infinity rule',
+      ), t('Finish'));
+    $this->assertText('Your score: 0%');
+
+    // Test correct.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'the Zero One Infinity rule',
+      ), t('Finish'));
+    $this->assertText('Your score: 100%');
   }
 
   /**
    * Test regex graded questions.
    */
   public function testGradeAnswerRegex() {
-    // Login as our privileged user.
     $this->drupalLogin($this->admin);
 
     $question_node = $this->testCreateQuizQuestion(array(
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_REGEX,
-      'correct_answer' => '/Zero One Infinity rule/',
+      'correct_answer' => '/Zero One Infinity/i',
     ));
-    $quiz = $this->linkQuestionToQuiz($question_node);
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    // Test incorrect.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'um some rule, I forget',
+      ), t('Finish'));
+    $this->assertText('Your score: 0%');
+
+    // Test correct.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 'the answer is the zero one infinity rule',
+      ), t('Finish'));
+    $this->assertText('Your score: 100%');
   }
 
   /**
    * Test manually graded questions.
+   *
+   * Note: we use two questions here to make sure the grading form is handled
+   * correctly.
    */
   public function testGradeAnswerManual() {
-    // Login as our privileged user.
     $this->drupalLogin($this->admin);
 
-    $question_node = $this->testCreateQuizQuestion(array(
+    $question_node1 = $this->testCreateQuizQuestion(array(
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
       'correct_answer' => 'the Zero One Infinity rule',
     ));
-    $quiz = $this->linkQuestionToQuiz($question_node);
+    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+
+    $question_node2 = $this->testCreateQuizQuestion(array(
+      'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
+      'correct_answer' => 'The number two is ridiculous and cannot exist',
+    ));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Test correct.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 'the answer is the zero one infinity rule',
+      "question[$question_node2->nid]" => 'the number two really is ridiculous',
+      ), t('Finish'));
+    $this->assertText('Your score: 0%');
+    $this->assertText('Score ? of 10');
+    $this->assertText('This answer has not yet been scored.');
+    $this->assertNoFieldByName('0[score]');
+    $this->assertNoFieldByName('1[score]');
+    $url_of_result = $this->getUrl();
+
+    // Test grading the question.
+    $this->drupalLogin($this->admin);
+    $this->drupalGet($url_of_result);
+    $this->assertFieldByName('0[score]');
+    $this->assertFieldByName('1[score]');
+    $this->drupalPost(NULL, array(
+      "0[score]" => 2,
+      "1[score]" => 3,
+      ), t('Save Score'));
+    $this->assertText('The scoring data you provided has been saved.');
+
+    // Test the score is visible to the user.
+    $this->drupalLogin($this->user);
+    $this->drupalGet($url_of_result);
+    $this->assertText('You got 5 of 10 possible points.');
+    $this->assertText('Your score: 50%');
+    $this->assertText('Score 2 of 5');
+    $this->assertText('Score 3 of 5');
   }
 
   /**
@@ -92,7 +180,7 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
       'correct_answer' => 'This is the correct answer.',
     ));
-    $quiz = $this->linkQuestionToQuiz($question_node);
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
 
     // Login as non-admin.
     $this->drupalLogin($this->user);
@@ -101,9 +189,9 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
 
     // Test incorrect question. No feedback, no answer.
-    $quiz->feedback_time == QUIZ_FEEDBACK_NEVER;
-    $quiz->display_feedback = 0;
-    node_save($quiz);
+    $quiz_node->feedback_time = QUIZ_FEEDBACK_NEVER;
+    $quiz_node->display_feedback = 0;
+    node_save($quiz_node);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 'This is an incorrect answer.',
@@ -138,14 +226,21 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
   /**
    * Test adding and taking a truefalse question.
    */
-  function testCreateQuizQuestion($settings = array()) {
+  function testCreateQuizQuestion($settings = NULL) {
+    if (!$settings) {
+      $settings = array(
+        'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,
+        'correct_answer' => 'SA 1 correct answer.',
+      );
+    }
+
     // Login as our privileged user.
     $this->drupalLogin($this->admin);
 
     $question_node = $this->drupalCreateNode(array(
       'type' => $this->question_node_type,
       'title' => 'SA 1 title',
-      'body' => array(LANGUAGE_NONE => array(array('value' => 'SA 1 body text'))),
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'SA 1 body text.'))),
       ) + $settings);
 
     return $question_node;
