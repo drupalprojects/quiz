@@ -84,19 +84,8 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
   public function testQuestionFeedback() {
     $this->drupalLogin($this->admin);
 
-    // Create the quiz and question.
-    $quiz_node = $this->drupalCreateNode(array(
-      'type' => 'quiz',
-      'display_feedback' => 0,
-      'feedback_time' => QUIZ_FEEDBACK_NEVER,
-    ));
-    $question_node = $this->testCreateQuizQuestion($quiz_node);
-
-    // Link the question.
-    $question_node->quiz_nid = $quiz_node->nid;
-    $question_node->quiz_vid = $quiz_node->vid;
-    $qq = _quiz_question_get_instance($question_node);
-    $qq->saveRelationships();
+    $question_node = $this->testCreateQuizQuestion();
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
 
     // Login as non-admin.
     $this->drupalLogin($this->user);
