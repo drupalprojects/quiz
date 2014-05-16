@@ -1,0 +1,48 @@
+<?php
+
+/**
+ * @file
+ * Unit tests for the quiz question Module.
+ */
+
+/**
+ * Base test class for Quiz questions.
+ */
+class QuizNavigation extends QuizTestCase {
+
+  /**
+   * Test the question navigation and access.
+   */
+  public function testQuizNavigation() {
+    $this->drupalLogin($this->admin);
+
+    $quiz_node = $this->testCreateQuiz();
+
+    // 3 questions.
+    $question_node = $this->drupalCreateNode(array('type' => 'truefalse'));
+    $this->linkQuestionToQuiz($question_node);
+    $question_node = $this->drupalCreateNode(array('type' => 'truefalse'));
+    $this->linkQuestionToQuiz($question_node);
+    $question_node = $this->drupalCreateNode(array('type' => 'truefalse'));
+    $this->linkQuestionToQuiz($question_node);
+
+    // Testing basic navigation.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->assertResponse(200);
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->assertResponse(403);
+    $this->drupalGet("node/{$quiz_node->nid}/take/3");
+    $this->assertResponse(403);
+
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid]" => 1,
+      ), t('Next'));
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->assertResponse(200);
+    $this->drupalGet("node/{$quiz_node->nid}/take/3");
+    $this->assertResponse(403);
+  }
+
+}

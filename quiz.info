@@ -25,3 +25,5 @@ files[] = includes/views/handlers/quiz_views_handler_filter_user_quiz_state.inc
 files[] = includes/views/handlers/quiz_views_handler_relationship_quiz_nid.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question_type.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question.inc
+files[] = tests/QuizNavigation.test
+files[] = tests/QuizTestCase.test

@@ -8,7 +8,7 @@
 /**
  * Base test class for Quiz questions.
  */
-abstract class QuizQuestionTestCase extends DrupalWebTestCase {
+abstract class QuizQuestionTestCase extends QuizTestCase {
 
   /**
    * Set up a question test case.
@@ -21,7 +21,6 @@ abstract class QuizQuestionTestCase extends DrupalWebTestCase {
    *   Array of user permissions to add.
    */
   function setUp($modules, $more_admin_permissions = array(), $more_user_permissions = array()) {
-    parent::setUp($modules);
 
     $admin_permission = array_merge(array(
       'access quiz',
@@ -36,9 +35,7 @@ abstract class QuizQuestionTestCase extends DrupalWebTestCase {
       'access quiz',
       ), $more_user_permissions);
 
-
-    $this->admin = $this->drupalCreateUser($admin_permission);
-    $this->user = $this->drupalCreateUser($user_permission);
+    parent::setUp($modules, $admin_permission, $user_permission);
   }
 
   /**
@@ -47,24 +44,6 @@ abstract class QuizQuestionTestCase extends DrupalWebTestCase {
   public function testQuizQuestionImplementation() {
     $qq = _quiz_question_get_implementations();
     $this->assertTrue(isset($qq[$this->question_node_type]), t('Check that the question implementation is correct.'));
-  }
-
-  /**
-   * Link a question to a new or provided quiz.
-   */
-  public function linkQuestionToQuiz($question_node, $quiz_node = NULL) {
-    if (!$quiz_node) {
-      // Create a new quiz with defaults.
-      $quiz_node = $this->drupalCreateNode(array(
-        'type' => 'quiz',
-      ));
-    }
-
-    $question_node->quiz_nid = $quiz_node->nid;
-    $question_node->quiz_vid = $quiz_node->vid;
-    $qq = _quiz_question_get_instance($question_node);
-    $qq->saveRelationships();
-    return $quiz_node;
   }
 
 }
