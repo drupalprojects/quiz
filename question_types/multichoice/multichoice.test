@@ -27,12 +27,17 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
   /**
    * Create a default MCQ with default settings.
    */
-  public function testCreateQuizQuestion() {
-    $settings = array();
-    $settings['title'] = 'MCQ 1 Title';
-    $settings['body'] = array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text')));
-    $settings['type'] = 'multichoice';
+  public function testCreateQuizQuestion($settings = array()) {
+    $settings += array(
+      'title' => 'MCQ 1 Title',
+      'type' => 'multichoice',
+      'choice_multi' => 0,
+      'choice_random' => 0,
+      'choice_boolean' => 0,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text'))),
+    );
 
+    // Set up some alternatives.
     $settings['alternatives'][0]['answer']['value'] = 'A';
     $settings['alternatives'][0]['answer']['format'] = 'filtered_html';
     $settings['alternatives'][0]['feedback_if_chosen']['value'] = 'You chose A';
@@ -60,9 +65,6 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $settings['alternatives'][2]['score_if_chosen'] = 0;
     $settings['alternatives'][2]['score_if_not_chosen'] = 0;
 
-    $settings['choice_multi'] = 0;
-    $settings['choice_random'] = 0;
-    $settings['choice_boolean'] = 0;
     $node = $this->drupalCreateNode($settings);
     $node = node_load($node->nid);
 
@@ -139,28 +141,68 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
    * Test multiple answers.
    */
   function testMultipleAnswers() {
-    // @todo
+    $this->drupalLogin($this->admin);
+    $question_node = $this->testCreateQuizQuestion(array('choice_multi' => 1));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer][1]" => 1,
+      "question[$question_node->nid][user_answer][3]" => 3,
+      ), t('Finish'));
+
+    $this->assertText('You got 1 of 2 possible points.');
+    $this->assertText('Your score: 50%');
   }
 
   /**
    * Test random order of choices.
+   * @todo I don't know how we would test random questions.
    */
   function testRandomOrder() {
-    // @todo
-  }
+    $this->drupalLogin($this->admin);
+    $question_node = $this->testCreateQuizQuestion(array('choice_random' => 1));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
 
-  /**
-   * Test scoring.
-   */
-  function testScoring() {
-    // @todo
+    $this->drupalLogin($this->user);
+
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer]" => $question_node->alternatives[0]['id'],
+      ), t('Finish'));
   }
 
   /**
    * Test simple scoring.
    */
   function testSimpleScoring() {
-    // @todo
+    $this->drupalLogin($this->admin);
+    $settings = array();
+    $settings['alternatives'][1]['score_if_chosen'] = 0;
+    $settings['alternatives'][1]['score_if_not_chosen'] = 0;
+    $settings['choice_multi'] = 1;
+    $settings['choice_boolean'] = 1;
+
+    $question_node = $this->testCreateQuizQuestion($settings);
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    $this->drupalLogin($this->user);
+
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer][1]" => 1,
+      "question[$question_node->nid][user_answer][3]" => 3,
+      ), t('Finish'));
+    $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Your score: 0%');
+
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer][1]" => 1,
+      ), t('Finish'));
+    $this->assertText('You got 1 of 1 possible points.');
+    $this->assertText('Your score: 100%');
   }
 
 }
