@@ -10,6 +10,20 @@
  */
 class QuizNavigation extends QuizTestCase {
 
+  function setUp($modules = array(), $more_admin_permissions = array(), $more_user_permissions = array()) {
+    $modules[] = 'truefalse';
+    parent::setUp($modules);
+  }
+
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Quiz navigation'),
+      'description' => t('Unit test for Quiz navigation.'),
+      'group' => t('Quiz'),
+    );
+  }
+
   /**
    * Test the question navigation and access.
    */

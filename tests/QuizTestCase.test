@@ -20,7 +20,9 @@ abstract class QuizTestCase extends DrupalWebTestCase {
    * @param array $more_user_permissions
    *   Array of user permissions to add.
    */
-  function setUp($modules, $more_admin_permissions = array(), $more_user_permissions = array()) {
+  function setUp($modules = array(), $more_admin_permissions = array(), $more_user_permissions = array()) {
+    $modules[] = 'quiz';
+    $modules[] = 'quiz_question';
     parent::setUp($modules);
 
     $admin_permission = $more_admin_permissions;
