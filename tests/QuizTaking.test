@@ -21,7 +21,34 @@ class QuizTaking extends QuizTestCase {
    * Test the quiz resuming from database.
    */
   public function testQuizResuming() {
-    $this->fail('Write this test.');
+    $this->drupalLogin($this->admin);
+    // Resuming is default behavior.
+    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 1));
+
+    // 2 questions.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Answer a question
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->assertResponse(200);
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+
+    // Login again.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertText('Resuming');
+    // Answer the question without selecting anything.
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
   }
 
   /**
