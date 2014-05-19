@@ -1050,3 +1050,41 @@ function quiz_question_answering_form_validate($form, $form_state) {
     // Skip until correct here would be rad, right?
   }
 }
+
+/**
+ * Implements hook_node_access_records().
+ */
+function quiz_question_node_access_records($node) {
+  $grants = array();
+  // Restricting view access to question nodes outside quizzes.
+  $question_types = _quiz_question_get_implementations();
+  $question_types = array_keys($question_types);
+  if (in_array($node->type, $question_types)) {
+    // This grant is for users having 'view quiz question outside of a quiz'
+    // permission. We set a priority of 2 because OG has a 1 priority and we
+    // want to get around it.
+    $grants[] = array(
+      'realm' => 'quiz_question',
+      'gid' => 1,
+      'grant_view' => 1,
+      'grant_update' => 0,
+      'grant_delete' => 0,
+      'priority' => 2,
+    );
+  }
+  return $grants;
+}
+
+/**
+ * Implements hook_node_grants().
+ */
+function quiz_question_node_grants($account, $op) {
+  $grants = array();
+  if ($op == 'view') {
+    if (user_access('view quiz question outside of a quiz')) {
+      // Granting view access
+      $grants['quiz_question'][] = 1;
+    }
+  }
+  return $grants;
+}
