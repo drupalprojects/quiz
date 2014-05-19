@@ -2,7 +2,7 @@
 
 class QuizTaking extends QuizTestCase {
 
-    public static function getInfo() {
+  public static function getInfo() {
     return array(
       'name' => t('Quiz taking'),
       'description' => t('Unit test for Quiz take behaviors.'),
@@ -28,7 +28,41 @@ class QuizTaking extends QuizTestCase {
    * Test the quiz availability tests.
    */
   public function testQuizAvailability() {
-    $this->fail('Write this test.');
+    // Within range.
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'quiz_always' => 0,
+      'quiz_open' => REQUEST_TIME - 86400,
+      'quiz_close' => REQUEST_TIME + 86400,
+    ));
+    $this->drupalGet("node/{$quiz_node->nid}");
+    $this->assertNoText('This quiz is closed.');
+
+    // Starts in the future.
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'quiz_always' => 0,
+      'quiz_open' => REQUEST_TIME + 86400,
+      'quiz_close' => REQUEST_TIME + 86401,
+    ));
+    $this->drupalGet("node/{$quiz_node->nid}");
+    $this->assertText('This quiz is closed.');
+
+    // Ends in the past.
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'quiz_always' => 0,
+      'quiz_open' => REQUEST_TIME - 86400,
+      'quiz_close' => REQUEST_TIME - 86401,
+    ));
+    $this->drupalGet("node/{$quiz_node->nid}");
+    $this->assertText('This quiz is closed.');
+
+    // Always available.
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'quiz_always' => 1,
+      'quiz_open' => REQUEST_TIME + 86400,
+      'quiz_close' => REQUEST_TIME - 86401,
+    ));
+    $this->drupalGet("node/{$quiz_node->nid}");
+    $this->assertNoText('This quiz is closed.');
   }
 
 }

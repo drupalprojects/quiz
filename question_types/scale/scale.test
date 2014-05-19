@@ -10,6 +10,8 @@
  */
 class ScaleTestCase extends QuizQuestionTestCase {
 
+  var $question_node_type = 'scale';
+
   /**
    * The getInfo() method provides information about the test.
    * In order for the test to be run, the getInfo() method needs
@@ -27,27 +29,7 @@ class ScaleTestCase extends QuizQuestionTestCase {
    * Implementing setUp() to enable scale module testing
    */
   function setUp() {
-    parent::setUp('taxonomy', 'quiz', 'views', 'quiz_question', 'scale');
-
-    // Create and log in our test user. Should be cleaned up as I something
-    // was wrong with permissions and I basically kept adding potentially
-    // useful ones until it worked.
-    // array of drupal permission
-    $permission = array(
-      'access administration pages',
-      'access quiz',
-      'administer blocks',
-      'administer quiz configuration',
-      'administer site configuration',
-      'administer taxonomy',
-      'create scale content',
-      'create quiz content',
-      'edit any scale content',
-    );
-
-    // create a drupal test user with specified permissions
-    $user = $this->drupalCreateUser($permission);
-    $this->drupalLogin($user);
+    parent::setUp('scale');
   }
 
   /**

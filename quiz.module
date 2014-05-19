@@ -2631,7 +2631,7 @@ function quiz_availability($quiz) {
   $now = REQUEST_TIME;
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-    return t('This quiz is closed');
+    return t('This quiz is closed.');
   }
   return TRUE;
 }
@@ -4183,11 +4183,6 @@ function quiz_take_question_access($quiz, $question_number) {
     return FALSE;
   }
 
-  if ($question_number == 1) {
-    // First question.
-    return TRUE;
-  }
-
   if ($quiz->allow_jumping) {
     // Access to go to any question. Yay.
     return TRUE;
@@ -4208,10 +4203,8 @@ function quiz_take_question_access($quiz, $question_number) {
   }
 
   // Enforce normal navigation.
-  $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
-  $result = db_query($sql, array(':result_id' => $result_id, ':nid' => $qinfo_last['nid'], ':vid' => $qinfo_last['vid']));
-  if ($qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
-    //  Previous answer was submitted.
+  if ($question_number == 1 || $qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
+    //  Previous answer was submitted or this is the first question.
     return TRUE;
   }
 }

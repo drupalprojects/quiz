@@ -38,7 +38,7 @@ class QuizNavigation extends QuizTestCase {
     $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node3, $quiz_node);
 
-    // Testing basic navigation.
+    // Testing basic navigation. Ensure next questions are not yet available.
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
@@ -90,6 +90,7 @@ class QuizNavigation extends QuizTestCase {
    */
   function testQuestionNavigationSkipping() {
     $this->drupalLogin($this->admin);
+    // Default behavior, anyway.
     $quiz_node = $this->drupalCreateQuiz(array('allow_skipping' => 1));
 
     // 3 questions.
@@ -121,9 +122,16 @@ class QuizNavigation extends QuizTestCase {
     $this->assertResponse(403);
   }
 
+  /**
+   * Test preventing backwards navigation of questions.
+   */
   public function testQuestionNavigationBackwards() {
     $this->drupalLogin($this->admin);
-    $quiz_node = $this->drupalCreateQuiz(array('backwards_navigation'));
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'backwards_navigation' => 0,
+      'allow_skipping' => 0,
+      'allow_jumping' => 0,
+    ));
 
     // 3 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
