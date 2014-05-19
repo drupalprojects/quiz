@@ -1,0 +1,32 @@
+<?php
+
+class QuizResult extends QuizTestCase {
+
+  /**
+   * Test the "pass rate for quiz".
+   */
+  public function testPassRate() {
+    $this->fail('Write this test.');
+  }
+
+  /**
+   * Test the "summary text if passed".
+   */
+  public function testPassSummary() {
+    $this->fail('Write this test.');
+  }
+
+  /**
+   * Test the "default summary text".
+   */
+  public function testSummary() {
+    $this->fail('Write this test.');
+  }
+
+  /**
+   * Test the result percentage ranges & feedback.
+   */
+  public function testPercentageResults() {
+    $this->fail('Write this test.');
+  }
+}

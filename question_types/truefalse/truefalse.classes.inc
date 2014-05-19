@@ -25,7 +25,7 @@ class TrueFalseQuestion extends QuizQuestion {
         ->fields(array(
           'nid' => $this->node->nid,
           'vid' => $this->node->vid,
-          'correct_answer' => (int) $this->node->correct_answer,
+          'correct_answer' => $this->node->correct_answer,
           'feedback' => $this->node->feedback,
         ))
         ->execute();

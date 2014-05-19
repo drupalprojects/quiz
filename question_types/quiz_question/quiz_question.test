@@ -20,22 +20,14 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
    * @param array $more_user_permissions
    *   Array of user permissions to add.
    */
-  function setUp($modules, $more_admin_permissions = array(), $more_user_permissions = array()) {
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
+    $modules[] = 'quiz_question';
+    $admin_permissions[] = "create {$this->question_node_type} content";
+    $admin_permissions[] = "edit any {$this->question_node_type} content";
 
-    $admin_permission = array_merge(array(
-      'access quiz',
-      "create {$this->question_node_type} content",
-      'create quiz content',
-      "edit any {$this->question_node_type} content",
-      'edit any quiz content',
-      'edit question titles',
-      ), $more_admin_permissions);
+    $user_permissions[] = 'access quiz';
 
-    $user_permission = array_merge(array(
-      'access quiz',
-      ), $more_user_permissions);
-
-    parent::setUp($modules, $admin_permission, $user_permission);
+    parent::setUp($modules, $admin_permissions, $user_permissions);
   }
 
   /**

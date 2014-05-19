@@ -20,16 +20,19 @@ abstract class QuizTestCase extends DrupalWebTestCase {
    * @param array $more_user_permissions
    *   Array of user permissions to add.
    */
-  function setUp($modules = array(), $more_admin_permissions = array(), $more_user_permissions = array()) {
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'quiz';
     $modules[] = 'quiz_question';
     parent::setUp($modules);
 
-    $admin_permission = $more_admin_permissions;
-    $user_permission = $more_user_permissions;
+    $admin_permissions[] = 'create quiz content';
+    $admin_permissions[] = 'edit any quiz content';
+    $admin_permissions[] = 'edit question titles';
+    $admin_permissions[] = 'access quiz';
+    $user_permissions[] = 'access quiz';
 
-    $this->admin = $this->drupalCreateUser($admin_permission);
-    $this->user = $this->drupalCreateUser($user_permission);
+    $this->admin = $this->drupalCreateUser($admin_permissions);
+    $this->user = $this->drupalCreateUser($user_permissions);
   }
 
   /**
@@ -50,15 +53,19 @@ abstract class QuizTestCase extends DrupalWebTestCase {
     return $quiz_node;
   }
 
-  public function testCreateQuiz($settings = array()) {
+  public function drupalCreateQuiz($settings = array()) {
     $settings += array(
       'type' => 'quiz',
     );
-    return $this->drupalCreateNode();
+    return $this->drupalCreateNode($settings);
   }
 
   public function testQuizNodeSettings() {
 
+  }
+
+  public function quizDeleteAllResults() {
+    db_query('DELETE FROM {quiz_node_results}');
   }
 
 }

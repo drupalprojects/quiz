@@ -1,0 +1,26 @@
+<?php
+
+class QuizTaking extends QuizTestCase {
+
+  /**
+   * Test the repeat until correct behavior.
+   */
+  public function testQuestionRepeatUntilCorrect() {
+    $this->fail('Write this test.');
+  }
+
+  /**
+   * Test the quiz resuming from database.
+   */
+  public function testQuizResuming() {
+    $this->fail('Write this test.');
+  }
+
+  /**
+   * Test the quiz availability tests.
+   */
+  public function testQuizAvailability() {
+    $this->fail('Write this test.');
+  }
+
+}
