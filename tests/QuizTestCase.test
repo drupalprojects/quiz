@@ -31,8 +31,8 @@ abstract class QuizTestCase extends DrupalWebTestCase {
     $admin_permissions[] = 'access quiz';
     $user_permissions[] = 'access quiz';
 
-    $this->admin = $this->drupalCreateUser($admin_permissions);
-    $this->user = $this->drupalCreateUser($user_permissions);
+    $this->admin = $this->drupalCreateUser(array_unique($admin_permissions));
+    $this->user = $this->drupalCreateUser(array_unique($user_permissions));
   }
 
   /**
