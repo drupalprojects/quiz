@@ -4191,7 +4191,7 @@ function quiz_take_question_access($quiz, $question_number) {
   $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   $quiz_result = quiz_result_load($result_id);
   $question_index = $question_number;
-  $qinfo_last = $quiz_result->layout[$question_index - 1];
+  $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
   $qinfo = $quiz_result->layout[$question_index];
 
   if (!$quiz->backwards_navigation) {
