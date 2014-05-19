@@ -1033,7 +1033,7 @@ function quiz_question_answering_form_submit_back(&$form, &$form_state) {
 /**
  * Validation callback for quiz question submit.
  */
-function quiz_question_answering_form_validate($form, $form_state) {
+function quiz_question_answering_form_validate(&$form, &$form_state) {
   $quiz = node_load(arg(1));
   foreach ($form_state['values']['question'] as $nid => $answer) {
     $current_question = node_load($nid);
@@ -1043,11 +1043,6 @@ function quiz_question_answering_form_validate($form, $form_state) {
       $quiz_question = _quiz_question_get_instance($current_question);
       $quiz_question->getAnsweringFormValidate($form, $form_state);
     }
-  }
-
-
-  if ($quiz->repeat_until_correct && !$result->is_correct) {
-    // Skip until correct here would be rad, right?
   }
 }
 
@@ -1087,4 +1082,30 @@ function quiz_question_node_grants($account, $op) {
     }
   }
   return $grants;
+}
+
+/**
+ * Element validator (for repeat until correct).
+ */
+function quiz_question_element_validate(&$form, &$form_state) {
+  $quiz = node_load(arg(1));
+  foreach ($form_state['values']['question'] as $nid => $answer) {
+    $current_question = node_load($nid);
+
+    if ($current_question) {
+      // There was an answer submitted.
+      $quiz_question = _quiz_question_get_instance($current_question);
+      $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $answer);
+    }
+  }
+
+
+  if ($quiz->repeat_until_correct && !$result->isCorrect()) {
+    form_set_error('', 'Try again!');
+
+    $form['feedback'] = array(
+      '#weight' => 100,
+      '#markup' => drupal_render(quiz_question_feedback($quiz, $current_question)),
+    );
+  }
 }

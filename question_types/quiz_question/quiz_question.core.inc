@@ -289,6 +289,7 @@ abstract class QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $form = array();
+    $form['#element_validate'] = array('quiz_question_element_validate');
     return $form;
   }
 
