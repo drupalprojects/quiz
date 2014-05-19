@@ -29,7 +29,7 @@ class ScaleTestCase extends QuizQuestionTestCase {
    * Implementing setUp() to enable scale module testing
    */
   function setUp() {
-    parent::setUp('scale');
+    parent::setUp(array('scale'));
   }
 
   /**
