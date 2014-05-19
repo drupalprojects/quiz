@@ -2,6 +2,14 @@
 
 class QuizTaking extends QuizTestCase {
 
+    public static function getInfo() {
+    return array(
+      'name' => t('Quiz taking'),
+      'description' => t('Unit test for Quiz take behaviors.'),
+      'group' => t('Quiz'),
+    );
+  }
+
   /**
    * Test the repeat until correct behavior.
    */
