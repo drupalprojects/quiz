@@ -31,7 +31,7 @@ class QuizTaking extends QuizTestCase {
     $this->linkQuestionToQuiz($question_node, $quiz_node);
 
     $this->drupalLogin($this->user);
-    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
@@ -123,6 +123,29 @@ class QuizTaking extends QuizTestCase {
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertNoText('This quiz is closed.');
+  }
+
+  /**
+   * Test the 'view quiz question outside of a quiz' permission.
+   */
+  function testViewQuestionsOutsideQuiz() {
+    $this->drupalLogin($this->admin);
+    // Resuming is default behavior.
+    $quiz_node = $this->drupalCreateQuiz();
+
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+
+    node_access_rebuild(FALSE);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$question_node1->nid}");
+    $this->assertResponse(403);
+
+    $user_with_privs = $this->drupalCreateUser(array('view quiz question outside of a quiz', 'access quiz'));
+    $this->drupalLogin($user_with_privs);
+    $this->drupalGet("node/{$question_node1->nid}");
+    $this->assertResponse(200);
   }
 
 }
