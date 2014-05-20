@@ -31,7 +31,7 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
   }
 
   /**
-   * Test the quiz question implementation.
+   * Test the subclass's quiz question implementation.
    */
   public function testQuizQuestionImplementation() {
     $qq = _quiz_question_get_implementations();

@@ -2812,7 +2812,7 @@ function quiz_build_question_list($quiz) {
     $display_count++;
     $question['number'] = $count;
     if ($question['type'] != 'quiz_page') {
-    $question['display_number'] = $display_count;
+      $question['display_number'] = $display_count;
     }
   }
   return $questions;
@@ -3039,7 +3039,7 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
           WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
           AND qnr.vid = :vid
           AND qnr.uid = :uid
-          AND qnr.time_end = :time_end', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid, ':time_end' => 0))->fetchField();
+          AND qnr.time_end IS NULL', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid))->fetchField();
   return (int) $result_id;
 }
 
