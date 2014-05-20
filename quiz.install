@@ -345,12 +345,10 @@ function quiz_schema() {
       'time_start' => array(
         'type' => 'int',
         'unsigned' => FALSE,
-        'default' => 0,
       ),
       'time_end' => array(
         'type' => 'int',
         'unsigned' => FALSE,
-        'default' => 0,
       ),
       'released' => array(
         'type' => 'int',
@@ -906,4 +904,19 @@ function quiz_update_7503() {
   );
   db_add_field('quiz_node_relationship', 'qnr_pid', $spec);
   return t('Added new qnr_pid field to the quiz_node_relationship table.');
+}
+
+/**
+ * Allow time_start and time_end to be NULL. The time "0" is still a valid time.
+ * This lets us do better filtering in Views (where NULL).
+ */
+function quiz_update_7504() {
+  $spec = array(
+    'type' => 'int',
+    'unsigned' => FALSE,
+  );
+  db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
+  db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
+  db_query("UPDATE {quiz_node_results} SET time_end = NULL WHERE time_end = 0");
+  return t('Removed default attribute from field time_start and time_end in quiz_node_results table.');
 }
