@@ -10,7 +10,7 @@
  */
 class QuizNavigation extends QuizTestCase {
 
-  function setUp($modules = array(), $more_admin_permissions = array(), $more_user_permissions = array()) {
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
     parent::setUp($modules);
   }

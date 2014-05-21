@@ -15,9 +15,9 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
    *
    * @param array $modules
    *   Array of modules to enable.
-   * @param array $more_admin_permissions
+   * @param array $admin_permissions
    *   Array of admin permissions to add.
-   * @param array $more_user_permissions
+   * @param array $user_permissions
    *   Array of user permissions to add.
    */
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
