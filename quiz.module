@@ -4222,7 +4222,6 @@ function quiz_take_question_feedback($quiz, $question_number) {
 
 function quiz_take_question_feedback_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
-  quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
 }
 
