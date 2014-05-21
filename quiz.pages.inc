@@ -412,7 +412,7 @@ function theme_quiz_take_summary($variables) {
     $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
   }
   // Get the feedback for all questions. These are included here to provide maximum flexibility for themers
-  if ($quiz->display_feedback) {
+  if ($quiz->feedback_time == QUIZ_FEEDBACK_END) {
     $form = drupal_get_form('quiz_report_form', $questions);
     $output .= drupal_render($form);
   }
