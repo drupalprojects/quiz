@@ -83,13 +83,24 @@ function quiz_report_form($form, $form_state, $questions, $showpoints = TRUE, $s
     );
   }
 
-  if (count($questions) == 1) {
-    // Just one question. Send to next question.
-    $form['next'] = array(
-      '#type' => 'submit',
-      '#submit' => array('quiz_take_question_feedback_submit'),
-      '#value' => t('Next question'),
-    );
+  if (arg(4) == 'feedback') {
+    // @todo figure something better than args.
+    $quiz = node_load(arg(1));
+    if (empty($_SESSION['quiz'][$quiz->nid])) {
+      // Quiz is done.
+      $form['finish'] = array(
+        '#type' => 'submit',
+        '#submit' => array('quiz_take_question_feedback_end_submit'),
+        '#value' => t('Finish'),
+      );
+    }
+    else {
+      $form['next'] = array(
+        '#type' => 'submit',
+        '#submit' => array('quiz_take_question_feedback_submit'),
+        '#value' => t('Next question'),
+      );
+    }
   }
 
   return $form;
@@ -157,15 +168,15 @@ function quiz_report_form_submit($form, &$form_state) {
   // Scores may have been changed. We take the necessary actions
   quiz_update_total_score_fast($result_id, $quiz->vid);
   $changed = db_update('quiz_node_results')
-  ->fields(array(
-    'is_evaluated' =>  1,
-  ))
-  ->condition('result_id', $result_id)
-  ->execute();
+    ->fields(array(
+      'is_evaluated' => 1,
+    ))
+    ->condition('result_id', $result_id)
+    ->execute();
   $results_got_deleted = _quiz_maintain_results($quiz, $result_id);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
-  if($changed > 0) {
+  if ($changed > 0) {
     _quiz_remove_unscored_message();
   }
 
@@ -214,22 +225,22 @@ function _quiz_remove_unscored_message() {
  *  Quiz node version id
  */
 function quiz_update_total_score_fast($result_id, $quiz_vid) {
-	$subq1 = db_select('quiz_node_results_answers', 'a');
-	$subq1
-		->condition('a.result_id', $result_id)
-		->addExpression('SUM(a.points_awarded)');
-	$res1 = $subq1->execute()->fetchField();
+  $subq1 = db_select('quiz_node_results_answers', 'a');
+  $subq1
+    ->condition('a.result_id', $result_id)
+    ->addExpression('SUM(a.points_awarded)');
+  $res1 = $subq1->execute()->fetchField();
 
-	$subq2 = db_select('quiz_node_properties', 'qnp');
-	$subq2
-		->condition('qnp.vid', $quiz_vid)
-		->addField('qnp', 'max_score');
-	$res2 = $subq2->execute()->fetchField();
+  $subq2 = db_select('quiz_node_properties', 'qnp');
+  $subq2
+    ->condition('qnp.vid', $quiz_vid)
+    ->addField('qnp', 'max_score');
+  $res2 = $subq2->execute()->fetchField();
 
-	db_update('quiz_node_results')
-		->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
-		->condition('result_id', $result_id)
-		->execute();
+  db_update('quiz_node_results')
+    ->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
+    ->condition('result_id', $result_id)
+    ->execute();
 }
 
 /**
@@ -313,7 +324,7 @@ function theme_quiz_score_unknown() {
  * @ingroup themeable
  */
 function theme_quiz_progress($variables) {
-  $output  = '';
+  $output = '';
   $output .= '<div id="quiz_progress">';
 
   if ($variables['allow_jumping']) {
@@ -375,7 +386,7 @@ function theme_quiz_take_summary($variables) {
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $result_id =  $variables['result_id'];
+  $result_id = $variables['result_id'];
   // Set the title here so themers can adjust.
   drupal_set_title($quiz->title);
 

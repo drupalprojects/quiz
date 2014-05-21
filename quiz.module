@@ -2189,7 +2189,7 @@ function quiz_end_scoring($quiz, $result_id) {
   // Mark all missing answers as blank. This is essential here for when we may
   // have pages of unanswered questions. Also kills a lot of the skip code that
   // was necessary before.
-  foreach ($quiz_result->layout as $idx => $qinfo) {
+  foreach ($quiz_result->layout as $qinfo) {
     // Load the Quiz answer submission from the database.
     $qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid']);
     $current_question = node_load($qinfo['nid'], $qinfo['vid']);
@@ -4193,16 +4193,33 @@ function quiz_take_question_access($quiz, $question_number) {
  * Show feedback for a question response.
  */
 function quiz_take_question_feedback($quiz, $question_number) {
-  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+    $result_id = $_SESSION['quiz']['temp']['result_id'];
+  }
+  else {
+    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  }
   $quiz_result = quiz_result_load($result_id);
-  $question_node = node_load($quiz_result->layout[$question_number - 1]['nid']);
+  $question_node = node_load($quiz_result->layout[$question_number]['nid']);
   $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
   return $feedback;
 }
 
+/**
+ * Submit handler to go to the next question from the question feedback.
+ */
 function quiz_take_question_feedback_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
+}
+
+/**
+ * Submit handler to go to the quiz results from the last question's feedback.
+ */
+function quiz_take_question_feedback_end_submit($form, &$form_state) {
+  $quiz = node_load(arg(1));
+  $result_id = $_SESSION['quiz']['temp']['result_id'];
+  $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/$result_id/view";
 }
 
 /**
@@ -4263,8 +4280,13 @@ function quiz_jumper_submit($form, &$form_state) {
 function quiz_question_feedback_access($quiz, $question_number) {
   if ($question_number >= 1) {
     if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-      $question_index = $question_number - 1;
-      $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+      $question_index = $question_number;
+      if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+        $result_id = $_SESSION['quiz']['temp']['result_id'];
+      }
+      else {
+        $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+      }
       $quiz_result = quiz_result_load($result_id);
       $qinfo = $quiz_result->layout[$question_index];
 

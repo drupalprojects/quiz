@@ -942,10 +942,17 @@ function quiz_question_add_body_field($type) {
  * Return a form with question feedback.
  */
 function quiz_question_feedback($quiz, $question) {
+  if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+    $result_id = $_SESSION['quiz']['temp']['result_id'];
+  }
+  else {
+    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+  }
+
   $types = _quiz_get_question_types();
   $module = $types[$question->type]['module'];
   // Invoke hook_get_report().
-  $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $_SESSION['quiz'][$quiz->nid]['result_id']);
+  $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
   $path = drupal_get_path('module', 'quiz');
   require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
   if ($report) {
@@ -986,28 +993,35 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   }
 
   // Wat do?
-
-  if (isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
-    // There is a next question.
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']) . '/feedback';
-    }
-    else {
-      $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
-    }
+  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    // We have question feedback.
+    $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] - 1) . '/feedback';
   }
   else {
+    // No question feedback. Go to next question.
+    $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
+  }
+
+  if (!isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // No more questions. Score quiz.
     $score = quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
 
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);
-    $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
+    if ($quiz->feedback_time != QUIZ_FEEDBACK_QUESTION) {
+      // Only redirect to question results if there is not question feedback.
+      $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
+    }
 
     quiz_end_actions($quiz, $score, $_SESSION['quiz'][$quiz->nid]);
 
     // Remove all information about this quiz from the session.
-    // @todo but for anon, we might have to keep some so they could access results
+    // @todo but for anon, we might have to keep some so they could access
+    // results
+    // When quiz is completed we need to make sure that even though the quiz has
+    // been removed from the session, that the user can still access the
+    // feedback for the last question, THEN go to the results page.
+    $_SESSION['quiz']['temp']['result_id'] = $quiz_result->result_id;
     unset($_SESSION['quiz'][$quiz->nid]);
   }
 }
