@@ -29,3 +29,4 @@ files[] = tests/QuizNavigation.test
 files[] = tests/QuizTestCase.test
 files[] = tests/QuizResult.test
 files[] = tests/QuizTaking.test
+files[] = tests/QuizFeedback.test
