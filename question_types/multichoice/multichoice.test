@@ -151,9 +151,17 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
       "question[$question_node->nid][user_answer][1]" => 1,
       "question[$question_node->nid][user_answer][3]" => 3,
       ), t('Finish'));
+    // 0 of 1, because user picked a correct answer and an incorrect answer.
+    $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Your score: 0%');
 
-    $this->assertText('You got 1 of 2 possible points.');
-    $this->assertText('Your score: 50%');
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][user_answer][1]" => 1,
+      ), t('Finish'));
+    // 1 of 1, because user picked a correct answer and not an incorrect answer.
+    $this->assertText('You got 1 of 1 possible points.');
+    $this->assertText('Your score: 100%');
   }
 
   /**
