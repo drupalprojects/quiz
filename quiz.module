@@ -3083,26 +3083,6 @@ function _quiz_insert_resultoptions($node) {
 }
 
 /**
- * Insert one result option.
- * @TODO This could be a dead function from now, need to remove this.
- * @param $option
- *  The option array to insert.
- */
-function _quiz_insert_result_option($option) {
-  db_insert('quiz_node_result_options')
-    ->fields('nid', 'vid', 'option_name', 'option_summary', 'option_start', 'option_end')
-    ->values(array(
-      $option['nid'],
-      $option['vid'],
-      $option['option_name'],
-      $option['option_summary'],
-      $option['option_start'],
-      $option['option_end'],
-    ))
-    ->execute();
-}
-
-/**
  * Modify result of option-specific updates.
  *
  * @param $node
