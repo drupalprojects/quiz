@@ -31,7 +31,7 @@ class MultichoiceQuestion extends QuizQuestion {
         $short = &$this->node->alternatives[$i];
         // If the scoring data doesn't make sense, use the data from the "correct" checkbox to set the score data
         if ($short['score_if_chosen'] == $short['score_if_not_chosen'] || !is_numeric($short['score_if_chosen']) || !is_numeric($short['score_if_not_chosen'])) {
-          if ($short['correct'] == 1) {
+          if (!empty($short['correct'])) {
             $short['score_if_chosen'] = 1;
             $short['score_if_not_chosen'] = 0;
           }
