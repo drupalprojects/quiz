@@ -59,7 +59,7 @@ class QuizPagesQuestion extends QuizQuestion {
     return FALSE;
   }
 
-  function getAnsweringForm() {
+  function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = array(
       '#type' => 'hidden',
     );
