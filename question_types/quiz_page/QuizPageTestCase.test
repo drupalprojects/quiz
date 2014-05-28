@@ -1,0 +1,88 @@
+<?php
+
+class QuizPageTestCase extends QuizQuestionTestCase {
+
+  var $question_node_type = 'quiz_page';
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Quiz page'),
+      'description' => t('Unit test for quiz pages'),
+      'group' => t('Quiz'),
+    );
+  }
+
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
+    $modules[] = 'quiz_page';
+    $modules[] = 'truefalse';
+    parent::setUp($modules, $admin_permissions, $user_permissions);
+  }
+
+  /**
+   * Test that question parentage saves.
+   */
+  function testQuizPageParentage() {
+    $this->drupalLogin($this->admin);
+
+    // Create questions
+    $quiz_node = $this->drupalCreateQuiz();
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node); // QNR ID 1
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node); // QNR ID 2
+    $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);  // QNR ID 3
+    // Create pages.
+    $page_node1 = $this->drupalCreateNode(array('type' => 'quiz_page'));
+    $this->linkQuestionToQuiz($page_node1, $quiz_node); // QNR ID 4
+    $page_node2 = $this->drupalCreateNode(array('type' => 'quiz_page'));
+    $this->linkQuestionToQuiz($page_node2, $quiz_node); // QNR ID 5
+
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $post = array(
+      "qnr_pids[{$question_node1->nid}-{$question_node1->vid}]" => 4,
+      "qnr_pids[{$question_node2->nid}-{$question_node2->vid}]" => 4,
+      "qnr_pids[{$question_node3->nid}-{$question_node3->vid}]" => 5,
+    );
+    $this->drupalPost(NULL, $post, t('Submit'));
+
+    $sql = "SELECT * FROM {quiz_node_relationship}";
+    $data = db_query($sql)->fetchAllAssoc('qnr_id');
+    // Check the relationships.
+    foreach ($data as $qnr_id => $rel) {
+      switch ($qnr_id) {
+        case 1:
+        case 2:
+          $this->assertEqual($rel->qnr_pid, 4);
+          break;
+        case 3:
+          $this->assertEqual($rel->qnr_pid, 5);
+          break;
+        case 4:
+        case 5:
+          $this->assertNull($rel->qnr_pid);
+          break;
+      };
+    }
+
+    // Take the quiz. Ensure the pages are correct.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    // Questions 1 and 2 are present. Question 3 is hidden.
+    $this->assertField("question[1]");
+    $this->assertField("question[2]");
+    $this->assertNoField("question[3]");
+    $this->drupalPost(NULL, array(
+      'question[1]' => 1,
+      'question[2]' => 1,
+      ), t('Next'));
+    // Questions 1 and 2 are gone. Question 3 is present.
+    $this->assertNoField("question[1]");
+    $this->assertNoField("question[2]");
+    $this->assertField("question[3]");
+    $this->drupalPost(NULL, array(
+      'question[3]' => 1,
+      ), t('Finish'));
+  }
+
+}

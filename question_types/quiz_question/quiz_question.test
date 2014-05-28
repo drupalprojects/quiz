@@ -10,6 +10,8 @@
  */
 abstract class QuizQuestionTestCase extends QuizTestCase {
 
+   var $question_node_type = 'quiz_question';
+
   /**
    * Set up a question test case.
    *
