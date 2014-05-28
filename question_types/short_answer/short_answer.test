@@ -195,16 +195,12 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
     ));
     $quiz_node = $this->linkQuestionToQuiz($question_node);
 
-    // Login as non-admin.
-    $this->drupalLogin($this->user);
-
-    // Take the quiz.
-    $this->drupalGet("node/$quiz_node->nid/take");
-
     // Test incorrect question. No feedback, no answer.
     $quiz_node->feedback_time = QUIZ_FEEDBACK_NEVER;
     $quiz_node->display_feedback = 0;
     node_save($quiz_node);
+    // Take the quiz.
+    $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 'This is an incorrect answer.',
