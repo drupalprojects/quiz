@@ -69,19 +69,19 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     // Questions 1 and 2 are present. Question 3 is hidden.
-    $this->assertField("question[1]");
-    $this->assertField("question[2]");
-    $this->assertNoField("question[3]");
+    $this->assertField("question[{$question_node1->nid}]");
+    $this->assertField("question[{$question_node2->nid}]");
+    $this->assertNoField("question[{$question_node3->nid}]");
     $this->drupalPost(NULL, array(
-      'question[1]' => 1,
-      'question[2]' => 1,
+      "question[{$question_node1->nid}]" => 1,
+      "question[{$question_node2->nid}]" => 1,
       ), t('Next'));
     // Questions 1 and 2 are gone. Question 3 is present.
-    $this->assertNoField("question[1]");
-    $this->assertNoField("question[2]");
-    $this->assertField("question[3]");
+    $this->assertNoField("question[{$question_node1->nid}]");
+    $this->assertNoField("question[{$question_node2->nid}]");
+    $this->assertField("question[{$question_node3->nid}]");
     $this->drupalPost(NULL, array(
-      'question[3]' => 1,
+      "question[{$question_node3->nid}]" => 1,
       ), t('Finish'));
   }
 
