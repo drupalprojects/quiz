@@ -4093,8 +4093,7 @@ function _quiz_show_finish_button($quiz) {
         $last_page = FALSE;
       }
     }
-
-    if (!$question['qnr_pid']) {
+    else if (!$question['qnr_pid']) {
       // A question without a parent showed up.
       $in_page = FALSE;
       $last_page = FALSE;
