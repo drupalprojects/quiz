@@ -911,46 +911,39 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
       '#maxlength' => 4,
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
+
     $form[$fieldset]['qnr_pids'][$id] = array(
       '#type' => 'textfield',
       '#size' => 3,
       '#maxlength' => 4,
       '#default_value' => $question->qnr_pid,
     );
+
     $form[$fieldset]['qnr_ids'][$id] = array(
       '#type' => 'textfield',
       '#size' => 3,
       '#maxlength' => 4,
       '#default_value' => $question->qnr_id,
     );
-    // Quiz directions don't have scoring...
-    if ($instance->isGraded()) {
-      $form[$fieldset]['max_scores'][$id] = array(
-        '#type' => 'textfield',
-        '#size' => 2,
-        '#maxlength' => 2,
-        '#disabled' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
-        '#default_value' => isset($question->max_score) ? $question->max_score : 0,
-        '#states' => array(
-          'disabled' => array(
-            "#edit-auto-update-max-scores-$id" => array('checked' => TRUE),
-          )
-        ),
-      );
-    }
-    else {
-      $form[$fieldset]['max_scores'][$id] = array(
-        '#type' => 'value',
-        '#value' => isset($question->max_score) ? $question->max_score : 0,
-      );
-    }
 
-    if ($instance->isGraded()) {
-      $form[$fieldset]['auto_update_max_scores'][$id] = array(
-        '#type' => 'checkbox',
-        '#default_value' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : 0,
-      );
-    }
+    // Quiz directions don't have scoring...
+    $form[$fieldset]['max_scores'][$id] = array(
+      '#type' => $instance->isGraded() ? 'textfield' : 'hidden',
+      '#size' => 2,
+      '#maxlength' => 2,
+      '#disabled' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
+      '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+      '#states' => array(
+        'disabled' => array(
+          "#edit-auto-update-max-scores-$id" => array('checked' => TRUE),
+        )
+      ),
+    );
+
+    $form[$fieldset]['auto_update_max_scores'][$id] = array(
+      '#type' => $instance->isGraded() ? 'checkbox' : 'hidden',
+      '#default_value' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : 0,
+    );
 
     // Add checkboxes to remove questions in js disabled browsers...
     $form[$fieldset]['stayers'][$id] = array(

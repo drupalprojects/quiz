@@ -47,7 +47,7 @@ class ScaleQuestion extends QuizQuestion {
     $is_new_node = $is_new || $this->node->revision == 1;
     $answer_collection_id = $this->saveAnswerCollection($is_new_node);
     // Save the answer collection as a preset if the save preset option is checked
-    if ($this->node->save == 1) {
+    if (!empty($this->node->save)) {
       $this->setPreset($answer_collection_id);
     }
     if ($is_new_node) {
@@ -105,7 +105,7 @@ class ScaleQuestion extends QuizQuestion {
     if (!isset($alt_input)) {
       $alt_input = get_object_vars($this->node);
     }
-    if (!isset($preset)) {
+    if (!isset($preset) && isset($this->node->save)) {
       $preset = $this->node->save;
     }
 
