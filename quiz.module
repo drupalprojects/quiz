@@ -4249,6 +4249,11 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_result']['properties']['is_evaluated']['label'] = 'Evaluated';
   $info['quiz_result']['properties']['is_evaluated']['type'] = 'boolean';
   $info['quiz_result']['properties']['time_left']['type'] = 'duration';
+
+  $info['quiz']['properties']['quiz_open']['label'] = 'Open date';
+  $info['quiz']['properties']['quiz_open']['type'] = 'date';
+  $info['quiz']['properties']['quiz_close']['label'] = 'Close date';
+  $info['quiz']['properties']['quiz_close']['type'] = 'date';
 }
 
 function quiz_jumper($form, $form_state, $questions, $current) {
