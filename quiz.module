@@ -535,15 +535,7 @@ function quiz_theme($existing, $type, $theme, $path) {
       'variables' => array('results' => NULL),
       'file' => 'quiz.pages.inc',
     ),
-    'quiz_take_summary' => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => 0, 'summary' => '', 'result_id' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_admin_summary' => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'result_id' => NULL),
-      'file' => 'quiz.admin.inc',
-    ),
-    'quiz_user_summary' => array(
+    'quiz_result' => array(
       'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'result_id' => NULL),
       'file' => 'quiz.pages.inc',
     ),

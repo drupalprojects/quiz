@@ -1019,7 +1019,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
         $alternative['answer'] = $this->checkMarkup($short['answer']['value'], $short['answer']['format'], FALSE);
 
         $not = $alternative['is_chosen'] ? '' : '_not';
-        $alternative['feedback'] = $this->checkMarkup($short['feedback_if' . $not . '_chosen']['value'], $short['feedback_if' . $not . '_chosen']['format'], FALSE);
+        $alternative['feedback'] = $showfeedback ? $this->checkMarkup($short['feedback_if' . $not . '_chosen']['value'], $short['feedback_if' . $not . '_chosen']['format'], FALSE) : '';
 
         if (!$this->getQuizQuestion()->viewCanRevealCorrect()) {
           // Answer unknown.

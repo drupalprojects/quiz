@@ -205,8 +205,8 @@ class ShortAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 'This is an incorrect answer.',
       ), t('Finish'));
-    $this->assertNoText('Answer hidden');
-    $this->assertNoText('This is an incorrect answer.');
+    $this->assertText('Answer hidden');
+    $this->assertText('This is an incorrect answer.');
     $this->assertNoText('This is the correct answer.');
 
     // Test incorrect question. Feedback, no answer.

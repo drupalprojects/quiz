@@ -365,7 +365,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '#markup' => check_markup($this->question->rubric),
       );
     }
-    if (!$allow_scoring && !empty($this->answer_feedback)) {
+    if (!$allow_scoring && !empty($this->answer_feedback) && $showfeedback) {
       $form['answer_feedback'] = array(
         '#title' => t('Feedback'),
         '#type' => 'item',

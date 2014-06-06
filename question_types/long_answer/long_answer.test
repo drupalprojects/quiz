@@ -103,8 +103,9 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 'This is an essay response.',
       ), t('Finish'));
-    $this->assertNoText('Answer hidden');
-    $this->assertNoText('This is an essay response.');
+    $this->assertNoText('LA 1 rubric.');
+    $this->assertText('Answer hidden');
+    $this->assertText('This is an essay response.');
 
     // Test question. Feedback, no answer.
     $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
