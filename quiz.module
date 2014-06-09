@@ -3363,10 +3363,8 @@ function quiz_get_questions($quiz_nid, $quiz_vid = NULL) {
     quiz_get_sub_questions($question->qnr_id, $questions);
   }
 
-  foreach ($questions as $result) {
-    $node = $result;
-    $n = quiz_node_map($node);
-    $questions[] = $n;
+  foreach ($questions as &$node) {
+    $node = quiz_node_map($node);
   }
 
   return $questions;
