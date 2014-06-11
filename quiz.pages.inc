@@ -330,7 +330,7 @@ function theme_quiz_score_unknown() {
  */
 function theme_quiz_progress($variables) {
   $output = '';
-  $output .= '<div id="quiz_progress">';
+  $output .= '<div id="quiz-progress">';
 
   if ($variables['allow_jumping']) {
     // Show jump form.
@@ -505,10 +505,10 @@ function theme_quiz_result($variables) {
   $output .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>' . "\n";
 
   if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
+    $output .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>' . "\n";
   }
   if (isset($summary['result'])) {
-    $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
+    $output .= '<div id="quiz-summary">' . $summary['result'] . '</div>' . "\n";
   }
 
   // Get the feedback for all questions.

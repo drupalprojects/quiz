@@ -1,41 +1,41 @@
 /*
  * Definitions that apply while viewing questions
  */
-.question_type_name {
+.question-type-name {
   font-style: italic;
 }
 
 /*
  * Definitions that apply while taking the quiz.
  */
-#quiz_progress {
+#quiz-progress {
   font-style: italic;
   font-size: 80%;
 }
 
-#quiz_score_possible, #quiz_score_percent {
+#quiz-score-possible, #quiz-score-percent {
   font-weight: bold;
 }
 
-td.quiz_summary_qcell {
+td.quiz-summary-qcell {
   vertical-align: top;
   padding: 1em 1em 0em 0em;
 }
 
-td.quiz_summary_qcell table tr {
+td.quiz-summary-qcell table tr {
   background: transparent;
 }
 
-td.quiz_summary_qcell table td {
+td.quiz-summary-qcell table td {
   vertical-align: top;
   padding: .5em;
 }
 
-.quiz_answer_feedback {
+.quiz-answer-feedback {
   font-style: italic;
 }
 
-.quiz_summary_text {
+.quiz-summary-text {
 
 }
 

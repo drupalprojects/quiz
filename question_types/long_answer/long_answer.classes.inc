@@ -369,11 +369,11 @@ class LongAnswerResponse extends QuizQuestionResponse {
       $form['answer_feedback'] = array(
         '#title' => t('Feedback'),
         '#type' => 'item',
-        '#markup' => '<span class="quiz_answer_feedback">' . check_markup($this->answer_feedback, $this->answer_feedback_format) . '</span>',
+        '#markup' => '<span class="quiz-answer-feedback">' . check_markup($this->answer_feedback, $this->answer_feedback_format) . '</span>',
       );
     }
     if (!empty($feedback)) {
-      $form['feedback'] = array('#markup' => '<span class="quiz_answer_feedback">' . $feedback . '</span>');
+      $form['feedback'] = array('#markup' => '<span class="quiz-answer-feedback">' . $feedback . '</span>');
     }
     return $form;
   }
