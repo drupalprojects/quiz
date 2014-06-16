@@ -2798,6 +2798,7 @@ function quiz_build_question_list($quiz) {
   }
   $count = 0;
   $display_count = 0;
+  $questions_out = array();
   foreach ($questions as &$question) {
     $question_node = node_load($question['nid'], $question['vid']);
     $count++;
@@ -2806,8 +2807,9 @@ function quiz_build_question_list($quiz) {
     if ($question['type'] != 'quiz_page') {
       $question['display_number'] = $display_count;
     }
+    $questions_out[$count] = $question;
   }
-  return $questions;
+  return $questions_out;
 }
 
 /**
@@ -3185,11 +3187,6 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
  *   Array of nid/vid combos for quiz questions.
  */
 function _quiz_get_random_questions($quiz) {
-  if (!is_object($quiz)) {
-    drupal_set_message(t('The question pool cannot be generated.'), 'error');
-    watchdog('quiz', '_quiz_get_random_questions was called incorrectly.', array(), WATCHDOG_ERROR);
-    return FALSE;
-  }
   $num_random = $quiz->number_of_random_questions;
   $tid = $quiz->tid;
   $questions = array();
@@ -3200,7 +3197,7 @@ function _quiz_get_random_questions($quiz) {
     else {
       // Select random question from assigned pool.
       $result = db_query_range(
-        "SELECT child_nid as nid, child_vid as vid
+        "SELECT child_nid as nid, child_vid as vid, n.type
         FROM {quiz_node_relationship} qnr
         JOIN {node} n on qnr.child_nid = n.nid
         WHERE qnr.parent_vid = :parent_vid
