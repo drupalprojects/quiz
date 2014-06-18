@@ -28,7 +28,7 @@ function quiz_user_results($result_id) {
       'result_id' => $result_id,
       'account' => user_load($result->uid),
     );
-    if (user_access('view own quiz results') || $current_quiz->feedback_time == QUIZ_FEEDBACK_END) {
+    if (user_access('view own quiz results') || (!empty($current_quiz->review_options['end'])  && array_filter($current_quiz->review_options['end']))) {
       // User can view own quiz results OR the current quiz has "display solution".
       $data['show_feedback'] = TRUE;
       $data['show_points'] = TRUE;
@@ -501,14 +501,22 @@ function theme_quiz_result($variables) {
     '@score' => $score['percentage_score'],
     '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
   );
-  $output .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
-  $output .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>' . "\n";
 
-  if (isset($summary['passfail'])) {
-    $output .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>' . "\n";
+  // @todo should use quiz_feedback_can_review but we dont have the quiz result here.
+  if (!empty($quiz->review_options['end']['score'])) {
+    // Show score.
+    $output .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+    $output .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>' . "\n";
   }
-  if (isset($summary['result'])) {
-    $output .= '<div id="quiz-summary">' . $summary['result'] . '</div>' . "\n";
+
+  if (!empty($quiz->review_options['end']['quiz_feedback'])) {
+    // Show quiz feedback.
+    if (isset($summary['passfail'])) {
+      $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
+    }
+    if (isset($summary['result'])) {
+      $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
+    }
   }
 
   // Get the feedback for all questions.

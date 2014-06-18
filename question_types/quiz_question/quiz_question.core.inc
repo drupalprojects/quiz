@@ -406,9 +406,6 @@ abstract class QuizQuestion {
 
     $reveal_correct[] = user_access('view any quiz question correct response');
     $reveal_correct[] = ($user->uid == $this->node->uid);
-    // display_feedback is actually "display solution" @todo should change since
-    // we have a "feedback time" as well
-    $reveal_correct[] = ($quiz_node->type == 'quiz') ? $quiz_node->display_feedback : FALSE;
     if (array_filter($reveal_correct)) {
       return TRUE;
     }
@@ -672,16 +669,34 @@ abstract class QuizQuestionResponse {
       );
     }
     $form['question'] = $this->getReportFormQuestion($showpoints, $showfeedback);
-    $form['score'] = $this->getReportFormScore($showpoints, $showfeedback, $allow_scoring);
+
+    if ($this->canReview('score') || $allow_scoring) {
+      $form['score'] = $this->getReportFormScore($showpoints, $showfeedback, $allow_scoring);
+    }
+    else {
+      $form['score'] = array('#markup' => '<span class="quiz-report-score">?</span>');
+    }
+
     $form['answer_feedback'] = $this->getReportFormAnswerFeedback($showpoints, $showfeedback, $allow_scoring);
+
     $form['max_score'] = array(
       '#type' => 'value',
-      '#value' => $this->getMaxScore(),
+      '#value' => ($this->canReview('score') || $allow_scoring) ? $this->getMaxScore() : '?',
     );
-    $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback, $allow_scoring);
+
+    // @todo break all this out.
+    if ($this->canReview('attempt') || $this->canReview('answer_feedback') || $this->canReview('solution')) {
+      $form['response'] = $this->getReportFormResponse($showpoints, $showfeedback, $allow_scoring);
+    }
 
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
-    $form['#is_correct'] = $this->isCorrect();
+    $form['#is_evaluated'] = $this->isEvaluated();
+    if ($this->canReview('correct')) {
+      $form['#is_correct'] = $this->isCorrect();
+    }
+    else {
+      $form['#is_correct'] = 2;
+    }
     $form['#is_evaluated'] = $this->isEvaluated();
     $form['#is_skipped'] = $this->is_skipped;
     $form['#is_doubtful'] = $this->is_doubtful;
@@ -799,4 +814,13 @@ abstract class QuizQuestionResponse {
    * Get the user's response.
    */
   abstract public function getResponse();
+
+  /**
+   * Can the quiz taker view the requested review?
+   */
+  public function canReview($option) {
+    $quiz_result = quiz_result_load($this->result_id);
+    return quiz_feedback_can_review($option, $quiz_result);
+  }
+
 }

@@ -755,10 +755,8 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   }
   // If the question node isn't set we fetch it from the QuizQuestion instance this responce belongs to
   if (!isset($question)) {
-    $dummy_node = new stdClass();
-    $dummy_node->nid = $nid;
-    $dummy_node->vid = $vid;
-    $question = _quiz_question_get_instance($dummy_node, TRUE)->node;
+    $question_node = node_load($nid, $vid);
+    $question = _quiz_question_get_instance($question_node, TRUE)->node;
   }
   if (!$question) {
     return FALSE;
@@ -908,6 +906,8 @@ function quiz_question_report_form($question, $showpoints, $showfeedback, $allow
     $response_instance->question->score_weight = ($qnr_max_score == 0 || $response_instance->question->max_score == 0) ? 0 : ($qnr_max_score / $response_instance->question->max_score);
   }
 
+  $showpoints = $response_instance->canReview('score');
+  $showfeedback = $response_instance->canReview('answer_feedback');
   return $response_instance->getReportForm($showpoints, $showfeedback, $allow_scoring);
 }
 
@@ -944,7 +944,8 @@ function quiz_question_add_body_field($type) {
  * Return a form with question feedback.
  */
 function quiz_question_feedback($quiz, $question) {
-  if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+
+  if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $result_id = $_SESSION['quiz']['temp']['result_id'];
   }
   else {
@@ -995,7 +996,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   }
 
   // Wat do?
-  if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+  if (!empty($quiz->review_options['question']) && array_filter($quiz->review_options['question'])) {
     // We have question feedback.
     $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] - 1) . '/feedback';
   }
@@ -1010,7 +1011,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);
-    if ($quiz->feedback_time != QUIZ_FEEDBACK_QUESTION) {
+    if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question'])) {
       // Only redirect to question results if there is not question feedback.
       $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
     }

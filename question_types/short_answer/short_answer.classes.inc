@@ -446,7 +446,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
       return $form;
     }
 
-    if (!$this->getQuizQuestion()->viewCanRevealCorrect()) {
+    if (!$this->canReview('solution')) {
       $this->question->correct_answer = t('Answer hidden');
     }
 

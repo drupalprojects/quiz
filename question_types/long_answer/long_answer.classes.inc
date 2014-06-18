@@ -357,7 +357,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '<br/>' .
         t('Until the answer is scored, the total score will not be correct.');
     }
-    if ($this->getQuizQuestion()->viewCanRevealCorrect() || $allow_scoring) {
+    if ($this->canReview('solution') || $allow_scoring) {
       // If the user can view the correct answer (the rubrik) or allow scoring.
       $form['rubric'] = array(
         '#type' => 'item',
@@ -365,7 +365,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
         '#markup' => check_markup($this->question->rubric),
       );
     }
-    if (!$allow_scoring && !empty($this->answer_feedback) && $showfeedback) {
+    if ($this->canReview('answer_feedback')) {
       $form['answer_feedback'] = array(
         '#title' => t('Feedback'),
         '#type' => 'item',

@@ -62,6 +62,7 @@ class ScaleTestCase extends QuizQuestionTestCase {
 
     // Create the quiz and question.
     $quiz_node = $this->drupalCreateNode(array(
+      'review_options' => array('question' => array(), 'end' => array('score' => 'score')),
       'type' => 'quiz',
     ));
 

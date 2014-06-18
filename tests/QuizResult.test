@@ -21,6 +21,7 @@ class QuizResult extends QuizTestCase {
   public function testPassRateSummary() {
     // By default, the feedback is after the quiz.
     $quiz_node = $this->drupalCreateQuiz(array(
+      'review_options' => array('question' => array(), 'end' => array('quiz_feedback' => 'quiz_feedback')),
       'pass_rate' => 75,
       'summary_pass' => 'This is the summary if passed',
       'summary_pass_format' => 'plain_text',

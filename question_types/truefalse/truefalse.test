@@ -47,6 +47,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
 
     // Create the quiz and question.
     $quiz_node = $this->drupalCreateNode(array(
+      'review_options' => array('question' => array(), 'end' => array('score' => 'score')),
       'type' => 'quiz',
     ));
 
@@ -99,12 +100,8 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     // Link the question.
     $quiz_node = $this->linkQuestionToQuiz($question_node);
 
-
-
-
     // Test incorrect question. No feedback, no answer.
-    $quiz_node->feedback_time = QUIZ_FEEDBACK_NEVER;
-    $quiz_node->display_feedback = 0;
+    $quiz_node->review_options = array();
     node_save($quiz_node);
     // Login as non-admin.
     $this->drupalLogin($this->user);
@@ -116,8 +113,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->assertNoText('Feedback about TF 1 title');
 
     // Test incorrect question. Feedback, no answer.
-    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
-    $quiz_node->display_feedback = 0;
+    $quiz_node->review_options = array('end' => array('answer_feedback' => 'answer_feedback', 'score' => 'score'));
     node_save($quiz_node);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
@@ -127,14 +123,12 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->assertText('Feedback about TF 1 title');
 
     // Test incorrect question. Feedback, answer.
-    $quiz_node->feedback_time = QUIZ_FEEDBACK_END;
-    $quiz_node->display_feedback = 1;
+    $quiz_node->review_options = array('end' => array('answer_feedback' => 'answer_feedback', 'solution' => 'solution', 'score' => 'score'));
     node_save($quiz_node);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
-    $this->assertNoText('Answer hidden');
     $this->assertText('Feedback about TF 1 title');
   }
 

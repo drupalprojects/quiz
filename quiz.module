@@ -40,13 +40,6 @@ define('QUESTION_NEVER', 2);
 define('QUIZ_NAME', _quiz_get_quiz_name());
 
 /**
- * Define feedback statuses.
- */
-define('QUIZ_FEEDBACK_END', 0);
-define('QUIZ_FEEDBACK_QUESTION', 1);
-define('QUIZ_FEEDBACK_NEVER', 2);
-
-/**
  * Define options for keeping results.
  */
 define('QUIZ_KEEP_BEST', 0);
@@ -875,6 +868,8 @@ function quiz_delete($node) {
 /**
  * Returns default values for all quiz settings.
  *
+ * @todo also store this in the quiz_node_properties table
+ *
  * @return
  *   Array of default values.
  */
@@ -891,8 +886,7 @@ function _quiz_get_node_defaults() {
     'randomization' => 0,
     'backwards_navigation' => 1,
     'repeat_until_correct' => 0,
-    'feedback_time' => 0,
-    'display_feedback' => 1,
+    'review_options' => array('question' => array(), 'end' => array()),
     'quiz_open' => 0,
     'quiz_close' => 0,
     'takes' => 0,
@@ -951,36 +945,27 @@ function quiz_menu_load($nid) {
  * Implements hook_load().
  *
  * Load up quiz properties onto quiz nodes.
- * @todo this is not a good way to do it. should use 1 query
  */
 function quiz_load($nodes) {
+  foreach ($nodes as $node) {
+    $vids[] = $node->vid;
+  }
+
+  $quiz_properties = entity_load('quiz', FALSE, array('vid' => $vids));
+
   foreach ($nodes as $nid => &$node) {
-    // Fetching defaults.
-    $default_additions = _quiz_get_node_defaults();
-
-    // Fetching node settings.
-    $query = db_select('quiz_node_properties', 'qnp');
-    foreach (array_keys($default_additions) as $field) {
-      $query->addField('qnp', $field);
+    foreach ($quiz_properties[$node->nid] as $prop => $value) {
+      $node->$prop = $value;
     }
-    $query->condition('vid', $node->vid);
-    $query->condition('nid', $node->nid);
-    $fetched_additions = (array) $query->execute()->fetch();
+  }
 
-    $additions = ($fetched_additions) ? (object) ($fetched_additions += $default_additions) : NULL;
-    // Fetching result options.
-    $query = db_select('quiz_node_result_options', 'qnro');
-    $query->fields('qnro');
-    $query->condition('nid', $node->nid);
-    $query->condition('vid', $node->vid);
-    $options = $query->execute();
-    foreach ($options as $option) {
-      $additions->resultoptions[$option->option_id] = (array) $option;
-    }
-
-    foreach ($additions as $property => &$value) {
-      $node->$property = $value;
-    }
+  // Fetching result options.
+  $query = db_select('quiz_node_result_options', 'qnro');
+  $query->fields('qnro');
+  $query->condition('vid', $vids);
+  $options = $query->execute();
+  foreach ($options as $option) {
+    $nodes[$option->nid]->resultoptions[$option->option_id] = (array) $option;
   }
 }
 
@@ -1163,25 +1148,32 @@ function quiz_form(&$node, &$form_state) {
     '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
     '#default_value' => $node->randomization,
   );
-  $form['taking']['feedback'] = array(
+  $form['taking']['review_options'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Feedback'),
+    '#title' => t('Review options'),
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
+    '#tree' => TRUE,
   );
-  $form['taking']['feedback']['feedback_time'] = array(
-    '#title' => t('Feedback Time'),
-    '#type' => 'radios',
-    '#default_value' => $node->feedback_time,
-    '#options' => _quiz_get_feedback_options(),
-    '#description' => t('Indicates at what point feedback for each question will be given to the user'),
+
+  $review_options = array(
+    'attempt' => "Attempt",
+    'correct' => "Whether correct",
+    'score' => "Score",
+    'answer_feedback' => 'Answer feedback',
+    'question_feedback' => 'Question feedback',
+    'solution' => "Correct answer",
+    'quiz_feedback' => "Quiz feedback",
   );
-  $form['taking']['feedback']['display_feedback'] = array(
-    '#title' => t('Display solution'),
-    '#type' => 'checkbox',
-    '#default_value' => $node->display_feedback,
-    '#description' => t('Display the users answers and the correct answers for all questions along with the score for each question.')
-  );
+
+  foreach (array('question' => 'After the question', 'end' => 'After the quiz') as $key => $when) {
+    $form['taking']['review_options'][$key] = array(
+      '#title' => $when,
+      '#type' => 'checkboxes',
+      '#options' => $review_options,
+      '#default_value' => isset($node->review_options[$key]) ? $node->review_options[$key] : array(),
+    );
+  }
 
   // Added the action as a dropdown for selection with specific quizzes. This
   // allows you to choose a defined action from the actions module for use when
@@ -3482,20 +3474,6 @@ function _quiz_get_quiz_name() {
 }
 
 /**
- * Get an array of feedback options.
- *
- * @return
- *   An array of feedback options.
- */
-function _quiz_get_feedback_options() {
-  return array(
-    QUIZ_FEEDBACK_END => t('At the end of the @quiz', array('@quiz' => QUIZ_NAME)),
-    QUIZ_FEEDBACK_QUESTION => t('After each question'),
-    QUIZ_FEEDBACK_NEVER => t('Do not show'),
-  );
-}
-
-/**
  * Takes a time element and prepares to send it to form_date().
  *
  * @param $time
@@ -3850,7 +3828,6 @@ function _quiz_load_user_settings($uid = NULL) {
         $settings[$key] = $value;
       }
     }
-    // TODO : Reviews this later.
     $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
       ->fields('qnro')
       ->condition('nid', $res['nid'])
@@ -3887,37 +3864,13 @@ function _quiz_save_user_settings($node) {
     $summary_default_format = $node->summary_default['format'];
   }
 
-  db_merge('quiz_user_settings')
-    ->key(array(
-      'uid' => $user->uid
-    ))
-    ->fields(array(
-      'uid' => $user->uid,
-      'nid' => $node->nid,
-      'vid' => $node->vid,
-      'aid' => isset($node->aid) ? $node->aid : 0,
-      'pass_rate' => $node->pass_rate,
-      'summary_pass' => isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '',
-      'summary_pass_format' => $summary_pass_format,
-      'summary_default' => $node->summary_default['value'],
-      'summary_default_format' => $summary_default_format,
-      'randomization' => $node->randomization,
-      'backwards_navigation' => $node->backwards_navigation,
-      'keep_results' => $node->keep_results,
-      'repeat_until_correct' => $node->repeat_until_correct,
-      'feedback_time' => $node->feedback_time,
-      'display_feedback' => $node->display_feedback,
-      'takes' => $node->takes,
-      'show_attempt_stats' => $node->show_attempt_stats,
-      'time_limit' => isset($node->time_limit) ? $node->time_limit : 0,
-      'quiz_always' => $node->quiz_always,
-      'has_userpoints' => isset($node->has_userpoints) ? $node->has_userpoints : 0,
-      'allow_skipping' => $node->allow_skipping,
-      'allow_resume' => $node->allow_resume,
-      'allow_jumping' => $node->allow_jumping,
-      'show_passed' => $node->show_passed,
-    ))
-    ->execute();
+  $values = (array) $node;
+  $values['uid'] = $user->uid;
+  $values['summary_pass'] = isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '';
+  $values['summary_pass_format'] = $summary_pass_format;
+  $values['summary_default'] = $node->summary_default['value'];
+  $values['summary_default_format'] = $summary_default_format;
+  drupal_write_record('quiz_user_settings', $values);
   drupal_set_message(t('Default settings have been saved'));
 }
 
@@ -4179,7 +4132,7 @@ function quiz_take_question_access($quiz, $question_number) {
  * Show feedback for a question response.
  */
 function quiz_take_question_feedback($quiz, $question_number) {
-  if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+  if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $result_id = $_SESSION['quiz']['temp']['result_id'];
   }
   else {
@@ -4270,9 +4223,9 @@ function quiz_jumper_submit($form, &$form_state) {
  */
 function quiz_question_feedback_access($quiz, $question_number) {
   if ($question_number >= 1) {
-    if ($quiz->feedback_time == QUIZ_FEEDBACK_QUESTION) {
+    if (array_filter($quiz->review_options['question'])) {
       $question_index = $question_number;
-      if (!empty($_SESSION['quiz']['temp']['result_id'])) {
+      if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
         $result_id = $_SESSION['quiz']['temp']['result_id'];
       }
       else {
@@ -4339,4 +4292,29 @@ function quiz_action_info() {
  */
 function question_number_to_arg() {
   return 0;
+}
+
+/**
+ * Can the quiz taker view the requested review?
+ *
+ * There's a workaround in here: @kludge
+ *
+ * When review for the question is enabled, and it is the last question,
+ * technically it is the end of the quiz, and the "end of quiz" review settings
+ * apply. So we check to make sure that we are in question taking and the
+ * feedback is viewed within 5 seconds of completing the question/quiz.
+ */
+function quiz_feedback_can_review($option, $quiz_result) {
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+
+  // Check what context the result is in.
+  if ($quiz_result->time_end && arg(2) != 'take') {
+    // Quiz is over. Pull from the "at quiz end" settings.
+    return !empty($quiz->review_options['end'][$option]);
+  }
+
+  if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
+    // Quiz ongoing. Pull from the "after question" settings.
+    return !empty($quiz->review_options['question'][$option]);
+  }
 }

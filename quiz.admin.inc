@@ -766,7 +766,9 @@ function quiz_questions_form($form, $form_state, $quiz) {
   // Timestamp is needed to avoid multiple users editing the same quiz at the same time.
   $form['timestamp'] = array('#type' => 'hidden', '#default_value' => REQUEST_TIME);
 
-  $form['submit'] = array(
+  $form['actions']['#type'] = 'actions';
+
+  $form['actions']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
     '#submit' => array('quiz_questions_form_submit'),
