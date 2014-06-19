@@ -102,12 +102,14 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 1,
       ),
       'keep_results' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => QUIZ_KEEP_ALL,
       ),
       'repeat_until_correct' => array(
         'type' => 'int',
@@ -133,6 +135,7 @@ function quiz_schema() {
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default' => 0,
       ),
       'show_attempt_stats' => array(
         'type' => 'int',
