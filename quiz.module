@@ -2848,7 +2848,7 @@ function _quiz_build_categorized_question_list($quiz) {
     $total_count += $count;
     if ($count < $term->number) {
       // Not enough questions
-      return FALSE;
+      return array();
     }
   }
   return $questions;

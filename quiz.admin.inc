@@ -461,6 +461,11 @@ function quiz_categorized_form($form, $form_state, $quiz) {
 
 function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
   $terms = _quiz_get_terms($quiz->vid);
+  if ($terms) {
+    if (empty($form_state['input']) && !_quiz_build_categorized_question_list($quiz)) {
+      drupal_set_message(t('There are not enough questions in the requested categories.'), 'error');
+    }
+  }
   foreach ($terms as $term) {
     $form[$term->tid]['name'] = array(
       '#markup' => check_plain($term->name),
@@ -955,7 +960,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     if ($quiz->randomization == 2) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
-        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0  : 0,
+        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
         '#attributes' => array('class' => array('q-compulsory')),
       );
     }
