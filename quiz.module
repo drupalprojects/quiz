@@ -2756,11 +2756,11 @@ function quiz_build_question_list($quiz) {
   $questions = array();
 
   if ($quiz->randomization == 3) {
-    return _quiz_build_categorized_question_list($quiz);
+    $questions = _quiz_build_categorized_question_list($quiz);
   }
-
-  // Get required questions first.
-  $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
+  else {
+    // Get required questions first.
+    $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
     FROM {quiz_node_relationship} qnr
     JOIN {node} n ON qnr.child_nid = n.nid
     LEFT JOIN {quiz_node_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
@@ -2768,27 +2768,29 @@ function quiz_build_question_list($quiz) {
     AND qnr.question_status = :question_status
     AND n.status = 1
     ORDER BY qnr2.weight, qnr.weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
-  $i = 0;
-  while ($question_node = $query->fetchAssoc()) {
-    // Just to make it easier on us, let's use a 1-based index.
-    $i++;
-    $questions[$i] = $question_node;
-  }
+    $i = 0;
+    while ($question_node = $query->fetchAssoc()) {
+      // Just to make it easier on us, let's use a 1-based index.
+      $i++;
+      $questions[$i] = $question_node;
+    }
 
-  // Get random questions for the remainder.
-  if ($quiz->number_of_random_questions > 0) {
-    $random_questions = _quiz_get_random_questions($quiz);
-    $questions = array_merge($questions, $random_questions);
-    if ($quiz->number_of_random_questions > count($random_questions)) {
-      // Unable to find enough requested random questions.
-      return FALSE;
+    // Get random questions for the remainder.
+    if ($quiz->number_of_random_questions > 0) {
+      $random_questions = _quiz_get_random_questions($quiz);
+      $questions = array_merge($questions, $random_questions);
+      if ($quiz->number_of_random_questions > count($random_questions)) {
+        // Unable to find enough requested random questions.
+        return FALSE;
+      }
+    }
+
+    // Shuffle questions if required.
+    if ($quiz->randomization > 0) {
+      shuffle($questions);
     }
   }
 
-  // Shuffle questions if required.
-  if ($quiz->randomization > 0) {
-    shuffle($questions);
-  }
   $count = 0;
   $display_count = 0;
   $questions_out = array();
