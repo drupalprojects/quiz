@@ -1564,14 +1564,10 @@ function quiz_node_presave($node) {
 function quiz_node_prepare($node) {
   if ($node->type == 'quiz' && !isset($node->nid)) {
     // If this is a new node we apply the user defaults for the quiz settings.
-    $settings = _quiz_load_user_settings();
-    if (!$settings) {
-      if (arg(0) == 'node') {
-        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
-      }
-      $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+    if (arg(0) == 'node') {
+      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
     }
-    $settings += _quiz_get_node_defaults();
+    $settings = quiz_get_defaults();
     foreach ($settings as $key => $value) {
       if (!isset($node->$key)) {
         $node->$key = $value;
@@ -2050,7 +2046,7 @@ function _quiz_take_quiz_init($quiz) {
   $quiz_result->layout = $questions;
 
   // Write the layout for this result.
-  drupal_write_record('quiz_node_results', $quiz_result, array('result_id'));
+  entity_save('quiz_result', $quiz_result);
 
   return $quiz_result;
 }
@@ -2123,45 +2119,26 @@ function quiz_store_question_result($quiz, $result, $options) {
   }
   $points = round($result->score * $scale);
   // Insert result data, or update existing data.
-  $result_id_count = db_query("SELECT COUNT('result_id') AS count
+  $result_answer_id = db_query("SELECT result_answer_id
               FROM {quiz_node_results_answers}
               WHERE question_nid = :question_nid
               AND question_vid = :question_vid
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
-  if ($result_id_count > 0) {
-    $update = db_update('quiz_node_results_answers')
-      ->fields(array(
+
+  $entity = (object) array(
+      'result_answer_id' => $result_answer_id,
+      'question_nid' => $result->nid,
+      'question_vid' => $result->vid,
+      'result_id' => $result->result_id,
       'is_correct' => (int) $result->is_correct,
       'points_awarded' => $points,
       'answer_timestamp' => REQUEST_TIME,
       'is_skipped' => (int) $result->is_skipped,
       'is_doubtful' => (int) $result->is_doubtful,
+      'number' => $options['question_data']['number'],
       'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
-    ));
-
-    $args = array($result->is_correct, $points, REQUEST_TIME, $result->is_skipped);
-    $update->condition('question_nid', $result->nid);
-    $update->condition('question_vid', $result->vid);
-    $update->condition('result_id', $result->result_id);
-    $update->execute();
-  }
-  else {
-    $insert = db_insert('quiz_node_results_answers')
-      ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped', 'is_doubtful', 'number', 'tid'))
-      ->values(array(
-        'question_nid' => $result->nid,
-        'question_vid' => $result->vid,
-        'result_id' => $result->result_id,
-        'is_correct' => (int) $result->is_correct,
-        'points_awarded' => $points,
-        'answer_timestamp' => REQUEST_TIME,
-        'is_skipped' => (int) $result->is_skipped,
-        'is_doubtful' => (int) $result->is_doubtful,
-        'number' => $options['question_data']['number'],
-        'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
-      ))
-      ->execute();
-  }
+  );
+  entity_save('quiz_result_answer', $entity);
 }
 
 /**
@@ -2199,14 +2176,10 @@ function quiz_end_scoring($quiz, $result_id) {
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
   }
-  db_update('quiz_node_results')
-    ->fields(array(
-      'is_evaluated' => $score['is_evaluated'],
-      'time_end' => REQUEST_TIME,
-      'score' => $score['percentage_score'],
-    ))
-    ->condition('result_id', $result_id)
-    ->execute();
+  $quiz_result->is_evaluated = $score['is_evaluated'];
+  $quiz_result->score = $score['percentage_score'];
+  $quiz_result->time_end = REQUEST_TIME;
+  entity_save('quiz_result', $quiz_result);
   if ($user->uid) {
     $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
   }
