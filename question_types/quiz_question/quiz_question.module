@@ -282,7 +282,7 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
 
   // Advance to next question.
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
-  $form_state['redirect'] = "node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] + 1);
+  $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
 }
 
 /**
