@@ -25,6 +25,7 @@ abstract class QuizTestCase extends DrupalWebTestCase {
     $modules[] = 'quiz_question';
     parent::setUp($modules);
 
+    $admin_permissions[] = 'administer quiz configuration';
     $admin_permissions[] = 'create quiz content';
     $admin_permissions[] = 'edit any quiz content';
     $admin_permissions[] = 'edit question titles';

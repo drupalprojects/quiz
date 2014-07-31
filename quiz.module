@@ -676,18 +676,10 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
  * Implements hook_insert().
  */
 function quiz_insert($node) {
+  global $user;
+
   // Need to set max_score if this is a cloned node
   $max_score = 0;
-
-  // Apply defaults.
-  $defaults = _quiz_load_user_settings(variable_get('quiz_def_uid', 1)) + _quiz_get_node_defaults();
-  foreach ($defaults as $key => $value) {
-    if (!isset($node->$key)) {
-      $node->$key = $value;
-    }
-  }
-
-  _quiz_save_user_settings($node);
 
   // Copy all the questions belonging to the quiz if this is a new translation.
   if ($node->is_new && isset($node->translation_source)) {
@@ -718,52 +710,75 @@ function quiz_insert($node) {
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
 
-  $entity = clone $node;
-  $entity->aid = !empty($node->aid) ? $node->aid : 0;
-  $entity->summary_pass = is_array($node->summary_pass) ? $node->summary_pass['value'] : $node->summary_pass;
-  $entity->summary_pass_format = is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format;
-  $entity->summary_default = is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default;
-  $entity->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
-  $entity->tid = (isset($node->tid) ? $node->tid : 0);
-  $entity->max_score = $max_score;
-  drupal_write_record('quiz_node_properties', $entity);
-
+  quiz_update_defaults($node);
   _quiz_insert_resultoptions($node);
+}
+
+function quiz_update_defaults($node) {
+  global $user;
+
+  $entity = clone $node;
+  $entity->aid = !empty($entity->aid) ? $entity->aid : 0;
+  $entity->summary_pass = is_array($entity->summary_pass) ? $entity->summary_pass['value'] : $entity->summary_pass;
+  $entity->summary_pass_format = is_array($entity->summary_pass) ? $entity->summary_pass['format'] : $entity->summary_pass_format;
+  $entity->summary_default = is_array($entity->summary_default) ? $entity->summary_default['value'] : $entity->summary_default;
+  $entity->summary_default_format = is_array($entity->summary_default) ? $entity->summary_default['format'] : $entity->summary_default_format;
+  $entity->tid = (isset($entity->tid) ? $entity->tid : 0);
+
+  // Save the node values.
+  $quiz_props = clone $entity;
+  $quiz_props->uid = 0;
+  quiz_save_properties($quiz_props);
+
+  if (!empty($node->remember_settings)) {
+    // Save user defaults.
+    $user_defaults = clone $quiz_props;
+    $user_defaults->nid = 0;
+    $user_defaults->vid = 0;
+    $user_defaults->uid = $user->uid;
+    quiz_save_properties($user_defaults);
+  }
+
+  if (!empty($node->remember_global)) {
+    // Save global defaults.
+    $global_defaults = clone $user_defaults;
+    $global_defaults->uid = 0;
+    $global_defaults->nid = 0;
+    $global_defaults->vid = 0;
+    quiz_save_properties($global_defaults);
+  }
+}
+
+/**
+ * Insert or update the quiz node properties accordingly.
+ */
+function quiz_save_properties($entity) {
+  $sql = "SELECT qnp_id FROM {quiz_node_properties}
+    WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
+    OR (uid = :uid and uid > 0)
+    OR (nid = :nid and uid = :uid and vid = :vid)";
+  $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
+  $entity->qnp_id = $result->fetchField();
+  entity_save('quiz', $entity);
 }
 
 /**
  * Implements hook_update().
  */
 function quiz_update($node) {
-  _quiz_save_user_settings($node);
   // Quiz node vid (revision) was updated.
   if (isset($node->revision) && $node->revision) {
-    // Insert a new row in the quiz_node_properties table.
-    $old_auto = isset($node->auto_created);
-    $node->auto_created = TRUE;
-    quiz_insert($node);
-    if (!$old_auto) {
-      unset($node->auto_created);
-    }
-
     // Create new quiz-question relation entries in the quiz_node_relationship
     // table.
     quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
   }
 
-  // Quiz node vid (revision) was not updated.
-  else {
-    // Update an existing row in the quiz_node_properties table.
-    _quiz_common_presave_actions($node);
-    $entity = clone $node;
-    $entity->aid = !empty($node->aid) ? $node->aid : 0;
-    $entity->summary_pass = is_array($node->summary_pass) ? $node->summary_pass['value'] : $node->summary_pass;
-    $entity->summary_pass_format = is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format;
-    $entity->summary_default = is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default;
-    $entity->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
-    drupal_write_record('quiz_node_properties', $entity, array('nid', 'vid'));
-    _quiz_update_resultoptions($node);
-  }
+  // Update an existing row in the quiz_node_properties table.
+  _quiz_common_presave_actions($node);
+
+  quiz_update_defaults($node);
+  _quiz_update_resultoptions($node);
+
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
   quiz_update_max_score_properties(array($node->vid));
@@ -810,6 +825,11 @@ function quiz_field_extra_fields() {
       ),
       'remember_settings' => array(
         'label' => t('Remember settings'),
+        'description' => t('Checkbox for remembering quiz settings'),
+        'weight' => 0,
+      ),
+      'remember_global' => array(
+        'label' => t('Remember as global'),
         'description' => t('Checkbox for remembering quiz settings'),
         'weight' => 0,
       ),
@@ -875,37 +895,38 @@ function quiz_delete($node) {
  *   Array of default values.
  */
 function _quiz_get_node_defaults() {
-  return array(
+  return (object) array(
     'aid' => NULL,
-    'number_of_random_questions' => 0,
-    'max_score_for_random' => 1,
-    'pass_rate' => 75,
-    'summary_pass' => '',
-    'summary_pass_format' => filter_fallback_format(),
-    'summary_default' => '',
-    'summary_default_format' => filter_fallback_format(),
-    'randomization' => 0,
-    'backwards_navigation' => 1,
-    'repeat_until_correct' => 0,
-    'review_options' => array('question' => array(), 'end' => array()),
-    'quiz_open' => 0,
-    'quiz_close' => 0,
-    'takes' => 0,
-    'show_attempt_stats' => 1,
-    'keep_results' => 2,
-    'time_limit' => 0,
-    'quiz_always' => 1,
-    'tid' => 0,
-    'has_userpoints' => 0,
-    'userpoints_tid' => 0,
-    'allow_skipping' => 1,
-    'allow_resume' => 1,
     'allow_jumping' => 0,
-    'show_passed' => 1,
-    'quiz_open' => _quiz_form_prepare_date(),
-    'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
+    'allow_resume' => 1,
+    'allow_skipping' => 1,
+    'always_available' => TRUE,
+    'backwards_navigation' => 1,
+    'has_userpoints' => 0,
+    'keep_results' => 2,
     'mark_doubtful' => 0,
     'max_score' => 0,
+    'max_score_for_random' => 1,
+    'number_of_random_questions' => 0,
+    'pass_rate' => 75,
+    'quiz_always' => 1,
+    'quiz_close' => 0,
+    'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
+    'quiz_open' => 0,
+    'quiz_open' => _quiz_form_prepare_date(),
+    'randomization' => 0,
+    'repeat_until_correct' => 0,
+    'review_options' => array('question' => array(), 'end' => array()),
+    'show_attempt_stats' => 1,
+    'show_passed' => 1,
+    'summary_default' => '',
+    'summary_default_format' => filter_fallback_format(),
+    'summary_pass' => '',
+    'summary_pass_format' => filter_fallback_format(),
+    'takes' => 0,
+    'tid' => 0,
+    'time_limit' => 0,
+    'userpoints_tid' => 0,
   );
 }
 
@@ -954,9 +975,9 @@ function quiz_load($nodes) {
 
   $quiz_properties = entity_load('quiz', FALSE, array('vid' => $vids));
 
-  foreach ($nodes as $nid => &$node) {
-    foreach ($quiz_properties[$node->nid] as $prop => $value) {
-      $node->$prop = $value;
+  foreach ($quiz_properties as $qnp_id => $props) {
+    foreach ($props as $name => $value) {
+      $nodes[$props->nid]->$name = $value;
     }
   }
 
@@ -1447,12 +1468,22 @@ function quiz_form(&$node, &$form_state) {
       }
     }
   }
+
   $form['remember_settings'] = array(
     '#type' => 'checkbox',
     '#title' => t('Remember my settings'),
     '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
     '#weight' => 49,
   );
+
+  $form['remember_global'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Remember as global'),
+    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time you create a quiz.'),
+    '#weight' => 49,
+    '#access' => user_access('administer quiz configuration'),
+  );
+
   if (quiz_has_been_answered($node) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
     $node->revision = 1;
     $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
@@ -1552,6 +1583,14 @@ function quiz_node_presave($node) {
     if (variable_get('quiz_auto_revisioning', 1)) {
       $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
     }
+
+    // If this is a programmatic save, ensure we use the defaults.
+    $defaults = quiz_get_defaults();
+    foreach ($defaults as $property => $value) {
+      if (!isset($node->$property)) {
+        $node->$property = $defaults->$property;
+      }
+    }
   }
   if (isset($node->is_quiz_question) && variable_get('quiz_auto_revisioning', 1)) {
     $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
@@ -1564,14 +1603,10 @@ function quiz_node_presave($node) {
 function quiz_node_prepare($node) {
   if ($node->type == 'quiz' && !isset($node->nid)) {
     // If this is a new node we apply the user defaults for the quiz settings.
-    $settings = _quiz_load_user_settings();
-    if (!$settings) {
-      if (arg(0) == 'node') {
-        drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
-      }
-      $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
+    if (arg(0) == 'node') {
+      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
     }
-    $settings += _quiz_get_node_defaults();
+    $settings = quiz_get_defaults();
     foreach ($settings as $key => $value) {
       if (!isset($node->$key)) {
         $node->$key = $value;
@@ -1590,9 +1625,6 @@ function quiz_node_prepare($node) {
  * Implements hook_user_cancel().
  */
 function quiz_user_cancel($edit, $account, $method) {
-  db_delete('quiz_user_settings')
-    ->condition('uid', $account->uid)
-    ->execute();
   if (variable_get('quiz_durod', 0)) {
     _quiz_delete_users_results($account->uid);
   }
@@ -1762,18 +1794,6 @@ function quiz_get_number_of_questions($vid) {
   $always_count = _quiz_get_num_always_questions($vid);
   $rand_count = db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
   return $always_count + (int) $rand_count;
-}
-
-/**
- * Finds out the pass rate for the quiz.
- *
- * @param $nid
- *   The quiz ID.
- * @return
- *   Returns the passing percentage of the quiz.
- */
-function quiz_get_pass_rate($nid, $vid) {
-  return db_query('SELECT pass_rate FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->fetchField();
 }
 
 /**
@@ -2050,7 +2070,7 @@ function _quiz_take_quiz_init($quiz) {
   $quiz_result->layout = $questions;
 
   // Write the layout for this result.
-  drupal_write_record('quiz_node_results', $quiz_result, array('result_id'));
+  entity_save('quiz_result', $quiz_result);
 
   return $quiz_result;
 }
@@ -2123,45 +2143,26 @@ function quiz_store_question_result($quiz, $result, $options) {
   }
   $points = round($result->score * $scale);
   // Insert result data, or update existing data.
-  $result_id_count = db_query("SELECT COUNT('result_id') AS count
+  $result_answer_id = db_query("SELECT result_answer_id
               FROM {quiz_node_results_answers}
               WHERE question_nid = :question_nid
               AND question_vid = :question_vid
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
-  if ($result_id_count > 0) {
-    $update = db_update('quiz_node_results_answers')
-      ->fields(array(
+
+  $entity = (object) array(
+      'result_answer_id' => $result_answer_id,
+      'question_nid' => $result->nid,
+      'question_vid' => $result->vid,
+      'result_id' => $result->result_id,
       'is_correct' => (int) $result->is_correct,
       'points_awarded' => $points,
       'answer_timestamp' => REQUEST_TIME,
       'is_skipped' => (int) $result->is_skipped,
       'is_doubtful' => (int) $result->is_doubtful,
+      'number' => $options['question_data']['number'],
       'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
-    ));
-
-    $args = array($result->is_correct, $points, REQUEST_TIME, $result->is_skipped);
-    $update->condition('question_nid', $result->nid);
-    $update->condition('question_vid', $result->vid);
-    $update->condition('result_id', $result->result_id);
-    $update->execute();
-  }
-  else {
-    $insert = db_insert('quiz_node_results_answers')
-      ->fields(array('question_nid', 'question_vid', 'result_id', 'is_correct', 'points_awarded', 'answer_timestamp', 'is_skipped', 'is_doubtful', 'number', 'tid'))
-      ->values(array(
-        'question_nid' => $result->nid,
-        'question_vid' => $result->vid,
-        'result_id' => $result->result_id,
-        'is_correct' => (int) $result->is_correct,
-        'points_awarded' => $points,
-        'answer_timestamp' => REQUEST_TIME,
-        'is_skipped' => (int) $result->is_skipped,
-        'is_doubtful' => (int) $result->is_doubtful,
-        'number' => $options['question_data']['number'],
-        'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
-      ))
-      ->execute();
-  }
+  );
+  entity_save('quiz_result_answer', $entity);
 }
 
 /**
@@ -2199,14 +2200,10 @@ function quiz_end_scoring($quiz, $result_id) {
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
   }
-  db_update('quiz_node_results')
-    ->fields(array(
-      'is_evaluated' => $score['is_evaluated'],
-      'time_end' => REQUEST_TIME,
-      'score' => $score['percentage_score'],
-    ))
-    ->condition('result_id', $result_id)
-    ->execute();
+  $quiz_result->is_evaluated = $score['is_evaluated'];
+  $quiz_result->score = $score['percentage_score'];
+  $quiz_result->time_end = REQUEST_TIME;
+  entity_save('quiz_result', $quiz_result);
   if ($user->uid) {
     $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
   }
@@ -3563,39 +3560,6 @@ function _quiz_is_taking_context() {
 }
 
 /**
- * Makes, saves and returns a new quiz node.
- *
- * @param $title
- *   The title of the new node.
- *
- * @return
- *   New quiz node object.
- */
-function quiz_make_new($title) {
-  global $user;
-  $new_node = new stdClass();
-  $new_node->title = $title;
-  $new_node->type = 'quiz';
-  $new_node->status = 1;
-  // Get default user settings.
-  $settings = _quiz_load_user_settings();
-  if (!$settings) {
-    $settings = _quiz_load_user_settings(variable_get('quiz_def_uid', 1));
-  }
-  $settings += _quiz_get_node_defaults();
-  foreach ($settings as $key => $value) {
-    $new_node->{$key} = $value;
-  }
-  $new_node->auto_created = TRUE;
-  $new_node->uid = $user->uid;
-  node_save($new_node);
-  if (is_numeric($new_node->nid)) {
-    drupal_set_message(t('Quiz %title has been created.', array('%title' => $title)));
-  }
-  return $new_node;
-}
-
-/**
  * Retrieves the quiz node from the menu router.
  *
  * @return
@@ -3816,65 +3780,33 @@ function quiz_delete_results($result_ids) {
  * @return
  *   An array of settings. The array is empty in case no settings are available.
  */
-function _quiz_load_user_settings($uid = NULL) {
-  // The def_uid property is the default user id. It is used if there are no
-  // settings store for the current user.
-  $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
-
-  $query = db_select('quiz_user_settings', 'qus')
-    ->fields('qus')
-    ->condition('uid', $uid);
-  $res = $query->execute()->fetchAssoc();
-  if (!empty($res)) {
-    foreach ($res as $key => $value) {
-      if (!in_array($key, array('nid', 'vid', 'uid'))) {
-        $settings[$key] = $value;
-      }
-    }
-    $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
-      ->fields('qnro')
-      ->condition('nid', $res['nid'])
-      ->condition('vid', $res['vid'])
-      ->execute()
-      ->fetchAll();
-    return $settings;
-  }
-  return array();
-}
-
-/**
- * Fetch settings from a node and save them as the users default settings.
- *
- * @param $node
- *   Quiz node.
- */
-function _quiz_save_user_settings($node) {
+function quiz_get_defaults() {
   global $user;
-  $node = (object) $node;
-  // We do not save settings if the node has been created by the system,
-  // or if the user haven't requested it
-  if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
-    return FALSE;
+
+  $entity = entity_load('quiz', FALSE, array(
+    'uid' => $user->uid,
+    'nid' => 0,
+    'vid' => 0,
+  ));
+
+  if (count($entity)) {
+    // We found user defaults.
+    return reset($entity);
   }
 
-  $summary_pass_format = filter_fallback_format();
-  if (isset($node->summary_pass['format']) && !empty($node->summary_pass['format'])) {
-    $summary_pass_format = $node->summary_pass['format'];
+  $entity = entity_load('quiz', FALSE, array(
+    'uid' => 0,
+    'nid' => 0,
+    'vid' => 0,
+  ));
+
+  if (count($entity)) {
+    // Found global defaults.
+    return reset($entity);
   }
 
-  $summary_default_format = filter_fallback_format();
-  if (isset($node->summary_default['format']) && !empty($node->summary_default['format'])) {
-    $summary_default_format = $node->summary_default['format'];
-  }
-
-  $values = (array) $node;
-  $values['uid'] = $user->uid;
-  $values['summary_pass'] = isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '';
-  $values['summary_pass_format'] = $summary_pass_format;
-  $values['summary_default'] = $node->summary_default['value'];
-  $values['summary_default_format'] = $summary_default_format;
-  drupal_write_record('quiz_user_settings', $values);
-  drupal_set_message(t('Default settings have been saved'));
+  // No defaults set yet.
+  return _quiz_get_node_defaults();
 }
 
 /**
@@ -4083,7 +4015,7 @@ function quiz_entity_info() {
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_properties',
       'entity keys' => array(
-        'id' => 'nid',
+        'id' => 'qnp_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),

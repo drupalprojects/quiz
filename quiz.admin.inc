@@ -762,7 +762,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
   _quiz_add_questions_to_form($form, $questions, $quiz, $types);
 
   // Show the number of questions in the table header.
-  $always_count = count($form['question_list']['titles']);
+  $always_count = isset($form['question_list']['titles']) ? count($form['question_list']['titles']) : 0;
   $form['question_list']['#title'] .= ' (' . $always_count . ')';
 
   // Give the user the option to create a new revision of the quiz
