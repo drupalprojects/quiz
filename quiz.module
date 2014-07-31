@@ -2171,6 +2171,7 @@ function quiz_store_question_result($quiz, $result, $options) {
 function quiz_end_scoring($quiz, $result_id) {
   global $user;
   $quiz_result = quiz_result_load($result_id);
+  $questions = $quiz_result->layout;
 
   // Mark all missing answers as blank. This is essential here for when we may
   // have pages of unanswered questions. Also kills a lot of the skip code that
@@ -2180,7 +2181,6 @@ function quiz_end_scoring($quiz, $result_id) {
     $qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid']);
     $current_question = node_load($qinfo['nid'], $qinfo['vid']);
 
-    $questions = quiz_build_question_list($quiz);
     foreach ($questions as $question) {
       if ($question['nid'] == $current_question->nid) {
         $question_array = $question;
