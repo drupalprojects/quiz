@@ -164,12 +164,6 @@ function quiz_permission() {
       'title' => t('Edit question titles'),
       'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
     ),
-    // Allow users to assign an action to be performed when a user has completed
-    // a quiz:
-    'assign any action to quiz events' => array(
-      'title' => t('Assign any action to quiz events'),
-      'description' => t("Enables Drupal's actions system for Quiz triggers."),
-    ),
     // Control revisioning, only assign this permission to users who understand
     // who permissions work. Note: If a quiz or question is changed and not
     // revisioned you will also change existing result reports.
@@ -1193,29 +1187,6 @@ function quiz_form(&$node, &$form_state) {
       '#type' => 'checkboxes',
       '#options' => $review_options,
       '#default_value' => isset($node->review_options[$key]) ? $node->review_options[$key] : array(),
-    );
-  }
-
-  // Added the action as a dropdown for selection with specific quizzes. This
-  // allows you to choose a defined action from the actions module for use when
-  // a user completes the quiz.
-  if (user_access('assign any action to quiz events')) {
-    $form['taking']['aid'] = array(
-      '#title' => t('Assign Action'),
-      '#description' => t('Select an action to be preformed after a user has completed this @quiz.', array('@quiz' => QUIZ_NAME)),
-      '#type' => 'select',
-      // @todo An idea here would be to add a system conf variable into the
-      //   quiz_action_options() function that could filter the type of actions
-      //   you could display on your quizzes.  For Example: you create a custom
-      //   module that defines some actions that you only want a user to choose
-      //   when creating a quiz and selecting an action from the dropdown.  You
-      //   setup your actions with type 'quiz' and then add in that variable
-      //   into the function and it will automatically filter and show only
-      //   thosespecific actions.  @note:  In doing this you lose your default
-      //   "Choose an Action" option.  Review actions and the
-      //   quiz_action_options() function for further explaination.
-      '#options' => quiz_action_options(variable_get('quiz_action_type', 'all')),
-      '#default_value' => drupal_hash_base64($node->aid),
     );
   }
   $options = array(t('Unlimited'));
