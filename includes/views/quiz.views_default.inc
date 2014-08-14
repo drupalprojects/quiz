@@ -14,7 +14,7 @@ function quiz_views_default_views() {
   $views = array();
   foreach ($files as $path => $file) {
     require DRUPAL_ROOT . '/' . $path;
-    $views[$file->name] = $view;
+    $views[$view->name] = $view;
   }
   return $views;
 }
