@@ -1118,9 +1118,10 @@ function quiz_question_element_validate(&$element, &$form_state) {
   if ($quiz->repeat_until_correct && !$result->isCorrect()) {
     form_set_error('', t('The answer was incorrect. Please try again.'));
 
+    $feedback = quiz_question_feedback($quiz, $current_question);
     $element['feedback'] = array(
       '#weight' => 100,
-      '#markup' => drupal_render(quiz_question_feedback($quiz, $current_question)),
+      '#markup' => drupal_render($feedback),
     );
   }
 }
