@@ -735,7 +735,7 @@ function quiz_update_defaults($node) {
 
   if (!empty($node->remember_global)) {
     // Save global defaults.
-    $global_defaults = clone $user_defaults;
+    $global_defaults = clone $quiz_props;
     $global_defaults->uid = 0;
     $global_defaults->nid = 0;
     $global_defaults->vid = 0;
