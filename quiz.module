@@ -474,8 +474,8 @@ function quiz_menu() {
   // Add questions to quiz.
   $items['node/%quiz_menu/quiz/questions'] = array(
     'title' => 'Manage questions',
-    'page callback' => 'quiz_questions',
-    'page arguments' => array(1),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_questions', 1),
     'access callback' => 'quiz_type_confirm',
     'access arguments' => array(1, 'update'),
     'type' => MENU_LOCAL_TASK,

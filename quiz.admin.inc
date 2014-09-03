@@ -393,7 +393,7 @@ function quiz_admin_results($quiz, $result_id) {
  * @return
  *   String containing the form.
  */
-function quiz_questions($node) {
+function quiz_questions($form, $form_state, $node) {
   // Set page title.
   drupal_set_title($node->title);
   if ($node->randomization < 3) {
@@ -420,7 +420,7 @@ function quiz_questions($node) {
   else {
     $form = drupal_get_form('quiz_categorized_form', $node);
   }
-  return drupal_render($form);
+  return $form;
 }
 
 /**
