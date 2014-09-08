@@ -442,17 +442,6 @@ function quiz_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
 
-  $items['admin/quiz/reports/results'] = array(
-    'title' => '@quiz results',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'View results.',
-    'page callback' => 'quiz_admin_quizzes',
-    'access arguments' => array('view any quiz results', 'view results for own quiz'),
-    'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'quiz.admin.inc',
-  );
-
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
@@ -534,10 +523,6 @@ function quiz_theme($existing, $type, $theme, $path) {
     'quiz_no_feedback' => array(
       'file' => 'quiz.pages.inc',
       'variables' => array(),
-    ),
-    'quiz_admin_quizzes' => array(
-      'file' => 'quiz.admin.inc',
-      'variables' => array('results' => NULL),
     ),
     'quiz_single_question_node' => array(
       'file' => 'quiz.pages.inc',
