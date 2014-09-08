@@ -1895,7 +1895,7 @@ function quiz_take_question($quiz, $question_number) {
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
     $question = $quiz_result->layout[$question_number];
 
-    if ($question['qnr_pid']) {
+    if (!empty($question['qnr_pid'])) {
       // Find the parent.
       foreach ($quiz_result->layout as $pquestion) {
         if ($pquestion['qnr_id'] == $question['qnr_pid']) {
@@ -3923,7 +3923,7 @@ function _quiz_show_finish_button($quiz) {
         $last_page = FALSE;
       }
     }
-    else if (!$question['qnr_pid']) {
+    else if (empty($question['qnr_pid'])) {
       // A question without a parent showed up.
       $in_page = FALSE;
       $last_page = FALSE;
