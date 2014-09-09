@@ -49,7 +49,7 @@ function quiz_question_menu() {
  * Implements hook_theme().
  */
 function quiz_question_theme() {
-  return array(
+  $hooks = array(
     'quiz_question_creation_form' => array(
       'render element' => 'form',
       'file' => 'quiz_question.theme.inc',
@@ -59,6 +59,13 @@ function quiz_question_theme() {
       'file' => 'quiz_question.theme.inc',
     ),
   );
+
+  $hooks['quiz_question_feedback'] = array(
+    'variables' => NULL,
+    'pattern' => 'quiz_question_feedback__',
+  );
+
+  return $hooks;
 }
 
 /**
@@ -1124,4 +1131,22 @@ function quiz_question_element_validate(&$element, &$form_state) {
       '#markup' => drupal_render($feedback),
     );
   }
+}
+
+/**
+ * Theme the feedback for any question type.
+ */
+function theme_quiz_question_feedback($variables) {
+  $rows = $variables['data'];
+  $headers = array_intersect_key($variables['labels'], $rows[0]);
+
+  return theme('table', array('header' => $headers, 'rows' => $rows));
+
+}
+
+/**
+ * Helper function to faciliate icon display, like "correct" or "selected".
+ */
+function quiz_icon($icon) {
+  return theme('quiz_answer_result', array('type' => $icon));
 }

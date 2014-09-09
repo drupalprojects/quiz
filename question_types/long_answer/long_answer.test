@@ -40,9 +40,6 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $question_node2 = $this->testCreateQuizQuestion();
     $this->linkQuestionToQuiz($question_node2, $quiz_node);
 
-    $quiz_node->review_options = array('end' => array('answer_feedback' => 'answer_feedback', 'score' => 'score'));
-    node_save($quiz_node);
-
     // Test correct.
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
@@ -83,52 +80,6 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     //$this->assertText('Score 7 of 10');
     $this->assertText('Feedback for answer 1.');
     $this->assertText('Feedback for answer 2.');
-  }
-
-  /**
-   * Test the question feedback.
-   */
-  function testQuestionFeedback() {
-    // Login as our privileged user.
-    $this->drupalLogin($this->admin);
-
-    $question_node = $this->testCreateQuizQuestion();
-    $quiz_node = $this->linkQuestionToQuiz($question_node);
-
-    // Login as non-admin.
-    $this->drupalLogin($this->user);
-
-    // Test incorrect question. No feedback, no answer.
-    $quiz_node->review_options = array();
-    node_save($quiz_node);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'This is an essay response.',
-      ), t('Finish'));
-    $this->assertNoText('LA 1 rubric.');
-    $this->assertText('Answer hidden');
-    $this->assertNoText('This is an essay response.');
-
-    // Test question. Feedback, no answer.
-    $quiz_node->review_options = array('end' => array('attempt' => 'attempt', 'answer_feedback' => 'answer_feedback', 'score' => 'score'));
-    node_save($quiz_node);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'This is an essay response.',
-      ), t('Finish'));
-    $this->assertNoText('LA 1 rubric.');
-    $this->assertText('Answer hidden');
-    $this->assertText('This is an essay response.');
-
-    // Test question. Feedback, answer (rubric).
-    $quiz_node->review_options = array('end' => array('attempt' => 'attempt', 'answer_feedback' => 'answer_feedback', 'solution' => 'solution', 'score' => 'score'));
-    node_save($quiz_node);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'This is an essay response.',
-      ), t('Finish'));
-    $this->assertText('This is an essay response.');
-    $this->assertText('LA 1 rubric.');
   }
 
   /**

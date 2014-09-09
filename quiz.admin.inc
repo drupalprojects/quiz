@@ -403,7 +403,7 @@ function quiz_questions($node) {
   else {
     $form = drupal_get_form('quiz_categorized_form', $node);
   }
-  return drupal_render($form);
+  return $form;
 }
 
 /**

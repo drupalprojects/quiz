@@ -46,10 +46,7 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $question_node = $this->testCreateQuizQuestion();
 
     // Create the quiz and question.
-    $quiz_node = $this->drupalCreateNode(array(
-      'review_options' => array('question' => array(), 'end' => array('score' => 'score')),
-      'type' => 'quiz',
-    ));
+    $quiz_node = $this->drupalCreateQuiz();
 
     // Link the question.
     $question_node->quiz_nid = $quiz_node->nid;
@@ -100,36 +97,26 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     // Link the question.
     $quiz_node = $this->linkQuestionToQuiz($question_node);
 
-    // Test incorrect question. No feedback, no answer.
-    $quiz_node->review_options = array();
-    node_save($quiz_node);
+    // Test incorrect question with all feedbacks on.
+
     // Login as non-admin.
     $this->drupalLogin($this->user);
     // Take the quiz.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 0,
+      "question[$question_node->nid]" => 1,
       ), t('Finish'));
-    $this->assertNoText('Feedback about TF 1 title');
-
-    // Test incorrect question. Feedback, no answer.
-    $quiz_node->review_options = array('end' => array('answer_feedback' => 'answer_feedback', 'score' => 'score'));
-    node_save($quiz_node);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 0,
-      ), t('Finish'));
-    $this->assertText('Answer hidden');
     $this->assertText('Feedback about TF 1 title');
-
-    // Test incorrect question. Feedback, answer.
-    $quiz_node->review_options = array('end' => array('answer_feedback' => 'answer_feedback', 'solution' => 'solution', 'score' => 'score'));
-    node_save($quiz_node);
+    $this->assertRaw('quiz-score-icon correct');
+    $this->assertRaw('quiz-score-icon should');
+    // Take the quiz.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
     $this->assertText('Feedback about TF 1 title');
+    $this->assertRaw('quiz-score-icon incorrect');
+    $this->assertRaw('quiz-score-icon should');
   }
 
 }

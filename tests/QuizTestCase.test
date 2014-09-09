@@ -42,9 +42,7 @@ abstract class QuizTestCase extends DrupalWebTestCase {
   public function linkQuestionToQuiz($question_node, $quiz_node = NULL) {
     if (!$quiz_node) {
       // Create a new quiz with defaults.
-      $quiz_node = $this->drupalCreateNode(array(
-        'type' => 'quiz',
-      ));
+      $quiz_node = $this->drupalCreateQuiz();
     }
 
     $question_node->quiz_nid = $quiz_node->nid;
@@ -57,6 +55,7 @@ abstract class QuizTestCase extends DrupalWebTestCase {
   public function drupalCreateQuiz($settings = array()) {
     $settings += array(
       'type' => 'quiz',
+      'review_options' => array('end' => drupal_map_assoc(array_keys(quiz_get_feedback_options()))),
     );
     return $this->drupalCreateNode($settings);
   }

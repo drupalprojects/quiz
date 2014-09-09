@@ -25,9 +25,7 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->admin);
 
     // Create Quiz with review of score.
-    $quiz_node = $this->drupalCreateQuiz(array(
-      'review_options' => array('end' => drupal_map_assoc(array('score'))),
-    ));
+    $quiz_node = $this->drupalCreateQuiz();
 
     // Create the questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text')))));
