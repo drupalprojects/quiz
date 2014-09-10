@@ -1015,7 +1015,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
   if (!isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // No more questions. Score quiz.
-    $score = quiz_end_scoring($quiz, $_SESSION['quiz'][$quiz->nid]['result_id']);
+    $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
 
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);

@@ -868,4 +868,12 @@ abstract class QuizQuestionResponse {
     );
   }
 
+  /**
+   * Set the target result ID for this Question response.
+   *
+   * Useful for cloning entire result sets.
+   */
+  public function setResultId($result_id) {
+    $this->result_id = $result_id;
+  }
 }
