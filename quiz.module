@@ -916,7 +916,9 @@ function quiz_load($nodes) {
 
   foreach ($quiz_properties as $qnp_id => $props) {
     foreach ($props as $name => $value) {
-      $nodes[$props->nid]->$name = $value;
+      if (!in_array($name, array('uid', 'nid', 'vid'))) {
+        $nodes[$props->nid]->$name = $value;
+      }
     }
   }
 
@@ -3699,7 +3701,9 @@ function quiz_get_defaults() {
 
   if (count($entity)) {
     // We found user defaults.
-    return reset($entity);
+    $defaults = reset($entity);
+    unset($defaults->nid, $defaults->uid, $defaults->vid);
+    return $defaults;
   }
 
   $entity = entity_load('quiz', FALSE, array(
@@ -3710,7 +3714,9 @@ function quiz_get_defaults() {
 
   if (count($entity)) {
     // Found global defaults.
-    return reset($entity);
+    $defaults = reset($entity);
+    unset($defaults->nid, $defaults->uid, $defaults->vid);
+    return $defaults;
   }
 
   // No defaults set yet.
