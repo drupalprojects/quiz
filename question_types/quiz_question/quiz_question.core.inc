@@ -718,16 +718,12 @@ abstract class QuizQuestionResponse {
     $form['response']['#markup'] = theme('quiz_question_feedback__' . $type, array('labels' => $headers, 'data' => $rows));
 
     $form['#theme'] = $this->getReportFormTheme($showpoints, $showfeedback);
-    $form['#is_evaluated'] = $this->isEvaluated();
     if ($this->canReview('correct')) {
       $form['#is_correct'] = $this->isCorrect();
     }
     else {
       $form['#is_correct'] = 2;
     }
-    $form['#is_evaluated'] = $this->isEvaluated();
-    $form['#is_skipped'] = $this->is_skipped;
-    $form['#is_doubtful'] = $this->is_doubtful;
     return $form;
   }
 
