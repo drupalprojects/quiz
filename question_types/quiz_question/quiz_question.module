@@ -802,6 +802,7 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
         $info[$type] = $definition;
       }
     }
+    drupal_alter('quiz_question_info', $info);
   }
   return $info;
 }
