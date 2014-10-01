@@ -996,7 +996,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * @param array $alternatives
    *  The alternatives to be ordered
    */
-  private function orderAlternatives(array &$alternatives) {
+  protected function orderAlternatives(array &$alternatives) {
     if (!$this->question->choice_random) {
       return;
     }
