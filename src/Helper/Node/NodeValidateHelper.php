@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\quiz\Helper;
+namespace Drupal\quiz\Helper\Node;
 
 class NodeValidateHelper {
 
