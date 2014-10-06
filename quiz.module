@@ -853,7 +853,6 @@ function _quiz_take_quiz_init($quiz) {
  *  ['set_msg'] - Sets a message if the last question was skipped.
  */
 function quiz_store_question_result($quiz, $result, $options) {
-  //drupal_set_message('<pre>'. print_r($result, 1) .'</pre>');
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
       drupal_set_message(t('Last question skipped.'), 'status');
