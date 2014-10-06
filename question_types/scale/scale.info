@@ -6,4 +6,3 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = scale.classes.inc
-files[] = scale.test

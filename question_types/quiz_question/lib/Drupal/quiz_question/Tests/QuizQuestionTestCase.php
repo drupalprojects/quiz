@@ -1,16 +1,15 @@
 <?php
 
-/**
- * @file
- * Unit tests for the quiz question Module.
- */
+namespace Drupal\quiz_question\Tests;
+
+use Drupal\quiz\Tests\QuizTestCase;
 
 /**
  * Base test class for Quiz questions.
  */
 abstract class QuizQuestionTestCase extends QuizTestCase {
 
-   var $question_node_type = 'quiz_question';
+  var $question_node_type = 'quiz_question';
 
   /**
    * Set up a question test case.
