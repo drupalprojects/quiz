@@ -774,7 +774,7 @@ abstract class QuizQuestionResponse {
    * @return
    *  Validate function as a string, or FALSE if no validate function
    */
-  public function getReportFormValidate() {
+  public function getReportFormValidate(&$element, &$form_state) {
     return FALSE;
   }
 
@@ -861,4 +861,5 @@ abstract class QuizQuestionResponse {
   public function setResultId($result_id) {
     $this->result_id = $result_id;
   }
+
 }
