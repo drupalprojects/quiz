@@ -29,10 +29,10 @@ function quiz_views_api() {
  * where our task and task_handler plugins are.
  */
 function quiz_ctools_plugin_directory($owner, $plugin_type) {
-  if ($owner == 'page_manager') {
+  if ($owner === 'page_manager') {
     return 'plugins/page_manager/' . $plugin_type;
   }
-  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+  if ($owner === 'ctools' && $plugin_type === 'content_types') {
     return 'plugins/content_types';
   }
 }
@@ -41,7 +41,7 @@ function quiz_ctools_plugin_directory($owner, $plugin_type) {
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api($module, $api) {
-  if ($module == 'page_manager' && $api == 'pages_default') {
+  if ($module === 'page_manager' && $api === 'pages_default') {
     return array('version' => 1);
   }
 }
@@ -333,7 +333,6 @@ function quiz_cron() {
  * Implements hook_menu().
  */
 function quiz_menu() {
-
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
@@ -363,7 +362,6 @@ function quiz_menu() {
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
   );
-
 
   // Admin pages.
   $items['admin/quiz'] = array(
@@ -454,7 +452,6 @@ function quiz_menu() {
   );
 
   // User pages.
-
   $items['user/%/quiz-results/%/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
