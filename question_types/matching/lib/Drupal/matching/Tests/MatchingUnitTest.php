@@ -1,9 +1,8 @@
 <?php
 
-/**
- * @file
- * Unit tests for the matching Module.
- */
+namespace Drupal\matching\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
 
 /**
  * Test class for matching questions.

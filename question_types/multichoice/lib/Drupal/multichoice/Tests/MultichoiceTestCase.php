@@ -1,9 +1,8 @@
 <?php
 
-/**
- * @file
- * Test suite for choice Questions type module.
- */
+namespace Drupal\multichoice\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
 
 /**
  * Test class for multichoice questions.
