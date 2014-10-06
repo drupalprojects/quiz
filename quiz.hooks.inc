@@ -41,7 +41,6 @@ function quiz_ctools_plugin_directory($owner, $plugin_type) {
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api($module, $api) {
-
   if ($module == 'page_manager' && $api == 'pages_default') {
     return array('version' => 1);
   }
@@ -55,7 +54,7 @@ function quiz_node_info() {
     'quiz' => array(
       'name' => t('@quiz', array("@quiz" => QUIZ_NAME)),
       'base' => 'quiz',
-      'description' => 'Create interactive quizzes for site visitors',
+      'description' => t('Create interactive quizzes for site visitors'),
     )
   );
 }
@@ -681,6 +680,7 @@ function quiz_validate($node) {
       }
     }
   }
+
   if ($node->allow_jumping && !$node->allow_skipping) {
     // @todo when we have pages of questions, we have to check that jumping is
     // not enabled, and randomization is not enabled unless there is only 1 page
@@ -898,7 +898,6 @@ function quiz_user_cancel($edit, $account, $method) {
  * node edit form.
  */
 function quiz_form(&$node, &$form_state) {
-
   $form = array();
 
   // We tell quiz_form_alter to check for the manual revisioning permission.
