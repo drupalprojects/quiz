@@ -6,6 +6,7 @@ dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = views
 dependencies[] = views_bulk_operations
+dependencies[] = xautoload (>= 7.x-4.0)
 test_dependencies[] = taxonomy
 test_dependencies[] = views
 stylesheets[all][] = quiz.css
