@@ -107,7 +107,7 @@ class NodeHelper {
   }
 
   public function presave($node) {
-    $this->getNodePresaveHelper()->execute();
+    $this->getNodePresaveHelper()->execute($node);
   }
 
   public function view($node, $view_mode) {
