@@ -590,193 +590,35 @@ function quiz_form_quiz_node_form_alter(&$form, $form_state) {
  * Implements hook_delete().
  */
 function quiz_delete($node) {
-  $res = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid', array(':nid' => $node->nid));
-  $result_ids = array();
-  while ($result_id = $res->fetchField()) {
-    $result_ids[] = $result_id;
-  }
-  quiz_delete_results($result_ids);
-
-  // Remove quiz node records from table quiz_node_properties
-  db_delete('quiz_node_properties')
-    ->condition('nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_relationship
-  db_delete('quiz_node_relationship')
-    ->condition('parent_nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_results
-  db_delete('quiz_node_results')
-    ->condition('nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_result_options
-  db_delete('quiz_node_result_options')
-    ->condition('nid', $node->nid)
-    ->execute();
+  quiz()->getNodeHelper()->delete($node);
 }
 
 /**
  * Implements hook_validate().
  */
 function quiz_validate($node) {
-  // Don't check dates if the quiz is always available.
-  if (!$node->quiz_always) {
-    if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
-      form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
-    }
-  }
-
-  if (!empty($node->pass_rate)) {
-    if (!_quiz_is_int($node->pass_rate, 0, 100)) {
-      form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
-    }
-  }
-
-  if (isset($node->time_limit)) {
-    if (!_quiz_is_int($node->time_limit, 0)) {
-      form_set_error('time_limit', t('Time limit must be a non negative interger'));
-    }
-  }
-
-  if (isset($node->resultoptions) && count($node->resultoptions) > 0) {
-    $taken_values = array();
-    $num_options = 0;
-    foreach ($node->resultoptions as $option) {
-      if (!empty($option['option_name'])) {
-        $num_options++;
-        if (empty($option['option_summary'])) {
-          form_set_error('option_summary', t('Option has no summary text.'));
-        }
-        if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
-
-          // Check for a number between 0-100.
-          foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
-            if (!_quiz_is_int($option[$bound], 0, 100)) {
-              form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
-            }
-          }
-
-          // Check that range end >= start.
-          if ($option['option_start'] > $option['option_end']) {
-            form_set_error('option_start', t('The start must be less than the end of the range.'));
-          }
-
-          // Check that range doesn't collide with any other range.
-          $option_range = range($option['option_start'], $option['option_end']);
-          if ($intersect = array_intersect($taken_values, $option_range)) {
-            form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
-          }
-          else {
-            $taken_values = array_merge($taken_values, $option_range);
-          }
-        }
-      }
-      elseif (!_quiz_is_empty_html($option['option_summary']['value'])) {
-        form_set_error('option_summary', t('Option has a summary, but no name.'));
-      }
-    }
-  }
-
-  if ($node->allow_jumping && !$node->allow_skipping) {
-    // @todo when we have pages of questions, we have to check that jumping is
-    // not enabled, and randomization is not enabled unless there is only 1 page
-    form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
-  }
+  quiz()->getNodeHelper()->validate($node);
 }
 
 /**
  * Implements hook_insert().
  */
 function quiz_insert($node) {
-  global $user;
-
-  // Need to set max_score if this is a cloned node
-  $max_score = 0;
-
-  // Copy all the questions belonging to the quiz if this is a new translation.
-  if ($node->is_new && isset($node->translation_source)) {
-    quiz_copy_questions($node);
-  }
-
-  // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
-  if ($node->is_new && isset($node->clone_from_original_nid)) {
-    $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
-
-    $max_score = $old_quiz->max_score;
-
-    $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid);
-
-    // Format the current questions for referencing
-    foreach ($questions as $question) {
-      $nid = $questions['nid'];
-      $questions[$nid]->state = $question->question_status;
-      $questions[$nid]->refresh = 0;
-    }
-
-    quiz_set_questions($node, $questions);
-  }
-
-  _quiz_common_presave_actions($node);
-
-  // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
-  _quiz_check_num_random($node);
-  _quiz_check_num_always($node);
-
-  quiz_update_defaults($node);
-  _quiz_insert_resultoptions($node);
+  quiz()->getNodeHelper()->insert($node);
 }
 
 /**
  * Implements hook_update().
  */
 function quiz_update($node) {
-  // Quiz node vid (revision) was updated.
-  if (isset($node->revision) && $node->revision) {
-    // Create new quiz-question relation entries in the quiz_node_relationship
-    // table.
-    quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
-  }
-
-  // Update an existing row in the quiz_node_properties table.
-  _quiz_common_presave_actions($node);
-
-  quiz_update_defaults($node);
-  _quiz_update_resultoptions($node);
-
-  _quiz_check_num_random($node);
-  _quiz_check_num_always($node);
-  quiz_update_max_score_properties(array($node->vid));
-  drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
+  quiz()->getNodeHelper()->update($node);
 }
 
 /**
  * Implementation of hook_node_presave().
  */
 function quiz_node_presave($node) {
-  if ($node->type == 'quiz') {
-    // Convert the action id to the actual id from the MD5 hash.
-    // Why the actions module does this I do not know? Maybe to prevent
-    // invalid values put into the options value="" field.
-    if (!empty($node->aid) && $aid = actions_function_lookup($node->aid)) {
-      $node->aid = $aid;
-    }
-
-    if (variable_get('quiz_auto_revisioning', 1)) {
-      $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
-    }
-
-    // If this is a programmatic save, ensure we use the defaults.
-    $defaults = quiz_get_defaults();
-    foreach ($defaults as $property => $value) {
-      if (!isset($node->$property)) {
-        $node->$property = $defaults->$property;
-      }
-    }
-  }
-  if (isset($node->is_quiz_question) && variable_get('quiz_auto_revisioning', 1)) {
-    $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
-  }
+  quiz()->getNodeHelper()->presave($node);
 }
 
 /**
@@ -837,46 +679,7 @@ function quiz_load($nodes) {
  * Implements hook_view().
  */
 function quiz_view($node, $view_mode) {
-  drupal_alter('quiz_view', $node, $view_mode);
-  node_invoke($node, 'prepare');
-
-  // Number of questions is needed on the statistics page.
-  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
-
-  $node->content['stats'] = array(
-    '#markup' => theme('quiz_view_stats', array('node' => $node)),
-    '#weight' => -1,
-  );
-
-  $available = quiz_availability($node);
-  if ($available === TRUE) {
-    // Check the permission before displaying start button.
-    if (user_access('access quiz')) {
-      // Add a link to the take tab as a button if this isn't a teaser view.
-      if ($view_mode !== 'teaser') {
-        $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
-        $node->content['take'] = array(
-          '#markup' => drupal_render($quiz_form),
-          '#weight' => 2,
-        );
-      }
-      // Add a link to the take tab if this is a teaser view.
-      else {
-        $node->content['take'] = array(
-          '#markup' => l(t('Start quiz'), 'node/' . $node->nid . '/take'),
-          '#weight' => 2,
-        );
-      }
-    }
-  }
-  else {
-    $node->content['take'] = array(
-      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
-      '#weight' => 2,
-    );
-  }
-
-  return $node;
+  quiz()->getNodeHelper()->view($node, $view_mode);
 }
 
 /**
