@@ -6,4 +6,3 @@ dependencies[] = quiz_question
 core = 7.x
 
 files[] = long_answer.classes.inc
-files[] = long_answer.test

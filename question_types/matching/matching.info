@@ -6,4 +6,3 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = matching.classes.inc
-files[] = matching.test

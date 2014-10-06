@@ -1,9 +1,8 @@
 <?php
 
-/**
- * @file
- * Unit tests for the long_answer Module.
- */
+namespace Drupal\long_answer\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
 
 /**
  * Test class for long answer.

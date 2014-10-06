@@ -1,5 +1,9 @@
 <?php
 
+namespace Drupal\quiz_page\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
+
 class QuizPageTestCase extends QuizQuestionTestCase {
 
   var $question_node_type = 'quiz_page';
@@ -34,13 +38,11 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->linkQuestionToQuiz($question_node2, $quiz_node); // QNR ID 2
     $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 3 body text')))));
     $this->linkQuestionToQuiz($question_node3, $quiz_node);  // QNR ID 3
-
     // Create the pages.
     $page_node1 = $this->drupalCreateNode(array('type' => 'quiz_page'));
     $this->linkQuestionToQuiz($page_node1, $quiz_node); // QNR ID 4
     $page_node2 = $this->drupalCreateNode(array('type' => 'quiz_page'));
     $this->linkQuestionToQuiz($page_node2, $quiz_node); // QNR ID 5
-
     // Go to the manage questions form.
     $this->drupalGet("node/$quiz_node->nid/quiz/questions");
     $post = array(

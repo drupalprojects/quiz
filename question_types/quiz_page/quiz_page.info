@@ -5,4 +5,3 @@ core = 7.x
 dependencies[] = quiz
 dependencies[] = quiz_question
 files[] = quiz_page.classes.inc
-files[] = QuizPageTestCase.test
