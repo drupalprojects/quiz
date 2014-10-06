@@ -104,8 +104,9 @@ function quiz_report_form($form, $form_state, $questions) {
  */
 function quiz_report_form_element_validate(&$element, &$form_state) {
   $question = node_load($element['nid']['#value'], $element['vid']['#value']);
-  $quizQuestionResponse = _quiz_question_response_get_instance($element['result_id']['#value'], $question);
-  $quizQuestionResponse->getReportFormValidate($element, $form_state);
+  if ($quizQuestionResponse = _quiz_question_response_get_instance($element['result_id']['#value'], $question)) {
+    $quizQuestionResponse->getReportFormValidate($element, $form_state);
+  }
 }
 
 /**

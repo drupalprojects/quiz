@@ -1136,7 +1136,6 @@ function theme_quiz_question_feedback($variables) {
   $headers = array_intersect_key($variables['labels'], $rows[0]);
 
   return theme('table', array('header' => $headers, 'rows' => $rows));
-
 }
 
 /**
