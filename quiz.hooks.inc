@@ -679,7 +679,7 @@ function quiz_load($nodes) {
  * Implements hook_view().
  */
 function quiz_view($node, $view_mode) {
-  quiz()->getNodeHelper()->view($node, $view_mode);
+  return quiz()->getNodeHelper()->view($node, $view_mode);
 }
 
 /**
