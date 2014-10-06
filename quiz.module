@@ -367,7 +367,6 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Primary quiz-taking view on 'Take' tab.
  */
 function quiz_take($node) {
-  //drupal_alter('quiz_take', $node);
   if (isset($node->rendered_content)) {
     return $node->rendered_content;
   }
