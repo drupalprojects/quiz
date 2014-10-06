@@ -1,9 +1,9 @@
 <?php
 
-/**
- * @file
- * Unit tests for the short_answer Module.
- */
+namespace Drupal\short_answer\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
+use ShortAnswerQuestion;
 
 /**
  * Test class for short answer.

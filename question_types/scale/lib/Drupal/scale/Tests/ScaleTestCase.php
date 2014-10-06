@@ -1,9 +1,8 @@
 <?php
 
-/**
- * @file
- * Test suite for scale question type module.
- */
+namespace Drupal\scale\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
 
 /**
  * Test class for scale questions.

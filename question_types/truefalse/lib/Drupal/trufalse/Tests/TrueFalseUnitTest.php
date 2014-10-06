@@ -1,9 +1,8 @@
 <?php
 
-/**
- * @file
- * Unit tests for the truefalse Module.
- */
+namespace Drupal\truefalse\Tests;
+
+use Drupal\quiz_question\Tests\QuizQuestionTestCase;
 
 /**
  * Test class for true false questions.
@@ -98,7 +97,6 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $quiz_node = $this->linkQuestionToQuiz($question_node);
 
     // Test incorrect question with all feedbacks on.
-
     // Login as non-admin.
     $this->drupalLogin($this->user);
     // Take the quiz.
