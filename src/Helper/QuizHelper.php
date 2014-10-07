@@ -2,9 +2,27 @@
 
 namespace Drupal\quiz\Helper;
 
+use Drupal\quiz\Helper\Quiz\AccessHelper;
 class QuizHelper {
 
+  private $accessHelper;
+
   /**
+
+  /**
+   * @return AccessHelper
+   */
+  public function getAccessHelper() {
+    if (null !== $this->accessHelper) {
+      $this->accessHelper = new AccessHelper();
+    }
+    return $this->accessHelper;
+  }
+
+  public function setAccessHelper($accessHelper) {
+    $this->accessHelper = $accessHelper;
+    return $this;
+  }
    * Retrieve list of published questions assigned to quiz.
    *
    * This function should be used for question browsers and similiar... It should not be used to decide what questions
