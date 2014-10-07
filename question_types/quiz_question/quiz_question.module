@@ -12,6 +12,11 @@
 define('QUIZ_QUESTION_NUM_LATEST', 10);
 
 /**
+ * Include hook implementations.
+ */
+require_once dirname(__FILE__) . '/quiz_question.hooks.inc';
+
+/**
  * Figure out if a user has access to score a certain result
  *
  * @param $vid
@@ -429,6 +434,7 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
  */
 function quiz_question_refresh_latest_quizzes($nid) {
   global $user;
+
   // Delete entry if it allready exists
   db_delete('quiz_question_latest_quizzes')
     ->condition('uid', $user->uid)
