@@ -583,7 +583,20 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  * Implements hook_form_FORM_ID_alter() for the quiz node form.
  */
 function quiz_form_quiz_node_form_alter(&$form, $form_state) {
-  $form['actions']['submit']['#submit'][] = 'quiz_form_quiz_node_form_submit';
+  $form['actions']['submit']['#submit'][] = function($form, &$form_state) {
+      $node = $form_state['node'];
+
+      if (empty($form_state['values']['nid'])) {
+        drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
+        $form_state['redirect'] = "node/$node->nid/quiz/questions";
+      }
+
+      // If the quiz don't have any questions jump to the manage questions tab.
+      $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
+      if (!is_numeric($res)) {
+        $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
+      }
+    };
 }
 
 /**
