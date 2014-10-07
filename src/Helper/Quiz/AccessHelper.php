@@ -81,4 +81,15 @@ class AccessHelper {
     }
   }
 
+  /**
+   * Checks if the user has access to save score for his quiz.
+   */
+  public function canAccessScore($quiz, $account) {
+    if (user_access('score any quiz', $account)) {
+      return true;
+    }
+
+    return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
+  }
+
 }

@@ -7,23 +7,17 @@ use Drupal\quiz\Quiz;
  * Quiz Module
  *
  * This module allows the creation of interactive quizzes for site visitors.
+ *
+ * Where possible, user pages are located in quiz.pages.inc, and admin pages
+ * are in quiz.admin.inc. Most utility functions have been left here, even if they
+ * are only used by a function in one of the other files. quiz_datetime.inc holds
+ * some additional date/time functions.
+ *
+ * Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
+ * Then they are in quiz.admin.inc.
+ *
+ * Views support is included in includes/views/quiz.views.inc
  */
-// This module is structured as follows:
-//
-// The main module file:
-// * Defines and general includes are at the top.
-// * Public functions come next.
-// * Private functions are at the bottom.
-//
-// Where possible, user pages are located in quiz.pages.inc, and admin pages
-// are in quiz.admin.inc. Most utility functions have been left here, even if they
-// are only used by a function in one of the other files. quiz_datetime.inc holds
-// some additional date/time functions.
-//
-// Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
-// Then they are in quiz.admin.inc.
-//
-// Views support is included in includes/views/quiz.views.inc
 define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 
 /**
@@ -218,23 +212,6 @@ function quiz_get_quiz_from_menu() {
   // @TODO: FIX it. This seems to return NULL in feedback page.
   $node = menu_get_object();
   return (is_object($node) && $node->type == 'quiz') ? $node : FALSE;
-}
-
-/**
- * Checks if the user has access to save score for his quiz.
- */
-function quiz_allow_score_access($quiz, $account = NULL) {
-  global $user;
-
-  if ($account == NULL) {
-    $account = $user;
-  }
-
-  if (user_access('score any quiz', $account)) {
-    return true;
-  }
-
-  return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
 }
 
 /**

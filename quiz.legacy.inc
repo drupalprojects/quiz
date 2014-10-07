@@ -503,3 +503,16 @@ function quiz_node_map($node) {
 function quiz_question_module_for_type($question_type) {
   return quiz()->getQuizHelper()->getQuestionModuleFromType($question_type);
 }
+
+/**
+ * Checks if the user has access to save score for his quiz.
+ */
+function quiz_allow_score_access($quiz, $account = NULL) {
+  global $user;
+
+  if ($account == NULL) {
+    $account = $user;
+  }
+
+  return quiz()->getQuizHelper()->getAccessHelper()->canAccessScore($quiz, $account);
+}
