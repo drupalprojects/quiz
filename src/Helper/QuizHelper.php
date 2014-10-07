@@ -135,6 +135,49 @@ class QuizHelper {
     return $questions;
   }
 
+  /**
+   * Get an array list of random questions for a quiz.
+   *
+   * @param $quiz
+   *   The quiz node.
+   *
+   * @return
+   *   Array of nid/vid combos for quiz questions.
+   */
+  public function getRandomQuestions($quiz) {
+    $num_random = $quiz->number_of_random_questions;
+    $tid = $quiz->tid;
+    $questions = array();
+    if ($num_random > 0) {
+      if ($tid > 0) {
+        $questions = _quiz_get_random_taxonomy_question_ids($tid, $num_random);
+      }
+      else {
+        // Select random question from assigned pool.
+        $result = db_query_range(
+          "SELECT child_nid as nid, child_vid as vid, n.type
+        FROM {quiz_node_relationship} qnr
+        JOIN {node} n on qnr.child_nid = n.nid
+        WHERE qnr.parent_vid = :parent_vid
+        AND qnr.parent_nid = :parent_nid
+        AND qnr.question_status = :question_status
+        AND n.status = 1
+        ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
+          ':parent_vid' => $quiz->vid,
+          ':parent_nid' => $quiz->nid,
+          ':question_status' => QUESTION_RANDOM
+          )
+        );
+        while ($question_node = $result->fetchAssoc()) {
+          $question_node['random'] = TRUE;
+          $question_node['relative_max_score'] = $quiz->max_score_for_random;
+          $questions[] = $question_node;
+        }
+      }
+    }
+    return $questions;
+  }
+
   public function setQuestions(&$quiz, $questions, $set_new_revision = FALSE) {
     if ($set_new_revision) {
       // Create a new Quiz VID, even if nothing changed.

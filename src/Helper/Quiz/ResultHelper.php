@@ -172,4 +172,85 @@ class ResultHelper {
     );
   }
 
+  public function isResultCompleted($result_id) {
+    // Check if the quiz taking has been completed.
+    $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
+    return $time_end > 0;
+  }
+
+  /**
+   * Deletes all results associated with a given user.
+   *
+   * @param int $uid
+   *  The users id
+   */
+  public function deleteByUserId($uid) {
+    $res = db_query("SELECT result_id FROM {quiz_node_results} WHERE uid = :uid", array(':uid' => $uid));
+    $result_ids = array();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[] = $result_id;
+    }
+    $this->deleteByIds($result_ids);
+  }
+
+  public function maintainResult($account, $quiz, $result_id) {
+    // Do not delete results for anonymous users
+    if ($account->uid == 0) {
+      return;
+    }
+
+    switch ($quiz->keep_results) {
+      case QUIZ_KEEP_ALL:
+        return FALSE;
+      case QUIZ_KEEP_BEST:
+        $best_result_id = db_query('SELECT result_id FROM {quiz_node_results}
+          WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated
+          ORDER BY score DESC', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1)
+          )
+          ->fetchField();
+        if (!$best_result_id) {
+          return;
+        }
+        $res = db_query('SELECT result_id FROM {quiz_node_results}
+          WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
+        );
+        $result_ids = array();
+        while ($result_id2 = $res->fetchField()) {
+          $result_ids[] = $result_id2;
+        }
+        $this->deleteByIds($result_ids);
+        return !empty($result_ids);
+      case QUIZ_KEEP_LATEST:
+        $res = db_query('SELECT result_id FROM {quiz_node_results}
+              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1, ':result_id' => $result_id));
+        $result_ids = array();
+        while ($result_id2 = $res->fetchField()) {
+          $result_ids[] = $result_id2;
+        }
+        $this->deleteByIds($result_ids);
+        return !empty($result_ids);
+    }
+  }
+
+  /**
+   * Delete quiz responses for quizzes that haven't been finished.
+   *
+   * @param $quiz
+   *   A quiz node where old in progress results shall be deleted.
+   * @param $uid
+   *   The userid of the user the old in progress results belong to.
+   */
+  public function deleteIncompletedResultsByUserId($quiz, $uid) {
+    $res = db_query('SELECT qnr.result_id FROM {quiz_node_results} qnr
+          WHERE qnr.uid = :uid
+          AND qnr.nid = :nid
+          AND qnr.time_end = :time_end
+          AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
+    $result_ids = array();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[] = $result_id;
+    }
+    $this->deleteByIds($result_ids);
+  }
+
 }
