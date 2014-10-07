@@ -7,6 +7,44 @@ use stdClass;
 class ResultHelper {
 
   /**
+   * Update a score for a quiz.
+   *
+   * This updates the quiz node results table.
+   *
+   * It is used in cases where a quiz score is changed after the quiz has been
+   * taken. For example, if a long answer question is scored later by a human,
+   * then the quiz should be updated when that answer is scored.
+   *
+   * Important: The value stored in the table is the *percentage* score.
+   *
+   * @param $quiz
+   *   The quiz node for the quiz that is being scored.
+   * @param $result_id
+   *   The result ID to update.
+   * @return
+   *   The score as an integer representing percentage. E.g. 55 is 55%.
+   */
+  public function updateTotalScore($quiz, $result_id) {
+    $score = quiz_calculate_score($quiz, $result_id);
+    db_update('quiz_node_results')
+      ->fields(array(
+        'score' => $score['percentage_score'],
+      ))
+      ->condition('result_id', $result_id)
+      ->execute();
+    if ($score['is_evaluated']) {
+      // Call hook_quiz_scored().
+      module_invoke_all('quiz_scored', $quiz, $score, $result_id);
+      _quiz_maintain_results($quiz, $result_id);
+      db_update('quiz_node_results')
+        ->fields(array('is_evaluated' => 1))
+        ->condition('result_id', $result_id)
+        ->execute();
+    }
+    return $score['percentage_score'];
+  }
+
+  /**
    * Delete quiz results.
    *
    * @param $result_ids

@@ -548,6 +548,63 @@ class QuizHelper {
   }
 
   /**
+   * Updates the max_score property on the specified quizzes
+   *
+   * @param $vids
+   *  Array with the vid's of the quizzes to update
+   */
+  public function updateMaxScoreProperties($vids) {
+    if (empty($vids)) {
+      return;
+    }
+
+    db_update('quiz_node_properties')
+      ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
+      SELECT COALESCE(SUM(max_score), 0)
+      FROM {quiz_node_relationship} qnr
+      WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
+      AND parent_vid = {quiz_node_properties}.vid)')
+      ->condition('vid', $vids, 'IN')
+      ->execute();
+
+    db_update('quiz_node_properties')
+      ->expression('max_score', '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
+      FROM {quiz_terms} qt
+      WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid)')
+      ->condition('randomization', 3)
+      ->condition('vid', $vids, 'IN')
+      ->execute();
+
+    db_update('node_revision')
+      ->fields(array('timestamp' => REQUEST_TIME))
+      ->condition('vid', $vids, 'IN')
+      ->execute();
+
+    db_update('node')
+      ->fields(array('changed' => REQUEST_TIME))
+      ->condition('vid', $vids, 'IN')
+      ->execute();
+
+    $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $vids, ':max_score' => 0))->fetchCol();
+    if (!empty($results_to_update)) {
+      db_update('quiz_node_results')
+        ->expression('score', 'ROUND(
+        100 * (
+          SELECT COALESCE (SUM(a.points_awarded), 0)
+          FROM {quiz_node_results_answers} a
+          WHERE a.result_id = {quiz_node_results}.result_id
+        ) / (
+          SELECT max_score
+          FROM {quiz_node_properties} qnp
+          WHERE qnp.vid = {quiz_node_results}.vid
+        )
+      )')
+        ->condition('vid', $results_to_update, 'IN')
+        ->execute();
+    }
+  }
+
+  /**
    * Find out if a quiz is available for taking or not
    *
    * @param $quiz
