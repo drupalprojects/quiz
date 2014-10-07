@@ -563,22 +563,6 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
   }
 }
 
-//function quiz_element_info() {
-//  $types['advancedtable'] = array(
-//    '#process' => array('form_process_fieldset', 'ajax_process_form'),
-//    '#theme_wrappers' => array('quiz_table'),
-//  );
-//  $types['advancedtable_header'] = array(
-//    '#process' => array('form_process_fieldset', 'ajax_process_form'),
-//    '#theme_wrappers' => array('quiz_table_header'),
-//  );
-//  $types['advancedtable_body'] = array(
-//    '#process' => array('form_process_fieldset', 'ajax_process_form'),
-//    '#theme_wrappers' => array('quiz_table_body'),
-//  );
-//  return $types;
-//}
-
 /**
  * Implements hook_form_FORM_ID_alter() for the quiz node form.
  */
