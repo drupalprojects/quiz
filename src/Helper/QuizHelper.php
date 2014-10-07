@@ -48,7 +48,7 @@ class QuizHelper {
    * @return AccessHelper
    */
   public function getAccessHelper() {
-    if (null !== $this->accessHelper) {
+    if (null === $this->accessHelper) {
       $this->accessHelper = new AccessHelper();
     }
     return $this->accessHelper;
