@@ -541,7 +541,7 @@ class MatchingResponse extends QuizQuestionResponse {
 
       $data[] = array(
         'choice' => $match['question'],
-        'attempt' => $solution[1][$answers[$match['match_id']]],
+        'attempt' => !empty($answers[$match['match_id']]) ? $solution[1][$answers[$match['match_id']]] : '',
         'correct' => $answers[$match['match_id']] == $match['match_id'] ? theme('quiz_answer_result', array('type' => 'correct')) : theme('quiz_answer_result', array('type' => 'incorrect')),
         'score' => $answers[$match['match_id']] == $match['match_id'] ? 1 : 0,
         'answer_feedback' => $match['feedback'],
