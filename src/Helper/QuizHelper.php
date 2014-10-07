@@ -3,11 +3,27 @@
 namespace Drupal\quiz\Helper;
 
 use Drupal\quiz\Helper\Quiz\AccessHelper;
+use Drupal\quiz\Helper\Quiz\ResultHelper;
 class QuizHelper {
 
+  private $resultHelper;
   private $accessHelper;
 
   /**
+  /**
+   * @return ResultHelper
+   */
+  public function getResultHelper() {
+    if (null === $this->resultHelper) {
+      $this->resultHelper = new ResultHelper();
+    }
+    return $this->resultHelper;
+  }
+
+  public function setResultHelper($resultHelper) {
+    $this->resultHelper = $resultHelper;
+    return $this;
+  }
 
   /**
    * @return AccessHelper

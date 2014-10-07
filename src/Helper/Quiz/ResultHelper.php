@@ -1,0 +1,175 @@
+<?php
+
+namespace Drupal\quiz\Helper\Quiz;
+
+use stdClass;
+
+class ResultHelper {
+
+  /**
+   * Delete quiz results.
+   *
+   * @param $result_ids
+   *   Result ids for the results to be deleted.
+   */
+  public function deleteByIds($result_ids) {
+    if (empty($result_ids)) {
+      return;
+    }
+
+    $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
+          WHERE result_id IN(:result_id)';
+    $result = db_query($sql, array(':result_id' => $result_ids));
+    foreach ($result as $record) {
+      quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
+    }
+
+    db_delete('quiz_node_results_answers')
+      ->condition('result_id', $result_ids, 'IN')
+      ->execute();
+
+    db_delete('quiz_node_results')
+      ->condition('result_id', $result_ids, 'IN')
+      ->execute();
+  }
+
+  /**
+   * Load a specific result answer.
+   */
+  public function loadAnswerResult($result_id, $nid, $vid) {
+    $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
+    $result = db_query($sql, array(':result_id' => $result_id, ':nid' => $nid, ':vid' => $vid));
+    if ($row = $result->fetch()) {
+      return entity_load_single('quiz_result_answer', $row->result_answer_id);
+    }
+  }
+
+  /**
+   * Get answer data for a specific result.
+   *
+   * @param $result_id
+   *   Result id.
+   *
+   * @return
+   *   Array of answers.
+   */
+  public function getAnswers($quiz, $result_id) {
+    $questions = array();
+    $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score, qt.max_score as term_max_score
+                   FROM {quiz_node_results_answers} ra
+                   LEFT JOIN {node} n ON (ra.question_nid = n.nid)
+                   LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
+                   LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.parent_vid = r.vid
+                   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
+                   WHERE ra.result_id = :rid
+                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $result_id));
+    while ($line = $ids->fetch()) {
+      // Questions picked from term id's won't be found in the quiz_node_relationship table
+      if ($line->max_score === NULL) {
+        if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
+          $line->max_score = $quiz->max_score_for_random;
+        }
+        elseif ($quiz->randomization == 3) {
+          $line->max_score = $line->term_max_score;
+        }
+      }
+      $module = quiz_question_module_for_type($line->type);
+      if (!$module) {
+        continue;
+      }
+      // Invoke hook_get_report().
+      $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $result_id);
+      if (!$report) {
+        continue;
+      }
+      $questions[$line->question_nid] = $report;
+      // Add max score info to the question.
+      if (!isset($questions[$line->question_nid]->score_weight)) {
+        if ($questions[$line->question_nid]->max_score == 0) {
+          $score_weight = 0;
+        }
+        else {
+          $score_weight = $line->max_score / $questions[$line->question_nid]->max_score;
+        }
+        $questions[$line->question_nid]->qnr_max_score = $line->max_score;
+        $questions[$line->question_nid]->score_weight = $score_weight;
+      }
+    }
+    return $questions;
+  }
+
+  /**
+   * Calculates the score user received on quiz.
+   *
+   * @param $quiz
+   *   The quiz node.
+   * @param $result_id
+   *   Quiz result ID.
+   *
+   * @return array
+   *   Contains three elements: question_count, num_correct and percentage_score.
+   */
+  public function calculateScore($quiz, $result_id) {
+    // 1. Fetch all questions and their max scores
+    $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
+    FROM {quiz_node_results_answers} a
+    LEFT JOIN {node} n ON (a.question_nid = n.nid)
+    LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.parent_vid = :vid
+    WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
+    // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
+    // Fetched from the db, not calculated....
+    $scores = array();
+    $count = 0;
+    foreach ($questions as $question) {
+      // Questions picked from term id's won't be found in the quiz_node_relationship table
+      if ($question->max_score === NULL && isset($quiz->tid) && $quiz->tid > 0) {
+        $question->max_score = $quiz->max_score_for_random;
+      }
+
+      // Invoke hook_quiz_question_score().
+      // We don't use module_invoke() because (1) we don't necessarily want to wed
+      // quiz type to module, and (2) this is more efficient (no NULL checks).
+      $mod = quiz_question_module_for_type($question->type);
+      if (!$mod) {
+        continue;
+      }
+      $function = $mod . '_quiz_question_score';
+
+      if (function_exists($function)) {
+        $score = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
+        // Allow for max score to be considered.
+        $scores[] = $score;
+      }
+      else {
+        drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
+        $dummy_score = new stdClass();
+        $dummy_score->possible = 0;
+        $dummy_score->attained = 0;
+        $scores[] = $dummy_score;
+      }
+      ++$count;
+    }
+    // 3. Sum the results.
+    $possible_score = 0;
+    $total_score = 0;
+    $is_evaluated = TRUE;
+    foreach ($scores as $score) {
+      $possible_score += $score->possible;
+      $total_score += $score->attained;
+      if (isset($score->is_evaluated)) {
+        // Flag the entire quiz if one question has not been evaluated.
+        $is_evaluated &= $score->is_evaluated;
+      }
+    }
+
+    // 4. Return the score.
+    return array(
+      'question_count' => $count,
+      'possible_score' => $possible_score,
+      'numeric_score' => $total_score,
+      'percentage_score' => ($possible_score == 0) ? 0 : round(($total_score * 100) / $possible_score),
+      'is_evaluated' => $is_evaluated,
+    );
+  }
+
+}
