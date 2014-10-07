@@ -6,7 +6,15 @@ use Drupal\quiz\Helper\NodeHelper;
 use Drupal\quiz\Helper\QuizHelper;
 
 /**
- * Quiz wrapper
+ * Wrapper for helper classes.
+ *
+ * Quiz.nodeHelper — Helper for node-hook implementations.
+ * Quiz.quizHelper — Helper for quiz node/object.
+ *
+ * Extends this class and sub classes if you would like override things.
+ *
+ * You should not create object directly from this class, use quiz() factory
+ * function instead — which support overriding from module's side.
  */
 class Quiz {
 
