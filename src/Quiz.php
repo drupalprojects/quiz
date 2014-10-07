@@ -13,6 +13,7 @@ use Drupal\quiz\Helper\QuizHelper;
  * Quiz.quizHelper.settingHelper - Get/Set/… quiz settings.
  * Quiz.quizHelper.resultHelper — Helper methods for quiz's results.
  * Quiz.quizHelper.accessHelper — Access helpers
+ * Quiz.quizHelper.feedbackHelper — Helper methods for quiz's feedback.
  *
  * Extends this class and sub classes if you would like override things.
  *
