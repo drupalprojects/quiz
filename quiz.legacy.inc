@@ -492,3 +492,14 @@ function quiz_update_total_score($quiz, $result_id) {
 function quiz_node_map($node) {
   return quiz()->getQuizHelper()->reloadQuestion($node);
 }
+
+/**
+ * @param string $question_type
+ *
+ * @return string
+ *   Name of module matching the question type, as given by quiz_question_info()
+ *   hook.
+ */
+function quiz_question_module_for_type($question_type) {
+  return quiz()->getQuizHelper()->getQuestionModuleFromType($question_type);
+}

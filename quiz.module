@@ -176,22 +176,6 @@ function quiz_email_results_format($type, $target) {
 }
 
 /**
- * @param $type
- *
- * @return string
- *   Name of module matching the question type, as given by quiz_question_info()
- *   hook.
- */
-function quiz_question_module_for_type($type) {
-  $types = _quiz_get_question_types();
-  if (!isset($types[$type])) {
-    drupal_set_message(t('The module for the questiontype %type is not enabled', array('%type' => $type)), 'warning');
-    return FALSE;
-  }
-  return $types[$type]['module'];
-}
-
-/**
  * This function was copied from the triggers module as to prevent having to be
  * dependent on that module for the actions to work.  The trigger function is
  * called trigger_options().
