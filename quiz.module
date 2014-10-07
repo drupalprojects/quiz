@@ -129,14 +129,10 @@ function quiz_rid_to_arg() {
  * Menu loader callback. Load a quiz node if the given node ID is a quiz.
  */
 function quiz_menu_load($nid) {
-  if (!is_numeric($nid)) {
+  if (!is_numeric($nid) || (!$node = node_load($nid))) {
     return FALSE;
   }
-  $node = node_load($nid);
-  if (!isset($node->type) || $node->type != 'quiz') {
-    return FALSE;
-  }
-  return $node;
+  return (!isset($node->type) || $node->type !== 'quiz') ? false : $node;
 }
 
 /**
