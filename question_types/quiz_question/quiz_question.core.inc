@@ -671,8 +671,8 @@ abstract class QuizQuestionResponse {
     $rows = array();
 
     $labels = array(
-      'choice' => t('Choice'),
       'attempt' => t('Your answer'),
+      'choice' => t('Choice'),
       'correct' => t('Correct?'),
       'score' => t('Score'),
       'answer_feedback' => t('Feedback'),
