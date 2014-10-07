@@ -356,7 +356,7 @@ function quiz_get_all_version_titles() {
  *   For several takes on the same quiz, only returns highest score.
  */
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
-  return quiz()->getQuizHelper()->getScoreData();
+  return quiz()->getQuizHelper()->getScoreData($nids, $uid, $include_num_questions);
 }
 
 /**
@@ -1010,7 +1010,7 @@ function quiz_create_rid($quiz) {
  *   Contains three elements: question_count, num_correct and percentage_score.
  */
 function quiz_calculate_score($quiz, $result_id) {
-  return quiz()->getQuizHelper()->getResultHelper()->calculateScore();
+  return quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
 }
 
 /**
