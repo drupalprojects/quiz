@@ -3541,11 +3541,16 @@ function _quiz_check_num_always(&$node) {
  */
 function quiz_allow_score_access($quiz, $account = NULL) {
   global $user;
+
   if ($account == NULL) {
     $account = $user;
   }
-  $access = user_access('score any quiz') || (user_access('score own quiz') && $quiz->uid && $account->uid);
-  return $access;
+
+  if (user_access('score any quiz', $account)) {
+    return true;
+  }
+
+  return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
 }
 
 /**
