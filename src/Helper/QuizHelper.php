@@ -129,10 +129,29 @@ class QuizHelper {
     }
 
     foreach ($questions as &$node) {
-      $node = quiz_node_map($node);
+      $node = $this->reloadQuestion($node); // it was 'quiz_node_map($node)' before.
     }
 
     return $questions;
+  }
+
+  public function reloadQuestion($node) {
+    $question = node_load($node->nid, $node->vid);
+
+    // Append extra fields.
+    $question->latest_vid = $node->latest_vid;
+    $question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
+    if (isset($node->max_score)) {
+      $question->max_score = $node->max_score;
+    }
+    if (isset($node->auto_update_max_score)) {
+      $question->auto_update_max_score = $node->auto_update_max_score;
+    }
+    $question->weight = $node->weight;
+    $question->qnr_id = $node->qnr_id;
+    $question->qnr_pid = $node->qnr_pid;
+
+    return $question;
   }
 
   /**

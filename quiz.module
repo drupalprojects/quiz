@@ -286,34 +286,6 @@ function quiz_question_module_for_type($type) {
 }
 
 /**
- * Map node properties to a question object.
- *
- * @param $node
- *  The question node.
- *
- * @return
- *  Question object.
- */
-function quiz_node_map($node) {
-  $new_question = node_load($node->nid, $node->vid);
-
-  // Append extra fields.
-  $new_question->latest_vid = $node->latest_vid;
-  $new_question->question_status = isset($node->question_status) ? $node->question_status : QUESTION_NEVER;
-  if (isset($node->max_score)) {
-    $new_question->max_score = $node->max_score;
-  }
-  if (isset($node->auto_update_max_score)) {
-    $new_question->auto_update_max_score = $node->auto_update_max_score;
-  }
-  $new_question->weight = $node->weight;
-  $new_question->qnr_id = $node->qnr_id;
-  $new_question->qnr_pid = $node->qnr_pid;
-
-  return $new_question;
-}
-
-/**
  * This function was copied from the triggers module as to prevent having to be
  * dependent on that module for the actions to work.  The trigger function is
  * called trigger_options().
@@ -363,11 +335,16 @@ function quiz_get_quiz_from_menu() {
  */
 function quiz_allow_score_access($quiz, $account = NULL) {
   global $user;
+
   if ($account == NULL) {
     $account = $user;
   }
-  $access = user_access('score any quiz') || (user_access('score own quiz') && $quiz->uid && $account->uid);
-  return $access;
+
+  if (user_access('score any quiz', $account)) {
+    return true;
+  }
+
+  return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
 }
 
 /**
