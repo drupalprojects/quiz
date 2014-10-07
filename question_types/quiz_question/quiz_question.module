@@ -183,7 +183,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     // Hide the label of the body field if this is an informative question.
     $options = !$question->isGraded() ? array('label' => 'hidden') : array();
 
-    node_build_content($node);
+    node_build_content($node, 'question');
     unset($node->content['answers']);
     $form['questions'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
