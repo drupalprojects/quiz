@@ -158,51 +158,14 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
 }
 
 function quiz_update_defaults($node) {
-  global $user;
-
-  $entity = clone $node;
-  $entity->aid = !empty($entity->aid) ? $entity->aid : 0;
-  $entity->summary_pass = is_array($entity->summary_pass) ? $entity->summary_pass['value'] : $entity->summary_pass;
-  $entity->summary_pass_format = is_array($entity->summary_pass) ? $entity->summary_pass['format'] : $entity->summary_pass_format;
-  $entity->summary_default = is_array($entity->summary_default) ? $entity->summary_default['value'] : $entity->summary_default;
-  $entity->summary_default_format = is_array($entity->summary_default) ? $entity->summary_default['format'] : $entity->summary_default_format;
-  $entity->tid = (isset($entity->tid) ? $entity->tid : 0);
-
-  // Save the node values.
-  $quiz_props = clone $entity;
-  $quiz_props->uid = 0;
-  quiz_save_properties($quiz_props);
-
-  if (!empty($node->remember_settings)) {
-    // Save user defaults.
-    $user_defaults = clone $quiz_props;
-    $user_defaults->nid = 0;
-    $user_defaults->vid = 0;
-    $user_defaults->uid = $user->uid;
-    quiz_save_properties($user_defaults);
-  }
-
-  if (!empty($node->remember_global)) {
-    // Save global defaults.
-    $global_defaults = clone $quiz_props;
-    $global_defaults->uid = 0;
-    $global_defaults->nid = 0;
-    $global_defaults->vid = 0;
-    quiz_save_properties($global_defaults);
-  }
+  return quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($node);
 }
 
 /**
  * Insert or update the quiz node properties accordingly.
  */
 function quiz_save_properties($entity) {
-  $sql = "SELECT qnp_id FROM {quiz_node_properties}
-    WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
-    OR (uid = :uid and uid > 0)
-    OR (nid = :nid and uid = :uid and vid = :vid)";
-  $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
-  $entity->qnp_id = $result->fetchField();
-  entity_save('quiz', $entity);
+  return quiz()->getQuizHelper()->getSettingHelper()->saveQuizSettings($entity);
 }
 
 /**
@@ -232,39 +195,7 @@ function _quiz_common_presave_actions(&$node) {
  *   Array of default values.
  */
 function _quiz_get_node_defaults() {
-  return (object) array(
-      'aid' => NULL,
-      'allow_jumping' => 0,
-      'allow_resume' => 1,
-      'allow_skipping' => 1,
-      'always_available' => TRUE,
-      'backwards_navigation' => 1,
-      'has_userpoints' => 0,
-      'keep_results' => 2,
-      'mark_doubtful' => 0,
-      'max_score' => 0,
-      'max_score_for_random' => 1,
-      'number_of_random_questions' => 0,
-      'pass_rate' => 75,
-      'quiz_always' => 1,
-      'quiz_close' => 0,
-      'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
-      'quiz_open' => 0,
-      'quiz_open' => _quiz_form_prepare_date(),
-      'randomization' => 0,
-      'repeat_until_correct' => 0,
-      'review_options' => array('question' => array(), 'end' => array()),
-      'show_attempt_stats' => 1,
-      'show_passed' => 1,
-      'summary_default' => '',
-      'summary_default_format' => filter_fallback_format(),
-      'summary_pass' => '',
-      'summary_pass_format' => filter_fallback_format(),
-      'takes' => 0,
-      'tid' => 0,
-      'time_limit' => 0,
-      'userpoints_tid' => 0,
-  );
+  return quiz()->getQuizHelper()->getSettingHelper()->getNodeDefaultSettings();
 }
 
 /**
@@ -433,61 +364,7 @@ function quiz_get_all_version_titles() {
  *   For several takes on the same quiz, only returns highest score.
  */
 function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
-  // Validate that the nids are integers.
-  foreach ($nids as $key => $nid) {
-    if (!_quiz_is_int($nid)) {
-      unset($nids[$key]);
-    }
-  }
-  if (empty($nids)) {
-    return array();
-  }
-
-  // Fetch score data for the validated nids.
-  $to_return = array();
-  $vids = array();
-  $sql = 'SELECT n.title, n.nid, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.pass_rate AS percent_pass
-          FROM {node} n
-          JOIN {quiz_node_properties} p
-          ON n.vid = p.vid
-          LEFT OUTER JOIN {quiz_node_results} r
-          ON r.nid = n.nid AND r.uid = :uid
-          LEFT OUTER JOIN (
-            SELECT nid, max(score) as highest_score
-            FROM {quiz_node_results}
-            GROUP BY nid
-          ) rm
-          ON n.nid = rm.nid AND r.score = rm.highest_score
-          WHERE n.nid in (' . implode(', ', $nids) . ')
-          ';
-  $res = db_query($sql, array(':uid' => $uid));
-  foreach ($res as $res_o) {
-    if (!$include_num_questions) {
-      unset($res_o->num_random_questions);
-    }
-    if (!isset($to_return[$res_o->vid]) || $res_o->percent_score > $to_return[$res_o->vid]->percent_score) {
-      $to_return[$res_o->vid] = $res_o; // Fetch highest score
-    }
-    // $vids will be used to fetch number of questions.
-    $vids[] = $res_o->vid;
-  }
-  if (empty($vids)) {
-    return array();
-  }
-
-  // Fetch total number of questions.
-  if ($include_num_questions) {
-    $res = db_query('SELECT COUNT(*) AS num_always_questions, parent_vid
-            FROM {quiz_node_relationship}
-            WHERE parent_vid IN (' . implode(', ', $vids) . ')
-            AND question_status = ' . QUESTION_ALWAYS . '
-            GROUP BY parent_vid');
-    foreach ($res as $res_o) {
-      $to_return[$res_o->parent_vid]->num_questions = $to_return[$res_o->parent_vid]->num_random_questions + $res_o->num_always_questions;
-    }
-  }
-
-  return $to_return;
+  return quiz()->getQuizHelper()->getScoreData();
 }
 
 /**
@@ -501,9 +378,7 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
  *   Returns the number of quiz questions.
  */
 function quiz_get_number_of_questions($vid) {
-  $always_count = _quiz_get_num_always_questions($vid);
-  $rand_count = db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-  return $always_count + (int) $rand_count;
+  return quiz()->getQuizHelper()->countQuestion($vid);
 }
 
 /**
@@ -797,81 +672,7 @@ function _quiz_take_quiz_init($quiz) {
  *  ['set_msg'] - Sets a message if the last question was skipped.
  */
 function quiz_store_question_result($quiz, $result, $options) {
-  if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
-    if ($options['set_msg']) {
-      drupal_set_message(t('Last question skipped.'), 'status');
-    }
-    $result->is_correct = FALSE;
-    $result->score = 0;
-  }
-  else {
-    // Make sure this is set.
-    $result->is_skipped = FALSE;
-  }
-  if (!isset($result->score)) {
-    $result->score = $result->is_correct ? 1 : 0;
-  }
-
-  // Points are stored pre-scaled in the quiz_node_results_answers table. We get the scale.
-  if ($quiz->randomization < 2) {
-    $scale = db_query("SELECT (max_score / (
-                  SELECT max_score
-                  FROM {quiz_question_properties}
-                  WHERE nid = :nid AND vid = :vid
-                )) as scale
-                FROM {quiz_node_relationship}
-                WHERE parent_nid = :parent_nid
-                AND parent_vid = :parent_vid
-                AND child_nid = :child_nid
-                AND child_vid = :child_vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':parent_nid' => $quiz->nid, ':parent_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
-  }
-  elseif ($quiz->randomization == 2) {
-    $scale = db_query("SELECT (max_score_for_random / (
-                  SELECT max_score
-                  FROM {quiz_question_properties}
-                  WHERE nid = :question_nid AND vid = :question_vid
-                )) as scale
-                FROM {quiz_node_properties}
-                WHERE vid = :quiz_vid
-               ", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':quiz_vid' => $quiz->vid))->fetchField();
-  }
-  elseif ($quiz->randomization == 3) {
-    if (isset($options['question_data']['tid'])) {
-      $result->tid = $options['question_data']['tid'];
-    }
-    $scale = db_query("SELECT (max_score / (
-                  SELECT max_score
-                  FROM {quiz_question_properties}
-                  WHERE nid = :nid AND vid = :vid
-                )) as scale
-                FROM {quiz_terms}
-                WHERE vid = :vid
-                AND tid = :tid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':vid' => $quiz->vid, ':tid' => $result->tid))->fetchField();
-  }
-  $points = round($result->score * $scale);
-  // Insert result data, or update existing data.
-  $result_answer_id = db_query("SELECT result_answer_id
-              FROM {quiz_node_results_answers}
-              WHERE question_nid = :question_nid
-              AND question_vid = :question_vid
-              AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
-
-  $entity = (object) array(
-      'result_answer_id' => $result_answer_id,
-      'question_nid' => $result->nid,
-      'question_vid' => $result->vid,
-      'result_id' => $result->result_id,
-      'is_correct' => (int) $result->is_correct,
-      'points_awarded' => $points,
-      'answer_timestamp' => REQUEST_TIME,
-      'is_skipped' => (int) $result->is_skipped,
-      'is_doubtful' => (int) $result->is_doubtful,
-      'number' => $options['question_data']['number'],
-      'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
-  );
-  entity_save('quiz_result_answer', $entity);
+  return quiz()->getQuizHelper()->saveQuestionResult($quiz, $result, $options);
 }
 
 /**
@@ -1097,14 +898,7 @@ function quiz_update_max_score_properties($quizzes_to_update) {
  *   The version ID.
  */
 function quiz_is_passed($uid, $nid, $vid) {
-  $passed = db_query('SELECT COUNT(result_id) AS passed_count FROM {quiz_node_results} qnrs
-    INNER JOIN {quiz_node_properties} USING (vid, nid)
-    WHERE qnrs.vid = :vid
-      AND qnrs.nid = :nid
-      AND qnrs.uid = :uid
-      AND score >= pass_rate', array(':vid' => $vid, ':nid' => $nid, ':uid' => $uid))->fetchField();
-  // Force into boolean context.
-  return ($passed !== FALSE && $passed > 0);
+  return quiz()->getQuizHelper()->isPassed($uid, $nid, $vid);
 }
 
 /**
@@ -1185,25 +979,7 @@ function quiz_start_check($quiz) {
  *  Error message(String) if not available
  */
 function quiz_availability($quiz) {
-  global $user;
-
-  if ($user->uid == 0 && $quiz->takes > 0) {
-    return t('This quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.', array('%num_attempts' => $quiz->takes));
-  }
-
-  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
-  if ($user_is_admin || $quiz->quiz_always == 1) {
-    return TRUE;
-  }
-
-  // Compare current GMT time to the open and close dates (which should still be
-  // in GMT time).
-  $now = REQUEST_TIME;
-
-  if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-    return t('This quiz is closed.');
-  }
-  return TRUE;
+  return quiz()->getQuizHelper()->isAvailable($quiz);
 }
 
 /**
@@ -1279,58 +1055,7 @@ function quiz_question_module_for_type($type) {
  *   Array of question node IDs.
  */
 function quiz_build_question_list($quiz) {
-  $questions = array();
-
-  if ($quiz->randomization == 3) {
-    $questions = _quiz_build_categorized_question_list($quiz);
-  }
-  else {
-    // Get required questions first.
-    $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
-    FROM {quiz_node_relationship} qnr
-    JOIN {node} n ON qnr.child_nid = n.nid
-    LEFT JOIN {quiz_node_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
-    WHERE qnr.parent_vid = :parent_vid
-    AND qnr.question_status = :question_status
-    AND n.status = 1
-    ORDER BY qnr2.weight, qnr.weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
-    $i = 0;
-    while ($question_node = $query->fetchAssoc()) {
-      // Just to make it easier on us, let's use a 1-based index.
-      $i++;
-      $questions[$i] = $question_node;
-    }
-
-    // Get random questions for the remainder.
-    if ($quiz->number_of_random_questions > 0) {
-      $random_questions = _quiz_get_random_questions($quiz);
-      $questions = array_merge($questions, $random_questions);
-      if ($quiz->number_of_random_questions > count($random_questions)) {
-        // Unable to find enough requested random questions.
-        return FALSE;
-      }
-    }
-
-    // Shuffle questions if required.
-    if ($quiz->randomization > 0) {
-      shuffle($questions);
-    }
-  }
-
-  $count = 0;
-  $display_count = 0;
-  $questions_out = array();
-  foreach ($questions as &$question) {
-    $question_node = node_load($question['nid'], $question['vid']);
-    $count++;
-    $display_count++;
-    $question['number'] = $count;
-    if ($question['type'] != 'quiz_page') {
-      $question['display_number'] = $display_count;
-    }
-    $questions_out[$count] = $question;
-  }
-  return $questions_out;
+  return quiz()->getQuizHelper()->getQuestionList($quiz);
 }
 
 /**
@@ -1444,60 +1169,7 @@ function quiz_node_map($node) {
  *   Boolean TRUE if update was successful, FALSE otherwise.
  */
 function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
-  if ($set_new_revision) {
-    // Create a new Quiz VID, even if nothing changed.
-    $quiz->revision = 1;
-
-    node_save($quiz);
-  }
-
-  // When node_save() calls all of the node API hooks, old quiz info is
-  // automatically inserted into quiz_node_relationship. We could get clever and
-  // try to do strategic updates/inserts/deletes, but that method has already
-  // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
-  // So we go with the brute force method:
-  db_delete('quiz_node_relationship')
-    ->condition('parent_nid', $quiz->nid)
-    ->condition('parent_vid', $quiz->vid)
-    ->execute();
-
-  if (empty($questions)) {
-    return TRUE; // This is not an error condition.
-  }
-
-  foreach ($questions as $question) {
-    if ($question->state != QUESTION_NEVER) {
-      $question_inserts[$question->qnr_id] = array(
-        'parent_nid' => $quiz->nid,
-        'parent_vid' => $quiz->vid,
-        'child_nid' => $question->nid,
-        // Update to latest OR use the version given.
-        'child_vid' => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
-        'question_status' => $question->state,
-        'weight' => $question->weight,
-        'max_score' => (int) $question->max_score,
-        'auto_update_max_score' => (int) $question->auto_update_max_score,
-        'qnr_pid' => $question->qnr_pid,
-        'qnr_id' => !$set_new_revision ? $question->qnr_id : NULL,
-        'old_qnr_id' => $question->qnr_id,
-      );
-      drupal_write_record('quiz_node_relationship', $question_inserts[$question->qnr_id]);
-    }
-  }
-
-  // Update the parentage when a new revision is created.
-  // @todo this is copy pasta from quiz_update_quiz_question_relationship
-  foreach ($question_inserts as $question_insert) {
-    db_update('quiz_node_relationship')
-      ->condition('qnr_pid', $question_insert['old_qnr_id'])
-      ->condition('parent_vid', $quiz->vid)
-      ->condition('parent_nid', $quiz->nid)
-      ->fields(array('qnr_pid' => $question_insert['qnr_id']))
-      ->execute();
-  }
-
-  quiz_update_max_score_properties(array($quiz->vid));
-  return TRUE;
+  return quiz()->getQuizHelper()->setQuestions($quiz, $questions, $set_new_revision);
 }
 
 /**
@@ -1881,22 +1553,7 @@ function quiz_get_sub_questions($qnr_pid, &$questions) {
  *   A list of quizzes.
  */
 function _quiz_get_quizzes($uid = 0) {
-  $results = array();
-  $args = array();
-  $query = db_select('node', 'n')
-    ->fields('n', array('nid', 'vid', 'title', 'uid', 'created'))
-    ->fields('u', array('name'));
-  $query->leftJoin('users', 'u', 'u.uid = n.uid');
-  $query->condition('n.type', 'quiz');
-  if ($uid != 0) {
-    $query->condition('n.uid', $uid);
-  }
-  $query->orderBy('n.nid');
-  $quizzes = $query->execute();
-  foreach ($quizzes as $quiz) {
-    $results[$quiz->nid] = (array) $quiz;
-  }
-  return $results;
+  return quiz()->getQuizHelper()->getQuizzesByUserId($uid);
 }
 
 /**
@@ -1992,12 +1649,7 @@ function quiz_action_options($type = 'all') {
  *   Options suitable for a form, in which the value is nid.
  */
 function quiz_get_quiz_options() {
-  $options = array();
-  $results = db_query('SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = :type', array(':type' => 'quiz'));
-  foreach ($results as $result) {
-    $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
-  }
-  return $options;
+  return quiz()->getQuizHelper()->getSettingHelper()->getQuizOptions();
 }
 
 /**
@@ -2033,15 +1685,7 @@ function quiz_get_quiz_from_menu() {
  *   TRUE if there exists answers to the current question.
  */
 function quiz_has_been_answered($node) {
-  if (!isset($node->nid)) {
-    return FALSE;
-  }
-  $query = db_select('quiz_node_results', 'qnr');
-  $query->addField('qnr', 'result_id');
-  $query->condition('nid', $node->nid);
-  $query->condition('vid', $node->vid);
-  $query->range(0, 1);
-  return $query->execute()->rowCount() > 0;
+  return quiz()->getQuizHelper()->isAnswered($node);
 }
 
 /**
@@ -2181,36 +1825,7 @@ function quiz_delete_results($result_ids) {
  *   An array of settings. The array is empty in case no settings are available.
  */
 function quiz_get_defaults() {
-  global $user;
-
-  $entity = entity_load('quiz', FALSE, array(
-    'uid' => $user->uid,
-    'nid' => 0,
-    'vid' => 0,
-  ));
-
-  if (count($entity)) {
-    // We found user defaults.
-    $defaults = reset($entity);
-    unset($defaults->nid, $defaults->uid, $defaults->vid);
-    return $defaults;
-  }
-
-  $entity = entity_load('quiz', FALSE, array(
-    'uid' => 0,
-    'nid' => 0,
-    'vid' => 0,
-  ));
-
-  if (count($entity)) {
-    // Found global defaults.
-    $defaults = reset($entity);
-    unset($defaults->nid, $defaults->uid, $defaults->vid);
-    return $defaults;
-  }
-
-  // No defaults set yet.
-  return _quiz_get_node_defaults();
+  return quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
 }
 
 /**
@@ -2513,18 +2128,7 @@ function quiz_result_answer_load($result_id, $nid, $vid) {
  */
 function quiz_add_question_to_quiz($question) {
   $quiz = node_load(arg(1));
-  $quiz_questions = quiz_get_questions($quiz->nid, $quiz->vid);
-  // Do not add a question if it's already been added (selected in an earlier checkbox)
-  foreach ($quiz_questions as $q) {
-    if ($question->vid == $q->vid) {
-      return FALSE;
-    }
-  }
-  // Otherwise let's add a relationship!
-  $question->quiz_nid = $quiz->nid;
-  $question->quiz_vid = $quiz->vid;
-  _quiz_question_get_instance($question)->saveRelationships();
-  quiz_update_max_score_properties(array($quiz->vid));
+  return quiz()->getQuizHelper()->addQuestion($quiz, $question);
 }
 
 /**

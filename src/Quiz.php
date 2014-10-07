@@ -10,6 +10,7 @@ use Drupal\quiz\Helper\QuizHelper;
  *
  * Quiz.nodeHelper — Helper for node-hook implementations.
  * Quiz.quizHelper — Helper for quiz node/object.
+ * Quiz.quizHelper.settingHelper - Get/Set/… quiz settings.
  * Quiz.quizHelper.resultHelper — Helper methods for quiz's results.
  * Quiz.quizHelper.accessHelper — Access helpers
  *
