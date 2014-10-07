@@ -9,6 +9,7 @@
  * Implements hook_install().
  */
 function quiz_question_install() {
+
 }
 
 /**
@@ -69,6 +70,7 @@ function quiz_question_schema() {
  * Implements hook_uninstall().
  */
 function quiz_question_uninstall() {
+
 }
 
 /**
@@ -80,10 +82,10 @@ function quiz_question_uninstall() {
  */
 function quiz_question_update_7401() {
   $question_types = array_keys(_quiz_question_get_implementations());
-  
+
   foreach ($question_types as $question_type) {
     $instance = field_read_instance('node', 'body', $question_type);
-    
+
     $instance['display']['question'] = array(
       'label' => 'hidden',
       'type' => 'text_default',
