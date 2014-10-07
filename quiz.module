@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\quiz\Quiz;
+
 /**
  * @file
  * Quiz Module
@@ -49,6 +51,23 @@ define('QUIZ_NAME', _quiz_get_quiz_name());
 define('QUIZ_KEEP_BEST', 0);
 define('QUIZ_KEEP_LATEST', 1);
 define('QUIZ_KEEP_ALL', 2);
+
+/**
+ * Factory to create quiz helper.
+ *
+ * @staticvar Quiz $quiz
+ * @param string $className
+ * @return \Drupal\quiz\Quiz
+ */
+function quiz($className = 'Drupal\quiz\Quiz') {
+  static $quiz = null;
+
+  if (!$quiz) {
+    $quiz = new $className;
+  }
+
+  return $quiz;
+}
 
 /**
  * Helper function to determine if a user has access to the different results
@@ -348,7 +367,6 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Primary quiz-taking view on 'Take' tab.
  */
 function quiz_take($node) {
-  //drupal_alter('quiz_take', $node);
   if (isset($node->rendered_content)) {
     return $node->rendered_content;
   }
@@ -835,7 +853,6 @@ function _quiz_take_quiz_init($quiz) {
  *  ['set_msg'] - Sets a message if the last question was skipped.
  */
 function quiz_store_question_result($quiz, $result, $options) {
-  //drupal_set_message('<pre>'. print_r($result, 1) .'</pre>');
   if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
     if ($options['set_msg']) {
       drupal_set_message(t('Last question skipped.'), 'status');

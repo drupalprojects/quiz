@@ -29,10 +29,10 @@ function quiz_views_api() {
  * where our task and task_handler plugins are.
  */
 function quiz_ctools_plugin_directory($owner, $plugin_type) {
-  if ($owner == 'page_manager') {
+  if ($owner === 'page_manager') {
     return 'plugins/page_manager/' . $plugin_type;
   }
-  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+  if ($owner === 'ctools' && $plugin_type === 'content_types') {
     return 'plugins/content_types';
   }
 }
@@ -41,7 +41,7 @@ function quiz_ctools_plugin_directory($owner, $plugin_type) {
  * Implements hook_ctools_plugin_api().
  */
 function quiz_ctools_plugin_api($module, $api) {
-  if ($module == 'page_manager' && $api == 'pages_default') {
+  if ($module === 'page_manager' && $api === 'pages_default') {
     return array('version' => 1);
   }
 }
@@ -333,7 +333,6 @@ function quiz_cron() {
  * Implements hook_menu().
  */
 function quiz_menu() {
-
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
@@ -363,7 +362,6 @@ function quiz_menu() {
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
   );
-
 
   // Admin pages.
   $items['admin/quiz'] = array(
@@ -454,7 +452,6 @@ function quiz_menu() {
   );
 
   // User pages.
-
   $items['user/%/quiz-results/%/view'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
@@ -593,193 +590,35 @@ function quiz_form_quiz_node_form_alter(&$form, $form_state) {
  * Implements hook_delete().
  */
 function quiz_delete($node) {
-  $res = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid', array(':nid' => $node->nid));
-  $result_ids = array();
-  while ($result_id = $res->fetchField()) {
-    $result_ids[] = $result_id;
-  }
-  quiz_delete_results($result_ids);
-
-  // Remove quiz node records from table quiz_node_properties
-  db_delete('quiz_node_properties')
-    ->condition('nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_relationship
-  db_delete('quiz_node_relationship')
-    ->condition('parent_nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_results
-  db_delete('quiz_node_results')
-    ->condition('nid', $node->nid)
-    ->execute();
-  // Remove quiz node records from table quiz_node_result_options
-  db_delete('quiz_node_result_options')
-    ->condition('nid', $node->nid)
-    ->execute();
+  quiz()->getNodeHelper()->delete($node);
 }
 
 /**
  * Implements hook_validate().
  */
 function quiz_validate($node) {
-  // Don't check dates if the quiz is always available.
-  if (!$node->quiz_always) {
-    if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
-      form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
-    }
-  }
-
-  if (!empty($node->pass_rate)) {
-    if (!_quiz_is_int($node->pass_rate, 0, 100)) {
-      form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
-    }
-  }
-
-  if (isset($node->time_limit)) {
-    if (!_quiz_is_int($node->time_limit, 0)) {
-      form_set_error('time_limit', t('Time limit must be a non negative interger'));
-    }
-  }
-
-  if (isset($node->resultoptions) && count($node->resultoptions) > 0) {
-    $taken_values = array();
-    $num_options = 0;
-    foreach ($node->resultoptions as $option) {
-      if (!empty($option['option_name'])) {
-        $num_options++;
-        if (empty($option['option_summary'])) {
-          form_set_error('option_summary', t('Option has no summary text.'));
-        }
-        if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
-
-          // Check for a number between 0-100.
-          foreach (array('option_start' => 'start', 'option_end' => 'end') as $bound => $bound_text) {
-            if (!_quiz_is_int($option[$bound], 0, 100)) {
-              form_set_error($bound, t('The range %start value must be a number between 0 and 100.', array('%start' => $bound_text)));
-            }
-          }
-
-          // Check that range end >= start.
-          if ($option['option_start'] > $option['option_end']) {
-            form_set_error('option_start', t('The start must be less than the end of the range.'));
-          }
-
-          // Check that range doesn't collide with any other range.
-          $option_range = range($option['option_start'], $option['option_end']);
-          if ($intersect = array_intersect($taken_values, $option_range)) {
-            form_set_error('option_start', t('The ranges must not overlap each other. (%intersect)', array('%intersect' => implode(',', $intersect))));
-          }
-          else {
-            $taken_values = array_merge($taken_values, $option_range);
-          }
-        }
-      }
-      elseif (!_quiz_is_empty_html($option['option_summary']['value'])) {
-        form_set_error('option_summary', t('Option has a summary, but no name.'));
-      }
-    }
-  }
-
-  if ($node->allow_jumping && !$node->allow_skipping) {
-    // @todo when we have pages of questions, we have to check that jumping is
-    // not enabled, and randomization is not enabled unless there is only 1 page
-    form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
-  }
+  quiz()->getNodeHelper()->validate($node);
 }
 
 /**
  * Implements hook_insert().
  */
 function quiz_insert($node) {
-  global $user;
-
-  // Need to set max_score if this is a cloned node
-  $max_score = 0;
-
-  // Copy all the questions belonging to the quiz if this is a new translation.
-  if ($node->is_new && isset($node->translation_source)) {
-    quiz_copy_questions($node);
-  }
-
-  // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
-  if ($node->is_new && isset($node->clone_from_original_nid)) {
-    $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
-
-    $max_score = $old_quiz->max_score;
-
-    $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid);
-
-    // Format the current questions for referencing
-    foreach ($questions as $question) {
-      $nid = $questions['nid'];
-      $questions[$nid]->state = $question->question_status;
-      $questions[$nid]->refresh = 0;
-    }
-
-    quiz_set_questions($node, $questions);
-  }
-
-  _quiz_common_presave_actions($node);
-
-  // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
-  _quiz_check_num_random($node);
-  _quiz_check_num_always($node);
-
-  quiz_update_defaults($node);
-  _quiz_insert_resultoptions($node);
+  quiz()->getNodeHelper()->insert($node);
 }
 
 /**
  * Implements hook_update().
  */
 function quiz_update($node) {
-  // Quiz node vid (revision) was updated.
-  if (isset($node->revision) && $node->revision) {
-    // Create new quiz-question relation entries in the quiz_node_relationship
-    // table.
-    quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
-  }
-
-  // Update an existing row in the quiz_node_properties table.
-  _quiz_common_presave_actions($node);
-
-  quiz_update_defaults($node);
-  _quiz_update_resultoptions($node);
-
-  _quiz_check_num_random($node);
-  _quiz_check_num_always($node);
-  quiz_update_max_score_properties(array($node->vid));
-  drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
+  quiz()->getNodeHelper()->update($node);
 }
 
 /**
  * Implementation of hook_node_presave().
  */
 function quiz_node_presave($node) {
-  if ($node->type == 'quiz') {
-    // Convert the action id to the actual id from the MD5 hash.
-    // Why the actions module does this I do not know? Maybe to prevent
-    // invalid values put into the options value="" field.
-    if (!empty($node->aid) && $aid = actions_function_lookup($node->aid)) {
-      $node->aid = $aid;
-    }
-
-    if (variable_get('quiz_auto_revisioning', 1)) {
-      $node->revision = (quiz_has_been_answered($node)) ? 1 : 0;
-    }
-
-    // If this is a programmatic save, ensure we use the defaults.
-    $defaults = quiz_get_defaults();
-    foreach ($defaults as $property => $value) {
-      if (!isset($node->$property)) {
-        $node->$property = $defaults->$property;
-      }
-    }
-  }
-  if (isset($node->is_quiz_question) && variable_get('quiz_auto_revisioning', 1)) {
-    $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
-  }
+  quiz()->getNodeHelper()->presave($node);
 }
 
 /**
@@ -840,46 +679,7 @@ function quiz_load($nodes) {
  * Implements hook_view().
  */
 function quiz_view($node, $view_mode) {
-  drupal_alter('quiz_view', $node, $view_mode);
-  node_invoke($node, 'prepare');
-
-  // Number of questions is needed on the statistics page.
-  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
-
-  $node->content['stats'] = array(
-    '#markup' => theme('quiz_view_stats', array('node' => $node)),
-    '#weight' => -1,
-  );
-
-  $available = quiz_availability($node);
-  if ($available === TRUE) {
-    // Check the permission before displaying start button.
-    if (user_access('access quiz')) {
-      // Add a link to the take tab as a button if this isn't a teaser view.
-      if ($view_mode !== 'teaser') {
-        $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
-        $node->content['take'] = array(
-          '#markup' => drupal_render($quiz_form),
-          '#weight' => 2,
-        );
-      }
-      // Add a link to the take tab if this is a teaser view.
-      else {
-        $node->content['take'] = array(
-          '#markup' => l(t('Start quiz'), 'node/' . $node->nid . '/take'),
-          '#weight' => 2,
-        );
-      }
-    }
-  }
-  else {
-    $node->content['take'] = array(
-      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
-      '#weight' => 2,
-    );
-  }
-
-  return $node;
+  return quiz()->getNodeHelper()->view($node, $view_mode);
 }
 
 /**
@@ -898,371 +698,7 @@ function quiz_user_cancel($edit, $account, $method) {
  * node edit form.
  */
 function quiz_form(&$node, &$form_state) {
-  $form = array();
-
-  // We tell quiz_form_alter to check for the manual revisioning permission.
-  $form['#quiz_check_revision_access'] = TRUE;
-
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Title'),
-    '#default_value' => isset($node->title) ? $node->title : '',
-    '#description' => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
-    '#required' => TRUE,
-  );
-
-  $form['taking'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Taking options'),
-    '#collapsed' => isset($settings_loaded) ? $settings_loaded : FALSE,
-    '#collapsible' => TRUE,
-    '#attributes' => array('id' => 'taking-fieldset'),
-    '#group' => 'additional_settings',
-    '#weight' => -2,
-  );
-  $form['taking']['allow_resume'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow Resume'),
-    '#default_value' => $node->allow_resume,
-    '#description' => t('Whether to allow users to leave the @quiz incomplete and then resume it from where they left off.', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['taking']['allow_skipping'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow Skipping questions'),
-    '#default_value' => $node->allow_skipping,
-    '#description' => t('Whether to allow users to skip questions in the @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['taking']['allow_jumping'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow jumping'),
-    '#default_value' => $node->allow_jumping,
-    '#description' => t('Whether to allow users to jump between questions using a menu in the @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['taking']['backwards_navigation'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Backwards navigation'),
-    '#default_value' => $node->backwards_navigation,
-    '#description' => t('Whether to allow user to go back and revisit their answers'),
-  );
-  $form['taking']['repeat_until_correct'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Repeat until correct'),
-    '#default_value' => $node->repeat_until_correct,
-    '#description' => t('Require the user to re-try the question until they answer it correctly.'),
-  );
-  $form['taking']['mark_doubtful'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Mark Doubtful'),
-    '#default_value' => $node->mark_doubtful,
-    '#description' => t('Allow user to mention if they are not sure about the answer'),
-  );
-  $form['taking']['show_passed'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Show passed status'),
-    '#default_value' => $node->show_passed,
-    '#description' => t('Show the status, if the user has previously passed'),
-  );
-
-  $form['taking']['randomization'] = array(
-    '#type' => 'radios',
-    '#title' => t('Randomize questions'),
-    '#options' => array(
-      t('No randomization'),
-      t('Random order'),
-      t('Random questions'),
-      t('Categorized random questions'),
-    ),
-    '#description' => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
-    '#default_value' => $node->randomization,
-  );
-  $form['taking']['review_options'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Review options'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#tree' => TRUE,
-  );
-
-  $review_options = quiz_get_feedback_options();
-
-  foreach (array('question' => 'After the question', 'end' => 'After the quiz') as $key => $when) {
-    $form['taking']['review_options'][$key] = array(
-      '#title' => $when,
-      '#type' => 'checkboxes',
-      '#options' => $review_options,
-      '#default_value' => isset($node->review_options[$key]) ? $node->review_options[$key] : array(),
-    );
-  }
-  $options = array(t('Unlimited'));
-  for ($i = 1; $i < 10; $i++) {
-    $options[$i] = $i;
-  }
-  $form['taking']['multiple_takes'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Multiple takes'),
-    '#collapsible' => FALSE,
-    '#collapsed' => FALSE,
-    '#attributes' => array('id' => 'multiple-takes-fieldset'),
-  );
-  $form['taking']['multiple_takes']['takes'] = array(
-    '#type' => 'select',
-    '#title' => t('Allowed number of attempts'),
-    '#default_value' => $node->takes,
-    '#options' => $options,
-    '#description' => t('The number of times a user is allowed to take the @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
-  );
-  $form['taking']['multiple_takes']['show_attempt_stats'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display allowed number of attempts'),
-    '#default_value' => $node->show_attempt_stats,
-    '#description' => t('Display the allowed number of attempts on the starting page for this quiz.'),
-  );
-
-  if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
-    $form['taking']['multiple_takes']['keep_results'] = array(
-      '#type' => 'radios',
-      '#title' => t('These results should be stored for each user'),
-      '#options' => array(
-        t('The best'),
-        t('The newest'),
-        t('All'),
-      ),
-      '#default_value' => $node->keep_results,
-    );
-  }
-  else {
-    $form['taking']['multiple_takes']['keep_results'] = array(
-      '#type' => 'value',
-      '#value' => $node->keep_results,
-    );
-  }
-
-  if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
-    $form['taking']['addons'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Quiz Addons Properties'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-    $form['taking']['addons']['time_limit'] = array(
-      '#type' => 'textfield',
-      '#title' => t(' Time Limit'),
-      '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
-      '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
-    );
-  }
-  else {
-    $form['taking']['addons']['time_limit'] = array(
-      '#type' => 'value',
-      '#value' => 0,
-    );
-  }
-
-  if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
-    $form['userpoints'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Userpoints'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-      '#group' => 'additional_settings',
-    );
-    $form['userpoints']['has_userpoints'] = array(
-      '#type' => 'checkbox',
-      '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
-      '#title' => t('Enable UserPoints Module Integration'),
-      '#description' => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
-    );
-    $form['userpoints']['userpoints_tid'] = array(
-      '#type' => 'select',
-      '#options' => _quiz_userpoints_type(),
-      '#title' => t('Userpoints Category'),
-      '#states' => array(
-        'visible' => array(
-          ':input[name=has_userpoints]' => array('checked' => TRUE),
-        ),
-      ),
-      '#default_value' => isset($node->userpoints_tid) ? $node->userpoints_tid : 0,
-      '#description' => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
-    );
-  }
-
-  // Set up the availability options.
-  $form['quiz_availability'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Availability options'),
-    '#collapsed' => TRUE,
-    '#collapsible' => TRUE,
-    '#attributes' => array('id' => 'availability-fieldset'),
-    '#group' => 'additional_settings',
-  );
-  $form['quiz_availability']['quiz_always'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Always Available'),
-    '#default_value' => $node->quiz_always,
-    '#description' => t('Click this option to ignore the open and close dates.'),
-  );
-  $form['quiz_availability']['quiz_open'] = array(
-    '#type' => 'date',
-    '#title' => t('Open Date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_open),
-    '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
-    '#after_build' => array('_quiz_limit_year_options'),
-  );
-  $form['quiz_availability']['quiz_close'] = array(
-    '#type' => 'date',
-    '#title' => t('Close Date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
-    '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
-    '#after_build' => array('_quiz_limit_year_options'),
-  );
-
-  // Quiz summary options.
-  $form['summaryoptions'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Pass/fail options'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#attributes' => array('id' => 'summaryoptions-fieldset'),
-    '#group' => 'additional_settings',
-  );
-  // If pass/fail option is checked, present the form elements.
-  if (variable_get('quiz_use_passfail', 1)) {
-    $form['summaryoptions']['pass_rate'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
-      '#default_value' => $node->pass_rate,
-      '#description' => t('Pass rate for the @quiz as a percentage score.', array('@quiz' => QUIZ_NAME)),
-      '#required' => FALSE,
-    );
-    $form['summaryoptions']['summary_pass'] = array(
-      '#type' => 'text_format',
-      '#base_type' => 'textarea',
-      '#title' => t('Summary text if passed'),
-      '#default_value' => $node->summary_pass,
-      '#cols' => 60,
-      '#description' => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
-      '#format' => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
-    );
-  }
-  // If the pass/fail option is unchecked, use the default and hide it.
-  else {
-    $form['summaryoptions']['pass_rate'] = array(
-      '#type' => 'hidden',
-      '#value' => $node->pass_rate,
-      '#required' => FALSE,
-    );
-  }
-  // We use a helper to enable the wysiwyg module to add an editor to the
-  // textarea.
-  $form['summaryoptions']['helper']['summary_default'] = array(
-    '#type' => 'text_format',
-    '#base_type' => 'textarea',
-    '#title' => t('Default summary text'),
-    '#default_value' => $node->summary_default,
-    '#cols' => 60,
-    '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
-    '#format' => isset($node->summary_default_format) && !empty($node->summary_default_format) ? $node->summary_default_format : NULL,
-  );
-
-  // Number of random questions, max score and tid for random questions are set on
-  // the manage questions tab. We repeat them here so that they're not removed
-  // if the quiz is being updated.
-  $num_rand = (isset($node->number_of_random_questions)) ? $node->number_of_random_questions : 0;
-  $form['number_of_random_questions'] = array(
-    '#type' => 'value',
-    '#value' => $num_rand,
-  );
-  $max_score_for_random = (isset($node->max_score_for_random)) ? $node->max_score_for_random : 0;
-  $form['max_score_for_random'] = array(
-    '#type' => 'value',
-    '#value' => $max_score_for_random,
-  );
-  $tid = (isset($node->tid)) ? $node->tid : 0;
-  $form['tid'] = array(
-    '#type' => 'value',
-    '#value' => $tid,
-  );
-
-  $options = !empty($node->resultoptions) ? $node->resultoptions : array();
-  $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
-
-  if ($num_options > 0) {
-    $form['resultoptions'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Result Comments'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#tree' => TRUE,
-      '#attributes' => array('id' => 'resultoptions-fieldset'),
-      '#group' => 'additional_settings',
-    );
-
-    for ($i = 0; $i < $num_options; $i++) {
-      $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
-      $form['resultoptions'][$i] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Result Option ') . ($i + 1),
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-      );
-      $form['resultoptions'][$i]['option_name'] = array(
-        '#type' => 'textfield',
-        '#title' => t('The name of the result'),
-        '#default_value' => isset($option['option_name']) ? $option['option_name'] : '',
-        '#maxlength' => 40,
-        '#size' => 40,
-      );
-      $form['resultoptions'][$i]['option_start'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Percentage Start Range'),
-        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-        '#default_value' => isset($option['option_start']) ? $option['option_start'] : '',
-        '#size' => 5,
-      );
-      $form['resultoptions'][$i]['option_end'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Percentage End Range'),
-        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
-        '#default_value' => isset($option['option_end']) ? $option['option_end'] : '',
-        '#size' => 5,
-      );
-      $form['resultoptions'][$i]['option_summary'] = array(
-        '#type' => 'text_format',
-        '#base_type' => 'textarea',
-        '#title' => t('Display text for the result'),
-        '#default_value' => isset($option['option_summary']) ? $option['option_summary'] : '',
-        '#description' => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
-        '#format' => isset($option['option_summary_format']) ? $option['option_summary_format'] : NULL,
-      );
-      if (isset($option['option_id'])) {
-        $form['resultoptions'][$i]['option_id'] = array(
-          '#type' => 'hidden',
-          '#value' => isset($option['option_id']) ? $option['option_id'] : '',
-        );
-      }
-    }
-  }
-
-  $form['remember_settings'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Remember my settings'),
-    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
-    '#weight' => 49,
-  );
-
-  $form['remember_global'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Remember as global'),
-    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time you create a quiz.'),
-    '#weight' => 49,
-    '#access' => user_access('administer quiz configuration'),
-  );
-
-  if (quiz_has_been_answered($node) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
-    $node->revision = 1;
-    $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
-  }
-  return $form;
+  return quiz()->getNodeHelper()->getNodeFormHelper()->execute($node, $form_state);
 }
 
 /**
