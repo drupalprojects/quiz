@@ -19,31 +19,33 @@ $plugin = array(
  * See ctools_plugin_examples for more advanced info
  */
 function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $context = NULL) {
+  global $user;
+
   if (!empty($context) && empty($context->data)) {
     return;
   }
-  $node = isset($context->data) ? clone($context->data) : NULL;
+  $quiz = isset($context->data) ? clone($context->data) : NULL;
   $block = new stdClass();
 
-  if (empty($node)) {
+  if (empty($quiz)) {
     $block->delta = 'placeholder';
     $block->title = t('Placeholder title.');
     $block->content = t('Placeholder content goes here.');
     return $block;
   }
 
-  if (!quiz_take_access($node)) {
+  if (!quiz_take_access($quiz)) {
     return;
   }
 
   $block->module = 'node';
-  $block->delta = $node->nid;
+  $block->delta = $quiz->nid;
 
-  if (isset($node->rendered_content)) {
-    $block->content = $node->rendered_content;
+  if (isset($quiz->rendered_content)) {
+    $block->content = $quiz->rendered_content;
   }
   else {
-    $block->content = quiz_take_quiz($node);
+    $block->content = quiz()->getQuizHelper()->getTakeHelper($quiz)->getMasterRender()->render($user);
   }
 
   return $block;

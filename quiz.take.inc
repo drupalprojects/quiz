@@ -1,6 +1,19 @@
 <?php
 
 /**
+ * Does the current user have access to take the quiz?
+ *
+ * @param $node
+ *  The quiz node
+ */
+function quiz_take_access($node) {
+  if ($node->type != 'quiz') {
+    return FALSE;
+  }
+  return node_access('view', $node) && user_access('access quiz') && quiz_availability($node) === TRUE;
+}
+
+/**
  * Helper function for hook_view().
  *
  * Returns a button to use as a link to start taking the quiz.
@@ -26,64 +39,8 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Primary quiz-taking view on 'Take' tab.
  */
 function quiz_take($quiz) {
-  return quiz()->getQuizHelper()->getTakeHelper($quiz)->render();
-}
-
-/**
- * Does the current user have access to take the quiz?
- *
- * @param $node
- *  The quiz node
- */
-function quiz_take_access($node) {
-  if ($node->type != 'quiz') {
-    return FALSE;
-  }
-  return node_access('view', $node) && user_access('access quiz') && quiz_availability($node) === TRUE;
-}
-
-/**
- * Handles quiz taking.
- *
- * This gets executed when the main quiz node is first loaded.
- *
- * @param $quiz
- *   The quiz node.
- *
- * @return
- *   Content array.
- */
-function quiz_take_quiz($quiz) {
   global $user;
-  return quiz()->getQuizHelper()->getTakeHelper($quiz)->buildRenderArray($user);
-}
-
-/**
- * Initialize a quiz attempt.
- *
- * @return QuizResult
- *   The quiz attempt.
- */
-function _quiz_take_quiz_init($quiz) {
-  // Create question list.
-  $questions = quiz_build_question_list($quiz);
-  if ($questions === FALSE) {
-    drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
-    return FALSE;
-  }
-
-  if (count($questions) == 0) {
-    drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . $quiz->nid . '/quiz/questions'))), 'error');
-    return FALSE;
-  }
-
-  $quiz_result = quiz_result_load(quiz_create_rid($quiz));
-  $quiz_result->layout = $questions;
-
-  // Write the layout for this result.
-  entity_save('quiz_result', $quiz_result);
-
-  return $quiz_result;
+  return quiz()->getQuizHelper()->getTakeHelper($quiz)->getMasterRender()->render($user);
 }
 
 /**
@@ -96,114 +53,7 @@ function _quiz_take_quiz_init($quiz) {
  *   directions are considered part of the numbering.
  */
 function quiz_take_question($quiz, $question_number) {
-  if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
-    $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-    $question = $quiz_result->layout[$question_number];
-
-    if (!empty($question['qnr_pid'])) {
-      // Find the parent.
-      foreach ($quiz_result->layout as $pquestion) {
-        if ($pquestion['qnr_id'] == $question['qnr_pid']) {
-          // Load the page that the requested question belongs to.
-          $question_node = node_load($pquestion['nid']);
-        }
-      }
-    }
-    else {
-      // Load the question.
-      $question_node = node_load($question['nid']);
-    }
-  }
-
-  if (!$question_node) {
-    // Question disappeared or invalid session. Start over.
-    unset($_SESSION['quiz'][$quiz->nid]);
-    drupal_goto("node/{$quiz->nid}");
-  }
-
-  // Mark this as the current question.
-  quiz_question_goto($quiz, $question_number);
-
-  // Added the progress info to the view.
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $questions = array();
-  foreach ($quiz_result->layout as $idx => $question) {
-    if (!empty($question['number'])) {
-      // Question has a number associated with it. Show it in the jumper.
-      $questions[$idx] = $question['number'];
-    }
-  }
-  $content['progress']['#markup'] = theme('quiz_progress', array(
-    'questions' => $questions,
-    'current' => arg(3),
-    'allow_jumping' => $quiz->allow_jumping,
-    'time_limit' => $quiz->time_limit,
-  ));
-  $content['progress']['#weight'] = -50;
-
-  /**
-   * @todo: wat do?
-    if (count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
-    drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
-    unset($_SESSION['quiz'][$quiz->nid]);
-    drupal_goto('node/' . $quiz->nid . '/take');
-    }
-   */
-  if (isset($_SESSION['quiz'][$quiz->nid]['question_duration'])) {
-    $time = $_SESSION['quiz'][$quiz->nid]['question_duration'];
-    if ($time < 1) {
-      // The page was probably submitted by the js, we allow the data to be stored
-      $time = 1;
-    }
-    db_update('quiz_node_results')
-      ->fields(array('time_left' => $time))
-      ->condition('result_id', $_SESSION['quiz'][$quiz->nid]['result_id'])
-      ->execute();
-
-    if ($time <= 1) {
-      // Quiz has been timed out, run a loop to mark the remaining questions
-      // as skipped.
-      // @todo we just need to run quiz_end_score here, I think
-      drupal_set_message(t('You have run out of time.'), 'error');
-    }
-    else {
-      // There is still time left, so let's go ahead and insert the countdown
-      // javascript.
-      if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-        jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
-        // These are the two button op values that are accepted for answering
-        // questions.
-        $button_op1 = drupal_json_encode(t('Finish'));
-        $button_op2 = drupal_json_encode(t('Next'));
-        $js = "
-            function finished() {
-              // Find all buttons with a name of 'op'.
-              var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
-              // Filter out the ones that don't have the right op value.
-              buttons = buttons.filter(function() {
-                return this.value == $button_op1 || this.value == $button_op2;
-              });
-              if (buttons.length == 1) {
-                // Since only one button was found, this must be it.
-                buttons.click();
-              }
-              else {
-                // Zero, or more than one buttons were found; fall back on a page refresh.
-                window.location = window.location.href;
-              }
-            }
-          ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
-      }
-    }
-    $_SESSION['quiz'][$quiz->nid]['question_start_time'] = REQUEST_TIME;
-  }
-
-  $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
-  $content['body']['question']['#markup'] = drupal_render($question_form);
-  drupal_set_title($quiz->title);
-
-  return $content;
+  return quiz()->getQuizHelper()->getTakeHelper($quiz)->getQuestionRender()->render($question_number);
 }
 
 /**
