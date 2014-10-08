@@ -2,25 +2,41 @@
 
 namespace Drupal\quiz\Helper\Node;
 
-class NodeUpdateHelper {
+use PDO;
 
-  public function execute($node) {
+class NodeUpdateHelper extends NodeHelper {
+
+  public function execute($quiz) {
     // Quiz node vid (revision) was updated.
-    if (isset($node->revision) && $node->revision) {
+    if (isset($quiz->revision) && $quiz->revision) {
       // Create new quiz-question relation entries in the quiz_node_relationship table.
-      $this->updateQuestionRelationship($node->old_vid, $node->vid, $node->nid);
+      $this->updateQuestionRelationship($quiz->old_vid, $quiz->vid, $quiz->nid);
     }
 
     // Update an existing row in the quiz_node_properties table.
-    _quiz_common_presave_actions($node);
+    _quiz_common_presave_actions($quiz);
 
-    quiz_update_defaults($node);
-    _quiz_update_resultoptions($node);
+    quiz_update_defaults($quiz);
+    $this->updateResultOptions($quiz);
 
-    _quiz_check_num_random($node);
-    _quiz_check_num_always($node);
-    quiz_update_max_score_properties(array($node->vid));
+    _quiz_check_num_random($quiz);
+    _quiz_check_num_always($quiz);
+    quiz_update_max_score_properties(array($quiz->vid));
     drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
+  }
+
+  /**
+   * Modify result of option-specific updates.
+   *
+   * @param $node
+   *   The quiz node.
+   */
+  private function updateResultOptions($quiz) {
+    // Brute force method. Easier to get correct, and probably faster as well.
+    db_delete('quiz_node_result_options')
+      ->condition('vid', $quiz->vid)
+      ->execute();
+    $this->insertResultOptions($quiz);
   }
 
   /**
