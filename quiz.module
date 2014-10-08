@@ -24,7 +24,7 @@ define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
  * Include hook implementations.
  */
 require_once dirname(__FILE__) . '/quiz.hooks.inc';
-require_once dirname(__FILE__) . '/quiz_datetime.inc';
+require_once dirname(__FILE__) . '/quiz.datetime.inc';
 require_once dirname(__FILE__) . '/quiz.take.inc';
 require_once dirname(__FILE__) . '/quiz.internal.inc';
 require_once dirname(__FILE__) . '/quiz.legacy.inc';
