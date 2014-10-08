@@ -47,6 +47,9 @@ class TakeHelper {
     return $this;
   }
 
+  /**
+   * @return QuestionFeedBackRender
+   */
   public function getQuestionFeedBackRender() {
     if (null === $this->questionFeedBackRender) {
       $this->questionFeedBackRender = new QuestionFeedBackRender($this->quiz);
