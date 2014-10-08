@@ -7,10 +7,13 @@ use Drupal\quiz\Helper\NodeHelper;
 use Drupal\quiz\Helper\QuizHelper;
 
 /**
- * Wrapper for helper classes.
+ * Wrapper for helper classes. We just use classes to organise functions, make
+ * them easier to access, able to override, there is no OOP in helper classes
+ * yet.
  *
  * Quiz.nodeHelper — Helper for node-hook implementations.
  * Quiz.quizHelper — Helper for quiz node/object.
+ * Quiz.mailHelper — Build/format email messages.
  * Quiz.quizHelper.settingHelper - Get/Set/… quiz settings.
  * Quiz.quizHelper.resultHelper — Helper methods for quiz's results.
  * Quiz.quizHelper.accessHelper — Access helpers
@@ -37,6 +40,12 @@ class Quiz {
     return $this->nodeHelper;
   }
 
+  /**
+   * Inject node helper.
+   *
+   * @param NodeHelper $nodeHelper
+   * @return \Drupal\quiz\Quiz
+   */
   public function setNodeHelper($nodeHelper) {
     $this->nodeHelper = $nodeHelper;
     return $this;
@@ -52,6 +61,12 @@ class Quiz {
     return $this->quizHelper;
   }
 
+  /**
+   * Inject quizHelper.
+   * 
+   * @param QuizHelper $quizHelper
+   * @return \Drupal\quiz\Quiz
+   */
   public function setQuizHelper($quizHelper) {
     $this->quizHelper = $quizHelper;
     return $this;
@@ -67,6 +82,12 @@ class Quiz {
     return $this->mailHelper;
   }
 
+  /**
+   * Inject mail helper.
+   *
+   * @param MailHelper $mailHelper
+   * @return \Drupal\quiz\Quiz
+   */
   public function setMailHelper($mailHelper) {
     $this->mailHelper = $mailHelper;
     return $this;

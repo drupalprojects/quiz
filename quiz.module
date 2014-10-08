@@ -49,7 +49,7 @@ define('QUIZ_KEEP_LATEST', 1);
 define('QUIZ_KEEP_ALL', 2);
 
 /**
- * Factory to create quiz helper.
+ * Factory to create quiz helpers wrapper.
  *
  * @staticvar Quiz $quiz
  * @param string $className
