@@ -7,6 +7,7 @@ use Drupal\quiz\Helper\Quiz\FeedbackHelper;
 use Drupal\quiz\Helper\Quiz\ResultHelper;
 use Drupal\quiz\Helper\Quiz\SettingHelper;
 use Drupal\quiz\Helper\Quiz\TakeHelper;
+use stdClass;
 
 class QuizHelper {
 
@@ -76,10 +77,15 @@ class QuizHelper {
     return $this;
   }
 
-  public function getTakeHelper() {
+  /**
+   * @param stdClass $quiz
+   * @return TakeHelper
+   */
+  public function getTakeHelper($quiz) {
     if (null === $this->takeHelper) {
-      $this->takeHelper = new TakeHelper();
+      $this->takeHelper = new TakeHelper($quiz);
     }
+    $this->takeHelper->setQuiz($quiz);
     return $this->takeHelper;
   }
 
