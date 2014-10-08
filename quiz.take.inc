@@ -77,16 +77,18 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Show feedback for a question response.
  */
 function quiz_take_question_feedback($quiz, $question_number) {
-  if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
-    $result_id = $_SESSION['quiz']['temp']['result_id'];
-  }
-  else {
-    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  }
-  $quiz_result = quiz_result_load($result_id);
-  $question_node = node_load($quiz_result->layout[$question_number]['nid']);
-  $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
-  return $feedback;
+  return quiz()->getQuizHelper()->getTakeHelper($quiz)->getQuestionFeedBackRender()->render($question_number);
+}
+
+/**
+ * Return a form with question feedback.
+ */
+function quiz_question_feedback($quiz, $question) {
+  return quiz()
+      ->getQuizHelper()
+      ->getTakeHelper($quiz)
+      ->getQuestionFeedBackRender()
+      ->buildRenderArray($question);
 }
 
 /**
@@ -483,28 +485,5 @@ function quiz_question_element_validate(&$element, &$form_state) {
       '#weight' => 100,
       '#markup' => drupal_render($feedback),
     );
-  }
-}
-
-/**
- * Return a form with question feedback.
- */
-function quiz_question_feedback($quiz, $question) {
-  if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
-    $result_id = $_SESSION['quiz']['temp']['result_id'];
-  }
-  else {
-    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  }
-
-  $types = _quiz_get_question_types();
-  $module = $types[$question->type]['module'];
-  // Invoke hook_get_report().
-  $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
-  $path = drupal_get_path('module', 'quiz');
-  require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
-  if ($report) {
-    $report_form = drupal_get_form('quiz_report_form', array($report));
-    return $report_form;
   }
 }
