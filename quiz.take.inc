@@ -23,16 +23,6 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
 }
 
 /**
- * Tells whether a question node is being viewed inside/outside of quiz.
- *
- * @return
- *   Boolean.
- */
-function _quiz_is_taking_context() {
-  return arg(2) == 'take';
-}
-
-/**
  * Primary quiz-taking view on 'Take' tab.
  */
 function quiz_take($node) {
