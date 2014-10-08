@@ -51,14 +51,6 @@ function _quiz_check_num_random(&$node) {
 }
 
 /**
- * Determine who should have access to the My results tab.
- */
-function _quiz_user_results_access($user_id) {
-  global $user;
-  return ($user_id == $user->uid && user_access('view own quiz results')) || user_access('view any quiz results');
-}
-
-/**
  * Get the number of compulsory questions for a quiz.
  *
  * @param $nid
