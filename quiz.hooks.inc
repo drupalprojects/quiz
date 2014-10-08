@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Quiz hook implementations
+ * Quiz hook implementations and helper functions (not API).
  */
 
 /**
@@ -803,4 +803,22 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
     }
     userpoints_userpointsapi($params);
   }
+}
+
+// ---------------------
+// Helper functions
+// ---------------------
+
+/**
+ * Shortcut to entity_load_single().
+ */
+function quiz_result_load($result_id) {
+  return entity_load_single('quiz_result', $result_id);
+}
+
+/**
+ * Workaround for menu_translate bug.
+ */
+function question_number_to_arg() {
+  return 0;
 }

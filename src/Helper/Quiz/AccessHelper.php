@@ -71,7 +71,7 @@ class AccessHelper {
    *   uid of the quiz creator.
    */
   public function canAccessQuizScore($account, $quiz_creator = NULL) {
-    if ($quiz_creator == NULL && ($quiz = quiz_get_quiz_from_menu())) {
+    if ($quiz_creator == NULL && ($quiz = $this->getQuizFromMenu())) {
       $quiz_creator = $quiz->uid;
     }
     if (user_access('score any quiz')) {
@@ -83,6 +83,23 @@ class AccessHelper {
     if (user_access('score taken quiz answer')) {
       return TRUE;
     }
+  }
+
+  /**
+   * Retrieves the quiz node from the menu router.
+   *
+   * @return
+   *   Quiz node, if found, or FALSE if quiz node can't be retrieved from the menu
+   *   router.
+   */
+  private function getQuizFromMenu() {
+    if ($to_return = menu_get_object('quiz_type_access', 4)) {
+      return $to_return;
+    }
+
+    // @TODO: FIX it. This seems to return NULL in feedback page.
+    $node = menu_get_object();
+    return (is_object($node) && $node->type == 'quiz') ? $node : FALSE;
   }
 
   /**
