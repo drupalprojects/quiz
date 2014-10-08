@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz;
 
+use Drupal\quiz\Helper\MailHelper;
 use Drupal\quiz\Helper\NodeHelper;
 use Drupal\quiz\Helper\QuizHelper;
 
@@ -24,6 +25,7 @@ class Quiz {
 
   private $nodeHelper;
   private $quizHelper;
+  private $mailHelper;
 
   /**
    * @return NodeHelper
@@ -52,6 +54,21 @@ class Quiz {
 
   public function setQuizHelper($quizHelper) {
     $this->quizHelper = $quizHelper;
+    return $this;
+  }
+
+  /**
+   * @return MailHelper
+   */
+  public function getMailHelper() {
+    if (null === $this->mailHelper) {
+      $this->mailHelper = new MailHelper();
+    }
+    return $this->mailHelper;
+  }
+
+  public function setMailHelper($mailHelper) {
+    $this->mailHelper = $mailHelper;
     return $this;
   }
 

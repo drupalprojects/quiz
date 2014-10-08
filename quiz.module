@@ -125,38 +125,6 @@ function quiz_type_confirm($node, $op = NULL) {
 }
 
 /**
- * This functions returns the default email subject and body format which will
- * be used at the end of quiz.
- */
-function quiz_email_results_format($type, $target) {
-  global $user;
-  if ($type == 'subject') {
-    if ($target == 'author') {
-      return t('!title Results Notice from !sitename');
-    }
-    if ($target == 'taker') {
-      return t('!title Results Notice from !sitename');
-    }
-  }
-  if ($type == 'body') {
-    if ($target == 'author') {
-      return t('Dear !author') . "\n\n" .
-        t('!taker attended the quiz !title on !date') . "\n" .
-        t('Test Description : !desc') . "\n" .
-        t('!taker got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
-        t('You can access the result here !url') . "\n";
-    }
-    if ($target == 'taker') {
-      return t('Dear !taker') . "\n\n" .
-        t('You attended the quiz !title on !date') . "\n" .
-        t('Test Description : !desc') . "\n" .
-        t('You got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
-        t('You can access the result here !url') . "\n";
-    }
-  }
-}
-
-/**
  * This function was copied from the triggers module as to prevent having to be
  * dependent on that module for the actions to work.  The trigger function is
  * called trigger_options().
