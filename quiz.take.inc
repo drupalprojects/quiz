@@ -1,6 +1,12 @@
 <?php
 
 /**
+ * @file quiz.take.inc
+ *
+ * Functions to render and process quiz-taking pages.
+ */
+
+/**
  * Does the current user have access to take the quiz?
  *
  * @param $quiz
@@ -140,6 +146,9 @@ function quiz_end_actions($quiz, $score, $session_data) {
   return $score;
 }
 
+/**
+ * Jumper form.
+ */
 function quiz_jumper($form, $form_state, $questions, $current) {
   $form['question_number'] = array(
     '#type' => 'select',
@@ -167,6 +176,7 @@ function quiz_jumper_submit($form, &$form_state) {
  */
 function quiz_end_scoring($result_id) {
   global $user;
+
   $quiz_result = quiz_result_load($result_id);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   $questions = $quiz_result->layout;
@@ -322,6 +332,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_confirm.js'),
     );
   }
+
   if ($quiz->allow_skipping) {
     $form['navigation']['skip'] = array(
       '#weight' => 20,
@@ -334,6 +345,34 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   }
 
   return $form;
+}
+
+/**
+ * Show the finish button?
+ */
+function _quiz_show_finish_button($quiz) {
+  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+  $current = $_SESSION['quiz'][$quiz->nid]['current'];
+  foreach ($quiz_result->layout as $idx => $question) {
+    if ($question['type'] == 'quiz_page') {
+      if ($current == $idx) {
+        // Found a page that we are on
+        $in_page = TRUE;
+        $last_page = TRUE;
+      }
+      else {
+        // Found a quiz page that we are not on.
+        $last_page = FALSE;
+      }
+    }
+    else if (empty($question['qnr_pid'])) {
+      // A question without a parent showed up.
+      $in_page = FALSE;
+      $last_page = FALSE;
+    }
+  }
+
+  return $last_page || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 
 /**

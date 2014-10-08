@@ -233,9 +233,6 @@ function quiz_settings_form_validate($form, &$form_state) {
   if (!_quiz_is_plain($form_state['values']['quiz_name'])) {
     form_set_error('quiz_name', t('The quiz name must be plain text.'));
   }
-
-  /* if (!_quiz_is_plain($form_state['values']['quiz_action_type']))
-    form_set_error('quiz_action_type', t('The action type must be plain text.')); */
 }
 
 /**
@@ -443,7 +440,7 @@ function quiz_categorized_form($form, $form_state, $quiz) {
 function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
   $terms = _quiz_get_terms($quiz->vid);
   if ($terms) {
-    if (empty($form_state['input']) && !_quiz_build_categorized_question_list($quiz)) {
+    if (empty($form_state['input']) && !quiz()->getQuizHelper()->buildCategoziedQuestionList($quiz)) {
       drupal_set_message(t('There are not enough questions in the requested categories.'), 'error');
     }
   }
@@ -941,7 +938,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     if ($quiz->randomization == 2) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
-        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
+        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0  : 0,
         '#attributes' => array('class' => array('q-compulsory')),
       );
     }

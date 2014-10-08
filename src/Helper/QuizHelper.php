@@ -295,7 +295,7 @@ class QuizHelper {
     $questions = array();
 
     if ($quiz->randomization == 3) {
-      $questions = _quiz_build_categorized_question_list($quiz);
+      $questions = $this->buildCategoziedQuestionList($quiz);
     }
     else {
       // Get required questions first.
@@ -344,6 +344,49 @@ class QuizHelper {
       $questions_out[$count] = $question;
     }
     return $questions_out;
+  }
+
+  /**
+   * Builds the questionlist for quizzes with categorized random questions
+   */
+  public function buildCategoziedQuestionList($quiz) {
+    $terms = _quiz_get_terms($quiz->vid);
+    $questions = array();
+    $nids = array();
+    $question_types = array_keys(_quiz_get_question_types());
+    if (empty($question_types)) {
+      return array();
+    }
+    $total_count = 0;
+    foreach ($terms as $term) {
+      $query = db_select('node', 'n');
+      $query->join('taxonomy_index', 'tn', 'n.nid = tn.nid');
+      $query->fields('n', array('nid', 'vid'));
+      $query->fields('tn', array('tid'));
+      $query->condition('n.status', 1, '=');
+      $query->condition('n.type', $question_types, 'IN');
+      $query->condition('tn.tid', $term->tid, '=');
+      if (!empty($nids)) {
+        $query->condition('n.nid', $nids, 'NOT IN');
+      }
+      $query->range(0, $term->number);
+      $query->orderBy('RAND()');
+
+      $result = $query->execute();
+      $count = 0;
+      while ($question = $result->fetchAssoc()) {
+        $count++;
+        $question['tid'] = $term->tid;
+        $question['number'] = $count + $total_count;
+        $questions[] = $question;
+        $nids[] = $question['nid'];
+      }
+      $total_count += $count;
+      if ($count < $term->number) {
+        return array(); // Not enough questions
+      }
+    }
+    return $questions;
   }
 
   public function getSubQuestions($qnr_pid, &$questions) {

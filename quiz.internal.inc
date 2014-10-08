@@ -1,52 +1,6 @@
 <?php
 
 /**
- * Builds the questionlist for quizzes with categorized random questions
- *
- * @see quiz_build_question_list()
- */
-function _quiz_build_categorized_question_list($quiz) {
-  $terms = _quiz_get_terms($quiz->vid);
-  $questions = array();
-  $nids = array();
-  $question_types = array_keys(_quiz_get_question_types());
-  if (empty($question_types)) {
-    return array();
-  }
-  $total_count = 0;
-  foreach ($terms as $term) {
-
-    $query = db_select('node', 'n');
-    $query->join('taxonomy_index', 'tn', 'n.nid = tn.nid');
-    $query->fields('n', array('nid', 'vid'));
-    $query->fields('tn', array('tid'));
-    $query->condition('n.status', 1, '=');
-    $query->condition('n.type', $question_types, 'IN');
-    $query->condition('tn.tid', $term->tid, '=');
-    if (!empty($nids)) {
-      $query->condition('n.nid', $nids, 'NOT IN');
-    }
-    $query->range(0, $term->number);
-    $query->orderBy('RAND()');
-
-    $result = $query->execute();
-    $count = 0;
-    while ($question = $result->fetchAssoc()) {
-      $count++;
-      $question['tid'] = $term->tid;
-      $question['number'] = $count + $total_count;
-      $questions[] = $question;
-      $nids[] = $question['nid'];
-    }
-    $total_count += $count;
-    if ($count < $term->number) {
-      return array(); // Not enough questions
-    }
-  }
-  return $questions;
-}
-
-/**
  * Get data for all terms belonging to a Quiz with categorized random questions
  *
  * @param int $vid
@@ -243,34 +197,6 @@ function _quiz_is_plain($value) {
  */
 function _quiz_is_empty_html($html) {
   return drupal_strlen(trim(str_replace('&nbsp;', '', strip_tags($html, '<img><object><embed>')))) == 0;
-}
-
-/**
- * Show the finish button?
- */
-function _quiz_show_finish_button($quiz) {
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $current = $_SESSION['quiz'][$quiz->nid]['current'];
-  foreach ($quiz_result->layout as $idx => $question) {
-    if ($question['type'] == 'quiz_page') {
-      if ($current == $idx) {
-        // Found a page that we are on
-        $in_page = TRUE;
-        $last_page = TRUE;
-      }
-      else {
-        // Found a quiz page that we are not on.
-        $last_page = FALSE;
-      }
-    }
-    else if (empty($question['qnr_pid'])) {
-      // A question without a parent showed up.
-      $in_page = FALSE;
-      $last_page = FALSE;
-    }
-  }
-
-  return $last_page || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 
 function _quiz_userpoints_type() {

@@ -2,6 +2,10 @@
 
 namespace Drupal\quiz\Helper\Quiz;
 
+/**
+ * Helper class to provide methods to check user access right to quiz,
+ * questions, feedback, score, …
+ */
 class AccessHelper {
 
   public function userHasResult($quiz, $uid) {
