@@ -2,7 +2,9 @@
 
 namespace Drupal\quiz\Helper\Quiz;
 
-class SettingHelper {
+use Drupal\quiz\Helper\FormHelper;
+
+class SettingHelper extends FormHelper {
 
   /**
    * Returns an array with quiz titles keyed with quiz node ids.
@@ -121,9 +123,9 @@ class SettingHelper {
         'pass_rate' => 75,
         'quiz_always' => 1,
         'quiz_close' => 0,
-        'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
+        'quiz_close' => $this->prepareDate(NULL, variable_get('quiz_default_close', 30)),
         'quiz_open' => 0,
-        'quiz_open' => _quiz_form_prepare_date(),
+        'quiz_open' => $this->prepareDate(),
         'randomization' => 0,
         'repeat_until_correct' => 0,
         'review_options' => array('question' => array(), 'end' => array()),

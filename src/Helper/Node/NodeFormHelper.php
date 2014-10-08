@@ -2,7 +2,9 @@
 
 namespace Drupal\quiz\Helper\Node;
 
-class NodeFormHelper {
+use Drupal\quiz\Helper\FormHelper;
+
+class NodeFormHelper extends FormHelper {
 
   public function execute(&$node, &$form_state) {
     $form = array();
@@ -211,14 +213,14 @@ class NodeFormHelper {
     $form['quiz_availability']['quiz_open'] = array(
       '#type' => 'date',
       '#title' => t('Open Date'),
-      '#default_value' => _quiz_form_prepare_date($node->quiz_open),
+      '#default_value' => $this->prepareDate($node->quiz_open),
       '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
       '#after_build' => array('_quiz_limit_year_options'),
     );
     $form['quiz_availability']['quiz_close'] = array(
       '#type' => 'date',
       '#title' => t('Close Date'),
-      '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
+      '#default_value' => $this->prepareDate($node->quiz_close, variable_get('quiz_default_close', 30)),
       '#description' => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
       '#after_build' => array('_quiz_limit_year_options'),
     );
