@@ -6,6 +6,7 @@ use Drupal\quiz\Helper\Quiz\AccessHelper;
 use Drupal\quiz\Helper\Quiz\FeedbackHelper;
 use Drupal\quiz\Helper\Quiz\ResultHelper;
 use Drupal\quiz\Helper\Quiz\SettingHelper;
+use Drupal\quiz\Helper\Quiz\TakeHelper;
 
 class QuizHelper {
 
@@ -13,6 +14,7 @@ class QuizHelper {
   private $resultHelper;
   private $accessHelper;
   private $feedbackHelper;
+  private $takeHelper;
 
   /**
    * @return SettingHelper
@@ -71,6 +73,18 @@ class QuizHelper {
 
   public function setFeedbackHelper($feedbackHelper) {
     $this->feedbackHelper = $feedbackHelper;
+    return $this;
+  }
+
+  public function getTakeHelper() {
+    if (null === $this->takeHelper) {
+      $this->takeHelper = new TakeHelper();
+    }
+    return $this->takeHelper;
+  }
+
+  public function setTakeHelper($takeHelper) {
+    $this->takeHelper = $takeHelper;
     return $this;
   }
 
