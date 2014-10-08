@@ -707,25 +707,10 @@ function quiz_mail($key, &$message, $params) {
   switch ($key) {
     case 'notice':
       list($quiz, $score, $result_id, $target) = $params;
-      $quiz_body = field_get_items('node', $quiz, 'body');
-      $substitutions = array(
-        '!title' => $quiz->title,
-        '!sitename' => variable_get('site_name', 'Quiz'),
-        '!taker' => $user->name,
-        '!author' => $quiz->name,
-        '!title' => check_plain($quiz->title),
-        '!date' => format_date(REQUEST_TIME),
-        '!desc' => $quiz_body ? $quiz_body[0]['value'] : '',
-        '!correct' => isset($score['numeric_score']) ? $score['numeric_score'] : 0,
-        '!total' => $score['possible_score'],
-        '!percentage' => $score['percentage_score'],
-        '!url' => url("user/{$user->uid}/quiz-results/{$result_id}/view", array('absolute' => TRUE)),
-        '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $result_id))->fetchField()
-      );
-      $type = $target != 'author' ? '_taker' : '';
-      $test = variable_get('quiz_email_results_body' . $type, quiz_email_results_format('body', $target));
-      $message['subject'] = t(variable_get('quiz_email_results_subject' . $type, quiz_email_results_format('subject', $target)), $substitutions, array('langcode' => $user->language));
-      $message['body'][] = t($test, $substitutions, array('langcode' => $user->language));
+      list($subject, $body) = quiz()->getMailHelper()->notice($user, $quiz, $score, $result_id, $target);
+      $message['subject'] = $subject;
+      $message['body'][] = $body;
+      break;
   }
 }
 
