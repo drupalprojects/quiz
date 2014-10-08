@@ -7,30 +7,6 @@
 /////////////////////////////////
 
 /**
- * @file
- * Handles the start and end times in a node form submission.
- * - Takes the array from form_date() and turns it into a timestamp
- * - Adjusts times for time zone offsets.
- * - Adapted from event.module
- *
- * @param $node The submitted node with form data.
- * @param $date The name of the date ('quiz_open' or 'quiz_close') to translate.
- */
-function quiz_translate_form_date(&$node, $date) {
-  $prefix = $node->$date;
-  // If we have all the parameters, re-calculate $node->event_$date .
-  if (is_array($prefix) && isset($prefix['year']) && isset($prefix['month']) && isset($prefix['day'])) {
-    // Build a timestamp based on the date supplied and the configured timezone.
-    $node->$date = _quiz_mktime(0, 0, 0, $prefix['month'], $prefix['day'], $prefix['year'], 0);
-  }
-  else {
-    if (!_quiz_is_int($prefix, 1, 2147483647)) {
-      form_set_error('quiz_open', t('Please supply a valid date.'));
-    }
-  }
-}
-
-/**
  * Formats local time values to GMT timestamp using time zone offset supplied.
  * All time values in the database are GMT and translated here prior to insertion.
  *
@@ -96,4 +72,37 @@ function _quiz_date($format, $timestamp, $offset = NULL) {
   // make sure we apply the site first day of the week setting for dow requests
   $result = gmdate($format, $timestamp);
   return $result;
+}
+
+/**
+ * Takes a time element and prepares to send it to form_date().
+ *
+ * @param $time
+ *   The time to be turned into an array. This can be:
+ *   - A timestamp when from the database.
+ *   - An array (day, month, year) when previewing.
+ *   - NULL for new nodes.
+ *
+ * @return
+ *   An array for form_date (day, month, year).
+ */
+function _quiz_form_prepare_date($time = '', $offset = 0) {
+  // If this is empty, get the current time.
+  if ($time == '') {
+    $time = REQUEST_TIME + $offset * 86400;
+  }
+  // If we are previewing, $time will be an array so just pass it through.
+  $time_array = array();
+  if (is_array($time)) {
+    $time_array = $time;
+  }
+  // Otherwise build the array from the timestamp.
+  elseif (is_numeric($time)) {
+    $time_array = array(
+      'day' => _quiz_date('j', $time),
+      'month' => _quiz_date('n', $time),
+      'year' => _quiz_date('Y', $time),
+    );
+  }
+  return $time_array;
 }

@@ -14,7 +14,7 @@ class NodeUpdateHelper extends NodeHelper {
     }
 
     // Update an existing row in the quiz_node_properties table.
-    _quiz_common_presave_actions($quiz);
+    $this->presaveActions($quiz);
 
     quiz_update_defaults($quiz);
     $this->updateResultOptions($quiz);

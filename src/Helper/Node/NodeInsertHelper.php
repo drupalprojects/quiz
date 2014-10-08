@@ -31,7 +31,7 @@ class NodeInsertHelper extends NodeHelper {
       quiz_set_questions($quiz, $questions);
     }
 
-    _quiz_common_presave_actions($quiz);
+    $this->presaveActions($quiz);
 
     // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
     _quiz_check_num_random($quiz);

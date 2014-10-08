@@ -283,24 +283,6 @@ function _quiz_userpoints_type() {
 }
 
 /**
- * Common actions that need to be done before a quiz is inserted or updated
- *
- * @param $node
- *   Quiz node
- */
-function _quiz_common_presave_actions(&$node) {
-  quiz_translate_form_date($node, 'quiz_open');
-  quiz_translate_form_date($node, 'quiz_close');
-
-  if (empty($node->pass_rate)) {
-    $node->pass_rate = 0;
-  }
-  if ($node->randomization < 2) {
-    $node->number_of_random_questions = 0;
-  }
-}
-
-/**
  * Prints a taxonomy selection form for each vocabulary.
  *
  * @param $value
@@ -315,39 +297,6 @@ function _quiz_taxonomy_select($value = 0) {
     $options = array_merge($options, $temp['#options']);
   }
   return $options;
-}
-
-/**
- * Takes a time element and prepares to send it to form_date().
- *
- * @param $time
- *   The time to be turned into an array. This can be:
- *   - A timestamp when from the database.
- *   - An array (day, month, year) when previewing.
- *   - NULL for new nodes.
- *
- * @return
- *   An array for form_date (day, month, year).
- */
-function _quiz_form_prepare_date($time = '', $offset = 0) {
-  // If this is empty, get the current time.
-  if ($time == '') {
-    $time = REQUEST_TIME + $offset * 86400;
-  }
-  // If we are previewing, $time will be an array so just pass it through.
-  $time_array = array();
-  if (is_array($time)) {
-    $time_array = $time;
-  }
-  // Otherwise build the array from the timestamp.
-  elseif (is_numeric($time)) {
-    $time_array = array(
-      'day' => _quiz_date('j', $time),
-      'month' => _quiz_date('n', $time),
-      'year' => _quiz_date('Y', $time),
-    );
-  }
-  return $time_array;
 }
 
 /**
