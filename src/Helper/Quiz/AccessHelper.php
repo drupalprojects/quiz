@@ -88,8 +88,48 @@ class AccessHelper {
     if (user_access('score any quiz', $account)) {
       return true;
     }
-
     return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
+  }
+
+  public function canAccessQuestion($quiz, $question_number) {
+    if (!$question_number) {
+      return FALSE;
+    }
+
+    if ($quiz->allow_jumping) { // Access to go to any question. Yay.
+      return TRUE;
+    }
+
+    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+    $quiz_result = quiz_result_load($result_id);
+    $question_index = $question_number;
+    $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
+    $qinfo = $quiz_result->layout[$question_index];
+
+    if (!$quiz->backwards_navigation) { // No backwards navigation.
+      if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+        // Already have an answer for the requested question.
+        return FALSE;
+      }
+    }
+
+    // Enforce normal navigation.
+    if ($question_number == 1 || $qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
+      //  Previous answer was submitted or this is the first question.
+      return TRUE;
+    }
+  }
+
+  public function canTakeQuiz($quiz, $account) {
+    if ($quiz->type != 'quiz') {
+      return FALSE;
+    }
+
+    if (!quiz_availability($quiz)) {
+      return FALSE;
+    }
+
+    return node_access('view', $quiz, $account) && user_access('access quiz', $account);
   }
 
 }

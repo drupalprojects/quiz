@@ -3,14 +3,12 @@
 /**
  * Does the current user have access to take the quiz?
  *
- * @param $node
+ * @param $quiz
  *  The quiz node
  */
-function quiz_take_access($node) {
-  if ($node->type != 'quiz') {
-    return FALSE;
-  }
-  return node_access('view', $node) && user_access('access quiz') && quiz_availability($node) === TRUE;
+function quiz_take_access($quiz) {
+  global $user;
+  return quiz()->getQuizHelper()->getAccessHelper()->canTakeQuiz($quiz, $user);
 }
 
 /**
@@ -23,28 +21,6 @@ function quiz_take_access($node) {
  */
 function quiz_question_goto($quiz, $question_number) {
   $_SESSION['quiz'][$quiz->nid]['current'] = $question_number;
-}
-
-/**
- * Helper function for hook_view().
- *
- * Returns a button to use as a link to start taking the quiz.
- *
- * @param $form_state
- *   Form state array.
- * @param $node
- *   The quiz node.
- * @return
- *   Form with a button linking to the take tab.
- */
-function quiz_start_quiz_button_form($form, &$form_state, $node) {
-  $form = array();
-  $form['#action'] = url("node/$node->nid/take");
-  $form['button'] = array(
-    '#type' => 'submit',
-    '#value' => t('Start quiz'),
-  );
-  return $form;
 }
 
 /**
@@ -72,34 +48,29 @@ function quiz_take_question($quiz, $question_number) {
  * Meun check to see if user has access to take this question.
  */
 function quiz_take_question_access($quiz, $question_number) {
-  if (!$question_number) {
-    return FALSE;
-  }
+  return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuestion($quiz, $question_number);
+}
 
-  if ($quiz->allow_jumping) {
-    // Access to go to any question. Yay.
-    return TRUE;
-  }
-
-  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  $quiz_result = quiz_result_load($result_id);
-  $question_index = $question_number;
-  $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
-  $qinfo = $quiz_result->layout[$question_index];
-
-  if (!$quiz->backwards_navigation) {
-    // No backwards navigation.
-    if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
-      // Already have an answer for the requested question.
-      return FALSE;
-    }
-  }
-
-  // Enforce normal navigation.
-  if ($question_number == 1 || $qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
-    //  Previous answer was submitted or this is the first question.
-    return TRUE;
-  }
+/**
+ * Helper function for hook_view().
+ *
+ * Returns a button to use as a link to start taking the quiz.
+ *
+ * @param $form_state
+ *   Form state array.
+ * @param $node
+ *   The quiz node.
+ * @return
+ *   Form with a button linking to the take tab.
+ */
+function quiz_start_quiz_button_form($form, &$form_state, $node) {
+  $form = array();
+  $form['#action'] = url("node/$node->nid/take");
+  $form['button'] = array(
+    '#type' => 'submit',
+    '#value' => t('Start quiz'),
+  );
+  return $form;
 }
 
 /**
