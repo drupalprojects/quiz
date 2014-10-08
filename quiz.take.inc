@@ -210,30 +210,6 @@ function quiz_end_scoring($result_id) {
 }
 
 /**
- * Creates a unique id to be used when storing results for a quiz taker.
- *
- * @param $quiz
- *   The quiz node.
- * @return $result_id
- *   The result id.
- */
-function quiz_create_rid($quiz) {
-  $result_id = db_insert('quiz_node_results')
-    ->fields(array(
-      'nid' => $quiz->nid,
-      'vid' => $quiz->vid,
-      'uid' => $GLOBALS['user']->uid,
-      'time_start' => REQUEST_TIME,
-    ))
-    ->execute();
-  if (!is_numeric($result_id)) {
-    form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
-    return FALSE;
-  }
-  return $result_id;
-}
-
-/**
  * Get the form to show to the quiz taker.
  *
  * @param $nodes
