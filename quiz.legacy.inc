@@ -56,25 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
-/**
- * Return highest score data for given quizzes.
- *
- * @param $nids
- *   nids for the quizzes we want to collect scores from.
- * @param $uid
- *   uid for the user we want to collect score for.
- * @param $include_num_questions
- *   Do we want to collect information about the number of questions in a quiz?
- *   This adds a performance hit.
- * @return
- *   Array of score data.
- *   For several takes on the same quiz, only returns highest score.
- */
-function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
-  return quiz()->getQuizHelper()->getScoreData($nids, $uid, $include_num_questions);
-}
-
-/**
  * Finds out the number of questions for the quiz.
  *
  * Good example of usage could be to calculate the % of score.
