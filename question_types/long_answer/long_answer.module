@@ -185,7 +185,7 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
 
     // Third, we update the main quiz results table
     if ($update_total) {
-      quiz_update_total_score($quiz, $result_id);
+      quiz()->getQuizHelper()->getResultHelper()->updateTotalScore($quiz, $result_id);
     }
   }
 
