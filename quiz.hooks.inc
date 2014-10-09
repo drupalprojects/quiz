@@ -336,7 +336,7 @@ function quiz_menu() {
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
-    'page callback' => 'quiz_take',
+    'page callback' => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
     'page arguments' => array(1),
     'access callback' => 'quiz_take_access',
     'access arguments' => array(1),
@@ -348,7 +348,7 @@ function quiz_menu() {
   // number
   $items['node/%quiz_menu/take/%question_number'] = array(
     'title' => 'Take',
-    'page callback' => 'quiz_take_question',
+    'page callback' => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_take_question_access',
     'access arguments' => array(1, 3),

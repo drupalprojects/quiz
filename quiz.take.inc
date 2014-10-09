@@ -30,27 +30,6 @@ function quiz_question_goto($quiz, $question_number) {
 }
 
 /**
- * Primary quiz-taking view on 'Take' tab.
- */
-function quiz_take($quiz) {
-  global $user;
-  return quiz()->getQuizHelper()->getTakeHelper($quiz)->getMasterRender()->render($user);
-}
-
-/**
- * Take a quiz questions.
- *
- * @param type $quiz
- *   A quiz node.
- * @param type $question_number
- *   A question number, starting at 1. Pages do not have question numbers. Quiz
- *   directions are considered part of the numbering.
- */
-function quiz_take_question($quiz, $question_number) {
-  return quiz()->getQuizHelper()->getTakeHelper($quiz)->getQuestionRender()->render($question_number);
-}
-
-/**
  * Meun check to see if user has access to take this question.
  */
 function quiz_take_question_access($quiz, $question_number) {

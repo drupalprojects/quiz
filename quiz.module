@@ -543,4 +543,3 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
       WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
     )->fetch();
 }
-

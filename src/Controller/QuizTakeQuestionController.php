@@ -1,13 +1,27 @@
 <?php
 
-namespace Drupal\quiz\Helper\Quiz\TakeHelper;
+namespace Drupal\quiz\Controller;
 
-class QuestionRender {
+class QuizTakeQuestionController {
 
   private $quiz;
 
   public function __construct($quiz) {
     $this->quiz = $quiz;
+  }
+
+  /**
+   * Callback for node/%quiz_menu/take/%question_number. Take a quiz questions.
+   *
+   * @param type $quiz
+   *   A quiz node.
+   * @param type $question_number
+   *   A question number, starting at 1. Pages do not have question numbers. Quiz
+   *   directions are considered part of the numbering.
+   */
+  public static function staticCallback($quiz, $question_number) {
+    $controller = new static($quiz);
+    return $controller->render($question_number);
   }
 
   public function render($question_number) {

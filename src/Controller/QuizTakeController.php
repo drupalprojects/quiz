@@ -1,13 +1,22 @@
 <?php
 
-namespace Drupal\quiz\Helper\Quiz\TakeHelper;
+namespace Drupal\quiz\Controller;
 
-class MasterRender {
+class QuizTakeController {
 
   private $quiz;
 
   public function __construct($quiz) {
     $this->quiz = $quiz;
+  }
+
+  /**
+   * Callback for node/%quiz_menu/take
+   */
+  public static function staticCallback($quiz) {
+    global $user;
+    $controller = new static($quiz);
+    return $controller->render($user);
   }
 
   /**

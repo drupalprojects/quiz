@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\quiz\Controller\QuizTakeController;
+
 /**
  * This plugin array is more or less self documenting
  */
@@ -19,8 +21,6 @@ $plugin = array(
  * See ctools_plugin_examples for more advanced info
  */
 function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $context = NULL) {
-  global $user;
-
   if (!empty($context) && empty($context->data)) {
     return;
   }
@@ -45,7 +45,7 @@ function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $conte
     $block->content = $quiz->rendered_content;
   }
   else {
-    $block->content = quiz()->getQuizHelper()->getTakeHelper($quiz)->getMasterRender()->render($user);
+    $block->content = QuizTakeController::staticCallback($quiz);
   }
 
   return $block;
