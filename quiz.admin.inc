@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\quiz\Controller\QuizQuestionManagementController;
+
 /**
  * Administrator interface for Quiz module.
  *
@@ -443,7 +445,7 @@ function quiz_categorized_form_validate($form, &$form_state) {
   if (!empty($form_state['values']['term'])) {
     $tid = _quiz_get_id_from_string($form_state['values']['term']);
     if ($tid === FALSE) {
-      $terms = _quiz_search_terms($form_state['values']['term']);
+      $terms = QuizQuestionManagementController::searchTerms($form_state['values']['term']);
       $num_terms = count($terms);
       if ($num_terms == 1) {
         $tid = key($terms);
@@ -571,32 +573,6 @@ function _quiz_get_id_from_string($string) {
   $matches = array();
   preg_match('/\(id:(\d+)\)$/', $string, $matches);
   return isset($matches[1]) ? (int) $matches[1] : FALSE;
-}
-
-/**
- * Helper function for finding terms...
- *
- * @param string $start
- *  The start of the string we are looking for
- */
-function _quiz_search_terms($start, $all = FALSE) {
-  $terms = array();
-  $sql_args = array_keys(_quiz_get_vocabularies());
-  if (empty($sql_args)) {
-    return $terms;
-  }
-  $query = db_select('taxonomy_term_data', 't')
-    ->fields('t', array('name', 'tid'))
-    ->condition('t.vid', $sql_args, 'IN');
-  if (!$all) {
-    $query->condition('t.name', '%' . $start . '%', 'LIKE');
-  }
-  $res = $query->execute();
-  // TODO Don't user db_fetch_object
-  while ($res_o = $res->fetch()) {
-    $terms[$res_o->tid] = $res_o->name;
-  }
-  return $terms;
 }
 
 /**

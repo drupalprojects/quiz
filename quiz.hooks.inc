@@ -462,11 +462,10 @@ function quiz_menu() {
   );
 
   $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionManagementController::quiz_categorized_term_ahah',
+    'page callback' => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
     'type' => MENU_CALLBACK,
     'access callback' => 'node_access',
     'access arguments' => array('create', 'quiz'),
-    'file' => 'quiz.admin.inc',
   );
 
   return $items;
