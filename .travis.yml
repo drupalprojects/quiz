@@ -46,7 +46,7 @@ before_script:
   - drush en -y simpletest long_answer matching multichoice quiz_ddlines quiz_directions quiz_page quiz_question scale short_answer truefalse
 
   # ---------------------
-  # No cache data
+  # No cache data!
   # ---------------------
   - drush cc all
 
