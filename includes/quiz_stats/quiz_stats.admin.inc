@@ -51,7 +51,7 @@ function quiz_stats_revision_selector_page($quiz) {
  *   HTML table
  */
 function quiz_stats_get_basic_stats($uid = 0) {
-  $results = _quiz_get_quizzes($uid);
+  $results = quiz()->getQuizHelper()->getQuizzesByUserId($uid);
   return empty($results) ? t('No Statistics found.') : theme('quiz_stats_get_basic_stats', array('results' => $results));
 }
 

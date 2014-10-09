@@ -112,20 +112,6 @@ function quiz_get_sub_questions($qnr_pid, &$questions) {
 }
 
 /**
- * Get a list of all available quizzes.
- *
- * @param $uid
- *   An optional user ID. If supplied, only quizzes created by that user will be
- *   returned.
- *
- * @return
- *   A list of quizzes.
- */
-function _quiz_get_quizzes($uid = 0) {
-  return quiz()->getQuizHelper()->getQuizzesByUserId($uid);
-}
-
-/**
  * Get answer data for a specific result.
  *
  * @param $result_id
