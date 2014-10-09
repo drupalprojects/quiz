@@ -453,19 +453,6 @@ function quiz_update_total_score($quiz, $result_id) {
 }
 
 /**
- * Map node properties to a question object.
- *
- * @param $node
- *  The question node.
- *
- * @return
- *  Question object.
- */
-function quiz_node_map($node) {
-  return quiz()->getQuizHelper()->reloadQuestion($node);
-}
-
-/**
  * @param string $question_type
  *
  * @return string

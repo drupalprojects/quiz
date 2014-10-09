@@ -129,12 +129,23 @@ class QuizHelper {
     }
 
     foreach ($questions as &$node) {
-      $node = $this->reloadQuestion($node); // it was 'quiz_node_map($node)' before.
+      $node = $this->reloadQuestion($node);
     }
 
     return $questions;
   }
 
+  /**
+   * Map node properties to a question object.
+   *
+   *  This was 'quiz_node_map($node)' before.
+   *
+   * @param $node
+   *  The question node.
+   *
+   * @return
+   *  Question object.
+   */
   public function reloadQuestion($node) {
     $question = node_load($node->nid, $node->vid);
 
