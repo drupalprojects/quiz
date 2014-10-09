@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\truefalse\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 /**
  * Test class for true false questions.
  */

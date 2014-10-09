@@ -6,3 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = truefalse.classes.inc
+files[] = tests/TrueFalseUnitTest.test

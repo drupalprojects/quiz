@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\long_answer\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 /**
  * Test class for long answer.
  */

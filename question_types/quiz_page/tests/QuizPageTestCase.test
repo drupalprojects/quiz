@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\quiz_page\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 class QuizPageTestCase extends QuizQuestionTestCase {
 
   var $question_node_type = 'quiz_page';

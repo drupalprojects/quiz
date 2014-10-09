@@ -6,3 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = short_answer.classes.inc
+files[] = tests/ShortAnswerUnitTest.test

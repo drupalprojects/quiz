@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\matching\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 /**
  * Test class for matching questions.
  */
