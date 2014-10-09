@@ -1,3 +1,5 @@
+Quiz.module [![Build Status](https://travis-ci.org/v3kwip/quiz.svg?branch=revert%2Fpsr-0)](https://travis-ci.org/v3kwip/quiz)
+====
 
 Overview
 --------
@@ -49,7 +51,7 @@ Support
 Credits
 -------
 - Specification:      Robert Douglass
-- Original author:    Károly Négyesi
+- Original author:    KÃ¡roly NÃ©gyesi
 - Update to Drupal 5: Wim Mostrey and riverfr0zen
 - Maintainers: Angela Byron, westwesterson, mbutcher, sivaji, turadg, falcon
 
