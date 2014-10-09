@@ -682,7 +682,7 @@ function quiz_view($node, $view_mode) {
  */
 function quiz_user_cancel($edit, $account, $method) {
   if (variable_get('quiz_durod', 0)) {
-    _quiz_delete_users_results($account->uid);
+    quiz()->getQuizHelper()->getResultHelper()->deleteByUserId($account->uid);
   }
 }
 

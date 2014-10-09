@@ -75,16 +75,6 @@ function _quiz_get_node_defaults() {
 }
 
 /**
- * Deletes all results associated with a given user.
- *
- * @param int $uid
- *  The users id
- */
-function _quiz_delete_users_results($uid) {
-  return quiz()->getQuizHelper()->getResultHelper()->deleteByUserId($uid);
-}
-
-/**
  * Returns the titles for all quizzes the user has access to.
  *
  * @return quizzes
