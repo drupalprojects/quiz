@@ -6,4 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = quiz_page.classes.inc
-files[] = tests/QuizPageTestCase.php
+files[] = tests/QuizPageTestCase.test

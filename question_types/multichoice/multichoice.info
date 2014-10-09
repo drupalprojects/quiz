@@ -6,4 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = multichoice.classes.inc
-files[] = tests/MultichoiceTestCase.php
+files[] = tests/MultichoiceTestCase.test

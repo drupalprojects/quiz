@@ -7,4 +7,3 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = quiz_directions.classes.inc
-
