@@ -451,9 +451,9 @@ function quiz_menu() {
   );
 
   // User pages.
-  $items['user/%/quiz-results/%/view'] = array(
+  $items['user/%/quiz-results/%quiz_result/view'] = array(
     'title' => 'User results',
-    'page callback' => 'quiz_user_results',
+    'page callback' => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
     'page arguments' => array(3),
     'access arguments' => array(3),
     'access callback' => 'quiz_access_my_result',

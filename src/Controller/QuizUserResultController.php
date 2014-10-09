@@ -7,7 +7,10 @@ use UnexpectedValueException;
 class QuizUserResultController {
 
   /**
-   * Callback for node/%quiz_menu/quiz-results/%quiz_rid/view.
+   * Callback for:
+   * 
+   *  - node/%quiz_menu/quiz-results/%quiz_result/view.
+   *  - user/%/quiz-results/%quiz_result/view
    *
    * Show result page for a given result id
    *
