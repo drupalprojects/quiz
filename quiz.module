@@ -543,3 +543,41 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
       WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
     )->fetch();
 }
+
+/**
+ * Returns the users default settings.
+ *
+ * @param $node
+ *   Quiz node.
+ * @param $uid
+ *   (optional) The uid of the user to get the settings for. Defaults to the
+ *   current user (NULL).
+ *
+ * @return
+ *   An array of settings. The array is empty in case no settings are available.
+ */
+function _quiz_load_user_settings($uid = NULL) {
+  // The def_uid property is the default user id. It is used if there are no
+  // settings store for the current user.
+  $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
+
+  $query = db_select('quiz_user_settings', 'qus')
+    ->fields('qus')
+    ->condition('uid', $uid);
+  $res = $query->execute()->fetchAssoc();
+  if (!empty($res)) {
+    foreach ($res as $key => $value) {
+      if (!in_array($key, array('nid', 'vid', 'uid'))) {
+        $settings[$key] = $value;
+      }
+    }
+    $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
+      ->fields('qnro')
+      ->condition('nid', $res['nid'])
+      ->condition('vid', $res['vid'])
+      ->execute()
+      ->fetchAll();
+    return $settings;
+  }
+  return array();
+}
