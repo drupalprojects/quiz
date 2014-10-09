@@ -555,6 +555,8 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
  *
  * @return
  *   An array of settings. The array is empty in case no settings are available.
+ *
+ * @see https://www.drupal.org/node/2353181
  */
 function _quiz_load_user_settings($uid = NULL) {
   // The def_uid property is the default user id. It is used if there are no
