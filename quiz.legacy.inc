@@ -105,23 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * @} End of "defgroup quiz_public".
- */
-
-/**
- * Get an array list of random questions for a quiz.
- *
- * @param $quiz
- *   The quiz node.
- *
- * @return
- *   Array of nid/vid combos for quiz questions.
- */
-function _quiz_get_random_questions($quiz) {
-  return quiz()->getQuizHelper()->getRandomQuestions($quiz);
-}
-
-/**
  * Retrieve list of published questions assigned to quiz.
  *
  * This function should be used for question browsers and similiar... It should not be used to decide what questions

@@ -326,7 +326,7 @@ class QuizHelper {
 
       // Get random questions for the remainder.
       if ($quiz->number_of_random_questions > 0) {
-        $random_questions = _quiz_get_random_questions($quiz);
+        $random_questions = $this->getRandomQuestions($quiz);
         $questions = array_merge($questions, $random_questions);
         if ($quiz->number_of_random_questions > count($random_questions)) {
           // Unable to find enough requested random questions.
