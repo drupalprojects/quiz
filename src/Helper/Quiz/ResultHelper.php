@@ -273,6 +273,8 @@ class ResultHelper {
   /**
    * Delete quiz responses for quizzes that haven't been finished.
    *
+   * This was _quiz_delete_old_in_progress()
+   *
    * @param $quiz
    *   A quiz node where old in progress results shall be deleted.
    * @param $uid

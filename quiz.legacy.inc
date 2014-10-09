@@ -109,18 +109,6 @@ function quiz_build_question_list($quiz) {
  */
 
 /**
- * Delete quiz responses for quizzes that haven't been finished.
- *
- * @param $quiz
- *   A quiz node where old in progress results shall be deleted.
- * @param $uid
- *   The userid of the user the old in progress results belong to.
- */
-function _quiz_delete_old_in_progress($quiz, $uid) {
-  return quiz()->getQuizHelper()->getResultHelper()->deleteIncompletedResultsByUserId($quiz, $uid);
-}
-
-/**
  * Get an array list of random questions for a quiz.
  *
  * @param $quiz
