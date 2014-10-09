@@ -1,0 +1,54 @@
+language: php
+php:
+  - 5.3
+  - 5.4
+  - 5.5
+
+mysql:
+  database: drupal
+  username: root
+  encoding: utf8
+
+install:
+  # ---------------------
+  # Install Drush
+  # ---------------------
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+  - composer global require drush/drush:dev-master
+
+  # ---------------------
+  # Setup DB
+  # ---------------------
+  - mysql -e 'create database drupal;'
+
+before_script:
+  # ---------------------
+  # Variables
+  # ---------------------
+  - cd ..
+  - export VENDOR=`pwd`
+  - cd ..
+  - export DRUPAL=`pwd`'/drupal-7.x/'
+
+  # ---------------------
+  # Download the codebase
+  # ---------------------
+  - wget https://github.com/drupal/drupal/archive/7.x.zip -O drupal.zip
+  - unzip -qq drupal.zip
+  - cd $DRUPAL
+  - drush si testing --db-url=mysql://root:@localhost/drupal --yes
+  - mv $VENDOR/* sites/all/modules/
+
+  # ---------------------
+  # Prepare env for the module
+  # ---------------------
+  - drush vset --yes file_temporary_path /tmp
+  - drush en -y simpletest long_answer matching multichoice quiz_ddlines quiz_directions quiz_page quiz_question scale short_answer truefalse
+
+  # ---------------------
+  # No cache data
+  # ---------------------
+  - drush cc all
+
+script:
+  - drush test-run --dirty --field-labels=0 'Quiz'
