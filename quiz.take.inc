@@ -1,6 +1,6 @@
 <?php
 
-use Drupal\quiz\Controller\QuizQuestionFeedBackController;
+use Drupal\quiz\Controller\QuizQuestionFeedbackController;
 
 /**
  * @file quiz.take.inc
@@ -64,7 +64,7 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
  * Return a form with question feedback.
  */
 function quiz_question_feedback($quiz, $question) {
-  $controller = new QuizQuestionFeedBackController($quiz);
+  $controller = new QuizQuestionFeedbackController($quiz);
   return $controller->buildRenderArray($question);
 }
 
