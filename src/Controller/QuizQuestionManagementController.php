@@ -43,4 +43,20 @@ class QuizQuestionManagementController {
     return $form;
   }
 
+  /**
+   * Callback for node/%quiz_menu/questions/term_ahah. Ahah function for finding
+   * terms...
+   *
+   * @param string $start
+   *  The start of the string we are looking for
+   */
+  function quiz_categorized_term_ahah($start) {
+    $terms = _quiz_search_terms($start, $start == '*');
+    $to_json = array();
+    foreach ($terms as $key => $value) {
+      $to_json["$value (id:$key)"] = $value;
+    }
+    drupal_json_output($to_json);
+  }
+
 }

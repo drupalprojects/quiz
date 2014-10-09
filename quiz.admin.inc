@@ -574,21 +574,6 @@ function _quiz_get_id_from_string($string) {
 }
 
 /**
- * Ahah function for finding terms...
- *
- * @param string $start
- *  The start of the string we are looking for
- */
-function quiz_categorized_term_ahah($start) {
-  $terms = _quiz_search_terms($start, $start == '*');
-  $to_json = array();
-  foreach ($terms as $key => $value) {
-    $to_json["$value (id:$key)"] = $value;
-  }
-  drupal_json_output($to_json);
-}
-
-/**
  * Helper function for finding terms...
  *
  * @param string $start
