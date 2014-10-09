@@ -323,46 +323,6 @@ function quiz_admin_node_form_submit($form, &$form_state) {
 // MANAGE QUESTIONS
 
 /**
- * Creates a form for quiz questions.
- *
- * Handles the manage questions tab.
- *
- * @param $node
- *   The quiz node we are managing questions for.
- * @return
- *   String containing the form.
- */
-function quiz_questions($node) {
-  // Set page title.
-  drupal_set_title($node->title);
-  if ($node->randomization < 3) {
-    $mq_form = drupal_get_form('quiz_questions_form', $node);
-    $manage_questions = drupal_render($mq_form);
-    $question_bank = views_get_view('quiz_question_bank')->preview();
-
-    // Insert into vert tabs
-    $form['vert_tabs'] = array(
-      '#type' => 'vertical_tabs',
-      '#weight' => 0,
-    );
-    $form['vert_tabs']['question_admin'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Manage questions'),
-      '#value' => $manage_questions,
-    );
-    $form['vert_tabs']['global_questions'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Question bank'),
-      '#value' => $question_bank,
-    );
-  }
-  else {
-    $form = drupal_get_form('quiz_categorized_form', $node);
-  }
-  return $form;
-}
-
-/**
  * Form for managing what questions should be added to a quiz with categorized random questions.
  *
  * @param array $form_state

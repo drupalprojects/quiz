@@ -436,13 +436,12 @@ function quiz_menu() {
     'page arguments' => array(1, 4),
     'access callback' => 'quiz_access_results',
     'access arguments' => array(1, 4),
-    'file' => 'quiz.admin.inc',
   );
 
   // Add questions to quiz.
   $items['node/%quiz_menu/quiz/questions'] = array(
     'title' => 'Manage questions',
-    'page callback' => 'quiz_questions',
+    'page callback' => 'Drupal\quiz\Controller\QuizQuestionManagementController::staticCallback',
     'page arguments' => array(1),
     'access callback' => 'quiz_type_confirm',
     'access arguments' => array(1, 'update'),
@@ -462,7 +461,7 @@ function quiz_menu() {
     'file' => 'quiz.pages.inc',
   );
 
-  $items['node/%quiz_menu/questions/term_ahah'] = array(//TODO: Add node access instead of user access...
+  $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
     'page callback' => 'quiz_categorized_term_ahah',
     'type' => MENU_CALLBACK,
     'access callback' => 'node_access',
