@@ -52,3 +52,6 @@ before_script:
 
 script:
   - drush test-run --dirty --field-labels=0 'Quiz'
+
+notifications:
+  email: false
