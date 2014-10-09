@@ -517,19 +517,3 @@ function quiz_allow_score_access($quiz, $account = NULL) {
 
   return quiz()->getQuizHelper()->getAccessHelper()->canAccessScore($quiz, $account);
 }
-
-/**
- * This functions returns the default email subject and body format which will
- * be used at the end of quiz.
- */
-function quiz_email_results_format($type, $target) {
-  global $user;
-
-  if ($type === 'subject') {
-    return quiz()->getMailHelper()->formatSubject($target, $user);
-  }
-
-  if ($type === 'body') {
-    return quiz()->getMailHelper()->formatBody($target, $user);
-  }
-}
