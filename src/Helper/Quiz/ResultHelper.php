@@ -7,15 +7,6 @@ use stdClass;
 class ResultHelper {
 
   /**
-   * Show result page for a given result id
-   *
-   * @param $result_id
-   *  Result id
-   */
-  public function renderUserResult($result_id) {
-  }
-
-  /**
    * Update a score for a quiz.
    *
    * This updates the quiz node results table.
