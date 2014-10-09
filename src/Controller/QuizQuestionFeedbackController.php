@@ -2,7 +2,7 @@
 
 namespace Drupal\quiz\Controller;
 
-class QuizQuestionFeedBackController {
+class QuizQuestionFeedbackController {
 
   private $quiz;
 

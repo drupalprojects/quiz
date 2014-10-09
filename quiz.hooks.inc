@@ -415,7 +415,7 @@ function quiz_menu() {
   // Feedback
   $items['node/%quiz_menu/take/%question_number/feedback'] = array(
     'title' => 'Feedback',
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionFeedBackController::staticCallback',
+    'page callback' => 'Drupal\quiz\Controller\QuizQuestionFeedbackController::staticCallback',
     'page arguments' => array(1, 3),
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
