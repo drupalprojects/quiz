@@ -625,7 +625,7 @@ function quiz_node_prepare($node) {
     if (arg(0) == 'node') {
       drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
     }
-    $settings = quiz_get_defaults();
+    $settings = quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
     foreach ($settings as $key => $value) {
       if (!isset($node->$key)) {
         $node->$key = $value;

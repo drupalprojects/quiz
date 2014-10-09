@@ -172,22 +172,6 @@ function _quiz_maintain_results($quiz, $result_id) {
 }
 
 /**
- * Returns the users default settings.
- *
- * @param $node
- *   Quiz node.
- * @param $uid
- *   (optional) The uid of the user to get the settings for. Defaults to the
- *   current user (NULL).
- *
- * @return
- *   An array of settings. The array is empty in case no settings are available.
- */
-function quiz_get_defaults() {
-  return quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
-}
-
-/**
  * Menu access check for question feedback.
  */
 function quiz_question_feedback_access($quiz, $question_number) {
@@ -205,7 +189,7 @@ function quiz_result_answer_load($result_id, $nid, $vid) {
  * Action to add questions to the current quiz.
  */
 function quiz_add_question_to_quiz($question) {
-  $quiz = node_load(arg(1));
+  $quiz = node_load(arg(1)); // @TODO: Is this correct? We can load quiz from question thou!
   return quiz()->getQuizHelper()->addQuestion($quiz, $question);
 }
 

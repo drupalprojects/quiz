@@ -18,7 +18,7 @@ class NodePresaveHelper {
       }
 
       // If this is a programmatic save, ensure we use the defaults.
-      $defaults = quiz_get_defaults();
+      $defaults = quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
       foreach ($defaults as $property => $value) {
         if (!isset($node->$property)) {
           $node->$property = $defaults->$property;
