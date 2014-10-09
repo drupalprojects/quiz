@@ -432,7 +432,7 @@ function quiz_menu() {
 
   $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
     'title' => 'Results',
-    'page callback' => 'quiz_admin_results',
+    'page callback' => 'Drupal\quiz\Controller\QuizResultController::staticCallback',
     'page arguments' => array(1, 4),
     'access callback' => 'quiz_access_results',
     'access arguments' => array(1, 4),
