@@ -92,7 +92,7 @@ class NodeFormHelper extends FormHelper {
       '#tree' => TRUE,
     );
 
-    $review_options = quiz_get_feedback_options();
+    $review_options = quiz()->getQuizHelper()->getFeedbackHelper()->getOptions();
 
     foreach (array('question' => 'After the question', 'end' => 'After the quiz') as $key => $when) {
       $form['taking']['review_options'][$key] = array(

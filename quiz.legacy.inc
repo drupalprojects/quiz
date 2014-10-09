@@ -56,24 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
- * Check a user/quiz combo to see if the user passed the given quiz.
- *
- * This will return TRUE if the user has passed the quiz at least once, and
- * FALSE otherwise. Note that a FALSE may simply indicate that the user has not
- * taken the quiz.
- *
- * @param $uid
- *   The user ID.
- * @param $nid
- *   The node ID.
- * @param $vid
- *   The version ID.
- */
-function quiz_is_passed($uid, $nid, $vid) {
-  return quiz()->getQuizHelper()->isPassed($uid, $nid, $vid);
-}
-
-/**
  * Find out if a quiz is available for taking or not
  *
  * @param $quiz
@@ -343,13 +325,6 @@ function quiz_add_question_to_quiz($question) {
  */
 function quiz_feedback_can_review($option, $quiz_result) {
   return quiz()->getQuizHelper()->getFeedbackHelper()->canReview($option, $quiz_result);
-}
-
-/**
- * Get the feedback options for Quizzes.
- */
-function quiz_get_feedback_options() {
-  return quiz()->getQuizHelper()->getFeedbackHelper()->getOptions();
 }
 
 /**

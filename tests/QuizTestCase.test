@@ -50,7 +50,13 @@ abstract class QuizTestCase extends DrupalWebTestCase {
   public function drupalCreateQuiz($settings = array()) {
     $settings += array(
       'type' => 'quiz',
-      'review_options' => array('end' => drupal_map_assoc(array_keys(quiz_get_feedback_options()))),
+      'review_options' => array(
+        'end' => drupal_map_assoc(
+          array_keys(
+            quiz()->getQuizHelper()->getFeedbackHelper()->getOptions
+          )
+        )
+      ),
     );
     return $this->drupalCreateNode($settings);
   }

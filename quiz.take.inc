@@ -184,7 +184,7 @@ function quiz_end_scoring($result_id) {
   $quiz_result->time_end = REQUEST_TIME;
   entity_save('quiz_result', $quiz_result);
   if ($user->uid) {
-    $score['passing'] = quiz_is_passed($user->uid, $quiz->nid, $quiz->vid);
+    $score['passing'] = quiz()->getQuizHelper()->isPassed($user->uid, $quiz->nid, $quiz->vid);
   }
   else {
     $score['passing'] = $score['percentage_score'] >= $quiz->pass_rate;
