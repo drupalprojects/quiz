@@ -362,7 +362,7 @@ function quiz_menu() {
     'title arguments' => array('@quiz' => QUIZ_NAME),
     'description' => 'Configure the Quiz module.',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('quiz_admin_settings'),
+    'page arguments' => array('Drupal\quiz\Controller\Admin\QuizAdminSettingsController::staticFormCallback'),
     'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM, // optional
     'file' => 'quiz.admin.inc',
