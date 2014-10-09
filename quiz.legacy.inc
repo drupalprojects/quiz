@@ -56,12 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
- * Insert or update the quiz node properties accordingly.
- */
-function quiz_save_properties($entity) {
-  return quiz()->getQuizHelper()->getSettingHelper()->saveQuizSettings($entity);
-}
-
 /**
  * Returns default values for all quiz settings.
  *
