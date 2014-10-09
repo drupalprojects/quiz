@@ -11,7 +11,7 @@ class NodeDeleteHelper {
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;
     }
-    quiz_delete_results($result_ids);
+    quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
 
     // Remove quiz node records from table quiz_node_properties
     db_delete('quiz_node_properties')

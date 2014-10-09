@@ -172,16 +172,6 @@ function _quiz_maintain_results($quiz, $result_id) {
 }
 
 /**
- * Delete quiz results.
- *
- * @param $result_ids
- *   Result ids for the results to be deleted.
- */
-function quiz_delete_results($result_ids) {
-  return quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
-}
-
-/**
  * Returns the users default settings.
  *
  * @param $node

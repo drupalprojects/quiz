@@ -943,7 +943,7 @@ function _quiz_delete_results($result_id, $nid = NULL) {
   else {
     $result_ids[] = $result_id;
   }
-  quiz_delete_results($result_ids);
+  quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
 }
 
 // HELPER FUNCTIONS
