@@ -105,29 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Sets the questions that are assigned to a quiz.
- *
- * @param $quiz
- *   The quiz(node) to modify.
- * @param $questions
- *   An array of questions.
- * @param $set_new_revision
- *   If TRUE, a new revision will be generated. Note that saving
- *   quiz questions unmodified will still generate a new revision of the quiz if
- *   this is set to TRUE. Why? For a few reasons:
- *   - All of the questions are updated to their latest VID. That is supposed to
- *     be a feature.
- *   - All weights are updated.
- *   - All status flags are updated.
- *
- * @return
- *   Boolean TRUE if update was successful, FALSE otherwise.
- */
-function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
-  return quiz()->getQuizHelper()->setQuestions($quiz, $questions, $set_new_revision);
-}
-
-/**
  * @} End of "defgroup quiz_public".
  */
 

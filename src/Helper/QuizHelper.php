@@ -208,6 +208,25 @@ class QuizHelper {
     return $questions;
   }
 
+  /**
+   * Sets the questions that are assigned to a quiz.
+   *
+   * @param $quiz
+   *   The quiz(node) to modify.
+   * @param $questions
+   *   An array of questions.
+   * @param $set_new_revision
+   *   If TRUE, a new revision will be generated. Note that saving
+   *   quiz questions unmodified will still generate a new revision of the quiz if
+   *   this is set to TRUE. Why? For a few reasons:
+   *   - All of the questions are updated to their latest VID. That is supposed to
+   *     be a feature.
+   *   - All weights are updated.
+   *   - All status flags are updated.
+   *
+   * @return
+   *   Boolean TRUE if update was successful, FALSE otherwise.
+   */
   public function setQuestions(&$quiz, $questions, $set_new_revision = FALSE) {
     if ($set_new_revision) {
       // Create a new Quiz VID, even if nothing changed.

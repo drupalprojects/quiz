@@ -28,7 +28,7 @@ class NodeInsertHelper extends NodeHelper {
         $questions[$nid]->refresh = 0;
       }
 
-      quiz_set_questions($quiz, $questions);
+      quiz()->getQuizHelper()->setQuestions($quiz, $questions);
     }
 
     $this->presaveActions($quiz);
