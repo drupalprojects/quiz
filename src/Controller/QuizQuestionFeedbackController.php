@@ -1,13 +1,22 @@
 <?php
 
-namespace Drupal\quiz\Helper\Quiz\TakeHelper;
+namespace Drupal\quiz\Controller;
 
-class QuestionFeedBackRender {
+class QuizQuestionFeedBackController {
 
   private $quiz;
 
   public function __construct($quiz) {
     $this->quiz = $quiz;
+  }
+
+  /**
+   * Callback for node/%quiz_menu/take/%question_number/feedback. Show feedback
+   * for a question response.
+   */
+  public static function staticCallback($quiz, $question_number) {
+    $controller = new static($quiz);
+    return $controller->render($question_number);
   }
 
   public function render($question_number) {
