@@ -56,20 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
- * Finds out the number of questions for the quiz.
- *
- * Good example of usage could be to calculate the % of score.
- *
- * @param $nid
- *   Quiz ID.
- * @return
- *   Returns the number of quiz questions.
- */
-function quiz_get_number_of_questions($vid) {
-  return quiz()->getQuizHelper()->countQuestion($vid);
-}
-
-/**
  * Store a quiz question result.
  *
  * @param $quiz

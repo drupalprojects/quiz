@@ -462,7 +462,7 @@ function theme_quiz_stats_get_basic_stats($variables) {
       'created' => format_date($result['created'], 'short'),
     );
     if (user_access('access author stats')) {
-      $row['questions_count'] = quiz_get_number_of_questions($result['vid']);
+      $row['questions_count'] = quiz()->getQuizHelper()->countQuestion($result['vid']);
       $row['attempt_count'] = _quiz_get_attempt_count($result['nid']);
     }
     $rows[] = $row;

@@ -227,7 +227,7 @@ function theme_quiz_answer_result($variables) {
  * @param $question_number
  *  The position of the current question in the sessions' array.
  * @param $num_of_question
- *  The number of questions for this quiz as returned by quiz_get_number_of_questions().
+ *  The number of questions for the quiz.
  * @return
  *  Themed html.
  *

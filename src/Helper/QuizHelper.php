@@ -464,6 +464,16 @@ class QuizHelper {
     }
   }
 
+  /**
+   * Finds out the number of questions for the quiz.
+   *
+   * Good example of usage could be to calculate the % of score.
+   *
+   * @param $nid
+   *   Quiz ID.
+   * @return
+   *   Returns the number of quiz questions.
+   */
   public function countQuestion($vid) {
     $always_count = _quiz_get_num_always_questions($vid);
     $rand_count = db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
