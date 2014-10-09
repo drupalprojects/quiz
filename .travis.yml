@@ -55,7 +55,7 @@ before_script:
   - drush runserver localhost:8888 &
 
 script:
-  - php $DRUPAL/scripts/run-tests.sh --php `which php` --die-on-fail --url http://localhost:8888 --color "Quiz"
+  - php $DRUPAL/scripts/run-tests.sh --php `which php` --url http://localhost:8888 --color "Quiz"
 
 notifications:
   email: false
