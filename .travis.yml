@@ -1,8 +1,6 @@
 language: php
 php:
-  - 5.3
   - 5.4
-  - 5.5
 
 mysql:
   database: drupal
@@ -19,6 +17,7 @@ install:
   # ---------------------
   # Setup DB
   # ---------------------
+  - mysql -e 'SET GLOBAL wait_timeout = 5400;'
   - mysql -e 'create database drupal;'
 
 before_script:
@@ -50,8 +49,13 @@ before_script:
   # ---------------------
   - drush cc all
 
+  # ---------------------
+  # Start server
+  # ---------------------
+  - drush runserver localhost:8888 &
+
 script:
-  - drush test-run --dirty --field-labels=0 'Quiz'
+  - php ./core/scripts/run-tests.sh --php `which php` --die-on-fail --url http://localhost:8888 --color "Quiz"
 
 notifications:
   email: false
