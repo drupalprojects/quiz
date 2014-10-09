@@ -157,16 +157,6 @@ function quiz_has_been_answered($node) {
 }
 
 /**
- * Copies questions when a quiz is translated.
- *
- * @param $node
- *   The new translated quiz node.
- */
-function quiz_copy_questions($node) {
-  return quiz()->getQuizHelper()->copyQuestions($node);
-}
-
-/**
  * Deletes results for a quiz according to the keep results setting
  *
  * @param $quiz

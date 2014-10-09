@@ -12,7 +12,7 @@ class NodeInsertHelper extends NodeHelper {
 
     // Copy all the questions belonging to the quiz if this is a new translation.
     if ($quiz->is_new && isset($quiz->translation_source)) {
-      quiz_copy_questions($quiz);
+      quiz()->getQuizHelper()->copyQuestions($quiz);
     }
 
     // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)

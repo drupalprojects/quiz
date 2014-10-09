@@ -444,6 +444,12 @@ class QuizHelper {
     return $results;
   }
 
+  /**
+   * Copies questions when a quiz is translated.
+   *
+   * @param $node
+   *   The new translated quiz node.
+   */
   public function copyQuestions($node) {
     // Find original questions.
     $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score
