@@ -56,7 +56,6 @@ before_script:
   - drush runserver localhost:8888 &> /dev/null
 
 script:
-  - drush test-run 'Contact' --uri=http://localhost:8888
   - drush test-run 'Quiz' --uri=http://localhost:8888
 
 notifications:
