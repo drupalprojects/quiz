@@ -294,7 +294,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
 
   $include_random = $quiz->randomization == 2;
   // @todo deal with $include_random
-  $questions = quiz_get_questions($quiz->nid, $quiz->vid);
+  $questions = quiz()->getQuizHelper()->getQuestions($quiz->nid, $quiz->vid);
 
   if (empty($questions)) {
     $form['question_list']['no_questions'] = array(

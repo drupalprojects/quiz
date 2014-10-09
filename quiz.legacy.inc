@@ -105,24 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Retrieve list of published questions assigned to quiz.
- *
- * This function should be used for question browsers and similiar... It should not be used to decide what questions
- * a user should answer when taking a quiz. quiz_build_question_list is written for that purpose.
- *
- * @param $quiz_nid
- *   Quiz node id.
- * @param $quiz_vid
- *   Quiz node version id.
- *
- * @return
- *   An array of questions.
- */
-function quiz_get_questions($quiz_nid, $quiz_vid = NULL) {
-  return quiz()->getQuizHelper()->getQuestions($quiz_nid, $quiz_vid);
-}
-
-/**
  * Get sub-questions.
  */
 function quiz_get_sub_questions($qnr_pid, &$questions) {
