@@ -421,9 +421,9 @@ function quiz_menu() {
     'access arguments' => array(1, 3),
   );
 
-  $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
+  $items['node/%quiz_menu/quiz-results/%quiz_result/view'] = array(
     'title' => 'User results',
-    'page callback' => 'quiz_user_results',
+    'page callback' => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
     'page arguments' => array(3),
     'access callback' => 'quiz_access_my_result',
     'access arguments' => array(3),

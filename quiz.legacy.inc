@@ -30,12 +30,13 @@ function quiz_access_my_results($quiz) {
 /**
  * Helper function to determine if a user has access to view a specific quiz result.
  *
- * @param int $result_id
+ * @param int|stdClass $result
  *  Result id
  * @return boolean
  *  True if access, false otherwise
  */
-function quiz_access_my_result($result_id) {
+function quiz_access_my_result($result) {
+  $result_id = is_object($result) ? $result->result_id : $result;
   return quiz()->getQuizHelper()->getResultHelper()->isResultCompleted($result_id);
 }
 

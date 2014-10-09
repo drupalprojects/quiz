@@ -6,16 +6,6 @@
  */
 
 /**
- * Show result page for a given result id
- *
- * @param $result_id
- *  Result id
- */
-function quiz_user_results($result_id) {
-  return quiz()->getQuizHelper()->getResultHelper()->renderUserResult($result_id);
-}
-
-/**
  * Form for showing feedback, and for editing the feedback if necessary...
  *
  * @param $form_state
