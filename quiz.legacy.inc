@@ -56,19 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
-/**
- * Returns default values for all quiz settings.
- *
- * @todo also store this in the quiz_node_properties table
- *
- * @return
- *   Array of default values.
- */
-function _quiz_get_node_defaults() {
-  return quiz()->getQuizHelper()->getSettingHelper()->getNodeDefaultSettings();
-}
-
-/**
  * Returns the titles for all quizzes the user has access to.
  *
  * @return quizzes

@@ -55,7 +55,7 @@ class SettingHelper extends FormHelper {
     }
 
     // No defaults set yet.
-    return _quiz_get_node_defaults();
+    return $this->getNodeDefaultSettings();
   }
 
   public function updateUserDefaultSettings($node) {
@@ -106,6 +106,14 @@ class SettingHelper extends FormHelper {
     return entity_save('quiz', $entity);
   }
 
+  /**
+   * Returns default values for all quiz settings.
+   *
+   * @todo also store this in the quiz_node_properties table
+   *
+   * @return
+   *   Array of default values.
+   */
   public function getNodeDefaultSettings() {
     return (object) array(
         'aid' => NULL,

@@ -25,8 +25,7 @@ class QuizAdminController {
     // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
     $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
     $settings = _quiz_load_user_settings();
-
-    $settings += (array) _quiz_get_node_defaults();
+    $settings += (array) quiz()->getQuizHelper()->getSettingHelper()->getNodeDefaultSettings();
     foreach ($settings as $key => $value) {
       if (!isset($dummy_node->$key)) {
         $dummy_node->{$key} = $value;
