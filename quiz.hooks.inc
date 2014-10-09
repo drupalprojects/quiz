@@ -333,36 +333,6 @@ function quiz_cron() {
  * Implements hook_menu().
  */
 function quiz_menu() {
-  // Take quiz.
-  $items['node/%quiz_menu/take'] = array(
-    'title' => 'Take',
-    'page callback' => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
-    'page arguments' => array(1),
-    'access callback' => 'quiz_take_access',
-    'access arguments' => array(1),
-    'type' => MENU_LOCAL_TASK,
-  );
-
-  // Take question.
-  // @todo Thought - the 4th argument could be a "page" instead of a question
-  // number
-  $items['node/%quiz_menu/take/%question_number'] = array(
-    'title' => 'Take',
-    'page callback' => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
-    'page arguments' => array(1, 3),
-    'access callback' => 'quiz_take_question_access',
-    'access arguments' => array(1, 3),
-  );
-
-  // Feedback
-  $items['node/%quiz_menu/take/%question_number/feedback'] = array(
-    'title' => 'Feedback',
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionFeedBackController::staticCallback',
-    'page arguments' => array(1, 3),
-    'access callback' => 'quiz_question_feedback_access',
-    'access arguments' => array(1, 3),
-  );
-
   // Admin pages.
   $items['admin/quiz'] = array(
     'title' => '@quiz',
@@ -419,6 +389,36 @@ function quiz_menu() {
     'type' => MENU_NORMAL_ITEM,
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
+  );
+
+  // Take quiz.
+  $items['node/%quiz_menu/take'] = array(
+    'title' => 'Take',
+    'page callback' => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
+    'page arguments' => array(1),
+    'access callback' => 'quiz_take_access',
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  // Take question.
+  // @todo Thought - the 4th argument could be a "page" instead of a question
+  // number
+  $items['node/%quiz_menu/take/%question_number'] = array(
+    'title' => 'Take',
+    'page callback' => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
+    'page arguments' => array(1, 3),
+    'access callback' => 'quiz_take_question_access',
+    'access arguments' => array(1, 3),
+  );
+
+  // Feedback
+  $items['node/%quiz_menu/take/%question_number/feedback'] = array(
+    'title' => 'Feedback',
+    'page callback' => 'Drupal\quiz\Controller\QuizQuestionFeedBackController::staticCallback',
+    'page arguments' => array(1, 3),
+    'access callback' => 'quiz_question_feedback_access',
+    'access arguments' => array(1, 3),
   );
 
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
