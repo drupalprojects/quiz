@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\multichoice\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 /**
  * Test class for multichoice questions.
  */

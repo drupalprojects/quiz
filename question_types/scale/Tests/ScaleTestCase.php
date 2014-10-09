@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\scale\Tests;
-
-use Drupal\quiz_question\Tests\QuizQuestionTestCase;
-
 /**
  * Test class for scale questions.
  */

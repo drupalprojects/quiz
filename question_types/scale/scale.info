@@ -6,3 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = scale.classes.inc
+files[] = tests/ScaleTestCase.php

@@ -1,9 +1,5 @@
 <?php
 
-namespace Drupal\quiz_question\Tests;
-
-use Drupal\quiz\Tests\QuizTestCase;
-
 /**
  * Base test class for Quiz questions.
  */

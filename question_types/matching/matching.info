@@ -6,3 +6,4 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 
 files[] = matching.classes.inc
+files[] = tests/MatchingUnitTest.php
