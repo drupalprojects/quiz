@@ -57,17 +57,6 @@ function quiz_update_defaults($node) {
 
 /**
 /**
- * Returns the titles for all quizzes the user has access to.
- *
- * @return quizzes
- *   Array with nids as keys and (array with vid as key and title as value) as values.
- *   Like this: array($nid => array($vid => $title))
- */
-function quiz_get_all_version_titles() {
-  return quiz()->getAllRevisionTitles();
-}
-
-/**
  * Return highest score data for given quizzes.
  *
  * @param $nids
