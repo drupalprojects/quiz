@@ -56,15 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
- * Returns the titles for all quizzes the user has access to.
- *
- * @return quizzes
- *   Array with nids as keys and titles as values.
- */
-function quiz_get_all_titles() {
-  return quiz()->getAllTitles();
-}
-
 /**
  * Returns the titles for all quizzes the user has access to.
  *
