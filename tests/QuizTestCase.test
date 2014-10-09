@@ -53,7 +53,7 @@ abstract class QuizTestCase extends DrupalWebTestCase {
       'review_options' => array(
         'end' => drupal_map_assoc(
           array_keys(
-            quiz()->getQuizHelper()->getFeedbackHelper()->getOptions
+            quiz()->getQuizHelper()->getFeedbackHelper()->getOptions()
           )
         )
       ),

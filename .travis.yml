@@ -56,7 +56,8 @@ before_script:
   - drush runserver localhost:8888 &
 
 script:
-  - php $DRUPAL/scripts/run-tests.sh --php `which php` --url http://localhost:8888 --color "Quiz"
+  - drush test-run 'Contact' --uri=http://localhost:8888
+  - drush test-run 'Quiz' --uri=http://localhost:8888
 
 notifications:
   email: false
