@@ -552,6 +552,17 @@ class QuizHelper {
     return $to_return;
   }
 
+  /**
+   * Store a quiz question result.
+   *
+   * @param $quiz
+   *  The quiz node
+   * @param $result
+   *  Object with data about the result for a question.
+   * @param $options
+   *  Array with options that affect the behavior of this function.
+   *  ['set_msg'] - Sets a message if the last question was skipped.
+   */
   public function saveQuestionResult($quiz, $result, $options) {
     if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
       if ($options['set_msg']) {

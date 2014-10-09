@@ -56,21 +56,6 @@ function quiz_update_defaults($node) {
 }
 
 /**
- * Store a quiz question result.
- *
- * @param $quiz
- *  The quiz node
- * @param $result
- *  Object with data about the result for a question.
- * @param $options
- *  Array with options that affect the behavior of this function.
- *  ['set_msg'] - Sets a message if the last question was skipped.
- */
-function quiz_store_question_result($quiz, $result, $options) {
-  return quiz()->getQuizHelper()->saveQuestionResult($quiz, $result, $options);
-}
-
-/**
  * Check a user/quiz combo to see if the user passed the given quiz.
  *
  * This will return TRUE if the user has passed the quiz at least once, and

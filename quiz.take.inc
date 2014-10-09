@@ -171,7 +171,7 @@ function quiz_end_scoring($result_id) {
       $qi_instance->delete();
       $qi_instance->saveResult();
       $bare_object = $qi_instance->toBareObject();
-      quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+      quiz()->getQuizHelper()->saveQuestionResult($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
     }
   }
 
@@ -368,7 +368,7 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
     $qi_instance->delete();
     $qi_instance->saveResult();
     $bare_object = $qi_instance->toBareObject();
-    quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+    quiz()->getQuizHelper()->saveQuestionResult($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
   }
 
   // Advance to next question.
@@ -399,7 +399,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
       $qi_instance->delete();
       $qi_instance->saveResult();
       $result = $qi_instance->toBareObject();
-      quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
+      quiz()->getQuizHelper()->saveQuestionResult($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
       // Increment the counter.
       quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
