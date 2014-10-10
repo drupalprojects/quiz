@@ -63,7 +63,7 @@ class Quiz {
 
   /**
    * Inject quizHelper.
-   * 
+   *
    * @param QuizHelper $quizHelper
    * @return \Drupal\quiz\Quiz
    */
@@ -94,39 +94,25 @@ class Quiz {
   }
 
   /**
-   * Returns the titles for all quizzes the user has access to.
+   * Format a number of seconds to a hh:mm:ss format.
    *
-   * @return quizzes
-   *   Array with nids as keys and titles as values.
-   */
-  public function getAllTitles() {
-    return db_select('node', 'n')
-        ->fields('n', array('nid', 'title'))
-        ->condition('n.type', 'quiz')
-        ->addTag('node_access')
-        ->execute()
-        ->fetchAllKeyed();
-  }
-
-  /**
-   * Returns the titles for all quizzes the user has access to.
+   * @param $time_in_sec
+   *   Integers time in seconds.
    *
-   * @return quizzes
-   *   Array with nids as keys and (array with vid as key and title as value) as values.
-   *   Like this: array($nid => array($vid => $title))
+   * @return
+   *   String time in min : sec format.
    */
-  public function getAllRevisionTitles() {
-    $query = db_select('node', 'n');
-    $query->join('node_revision', 'nr', 'nr.nid = n.nid');
-    $query->fields('nr', array('nid', 'vid', 'title'))
-      ->condition('n.type', 'quiz')
-      ->execute();
-
-    $to_return = array();
-    while ($res_o = $query->fetch()) {
-      $to_return[$res_o->nid][$res_o->vid] = $res_o->title;
+  function formatDuration($time_in_sec) {
+    $hours = intval($time_in_sec / 3600);
+    $min = intval(($time_in_sec - $hours * 3600) / 60);
+    $sec = $time_in_sec % 60;
+    if (strlen($min) == 1) {
+      $min = '0' . $min;
     }
-    return $to_return;
+    if (strlen($sec) == 1) {
+      $sec = '0' . $sec;
+    }
+    return "$hours:$min:$sec";
   }
 
 }

@@ -343,7 +343,7 @@ function theme_quiz_view_stats($variables) {
   if (!empty($node->time_limit)) {
     $stats[] = array(
       'title' => t('Time limit'),
-      'data'  => _quiz_format_duration($node->time_limit),
+      'data'  => quiz()->formatDuration($node->time_limit),
     );
   }
   $stats[] = array(

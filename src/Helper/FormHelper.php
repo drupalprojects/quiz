@@ -71,9 +71,9 @@ class FormHelper {
     // Otherwise build the array from the timestamp.
     elseif (is_numeric($time)) {
       $time_array = array(
-        'day' => $this->date('j', $time),
+        'day'   => $this->date('j', $time),
         'month' => $this->date('n', $time),
-        'year' => $this->date('Y', $time),
+        'year'  => $this->date('Y', $time),
       );
     }
 
