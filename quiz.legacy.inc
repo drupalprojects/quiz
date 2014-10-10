@@ -105,19 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Get answer data for a specific result.
- *
- * @param $result_id
- *   Result id.
- *
- * @return
- *   Array of answers.
- */
-function _quiz_get_answers($quiz, $result_id) {
-  return quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
-}
-
-/**
  * Get the quiz name variable and set it as a constant so we don't have to keep
  * calling it in every function.
  *

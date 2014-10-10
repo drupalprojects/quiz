@@ -8,7 +8,7 @@ class QuizUserResultController {
 
   /**
    * Callback for:
-   * 
+   *
    *  - node/%quiz_menu/quiz-results/%quiz_result/view.
    *  - user/%/quiz-results/%quiz_result/view
    *
@@ -25,7 +25,7 @@ class QuizUserResultController {
     $result_id = $result->result_id;
     $quiz = node_load($result->nid, $result->vid);
     $current_quiz = node_load($result->nid);
-    $questions = _quiz_get_answers($quiz, $result_id);
+    $questions = quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
     $data = array(
