@@ -115,4 +115,21 @@ class Quiz {
     return "$hours:$min:$sec";
   }
 
+  /**
+   * Retrieve list of vocabularies for all quiz question types.
+   *
+   * @return
+   *   An array containing a vocabulary list.
+   */
+  function getVocabularies() {
+    $vocabularies = array();
+    $types = array_keys(_quiz_get_question_types());
+    foreach ($types as $type) {
+      foreach (taxonomy_get_vocabularies($type) as $vid => $vocabulary) {
+        $vocabularies[$vid] = $vocabulary;
+      }
+    }
+    return $vocabularies;
+  }
+
 }

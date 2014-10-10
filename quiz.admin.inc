@@ -1163,7 +1163,7 @@ function theme_quiz_categorized_form($variables) {
  */
 function _quiz_taxonomy_select($value = 0) {
   $options = array();
-  foreach (_quiz_get_vocabularies() as $vid => $vocabulary) {
+  foreach (quiz()->getVocabularies() as $vid => $vocabulary) {
     $temp = taxonomy_form($vid, $value);
     $options = array_merge($options, $temp['#options']);
   }

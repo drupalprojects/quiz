@@ -26,16 +26,16 @@ class QuizQuestionManagementController {
 
     // Insert into vert tabs
     $form['vert_tabs'] = array(
-      '#type' => 'vertical_tabs',
+      '#type'   => 'vertical_tabs',
       '#weight' => 0,
     );
     $form['vert_tabs']['question_admin'] = array(
-      '#type' => 'fieldset',
+      '#type'  => 'fieldset',
       '#title' => t('Manage questions'),
       '#value' => $manage_questions,
     );
     $form['vert_tabs']['global_questions'] = array(
-      '#type' => 'fieldset',
+      '#type'  => 'fieldset',
       '#title' => t('Question bank'),
       '#value' => $question_bank,
     );
@@ -67,7 +67,7 @@ class QuizQuestionManagementController {
    */
   function searchTerms($start, $all = FALSE) {
     $terms = array();
-    $sql_args = array_keys(_quiz_get_vocabularies());
+    $sql_args = array_keys(quiz()->getVocabularies());
     if (empty($sql_args)) {
       return $terms;
     }
