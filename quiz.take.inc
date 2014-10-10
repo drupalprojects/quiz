@@ -113,14 +113,13 @@ function quiz_jumper($form, $form_state, $questions, $current) {
     '#type'       => 'submit',
     '#value'      => t('Jump'),
     '#attributes' => array('class' => array('js-hide')),
+    '#submit'     => array(function($form, &$form_state) {
+        $quiz = node_load(arg(1));
+        quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
+        $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
+      }),
   );
   return $form;
-}
-
-function quiz_jumper_submit($form, &$form_state) {
-  $quiz = node_load(arg(1));
-  quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
-  $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
 }
 
 /**
