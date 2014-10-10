@@ -192,6 +192,18 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       'question' => array('#tree' => TRUE, $node->nid => $element),
     );
 
+    if (!$quiz->allow_change) {
+      // Should we disable this question?
+      $qras = quiz_result_answer_load($result_id, $node->nid, $node->vid);
+      if (!empty($qras)) {
+        $qra = reset($qras);
+        if (empty($qra->is_skipped)) {
+          // This question was already answered, and not skipped.
+          $form['questions'][$node->nid]['#disabled'] = TRUE;
+        }
+      }
+    }
+
     if ($quiz->mark_doubtful) {
       $form['is_doubtful'] = array(
         '#type' => 'checkbox',
@@ -1088,7 +1100,6 @@ function theme_quiz_question_feedback($variables) {
   $headers = array_intersect_key($variables['labels'], $rows[0]);
 
   return theme('table', array('header' => $headers, 'rows' => $rows));
-
 }
 
 /**

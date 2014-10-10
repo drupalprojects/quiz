@@ -841,6 +841,7 @@ function _quiz_get_node_defaults() {
       'allow_jumping' => 0,
       'allow_resume' => 1,
       'allow_skipping' => 1,
+      'allow_change' => 1,
       'always_available' => TRUE,
       'backwards_navigation' => 1,
       'has_userpoints' => 0,
@@ -1074,6 +1075,12 @@ function quiz_form(&$node, &$form_state) {
     '#title' => t('Allow jumping'),
     '#default_value' => $node->allow_jumping,
     '#description' => t('Allow users to jump to any question using a menu or pager in this @quiz.', array('@quiz' => QUIZ_NAME)),
+  );
+  $form['taking']['allow_change'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow changing answers'),
+    '#default_value' => $node->allow_change,
+    '#description' => t('If the user is able to visit a previous question, allow them to change the answer.'),
   );
   $form['taking']['backwards_navigation'] = array(
     '#type' => 'checkbox',

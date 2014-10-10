@@ -216,6 +216,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
+      'allow_change' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 1,
+      ),
       'show_passed' => array(
         'type' => 'int',
         'size' => 'tiny',
@@ -827,13 +833,25 @@ function quiz_update_7506() {
     ), array('primary key' => array('qnp_id')));
 
   db_add_field('quiz_node_properties', 'uid', array(
-      'type' => 'int',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
-      'default' => 0,
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+    'default' => 0,
   ));
 
   // We could do this, but we should really migrate user settings from 4.x.
   // Patches welcome.
   // db_drop_table('quiz_user_settings');
+}
+
+/**
+ * Add allow_change to restrict users from changing answers.
+ */
+function quiz_update_7507() {
+  db_add_field('quiz_node_properties', 'allow_change', array(
+    'type' => 'int',
+    'size' => 'small',
+    'not null' => TRUE,
+    'default' => 1,
+  ));
 }
