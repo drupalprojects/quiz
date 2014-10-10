@@ -37,7 +37,7 @@ define('QUESTION_NEVER', 2);
 /**
  * Quiz name.
  */
-define('QUIZ_NAME', _quiz_get_quiz_name());
+define('QUIZ_NAME', quiz()->getName());
 
 /**
  * Define options for keeping results.

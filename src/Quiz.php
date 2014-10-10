@@ -63,7 +63,7 @@ class Quiz {
 
   /**
    * Inject quizHelper.
-   * 
+   *
    * @param QuizHelper $quizHelper
    * @return \Drupal\quiz\Quiz
    */
@@ -91,6 +91,18 @@ class Quiz {
   public function setMailHelper($mailHelper) {
     $this->mailHelper = $mailHelper;
     return $this;
+  }
+
+  /**
+   * Get the quiz name variable and set it as a constant so we don't have to keep
+   * calling it in every function.
+   *
+   * @return
+   *   Quiz name variable.
+   */
+  public function getName() {
+    // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
+    return variable_get('quiz_name', 'Quiz');
   }
 
   /**

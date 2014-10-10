@@ -105,18 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Get the quiz name variable and set it as a constant so we don't have to keep
- * calling it in every function.
- *
- * @return
- *   Quiz name variable.
- */
-function _quiz_get_quiz_name() {
-  // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
-  return variable_get('quiz_name', 'Quiz');
-}
-
-/**
  * Returns an array with quiz titles keyed with quiz node ids.
  *
  * @return array
