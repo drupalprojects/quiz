@@ -836,3 +836,76 @@ function quiz_result_load($result_id) {
 function question_number_to_arg() {
   return 0;
 }
+
+/**
+ * Result_id, menu argument loader.
+ */
+function quiz_rid_load($result_id) {
+  if ($result_id > 0) {
+    return $result_id;
+  }
+  return FALSE;
+}
+
+/**
+ * Workaround for a _menu_translate() bug.
+ */
+function quiz_rid_to_arg() {
+  return 0;
+}
+
+/**
+ * Helper function to check if the user has any of a given list of permissions.
+ *
+ * @param args
+ *   Any number of permissions.
+ * @return
+ *   TRUE if the user has access to any of the arguments given.
+ */
+function quiz_access_multi_or() {
+  foreach (func_get_args() as $perm) {
+    if (user_access($perm)) {
+      return TRUE;
+    }
+  }
+}
+
+/**
+ * Helper function to determine if a user has access to view a specific quiz result.
+ *
+ * @param int|stdClass $result
+ *  Result id
+ * @return boolean
+ *  True if access, false otherwise
+ */
+function quiz_access_my_result($result) {
+  $result_id = is_object($result) ? $result->result_id : $result;
+  return quiz()->getQuizHelper()->getResultHelper()->isResultCompleted($result_id);
+}
+
+/**
+ * Helper function to determine if a user has access to the different results
+ * pages.
+ *
+ * @param $quiz
+ *   The quiz node.
+ * @param $result_id
+ *   The result id of a result we are trying to access.
+ * @return boolean
+ *   TRUE if user has permission.
+ */
+function quiz_access_results($quiz, $result_id = NULL) {
+  global $user;
+  return quiz()->getQuizHelper()->getAccessHelper()->canAccessResults($user, $quiz, $result_id);
+}
+
+/**
+ * Helper function to determine if a user has access to view his quiz results
+ *
+ * @param object $quiz
+ *  The Quiz node
+ */
+function quiz_access_my_results($quiz) {
+  global $user;
+  return quiz()->getQuizHelper()->getAccessHelper()->canAccessMyResults($quiz, $user);
+}

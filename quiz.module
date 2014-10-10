@@ -58,39 +58,6 @@ function quiz($className = 'Drupal\quiz\Quiz') {
 }
 
 /**
- * Helper function to check if the user has any of a given list of permissions.
- *
- * @param args
- *   Any number of permissions.
- * @return
- *   TRUE if the user has access to any of the arguments given.
- */
-function quiz_access_multi_or() {
-  foreach (func_get_args() as $perm) {
-    if (user_access($perm)) {
-      return TRUE;
-    }
-  }
-}
-
-/**
- * Result_id, menu argument loader.
- */
-function quiz_rid_load($result_id) {
-  if ($result_id > 0) {
-    return $result_id;
-  }
-  return FALSE;
-}
-
-/**
- * Workaround for a _menu_translate() bug.
- */
-function quiz_rid_to_arg() {
-  return 0;
-}
-
-/**
  * Menu loader callback. Load a quiz node if the given node ID is a quiz.
  */
 function quiz_menu_load($nid) {
@@ -103,21 +70,20 @@ function quiz_menu_load($nid) {
 /**
  * Validate that a node is of type quiz, and that the user has access to it.
  *
- * @param $node
- * @param $op
- * @return unknown_type
+ * @param stdClass $node
+ * @param string $op
+ * @return bool
  */
 function quiz_type_confirm($node, $op = NULL) {
   if ($node->type !== 'quiz') {
     return FALSE;
   }
+
   if (isset($op)) {
     $node_ops = array('view', 'update', 'delete', 'create');
-    if (in_array($op, $node_ops)) {
-      return node_access($op, $node);
-    }
-    return user_access($op);
+    return in_array($op, $node_ops) ? node_access($op, $node) : user_access($op);
   }
+
   return user_access('access quiz');
 }
 
@@ -150,45 +116,6 @@ function quiz_action_options($type = 'all') {
 }
 
 /**
- * Helper function to determine if a user has access to the different results
- * pages.
- *
- * @param $quiz
- *   The quiz node.
- * @param $result_id
- *   The result id of a result we are trying to access.
- * @return boolean
- *   TRUE if user has permission.
- */
-function quiz_access_results($quiz, $result_id = NULL) {
-  global $user;
-  return quiz()->getQuizHelper()->getAccessHelper()->canAccessResults($user, $quiz, $result_id);
-}
-
-/**
- * Helper function to determine if a user has access to view his quiz results
- *
- * @param object $quiz
- *  The Quiz node
- */
-function quiz_access_my_results($quiz) {
-  global $user;
-  return quiz()->getQuizHelper()->getAccessHelper()->canAccessMyResults($quiz, $user);
-}
-
-/**
- * Helper function to determine if a user has access to view a specific quiz result.
- *
- * @param int|stdClass $result
- *  Result id
- * @return boolean
- *  True if access, false otherwise
- */
-function quiz_access_my_result($result) {
-  $result_id = is_object($result) ? $result->result_id : $result;
-  return quiz()->getQuizHelper()->getResultHelper()->isResultCompleted($result_id);
-}
-
 /**
  * Find out if a quiz is available for taking or not
  *
