@@ -116,20 +116,6 @@ function quiz_action_options($type = 'all') {
 }
 
 /**
-/**
- * Find out if a quiz is available for taking or not
- *
- * @param $quiz
- *  The quiz node
- * @return
- *  TRUE if available
- *  Error message(String) if not available
- */
-function quiz_availability($quiz) {
-  return quiz()->getQuizHelper()->isAvailable($quiz);
-}
-
-/**
  * Retrieves a list of questions (to be taken) for a given quiz.
  *
  * If the quiz has random questions this function only returns a random

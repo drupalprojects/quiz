@@ -81,7 +81,7 @@ class QuizTakeController {
       }
     }
 
-    if (!quiz_availability($this->quiz)) {
+    if (!quiz()->getQuizHelper()->isAvailable($this->quiz)) {
       return array('body' => array('#markup' => t('This quiz is not available.')));
     }
 
@@ -227,9 +227,9 @@ class QuizTakeController {
   private function createRid($quiz) {
     $result_id = db_insert('quiz_node_results')
       ->fields(array(
-        'nid' => $quiz->nid,
-        'vid' => $quiz->vid,
-        'uid' => $GLOBALS['user']->uid,
+        'nid'        => $quiz->nid,
+        'vid'        => $quiz->vid,
+        'uid'        => $GLOBALS['user']->uid,
         'time_start' => REQUEST_TIME,
       ))
       ->execute();

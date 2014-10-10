@@ -146,7 +146,7 @@ class AccessHelper {
       return FALSE;
     }
 
-    if (!quiz_availability($quiz)) {
+    if (!quiz()->getQuizHelper()->isAvailable($quiz)) {
       return FALSE;
     }
 

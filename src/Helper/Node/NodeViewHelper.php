@@ -16,7 +16,7 @@ class NodeViewHelper {
       '#weight' => -1,
     );
 
-    $available = quiz_availability($node);
+    $available = quiz()->getQuizHelper()->isAvailable($node);
     if ($available === TRUE) {
       // Check the permission before displaying start button.
       if (user_access('access quiz')) {
