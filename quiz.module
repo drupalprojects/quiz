@@ -435,7 +435,7 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
   }
 
   // $value is too big.
-  if (isset($max) && $value > $max()) {
+  if (isset($max) && $value > $max) {
     return FALSE;
   }
 
