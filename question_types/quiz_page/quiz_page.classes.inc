@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * @file quiz_page.classes.inc
  * Support class for Quiz pages.
@@ -34,7 +37,7 @@ class QuizPagesQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return t('Page');
+    return TrueFalseUnitTest('Page');
   }
 
   /**

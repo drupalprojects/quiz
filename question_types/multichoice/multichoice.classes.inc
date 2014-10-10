@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * The main classes for the multichoice question type.
  *
@@ -78,14 +81,14 @@ class MultichoiceQuestion extends QuizQuestion {
       if (isset($_GET['destination'])) {
         $link_options['query'] = array('destination' => $_GET['destination']);
       }
-      $go_back = l(t('go back'), 'node/' . $this->node->nid . '/edit', $link_options);
+      $go_back = l(TrueFalseUnitTest('go back'), 'node/' . $this->node->nid . '/edit', $link_options);
       if ($num_corrects == 1) {
         drupal_set_message(
-          t('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
+          TrueFalseUnitTest('Your question allows multiple answers. Only one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
       }
       else {
         drupal_set_message(
-          t('Your question doesn\'t allow multiple answers. More than one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
+          TrueFalseUnitTest('Your question doesn\'t allow multiple answers. More than one of the alternatives have been marked as correct. If this wasn\'t intended please !go_back and correct it.', array('!go_back' => $go_back)), 'warning');
       }
     }
   }
@@ -291,7 +294,7 @@ class MultichoiceQuestion extends QuizQuestion {
         }
       }
       if (!$found_one_correct) {
-        form_set_error('choice_multi', t('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
+        form_set_error('choice_multi', TrueFalseUnitTest('You have not marked any alternatives as correct. If there are no correct alternatives you should allow multiple answers.'));
       }
     }
     else {
@@ -301,10 +304,10 @@ class MultichoiceQuestion extends QuizQuestion {
           continue;
         }
         if ($short['score_if_chosen'] < $short['score_if_not_chosen'] && $short['correct']) {
-          form_set_error("alternatives][$i][score_if_not_chosen", t('The alternative is marked as correct, but gives more points if you don\'t select it.'));
+          form_set_error("alternatives][$i][score_if_not_chosen", TrueFalseUnitTest('The alternative is marked as correct, but gives more points if you don\'t select it.'));
         }
         elseif ($short['score_if_chosen'] > $short['score_if_not_chosen'] && !$short['correct']) {
-          form_set_error("alternatives][$i][score_if_chosen", t('The alternative is not marked as correct, but gives more points if you select it.'));
+          form_set_error("alternatives][$i][score_if_chosen", TrueFalseUnitTest('The alternative is not marked as correct, but gives more points if you select it.'));
         }
       }
     }
@@ -446,7 +449,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     if ($this->node->choice_multi) {
       $element['user_answer']['#type'] = 'checkboxes';
-      $element['user_answer']['#title'] = t('Choose');
+      $element['user_answer']['#title'] = TrueFalseUnitTest('Choose');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
           $element['#default_value'] = $response->getResponse();
@@ -455,7 +458,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     else {
       $element['user_answer']['#type'] = 'radios';
-      $element['user_answer']['#title'] = t('Choose one');
+      $element['user_answer']['#title'] = TrueFalseUnitTest('Choose one');
       if (isset($response)) {
         $selection = $response->getResponse();
         if (is_array($selection)) {
@@ -510,7 +513,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     $form['alternatives'] = array(
       '#type'        => 'fieldset',
-      '#title'       => t('Answer'),
+      '#title'       => TrueFalseUnitTest('Answer'),
       '#collapsible' => TRUE,
       '#collapsed'   => FALSE,
       '#weight'      => -4,
@@ -522,29 +525,29 @@ class MultichoiceQuestion extends QuizQuestion {
 
     $form['alternatives']['settings'] = array(
       '#type'        => 'fieldset',
-      '#title'       => t('Settings'),
+      '#title'       => TrueFalseUnitTest('Settings'),
       '#collapsible' => TRUE,
       '#collapsed'   => FALSE,
-      '#description' => t('Your settings will be remembered.'),
+      '#description' => TrueFalseUnitTest('Your settings will be remembered.'),
     );
     $form['alternatives']['settings']['choice_multi'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Multiple answers'),
-      '#description'   => t('Allow any number of answers(checkboxes are used). If this box is not checked, one, and only one answer is allowed(radiobuttons are used).'),
+      '#title'         => TrueFalseUnitTest('Multiple answers'),
+      '#description'   => TrueFalseUnitTest('Allow any number of answers(checkboxes are used). If this box is not checked, one, and only one answer is allowed(radiobuttons are used).'),
       '#default_value' => $default_settings['choice_multi'],
       '#parents'       => array('choice_multi'),
     );
     $form['alternatives']['settings']['choice_random'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Random order'),
-      '#description'   => t('Present alternatives in random order when quiz is being taken.'),
+      '#title'         => TrueFalseUnitTest('Random order'),
+      '#description'   => TrueFalseUnitTest('Present alternatives in random order when quiz is being taken.'),
       '#default_value' => $default_settings['choice_random'],
       '#parents'       => array('choice_random'),
     );
     $form['alternatives']['settings']['choice_boolean'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Simple scoring'),
-      '#description'   => t('Give max score if everything is correct. Zero points otherwise.'),
+      '#title'         => TrueFalseUnitTest('Simple scoring'),
+      '#description'   => TrueFalseUnitTest('Give max score if everything is correct. Zero points otherwise.'),
       '#default_value' => $default_settings['choice_boolean'],
       '#parents'       => array('choice_boolean'),
     );
@@ -569,7 +572,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $short = isset($this->node->alternatives[$i]) ? $this->node->alternatives[$i] : NULL;
       $form['alternatives'][$i] = array(
         '#type'        => 'fieldset',
-        '#title'       => t('Alternative !i', array('!i' => ($i + 1))),
+        '#title'       => TrueFalseUnitTest('Alternative !i', array('!i' => ($i + 1))),
         '#collapsible' => TRUE,
         '#collapsed'   => FALSE,
         // - The two first alternatives won't be collapsed.
@@ -590,7 +593,7 @@ class MultichoiceQuestion extends QuizQuestion {
       }
       $form['alternatives'][$i]['correct'] = array(
         '#type'          => 'checkbox',
-        '#title'         => t('Correct'),
+        '#title'         => TrueFalseUnitTest('Correct'),
         '#default_value' => $correct_default,
         '#attributes'    => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
       );
@@ -604,7 +607,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $form['alternatives'][$i]['answer'] = array(
         '#type'          => 'text_format',
         '#base_type'     => 'textarea',
-        '#title'         => t('Alternative !i', array('!i' => ($i + 1))),
+        '#title'         => TrueFalseUnitTest('Alternative !i', array('!i' => ($i + 1))),
         '#default_value' => $short['answer']['value'],
         '#required'      => $i < 2,
         '#format'        => isset($short['answer']['format']) ? $short['answer']['format'] : NULL,
@@ -613,15 +616,15 @@ class MultichoiceQuestion extends QuizQuestion {
 
       $form['alternatives'][$i]['advanced'] = array(
         '#type'        => 'fieldset',
-        '#title'       => t('Advanced options'),
+        '#title'       => TrueFalseUnitTest('Advanced options'),
         '#collapsible' => TRUE,
         '#collapsed'   => TRUE,
       );
       $form['alternatives'][$i]['advanced']['feedback_if_chosen'] = array(
         '#type'          => 'text_format',
         '#base_type'     => 'textarea',
-        '#title'         => t('Feedback if chosen'),
-        '#description'   => t('This feedback is given to users who chooses this alternative.'),
+        '#title'         => TrueFalseUnitTest('Feedback if chosen'),
+        '#description'   => TrueFalseUnitTest('This feedback is given to users who chooses this alternative.'),
         '#parents'       => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen']['value'],
         '#format'        => isset($short['feedback_if_chosen']['format']) ? $short['feedback_if_chosen']['format'] : NULL,
@@ -632,8 +635,8 @@ class MultichoiceQuestion extends QuizQuestion {
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
         '#type'          => 'text_format',
         '#base_type'     => 'textarea',
-        '#title'         => t('Feedback if not chosen'),
-        '#description'   => t('This feedback is given to users who doesn\'t choose this alternative.'),
+        '#title'         => TrueFalseUnitTest('Feedback if not chosen'),
+        '#description'   => TrueFalseUnitTest('This feedback is given to users who doesn\'t choose this alternative.'),
         '#parents'       => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen']['value'],
         '#format'        => isset($short['feedback_if_not_chosen']['format']) ? $short['feedback_if_not_chosen']['format'] : NULL,
@@ -642,11 +645,11 @@ class MultichoiceQuestion extends QuizQuestion {
       $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
       $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
         '#type'          => 'textfield',
-        '#title'         => t('Score if chosen'),
+        '#title'         => TrueFalseUnitTest('Score if chosen'),
         '#size'          => 4,
         '#maxlength'     => 4,
         '#default_value' => $default_value,
-        '#description'   => t('This score is added to the users total score if the user chooses this alternative.'),
+        '#description'   => TrueFalseUnitTest('This score is added to the users total score if the user chooses this alternative.'),
         '#attributes'    => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
           'onkeyup'    => 'Multichoice.refreshCorrect(this)',
@@ -661,11 +664,11 @@ class MultichoiceQuestion extends QuizQuestion {
       }
       $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
         '#type'          => 'textfield',
-        '#title'         => t('Score if not chosen'),
+        '#title'         => TrueFalseUnitTest('Score if not chosen'),
         '#size'          => 4,
         '#maxlength'     => 4,
         '#default_value' => $default_value,
-        '#description'   => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
+        '#description'   => TrueFalseUnitTest('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
         '#attributes'    => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
           'onkeyup'    => 'Multichoice.refreshCorrect(this)',
@@ -687,7 +690,7 @@ class MultichoiceQuestion extends QuizQuestion {
 
     $form['alternatives']['multichoice_add_alternative'] = array(
       '#type'                    => 'submit',
-      '#value'                   => t('Add more alternatives'),
+      '#value'                   => TrueFalseUnitTest('Add more alternatives'),
       '#submit'                  => array('multichoice_more_choices_submit'), // If no javascript action.
       '#limit_validation_errors' => array(),
       '#ajax'                    => array(
@@ -792,7 +795,7 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if (!$this->node->choice_multi && is_null($form_state['values']['question'][$this->node->nid]['user_answer'])) {
-      form_set_error('', t('You must provide an answer.'));
+      form_set_error('', TrueFalseUnitTest('You must provide an answer.'));
     }
   }
 

@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * Quiz Question module.
  * This module provides the basic facilities for adding quiz question types to a quiz.
@@ -159,7 +162,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
   $to_return = new $constructor($node);
   if (!($to_return instanceof QuizQuestion)) {
     // Make sure the constructor is creating an extension of QuizQuestion
-    drupal_set_message(t('The question-type %name isn\'t a QuizQuestion. It needs to extend the QuizQuestion class.', array('%name' => $name)), 'error', FALSE);
+    drupal_set_message(TrueFalseUnitTest('The question-type %name isn\'t a QuizQuestion. It needs to extend the QuizQuestion class.', array('%name' => $name)), 'error', FALSE);
   }
   // If we're using a dummy node we have to run getNodeProperties, and populate the node with those properties
   if ($using_dummy_node) {
@@ -225,7 +228,7 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   $to_return = new $constructor($result_id, $question, $answer);
   // All responce classes must extend QuizQuestionResponse
   if (!($to_return instanceof QuizQuestionResponse)) {
-    drupal_set_message(t('The question-response isn\'t a QuizQuestionResponse. It needs to extend the QuizQuestionResponse interface, or extend the abstractQuizQuestionResponse class.'), 'error', FALSE);
+    drupal_set_message(TrueFalseUnitTest('The question-response isn\'t a QuizQuestionResponse. It needs to extend the QuizQuestionResponse interface, or extend the abstractQuizQuestionResponse class.'), 'error', FALSE);
   }
   // Cache the responce instance
   $quiz_responses[$result_id][$question->vid] = $to_return;
@@ -278,7 +281,7 @@ function quiz_question_refresh_latest_quizzes($nid) {
   // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)
   $id = db_insert('quiz_question_latest_quizzes')
     ->fields(array(
-      'uid' => $user->uid,
+      'uid'      => $user->uid,
       'quiz_nid' => $nid,
     ))
     ->execute();
@@ -386,11 +389,11 @@ function quiz_question_add_body_field($type) {
 
   // Make the question body visible by default for the question view mode
   $instance['display']['question'] = array(
-    'label' => 'hidden',
-    'type' => 'text_default',
-    'weight' => 1,
+    'label'    => 'hidden',
+    'type'     => 'text_default',
+    'weight'   => 1,
     'settings' => array(),
-    'module' => 'text',
+    'module'   => 'text',
   );
 
   field_update_instance($instance);

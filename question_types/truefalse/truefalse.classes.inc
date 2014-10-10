@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * Defines the classes necessary for a True/False quiz.
  *
@@ -102,13 +105,13 @@ class TrueFalseQuestion extends QuizQuestion {
   public function getNodeView() {
     $content = parent::getNodeView();
     if ($this->viewCanRevealCorrect()) {
-      $answer = ($this->node->correct_answer) ? t('True') : t('False');
+      $answer = ($this->node->correct_answer) ? TrueFalseUnitTest('True') : TrueFalseUnitTest('False');
       $content['answers']['#markup'] = '<div class="quiz-solution">' . $answer . '</div>';
       $content['answers']['#weight'] = 2;
     }
     else {
       $content['answers'] = array(
-        '#markup' => '<div class="quiz-answer-hidden">' . t('Answer hidden') . '</div>',
+        '#markup' => '<div class="quiz-answer-hidden">' . TrueFalseUnitTest('Answer hidden') . '</div>',
         '#weight' => 2,
       );
     }
@@ -126,10 +129,10 @@ class TrueFalseQuestion extends QuizQuestion {
     // 'tries' is unfortunately required by quiz.module
     $element += array(
       '#type' => 'radios',
-      '#title' => t('Choose one'),
+      '#title' => TrueFalseUnitTest('Choose one'),
       '#options' => array(
-        1 => t('True'),
-        0 => t('False')
+        1 => TrueFalseUnitTest('True'),
+        0 => TrueFalseUnitTest('False')
       ),
       '#default_value' => NULL, // prevent default value set to NULL
     );
@@ -147,7 +150,7 @@ class TrueFalseQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if (is_null($form_state['values']['question'][$this->node->nid])) {
-      form_set_error('', t('You must provide an answer.'));
+      form_set_error('', TrueFalseUnitTest('You must provide an answer.'));
     }
   }
 
@@ -157,7 +160,7 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return t('True/false statement');
+    return TrueFalseUnitTest('True/false statement');
   }
 
   /**
@@ -168,28 +171,28 @@ class TrueFalseQuestion extends QuizQuestion {
   public function getCreationForm(array &$form_state = NULL) {
     $form['correct_answer'] = array(
       '#type' => 'radios',
-      '#title' => t('Correct answer'),
+      '#title' => TrueFalseUnitTest('Correct answer'),
       '#options' => array(
-        1 => t('True'),
-        0 => t('False'),
+        1 => TrueFalseUnitTest('True'),
+        0 => TrueFalseUnitTest('False'),
       ),
       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
       '#required' => TRUE,
       '#weight' => -4,
-      '#description' => t('Choose if the correct answer for this question is "true" or "false".')
+      '#description' => TrueFalseUnitTest('Choose if the correct answer for this question is "true" or "false".')
     );
     $form['feedback_fields'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Feedback Settings'),
-      '#description' => t('Settings pertaining to feedback given along with results.'),
+      '#title' => TrueFalseUnitTest('Feedback Settings'),
+      '#description' => TrueFalseUnitTest('Settings pertaining to feedback given along with results.'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
       '#weight' => -3,
     );
     $form['feedback_fields']['feedback'] = array(// @todo: Does this make sense?
       '#type' => 'textarea',
-      '#title' => t('Feedback Text'),
-      '#description' => t('Text to be displayed when the results are displayed'),
+      '#title' => TrueFalseUnitTest('Feedback Text'),
+      '#description' => TrueFalseUnitTest('Text to be displayed when the results are displayed'),
       '#rows' => 5,
       '#cols' => 60,
       '#required' => FALSE,

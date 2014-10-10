@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * quiz_directions.classes
  *
@@ -59,7 +62,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return t('Direction');
+    return TrueFalseUnitTest('Direction');
   }
 
   /**

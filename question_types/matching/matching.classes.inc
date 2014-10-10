@@ -1,5 +1,8 @@
 <?php
 
+use Drupal\quiz_question\QuizQuestion;
+use Drupal\quiz_question\QuizQuestionResponse;
+
 /**
  * matching.classes
  *
@@ -247,7 +250,7 @@ class MatchingQuestion extends QuizQuestion {
       $form = $this->customShuffle($form);
     }
     $form['scoring_info'] = array(
-      '#markup' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
+      '#markup' => '<p><em>' . TrueFalseUnitTest('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
     );
     return $form;
   }
@@ -262,7 +265,7 @@ class MatchingQuestion extends QuizQuestion {
         return TRUE;
       }
     }
-    form_set_error('', t('You need to match at least one of the items.'));
+    form_set_error('', TrueFalseUnitTest('You need to match at least one of the items.'));
   }
 
   /**
@@ -312,7 +315,7 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return t('Instruction');
+    return TrueFalseUnitTest('Instruction');
   }
 
   /**
@@ -326,30 +329,30 @@ class MatchingQuestion extends QuizQuestion {
 
     $form['settings'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Settings'),
+      '#title' => TrueFalseUnitTest('Settings'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
     );
     $form['settings']['choice_penalty'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Penalty for guessing'),
-      '#description' => t('Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'),
+      '#title' => TrueFalseUnitTest('Penalty for guessing'),
+      '#description' => TrueFalseUnitTest('Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'),
       '#default_value' => $default_settings['choice_penalty'],
       '#parents' => array('choice_penalty'),
     );
 
     $form['match'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Answer'),
+      '#title' => TrueFalseUnitTest('Answer'),
       '#weight' => -4,
       '#tree' => TRUE,
       '#theme' => 'matching_question_form',
-      '#description' => t('Write your pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
+      '#description' => TrueFalseUnitTest('Write your pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
     );
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
       $form['match'][$i] = array(
         '#type' => 'fieldset',
-        '#title' => t('Question ' . $i),
+        '#title' => TrueFalseUnitTest('Question ' . $i),
       );
       $form['match'][$i]['match_id'] = array(
         '#type' => 'value',
