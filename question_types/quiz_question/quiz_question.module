@@ -322,53 +322,6 @@ function quiz_question_goto($quiz, $question_number) {
 }
 
 /**
- * Implements hook_list_questions().
- */
-function quiz_question_list_questions($count = 0, $offset = 0) {
-  $query = db_select('node', 'n')
-    ->fields('n', array('nid', 'vid'))
-    ->innerjoin('node_revision', 'nr')
-    ->condition('type', array_keys(_quiz_question_get_implementations()), 'IN')
-    ->execute();
-
-  /*
-    $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
-    INNER JOIN {node_revision} AS r USING(vid)
-    WHERE n.type IN (%s) ORDER BY n.type, n.changed";
-    $types = array();
-    foreach (array_keys(_quiz_question_get_implementations()) as $key) {
-    $types[] = "'" . $key . "'";
-    }
-    $type = implode(',', $types);
-
-    if ($count == 0) {
-    // Return all results
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query(db_rewrite_sql($sql), $type);
-    }
-    else {
-    // return only $count results
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query_range(db_rewrite_sql($sql), $type);
-    }
-   */
-
-  /**
-   * The following code doesn't make any sense, since
-   * the body is not fetched in the above SQL
-   *
-   * From where is this function invoked?
-   */
-  $questions = array();
-  $question_format = (isset($question->body[LANGUAGE_NONE][0]['format'])) ? $question->body[LANGUAGE_NONE][0]['format'] : NULL;
-  while ($question = $query->fetch()) {
-    $question->question = check_markup($question->body, $question_format);
-    $questions[] = $question;
-  }
-  return $questions;
-}
-
-/**
  * Imlementation of hook_get_report().
  *
  * @return
