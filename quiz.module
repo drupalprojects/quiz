@@ -51,7 +51,7 @@ define('QUIZ_KEEP_ALL', 2);
  *
  * @staticvar Quiz $quiz
  * @param string $className
- * @return Quiz
+ * @return \Drupal\quiz\Quiz
  */
 function quiz($className = 'Drupal\quiz\Quiz') {
   static $quiz;
@@ -183,8 +183,8 @@ function _quiz_check_num_always(&$node) {
     return;
   }
   db_delete('quiz_node_relationship')
-      ->condition('parent_vid', $node->vid)
-      ->execute();
+    ->condition('parent_vid', $node->vid)
+    ->execute();
 }
 
 /**
@@ -199,9 +199,9 @@ function _quiz_check_num_random(&$node) {
     return;
   }
   db_delete('quiz_node_relationship')
-      ->condition('question_status', QUESTION_RANDOM)
-      ->condition('parent_vid', $node->vid)
-      ->execute();
+    ->condition('question_status', QUESTION_RANDOM)
+    ->condition('parent_vid', $node->vid)
+    ->execute();
 }
 
 /**
@@ -446,7 +446,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
     INNER JOIN {taxonomy_index} tn USING (nid)
     WHERE n.status = 1 AND tn.tid IN ($term_ids)
     AND n.type IN ('" . implode("','", array_keys(_quiz_get_question_types()))
-      . "') ORDER BY RAND()");
+    . "') ORDER BY RAND()");
 
   $questions = array();
   while ($question_node = db_fetch_array($result)) {
@@ -541,7 +541,7 @@ function _quiz_get_summary_text($quiz, $score) {
 function _quiz_pick_result_option($qnid, $qvid, $score) {
   return db_query('SELECT option_summary, option_summary_format FROM {quiz_node_result_options}
       WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
-      )->fetch();
+    )->fetch();
 }
 
 /**
@@ -564,8 +564,8 @@ function _quiz_load_user_settings($uid = NULL) {
   $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
 
   $query = db_select('quiz_user_settings', 'qus')
-      ->fields('qus')
-      ->condition('uid', $uid);
+    ->fields('qus')
+    ->condition('uid', $uid);
   $res = $query->execute()->fetchAssoc();
   if (!empty($res)) {
     foreach ($res as $key => $value) {
@@ -574,11 +574,11 @@ function _quiz_load_user_settings($uid = NULL) {
       }
     }
     $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
-        ->fields('qnro')
-        ->condition('nid', $res['nid'])
-        ->condition('vid', $res['vid'])
-        ->execute()
-        ->fetchAll();
+      ->fields('qnro')
+      ->condition('nid', $res['nid'])
+      ->condition('vid', $res['vid'])
+      ->execute()
+      ->fetchAll();
     return $settings;
   }
   return array();

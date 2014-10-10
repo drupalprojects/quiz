@@ -6,6 +6,7 @@ use Drupal\quiz\Helper\Quiz\AccessHelper;
 use Drupal\quiz\Helper\Quiz\FeedbackHelper;
 use Drupal\quiz\Helper\Quiz\ResultHelper;
 use Drupal\quiz\Helper\Quiz\SettingHelper;
+use Drupal\quiz\Helper\Quiz\TakeJumperHelper;
 
 class QuizHelper {
 
@@ -13,6 +14,7 @@ class QuizHelper {
   private $resultHelper;
   private $accessHelper;
   private $feedbackHelper;
+  private $takeJumperHelper;
 
   /**
    * @return SettingHelper
@@ -71,6 +73,21 @@ class QuizHelper {
 
   public function setFeedbackHelper($feedbackHelper) {
     $this->feedbackHelper = $feedbackHelper;
+    return $this;
+  }
+
+  /**
+   * @return TakeJumperHelper
+   */
+  public function getTakeJumperHelper($quiz, $total, $siblings, $current) {
+    if (null == $this->takeJumperHelper) {
+      $this->takeJumperHelper = new TakeJumperHelper($quiz, $total, $siblings, $current);
+    }
+    return $this->takeJumperHelper;
+  }
+
+  public function setTakeJumperHelper($takeJumperHelper) {
+    $this->takeJumperHelper = $takeJumperHelper;
     return $this;
   }
 
@@ -185,7 +202,7 @@ class QuizHelper {
       else {
         // Select random question from assigned pool.
         $result = db_query_range(
-          "SELECT child_nid as nid, child_vid as vid, n.type
+            "SELECT child_nid as nid, child_vid as vid, n.type
         FROM {quiz_node_relationship} qnr
         JOIN {node} n on qnr.child_nid = n.nid
         WHERE qnr.parent_vid = :parent_vid
@@ -193,10 +210,10 @@ class QuizHelper {
         AND qnr.question_status = :question_status
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
-          ':parent_vid' => $quiz->vid,
-          ':parent_nid' => $quiz->nid,
-          ':question_status' => QUESTION_RANDOM
-          )
+            ':parent_vid'      => $quiz->vid,
+            ':parent_nid'      => $quiz->nid,
+            ':question_status' => QUESTION_RANDOM
+            )
         );
         while ($question_node = $result->fetchAssoc()) {
           $question_node['random'] = TRUE;
@@ -241,9 +258,9 @@ class QuizHelper {
     // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
     // So we go with the brute force method:
     db_delete('quiz_node_relationship')
-      ->condition('parent_nid', $quiz->nid)
-      ->condition('parent_vid', $quiz->vid)
-      ->execute();
+        ->condition('parent_nid', $quiz->nid)
+        ->condition('parent_vid', $quiz->vid)
+        ->execute();
 
     if (empty($questions)) {
       return TRUE; // This is not an error condition.
@@ -252,18 +269,18 @@ class QuizHelper {
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qnr_id] = array(
-          'parent_nid' => $quiz->nid,
-          'parent_vid' => $quiz->vid,
-          'child_nid' => $question->nid,
-          // Update to latest OR use the version given.
-          'child_vid' => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
-          'question_status' => $question->state,
-          'weight' => $question->weight,
-          'max_score' => (int) $question->max_score,
-          'auto_update_max_score' => (int) $question->auto_update_max_score,
-          'qnr_pid' => $question->qnr_pid,
-          'qnr_id' => !$set_new_revision ? $question->qnr_id : NULL,
-          'old_qnr_id' => $question->qnr_id,
+            'parent_nid'            => $quiz->nid,
+            'parent_vid'            => $quiz->vid,
+            'child_nid'             => $question->nid,
+            // Update to latest OR use the version given.
+            'child_vid'             => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
+            'question_status'       => $question->state,
+            'weight'                => $question->weight,
+            'max_score'             => (int) $question->max_score,
+            'auto_update_max_score' => (int) $question->auto_update_max_score,
+            'qnr_pid'               => $question->qnr_pid,
+            'qnr_id'                => !$set_new_revision ? $question->qnr_id : NULL,
+            'old_qnr_id'            => $question->qnr_id,
         );
         drupal_write_record('quiz_node_relationship', $question_inserts[$question->qnr_id]);
       }
@@ -273,11 +290,11 @@ class QuizHelper {
     // @todo this is copy pasta from quiz_update_quiz_question_relationship
     foreach ($question_inserts as $question_insert) {
       db_update('quiz_node_relationship')
-        ->condition('qnr_pid', $question_insert['old_qnr_id'])
-        ->condition('parent_vid', $quiz->vid)
-        ->condition('parent_nid', $quiz->nid)
-        ->fields(array('qnr_pid' => $question_insert['qnr_id']))
-        ->execute();
+          ->condition('qnr_pid', $question_insert['old_qnr_id'])
+          ->condition('parent_vid', $quiz->vid)
+          ->condition('parent_nid', $quiz->nid)
+          ->fields(array('qnr_pid' => $question_insert['qnr_id']))
+          ->execute();
     }
 
     quiz_update_max_score_properties(array($quiz->vid));
@@ -429,8 +446,8 @@ class QuizHelper {
     $results = array();
     $args = array();
     $query = db_select('node', 'n')
-      ->fields('n', array('nid', 'vid', 'title', 'uid', 'created'))
-      ->fields('u', array('name'));
+        ->fields('n', array('nid', 'vid', 'title', 'uid', 'created'))
+        ->fields('u', array('name'));
     $query->leftJoin('users', 'u', 'u.uid = n.uid');
     $query->condition('n.type', 'quiz');
     if ($uid != 0) {
@@ -475,17 +492,17 @@ class QuizHelper {
 
       // Save the relationship between the new question and the quiz.
       db_insert('quiz_node_relationship')
-        ->fields(array(
-          'parent_nid' => $node->nid,
-          'parent_vid' => $node->vid,
-          'child_nid' => $original_question->nid,
-          'child_vid' => $original_question->vid,
-          'question_status' => $res_o->question_status,
-          'weight' => $res_o->weight,
-          'max_score' => $res_o->max_score,
-          'auto_update_max_score' => $res_o->auto_update_max_score,
-        ))
-        ->execute();
+          ->fields(array(
+              'parent_nid'            => $node->nid,
+              'parent_vid'            => $node->vid,
+              'child_nid'             => $original_question->nid,
+              'child_vid'             => $original_question->vid,
+              'question_status'       => $res_o->question_status,
+              'weight'                => $res_o->weight,
+              'max_score'             => $res_o->max_score,
+              'auto_update_max_score' => $res_o->auto_update_max_score,
+          ))
+          ->execute();
     }
   }
 
@@ -651,17 +668,17 @@ class QuizHelper {
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
 
     $entity = (object) array(
-        'result_answer_id' => $result_answer_id,
-        'question_nid' => $result->nid,
-        'question_vid' => $result->vid,
-        'result_id' => $result->result_id,
-        'is_correct' => (int) $result->is_correct,
-        'points_awarded' => $points,
-        'answer_timestamp' => REQUEST_TIME,
-        'is_skipped' => (int) $result->is_skipped,
-        'is_doubtful' => (int) $result->is_doubtful,
-        'number' => $options['question_data']['number'],
-        'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
+            'result_answer_id' => $result_answer_id,
+            'question_nid'     => $result->nid,
+            'question_vid'     => $result->vid,
+            'result_id'        => $result->result_id,
+            'is_correct'       => (int) $result->is_correct,
+            'points_awarded'   => $points,
+            'answer_timestamp' => REQUEST_TIME,
+            'is_skipped'       => (int) $result->is_skipped,
+            'is_doubtful'      => (int) $result->is_doubtful,
+            'number'           => $options['question_data']['number'],
+            'tid'              => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
     );
     entity_save('quiz_result_answer', $entity);
   }
@@ -678,36 +695,36 @@ class QuizHelper {
     }
 
     db_update('quiz_node_properties')
-      ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
+        ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
       SELECT COALESCE(SUM(max_score), 0)
       FROM {quiz_node_relationship} qnr
       WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
       AND parent_vid = {quiz_node_properties}.vid)')
-      ->condition('vid', $vids, 'IN')
-      ->execute();
+        ->condition('vid', $vids, 'IN')
+        ->execute();
 
     db_update('quiz_node_properties')
-      ->expression('max_score', '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
+        ->expression('max_score', '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
       FROM {quiz_terms} qt
       WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid)')
-      ->condition('randomization', 3)
-      ->condition('vid', $vids, 'IN')
-      ->execute();
+        ->condition('randomization', 3)
+        ->condition('vid', $vids, 'IN')
+        ->execute();
 
     db_update('node_revision')
-      ->fields(array('timestamp' => REQUEST_TIME))
-      ->condition('vid', $vids, 'IN')
-      ->execute();
+        ->fields(array('timestamp' => REQUEST_TIME))
+        ->condition('vid', $vids, 'IN')
+        ->execute();
 
     db_update('node')
-      ->fields(array('changed' => REQUEST_TIME))
-      ->condition('vid', $vids, 'IN')
-      ->execute();
+        ->fields(array('changed' => REQUEST_TIME))
+        ->condition('vid', $vids, 'IN')
+        ->execute();
 
     $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $vids, ':max_score' => 0))->fetchCol();
     if (!empty($results_to_update)) {
       db_update('quiz_node_results')
-        ->expression('score', 'ROUND(
+          ->expression('score', 'ROUND(
         100 * (
           SELECT COALESCE (SUM(a.points_awarded), 0)
           FROM {quiz_node_results_answers} a
@@ -718,8 +735,8 @@ class QuizHelper {
           WHERE qnp.vid = {quiz_node_results}.vid
         )
       )')
-        ->condition('vid', $results_to_update, 'IN')
-        ->execute();
+          ->condition('vid', $results_to_update, 'IN')
+          ->execute();
     }
   }
 

@@ -63,10 +63,12 @@ class QuizTakeQuestionController {
       }
     }
     $content['progress']['#markup'] = theme('quiz_progress', array(
-      'questions' => $questions,
-      'current' => arg(3),
+      'quiz'          => $this->quiz,
+      'questions'     => $questions,
+      'current'       => arg(3),
       'allow_jumping' => $this->quiz->allow_jumping,
-      'time_limit' => $this->quiz->time_limit,
+      'pager'         => count($questions) >= variable_get('quiz_pager_start', 100),
+      'time_limit'    => $this->quiz->time_limit,
     ));
     $content['progress']['#weight'] = -50;
 

@@ -19,7 +19,7 @@ function quiz_help($path, $arg) {
  */
 function quiz_views_api() {
   return array(
-    'api' => 2,
+    'api'  => 2,
     'path' => QUIZ_VIEWS_DIR,
   );
 }
@@ -52,8 +52,8 @@ function quiz_ctools_plugin_api($module, $api) {
 function quiz_node_info() {
   return array(
     'quiz' => array(
-      'name' => t('@quiz', array("@quiz" => QUIZ_NAME)),
-      'base' => 'quiz',
+      'name'        => t('@quiz', array("@quiz" => QUIZ_NAME)),
+      'base'        => 'quiz',
       'description' => t('Create interactive quizzes for site visitors'),
     )
   );
@@ -64,38 +64,38 @@ function quiz_node_info() {
  */
 function quiz_entity_info() {
   return array(
-    'quiz_result' => array(
-      'label' => t('Quiz result'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_results',
-      'entity keys' => array(
+    'quiz_result'                => array(
+      'label'                  => t('Quiz result'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_node_results',
+      'entity keys'            => array(
         'id' => 'result_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
-    'quiz_result_answer' => array(
-      'label' => t('Quiz result answer'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_results_answers',
-      'entity keys' => array(
+    'quiz_result_answer'         => array(
+      'label'                  => t('Quiz result answer'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_node_results_answers',
+      'entity keys'            => array(
         'id' => 'result_answer_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
     'quiz_question_relationship' => array(
-      'label' => t('Quiz question relationship'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_relationship',
-      'entity keys' => array(
+      'label'                  => t('Quiz question relationship'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_node_relationship',
+      'entity keys'            => array(
         'id' => 'qnr_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
-    'quiz' => array(
-      'label' => t('Quiz properties'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_properties',
-      'entity keys' => array(
+    'quiz'                       => array(
+      'label'                  => t('Quiz properties'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_node_properties',
+      'entity keys'            => array(
         'id' => 'qnp_id',
       ),
       'views controller class' => 'EntityDefaultViewsController',
@@ -110,7 +110,7 @@ function quiz_entity_info_alter(&$info) {
   // Add a new view mode for displaying the question when taking a quiz
   $info['node']['view modes'] += array(
     'question' => array(
-      'label' => t('Question'),
+      'label'           => t('Question'),
       'custom settings' => TRUE,
     ),
   );
@@ -162,47 +162,47 @@ function quiz_entity_property_info_alter(&$info) {
 function quiz_field_extra_fields() {
   $extra['node']['quiz'] = array(
     'display' => array(
-      'take' => array(
-        'label' => t('Take quiz button'),
+      'take'  => array(
+        'label'       => t('Take quiz button'),
         'description' => t('The take button.'),
-        'weight' => 10,
+        'weight'      => 10,
       ),
       'stats' => array(
-        'label' => t('Quiz summary'),
+        'label'       => t('Quiz summary'),
         'description' => t('Quiz summary'),
-        'weight' => 9,
+        'weight'      => 9,
       ),
     ),
-    'form' => array(
-      'taking' => array(
-        'label' => t('Taking options'),
+    'form'    => array(
+      'taking'            => array(
+        'label'       => t('Taking options'),
         'description' => t('Fieldset for customizing how a quiz is taken'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
       'quiz_availability' => array(
-        'label' => t('Availability options'),
+        'label'       => t('Availability options'),
         'description' => t('Fieldset for customizing when a quiz is available'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
-      'summaryoptions' => array(
-        'label' => t('Summary options'),
+      'summaryoptions'    => array(
+        'label'       => t('Summary options'),
         'description' => t('Fieldset for customizing summaries in the quiz reports'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
-      'resultoptions' => array(
-        'label' => t('Result options'),
+      'resultoptions'     => array(
+        'label'       => t('Result options'),
         'description' => t('Fieldset for customizing result comments in quiz reports'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
       'remember_settings' => array(
-        'label' => t('Remember settings'),
+        'label'       => t('Remember settings'),
         'description' => t('Checkbox for remembering quiz settings'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
-      'remember_global' => array(
-        'label' => t('Remember as global'),
+      'remember_global'   => array(
+        'label'       => t('Remember as global'),
         'description' => t('Checkbox for remembering quiz settings'),
-        'weight' => 0,
+        'weight'      => 0,
       ),
     ),
   );
@@ -215,68 +215,68 @@ function quiz_field_extra_fields() {
 function quiz_permission() {
   return array(
     // Configure quiz:
-    'administer quiz configuration' => array(
-      'title' => t('Administer quiz configuration'),
-      'description' => t('Control the various settings and behaviours of quiz'),
+    'administer quiz configuration'           => array(
+      'title'           => t('Administer quiz configuration'),
+      'description'     => t('Control the various settings and behaviours of quiz'),
       'restrict access' => TRUE,
     ),
     // Managing quizzes:
-    'access quiz' => array(
-      'title' => t('Take quiz'),
+    'access quiz'                             => array(
+      'title'       => t('Take quiz'),
       'description' => t('Can access (take) all quizzes.'),
     ),
     // viewing results:
-    'view any quiz results' => array(
-      'title' => t('View any quiz results'),
+    'view any quiz results'                   => array(
+      'title'       => t('View any quiz results'),
       'description' => t('Can view results for all quizzes and users.'),
     ),
-    'view own quiz results' => array(
-      'title' => t('View own quiz results'),
+    'view own quiz results'                   => array(
+      'title'       => t('View own quiz results'),
       'description' => t('Quiz takers can view their own results, also when quiz is not passed.'),
     ),
-    'view results for own quiz' => array(
-      'title' => t('View results for own quiz'),
+    'view results for own quiz'               => array(
+      'title'       => t('View results for own quiz'),
       'description' => t('Quiz makers can view results for their own quizzes.'),
     ),
     // deleting results:
-    'delete any quiz results' => array(
+    'delete any quiz results'                 => array(
       'title' => t('Delete any quiz results'),
     ),
-    'delete results for own quiz' => array(
+    'delete results for own quiz'             => array(
       'title' => t('Delete own quiz results'),
     ),
     // scoring:
-    'score any quiz' => array(
+    'score any quiz'                          => array(
       'title' => t('Score any quiz'),
     ),
-    'score own quiz' => array(
+    'score own quiz'                          => array(
       'title' => t('Score own quiz'),
     ),
-    'score taken quiz answer' => array(
-      'title' => t('score taken quiz answer'),
+    'score taken quiz answer'                 => array(
+      'title'       => t('score taken quiz answer'),
       'description' => t('Allows attendee to score questions needing manual evaluation.'),
     ),
     // Allow a quiz question to be viewed outside of a test.
-    'view quiz question outside of a quiz' => array(
-      'title' => t('View quiz question outside of a quiz'),
+    'view quiz question outside of a quiz'    => array(
+      'title'       => t('View quiz question outside of a quiz'),
       'description' => t('Questions can only be accessed through taking a quiz (not as individual nodes) unless this permission is given.'),
     ),
     // Allow the user to see the correct answer, when viewed outside a quiz
     'view any quiz question correct response' => array(
-      'title' => t('View any quiz question correct response'),
+      'title'       => t('View any quiz question correct response'),
       'description' => t('Allow the user to see the correct answer, when viewed outside a quiz.'),
     ),
     // Allows users to pick a name for their questions. Otherwise this is auto
     // generated.
-    'edit question titles' => array(
-      'title' => t('Edit question titles'),
+    'edit question titles'                    => array(
+      'title'       => t('Edit question titles'),
       'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
     ),
     // Control revisioning, only assign this permission to users who understand
     // who permissions work. Note: If a quiz or question is changed and not
     // revisioned you will also change existing result reports.
-    'manual quiz revisioning' => array(
-      'title' => t('Manual quiz revisioning'),
+    'manual quiz revisioning'                 => array(
+      'title'       => t('Manual quiz revisioning'),
       'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
     ),
   );
@@ -287,7 +287,7 @@ function quiz_permission() {
  */
 function quiz_admin_paths() {
   return array(
-    'node/*/quiz' => TRUE,
+    'node/*/quiz'   => TRUE,
     'node/*/quiz/*' => TRUE,
   );
 }
@@ -299,9 +299,9 @@ function quiz_action_info() {
   $actions = array();
 
   $actions['quiz_add_question_to_quiz'] = array(
-    'type' => 'node',
-    'label' => t('Add questions to quiz'),
-    'configurable' => FALSE,
+    'type'             => 'node',
+    'label'            => t('Add questions to quiz'),
+    'configurable'     => FALSE,
     'vbo_configurable' => FALSE,
   );
 
@@ -323,7 +323,7 @@ function quiz_cron() {
       ->condition('time_end', 0)
       ->where('(:request_time - time_start) > :remove_time', array(
         ':request_time' => REQUEST_TIME,
-        ':remove_time' => $rm_time
+        ':remove_time'  => $rm_time
       ))
       ->execute();
   }
@@ -335,136 +335,136 @@ function quiz_cron() {
 function quiz_menu() {
   // Admin pages.
   $items['admin/quiz'] = array(
-    'title' => '@quiz',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'View results, score answers, run reports and edit configurations.',
-    'page callback' => 'system_admin_menu_block_page',
+    'title'            => '@quiz',
+    'title arguments'  => array('@quiz' => QUIZ_NAME),
+    'description'      => 'View results, score answers, run reports and edit configurations.',
+    'page callback'    => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration', 'score any quiz', 'score own quiz', 'view any quiz results', 'view results for own quiz'),
-    'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
+    'access callback'  => 'quiz_access_multi_or',
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'system.admin.inc',
+    'file path'        => drupal_get_path('module', 'system'),
   );
 
   $items['admin/quiz/settings'] = array(
-    'title' => '@quiz settings',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'Change settings for the all Quiz project modules.',
-    'page callback' => 'system_admin_menu_block_page',
+    'title'            => '@quiz settings',
+    'title arguments'  => array('@quiz' => QUIZ_NAME),
+    'description'      => 'Change settings for the all Quiz project modules.',
+    'page callback'    => 'system_admin_menu_block_page',
     'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'system.admin.inc',
+    'file path'        => drupal_get_path('module', 'system'),
   );
 
   $items['admin/quiz/settings/config'] = array(
-    'title' => '@quiz configuration',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'Configure the Quiz module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('Drupal\quiz\Controller\Admin\QuizAdminSettingsController::staticFormCallback'),
+    'title'            => '@quiz configuration',
+    'title arguments'  => array('@quiz' => QUIZ_NAME),
+    'description'      => 'Configure the Quiz module.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('Drupal\quiz\Controller\Admin\QuizAdminSettingsController::staticFormCallback'),
     'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM, // optional
-    'file' => 'quiz.admin.inc',
+    'type'             => MENU_NORMAL_ITEM, // optional
+    'file'             => 'quiz.admin.inc',
   );
 
   $items['admin/quiz/settings/quiz_form'] = array(
-    'title' => '@quiz form configuration',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'Configure default values for the quiz creation form.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('Drupal\quiz\Controller\Admin\QuizAdminController::staticFormCallback'),
+    'title'            => '@quiz form configuration',
+    'title arguments'  => array('@quiz' => QUIZ_NAME),
+    'description'      => 'Configure default values for the quiz creation form.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('Drupal\quiz\Controller\Admin\QuizAdminController::staticFormCallback'),
     'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM, // optional
-    'file' => 'quiz.admin.inc',
+    'type'             => MENU_NORMAL_ITEM, // optional
+    'file'             => 'quiz.admin.inc',
   );
 
   $items['admin/quiz/reports'] = array(
-    'title' => 'Quiz reports and scoring',
-    'title arguments' => array('@quiz' => QUIZ_NAME),
-    'description' => 'View reports and score answers.',
-    'page callback' => 'system_admin_menu_block_page',
+    'title'            => 'Quiz reports and scoring',
+    'title arguments'  => array('@quiz' => QUIZ_NAME),
+    'description'      => 'View reports and score answers.',
+    'page callback'    => 'system_admin_menu_block_page',
     'access arguments' => array('view any quiz results', 'view results for own quiz'),
-    'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'system.admin.inc',
-    'file path' => drupal_get_path('module', 'system'),
+    'access callback'  => 'quiz_access_multi_or',
+    'type'             => MENU_NORMAL_ITEM,
+    'file'             => 'system.admin.inc',
+    'file path'        => drupal_get_path('module', 'system'),
   );
 
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
-    'title' => 'Take',
-    'page callback' => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
-    'page arguments' => array(1),
-    'access callback' => 'quiz_take_access',
+    'title'            => 'Take',
+    'page callback'    => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
+    'page arguments'   => array(1),
+    'access callback'  => 'quiz_take_access',
     'access arguments' => array(1),
-    'type' => MENU_LOCAL_TASK,
+    'type'             => MENU_LOCAL_TASK,
   );
 
   // Take question.
   // @todo Thought - the 4th argument could be a "page" instead of a question
   // number
   $items['node/%quiz_menu/take/%question_number'] = array(
-    'title' => 'Take',
-    'page callback' => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
-    'page arguments' => array(1, 3),
-    'access callback' => 'quiz_take_question_access',
+    'title'            => 'Take',
+    'page callback'    => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
+    'page arguments'   => array(1, 3),
+    'access callback'  => 'quiz_take_question_access',
     'access arguments' => array(1, 3),
   );
 
   // Feedback
   $items['node/%quiz_menu/take/%question_number/feedback'] = array(
-    'title' => 'Feedback',
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionFeedbackController::staticCallback',
-    'page arguments' => array(1, 3),
-    'access callback' => 'quiz_question_feedback_access',
+    'title'            => 'Feedback',
+    'page callback'    => 'Drupal\quiz\Controller\QuizQuestionFeedbackController::staticCallback',
+    'page arguments'   => array(1, 3),
+    'access callback'  => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
   );
 
   $items['node/%quiz_menu/quiz-results/%quiz_result/view'] = array(
-    'title' => 'User results',
-    'page callback' => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
-    'page arguments' => array(3),
-    'access callback' => 'quiz_access_my_result',
+    'title'            => 'User results',
+    'page callback'    => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
+    'page arguments'   => array(3),
+    'access callback'  => 'quiz_access_my_result',
     'access arguments' => array(3),
-    'file' => 'quiz.pages.inc',
+    'file'             => 'quiz.pages.inc',
   );
 
   $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
-    'title' => 'Results',
-    'page callback' => 'Drupal\quiz\Controller\QuizResultController::staticCallback',
-    'page arguments' => array(1, 4),
-    'access callback' => 'quiz_access_results',
+    'title'            => 'Results',
+    'page callback'    => 'Drupal\quiz\Controller\QuizResultController::staticCallback',
+    'page arguments'   => array(1, 4),
+    'access callback'  => 'quiz_access_results',
     'access arguments' => array(1, 4),
   );
 
   // Add questions to quiz.
   $items['node/%quiz_menu/quiz/questions'] = array(
-    'title' => 'Manage questions',
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionManagementController::staticCallback',
-    'page arguments' => array(1),
-    'access callback' => 'quiz_type_confirm',
+    'title'            => 'Manage questions',
+    'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::staticCallback',
+    'page arguments'   => array(1),
+    'access callback'  => 'quiz_type_confirm',
     'access arguments' => array(1, 'update'),
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'quiz.admin.inc',
-    'weight' => 2,
+    'type'             => MENU_LOCAL_TASK,
+    'file'             => 'quiz.admin.inc',
+    'weight'           => 2,
   );
 
   // User pages.
   $items['user/%/quiz-results/%quiz_result/view'] = array(
-    'title' => 'User results',
-    'page callback' => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
-    'page arguments' => array(3),
+    'title'            => 'User results',
+    'page callback'    => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
+    'page arguments'   => array(3),
     'access arguments' => array(3),
-    'access callback' => 'quiz_access_my_result',
-    'type' => MENU_CALLBACK,
-    'file' => 'quiz.pages.inc',
+    'access callback'  => 'quiz_access_my_result',
+    'type'             => MENU_CALLBACK,
+    'file'             => 'quiz.pages.inc',
   );
 
   $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
-    'page callback' => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
-    'type' => MENU_CALLBACK,
-    'access callback' => 'node_access',
+    'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
+    'type'             => MENU_CALLBACK,
+    'access callback'  => 'node_access',
     'access arguments' => array('create', 'quiz'),
   );
 
@@ -476,55 +476,58 @@ function quiz_menu() {
  */
 function quiz_theme($existing, $type, $theme, $path) {
   return array(
-    'quiz_view_stats' => array(
+    'quiz_view_stats'          => array(
       'variables' => array('node' => NULL),
-      'file' => 'quiz.pages.inc',
+      'file'      => 'quiz.pages.inc',
     ),
-    'quiz_categorized_form' => array(
+    'quiz_categorized_form'    => array(
       'render element' => 'form',
-      'file' => 'quiz.admin.inc'
+      'file'           => 'quiz.admin.inc'
     ),
-    'quiz_result' => array(
+    'quiz_result'              => array(
       'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'result_id' => NULL),
-      'file' => 'quiz.pages.inc',
+      'file'      => 'quiz.pages.inc',
     ),
-    'quiz_progress' => array(
-      'variables' => array('question_number' => NULL, 'num_questions' => NULL, 'allow_jumping' => NULL, 'time_limit' => NULL),
-      'file' => 'quiz.pages.inc',
+    'quiz_progress'            => array(
+      'variables' => array('quiz' => null, 'question_number' => NULL, 'num_questions' => NULL, 'allow_jumping' => NULL, 'time_limit' => NULL),
+      'file'      => 'quiz.pages.inc',
     ),
-    'quiz_no_feedback' => array(
-      'file' => 'quiz.pages.inc',
+    'quiz_no_feedback'         => array(
+      'file'      => 'quiz.pages.inc',
       'variables' => array(),
     ),
     'question_selection_table' => array(
-      'file' => 'quiz.admin.inc',
+      'file'           => 'quiz.admin.inc',
       'render element' => 'form',
     ),
-    'quiz_answer_result' => array(
-      'file' => 'quiz.pages.inc',
+    'quiz_answer_result'       => array(
+      'file'      => 'quiz.pages.inc',
       'variables' => array(),
     ),
-    'quiz_report_form' => array(
+    'quiz_report_form'         => array(
       'render element' => 'form',
-      'path' => $path . '/theme',
-      'template' => 'quiz-report-form',
+      'path'           => $path . '/theme',
+      'template'       => 'quiz-report-form',
     ),
-    'quiz_node_form' => array(
+    'quiz_node_form'           => array(
       'render element' => 'form',
-      'file' => 'quiz.admin.inc',
+      'file'           => 'quiz.admin.inc',
     ),
-    'quiz_browser' => array(
+    'quiz_browser'             => array(
       'render element' => 'form',
-      'file' => 'quiz.admin.inc',
+      'file'           => 'quiz.admin.inc',
     ),
-    'quiz_jumper' => array(
+    'quiz_jumper'              => array(
       'variables' => array('current' => 0, 'num_questions' => 0),
-      'file' => 'quiz.admin.inc',
+      'file'      => 'quiz.admin.inc',
     ),
-    'quiz_question_score' => array(
+    'quiz_question_score'      => array(
       'variables' => array('score' => NULL, 'max_score' => NULL),
-      'path' => $path . '/theme',
-      'template' => 'quiz-question-score',
+      'path'      => $path . '/theme',
+      'template'  => 'quiz-question-score',
+    ),
+    'quiz_pager'               => array(
+      'variables' => array('quiz' => null, 'total' => 0, 'current' => 0, 'siblings' => 0),
     ),
   );
 }
@@ -566,19 +569,19 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
  */
 function quiz_form_quiz_node_form_alter(&$form, $form_state) {
   $form['actions']['submit']['#submit'][] = function($form, &$form_state) {
-      $node = $form_state['node'];
+    $node = $form_state['node'];
 
-      if (empty($form_state['values']['nid'])) {
-        drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
-        $form_state['redirect'] = "node/$node->nid/quiz/questions";
-      }
+    if (empty($form_state['values']['nid'])) {
+      drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
+      $form_state['redirect'] = "node/$node->nid/quiz/questions";
+    }
 
-      // If the quiz don't have any questions jump to the manage questions tab.
-      $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
-      if (!is_numeric($res)) {
-        $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
-      }
-    };
+    // If the quiz don't have any questions jump to the manage questions tab.
+    $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
+    if (!is_numeric($res)) {
+      $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
+    }
+  };
 }
 
 /**
@@ -747,14 +750,14 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
                 )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
-      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
-      '@time' => date('l jS \of F Y h:i:s A'),
+      '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
+      '@time'  => date('l jS \of F Y h:i:s A'),
     );
     $params = array(
-      'points' => $score['numeric_score'],
+      'points'      => $score['numeric_score'],
       'description' => t('Attended @title @quiz on @time', $variables),
-      'tid' => $selected_tid,
-      'uid' => $taker->uid,
+      'tid'         => $selected_tid,
+      'uid'         => $taker->uid,
     );
     if ($quiz->userpoints_tid != 0) {
       $params['tid'] = $quiz->userpoints_tid;
@@ -788,13 +791,13 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
                 WHERE ti.nid = :nid", array(':nid' => $quiz->nid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
-      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
-      '@time' => date('l jS \of F Y h:i:s A'),
+      '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
+      '@time'  => date('l jS \of F Y h:i:s A'),
     );
     $params = array(
-      'points' => $score['numeric_score'],
+      'points'      => $score['numeric_score'],
       'description' => t('Attended @title @quiz on @time', $variables),
-      'tid' => $selected_tid,
+      'tid'         => $selected_tid,
     );
     if ($quiz->userpoints_tid != 0) {
       $params['tid'] = $quiz->userpoints_tid;

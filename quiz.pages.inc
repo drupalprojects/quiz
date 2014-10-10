@@ -36,9 +36,9 @@ function quiz_report_form($form, $form_state, $questions) {
   $form['#tree'] = TRUE;
   if ($show_submit) {
     $form['submit'] = array(
-      '#type' => 'submit',
+      '#type'   => 'submit',
       '#submit' => array('quiz_report_form_submit'),
-      '#value' => t('Save Score'),
+      '#value'  => t('Save Score'),
     );
   }
 
@@ -48,16 +48,16 @@ function quiz_report_form($form, $form_state, $questions) {
     if (empty($_SESSION['quiz'][$quiz->nid])) {
       // Quiz is done.
       $form['finish'] = array(
-        '#type' => 'submit',
+        '#type'   => 'submit',
         '#submit' => array('quiz_take_question_feedback_end_submit'),
-        '#value' => t('Finish'),
+        '#value'  => t('Finish'),
       );
     }
     else {
       $form['next'] = array(
-        '#type' => 'submit',
+        '#type'   => 'submit',
         '#submit' => array('quiz_take_question_feedback_submit'),
-        '#value' => t('Next question'),
+        '#value'  => t('Next question'),
       );
     }
   }
@@ -201,11 +201,11 @@ function quiz_get_score_array($result_id, $quiz_vid, $is_evaluated) {
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
   return array(
-    'question_count' => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
-    'possible_score' => $properties->max_score,
-    'numeric_score' => $total_score,
+    'question_count'   => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
+    'possible_score'   => $properties->max_score,
+    'numeric_score'    => $total_score,
     'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),
-    'is_evaluated' => $is_evaluated,
+    'is_evaluated'     => $is_evaluated,
   );
 }
 
@@ -236,11 +236,20 @@ function theme_quiz_answer_result($variables) {
 function theme_quiz_progress($variables) {
   $output = '';
   $output .= '<div id="quiz-progress">';
-
   if ($variables['allow_jumping']) {
     // Show jump form.
-    $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
-    $output .= drupal_render($current_question);
+    if ($variables['pager']) {
+      $output .= theme('quiz_pager', array(
+        'quiz'     => $variables['quiz'],
+        'siblings' => variable_get('quiz_pager_siblings', 5),
+        'current'  => $variables['current'],
+        'total'    => count($variables['questions']),
+      ));
+    }
+    else {
+      $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
+      $output .= drupal_render($current_question);
+    }
   }
   else {
     // Just text.
@@ -299,47 +308,47 @@ function theme_quiz_view_stats($variables) {
   $stats = array(
     array(
       'title' => t('Questions'),
-      'data' => $node->number_of_questions,
+      'data'  => $node->number_of_questions,
     ),
   );
   if ($node->show_attempt_stats) {
     $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
     $stats[] = array(
       'title' => t('Attempts allowed'),
-      'data' => $takes,
+      'data'  => $takes,
     );
   }
   if ($node->quiz_always) {
     $stats[] = array(
       'title' => t('Available'),
-      'data' => t('Always'),
+      'data'  => t('Always'),
     );
   }
   else {
     $stats[] = array(
       'title' => t('Opens'),
-      'data' => format_date($node->quiz_open, 'short'),
+      'data'  => format_date($node->quiz_open, 'short'),
     );
     $stats[] = array(
       'title' => t('Closes'),
-      'data' => format_date($node->quiz_close, 'short'),
+      'data'  => format_date($node->quiz_close, 'short'),
     );
   }
   if (!empty($node->pass_rate)) {
     $stats[] = array(
       'title' => t('Pass rate'),
-      'data' => $node->pass_rate . ' %',
+      'data'  => $node->pass_rate . ' %',
     );
   }
   if (!empty($node->time_limit)) {
     $stats[] = array(
       'title' => t('Time limit'),
-      'data' => _quiz_format_duration($node->time_limit),
+      'data'  => _quiz_format_duration($node->time_limit),
     );
   }
   $stats[] = array(
     'title' => t('Backwards navigation'),
-    'data' => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
+    'data'  => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
   );
   // Format and output the data
   $out = '<table id="quiz-view-table">' . "\n";
@@ -383,11 +392,11 @@ function theme_quiz_result($variables) {
   // Display overall result.
   $output = '';
   $params = array(
-    '%num_correct' => $score['numeric_score'],
+    '%num_correct'    => $score['numeric_score'],
     '%question_count' => $score['possible_score'],
-    '!username' => ($user->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
-    '@score' => $score['percentage_score'],
-    '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
+    '!username'       => ($user->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
+    '@score'          => $score['percentage_score'],
+    '!yourtotal'      => ($user->uid == $account->uid) ? t('Your') : t('Total'),
   );
 
   // @todo should use quiz_feedback_can_review but we dont have the quiz result here.
@@ -410,4 +419,14 @@ function theme_quiz_result($variables) {
   $report_form = drupal_get_form('quiz_report_form', $questions);
   $output .= drupal_render($report_form);
   return $output;
+}
+
+/**
+ * Theme the quiz pager.
+ */
+function theme_quiz_pager($variables) {
+  return quiz()
+      ->getQuizHelper()
+      ->getTakeJumperHelper($variables['quiz'], $variables['total'], $variables['siblings'], $variables['current'])
+      ->render();
 }
