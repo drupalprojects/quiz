@@ -543,12 +543,14 @@ function quiz_theme($existing, $type, $theme, $path) {
     ),
     'quiz_jumper' => array(
       'variables' => array('current' => 0, 'num_questions' => 0),
-      'file' => 'quiz.admin.inc',
     ),
     'quiz_question_score' => array(
       'variables' => array('score' => NULL, 'max_score' => NULL),
       'path' => $path . '/theme',
       'template' => 'quiz-question-score',
+    ),
+    'quiz_pager' => array(
+      'variables' => array('total' => 0, 'current' => 0, 'siblings' => 0),
     ),
   );
 }
@@ -1886,6 +1888,7 @@ function quiz_take_question($quiz, $question_number) {
     'questions' => $questions,
     'current' => arg(3),
     'allow_jumping' => $quiz->allow_jumping,
+    'pager' => count($questions) >= variable_get('quiz_pager_start', 100),
     'time_limit' => $quiz->time_limit,
   ));
   $content['progress']['#weight'] = -50;

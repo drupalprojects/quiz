@@ -66,13 +66,17 @@ class QuizNavigation extends QuizTestCase {
     $this->drupalLogin($this->admin);
     $quiz_node = $this->drupalCreateQuiz(array('allow_jumping' => 1));
 
-    // 3 questions.
+    // 5 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node1, $quiz_node);
     $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node2, $quiz_node);
     $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $question_node4 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node4, $quiz_node);
+    $question_node5 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node5, $quiz_node);
 
     // Testing jumpable navigation.
     $this->drupalLogin($this->user);
@@ -83,6 +87,24 @@ class QuizNavigation extends QuizTestCase {
     $this->assertResponse(200);
     $this->drupalGet("node/{$quiz_node->nid}/take/3");
     $this->assertResponse(200);
+
+    // We should have a selectbox right now.
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertFieldById('edit-question-number', NULL);
+    // Check that the "first" pager link does not appear.
+    $this->assertNoLinkByHref("node/{$quiz_node->nid}/take/1");
+
+    // Test the switch between select/pager.
+    variable_set('quiz_pager_start', 5);
+    // One on each side.
+    variable_set('quiz_pager_siblings', 2);
+    $this->drupalGet("node/{$quiz_node->nid}/take/3");
+    $this->assertNoFieldById('edit-question-number');
+    $this->assertNoLink('1');
+    $this->assertLinkByHref("node/{$quiz_node->nid}/take/2");
+    $this->assertNoLinkByHref("node/{$quiz_node->nid}/take/3");
+    $this->assertLinkByHref("node/{$quiz_node->nid}/take/4");
+    $this->assertNoLink('5');
   }
 
   /**

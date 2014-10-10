@@ -274,8 +274,17 @@ function theme_quiz_progress($variables) {
 
   if ($variables['allow_jumping']) {
     // Show jump form.
-    $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
-    $output .= drupal_render($current_question);
+    if ($variables['pager']) {
+      $output .= theme('quiz_pager', array(
+        'siblings' => variable_get('quiz_pager_siblings', 5),
+        'current' => $variables['current'],
+        'total' => count($variables['questions']),
+      ));
+    }
+    else {
+      $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
+      $output .= drupal_render($current_question);
+    }
   }
   else {
     // Just text.
@@ -445,4 +454,62 @@ function theme_quiz_result($variables) {
   $report_form = drupal_get_form('quiz_report_form', $questions);
   $output .= drupal_render($report_form);
   return $output;
+}
+
+/**
+ * Help us with special pagination.
+ *
+ * Why not the Drupal theme_pager()?
+ *
+ * It uses query strings. We have access on each menu argument (quiz question
+ * number) so we unfortunately cannot use it.
+ */
+function _quiz_pagination_helper($total, $perpage = null, $current = null, $siblings = null) {
+  $result = array();
+
+  if (isset($total, $perpage) === true) {
+    $result = range(1, ceil($total / $perpage));
+
+    if (isset($current, $siblings) === true) {
+      if (($siblings = floor($siblings / 2) * 2 + 1) >= 1) {
+        $result = array_slice($result, max(0, min(count($result) - $siblings, intval($current) - ceil($siblings / 2))), $siblings);
+      }
+    }
+  }
+
+  return $result;
+}
+
+/**
+ * Theme the quiz pager.
+ */
+function theme_quiz_pager($variables) {
+  $total = $variables['total'];
+  $current = $variables['current'];
+  $siblings = $variables['siblings'];
+  $items = array();
+  $nid = arg(1);
+  $items[] = array(
+    'class' => array('pager-first'),
+    'data' => l(t('first'), "node/$nid/take/1"),
+  );
+  foreach (_quiz_pagination_helper($total, 1, $current, $siblings) as $i) {
+    if ($i == $current) {
+      $items[] = array(
+        'class' => array('pager-current'),
+        'data' => $i,
+      );
+    }
+    else {
+      $items[] = array(
+        'class' => array('pager-item'),
+        'data' => l($i, "node/$nid/take/$i"),
+      );
+    }
+  }
+  $items[] = array(
+    'class' => array('pager-last'),
+    'data' => l(t('last'), "node/$nid/take/$total"),
+  );
+  return theme('item_list', array('items' => $items, 'attributes' => array('class' => array('pager'))));
 }

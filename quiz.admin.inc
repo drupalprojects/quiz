@@ -86,6 +86,24 @@ function quiz_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('quiz_autotitle_length', 50),
   );
 
+  $form['quiz_global_settings']['quiz_pager_start'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pager start'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('If a quiz has this many questions, a pager will be displayed instead of a select box.'),
+    '#default_value' => variable_get('quiz_pager_start', 100),
+  );
+
+  $form['quiz_global_settings']['quiz_pager_siblings'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pager siblings'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Number of siblings to show.'),
+    '#default_value' => variable_get('quiz_pager_siblings', 5),
+  );
+
   $target = array(
     'attributes' => array(
       'target' => '_blank'
