@@ -109,7 +109,7 @@ class LongAnswerQuestion extends QuizQuestion {
     if ($this->viewCanRevealCorrect()) {
       $content['answers'] = array(
         '#type' => 'item',
-        '#title' => TrueFalseUnitTest('Rubric'),
+        '#title' => t('Rubric'),
         '#markup' => '<div class="quiz-solution">' . check_markup($this->node->rubric, $this->getFormat()) . '</div>',
         '#weight' => 1,
       );
@@ -133,8 +133,8 @@ class LongAnswerQuestion extends QuizQuestion {
 
     $element += array(
       '#type' => 'textarea',
-      '#title' => TrueFalseUnitTest('Answer'),
-      '#description' => TrueFalseUnitTest('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
+      '#title' => t('Answer'),
+      '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
       '#rows' => 15,
       '#cols' => 60,
       //'#theme' =>'long_answer_answering_form',
@@ -151,7 +151,7 @@ class LongAnswerQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if ($form_state['values']['question'][$this->node->nid] == '') {
-      form_set_error('', TrueFalseUnitTest('You must provide an answer.'));
+      form_set_error('', t('You must provide an answer.'));
     }
   }
 
@@ -163,8 +163,8 @@ class LongAnswerQuestion extends QuizQuestion {
   public function getCreationForm(array &$form_state = NULL) {
     $form['rubric'] = array(
       '#type' => 'textarea',
-      '#title' => TrueFalseUnitTest('Rubric'),
-      '#description' => TrueFalseUnitTest('Specify the criteria for grading the response.'),
+      '#title' => t('Rubric'),
+      '#description' => t('Specify the criteria for grading the response.'),
       '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
       '#size' => 60,
       '#maxlength' => 2048,
@@ -343,7 +343,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $data[] = array(
       'choice' => '',
       'attempt' => $this->answer,
-      'correct' => !$this->evaluated ? TrueFalseUnitTest('This answer has not yet been scored.') : '',
+      'correct' => !$this->evaluated ? t('This answer has not yet been scored.') : '',
       'score' => $this->getScore(),
       'answer_feedback' => check_markup($this->answer_feedback, $this->answer_feedback_format),
       'question_feedback' => '',
@@ -355,7 +355,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
   public function getReportFormAnswerFeedback() {
     return array(
-      '#title' => TrueFalseUnitTest('Enter feedback'),
+      '#title' => t('Enter feedback'),
       '#type' => 'text_format',
       '#default_value' => isset($this->answer_feedback) ? check_markup($this->answer_feedback, $this->answer_feedback_format) : '',
       '#format' => isset($this->answer_feedback_format) ? $this->answer_feedback_format : filter_default_format(),
@@ -379,7 +379,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $max = $this->question->max_score;
     // Check to make sure that entered score is not higher than max allowed score.
     if ($element['score']['#value'] > $max) {
-      form_error($element['score'], TrueFalseUnitTest('The score needs to be a number between @min and @max', array('@min' => 0, '@max' => $max)));
+      form_error($element['score'], t('The score needs to be a number between @min and @max', array('@min' => 0, '@max' => $max)));
     }
   }
 

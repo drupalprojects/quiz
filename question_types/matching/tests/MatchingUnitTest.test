@@ -12,13 +12,13 @@ class MatchingUnitTest extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Matching'),
+      'name'        => t('Matching'),
       'description' => t('Unit test for matching question type.'),
-      'group' => t('Quiz'),
+      'group'       => t('Quiz'),
     );
   }
 
-  function setUp() {
+  public function setUp() {
     parent::setUp(array('matching'));
   }
 
@@ -32,10 +32,10 @@ class MatchingUnitTest extends QuizQuestionTestCase {
 
     // array of node attributes to create a test node
     $settings = array(
-      'type' => $this->question_node_type,
-      'title' => $this->title,
-      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
-      'revisions' => TRUE,
+      'type'           => $this->question_node_type,
+      'title'          => $this->title,
+      'body'           => array(LANGUAGE_NONE => array(array('value' => $this->body))),
+      'revisions'      => TRUE,
       'choice_penalty' => 0,
     );
 

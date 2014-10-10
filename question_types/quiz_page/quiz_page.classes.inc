@@ -37,7 +37,7 @@ class QuizPagesQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return TrueFalseUnitTest('Page');
+    return t('Page');
   }
 
   /**

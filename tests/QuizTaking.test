@@ -4,9 +4,9 @@ class QuizTaking extends QuizTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Quiz taking'),
+      'name'        => t('Quiz taking'),
       'description' => t('Unit test for Quiz take behaviors.'),
-      'group' => t('Quiz'),
+      'group'       => t('Quiz'),
     );
   }
 
@@ -23,13 +23,13 @@ class QuizTaking extends QuizTestCase {
     $this->drupalLogin($this->admin);
     $quiz_node = $this->drupalCreateQuiz(array(
       'repeat_until_correct' => 1,
-      'review_options' => array('question' => array('answer_feedback' => 'answer_feedback')),
+      'review_options'       => array('question' => array('answer_feedback' => 'answer_feedback')),
     ));
 
     $question_node = $this->drupalCreateNode(array(
-      'type' => 'truefalse',
+      'type'           => 'truefalse',
       'correct_answer' => 1,
-      'feedback' => 'Feedback for repeat until correct.',
+      'feedback'       => 'Feedback for repeat until correct.',
     ));
     $this->linkQuestionToQuiz($question_node, $quiz_node);
 
@@ -94,8 +94,8 @@ class QuizTaking extends QuizTestCase {
     // Within range.
     $quiz_node = $this->drupalCreateQuiz(array(
       'quiz_always' => 0,
-      'quiz_open' => $past,
-      'quiz_close' => $future,
+      'quiz_open'   => $past,
+      'quiz_close'  => $future,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertNoText('This quiz is closed.');
@@ -103,8 +103,8 @@ class QuizTaking extends QuizTestCase {
     // Starts in the future.
     $quiz_node = $this->drupalCreateQuiz(array(
       'quiz_always' => 0,
-      'quiz_open' => $future,
-      'quiz_close' => $future + 1,
+      'quiz_open'   => $future,
+      'quiz_close'  => $future + 1,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertText('This quiz is closed.');
@@ -112,8 +112,8 @@ class QuizTaking extends QuizTestCase {
     // Ends in the past.
     $quiz_node = $this->drupalCreateQuiz(array(
       'quiz_always' => 0,
-      'quiz_open' => $past,
-      'quiz_close' => $past + 1,
+      'quiz_open'   => $past,
+      'quiz_close'  => $past + 1,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertText('This quiz is closed.');
@@ -121,8 +121,8 @@ class QuizTaking extends QuizTestCase {
     // Always available.
     $quiz_node = $this->drupalCreateQuiz(array(
       'quiz_always' => 1,
-      'quiz_open' => $future,
-      'quiz_close' => $past,
+      'quiz_open'   => $future,
+      'quiz_close'  => $past,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertNoText('This quiz is closed.');

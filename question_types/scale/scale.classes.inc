@@ -363,7 +363,7 @@ class ScaleQuestion extends QuizQuestion {
 
     $form = array(
       '#type' => 'radios',
-      '#title' => TrueFalseUnitTest('Choose one'),
+      '#title' => t('Choose one'),
       '#options' => $options,
     );
     if (isset($result_id)) {
@@ -378,7 +378,7 @@ class ScaleQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if ($form_state['values']['question'][$this->node->nid] == '') {
-      form_set_error('', TrueFalseUnitTest('You must provide an answer.'));
+      form_set_error('', t('You must provide an answer.'));
     }
   }
 
@@ -401,8 +401,8 @@ class ScaleQuestion extends QuizQuestion {
 
     $form['answer'] = array(
       '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Answer'),
-      '#description' => TrueFalseUnitTest('Provide alternatives for the user to answer.'),
+      '#title' => t('Answer'),
+      '#description' => t('Provide alternatives for the user to answer.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#weight' => -4,
@@ -410,10 +410,10 @@ class ScaleQuestion extends QuizQuestion {
     $form['answer']['#theme'][] = 'scale_creation_form';
     $form['answer']['presets'] = array(
       '#type' => 'select',
-      '#title' => TrueFalseUnitTest('Presets'),
+      '#title' => t('Presets'),
       '#options' => $options,
       '#default_value' => 'd',
-      '#description' => TrueFalseUnitTest('Select a set of alternatives'),
+      '#description' => t('Select a set of alternatives'),
       '#attributes' => array('onchange' => 'refreshAlternatives(this)'),
     );
     $max_num_alts = variable_get('scale_max_num_of_alts', 10);
@@ -421,14 +421,14 @@ class ScaleQuestion extends QuizQuestion {
     $form['jsArray'] = array('#markup' => "<script type='text/javascript'>$jsArray var scale_max_num_of_alts = $max_num_alts;</script>");
     $form['answer']['alternatives'] = array(
       '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Alternatives'),
+      '#title' => t('Alternatives'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
     for ($i = 0; $i < $max_num_alts; $i++) {
       $form['answer']['alternatives']["alternative$i"] = array(
         '#type' => 'textfield',
-        '#title' => TrueFalseUnitTest('Alternative !i', array('!i' => ($i + 1))),
+        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#size' => 60,
         '#maxlength' => 256,
         '#default_value' => isset($this->node->{$i}->answer) ? $this->node->{$i}->answer : '',
@@ -437,11 +437,11 @@ class ScaleQuestion extends QuizQuestion {
     }
     $form['answer']['alternatives']['save'] = array(// @todo: Rename save to save_as_preset or something
       '#type' => 'checkbox',
-      '#title' => TrueFalseUnitTest('Save as a new preset'),
-      '#description' => TrueFalseUnitTest('Current alternatives will be saved as a new preset'),
+      '#title' => t('Save as a new preset'),
+      '#description' => t('Current alternatives will be saved as a new preset'),
       '#default_value' => FALSE,
     );
-    $form['answer']['manage'] = array('#markup' => l(TrueFalseUnitTest('Manage presets'), 'scale/collection/manage'));
+    $form['answer']['manage'] = array('#markup' => l(t('Manage presets'), 'scale/collection/manage'));
     return $form;
   }
 

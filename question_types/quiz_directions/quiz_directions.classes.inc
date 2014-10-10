@@ -62,7 +62,7 @@ class QuizDirectionsQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return TrueFalseUnitTest('Direction');
+    return t('Direction');
   }
 
   /**

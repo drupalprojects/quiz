@@ -2,6 +2,8 @@
 
 namespace Drupal\quiz_question;
 
+use stdClass;
+
 /**
  * Classes used in the Quiz Question module.
  *

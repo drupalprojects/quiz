@@ -42,8 +42,8 @@ class MatchingQuestion extends QuizQuestion {
     if ($is_new) {
       db_insert('quiz_matching_properties')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
+          'nid'            => $this->node->nid,
+          'vid'            => $this->node->vid,
           'choice_penalty' => $this->node->choice_penalty,
         ))
         ->execute();
@@ -66,10 +66,10 @@ class MatchingQuestion extends QuizQuestion {
         if (!empty($match['question']) && !empty($match['answer'])) {
           $id = db_insert('quiz_matching_node')
             ->fields(array(
-              'nid' => $this->node->nid,
-              'vid' => $this->node->vid,
+              'nid'      => $this->node->nid,
+              'vid'      => $this->node->vid,
               'question' => $match['question'],
-              'answer' => $match['answer'],
+              'answer'   => $match['answer'],
               'feedback' => $match['feedback'],
             ))
             ->execute();
@@ -88,7 +88,7 @@ class MatchingQuestion extends QuizQuestion {
           db_update('quiz_matching_node')
             ->fields(array(
               'question' => $match['question'],
-              'answer' => $match['answer'],
+              'answer'   => $match['answer'],
               'feedback' => $match['feedback'],
             ))
             ->condition('match_id', $match['match_id'])
@@ -172,7 +172,7 @@ class MatchingQuestion extends QuizQuestion {
       $props['match'][] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
-        'answer' => $result->answer,
+        'answer'   => $result->answer,
         'feedback' => $result->feedback,
       );
     }
@@ -194,7 +194,7 @@ class MatchingQuestion extends QuizQuestion {
       foreach ($matches as $match) {
         $subquestions[] = array(
           'question' => $match['question'],
-          'correct' => $match['answer'],
+          'correct'  => $match['answer'],
           'feedback' => $match['feedback']
         );
       }
@@ -209,7 +209,7 @@ class MatchingQuestion extends QuizQuestion {
       foreach ($sub_qs as $i => $sub_q) {
         $subquestions[] = array(
           'question' => $sub_q,
-          'random' => $sub_as[$i],
+          'random'   => $sub_as[$i],
         );
       }
     }
@@ -237,8 +237,8 @@ class MatchingQuestion extends QuizQuestion {
     //$form['#theme'] = 'matching_subquestion_form';
     foreach ($matches as $match) {
       $form[$match['match_id']] = array(
-        '#title' => $match['question'],
-        '#type' => 'select',
+        '#title'   => $match['question'],
+        '#type'    => 'select',
         '#options' => $this->customShuffle($select_option),
       );
       if ($responses) {
@@ -250,7 +250,7 @@ class MatchingQuestion extends QuizQuestion {
       $form = $this->customShuffle($form);
     }
     $form['scoring_info'] = array(
-      '#markup' => '<p><em>' . TrueFalseUnitTest('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
+      '#markup' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
     );
     return $form;
   }
@@ -265,7 +265,7 @@ class MatchingQuestion extends QuizQuestion {
         return TRUE;
       }
     }
-    form_set_error('', TrueFalseUnitTest('You need to match at least one of the items.'));
+    form_set_error('', t('You need to match at least one of the items.'));
   }
 
   /**
@@ -301,7 +301,7 @@ class MatchingQuestion extends QuizQuestion {
       $matches[] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
-        'answer' => $result->answer,
+        'answer'   => $result->answer,
         'feedback' => $result->feedback,
       );
       $select_option[$result->match_id] = $result->answer;
@@ -315,7 +315,7 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#getBodyFieldTitle()
    */
   public function getBodyFieldTitle() {
-    return TrueFalseUnitTest('Instruction');
+    return t('Instruction');
   }
 
   /**
@@ -328,52 +328,52 @@ class MatchingQuestion extends QuizQuestion {
     $default_settings = $this->getDefaultAltSettings();
 
     $form['settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Settings'),
+      '#type'        => 'fieldset',
+      '#title'       => t('Settings'),
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#collapsed'   => FALSE,
     );
     $form['settings']['choice_penalty'] = array(
-      '#type' => 'checkbox',
-      '#title' => TrueFalseUnitTest('Penalty for guessing'),
-      '#description' => TrueFalseUnitTest('Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'),
+      '#type'          => 'checkbox',
+      '#title'         => t('Penalty for guessing'),
+      '#description'   => t('Subtract 1 point from the users score for each incorrect match. Scores cannot go below 0.'),
       '#default_value' => $default_settings['choice_penalty'],
-      '#parents' => array('choice_penalty'),
+      '#parents'       => array('choice_penalty'),
     );
 
     $form['match'] = array(
-      '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Answer'),
-      '#weight' => -4,
-      '#tree' => TRUE,
-      '#theme' => 'matching_question_form',
-      '#description' => TrueFalseUnitTest('Write your pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
+      '#type'        => 'fieldset',
+      '#title'       => t('Answer'),
+      '#weight'      => -4,
+      '#tree'        => TRUE,
+      '#theme'       => 'matching_question_form',
+      '#description' => t('Write your pairs in the question and answer columns. For the user the question will be fixed and the answers will be shown as alternatives in a dropdown box.'),
     );
     for ($i = 1; $i <= variable_get('quiz_matching_form_size', 5); ++$i) {
       $form['match'][$i] = array(
-        '#type' => 'fieldset',
-        '#title' => TrueFalseUnitTest('Question ' . $i),
+        '#type'  => 'fieldset',
+        '#title' => t('Question ' . $i),
       );
       $form['match'][$i]['match_id'] = array(
-        '#type' => 'value',
+        '#type'          => 'value',
         '#default_value' => isset($this->node->match[$i - 1]['match_id']) ? $this->node->match[$i - 1]['match_id'] : ''
       );
       $form['match'][$i]['question'] = array(
-        '#type' => 'textarea',
-        '#rows' => 2,
+        '#type'          => 'textarea',
+        '#rows'          => 2,
         '#default_value' => isset($this->node->match[$i - 1]['question']) ? $this->node->match[$i - 1]['question'] : '',
-        '#required' => $i < 3,
+        '#required'      => $i < 3,
       );
       $form['match'][$i]['answer'] = array(
-        '#type' => 'textarea',
-        '#rows' => 2,
+        '#type'          => 'textarea',
+        '#rows'          => 2,
         '#default_value' => isset($this->node->match[$i - 1]['answer']) ? $this->node->match[$i - 1]['answer'] : '',
-        '#required' => $i < 3,
+        '#required'      => $i < 3,
       );
 
       $form['match'][$i]['feedback'] = array(
-        '#type' => 'textarea',
-        '#rows' => 2,
+        '#type'          => 'textarea',
+        '#rows'          => 2,
         '#default_value' => isset($this->node->match[$i - 1]['feedback']) ? $this->node->match[$i - 1]['feedback'] : ''
       );
     }
@@ -428,7 +428,7 @@ class MatchingQuestion extends QuizQuestion {
       $correct_answers[$result->match_id] = array(
         'match_id' => $result->match_id,
         'question' => $result->question,
-        'answer' => $result->answer,
+        'answer'   => $result->answer,
         'feedback' => $result->feedback,
       );
     }
@@ -471,10 +471,10 @@ class MatchingResponse extends QuizQuestionResponse {
     $insert = db_insert('quiz_matching_user_answers')->fields(array('match_id', 'result_id', 'answer', 'score'));
     foreach ($this->answer as $key => $value) {
       $insert->values(array(
-        'match_id' => $key,
+        'match_id'  => $key,
         'result_id' => $this->result_id,
-        'answer' => (int) $value,
-        'score' => ($key == $value) ? 1 : 0,
+        'answer'    => (int) $value,
+        'score'     => ($key == $value) ? 1 : 0,
       ));
     }
     $insert->execute();
@@ -543,14 +543,14 @@ class MatchingResponse extends QuizQuestionResponse {
     foreach ($this->question->match as $match) {
 
       $data[] = array(
-        'choice' => $match['question'],
-        'attempt' => !empty($answers[$match['match_id']]) ? $solution[1][$answers[$match['match_id']]] : '',
-        'correct' => $answers[$match['match_id']] == $match['match_id'] ? theme('quiz_answer_result', array('type' => 'correct')) : theme('quiz_answer_result', array('type' => 'incorrect')),
-        'score' => $answers[$match['match_id']] == $match['match_id'] ? 1 : 0,
-        'answer_feedback' => $match['feedback'],
+        'choice'            => $match['question'],
+        'attempt'           => !empty($answers[$match['match_id']]) ? $solution[1][$answers[$match['match_id']]] : '',
+        'correct'           => $answers[$match['match_id']] == $match['match_id'] ? theme('quiz_answer_result', array('type' => 'correct')) : theme('quiz_answer_result', array('type' => 'incorrect')),
+        'score'             => $answers[$match['match_id']] == $match['match_id'] ? 1 : 0,
+        'answer_feedback'   => $match['feedback'],
         'question_feedback' => 'Question feedback',
-        'solution' => $solution[1][$match['match_id']],
-        'quiz_feedback' => "Quiz feedback",
+        'solution'          => $solution[1][$match['match_id']],
+        'quiz_feedback'     => "Quiz feedback",
       );
     }
 

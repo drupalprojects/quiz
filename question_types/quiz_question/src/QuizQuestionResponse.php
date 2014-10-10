@@ -2,6 +2,9 @@
 
 namespace Drupal\quiz_question;
 
+use Drupal\quiz_question\QuizQuestion;
+use stdClass;
+
 /**
  * Each question type must store its own response data and be able to calculate a score for
  * that data.

@@ -65,7 +65,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function validateNode(array &$form) {
     if ($this->node->correct_answer_evaluation != self::ANSWER_MANUAL && empty($this->node->correct_answer)) {
-      form_set_error('correct_answer', TrueFalseUnitTest('An answer must be specified for any evaluation type other than manual scoring.'));
+      form_set_error('correct_answer', t('An answer must be specified for any evaluation type other than manual scoring.'));
     }
   }
 
@@ -140,8 +140,8 @@ class ShortAnswerQuestion extends QuizQuestion {
 
     $form = array(
       '#type' => 'textfield',
-      '#title' => TrueFalseUnitTest('Answer'),
-      '#description' => TrueFalseUnitTest('Enter your answer here'),
+      '#title' => t('Answer'),
+      '#description' => t('Enter your answer here'),
       '#default_value' => '',
       '#size' => 60,
       '#maxlength' => 256,
@@ -162,7 +162,7 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
     if ($form_state['values']['question'][$this->node->nid] == '') {
-      form_set_error('', TrueFalseUnitTest('You must provide an answer.'));
+      form_set_error('', t('You must provide an answer.'));
     }
   }
 
@@ -174,27 +174,27 @@ class ShortAnswerQuestion extends QuizQuestion {
   public function getCreationForm(array &$form_state = NULL) {
     $form['answer'] = array(
       '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Answer'),
-      '#description' => TrueFalseUnitTest('Provide the answer and the method by which the answer will be evaluated.'),
+      '#title' => t('Answer'),
+      '#description' => t('Provide the answer and the method by which the answer will be evaluated.'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#weight' => -4,
     );
 
     $options = array(
-      self::ANSWER_MATCH => TrueFalseUnitTest('Automatic and case sensitive'),
-      self::ANSWER_INSENSITIVE_MATCH => TrueFalseUnitTest('Automatic. Not case sensitive'),
+      self::ANSWER_MATCH => t('Automatic and case sensitive'),
+      self::ANSWER_INSENSITIVE_MATCH => t('Automatic. Not case sensitive'),
     );
     $access_regex = user_access('use regex for short answer');
     if ($access_regex) {
-      $options[self::ANSWER_REGEX] = TrueFalseUnitTest('Match against a regular expression (answer must match the supplied regular expression)');
+      $options[self::ANSWER_REGEX] = t('Match against a regular expression (answer must match the supplied regular expression)');
     }
-    $options[self::ANSWER_MANUAL] = TrueFalseUnitTest('Manual');
+    $options[self::ANSWER_MANUAL] = t('Manual');
 
     $form['answer']['correct_answer_evaluation'] = array(
       '#type' => 'radios',
-      '#title' => TrueFalseUnitTest('Pick an evaluation method'),
-      '#description' => TrueFalseUnitTest('Choose how the answer shall be evaluated.'),
+      '#title' => t('Pick an evaluation method'),
+      '#description' => t('Choose how the answer shall be evaluated.'),
       '#options' => $options,
       '#default_value' => isset($this->node->correct_answer_evaluation) ? $this->node->correct_answer_evaluation : self::ANSWER_INSENSITIVE_MATCH,
       '#required' => FALSE,
@@ -202,24 +202,24 @@ class ShortAnswerQuestion extends QuizQuestion {
     if ($access_regex) {
       $form['answer']['regex_box'] = array(
         '#type' => 'fieldset',
-        '#title' => TrueFalseUnitTest('About regular expressions'),
+        '#title' => t('About regular expressions'),
         '#collapsible' => TRUE,
         '#collapsed' => TRUE,
       );
 
       $form['answer']['regex_box']['regex_help'] = array(
         '#markup' => '<p>' .
-        TrueFalseUnitTest('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
+        t('Regular expressions are an advanced syntax for pattern matching. They allow you to create a concise set of rules that must be met before a value can be considered a match.') .
         '</p><p>' .
-        TrueFalseUnitTest('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
+        t('For more on regular expression syntax, visit !url.', array('!url' => l('the PHP regular expressions documentation', 'http://www.php.net/manual/en/book.pcre.php'))) .
         '</p>',
       );
     }
 
     $form['answer']['correct_answer'] = array(
       '#type' => 'textfield',
-      '#title' => TrueFalseUnitTest('Correct answer'),
-      '#description' => TrueFalseUnitTest('Specify the answer. If this question is manually scored, no answer needs to be supplied.'),
+      '#title' => t('Correct answer'),
+      '#description' => t('Specify the answer. If this question is manually scored, no answer needs to be supplied.'),
       '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : '',
       '#size' => 60,
       '#maxlength' => 256,
@@ -443,7 +443,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     $data[] = array(
       'choice' => '',
       'attempt' => $this->answer,
-      'correct' => !$this->evaluated ? TrueFalseUnitTest('This answer has not yet been scored.') : '',
+      'correct' => !$this->evaluated ? t('This answer has not yet been scored.') : '',
       'score' => $this->getScore(),
       'answer_feedback' => check_markup($this->answer_feedback, $this->answer_feedback_format),
       'question_feedback' => '',
@@ -455,7 +455,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
 
   public function getReportFormAnswerFeedback() {
     return array(
-      '#title' => TrueFalseUnitTest('Enter feedback'),
+      '#title' => t('Enter feedback'),
       '#type' => 'text_format',
       '#default_value' => $this->answer_feedback,
       '#format' => isset($this->answer_feedback_format) ? $this->answer_feedback_format : filter_default_format(),
@@ -478,7 +478,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function getReportFormValidate(&$element, &$form_state) {
     // Check to make sure that entered score is not higher than max allowed score.
     if ($element['score']['#value'] > $this->question->max_score) {
-      form_error($element['score'], TrueFalseUnitTest('The score needs to be a number between 0 and @max', array('@max' => $this->question->max_score)));
+      form_error($element['score'], t('The score needs to be a number between 0 and @max', array('@max' => $this->question->max_score)));
     }
   }
 

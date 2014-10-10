@@ -7,15 +7,15 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Multichoice'),
+      'name'        => t('Multichoice'),
       'description' => t('Unit test for the multichoice question type.'),
-      'group' => t('Quiz'),
+      'group'       => t('Quiz'),
     );
   }
 
   var $question_node_type = 'multichoice';
 
-  function setUp() {
+  public function setUp() {
     parent::setUp(array('multichoice'));
   }
 
@@ -24,12 +24,12 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
    */
   public function testCreateQuizQuestion($settings = array()) {
     $settings += array(
-      'title' => 'MCQ 1 Title',
-      'type' => 'multichoice',
-      'choice_multi' => 0,
-      'choice_random' => 0,
+      'title'          => 'MCQ 1 Title',
+      'type'           => 'multichoice',
+      'choice_multi'   => 0,
+      'choice_random'  => 0,
       'choice_boolean' => 0,
-      'body' => array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text'))),
+      'body'           => array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text'))),
     );
 
     // Set up some alternatives.

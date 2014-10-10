@@ -50,34 +50,34 @@ class DDLinesQuestion extends QuizQuestion {
 
     $form['settings'] = array(
       '#type' => 'fieldset',
-      '#title' => TrueFalseUnitTest('Settings'),
+      '#title' => t('Settings'),
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#weight' => -3,
     );
     $form['settings']['feedback_enabled'] = array(
       '#type' => 'checkbox',
-      '#title' => TrueFalseUnitTest('Enable feedback'),
-      '#description' => TrueFalseUnitTest('When taking the test, and this option is enabled, a wrong placement of an alternative, will make it jump back. Also, this makes it possible to add comments to both correct and wrong answers.'),
+      '#title' => t('Enable feedback'),
+      '#description' => t('When taking the test, and this option is enabled, a wrong placement of an alternative, will make it jump back. Also, this makes it possible to add comments to both correct and wrong answers.'),
       '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->feedback_enabled : $default_settings['feedback']['enabled'],
       '#parents' => array('feedback_enabled'),
     );
     $form['settings']['hotspot_radius'] = array(
       '#type' => 'textfield',
-      '#title' => TrueFalseUnitTest('Hotspot radius'),
-      '#description' => TrueFalseUnitTest('The radius of the hotspot in pixels'),
+      '#title' => t('Hotspot radius'),
+      '#description' => t('The radius of the hotspot in pixels'),
       '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->hotspot_radius : $default_settings['hotspot']['radius'],
       '#parents' => array('hotspot_radius'),
     );
 
     $form['settings']['execution_mode'] = array(
       '#type' => 'radios',
-      '#title' => TrueFalseUnitTest('Execution mode'),
-      '#description' => TrueFalseUnitTest('The mode for taking the test.'),
+      '#title' => t('Execution mode'),
+      '#description' => t('The mode for taking the test.'),
       '#default_value' => isset($this->node->translation_source) ? $this->node->translation_source->execution_mode : $default_settings['execution_mode'],
       '#options' => array (
-        0 => TrueFalseUnitTest('With lines'),
-        1 => TrueFalseUnitTest('Drag label'),
+        0 => t('With lines'),
+        1 => t('Drag label'),
       ),
       '#parents' => array('execution_mode'),
     );
@@ -128,8 +128,8 @@ class DDLinesQuestion extends QuizQuestion {
     }
 
     // Pick these from settings:
-    $settings['feedback']['correct'] = variable_get('quiz_ddlines_feedback_correct', TrueFalseUnitTest('Correct'));
-    $settings['feedback']['wrong'] = variable_get('quiz_ddlines_feedback_wrong', TrueFalseUnitTest('Wrong'));
+    $settings['feedback']['correct'] = variable_get('quiz_ddlines_feedback_correct', t('Correct'));
+    $settings['feedback']['wrong'] = variable_get('quiz_ddlines_feedback_wrong', t('Wrong'));
     $settings['canvas']['width'] = variable_get('quiz_ddlines_canvas_width', Defaults::CANVAS_WIDTH);
     $settings['canvas']['height'] = variable_get('quiz_ddlines_canvas_height', Defaults::CANVAS_HEIGHT);
     $settings['pointer']['radius'] = variable_get('quiz_ddlines_pointer_radius', Defaults::POINTER_RADIUS);
@@ -148,7 +148,7 @@ class DDLinesQuestion extends QuizQuestion {
     $form = parent::getAnsweringForm($form_state, $result_id);
 
     $form['helptext'] = array(
-      '#markup' => TrueFalseUnitTest('Answer this question by dragging each rectangular label to the correct circular hotspot.'),
+      '#markup' => t('Answer this question by dragging each rectangular label to the correct circular hotspot.'),
       '#weight' => 0,
     );
 
@@ -413,13 +413,13 @@ class DDLinesResponse extends QuizQuestionResponse {
 
     $image_path = base_path() . drupal_get_path('module', 'quiz_ddlines').'/theme/images/';
 
-    $html = '<h3>'.TrueFalseUnitTest('Your answers').'</h3>';
-    $html .= '<div class="icon-descriptions"><div><img src="'.$image_path.'icon_ok.gif">'.TrueFalseUnitTest('Means alternative is placed on the correct spot').'</div>';
-    $html .= '<div><img src="'.$image_path.'icon_wrong.gif">'.TrueFalseUnitTest('Means alternative is placed on the wrong spot, or not placed at all'). '</div></div>';
+    $html = '<h3>'.t('Your answers').'</h3>';
+    $html .= '<div class="icon-descriptions"><div><img src="'.$image_path.'icon_ok.gif">'.t('Means alternative is placed on the correct spot').'</div>';
+    $html .= '<div><img src="'.$image_path.'icon_wrong.gif">'.t('Means alternative is placed on the wrong spot, or not placed at all'). '</div></div>';
     $html .= '<div class="quiz-ddlines-user-answers" id="'.$this->question->nid.'">';
     $html .= $img_rendered;
     $html .= '</div>';
-    $html .= '<h3>'.TrueFalseUnitTest('Correct answers').'</h3>';
+    $html .= '<h3>'.t('Correct answers').'</h3>';
     $html .= '<div class="quiz-ddlines-correct-answers" id="'.$this->question->nid.'">';
     $html .= $img_rendered;
     $html .= '</div>';
