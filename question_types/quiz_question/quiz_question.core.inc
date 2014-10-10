@@ -93,17 +93,17 @@ abstract class QuizQuestion {
     if (user_access('edit question titles')) {
       $form['helper']['#theme'] = 'quiz_question_creation_form';
       $form['title'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Title'),
-        '#maxlength' => 255,
+        '#type'          => 'textfield',
+        '#title'         => t('Title'),
+        '#maxlength'     => 255,
         '#default_value' => $this->node->title,
-        '#required' => FALSE,
-        '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
+        '#required'      => FALSE,
+        '#description'   => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
       );
     }
     else {
       $form['title'] = array(
-        '#type' => 'value',
+        '#type'  => 'value',
         '#value' => $this->node->title,
       );
     }
@@ -123,7 +123,7 @@ abstract class QuizQuestion {
 
     // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
     $form['is_quiz_question'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => TRUE
     );
 
@@ -210,8 +210,8 @@ abstract class QuizQuestion {
         'vid' => $this->node->vid,
       ))
       ->fields(array(
-        'nid' => $this->node->nid,
-        'vid' => $this->node->vid,
+        'nid'       => $this->node->nid,
+        'vid'       => $this->node->vid,
         'max_score' => $this->getMaximumScore(),
       ))
       ->execute();
@@ -616,14 +616,14 @@ abstract class QuizQuestionResponse {
     // Basically, we encode internal information in a
     // legacy array format for Quiz.
     $report = array(
-      'answer_id' => 0, // <-- Stupid vestige of multichoice.
-      'answer' => $this->answer,
+      'answer_id'    => 0, // <-- Stupid vestige of multichoice.
+      'answer'       => $this->answer,
       'is_evaluated' => $this->isEvaluated(),
-      'is_correct' => $this->isCorrect(),
-      'score' => $this->getScore(),
+      'is_correct'   => $this->isCorrect(),
+      'score'        => $this->getScore(),
       'question_vid' => $this->question->vid,
       'question_nid' => $this->question->nid,
-      'result_id' => $this->result_id,
+      'result_id'    => $this->result_id,
     );
     return $report;
   }
@@ -637,25 +637,25 @@ abstract class QuizQuestionResponse {
    *  Drupal form array
    */
   public function getReportForm() {
-    /*
-     * Add general data, and data from the question type implementation
-     */
+    global $user;
+
+    // Add general data, and data from the question type implementation
     $form = array();
     $form['nid'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => $this->question->nid,
     );
     $form['vid'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => $this->question->vid,
     );
     $form['result_id'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => $this->result_id,
     );
     if ($submit = $this->getReportFormSubmit()) {
       $form['submit'] = array(
-        '#type' => 'value',
+        '#type'  => 'value',
         '#value' => $submit,
       );
     }
@@ -664,19 +664,19 @@ abstract class QuizQuestionResponse {
     $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
 
     $form['max_score'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => ($this->canReview('score')) ? $this->getMaxScore() : '?',
     );
 
     $rows = array();
 
     $labels = array(
-      'attempt' => t('Your answer'),
-      'choice' => t('Choice'),
-      'correct' => t('Correct?'),
-      'score' => t('Score'),
+      'attempt'         => t('Your answer'),
+      'choice'          => t('Choice'),
+      'correct'         => t('Correct?'),
+      'score'           => t('Score'),
       'answer_feedback' => t('Feedback'),
-      'solution' => t('Correct answer'),
+      'solution'        => t('Correct answer'),
     );
     drupal_alter('quiz_feedback_labels', $labels);
 
@@ -702,11 +702,11 @@ abstract class QuizQuestionResponse {
       $class = 'q-waiting';
     }
 
-    if (quiz_access_to_score() && $submit) {
+    if (quiz()->getQuizHelper()->getAccessHelper()->canAccessQuizScore($user) && $submit) {
       $form['score'] = $this->getReportFormScore();
     }
 
-    if ($this->canReview('score') || quiz_access_to_score()) {
+    if ($this->canReview('score') || quiz()->getQuizHelper()->getAccessHelper()->canAccessQuizScore($user)) {
       $form['score_display']['#markup'] = theme('quiz_question_score', array('score' => $score, 'max_score' => $this->getMaxScore(), 'class' => $class));
     }
 
@@ -741,14 +741,14 @@ abstract class QuizQuestionResponse {
     $data = array();
 
     $data[] = array(
-      'choice' => 'True',
-      'attempt' => 'Did the user choose this?',
-      'correct' => 'Was their answer correct?',
-      'score' => 'Points earned for this answer',
-      'answer_feedback' => 'Feedback specific to the answer',
+      'choice'            => 'True',
+      'attempt'           => 'Did the user choose this?',
+      'correct'           => 'Was their answer correct?',
+      'score'             => 'Points earned for this answer',
+      'answer_feedback'   => 'Feedback specific to the answer',
       'question_feedback' => 'General question feedback for any answer',
-      'solution' => 'Is this choice the correct solution?',
-      'quiz_feedback' => 'Quiz feedback at this time',
+      'solution'          => 'Is this choice the correct solution?',
+      'quiz_feedback'     => 'Quiz feedback at this time',
     );
 
     return $data;
@@ -841,15 +841,15 @@ abstract class QuizQuestionResponse {
   public function getReportFormScore() {
     $score = ($this->isEvaluated()) ? $this->getScore() : '';
     return array(
-      '#title' => 'Enter score',
-      '#type' => 'textfield',
-      '#default_value' => $score,
-      '#size' => 3,
-      '#maxlength' => 3,
-      '#attributes' => array('class' => array('quiz-report-score')),
+      '#title'            => 'Enter score',
+      '#type'             => 'textfield',
+      '#default_value'    => $score,
+      '#size'             => 3,
+      '#maxlength'        => 3,
+      '#attributes'       => array('class' => array('quiz-report-score')),
       '#element_validate' => array('element_validate_integer'),
-      '#required' => TRUE,
-      '#field_suffix' => '/ ' . $this->getMaxScore(),
+      '#required'         => TRUE,
+      '#field_suffix'     => '/ ' . $this->getMaxScore(),
     );
   }
 

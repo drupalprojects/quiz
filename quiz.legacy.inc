@@ -41,21 +41,6 @@ function quiz_access_my_result($result) {
 }
 
 /**
- * Helper function to determine if a user has access to score a quiz.
- *
- * @param $quiz_creator
- *   uid of the quiz creator.
- */
-function quiz_access_to_score($quiz_creator = NULL) {
-  global $user;
-  return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuizScore($user, $quiz_creator);
-}
-
-function quiz_update_defaults($node) {
-  return quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($node);
-}
-
-/**
  * Find out if a quiz is available for taking or not
  *
  * @param $quiz

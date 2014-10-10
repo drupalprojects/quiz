@@ -16,7 +16,7 @@ class NodeUpdateHelper extends NodeHelper {
     // Update an existing row in the quiz_node_properties table.
     $this->presaveActions($quiz);
 
-    quiz_update_defaults($quiz);
+    quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
     $this->updateResultOptions($quiz);
 
     _quiz_check_num_random($quiz);
@@ -94,12 +94,12 @@ class NodeUpdateHelper extends NodeHelper {
         ->fields(array('nid', 'vid', 'tid', 'weight', 'max_score', 'number'));
       while ($quiz_term = $result->fetchAssoc()) {
         $insert_query->values(array(
-          'nid' => $quiz_nid,
-          'vid' => $new_quiz_vid,
-          'tid' => $quiz_term['tid'],
-          'weight' => $quiz_term['weight'],
+          'nid'       => $quiz_nid,
+          'vid'       => $new_quiz_vid,
+          'tid'       => $quiz_term['tid'],
+          'weight'    => $quiz_term['weight'],
           'max_score' => $quiz_term['max_score'],
-          'number' => $quiz_term['number'],
+          'number'    => $quiz_term['number'],
         ));
       }
       $insert_query->execute();
