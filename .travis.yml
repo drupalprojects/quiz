@@ -56,7 +56,7 @@ before_script:
   - drush runserver localhost:8888 &
 
 script:
-  - drush test-run 'Quiz' --uri=http://localhost:8888
+  - drush test-run --dirty --field-labels=0 'Quiz' --uri=http://localhost:8888
 
 notifications:
   email: false
