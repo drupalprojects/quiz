@@ -530,25 +530,6 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
 }
 
 /**
- * Get summary text for a particular score from a set of result options.
- *
- * @param $qnid
- *   The quiz node id.
- * @param $qvid
- *   The quiz node revision id.
- * @param $score
- *   The user's final score.
- *
- * @return
- *   Summary text for the user's score.
- */
-function _quiz_pick_result_option($qnid, $qvid, $score) {
-  return db_query('SELECT option_summary, option_summary_format FROM {quiz_node_result_options}
-      WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
-    )->fetch();
-}
-
-/**
  * Returns the users default settings.
  *
  * @param $node

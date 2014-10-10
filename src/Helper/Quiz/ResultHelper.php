@@ -330,7 +330,7 @@ class ResultHelper {
         $summary['result'] = check_markup($score['result_option'], $quiz_format);
       }
       else {
-        $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
+        $result_option = $this->pickResultOption($quiz->nid, $quiz->vid, $score['percentage_score']);
         $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
       }
     }
@@ -369,6 +369,25 @@ class ResultHelper {
       }
     }
     return $summary;
+  }
+
+  /**
+   * Get summary text for a particular score from a set of result options.
+   *
+   * @param $qnid
+   *   The quiz node id.
+   * @param $qvid
+   *   The quiz node revision id.
+   * @param $score
+   *   The user's final score.
+   *
+   * @return
+   *   Summary text for the user's score.
+   */
+  private function pickResultOption($qnid, $qvid, $score) {
+    return db_query('SELECT option_summary, option_summary_format FROM {quiz_node_result_options}
+      WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
+      )->fetch();
   }
 
 }
