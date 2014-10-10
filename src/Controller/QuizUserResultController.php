@@ -27,7 +27,7 @@ class QuizUserResultController {
     $current_quiz = node_load($result->nid);
     $questions = quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
     $score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
-    $summary = _quiz_get_summary_text($quiz, $score);
+    $summary = quiz()->getQuizHelper()->getResultHelper()->getSummaryText($quiz, $score);
     $data = array(
       'quiz'      => $quiz,
       'questions' => $questions,

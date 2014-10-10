@@ -24,7 +24,7 @@ class QuizResultController {
     // Get all the data we need.
     $questions = quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
     $score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
-    $summary = _quiz_get_summary_text($quiz, $score);
+    $summary = quiz()->getQuizHelper()->getResultHelper()->getSummaryText($quiz, $score);
 
     // Lets add the quiz title to the breadcrumb array.
     # $breadcrumb = drupal_get_breadcrumb();
