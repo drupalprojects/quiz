@@ -105,13 +105,6 @@ function quiz_build_question_list($quiz) {
 }
 
 /**
- * Get sub-questions.
- */
-function quiz_get_sub_questions($qnr_pid, &$questions) {
-  return quiz()->getQuizHelper()->getSubQuestions($qnr_pid, $questions);
-}
-
-/**
  * Get answer data for a specific result.
  *
  * @param $result_id
