@@ -9,17 +9,6 @@ use Drupal\quiz\Controller\QuizQuestionFeedbackController;
  */
 
 /**
- * Does the current user have access to take the quiz?
- *
- * @param $quiz
- *  The quiz node
- */
-function quiz_take_access($quiz) {
-  global $user;
-  return quiz()->getQuizHelper()->getAccessHelper()->canTakeQuiz($quiz, $user);
-}
-
-/**
  * Update the session for this quiz to the active question.
  *
  * @param type $quiz
@@ -29,13 +18,6 @@ function quiz_take_access($quiz) {
  */
 function quiz_question_goto($quiz, $question_number) {
   $_SESSION['quiz'][$quiz->nid]['current'] = $question_number;
-}
-
-/**
- * Meun check to see if user has access to take this question.
- */
-function quiz_take_question_access($quiz, $question_number) {
-  return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuestion($quiz, $question_number);
 }
 
 /**
@@ -51,7 +33,6 @@ function quiz_take_question_access($quiz, $question_number) {
  *   Form with a button linking to the take tab.
  */
 function quiz_start_quiz_button_form($form, &$form_state, $node) {
-  $form = array();
   $form['#action'] = url("node/$node->nid/take");
   $form['button'] = array(
     '#type'  => 'submit',

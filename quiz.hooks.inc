@@ -909,3 +909,21 @@ function quiz_access_my_results($quiz) {
   global $user;
   return quiz()->getQuizHelper()->getAccessHelper()->canAccessMyResults($quiz, $user);
 }
+
+/**
+ * Does the current user have access to take the quiz?
+ *
+ * @param $quiz
+ *  The quiz node
+ */
+function quiz_take_access($quiz) {
+  global $user;
+  return quiz()->getQuizHelper()->getAccessHelper()->canTakeQuiz($quiz, $user);
+}
+
+/**
+ * Meun check to see if user has access to take this question.
+ */
+function quiz_take_question_access($quiz, $question_number) {
+  return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuestion($quiz, $question_number);
+}
