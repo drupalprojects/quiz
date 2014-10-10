@@ -202,11 +202,11 @@ class ResultHelper {
 
     // 4. Return the score.
     return array(
-      'question_count' => $count,
-      'possible_score' => $possible_score,
-      'numeric_score' => $total_score,
+      'question_count'   => $count,
+      'possible_score'   => $possible_score,
+      'numeric_score'    => $total_score,
       'percentage_score' => ($possible_score == 0) ? 0 : round(($total_score * 100) / $possible_score),
-      'is_evaluated' => $is_evaluated,
+      'is_evaluated'     => $is_evaluated,
     );
   }
 
@@ -231,6 +231,16 @@ class ResultHelper {
     $this->deleteByIds($result_ids);
   }
 
+  /**
+   * Deletes results for a quiz according to the keep results setting
+   *
+   * @param $quiz
+   *  The quiz node to be maintained
+   * @param $result_id
+   *  The result id of the latest result for the current user
+   * @return
+   *  TRUE if results where deleted.
+   */
   public function maintainResult($account, $quiz, $result_id) {
     // Do not delete results for anonymous users
     if ($account->uid == 0) {
