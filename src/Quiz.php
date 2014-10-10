@@ -132,4 +132,30 @@ class Quiz {
     return $vocabularies;
   }
 
+  /**
+   * Modifies the format fieldset.
+   *
+   * Adds a class to all the format fieldsets and removes unwanted strings.
+   * A javascript is added by the forms theme function to make sure all format
+   * selectors follows the body field format selector.
+   * Used when there are multiple format selectors on one page.
+   *
+   * This was _quiz_format_mod(), this is only used in @multichoice/theme/multichoice-alternative-creation.tpl.php
+   * Could be a deprecated function.
+   *
+   * @param $format
+   *   The format fieldset.
+   */
+  public function formatMod(&$format) {
+    $format['#attributes']['class'] = array('quiz-filter');
+    if (isset($format['format'])) {
+      $format['format']['guidelines']['#value'] = ' ';
+      foreach (array_keys($format) as $key) {
+        if (is_numeric($key)) {
+          $format[$key]['#value'] = ' ';
+        }
+      }
+    }
+  }
+
 }
