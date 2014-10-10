@@ -423,21 +423,23 @@ function _quiz_format_mod(&$format) {
  */
 function _quiz_is_int($value, $min = 1, $max = NULL) {
   $to_return = ((string) $value === (string) (int) $value);
-// $value is not an integer.
+
+  // $value is not an integer.
   if (!$to_return) {
     return FALSE;
   }
-// $value is too small.
+
+  // $value is too small.
   if ($value < $min) {
     return FALSE;
   }
-// $value is too big.
-  if (isset($max)) {
-    if ($value > $max) {
-      return FALSE;
-    }
+
+  // $value is too big.
+  if (isset($max) && $value > $max()) {
+    return FALSE;
   }
-// $value is an integer in the allowed range.
+
+  // $value is an integer in the allowed range.
   return TRUE;
 }
 
@@ -467,15 +469,6 @@ function _quiz_is_plain($value) {
  */
 function _quiz_is_empty_html($html) {
   return drupal_strlen(trim(str_replace('&nbsp;', '', strip_tags($html, '<img><object><embed>')))) == 0;
-}
-
-function _quiz_userpoints_type() {
-  $userpoints_terms = taxonomy_get_tree(userpoints_get_vid());
-  $userpoints_tids = array(0 => t('Select'));
-  foreach ($userpoints_terms as $userpoints_term) {
-    $userpoints_tids[$userpoints_term->tid] = str_repeat('-', $userpoints_term->depth) . $userpoints_term->name;
-  }
-  return $userpoints_tids;
 }
 
 /**

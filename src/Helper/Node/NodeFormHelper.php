@@ -183,7 +183,7 @@ class NodeFormHelper extends FormHelper {
       );
       $form['userpoints']['userpoints_tid'] = array(
         '#type'          => 'select',
-        '#options'       => _quiz_userpoints_type(),
+        '#options'       => $this->getUserpointsType(),
         '#title'         => t('Userpoints Category'),
         '#states'        => array(
           'visible' => array(

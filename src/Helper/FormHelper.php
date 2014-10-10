@@ -80,4 +80,13 @@ class FormHelper {
     return $time_array;
   }
 
+  protected function getUserpointsType() {
+    $userpoints_terms = taxonomy_get_tree(userpoints_get_vid());
+    $userpoints_tids = array(0 => t('Select'));
+    foreach ($userpoints_terms as $userpoints_term) {
+      $userpoints_tids[$userpoints_term->tid] = str_repeat('-', $userpoints_term->depth) . $userpoints_term->name;
+    }
+    return $userpoints_tids;
+  }
+
 }
