@@ -455,10 +455,27 @@ class QuizHelper {
   }
 
   /**
+   * Get data for all terms belonging to a Quiz with categorized random questions
+   *
+   * @param int $vid
+   *  version id for the quiz
+   * @return array
+   *  Array with all terms that belongs to the quiz as objects
+   */
+  public function getQuizTermsByVocabularyId($vid) {
+    $sql = 'SELECT td.name, qt.*
+    FROM {quiz_terms} qt
+    JOIN {taxonomy_term_data} td ON qt.tid = td.tid
+    WHERE qt.vid = :vid
+    ORDER BY qt.weight';
+    return db_query($sql, array(':vid' => $vid))->fetchAll();
+  }
+
+  /**
    * Builds the questionlist for quizzes with categorized random questions
    */
   public function buildCategoziedQuestionList($quiz) {
-    $terms = _quiz_get_terms($quiz->vid);
+    $terms = $this->getQuizTermsByVocabularyId($quiz->vid);
     $questions = array();
     $nids = array();
     $question_types = array_keys(_quiz_get_question_types());

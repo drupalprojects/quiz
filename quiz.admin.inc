@@ -45,7 +45,7 @@ function quiz_categorized_form($form, $form_state, $quiz) {
 }
 
 function _quiz_categorized_existing_terms_form(&$form, $form_state, $quiz) {
-  $terms = _quiz_get_terms($quiz->vid);
+  $terms = quiz()->getQuizHelper()->getQuizTermsByVocabularyId($quiz->vid);
   if ($terms) {
     if (empty($form_state['input']) && !quiz()->getQuizHelper()->buildCategoziedQuestionList($quiz)) {
       drupal_set_message(t('There are not enough questions in the requested categories.'), 'error');
