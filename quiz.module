@@ -143,7 +143,7 @@ function quiz_action_options($type = 'all') {
   }
   else {
     $options[$type][0] = t('Choose an action');
-// Lets sort it to get the choose an action back first.
+    // Lets sort it to get the choose an action back first.
     ksort($options[$type]);
     return $options[$type];
   }
@@ -444,20 +444,6 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
 }
 
 /**
- * Helper function used when validating plain text.
- *
- * @param $value
- *   The value to be validated.
- *
- * @return
- *   TRUE if plain text FALSE otherwise.
- */
-function _quiz_is_plain($value) {
-  return ($value === check_plain($value));
-}
-
-
-/**
  * Retrieve list of question types.
  *
  * @return
@@ -466,12 +452,12 @@ function _quiz_is_plain($value) {
 function _quiz_get_question_types() {
   static $to_return = array();
 
-// We vastly improves performance by statically caching the question types.
+  // We vastly improves performance by statically caching the question types.
   if (!empty($to_return)) {
     return $to_return;
   }
 
-// Get question types from the modules that defines them..
+  // Get question types from the modules that defines them..
   $quiz_questions = module_invoke_all('quiz_question_info');
   if (empty($quiz_questions)) {
     drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
@@ -512,11 +498,11 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
     return array();
   }
 
-// Select random questions by taxonomy.
+  // Select random questions by taxonomy.
   $term = taxonomy_term_load($tid);
   $tree = taxonomy_get_tree($term->vid, $term->tid);
 
-// Flatten the taxonomy tree, and just keep term id's.
+  // Flatten the taxonomy tree, and just keep term id's.
   $term_ids[] = $term->tid;
   if (is_array($tree)) {
     foreach ($tree as $term) {
@@ -525,8 +511,8 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
   }
   $term_ids = implode(',', $term_ids);
 
-// Get all published questions with one of the allowed term ids.
-// TODO Please convert this statement to the D7 database API syntax.
+  // Get all published questions with one of the allowed term ids.
+  // TODO Please convert this statement to the D7 database API syntax.
   $result = db_query_range("SELECT n.nid, n.vid
     FROM {node} n
     INNER JOIN {taxonomy_index} tn USING (nid)
@@ -566,7 +552,7 @@ function _quiz_get_summary_text($quiz, $score) {
   $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
   if (!$admin) {
     if (!empty($score['result_option'])) {
-// Unscored quiz, return the proper result option.
+      // Unscored quiz, return the proper result option.
       $summary['result'] = check_markup($score['result_option'], $quiz_format);
     }
     else {
@@ -575,27 +561,27 @@ function _quiz_get_summary_text($quiz, $score) {
     }
   }
 
-// If we are using pass/fail, and they passed.
+  // If we are using pass/fail, and they passed.
   if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
-// If we are coming from the admin view page.
+    // If we are coming from the admin view page.
     if ($admin) {
       $summary['passfail'] = t('The user passed this quiz.');
     }
     elseif (variable_get('quiz_use_passfail', 1) == 0) {
-// If there is only a single summary text, use this.
+      // If there is only a single summary text, use this.
       if (trim($quiz->summary_default) != '') {
         $summary['passfail'] = check_markup($quiz->summary_default, $quiz_format);
       }
     }
     elseif (trim($quiz->summary_pass) != '') {
-// If there is a pass summary text, use this.
+      // If there is a pass summary text, use this.
       $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->summary_pass_format);
     }
   }
-// If the user did not pass or we are not using pass/fail.
+  // If the user did not pass or we are not using pass/fail.
   else {
-// If we are coming from the admin view page, only show a summary if we are
-// using pass/fail.
+    // If we are coming from the admin view page, only show a summary if we are
+    // using pass/fail.
     if ($admin) {
       if ($quiz->pass_rate > 0) {
         $summary['passfail'] = t('The user failed this quiz.');
@@ -645,8 +631,8 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
  * @see https://www.drupal.org/node/2353181
  */
 function _quiz_load_user_settings($uid = NULL) {
-// The def_uid property is the default user id. It is used if there are no
-// settings store for the current user.
+  // The def_uid property is the default user id. It is used if there are no
+  // settings store for the current user.
   $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
 
   $query = db_select('quiz_user_settings', 'qus')
@@ -678,7 +664,7 @@ function _quiz_load_user_settings($uid = NULL) {
  *   Quiz name variable.
  */
 function _quiz_get_quiz_name() {
-// @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
+  // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
   return variable_get('quiz_name', 'Quiz');
 }
 

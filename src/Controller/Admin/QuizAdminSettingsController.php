@@ -252,7 +252,7 @@ class QuizAdminSettingsController {
       form_set_error('quiz_max_result_options', t('The number of resultoptions must be an integer between 0 and 100.'));
     }
 
-    if (!_quiz_is_plain($form_state['values']['quiz_name'])) {
+    if (!$this->isPlain($form_state['values']['quiz_name'])) {
       form_set_error('quiz_name', t('The quiz name must be plain text.'));
     }
   }
@@ -282,6 +282,19 @@ class QuizAdminSettingsController {
     if ($type === 'body') {
       return quiz()->getMailHelper()->formatBody($target, $user);
     }
+  }
+
+  /**
+   * Helper function used when validating plain text.
+   *
+   * @param $value
+   *   The value to be validated.
+   *
+   * @return
+   *   TRUE if plain text FALSE otherwise.
+   */
+  private function isPlain($value) {
+    return ($value === check_plain($value));
   }
 
 }
