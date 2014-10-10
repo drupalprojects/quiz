@@ -400,7 +400,7 @@ function _quiz_format_mod(&$format) {
   $format['#attributes']['class'] = array('quiz-filter');
   if (isset($format['format'])) {
     $format['format']['guidelines']['#value'] = ' ';
-    foreach ($format as $key => $value) {
+    foreach (array_keys($format) as $key) {
       if (is_numeric($key)) {
         $format[$key]['#value'] = ' ';
       }
