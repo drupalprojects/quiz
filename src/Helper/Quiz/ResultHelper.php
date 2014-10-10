@@ -25,7 +25,7 @@ class ResultHelper {
    *   The score as an integer representing percentage. E.g. 55 is 55%.
    */
   public function updateTotalScore($quiz, $result_id) {
-    $score = quiz_calculate_score($quiz, $result_id);
+    $score = $this->calculateScore($quiz, $result_id);
     db_update('quiz_node_results')
       ->fields(array(
         'score' => $score['percentage_score'],

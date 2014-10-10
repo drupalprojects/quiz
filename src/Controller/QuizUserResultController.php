@@ -26,15 +26,15 @@ class QuizUserResultController {
     $quiz = node_load($result->nid, $result->vid);
     $current_quiz = node_load($result->nid);
     $questions = quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
-    $score = quiz_calculate_score($quiz, $result_id);
+    $score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
     $data = array(
-      'quiz' => $quiz,
+      'quiz'      => $quiz,
       'questions' => $questions,
-      'score' => $score,
-      'summary' => $summary,
+      'score'     => $score,
+      'summary'   => $summary,
       'result_id' => $result_id,
-      'account' => user_load($result->uid),
+      'account'   => user_load($result->uid),
     );
     if (user_access('view own quiz results') || (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
       // User can view own quiz results OR the current quiz has "display solution".

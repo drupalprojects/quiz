@@ -54,7 +54,7 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
   $form = array();
   $form['#action'] = url("node/$node->nid/take");
   $form['button'] = array(
-    '#type' => 'submit',
+    '#type'  => 'submit',
     '#value' => t('Start quiz'),
   );
   return $form;
@@ -122,15 +122,15 @@ function quiz_end_actions($quiz, $score, $session_data) {
  */
 function quiz_jumper($form, $form_state, $questions, $current) {
   $form['question_number'] = array(
-    '#type' => 'select',
-    '#options' => $questions,
+    '#type'          => 'select',
+    '#options'       => $questions,
     '#default_value' => $current,
-    '#prefix' => t('Question'),
-    '#suffix' => t('of @num', array('@num' => count($questions))),
+    '#prefix'        => t('Question'),
+    '#suffix'        => t('of @num', array('@num' => count($questions))),
   );
   $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Jump'),
+    '#type'       => 'submit',
+    '#value'      => t('Jump'),
     '#attributes' => array('class' => array('js-hide')),
   );
   return $form;
@@ -175,7 +175,7 @@ function quiz_end_scoring($result_id) {
     }
   }
 
-  $score = quiz_calculate_score($quiz, $result_id);
+  $score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
   if (!isset($score['percentage_score'])) {
     $score['percentage_score'] = 0;
   }
@@ -241,20 +241,20 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     unset($node->content['answers']);
     $form['questions'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
-      '#type' => 'container',
-      'header' => $node->content,
-      'question' => array('#tree' => TRUE, $node->nid => $element),
+      '#type'       => 'container',
+      'header'      => $node->content,
+      'question'    => array('#tree' => TRUE, $node->nid => $element),
     );
 
     if ($quiz->mark_doubtful) {
       $form['is_doubtful'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('doubtful'),
-        '#weight' => 1,
-        '#prefix' => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
-        '#suffix' => '</div>',
+        '#type'          => 'checkbox',
+        '#title'         => t('doubtful'),
+        '#weight'        => 1,
+        '#prefix'        => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
+        '#suffix'        => '</div>',
         '#default_value' => 0,
-        '#attached' => array(
+        '#attached'      => array(
           'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
         ),
       );
@@ -273,10 +273,10 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     // Backwards navigation enabled, and we are looking at not the first
     // question. @todo detect when on the first page.
     $form['navigation']['back'] = array(
-      '#weight' => 10,
-      '#type' => 'submit',
-      '#value' => t('Back'),
-      '#submit' => array('quiz_question_answering_form_submit_back'),
+      '#weight'                  => 10,
+      '#type'                    => 'submit',
+      '#value'                   => t('Back'),
+      '#submit'                  => array('quiz_question_answering_form_submit_back'),
       '#limit_validation_errors' => array(),
     );
     if ($is_last) {
@@ -290,8 +290,8 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
 
   $form['navigation']['submit'] = array(
     '#weight' => 30,
-    '#type' => 'submit',
-    '#value' => $is_last ? t('Finish') : t('Next'),
+    '#type'   => 'submit',
+    '#value'  => $is_last ? t('Finish') : t('Next'),
   );
 
   if ($is_last && $quiz->backwards_navigation && !$quiz->repeat_until_correct) {
@@ -306,11 +306,11 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
 
   if ($quiz->allow_skipping) {
     $form['navigation']['skip'] = array(
-      '#weight' => 20,
-      '#type' => 'submit',
-      '#value' => $is_last ? t('Leave blank and finish') : t('Leave blank'),
-      '#access' => ($node->type == 'quiz_directions') ? FALSE : TRUE,
-      '#submit' => $is_last ? array('quiz_question_answering_form_submit') : array('quiz_question_answering_form_submit_blank'),
+      '#weight'                  => 20,
+      '#type'                    => 'submit',
+      '#value'                   => $is_last ? t('Leave blank and finish') : t('Leave blank'),
+      '#access'                  => ($node->type == 'quiz_directions') ? FALSE : TRUE,
+      '#submit'                  => $is_last ? array('quiz_question_answering_form_submit') : array('quiz_question_answering_form_submit_blank'),
       '#limit_validation_errors' => array(),
     );
   }

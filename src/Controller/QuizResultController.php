@@ -23,7 +23,7 @@ class QuizResultController {
 
     // Get all the data we need.
     $questions = quiz()->getQuizHelper()->getResultHelper()->getAnswers($quiz, $result_id);
-    $score = quiz_calculate_score($quiz, $result_id);
+    $score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
 
     // Lets add the quiz title to the breadcrumb array.
@@ -33,12 +33,12 @@ class QuizResultController {
     # drupal_set_breadcrumb($breadcrumb);
 
     $data = array(
-        'quiz'      => $quiz,
-        'questions' => $questions,
-        'score'     => $score,
-        'summary'   => $summary,
-        'result_id' => $result_id,
-        'account'   => user_load($result->uid),
+      'quiz'      => $quiz,
+      'questions' => $questions,
+      'score'     => $score,
+      'summary'   => $summary,
+      'result_id' => $result_id,
+      'account'   => user_load($result->uid),
     );
     return theme('quiz_result', $data);
   }

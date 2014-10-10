@@ -54,21 +54,6 @@ function quiz_availability($quiz) {
 }
 
 /**
- * Calculates the score user received on quiz.
- *
- * @param $quiz
- *   The quiz node.
- * @param $result_id
- *   Quiz result ID.
- *
- * @return array
- *   Contains three elements: question_count, num_correct and percentage_score.
- */
-function quiz_calculate_score($quiz, $result_id) {
-  return quiz()->getQuizHelper()->getResultHelper()->calculateScore($quiz, $result_id);
-}
-
-/**
  * Retrieves a list of questions (to be taken) for a given quiz.
  *
  * If the quiz has random questions this function only returns a random
