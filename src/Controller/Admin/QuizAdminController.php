@@ -24,7 +24,7 @@ class QuizAdminController {
     $dummy_node = new stdClass();
     // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
     $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
-    $settings = _quiz_load_user_settings();
+    $settings = $this->loadUserSettings();
     $settings += (array) quiz()->getQuizHelper()->getSettingHelper()->getNodeDefaultSettings();
     foreach ($settings as $key => $value) {
       if (!isset($dummy_node->$key)) {
@@ -45,8 +45,8 @@ class QuizAdminController {
     $form['remember_settings']['#default_value'] = TRUE;
 
     $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save'),
+      '#type'   => 'submit',
+      '#value'  => t('Save'),
       '#submit' => array(array($this, 'submit')),
     );
 
@@ -93,6 +93,46 @@ class QuizAdminController {
   }
 
   /**
+   * Returns the users default settings.
+   *
+   * @param $node
+   *   Quiz node.
+   * @param $uid
+   *   (optional) The uid of the user to get the settings for. Defaults to the
+   *   current user (NULL).
+   *
+   * @return
+   *   An array of settings. The array is empty in case no settings are available.
+   *
+   * @see https://www.drupal.org/node/2353181
+   */
+  private function loadUserSettings($uid = NULL) {
+    // The def_uid property is the default user id. It is used if there are no
+    // settings store for the current user.
+    $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
+
+    $query = db_select('quiz_user_settings', 'qus')
+      ->fields('qus')
+      ->condition('uid', $uid);
+    $res = $query->execute()->fetchAssoc();
+    if (!empty($res)) {
+      foreach ($res as $key => $value) {
+        if (!in_array($key, array('nid', 'vid', 'uid'))) {
+          $settings[$key] = $value;
+        }
+      }
+      $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
+        ->fields('qnro')
+        ->condition('nid', $res['nid'])
+        ->condition('vid', $res['vid'])
+        ->execute()
+        ->fetchAll();
+      return $settings;
+    }
+    return array();
+  }
+
+  /**
    * This is copied from _quiz_save_user_settings() in previous revision.
    */
   private function saveUserSettings($node) {
@@ -117,30 +157,30 @@ class QuizAdminController {
     db_merge('quiz_user_settings')->key(array(
       'uid' => $user->uid,
     ))->fields(array(
-      'uid' => isset($node->uid) ? $node->uid : $node->save_def_uid,
-      'nid' => $node->nid,
-      'vid' => $node->vid,
-      'aid' => isset($node->aid) ? $node->aid : 0,
-      'pass_rate' => $node->pass_rate,
-      'summary_pass' => isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '',
-      'summary_pass_format' => $summary_pass_format,
-      'summary_default' => $node->summary_default['value'],
+      'uid'                    => isset($node->uid) ? $node->uid : $node->save_def_uid,
+      'nid'                    => $node->nid,
+      'vid'                    => $node->vid,
+      'aid'                    => isset($node->aid) ? $node->aid : 0,
+      'pass_rate'              => $node->pass_rate,
+      'summary_pass'           => isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '',
+      'summary_pass_format'    => $summary_pass_format,
+      'summary_default'        => $node->summary_default['value'],
       'summary_default_format' => $summary_default_format,
-      'randomization' => $node->randomization,
-      'backwards_navigation' => $node->backwards_navigation,
-      'keep_results' => $node->keep_results,
-      'repeat_until_correct' => $node->repeat_until_correct,
-      'feedback_time' => $node->feedback_time,
-      'display_feedback' => $node->display_feedback,
-      'takes' => $node->takes,
-      'show_attempt_stats' => $node->show_attempt_stats,
-      'time_limit' => isset($node->time_limit) ? $node->time_limit : 0,
-      'quiz_always' => $node->quiz_always,
-      'has_userpoints' => isset($node->has_userpoints) ? $node->has_userpoints : 0,
-      'allow_skipping' => $node->allow_skipping,
-      'allow_resume' => $node->allow_resume,
-      'allow_jumping' => $node->allow_jumping,
-      'show_passed' => $node->show_passed,
+      'randomization'          => $node->randomization,
+      'backwards_navigation'   => $node->backwards_navigation,
+      'keep_results'           => $node->keep_results,
+      'repeat_until_correct'   => $node->repeat_until_correct,
+      'feedback_time'          => $node->feedback_time,
+      'display_feedback'       => $node->display_feedback,
+      'takes'                  => $node->takes,
+      'show_attempt_stats'     => $node->show_attempt_stats,
+      'time_limit'             => isset($node->time_limit) ? $node->time_limit : 0,
+      'quiz_always'            => $node->quiz_always,
+      'has_userpoints'         => isset($node->has_userpoints) ? $node->has_userpoints : 0,
+      'allow_skipping'         => $node->allow_skipping,
+      'allow_resume'           => $node->allow_resume,
+      'allow_jumping'          => $node->allow_jumping,
+      'show_passed'            => $node->show_passed,
     ))->execute();
     drupal_set_message(t('Default settings have been saved'));
   }
