@@ -196,7 +196,7 @@ class QuizTakeController {
    */
   private function init() {
     // Create question list.
-    $questions = quiz_build_question_list($this->quiz);
+    $questions = quiz()->getQuizHelper()->getQuestionList($this->quiz);
     if ($questions === FALSE) {
       drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
       return FALSE;

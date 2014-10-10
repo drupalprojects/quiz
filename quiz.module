@@ -116,27 +116,6 @@ function quiz_action_options($type = 'all') {
 }
 
 /**
- * Retrieves a list of questions (to be taken) for a given quiz.
- *
- * If the quiz has random questions this function only returns a random
- * selection of those questions. This function should be used to decide
- * what questions a quiz taker should answer.
- *
- * This question list is stored in the user's result, and may be different
- * when called multiple times. It should only be used to generate the layout
- * for a quiz attempt and NOT used to do operations on the questions inside of
- * a quiz.
- *
- * @param $quiz
- *   Quiz node.
- * @return
- *   Array of question node IDs.
- */
-function quiz_build_question_list($quiz) {
-  return quiz()->getQuizHelper()->getQuestionList($quiz);
-}
-
-/**
  * Returns an array with quiz titles keyed with quiz node ids.
  *
  * @return array
