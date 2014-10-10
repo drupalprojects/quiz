@@ -233,7 +233,7 @@ class QuizHelper {
     $questions = array();
     if ($num_random > 0) {
       if ($tid > 0) {
-        $questions = _quiz_get_random_taxonomy_question_ids($tid, $num_random);
+        $questions = $this->getRandomTaxonomyQuestionIds($tid, $num_random);
       }
       else {
         // Select random question from assigned pool.
@@ -258,6 +258,51 @@ class QuizHelper {
         }
       }
     }
+    return $questions;
+  }
+
+  /**
+   * Given a term ID, get all of the question nid/vids that have that ID.
+   *
+   * @param $tid
+   *   Integer term ID.
+   *
+   * @return
+   *   Array of nid/vid combos, like array(array('nid'=>1, 'vid'=>2)).
+   */
+  public function getRandomTaxonomyQuestionIds($tid, $num_random) {
+    if ($tid == 0) {
+      return array();
+    }
+
+    // Select random questions by taxonomy.
+    $term = taxonomy_term_load($tid);
+    $tree = taxonomy_get_tree($term->vid, $term->tid);
+
+    // Flatten the taxonomy tree, and just keep term id's.
+    $term_ids[] = $term->tid;
+    if (is_array($tree)) {
+      foreach ($tree as $term) {
+        $term_ids[] = $term->tid;
+      }
+    }
+    $term_ids = implode(',', $term_ids);
+
+    // Get all published questions with one of the allowed term ids.
+    // TODO Please convert this statement to the D7 database API syntax.
+    $result = db_query_range("SELECT n.nid, n.vid
+    FROM {node} n
+    INNER JOIN {taxonomy_index} tn USING (nid)
+    WHERE n.status = 1 AND tn.tid IN ($term_ids)
+    AND n.type IN ('" . implode("','", array_keys(_quiz_get_question_types()))
+      . "') ORDER BY RAND()");
+
+    $questions = array();
+    while ($question_node = db_fetch_array($result)) {
+      $question_node['random'] = TRUE;
+      $questions[] = $question_node;
+    }
+
     return $questions;
   }
 
