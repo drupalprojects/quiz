@@ -77,12 +77,13 @@ function quiz_report_form_element_validate(&$element, &$form_state) {
 
 /**
  * Submit the report form
+ *
+ * We go through the form state values and submit all questiontypes with
+ * validation functions declared.
  */
 function quiz_report_form_submit($form, &$form_state) {
-  /* We go through the form state values and submit all
-   * questiontypes with validation functions declared.
-   */
   global $user;
+
   foreach ($form_state['values'] as $key => $q_values) {
     // Questions has numeric keys in the report form
     if (!is_numeric($key)) {
@@ -115,7 +116,7 @@ function quiz_report_form_submit($form, &$form_state) {
     ->fields(array('is_evaluated' => 1))
     ->condition('result_id', $result_id)
     ->execute();
-  $results_got_deleted = _quiz_maintain_results($quiz, $result_id);
+  $results_got_deleted = quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $quiz, $result_id);
 
   // A message saying the quiz is unscored has already been set. We unset it here...
   if ($changed > 0) {

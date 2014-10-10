@@ -383,6 +383,8 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
  * correct feedback.
  */
 function quiz_question_answering_form_submit(&$form, &$form_state) {
+  global $user;
+
   $quiz = node_load(arg(1));
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $questions = $quiz_result->layout;
@@ -421,7 +423,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
 
     // Delete old results if necessary.
-    _quiz_maintain_results($quiz, $quiz_result->result_id);
+    quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $quiz, $quiz_result->result_id);
     if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question'])) {
       // Only redirect to question results if there is not question feedback.
       $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";

@@ -25,6 +25,8 @@ class ResultHelper {
    *   The score as an integer representing percentage. E.g. 55 is 55%.
    */
   public function updateTotalScore($quiz, $result_id) {
+    global $user;
+
     $score = $this->calculateScore($quiz, $result_id);
     db_update('quiz_node_results')
       ->fields(array(
@@ -32,15 +34,17 @@ class ResultHelper {
       ))
       ->condition('result_id', $result_id)
       ->execute();
+
     if ($score['is_evaluated']) {
       // Call hook_quiz_scored().
       module_invoke_all('quiz_scored', $quiz, $score, $result_id);
-      _quiz_maintain_results($quiz, $result_id);
+      $this->maintainResult($user, $quiz, $result_id);
       db_update('quiz_node_results')
         ->fields(array('is_evaluated' => 1))
         ->condition('result_id', $result_id)
         ->execute();
     }
+
     return $score['percentage_score'];
   }
 

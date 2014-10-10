@@ -580,18 +580,3 @@ function _quiz_get_quiz_name() {
   // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
   return variable_get('quiz_name', 'Quiz');
 }
-
-/**
- * Deletes results for a quiz according to the keep results setting
- *
- * @param $quiz
- *  The quiz node to be maintained
- * @param $result_id
- *  The result id of the latest result for the current user
- * @return
- *  TRUE if results where deleted.
- */
-function _quiz_maintain_results($quiz, $result_id) {
-  global $user;
-  return quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $quiz, $result_id);
-}
