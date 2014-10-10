@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Handles the layout of the multichoice answering form
@@ -7,14 +8,11 @@
  * Variables available:
  * - $form
  */
-
-?>
-<?php
 $p = drupal_get_path('module', 'multichoice');
 
 // Add script for using the entire alternative row as a button
 drupal_add_js(
-"( function($) {
+  "( function($) {
   Drupal.behaviors.multichoiceAlternativeBehavior = {
     attach: function(context, settings) {
       $('.multichoice_row')
@@ -60,4 +58,3 @@ foreach ($titles as $key => $value) {
   $rows[] = array('data' => $row, 'class' => array('multichoice_row'));
 }
 print theme('table', array('header' => array(), 'rows' => $rows));
-?>

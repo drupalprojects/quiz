@@ -8,7 +8,6 @@
  * multichoice Install (a quiz question type)
  */
 
-
 /**
  * Implements hook_install().
  */
@@ -27,24 +26,24 @@ function multichoice_install() {
 function multichoice_schema() {
   // Stores the users answers to a question.
   $schema['quiz_multichoice_user_answers'] = array(
-    'fields' => array(
-      'id' => array(
-        'type' => 'serial',
+    'fields'      => array(
+      'id'           => array(
+        'type'     => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_id' => array(
-        'type' => 'int',
+      'result_id'    => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'question_nid' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'question_vid' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -55,20 +54,20 @@ function multichoice_schema() {
     'primary key' => array(
       'id'
     ),
-    'indexes' => array(
+    'indexes'     => array(
       'answer_id' => array('result_id', 'question_nid', 'question_vid'),
     ),
   );
 
   $schema['quiz_multichoice_user_answer_multi'] = array(
-    'fields' => array(
+    'fields'      => array(
       'user_answer_id' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'answer_id' => array(
-        'type' => 'int',
+      'answer_id'      => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -76,40 +75,40 @@ function multichoice_schema() {
     'primary key' => array(
       'user_answer_id', 'answer_id'
     ),
-    'indexes' => array(
+    'indexes'     => array(
       'answer_id' => array('user_answer_id'),
     ),
   );
 
   $schema['quiz_multichoice_properties'] = array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
+    'fields'      => array(
+      'nid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'choice_multi' => array(
-        'type' => 'int',
+      'choice_multi'   => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'choice_random' => array(
-        'type' => 'int',
+      'choice_random'  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
       'choice_boolean' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
     ),
     'primary key' => array(
@@ -121,92 +120,91 @@ function multichoice_schema() {
    * Holds each answer in the answer_collections.
    */
   $schema['quiz_multichoice_answers'] = array(
-    'fields' => array(
-      'id' => array(
-        'type' => 'serial',
+    'fields'      => array(
+      'id'                            => array(
+        'type'     => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'answer' => array(
+      'answer'                        => array(
         'type' => 'text',
       ),
-      'answer_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'answer_format'                 => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'feedback_if_chosen' => array(
+      'feedback_if_chosen'            => array(
         'type' => 'text',
       ),
-      'feedback_if_chosen_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'feedback_if_chosen_format'     => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'feedback_if_not_chosen' => array(
+      'feedback_if_not_chosen'        => array(
         'type' => 'text',
       ),
       'feedback_if_not_chosen_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'score_if_chosen' => array(
-        'type' => 'int',
+      'score_if_chosen'               => array(
+        'type'     => 'int',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'score_if_not_chosen' => array(
-        'type' => 'int',
+      'score_if_not_chosen'           => array(
+        'type'     => 'int',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'question_nid' => array(
-        'type' => 'int',
+      'question_nid'                  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'question_vid' => array(
-        'type' => 'int',
+      'question_vid'                  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-
     ),
     'primary key' => array(
       'id',
     ),
-    'indexes' => array(
+    'indexes'     => array(
       'quiz_id' => array('question_nid', 'question_vid'),
     )
   );
 
   $schema['quiz_multichoice_user_settings'] = array(
-    'fields' => array(
-      'uid' => array(
-        'type' => 'int',
+    'fields'      => array(
+      'uid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'choice_multi' => array(
-        'type' => 'int',
+      'choice_multi'   => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'choice_random' => array(
-        'type' => 'int',
+      'choice_random'  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
       'choice_boolean' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
     ),
     'primary key' => array(

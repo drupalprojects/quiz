@@ -126,10 +126,10 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($is_new) {
       $id = db_insert('quiz_multichoice_properties')
         ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
-          'choice_multi' => $this->node->choice_multi,
-          'choice_random' => $this->node->choice_random,
+          'nid'            => $this->node->nid,
+          'vid'            => $this->node->vid,
+          'choice_multi'   => $this->node->choice_multi,
+          'choice_random'  => $this->node->choice_random,
           'choice_boolean' => $this->node->choice_boolean,
         ))
         ->execute();
@@ -144,8 +144,8 @@ class MultichoiceQuestion extends QuizQuestion {
     else {
       db_update('quiz_multichoice_properties')
         ->fields(array(
-          'choice_multi' => $this->node->choice_multi,
-          'choice_random' => $this->node->choice_random,
+          'choice_multi'   => $this->node->choice_multi,
+          'choice_random'  => $this->node->choice_random,
           'choice_boolean' => $this->node->choice_boolean,
         ))
         ->condition('nid', $this->node->nid)
@@ -229,16 +229,16 @@ class MultichoiceQuestion extends QuizQuestion {
     $alternatives = $this->_normalizeAlternative($this->node->alternatives[$i]);
     db_insert('quiz_multichoice_answers')
       ->fields(array(
-        'answer' => $alternatives['answer'],
-        'answer_format' => $alternatives['answer_format'],
-        'feedback_if_chosen' => $alternatives['feedback_if_chosen'],
-        'feedback_if_chosen_format' => $alternatives['feedback_if_chosen_format'],
-        'feedback_if_not_chosen' => $alternatives['feedback_if_not_chosen'],
+        'answer'                        => $alternatives['answer'],
+        'answer_format'                 => $alternatives['answer_format'],
+        'feedback_if_chosen'            => $alternatives['feedback_if_chosen'],
+        'feedback_if_chosen_format'     => $alternatives['feedback_if_chosen_format'],
+        'feedback_if_not_chosen'        => $alternatives['feedback_if_not_chosen'],
         'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen_format'],
-        'score_if_chosen' => $alternatives['score_if_chosen'],
-        'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
-        'question_nid' => $this->node->nid,
-        'question_vid' => $this->node->vid
+        'score_if_chosen'               => $alternatives['score_if_chosen'],
+        'score_if_not_chosen'           => $alternatives['score_if_not_chosen'],
+        'question_nid'                  => $this->node->nid,
+        'question_vid'                  => $this->node->vid
       ))
       ->execute();
   }
@@ -253,14 +253,14 @@ class MultichoiceQuestion extends QuizQuestion {
     $alternatives = $this->_normalizeAlternative($this->node->alternatives[$i]);
     db_update('quiz_multichoice_answers')
       ->fields(array(
-        'answer' => $alternatives['answer'],
-        'answer_format' => $alternatives['answer_format'],
-        'feedback_if_chosen' => $alternatives['feedback_if_chosen'],
-        'feedback_if_chosen_format' => $alternatives['feedback_if_chosen_format'],
-        'feedback_if_not_chosen' => $alternatives['feedback_if_not_chosen'],
+        'answer'                        => $alternatives['answer'],
+        'answer_format'                 => $alternatives['answer_format'],
+        'feedback_if_chosen'            => $alternatives['feedback_if_chosen'],
+        'feedback_if_chosen_format'     => $alternatives['feedback_if_chosen_format'],
+        'feedback_if_not_chosen'        => $alternatives['feedback_if_not_chosen'],
         'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen_format'],
-        'score_if_chosen' => $alternatives['score_if_chosen'],
-        'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
+        'score_if_chosen'               => $alternatives['score_if_chosen'],
+        'score_if_not_chosen'           => $alternatives['score_if_not_chosen'],
       ))
       ->condition('id', $alternatives['id'])
       ->condition('question_nid', $this->node->nid)
@@ -372,21 +372,21 @@ class MultichoiceQuestion extends QuizQuestion {
     $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = $res->fetchAssoc()) {
       $props['alternatives'][] = array(
-        'id' => $res_arr['id'],
-        'answer' => array(
-          'value' => $res_arr['answer'],
+        'id'                     => $res_arr['id'],
+        'answer'                 => array(
+          'value'  => $res_arr['answer'],
           'format' => $res_arr['answer_format'],
         ),
-        'feedback_if_chosen' => array(
-          'value' => $res_arr['feedback_if_chosen'],
+        'feedback_if_chosen'     => array(
+          'value'  => $res_arr['feedback_if_chosen'],
           'format' => $res_arr['feedback_if_chosen_format'],
         ),
         'feedback_if_not_chosen' => array(
-          'value' => $res_arr['feedback_if_not_chosen'],
+          'value'  => $res_arr['feedback_if_not_chosen'],
           'format' => $res_arr['feedback_if_not_chosen_format'],
         ),
-        'score_if_chosen' => $res_arr['score_if_chosen'],
-        'score_if_not_chosen' => $res_arr['score_if_not_chosen'],
+        'score_if_chosen'        => $res_arr['score_if_chosen'],
+        'score_if_not_chosen'    => $res_arr['score_if_not_chosen'],
       );
     }
     $this->nodeProperties = $props;
@@ -440,7 +440,7 @@ class MultichoiceQuestion extends QuizQuestion {
     if ($this->node->choice_random) {
       // We save the choice order so that the order will be the same in the answer report
       $element['choice_order'] = array(
-        '#type' => 'hidden',
+        '#type'  => 'hidden',
         '#value' => implode(',', $this->shuffle($element['user_answer']['#options'])),
       );
     }
@@ -509,44 +509,44 @@ class MultichoiceQuestion extends QuizQuestion {
     $form['#action'] = $action;
 
     $form['alternatives'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Answer'),
+      '#type'        => 'fieldset',
+      '#title'       => t('Answer'),
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-      '#weight' => -4,
-      '#tree' => TRUE,
+      '#collapsed'   => FALSE,
+      '#weight'      => -4,
+      '#tree'        => TRUE,
     );
 
     // Get the nodes settings, users settings or default settings
     $default_settings = $this->getDefaultAltSettings();
 
     $form['alternatives']['settings'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Settings'),
+      '#type'        => 'fieldset',
+      '#title'       => t('Settings'),
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
+      '#collapsed'   => FALSE,
       '#description' => t('Your settings will be remembered.'),
     );
     $form['alternatives']['settings']['choice_multi'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Multiple answers'),
-      '#description' => t('Allow any number of answers(checkboxes are used). If this box is not checked, one, and only one answer is allowed(radiobuttons are used).'),
+      '#type'          => 'checkbox',
+      '#title'         => t('Multiple answers'),
+      '#description'   => t('Allow any number of answers(checkboxes are used). If this box is not checked, one, and only one answer is allowed(radiobuttons are used).'),
       '#default_value' => $default_settings['choice_multi'],
-      '#parents' => array('choice_multi'),
+      '#parents'       => array('choice_multi'),
     );
     $form['alternatives']['settings']['choice_random'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Random order'),
-      '#description' => t('Present alternatives in random order when quiz is being taken.'),
+      '#type'          => 'checkbox',
+      '#title'         => t('Random order'),
+      '#description'   => t('Present alternatives in random order when quiz is being taken.'),
       '#default_value' => $default_settings['choice_random'],
-      '#parents' => array('choice_random'),
+      '#parents'       => array('choice_random'),
     );
     $form['alternatives']['settings']['choice_boolean'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Simple scoring'),
-      '#description' => t('Give max score if everything is correct. Zero points otherwise.'),
+      '#type'          => 'checkbox',
+      '#title'         => t('Simple scoring'),
+      '#description'   => t('Give max score if everything is correct. Zero points otherwise.'),
       '#default_value' => $default_settings['choice_boolean'],
-      '#parents' => array('choice_boolean'),
+      '#parents'       => array('choice_boolean'),
     );
 
     // Add helper tag where we will place the input selector for all the textareas.
@@ -568,10 +568,10 @@ class MultichoiceQuestion extends QuizQuestion {
     for (; $i < $choice_count; $i++) {
       $short = isset($this->node->alternatives[$i]) ? $this->node->alternatives[$i] : NULL;
       $form['alternatives'][$i] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
+        '#type'        => 'fieldset',
+        '#title'       => t('Alternative !i', array('!i' => ($i + 1))),
         '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
+        '#collapsed'   => FALSE,
         // - The two first alternatives won't be collapsed.
         // - Populated alternatives won't be collapsed
       );
@@ -589,70 +589,70 @@ class MultichoiceQuestion extends QuizQuestion {
         $correct_default = FALSE;
       }
       $form['alternatives'][$i]['correct'] = array(
-        '#type' => 'checkbox',
-        '#title' => t('Correct'),
+        '#type'          => 'checkbox',
+        '#title'         => t('Correct'),
         '#default_value' => $correct_default,
-        '#attributes' => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
+        '#attributes'    => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
       );
       // We add id to be able to update the correct alternatives if the node is updated, without destroying
       // existing answer reports
       $form['alternatives'][$i]['id'] = array(
-        '#type' => 'value',
+        '#type'  => 'value',
         '#value' => $short['id'],
       );
 
       $form['alternatives'][$i]['answer'] = array(
-        '#type' => 'text_format',
-        '#base_type' => 'textarea',
-        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
+        '#type'          => 'text_format',
+        '#base_type'     => 'textarea',
+        '#title'         => t('Alternative !i', array('!i' => ($i + 1))),
         '#default_value' => $short['answer']['value'],
-        '#required' => $i < 2,
-        '#format' => isset($short['answer']['format']) ? $short['answer']['format'] : NULL,
-        '#rows' => 3,
+        '#required'      => $i < 2,
+        '#format'        => isset($short['answer']['format']) ? $short['answer']['format'] : NULL,
+        '#rows'          => 3,
       );
 
       $form['alternatives'][$i]['advanced'] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Advanced options'),
+        '#type'        => 'fieldset',
+        '#title'       => t('Advanced options'),
         '#collapsible' => TRUE,
-        '#collapsed' => TRUE,
+        '#collapsed'   => TRUE,
       );
       $form['alternatives'][$i]['advanced']['feedback_if_chosen'] = array(
-        '#type' => 'text_format',
-        '#base_type' => 'textarea',
-        '#title' => t('Feedback if chosen'),
-        '#description' => t('This feedback is given to users who chooses this alternative.'),
-        '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
+        '#type'          => 'text_format',
+        '#base_type'     => 'textarea',
+        '#title'         => t('Feedback if chosen'),
+        '#description'   => t('This feedback is given to users who chooses this alternative.'),
+        '#parents'       => array('alternatives', $i, 'feedback_if_chosen'),
         '#default_value' => $short['feedback_if_chosen']['value'],
-        '#format' => isset($short['feedback_if_chosen']['format']) ? $short['feedback_if_chosen']['format'] : NULL,
-        '#rows' => 3,
+        '#format'        => isset($short['feedback_if_chosen']['format']) ? $short['feedback_if_chosen']['format'] : NULL,
+        '#rows'          => 3,
       );
       // We add 'helper' to trick the current version of the wysiwyg module to add an editor to several
       // textareas in the same fieldset
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
-        '#type' => 'text_format',
-        '#base_type' => 'textarea',
-        '#title' => t('Feedback if not chosen'),
-        '#description' => t('This feedback is given to users who doesn\'t choose this alternative.'),
-        '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
+        '#type'          => 'text_format',
+        '#base_type'     => 'textarea',
+        '#title'         => t('Feedback if not chosen'),
+        '#description'   => t('This feedback is given to users who doesn\'t choose this alternative.'),
+        '#parents'       => array('alternatives', $i, 'feedback_if_not_chosen'),
         '#default_value' => $short['feedback_if_not_chosen']['value'],
-        '#format' => isset($short['feedback_if_not_chosen']['format']) ? $short['feedback_if_not_chosen']['format'] : NULL,
-        '#rows' => 3,
+        '#format'        => isset($short['feedback_if_not_chosen']['format']) ? $short['feedback_if_not_chosen']['format'] : NULL,
+        '#rows'          => 3,
       );
       $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
       $form['alternatives'][$i]['advanced']['score_if_chosen'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Score if chosen'),
-        '#size' => 4,
-        '#maxlength' => 4,
+        '#type'          => 'textfield',
+        '#title'         => t('Score if chosen'),
+        '#size'          => 4,
+        '#maxlength'     => 4,
         '#default_value' => $default_value,
-        '#description' => t('This score is added to the users total score if the user chooses this alternative.'),
-        '#attributes' => array(
+        '#description'   => t('This score is added to the users total score if the user chooses this alternative.'),
+        '#attributes'    => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
-          'onkeyup' => 'Multichoice.refreshCorrect(this)',
-          'onchange' => 'Multichoice.refreshCorrect(this)'
+          'onkeyup'    => 'Multichoice.refreshCorrect(this)',
+          'onchange'   => 'Multichoice.refreshCorrect(this)'
         ),
-        '#parents' => array('alternatives', $i, 'score_if_chosen')
+        '#parents'       => array('alternatives', $i, 'score_if_chosen')
       );
 
       $default_value = $short['score_if_not_chosen'];
@@ -660,18 +660,18 @@ class MultichoiceQuestion extends QuizQuestion {
         $default_value = '0';
       }
       $form['alternatives'][$i]['advanced']['score_if_not_chosen'] = array(
-        '#type' => 'textfield',
-        '#title' => t('Score if not chosen'),
-        '#size' => 4,
-        '#maxlength' => 4,
+        '#type'          => 'textfield',
+        '#title'         => t('Score if not chosen'),
+        '#size'          => 4,
+        '#maxlength'     => 4,
         '#default_value' => $default_value,
-        '#description' => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
-        '#attributes' => array(
+        '#description'   => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
+        '#attributes'    => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
-          'onkeyup' => 'Multichoice.refreshCorrect(this)',
-          'onchange' => 'Multichoice.refreshCorrect(this)'
+          'onkeyup'    => 'Multichoice.refreshCorrect(this)',
+          'onchange'   => 'Multichoice.refreshCorrect(this)'
         ),
-        '#parents' => array('alternatives', $i, 'score_if_not_chosen')
+        '#parents'       => array('alternatives', $i, 'score_if_not_chosen')
       );
     }
     // ahah helper tag. New questions will be inserted before this tag
@@ -681,20 +681,20 @@ class MultichoiceQuestion extends QuizQuestion {
 
     // We can't send the get values to the ahah callback the normal way, so we do it like this.
     $form['get'] = array(
-      '#type' => 'value',
+      '#type'  => 'value',
       '#value' => $get,
     );
 
     $form['alternatives']['multichoice_add_alternative'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add more alternatives'),
-      '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
+      '#type'                    => 'submit',
+      '#value'                   => t('Add more alternatives'),
+      '#submit'                  => array('multichoice_more_choices_submit'), // If no javascript action.
       '#limit_validation_errors' => array(),
-      '#ajax' => array(
+      '#ajax'                    => array(
         'callback' => 'multichoice_add_alternative_ajax_callback',
-        'wrapper' => 'placeholder',
-        'effect' => 'slide',
-        'method' => 'before',
+        'wrapper'  => 'placeholder',
+        'effect'   => 'slide',
+        'method'   => 'before',
       ),
     );
     $form['#attached']['js'] = array(
@@ -757,8 +757,8 @@ class MultichoiceQuestion extends QuizQuestion {
     db_merge('quiz_multichoice_user_settings')
       ->key(array('uid' => $user->uid))
       ->fields(array(
-        'choice_random' => $this->node->choice_random,
-        'choice_multi' => $this->node->choice_multi,
+        'choice_random'  => $this->node->choice_random,
+        'choice_multi'   => $this->node->choice_multi,
         'choice_boolean' => $this->node->choice_boolean,
       ))
       ->execute();
@@ -859,7 +859,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public function save() {
     $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
-        'result_id' => $this->result_id,
+        'result_id'    => $this->result_id,
         'question_vid' => $this->question->vid,
         'question_nid' => $this->question->nid,
         'choice_order' => $this->choice_order
@@ -977,14 +977,14 @@ class MultichoiceResponse extends QuizQuestionResponse {
       $not = $chosen ? '' : 'not_';
 
       $data[] = array(
-        'choice' => check_markup($alternative['answer']['value'], $alternative['answer']['format']),
-        'attempt' => $chosen ? quiz_icon('selected') : '',
-        'correct' => $chosen ? $alternative['score_if_chosen'] > 0 ? quiz_icon('correct') : quiz_icon('incorrect') : '',
-        'score' => $alternative["score_if_{$not}chosen"],
-        'answer_feedback' => check_markup($alternative["feedback_if_{$not}chosen"]['value'], $alternative["feedback_if_{$not}chosen"]['format'], FALSE),
+        'choice'            => check_markup($alternative['answer']['value'], $alternative['answer']['format']),
+        'attempt'           => $chosen ? quiz_icon('selected') : '',
+        'correct'           => $chosen ? $alternative['score_if_chosen'] > 0 ? quiz_icon('correct') : quiz_icon('incorrect') : '',
+        'score'             => $alternative["score_if_{$not}chosen"],
+        'answer_feedback'   => check_markup($alternative["feedback_if_{$not}chosen"]['value'], $alternative["feedback_if_{$not}chosen"]['format'], FALSE),
         'question_feedback' => 'Question feedback',
-        'solution' => $alternative['score_if_chosen'] > 0 ? quiz_icon('should') : ($simple_scoring ? quiz_icon('should-not') : ''),
-        'quiz_feedback' => "Quiz feedback",
+        'solution'          => $alternative['score_if_chosen'] > 0 ? quiz_icon('should') : ($simple_scoring ? quiz_icon('should-not') : ''),
+        'quiz_feedback'     => "Quiz feedback",
       );
     }
 

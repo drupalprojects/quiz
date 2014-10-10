@@ -8,9 +8,6 @@
  * Variables available:
  * - $form
  */
-?>
-<?php
-
 $p = drupal_get_path('module', 'multichoice');
 drupal_add_js($p . '/theme/multichoice-alternative-creation.js', 'module');
 

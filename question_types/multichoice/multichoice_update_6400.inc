@@ -1,4 +1,5 @@
 <?php
+
 /*
  * @file
  * Update for choice Questions type module.
@@ -50,20 +51,20 @@ function _multichoice_update_6400(&$sandbox = NULL) {
 function _multichoice_alter_user_answers1(&$to_return, &$sandbox = NULL) {
   db_drop_primary_key('quiz_multichoice_user_answers');
   db_add_field('quiz_multichoice_user_answers', 'id', array(
-    'type' => 'serial',
+    'type'     => 'serial',
     'unsignet' => TRUE,
     'not_null' => TRUE,
-  ), array('primary key' => array('id')));
+    ), array('primary key' => array('id')));
   db_add_field('quiz_multichoice_user_answers', 'choice_order', array('type' => 'text'));
   db_create_table('quiz_multichoice_user_answer_multi', array(
-    'fields' => array(
+    'fields'      => array(
       'user_answer_id' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'answer_id' => array(
-        'type' => 'int',
+      'answer_id'      => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -103,9 +104,7 @@ function _multichoice_move_old_answers(&$to_return, &$sandbox = NULL) {
           ORDER BY result_id, question_nid, question_vid, answer_id', array(':result_id' => $sandbox['last_rid']));
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
-    if ($res_o->question_nid == $sandbox['last_nid']
-     && $res_o->question_vid == $sandbox['last_vid']
-     && $res_o->result_id    == $sandbox['last_rid']) {
+    if ($res_o->question_nid == $sandbox['last_nid'] && $res_o->question_vid == $sandbox['last_vid'] && $res_o->result_id == $sandbox['last_rid']) {
       // We only keep one row for each question result in quiz_multichoice_user_answers
       if ($res_o->id > $sandbox['last_id']) {
         $sql2 = 'DELETE FROM {quiz_multichoice_user_answers}
@@ -113,8 +112,8 @@ function _multichoice_move_old_answers(&$to_return, &$sandbox = NULL) {
         // TODO Please review the conversion of this statement to the D7 database API syntax.
         /* db_query($sql2, $res_o->id) */
         db_delete('quiz_multichoice_user_answers')
-  ->condition('id', $res_o->id)
-  ->execute();
+          ->condition('id', $res_o->id)
+          ->execute();
         if ($progress_to_add + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
           $sandbox['step_progress'] = $sandbox['step_max'];
         }
@@ -166,34 +165,34 @@ function _multichoice_alter_user_answers2(&$to_return, &$sandbox = NULL) {
  */
 function _multichoice_create_properties(&$to_return, &$sandbox = NULL) {
   db_create_table('quiz_multichoice_properties', array(
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
+    'fields'      => array(
+      'nid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'choice_multi' => array(
-        'type' => 'int',
+      'choice_multi'   => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'choice_random' => array(
-        'type' => 'int',
+      'choice_random'  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
       'choice_boolean' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
     ),
     'primary key' => array(
@@ -213,17 +212,17 @@ function _multichoice_create_properties(&$to_return, &$sandbox = NULL) {
 function _multichoice_alter_answers(&$to_return, &$sandbox = NULL) {
   //db_drop_primary_key($to_return, 'quiz_multichoice_answers');
   db_change_field('quiz_multichoice_answers', 'answer_id', 'id', array(
-    'type' => 'serial',
+    'type'     => 'serial',
     'unsigned' => TRUE,
     'not null' => TRUE,
   ));
   db_change_field('quiz_multichoice_answers', 'nid', 'question_nid', array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => TRUE,
     'not null' => TRUE,
   ));
   db_change_field('quiz_multichoice_answers', 'vid', 'question_vid', array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => TRUE,
     'not null' => TRUE,
   ));
@@ -243,16 +242,16 @@ function _multichoice_alter_answers(&$to_return, &$sandbox = NULL) {
     'type' => 'int',
   ));
   db_change_field('quiz_multichoice_answers', 'is_correct', 'score_if_chosen', array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => TRUE,
     'not_null' => TRUE,
-    'default' => 0,
+    'default'  => 0,
   ));
   db_add_field('quiz_multichoice_answers', 'score_if_not_chosen', array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => TRUE,
     'not_null' => TRUE,
-    'default' => 0,
+    'default'  => 0,
   ));
   db_drop_field('quiz_multichoice_answers', 'result_option');
 }
@@ -285,8 +284,7 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
           ORDER BY question_nid, question_vid', array(':question_nid' => $sandbox['last_nid'], ':question_vid' => $sandbox['last_vid']));
   $progress_to_add = 0;
   while ($res_o = db_fetch_object($res)) {
-    if ($res_o->question_nid == $sandbox['last_nid']
-     && $res_o->question_vid == $sandbox['last_vid']) {
+    if ($res_o->question_nid == $sandbox['last_nid'] && $res_o->question_vid == $sandbox['last_vid']) {
       // This is the same node as we processed in the last loop
       if ($progress_to_add + $sandbox['step_progress'] + 1 >= $sandbox['step_max']) {
         $sandbox['step_progress'] = $sandbox['step_max'];
@@ -317,7 +315,7 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
     }
 
     if ($res_o->score_if_chosen == 1) {
-      $sandbox['num_corrects']++;
+      $sandbox['num_corrects'] ++;
       if ($sandbox['num_corrects'] == 2) {
         // If more than one answer is correct we set the choice_multi property to one.
         $sql = 'UPDATE {quiz_multichoice_properties}
@@ -326,12 +324,12 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
         // TODO Please review the conversion of this statement to the D7 database API syntax.
         /* db_query($sql, $res_o->question_nid, $res_o->question_vid) */
         db_update('quiz_multichoice_properties')
-  ->fields(array(
-    'choice_multi' =>  1,
-  ))
-  ->condition('nid', $res_o->question_nid)
-  ->condition('vid', $res_o->question_vid)
-  ->execute();
+          ->fields(array(
+            'choice_multi' => 1,
+          ))
+          ->condition('nid', $res_o->question_nid)
+          ->condition('vid', $res_o->question_vid)
+          ->execute();
       }
     }
     // Update all the formats
@@ -342,13 +340,13 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
     // TODO Please review the conversion of this statement to the D7 database API syntax.
     /* db_query($sql, $lf, $lf, $lf, $res_o->question_vid) */
     db_update('quiz_multichoice_answers')
-  ->fields(array(
-    'answer_format' => $lf,
-    'feedback_if_chosen_format' => $lf,
-    'feedback_if_not_chosen_format' => $lf,
-  ))
-  ->condition('question_vid', $res_o->question_vid)
-  ->execute();
+      ->fields(array(
+        'answer_format'                 => $lf,
+        'feedback_if_chosen_format'     => $lf,
+        'feedback_if_not_chosen_format' => $lf,
+      ))
+      ->condition('question_vid', $res_o->question_vid)
+      ->execute();
     $progress_to_add++;
   }
   $sandbox['step_progress'] += $progress_to_add;
@@ -368,19 +366,19 @@ function _multichoice_check_answers(&$to_return, &$sandbox) {
  */
 function _multichoice_create_user_settings(&$to_return, &$sandbox = NULL) {
   db_create_table('quiz_multichoice_user_settings', array(
-    'fields' => array(
-      'uid' => array(
-        'type' => 'int',
+    'fields'      => array(
+      'uid'      => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'last_nid' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'last_vid' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -400,5 +398,5 @@ function _multichoice_create_user_settings(&$to_return, &$sandbox = NULL) {
  *  Array where persistent data can be stored, and progress can be found
  */
 function _multichoice_next_step(&$to_return, &$sandbox) {
-  $sandbox['current_step']++;
+  $sandbox['current_step'] ++;
 }

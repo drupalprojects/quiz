@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @file
  * Handles the layout of the multichoice answering form.
@@ -8,5 +9,3 @@
  * - $form
  */
 print drupal_render($form);
-
-?>
