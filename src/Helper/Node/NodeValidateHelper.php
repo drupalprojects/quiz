@@ -57,7 +57,7 @@ class NodeValidateHelper {
             }
           }
         }
-        elseif (!_quiz_is_empty_html($option['option_summary']['value'])) {
+        elseif (!$this->isEmptyHTML($option['option_summary']['value'])) {
           form_set_error('option_summary', t('Option has a summary, but no name.'));
         }
       }
@@ -68,6 +68,21 @@ class NodeValidateHelper {
       // not enabled, and randomization is not enabled unless there is only 1 page
       form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
     }
+  }
+
+  /**
+   * Helper function used when figuring out if a textfield or textarea is empty.
+   *
+   * Solves a problem with some wysiwyg editors inserting spaces and tags without content.
+   *
+   * @param $html
+   *   The html to evaluate
+   *
+   * @return
+   *   TRUE if the field is empty(can still be tags there) false otherwise.
+   */
+  private function isEmptyHTML($html) {
+    return drupal_strlen(trim(str_replace('&nbsp;', '', strip_tags($html, '<img><object><embed>')))) == 0;
   }
 
 }

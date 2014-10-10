@@ -456,20 +456,6 @@ function _quiz_is_plain($value) {
   return ($value === check_plain($value));
 }
 
-/**
- * Helper function used when figuring out if a textfield or textarea is empty.
- *
- * Solves a problem with some wysiwyg editors inserting spaces and tags without content.
- *
- * @param $html
- *   The html to evaluate
- *
- * @return
- *   TRUE if the field is empty(can still be tags there) false otherwise.
- */
-function _quiz_is_empty_html($html) {
-  return drupal_strlen(trim(str_replace('&nbsp;', '', strip_tags($html, '<img><object><embed>')))) == 0;
-}
 
 /**
  * Retrieve list of question types.
