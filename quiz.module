@@ -443,6 +443,12 @@ function quiz_menu() {
   );
 
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
+    'title' => 'View',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['node/%quiz_menu/quiz-results/%quiz_rid'] = array(
     'title' => 'User results',
     'page callback' => 'quiz_user_results',
     'page arguments' => array(3),
@@ -887,8 +893,8 @@ function quiz_rid_load($result_id) {
 /**
  * Workaround for a _menu_translate() bug.
  */
-function quiz_rid_to_arg() {
-  return 0;
+function quiz_rid_to_arg($result_id) {
+  return quiz_rid_load($result_id);
 }
 
 /**
