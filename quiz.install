@@ -462,6 +462,7 @@ function quiz_schema() {
         'serialize' => TRUE,
       ),
     ),
+    'primary key' => array('qid'),
   );
 
   $schema['quiz_type'] = array(
