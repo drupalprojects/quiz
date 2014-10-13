@@ -159,25 +159,3 @@ function quiz_end_scoring($result_id) {
   }
   return $score;
 }
-
-/**
- * Element validator (for repeat until correct).
- */
-function quiz_question_element_validate(&$element, &$form_state) {
-  $quiz = node_load(arg(1));
-  $question_nid = $element['#array_parents'][1];
-  $answer = $form_state['values']['question'][$question_nid];
-  $current_question = node_load($question_nid);
-
-  // There was an answer submitted.
-  $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $answer);
-  if ($quiz->repeat_until_correct && !$result->isCorrect()) {
-    form_set_error('', t('The answer was incorrect. Please try again.'));
-
-    $feedback = quiz_question_feedback($quiz, $current_question);
-    $element['feedback'] = array(
-      '#weight' => 100,
-      '#markup' => drupal_render($feedback),
-    );
-  }
-}
