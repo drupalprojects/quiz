@@ -72,14 +72,6 @@ class QuizTakeQuestionController {
     ));
     $content['progress']['#weight'] = -50;
 
-    /**
-     * @todo: wat do?
-      if (count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
-      drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
-      unset($_SESSION['quiz'][$quiz->nid]);
-      drupal_goto('node/' . $quiz->nid . '/take');
-      }
-     */
     if (isset($_SESSION['quiz'][$this->quiz->nid]['question_duration'])) {
       $time = $_SESSION['quiz'][$this->quiz->nid]['question_duration'];
       if ($time < 1) {
@@ -130,7 +122,7 @@ class QuizTakeQuestionController {
       $_SESSION['quiz'][$this->quiz->nid]['question_start_time'] = REQUEST_TIME;
     }
 
-    $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
+    $question_form = drupal_get_form('\Drupal\quiz\Form\QuizAnsweringForm::staticCallback', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
     $content['body']['question']['#markup'] = drupal_render($question_form);
     drupal_set_title($this->quiz->title);
 
