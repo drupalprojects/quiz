@@ -1,6 +1,5 @@
 <?php
 
-
 /*
  * @file
  * module file for ajax_quiz quiz module
@@ -33,7 +32,7 @@ function ajax_quiz_help($path, $arg) {
 function ajax_quiz_permission() {
   return array(
     'access ajax quiz' => array(
-      'title' => t('access ajax quiz'),
+      'title'       => t('access ajax quiz'),
       'description' => t('TODO Add a description for \'access ajax quiz\''),
     ),
   );
@@ -46,12 +45,12 @@ function ajax_quiz_permission() {
 function ajax_quiz_menu() {
   $items = array();
   $items['node/%quiz_type_access/ajax-quiz'] = array(
-    'title' => 'Take by AJAX',
-    'file' => 'ajax_quiz.admin.inc',
-    'page callback' => 'ajax_quiz_instruction',
-    'page arguments' => array(1),
+    'title'            => 'Take by AJAX',
+    'file'             => 'ajax_quiz.admin.inc',
+    'page callback'    => 'ajax_quiz_instruction',
+    'page arguments'   => array(1),
     'access arguments' => array('access ajax quiz'),
-    'type' => MENU_LOCAL_TASK,
+    'type'             => MENU_LOCAL_TASK,
   );
   return $items;
 }
@@ -61,6 +60,7 @@ function ajax_quiz_menu() {
  * Implementation of hook_init
  * includes the necessary js file(s).
  */
+
 /**
  * @todo Please document this function.
  * @see http://drupal.org/node/1354
@@ -68,4 +68,3 @@ function ajax_quiz_menu() {
 function ajax_quiz_init() {
   //drupal_add_js(drupal_get_path('module', 'ajax_quiz') . '/ajax_quiz.js');
 }
-
