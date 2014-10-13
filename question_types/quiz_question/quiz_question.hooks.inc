@@ -15,21 +15,21 @@ function quiz_question_help($path, $args) {
 function quiz_question_menu() {
   $items = array();
   $items['quiz_question/%/%/revision_actions'] = array(
-    'title' => 'Revision actions',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quiz_question_revision_actions', 1, 2),
+    'title'            => 'Revision actions',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('quiz_question_revision_actions', 1, 2),
     'access arguments' => array('manual quiz revisioning'),
-    'file' => 'quiz_question.pages.inc',
-    'type' => MENU_NORMAL_ITEM,
+    'file'             => 'quiz_question.pages.inc',
+    'type'             => MENU_NORMAL_ITEM,
   );
   // Menu items for admin view of each question type.
   $items['admin/quiz/settings/questions_settings'] = array(
-    'title' => 'Question configuration',
-    'description' => 'Configure the question types.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quiz_question_config'),
+    'title'            => 'Question configuration',
+    'description'      => 'Configure the question types.',
+    'page callback'    => 'drupal_get_form',
+    'page arguments'   => array('quiz_question_config'),
     'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM,
+    'type'             => MENU_NORMAL_ITEM,
   );
   return $items;
 }
@@ -39,19 +39,19 @@ function quiz_question_menu() {
  */
 function quiz_question_theme() {
   $hooks = array(
-    'quiz_question_creation_form' => array(
+    'quiz_question_creation_form'   => array(
       'render element' => 'form',
-      'file' => 'quiz_question.theme.inc',
+      'file'           => 'quiz_question.theme.inc',
     ),
     'quiz_question_navigation_form' => array(
       'render element' => 'form',
-      'file' => 'quiz_question.theme.inc',
+      'file'           => 'quiz_question.theme.inc',
     ),
   );
 
   $hooks['quiz_question_feedback'] = array(
     'variables' => NULL,
-    'pattern' => 'quiz_question_feedback__',
+    'pattern'   => 'quiz_question_feedback__',
   );
 
   return $hooks;
@@ -64,8 +64,8 @@ function quiz_question_node_info() {
   $node_info = array();
   foreach (_quiz_question_get_implementations(NULL, TRUE) as $type => $definition) {
     $node_info[$type] = array(
-      'name' => $definition['name'],
-      'base' => 'quiz_question',
+      'name'        => $definition['name'],
+      'base'        => 'quiz_question',
       'description' => $definition['description']
     );
     //$info[$type] = $node_info + $defaults;
@@ -139,12 +139,12 @@ function quiz_question_node_access_records($node) {
     // permission. We set a priority of 2 because OG has a 1 priority and we
     // want to get around it.
     $grants[] = array(
-      'realm' => 'quiz_question',
-      'gid' => 1,
-      'grant_view' => 1,
+      'realm'        => 'quiz_question',
+      'gid'          => 1,
+      'grant_view'   => 1,
       'grant_update' => 0,
       'grant_delete' => 0,
-      'priority' => 2,
+      'priority'     => 2,
     );
   }
   return $grants;
@@ -260,53 +260,6 @@ function quiz_question_form(&$node, &$form_state) {
 }
 
 // QUIZ HOOK IMPLEMENTATIONS
-
-/**
- * Implements hook_list_questions().
- */
-function quiz_question_list_questions($count = 0, $offset = 0) {
-  $query = db_select('node', 'n')
-    ->fields('n', array('nid', 'vid'))
-    ->innerjoin('node_revision', 'nr')
-    ->condition('type', array_keys(_quiz_question_get_implementations()), 'IN')
-    ->execute();
-
-  /*
-    $sql = "SELECT n.nid, n.vid, r.body, r.format FROM {node} AS n
-    INNER JOIN {node_revision} AS r USING(vid)
-    WHERE n.type IN (%s) ORDER BY n.type, n.changed";
-    $types = array();
-    foreach (array_keys(_quiz_question_get_implementations()) as $key) {
-    $types[] = "'" . $key . "'";
-    }
-    $type = implode(',', $types);
-
-    if ($count == 0) {
-    // Return all results
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query(db_rewrite_sql($sql), $type);
-    }
-    else {
-    // return only $count results
-    // TODO Please convert this statement to the D7 database API syntax.
-    $result = db_query_range(db_rewrite_sql($sql), $type);
-    }
-   */
-
-  /**
-   * The following code doesn't make any sense, since
-   * the body is not fetched in the above SQL
-   *
-   * From where is this function invoked?
-   */
-  $questions = array();
-  $question_format = (isset($question->body[LANGUAGE_NONE][0]['format'])) ? $question->body[LANGUAGE_NONE][0]['format'] : NULL;
-  while ($question = $query->fetch()) {
-    $question->question = check_markup($question->body, $question_format);
-    $questions[] = $question;
-  }
-  return $questions;
-}
 
 /**
  * Imlementation of hook_get_report().
