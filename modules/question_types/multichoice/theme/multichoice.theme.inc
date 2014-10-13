@@ -16,7 +16,7 @@
  */
 function theme_multichoice_creation_form($variables) {
   $form = $variables['form'];
-  $path = drupal_get_path('module', 'multichoice') . '/multichoice.js';
+  $path = drupal_get_path('module', 'multichoice') . '/js/multichoice.js';
   drupal_add_js($path);
 
   // We open the settings fieldset if there is errors involving the choice_multi setting

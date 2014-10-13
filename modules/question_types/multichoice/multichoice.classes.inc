@@ -422,7 +422,6 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = parent::getAnsweringForm($form_state, $result_id);
-    //$form['#theme'] = 'multichoice_answering_form';
 
     /* We use an array looking key to be able to store multiple answers in tries.
      * At the moment all user answers have to be stored in tries. This is something we plan
@@ -701,7 +700,7 @@ class MultichoiceQuestion extends QuizQuestion {
       ),
     );
     $form['#attached']['js'] = array(
-      drupal_get_path('module', 'multichoice') . '/multichoice.js',
+      drupal_get_path('module', 'multichoice') . '/js/multichoice.js',
     );
 
     return $form;
