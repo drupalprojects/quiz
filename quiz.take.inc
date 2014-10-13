@@ -9,27 +9,6 @@ use Drupal\quiz\Controller\QuizQuestionFeedbackController;
  */
 
 /**
- * Helper function for hook_view().
- *
- * Returns a button to use as a link to start taking the quiz.
- *
- * @param $form_state
- *   Form state array.
- * @param $node
- *   The quiz node.
- * @return
- *   Form with a button linking to the take tab.
- */
-function quiz_start_quiz_button_form($form, &$form_state, $node) {
-  $form['#action'] = url("node/$node->nid/take");
-  $form['button'] = array(
-    '#type'  => 'submit',
-    '#value' => t('Start quiz'),
-  );
-  return $form;
-}
-
-/**
  * Return a form with question feedback.
  */
 function quiz_question_feedback($quiz, $question) {

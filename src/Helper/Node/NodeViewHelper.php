@@ -22,7 +22,8 @@ class NodeViewHelper {
       if (user_access('access quiz')) {
         // Add a link to the take tab as a button if this isn't a teaser view.
         if ($view_mode !== 'teaser') {
-          $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
+          // @TODO: Why do we need form for a simple link?
+          $quiz_form = @drupal_get_form(get_class($this) . '::startQuizButtonForm', $node);
           $node->content['take'] = array(
             '#markup' => drupal_render($quiz_form),
             '#weight' => 2,
@@ -45,6 +46,22 @@ class NodeViewHelper {
     }
 
     return $node;
+  }
+
+  /**
+   * Returns a button to use as a link to start taking the quiz.
+   *
+   * @param $form_state
+   *   Form state array.
+   * @param $node
+   *   The quiz node.
+   * @return
+   *   Form with a button linking to the take tab.
+   */
+  public static function startQuizButtonForm($form, &$form_state, $node) {
+    $form['#action'] = url("node/$node->nid/take");
+    $form['button'] = array('#type' => 'submit', '#value' => t('Start quiz'));
+    return $form;
   }
 
 }
