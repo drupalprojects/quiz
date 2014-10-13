@@ -1,4 +1,5 @@
-(function ($) {
+(function ($, Drupal) {
+
   Drupal.behaviors.quizJumper = {
     attach: function (context) {
       $("#quiz-jumper:not(.quizJumper-processed)", context).show().addClass("quizJumper-processed").change(function () {
@@ -7,4 +8,5 @@
       $("#quiz-jumper-no-js:not(.quizJumper-processed)").hide().addClass("quizJumper-processed");
     }
   };
-})(jQuery);
+
+})(jQuery, Drupal);
