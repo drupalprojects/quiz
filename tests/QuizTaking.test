@@ -151,4 +151,47 @@ class QuizTaking extends QuizTestCase {
     $this->assertResponse(200);
   }
 
+  /**
+   * Test allow/restrict changing of answers.
+   */
+  function testChangeAnswer() {
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'review_options' => array('question' => array('score' => 'score')),
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 0,
+      ), t('Next'));
+    $this->assertText('Score: 0 of 1');
+
+    // Go back and correct the answer.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+    $this->assertText('Score: 1 of 1');
+
+    // Restrict change after answer.
+    $quiz_node->allow_change = 0;
+    node_save($quiz_node);
+
+    // Check that the answer cannot be changed.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $disabled_field = $this->xpath('//input[@id=:id and @disabled="disabled"]', array(':id' => 'edit-question-2-1'));
+    $this->assertTrue($disabled_field, t('The answer cannot be changed.'));
+    $this->drupalPost(NULL, array(
+      ), t('Next'));
+    $this->assertText('Score: 1 of 1');
+  }
+
 }

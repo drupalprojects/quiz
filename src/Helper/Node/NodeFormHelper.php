@@ -47,6 +47,12 @@ class NodeFormHelper extends FormHelper {
       '#default_value' => $node->allow_jumping,
       '#description'   => t('Allow users to jump to any question using a menu or pager in this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
+    $form['taking']['allow_change'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Allow changing answers'),
+      '#default_value' => $node->allow_change,
+      '#description'   => t('If the user is able to visit a previous question, allow them to change the answer.'),
+    );
     $form['taking']['backwards_navigation'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Backwards navigation'),

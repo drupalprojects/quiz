@@ -45,27 +45,23 @@ class QuizAnsweringForm extends QuestionHelper {
   /**
    * Get the form to show to the quiz taker.
    *
-   * @param $quizzes
+   * @param $nodes
    *   A list of question nodes to get answers from.
    * @param $result_id
    *   The result ID for this attempt.
    */
-  public function getForm($form, &$form_state, $quizzes, $result_id) {
+  public function getForm($form, &$form_state, $nodes, $result_id) {
     // set validate callback
     $form['#validate'][] = array($this, 'formValidate');
 
     $form['#attributes']['class'] = array('answering-form');
 
-    foreach ($quizzes as $node) {
+    foreach ($nodes as $node) {
       $question = _quiz_question_get_instance($node);
       $class = drupal_html_class('quiz-question-' . $node->type);
       // Element for a single question
       $element = $question->getAnsweringForm($form_state, $result_id);
-      $quizzes = node_load(arg(1));
-
-      // Hide the label of the body field if this is an informative question.
-      // variable is not used
-      // $options = !$question->isGraded() ? array('label' => 'hidden') : array();
+      $quiz = node_load(arg(1));
 
       node_build_content($node, 'question');
       unset($node->content['answers']);
@@ -76,7 +72,15 @@ class QuizAnsweringForm extends QuestionHelper {
         'question'    => array('#tree' => TRUE, $node->nid => $element),
       );
 
-      if ($quizzes->mark_doubtful) {
+      // Should we disable this question?
+      if (empty($quiz->allow_change) && ($qras = quiz_result_answer_load($result_id, $node->nid, $node->vid))) {
+        if (($qra = reset($qras)) && empty($qra->is_skipped)) {
+          // This question was already answered, and not skipped.
+          $form['questions'][$node->nid]['#disabled'] = TRUE;
+        }
+      }
+
+      if ($quiz->mark_doubtful) {
         $form['is_doubtful'] = array(
           '#type'          => 'checkbox',
           '#title'         => t('doubtful'),
@@ -94,12 +98,12 @@ class QuizAnsweringForm extends QuestionHelper {
       }
     }
 
-    $is_last = $this->showFinishButton($quizzes);
+    $is_last = $this->showFinishButton($quiz);
 
     $form['navigation']['#type'] = 'actions';
     $form['navigation']['#theme'] = 'quiz_question_navigation_form';
 
-    if (!empty($quizzes->backwards_navigation) && (arg(3) != 1)) {
+    if (!empty($quiz->backwards_navigation) && (arg(3) != 1)) {
       // Backwards navigation enabled, and we are looking at not the first
       // question. @todo detect when on the first page.
       $form['navigation']['back'] = array(
@@ -125,7 +129,7 @@ class QuizAnsweringForm extends QuestionHelper {
       '#submit' => array(array($this, 'formSubmit')),
     );
 
-    if ($is_last && $quizzes->backwards_navigation && !$quizzes->repeat_until_correct) {
+    if ($is_last && $quiz->backwards_navigation && !$quiz->repeat_until_correct) {
       // Display a confirmation dialogue if this is the last question and a user
       // is able to navigate backwards but not forced to answer correctly.
       $form['#attributes']['class'][] = 'quiz-answer-confirm';
@@ -135,7 +139,7 @@ class QuizAnsweringForm extends QuestionHelper {
       );
     }
 
-    if (!$quizzes->allow_skipping) {
+    if (!$quiz->allow_skipping) {
       return $form;
     }
 
