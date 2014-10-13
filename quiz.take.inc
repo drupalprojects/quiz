@@ -25,15 +25,6 @@ function quiz_take_question_feedback_submit($form, &$form_state) {
 }
 
 /**
- * Submit handler to go to the quiz results from the last question's feedback.
- */
-function quiz_take_question_feedback_end_submit($form, &$form_state) {
-  $quiz = node_load(arg(1));
-  $result_id = $_SESSION['quiz']['temp']['result_id'];
-  $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/$result_id/view";
-}
-
-/**
  * Actions to take at the end of a quiz
  *
  * @param $quiz
