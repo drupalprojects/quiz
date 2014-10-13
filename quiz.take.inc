@@ -9,18 +9,6 @@ use Drupal\quiz\Controller\QuizQuestionFeedbackController;
  */
 
 /**
- * Update the session for this quiz to the active question.
- *
- * @param type $quiz
- *   A Quiz node.
- * @param type $question_number
- *   Question number starting at 1.
- */
-function quiz_question_goto($quiz, $question_number) {
-  $_SESSION['quiz'][$quiz->nid]['current'] = $question_number;
-}
-
-/**
  * Helper function for hook_view().
  *
  * Returns a button to use as a link to start taking the quiz.
@@ -115,7 +103,7 @@ function quiz_jumper($form, $form_state, $questions, $current) {
     '#attributes' => array('class' => array('js-hide')),
     '#submit'     => array(function($form, &$form_state) {
         $quiz = node_load(arg(1));
-        quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
+        quiz()->getQuizHelper()->getQuestionHelper()->redirect($quiz, $form_state['values']['question_number'] - 1);
         $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
       }),
   );

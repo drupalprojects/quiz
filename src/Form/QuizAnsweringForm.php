@@ -2,7 +2,9 @@
 
 namespace Drupal\quiz\Form;
 
-class QuizAnsweringForm {
+use Drupal\quiz\Helper\Quiz\QuestionHelper;
+
+class QuizAnsweringForm extends QuestionHelper {
 
   public static function staticCallback($form, &$form_state, $quizzes, $result_id) {
     $controller = new static();
@@ -202,7 +204,7 @@ class QuizAnsweringForm {
     }
 
     // Advance to next question.
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+    $this->redirect($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
     $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
   }
 
@@ -234,7 +236,7 @@ class QuizAnsweringForm {
         quiz()->getQuizHelper()->saveQuestionResult($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
         // Increment the counter.
-        quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+        $this->redirect($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
       }
     }
 
@@ -278,13 +280,13 @@ class QuizAnsweringForm {
   function formBackSubmit(&$form, &$form_state) {
     // Back a question.
     $quiz = node_load(arg(1));
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
+    $this->redirect($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
     $question = $quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']];
     if (!empty($question['qnr_pid'])) {
       foreach ($quiz_result->layout as $question2) {
         if ($question2['qnr_id'] == $question['qnr_pid']) {
-          quiz_question_goto($quiz, $question2['number']);
+          $this->redirect($quiz, $question2['number']);
         }
       }
     }

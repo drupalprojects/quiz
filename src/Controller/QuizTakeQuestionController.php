@@ -2,7 +2,9 @@
 
 namespace Drupal\quiz\Controller;
 
-class QuizTakeQuestionController {
+use Drupal\quiz\Helper\Quiz\QuestionHelper;
+
+class QuizTakeQuestionController extends QuestionHelper {
 
   private $quiz;
 
@@ -51,7 +53,7 @@ class QuizTakeQuestionController {
     }
 
     // Mark this as the current question.
-    quiz_question_goto($this->quiz, $question_number);
+    $this->redirect($this->quiz, $question_number);
 
     // Added the progress info to the view.
     $quiz_result = quiz_result_load($_SESSION['quiz'][$this->quiz->nid]['result_id']);

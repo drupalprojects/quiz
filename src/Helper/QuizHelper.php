@@ -4,6 +4,7 @@ namespace Drupal\quiz\Helper;
 
 use Drupal\quiz\Helper\Quiz\AccessHelper;
 use Drupal\quiz\Helper\Quiz\FeedbackHelper;
+use Drupal\quiz\Helper\Quiz\QuestionHelper;
 use Drupal\quiz\Helper\Quiz\ResultHelper;
 use Drupal\quiz\Helper\Quiz\SettingHelper;
 use Drupal\quiz\Helper\Quiz\TakeJumperHelper;
@@ -15,6 +16,7 @@ class QuizHelper {
   private $accessHelper;
   private $feedbackHelper;
   private $takeJumperHelper;
+  private $questionHelper;
 
   /**
    * @return SettingHelper
@@ -88,6 +90,21 @@ class QuizHelper {
 
   public function setTakeJumperHelper($takeJumperHelper) {
     $this->takeJumperHelper = $takeJumperHelper;
+    return $this;
+  }
+
+  /**
+   * @return QuestionHelper
+   */
+  public function getQuestionHelper() {
+    if (null === $this->questionHelper) {
+      $this->questionHelper = new QuestionHelper();
+    }
+    return $this->questionHelper;
+  }
+
+  public function setQuestionHelper($questionHelper) {
+    $this->questionHelper = $questionHelper;
     return $this;
   }
 
