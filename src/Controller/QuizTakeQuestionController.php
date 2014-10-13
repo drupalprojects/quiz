@@ -124,7 +124,7 @@ class QuizTakeQuestionController extends QuestionHelper {
       $_SESSION['quiz'][$this->quiz->nid]['question_start_time'] = REQUEST_TIME;
     }
 
-    $question_form = drupal_get_form('\Drupal\quiz\Form\QuizAnsweringForm::staticCallback', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
+    $question_form = @drupal_get_form('\Drupal\quiz\Form\QuizAnsweringForm::staticCallback', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
     $content['body']['question']['#markup'] = drupal_render($question_form);
     drupal_set_title($this->quiz->title);
 
