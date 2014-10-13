@@ -50,7 +50,8 @@ class NodeFormHelper extends FormHelper {
     $form['taking']['allow_change'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow changing answers'),
-      '#default_value' => $node->allow_change,
+      // https://www.drupal.org/node/2354355#comment-9241781
+      '#default_value' => isset($node->allow_change) ? $node->allow_change : 1,
       '#description'   => t('If the user is able to visit a previous question, allow them to change the answer.'),
     );
     $form['taking']['backwards_navigation'] = array(
