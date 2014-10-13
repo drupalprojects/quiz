@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Quiz Module
+ * Quiz ModuleAn array of settings. The array is empty in case no settings are available.
  *
  * This module allows the creation of interactive quizzes for site visitors.
  */
@@ -3697,6 +3697,44 @@ function quiz_delete_results($result_ids) {
   db_delete('quiz_node_results')
     ->condition('result_id', $result_ids, 'IN')
     ->execute();
+}
+
+/**
+ * Returns the users default settings.
+ *
+ * @param $node
+ *   Quiz node.
+ * @param $uid
+ *   (optional) The uid of the user to get the settings for. Defaults to the
+ *   current user (NULL).
+ *
+ * @return
+ *   An array of settings. The array is empty in case no settings are available.
+ */
+function _quiz_load_user_settings($uid = NULL) {
+  // The def_uid property is the default user id. It is used if there are no
+  // settings store for the current user.
+  $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
+
+  $query = db_select('quiz_user_settings', 'qus')
+    ->fields('qus')
+    ->condition('uid', $uid);
+  $res = $query->execute()->fetchAssoc();
+  if (!empty($res)) {
+    foreach ($res as $key => $value) {
+      if (!in_array($key, array('nid', 'vid', 'uid'))) {
+        $settings[$key] = $value;
+      }
+    }
+    $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
+      ->fields('qnro')
+      ->condition('nid', $res['nid'])
+      ->condition('vid', $res['vid'])
+      ->execute()
+      ->fetchAll();
+    return $settings;
+  }
+  return array();
 }
 
 /**
