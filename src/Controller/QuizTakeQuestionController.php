@@ -91,16 +91,38 @@ class QuizTakeQuestionController extends QuestionHelper {
         // @todo we just need to run quiz_end_score here, I think
         drupal_set_message(t('You have run out of time.'), 'error');
       }
-      else {
+      elseif (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
         // There is still time left, so let's go ahead and insert the countdown
         // javascript.
-        if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-          jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
-          // These are the two button op values that are accepted for answering
-          // questions.
-          $button_op1 = drupal_json_encode(t('Finish'));
-          $button_op2 = drupal_json_encode(t('Next'));
-          $js = "
+        $this->attachJs($time);
+      }
+      $_SESSION['quiz'][$this->quiz->nid]['question_start_time'] = REQUEST_TIME;
+    }
+
+    $question_form = @drupal_get_form('\Drupal\quiz\Form\QuizAnsweringForm::staticCallback', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
+    $content['body']['question']['#markup'] = drupal_render($question_form);
+    drupal_set_title($this->quiz->title);
+
+    return $content;
+  }
+
+  /**
+   * @todo Get rid of inline Javascript.
+   * @param type $time
+   */
+  private function attachJs($time) {
+    jquery_countdown_add('.countdown', array(
+      'until'    => $time,
+      'onExpiry' => 'finished',
+      'compact'  => TRUE,
+      'layout'   => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'
+    ));
+
+    // These are the two button op values that are accepted for answering
+    // questions.
+    $button_op1 = drupal_json_encode(t('Finish'));
+    $button_op2 = drupal_json_encode(t('Next'));
+    $js = "
             function finished() {
               // Find all buttons with a name of 'op'.
               var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
@@ -118,17 +140,7 @@ class QuizTakeQuestionController extends QuestionHelper {
               }
             }
           ";
-          drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
-        }
-      }
-      $_SESSION['quiz'][$this->quiz->nid]['question_start_time'] = REQUEST_TIME;
-    }
-
-    $question_form = @drupal_get_form('\Drupal\quiz\Form\QuizAnsweringForm::staticCallback', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
-    $content['body']['question']['#markup'] = drupal_render($question_form);
-    drupal_set_title($this->quiz->title);
-
-    return $content;
+    drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
   }
 
 }
