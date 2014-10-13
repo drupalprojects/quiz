@@ -33,217 +33,494 @@ function quiz_install() {
  */
 function quiz_schema() {
   $schema = array();
+
   /**
    * Connect all the quiz specific properties to the correct version of a quiz.
    */
   // Create the quiz node properties table
   $schema['quiz_node_properties'] = array(
     'description' => 'The base table for quiz nodes',
-    'fields' => array(
-      'qnp_id' => array(
+    'fields'      => array(
+      'qnp_id'                     => array(
         'type' => 'serial',
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'                        => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'nid' => array(
-        'type' => 'int',
+      'nid'                        => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'uid' => array(
-        'type' => 'int',
+      'uid'                        => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'aid' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'aid'                        => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
       'number_of_random_questions' => array(
-        'type' => 'int',
-        'size' => 'small',
+        'type'     => 'int',
+        'size'     => 'small',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'max_score_for_random' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'max_score_for_random'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'pass_rate' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'pass_rate'                  => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'summary_pass' => array(
+      'summary_pass'               => array(
         'type' => 'text',
       ),
-      'summary_pass_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'summary_pass_format'        => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'summary_default' => array(
+      'summary_default'            => array(
         'type' => 'text',
       ),
-      'summary_default_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'summary_default_format'     => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'randomization' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'randomization'              => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'backwards_navigation' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'backwards_navigation'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'keep_results' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'keep_results'               => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => QUIZ_KEEP_ALL,
+        'default'  => QUIZ_KEEP_ALL,
       ),
-      'repeat_until_correct' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'repeat_until_correct'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'quiz_open' => array(
-        'type' => 'int',
+      'quiz_open'                  => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'quiz_close' => array(
-        'type' => 'int',
+      'quiz_close'                 => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'takes' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'takes'                      => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'show_attempt_stats' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'show_attempt_stats'         => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'time_limit' => array(
-        'type' => 'int',
+      'time_limit'                 => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'quiz_always' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'quiz_always'                => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'tid' => array(
-        'type' => 'int',
+      'tid'                        => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'has_userpoints' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'has_userpoints'             => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'userpoints_tid' => array(
-        'type' => 'int',
+      'userpoints_tid'             => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'time_left' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'time_left'                  => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'max_score' => array(
-        'type' => 'int',
+      'max_score'                  => array(
+        'type'     => 'int',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'allow_skipping' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'allow_skipping'             => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'allow_resume' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'allow_resume'               => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'allow_jumping' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'allow_jumping'              => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'allow_change' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'allow_change'               => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'show_passed' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'show_passed'                => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'mark_doubtful' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'mark_doubtful'              => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'review_options' => array(
-        'type' => 'text',
+      'review_options'             => array(
+        'type'      => 'text',
         'serialize' => TRUE,
       ),
     ),
     'primary key' => array('qnp_id'),
     // 'unique keys' => array('vid'),
-    'indexes' => array('quiz_id' => array('vid', 'nid')),
+    'indexes'     => array('quiz_id' => array('vid', 'nid')),
   );
+
+  $schema['quiz_entity'] = array(
+    'description' => 'Store quiz items',
+    'fields'      => array(
+      'qid'                        => array(
+        'type'        => 'serial',
+        'not null'    => TRUE,
+        'description' => 'Primary Key: Unique quiz item ID.',
+      ),
+      'type'                       => array(
+        'description' => 'The {quiz_type}.type of this quiz.',
+        'type'        => 'varchar',
+        'length'      => 32,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'created'                    => array(
+        'description' => 'The Unix timestamp when the quiz was created.',
+        'type'        => 'int',
+        'not null'    => FALSE,
+      ),
+      'changed'                    => array(
+        'description' => 'The Unix timestamp when the quiz was most recently saved.',
+        'type'        => 'int',
+        'not null'    => FALSE,
+      ),
+      'vid'                        => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'uid'                        => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'aid'                        => array(
+        'type'     => 'varchar',
+        'length'   => 255,
+        'not null' => TRUE,
+      ),
+      'number_of_random_questions' => array(
+        'type'     => 'int',
+        'size'     => 'small',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'max_score_for_random'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'pass_rate'                  => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'summary_pass'               => array(
+        'type' => 'text',
+      ),
+      'summary_pass_format'        => array(
+        'type'     => 'varchar',
+        'length'   => 255,
+        'not null' => TRUE,
+      ),
+      'summary_default'            => array(
+        'type' => 'text',
+      ),
+      'summary_default_format'     => array(
+        'type'     => 'varchar',
+        'length'   => 255,
+        'not null' => TRUE,
+      ),
+      'randomization'              => array(
+        'type'     => 'int',
+        'size'     => 'small',
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'backwards_navigation'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'keep_results'               => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => QUIZ_KEEP_ALL,
+      ),
+      'repeat_until_correct'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'quiz_open'                  => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'quiz_close'                 => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'takes'                      => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'show_attempt_stats'         => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'time_limit'                 => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'quiz_always'                => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'tid'                        => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'has_userpoints'             => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'userpoints_tid'             => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'time_left'                  => array(
+        'type'     => 'int',
+        'size'     => 'small',
+        'not null' => TRUE,
+        'default'  => 0
+      ),
+      'max_score'                  => array(
+        'type'     => 'int',
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'allow_skipping'             => array(
+        'type'     => 'int',
+        'size'     => 'small',
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'allow_resume'               => array(
+        'type'     => 'int',
+        'size'     => 'small',
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'allow_jumping'              => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'allow_change'               => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'show_passed'                => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default'  => 1,
+      ),
+      'mark_doubtful'              => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
+        'not null' => TRUE,
+        'default'  => 0,
+      ),
+      'review_options'             => array(
+        'type'      => 'text',
+        'serialize' => TRUE,
+      ),
+    ),
+  );
+
+  $schema['quiz_type'] = array(
+    'description' => 'Stores information about all defined quiz types.',
+    'fields'      => array(
+      'id'     => array(
+        'type'        => 'serial',
+        'not null'    => TRUE,
+        'description' => 'Primary Key: Unique quiz type ID.',
+      ),
+      'type'   => array(
+        'description' => 'The machine-readable name of this quiz type.',
+        'type'        => 'varchar',
+        'length'      => 32,
+        'not null'    => TRUE,
+      ),
+      'label'  => array(
+        'description' => 'The human-readable name of this quiz type.',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
+      'weight' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        'default'     => 0,
+        'size'        => 'tiny',
+        'description' => 'The weight of this quiz type in relation to others.',
+      ),
+      'data'   => array(
+        'type'        => 'text',
+        'not null'    => FALSE,
+        'size'        => 'big',
+        'serialize'   => TRUE,
+        'description' => 'A serialized array of additional data related to this quiz type.',
+      ),
+      'status' => array(
+        'type'        => 'int',
+        'not null'    => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default'     => 0x01,
+        'size'        => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+
   /*
    * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
    * making the quiz question the child.
@@ -257,71 +534,71 @@ function quiz_schema() {
   // Create the quiz node relationship table
   $schema['quiz_node_relationship'] = array(
     'description' => 'Table storing what questions belong to what quizzes',
-    'fields' => array(
-      'qnr_id' => array(
-        'type' => 'serial',
-        'size' => 'normal',
+    'fields'      => array(
+      'qnr_id'                => array(
+        'type'     => 'serial',
+        'size'     => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'qnr_pid' => array(
-        'type' => 'int',
-        'size' => 'normal',
+      'qnr_pid'               => array(
+        'type'     => 'int',
+        'size'     => 'normal',
         'unsigned' => TRUE,
         'not null' => FALSE,
-        'default' => NULL,
+        'default'  => NULL,
       ),
-      'parent_nid' => array(
-        'type' => 'int',
+      'parent_nid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'parent_vid' => array(
-        'type' => 'int',
+      'parent_vid'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'child_nid' => array(
-        'type' => 'int',
+      'child_nid'             => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'child_vid' => array(
-        'type' => 'int',
+      'child_vid'             => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'question_status' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'question_status'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'weight' => array(
-        'type' => 'int',
+      'weight'                => array(
+        'type'     => 'int',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'max_score' => array(
-        'type' => 'int',
+      'max_score'             => array(
+        'type'     => 'int',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
       'auto_update_max_score' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+        'type'     => 'int',
+        'size'     => 'tiny',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
     ),
     'primary key' => array('qnr_id'),
     'unique keys' => array(
       'parent_child' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
     ),
-    'indexes' => array(
+    'indexes'     => array(
       'parent_id' => array('parent_vid'),
-      'child_id' => array('child_vid'),
+      'child_id'  => array('child_vid'),
     ),
   );
 
@@ -331,77 +608,77 @@ function quiz_schema() {
   // Create the quiz node results table
   $schema['quiz_node_results'] = array(
     'description' => 'Table storing the total results for a quiz',
-    'fields' => array(
-      'result_id' => array(
-        'type' => 'serial',
-        'size' => 'normal',
+    'fields'      => array(
+      'result_id'    => array(
+        'type'     => 'serial',
+        'size'     => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'nid' => array(
-        'type' => 'int',
+      'nid'          => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'          => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'uid' => array(
-        'type' => 'int',
+      'uid'          => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'time_start' => array(
-        'type' => 'int',
+      'time_start'   => array(
+        'type'     => 'int',
         'unsigned' => FALSE,
       ),
-      'time_end' => array(
-        'type' => 'int',
+      'time_end'     => array(
+        'type'     => 'int',
         'unsigned' => FALSE,
       ),
-      'released' => array(
-        'type' => 'int',
+      'released'     => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'score' => array(
-        'type' => 'int',
+      'score'        => array(
+        'type'     => 'int',
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'is_invalid' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'is_invalid'   => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
       'is_evaluated' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'time_left' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'time_left'    => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default'  => 0
       ),
-      'layout' => array(
-        'serialize' => TRUE,
-        'type' => 'text',
+      'layout'       => array(
+        'serialize'   => TRUE,
+        'type'        => 'text',
         'description' => "Serialized layout data.",
-        'size' => 'medium',
+        'size'        => 'medium',
       ),
     ),
     'primary key' => array('result_id'),
-    'indexes' => array(
+    'indexes'     => array(
       'user_results' => array('uid', 'vid', 'nid'),
-      'vid' => array('vid'),
+      'vid'          => array('vid'),
     ),
   );
 
@@ -410,77 +687,77 @@ function quiz_schema() {
    */
   $schema['quiz_node_results_answers'] = array(
     'description' => 'Table storing information about the results for the questions',
-    'fields' => array(
+    'fields'      => array(
       'result_answer_id' => array(
         'description' => 'The result answer ID',
-        'type' => 'serial',
+        'type'        => 'serial',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+      ),
+      'result_id'        => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_id' => array(
-        'type' => 'int',
+      'question_nid'     => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'question_nid' => array(
-        'type' => 'int',
+      'question_vid'     => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'question_vid' => array(
-        'type' => 'int',
+      'tid'              => array(
+        'type'     => 'int',
+        'unsigned' => TRUE,
+      ),
+      'is_correct'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'default'  => 0,
       ),
-      'tid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-      ),
-      'is_correct' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'is_skipped'       => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0
       ),
-      'is_skipped' => array(
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0
-      ),
-      'points_awarded' => array(
-        'type' => 'int',
-        'size' => 'tiny',
+      'points_awarded'   => array(
+        'type'     => 'int',
+        'size'     => 'tiny',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
       'answer_timestamp' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'number' => array(
-        'type' => 'int',
-        'size' => 'small',
+      'number'           => array(
+        'type'     => 'int',
+        'size'     => 'small',
         'unsigned' => FALSE,
         'not null' => TRUE,
-        'default' => 1,
+        'default'  => 1,
       ),
-      'is_doubtful' => array(
-        'type' => 'int',
+      'is_doubtful'      => array(
+        'type'     => 'int',
         'not null' => TRUE,
-        'default' => 0,
-        'size' => 'tiny'
+        'default'  => 0,
+        'size'     => 'tiny'
       ),
     ),
     'primary key' => array('result_answer_id'),
     'unique keys' => array(
       'result_answer' => array('result_id', 'question_nid', 'question_vid'),
     ),
-    'indexes' => array(
+    'indexes'     => array(
       'result_id' => array('result_id'),
     ),
   );
@@ -491,97 +768,97 @@ function quiz_schema() {
   // Create the quiz node result options table
   $schema['quiz_node_result_options'] = array(
     'description' => 'Table storing result options for quizzes. Several result options may belong to a single quiz.',
-    'fields' => array(
-      'option_id' => array(
-        'type' => 'serial',
-        'size' => 'normal',
+    'fields'      => array(
+      'option_id'             => array(
+        'type'     => 'serial',
+        'size'     => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'nid' => array(
-        'type' => 'int',
+      'nid'                   => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'                   => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'option_name' => array(
-        'type' => 'varchar',
-        'length' => 255,
+      'option_name'           => array(
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'option_summary' => array(
+      'option_summary'        => array(
         'type' => 'text',
       ),
       'option_summary_format' => array(
-        'type' => 'varchar',
-        'length' => 255,
+        'type'     => 'varchar',
+        'length'   => 255,
         'not null' => TRUE,
       ),
-      'option_start' => array(
-        'type' => 'int',
+      'option_start'          => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
-      'option_end' => array(
-        'type' => 'int',
+      'option_end'            => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
-        'default' => 0,
+        'default'  => 0,
       ),
     ),
     'primary key' => array('option_id'),
-    'indexes' => array(
+    'indexes'     => array(
       'quiz_id' => array('vid', 'nid'),
     )
   );
 
   $schema['quiz_terms'] = array(
     'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
-    'fields' => array(
-      'nid' => array(
+    'fields'      => array(
+      'nid'       => array(
         'description' => 'Node id',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
-      'vid' => array(
+      'vid'       => array(
         'description' => 'Version id',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
-      'weight' => array(
+      'weight'    => array(
         'description' => 'The terms weight decides the order of the terms',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
-      'tid' => array(
+      'tid'       => array(
         'description' => 'Term id',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
       'max_score' => array(
         'description' => 'Max score for each question marked with this term',
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
-      'number' => array(
+      'number'    => array(
         'description' => 'Number of questions to be drawn from this term',
-        'type' => 'int',
-        'size' => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'type'        => 'int',
+        'size'        => 'tiny',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
       ),
     ),
     'primary key' => array('vid', 'tid'),
-    'indexes' => array(
+    'indexes'     => array(
       'version' => array('vid'),
     ),
   );
@@ -631,18 +908,18 @@ function quiz_update_7403() {
  */
 function quiz_update_7404() {
   db_change_field('quiz_node_properties', 'number_of_random_questions', 'number_of_random_questions', array(
-    'type' => 'int',
-    'size' => 'small',
+    'type'     => 'int',
+    'size'     => 'small',
     'unsigned' => TRUE,
     'not null' => TRUE,
-    'default' => 0,
+    'default'  => 0,
   ));
   db_change_field('quiz_node_results_answers', 'number', 'number', array(
-    'type' => 'int',
-    'size' => 'small',
+    'type'     => 'int',
+    'size'     => 'small',
     'unsigned' => FALSE,
     'not null' => TRUE,
-    'default' => 1,
+    'default'  => 1,
   ));
   return t('Increased the maximum quiz size.');
 }
@@ -652,9 +929,9 @@ function quiz_update_7404() {
  */
 function quiz_update_7405() {
   $spec = array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => FALSE,
-    'default' => 0,
+    'default'  => 0,
   );
   db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
   db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
@@ -666,10 +943,10 @@ function quiz_update_7405() {
  */
 function quiz_update_7406(&$sandbox) {
   $spec = array(
-    'type' => 'int',
+    'type'     => 'int',
     'not null' => TRUE,
-    'default' => 0,
-    'size' => 'tiny'
+    'default'  => 0,
+    'size'     => 'tiny'
   );
   db_add_field('quiz_node_results_answers', 'is_doubtful', $spec);
   db_add_field('quiz_node_properties', 'mark_doubtful', $spec);
@@ -681,10 +958,10 @@ function quiz_update_7406(&$sandbox) {
  */
 function quiz_update_7407(&$sandbox) {
   $spec = array(
-    'type' => 'int',
-    'size' => 'tiny',
+    'type'     => 'int',
+    'size'     => 'tiny',
     'not null' => TRUE,
-    'default' => 0,
+    'default'  => 0,
   );
   db_add_field('quiz_node_relationship', 'auto_update_max_score', $spec);
   return t('Added new auto update max score field to the quiz_node_relationship table');
@@ -716,10 +993,10 @@ function quiz_uninstall() {
  */
 function quiz_update_7500() {
   $spec = array(
-    'serialize' => TRUE,
-    'type' => 'text',
+    'serialize'   => TRUE,
+    'type'        => 'text',
     'description' => "Serialized layout data.",
-    'size' => 'medium',
+    'size'        => 'medium',
   );
   db_add_field('quiz_node_results', 'layout', $spec);
   return t('Added new layout field to the quiz_node_results table');
@@ -733,9 +1010,9 @@ function quiz_update_7501() {
   db_add_unique_key('quiz_node_results_answers', 'result_answer', array('result_id', 'question_nid', 'question_vid'));
   $spec = array(
     'description' => 'The result answer ID.',
-    'type' => 'serial',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
+    'type'        => 'serial',
+    'unsigned'    => TRUE,
+    'not null'    => TRUE,
   );
   db_add_field('quiz_node_results_answers', 'result_answer_id', $spec, array('primary key' => array('result_answer_id')));
   return t('Added new result_answer_id field to the quiz_node_results_answers table.');
@@ -748,8 +1025,8 @@ function quiz_update_7502() {
   db_drop_primary_key('quiz_node_relationship');
   db_add_unique_key('quiz_node_relationship', 'parent_child', array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'));
   $spec = array(
-    'type' => 'serial',
-    'size' => 'normal',
+    'type'     => 'serial',
+    'size'     => 'normal',
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
@@ -762,11 +1039,11 @@ function quiz_update_7502() {
  */
 function quiz_update_7503() {
   $spec = array(
-    'type' => 'int',
-    'size' => 'normal',
+    'type'     => 'int',
+    'size'     => 'normal',
     'unsigned' => TRUE,
     'not null' => FALSE,
-    'default' => NULL,
+    'default'  => NULL,
   );
   db_add_field('quiz_node_relationship', 'qnr_pid', $spec);
   return t('Added new qnr_pid field to the quiz_node_relationship table.');
@@ -778,7 +1055,7 @@ function quiz_update_7503() {
  */
 function quiz_update_7504() {
   $spec = array(
-    'type' => 'int',
+    'type'     => 'int',
     'unsigned' => FALSE,
   );
   db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
@@ -792,7 +1069,7 @@ function quiz_update_7504() {
  */
 function quiz_update_7505() {
   db_add_field('quiz_node_properties', 'review_options', array(
-    'type' => 'text',
+    'type'      => 'text',
     'serialize' => TRUE,
   ));
 
