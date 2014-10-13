@@ -8,19 +8,19 @@ class NodeValidateHelper {
     // Don't check dates if the quiz is always available.
     if (!$node->quiz_always) {
       if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
-        form_set_error('quiz_close', t('Please make sure the close date is after the open date.'));
+        form_set_error('quiz_close', t('"Close date" must be later than the "open date".'));
       }
     }
 
     if (!empty($node->pass_rate)) {
       if (!_quiz_is_int($node->pass_rate, 0, 100)) {
-        form_set_error('pass_rate', t('The pass rate value must be a number between 0 and 100.'));
+        form_set_error('pass_rate', t('"Passing rate" must be a number between 0 and 100.'));
       }
     }
 
     if (isset($node->time_limit)) {
       if (!_quiz_is_int($node->time_limit, 0)) {
-        form_set_error('time_limit', t('Time limit must be a non negative interger'));
+        form_set_error('time_limit', t('"Time limit" must be a positive number.'));
       }
     }
 
@@ -31,7 +31,7 @@ class NodeValidateHelper {
         if (!empty($option['option_name'])) {
           $num_options++;
           if (empty($option['option_summary'])) {
-            form_set_error('option_summary', t('Option has no summary text.'));
+            form_set_error('option_summary', t('Range has no summary text.'));
           }
           if ($node->pass_rate && (isset($option['option_start']) || isset($option['option_end']))) {
 
@@ -58,7 +58,7 @@ class NodeValidateHelper {
           }
         }
         elseif (!$this->isEmptyHTML($option['option_summary']['value'])) {
-          form_set_error('option_summary', t('Option has a summary, but no name.'));
+          form_set_error('option_summary', t('Range has a summary, but no name.'));
         }
       }
     }
@@ -66,7 +66,7 @@ class NodeValidateHelper {
     if ($node->allow_jumping && !$node->allow_skipping) {
       // @todo when we have pages of questions, we have to check that jumping is
       // not enabled, and randomization is not enabled unless there is only 1 page
-      form_set_error('allow_skipping', t('If jumping is allowed skipping also has to be allowed.'));
+      form_set_error('allow_skipping', t('If jumping is allowed, skipping must also be allowed.'));
     }
   }
 

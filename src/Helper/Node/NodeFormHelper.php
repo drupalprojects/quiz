@@ -16,7 +16,7 @@ class NodeFormHelper extends FormHelper {
       '#type'          => 'textfield',
       '#title'         => t('Title'),
       '#default_value' => isset($node->title) ? $node->title : '',
-      '#description'   => t('The name of the @quiz.', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('The name of this @quiz.', array('@quiz' => QUIZ_NAME)),
       '#required'      => TRUE,
     );
 
@@ -31,45 +31,45 @@ class NodeFormHelper extends FormHelper {
     );
     $form['taking']['allow_resume'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Allow Resume'),
+      '#title'         => t('Allow resume'),
       '#default_value' => $node->allow_resume,
-      '#description'   => t('Whether to allow users to leave the @quiz incomplete and then resume it from where they left off.', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('Allow users to leave this @quiz incomplete and then resume it from where they left off.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['allow_skipping'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Allow Skipping questions'),
+      '#title'         => t('Allow skipping'),
       '#default_value' => $node->allow_skipping,
-      '#description'   => t('Whether to allow users to skip questions in the @quiz', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('Allow users to skip questions in this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['allow_jumping'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow jumping'),
       '#default_value' => $node->allow_jumping,
-      '#description'   => t('Whether to allow users to jump between questions using a menu in the @quiz', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('Allow users to jump to any question using a menu or pager in this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['backwards_navigation'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Backwards navigation'),
       '#default_value' => $node->backwards_navigation,
-      '#description'   => t('Whether to allow user to go back and revisit their answers'),
+      '#description'   => t('Allow users to go back and revisit questions already answered.'),
     );
     $form['taking']['repeat_until_correct'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Repeat until correct'),
       '#default_value' => $node->repeat_until_correct,
-      '#description'   => t('Require the user to re-try the question until they answer it correctly.'),
+      '#description'   => t('Require the user to retry the question until answered correctly.'),
     );
     $form['taking']['mark_doubtful'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Mark Doubtful'),
+      '#title'         => t('Mark doubtful'),
       '#default_value' => $node->mark_doubtful,
-      '#description'   => t('Allow user to mention if they are not sure about the answer'),
+      '#description'   => t('Allow users to mark their answers as doubtful.'),
     );
     $form['taking']['show_passed'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Show passed status'),
       '#default_value' => $node->show_passed,
-      '#description'   => t('Show the status, if the user has previously passed'),
+      '#description'   => t('Show a message if the user has previously passed the @quiz.', array('@quiz' => QUIZ_NAME)),
     );
 
     $form['taking']['randomization'] = array(
@@ -81,7 +81,9 @@ class NodeFormHelper extends FormHelper {
         t('Random questions'),
         t('Categorized random questions'),
       ),
-      '#description'   => t('The difference between "random order" and "random questions" is that with "random questions" questions are drawn randomly from a pool of questions. With "random order" the quiz will always consist of the same questions. With "Categorized random questions" you can choose several terms questions should be drawn from, and you can also choose how many questions that should be drawn from each, and max score for each term.'),
+      '#description'   => t('<strong>Random order</strong> - all questions display in random order')
+      . '<br/>' . t("<strong>Random questions</strong> - specific number of questions are drawn randomly from this Quiz's pool of questions")
+      . '<br/>' . t('<strong>Categorized random questions</strong> - specific number of questions are drawn from each specified taxonomy term'),
       '#default_value' => $node->randomization,
     );
     $form['taking']['review_options'] = array(
@@ -112,13 +114,14 @@ class NodeFormHelper extends FormHelper {
       '#collapsible' => FALSE,
       '#collapsed'   => FALSE,
       '#attributes'  => array('id' => 'multiple-takes-fieldset'),
+      '#description' => t('Allow users to take this quiz multiple times.'),
     );
     $form['taking']['multiple_takes']['takes'] = array(
       '#type'          => 'select',
       '#title'         => t('Allowed number of attempts'),
       '#default_value' => $node->takes,
       '#options'       => $options,
-      '#description'   => t('The number of times a user is allowed to take the @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('The number of times a user is allowed to take this @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['multiple_takes']['show_attempt_stats'] = array(
       '#type'          => 'checkbox',
@@ -130,7 +133,8 @@ class NodeFormHelper extends FormHelper {
     if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
       $form['taking']['multiple_takes']['keep_results'] = array(
         '#type'          => 'radios',
-        '#title'         => t('These results should be stored for each user'),
+        '#title'         => t('Store results'),
+        '#description'   => t('These results should be stored for each user.'),
         '#options'       => array(
           t('The best'),
           t('The newest'),
@@ -149,13 +153,13 @@ class NodeFormHelper extends FormHelper {
     if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
       $form['taking']['addons'] = array(
         '#type'        => 'fieldset',
-        '#title'       => t('Quiz Addons Properties'),
+        '#title'       => t('Quiz add-ons'),
         '#collapsible' => TRUE,
         '#collapsed'   => FALSE,
       );
       $form['taking']['addons']['time_limit'] = array(
         '#type'          => 'textfield',
-        '#title'         => t(' Time Limit'),
+        '#title'         => t('Time limit'),
         '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
         '#description'   => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
       );
@@ -224,22 +228,22 @@ class NodeFormHelper extends FormHelper {
     );
     $form['quiz_availability']['quiz_always'] = array(
       '#type'          => 'checkbox',
-      '#title'         => t('Always Available'),
+      '#title'         => t('Always available'),
       '#default_value' => $node->quiz_always,
-      '#description'   => t('Click this option to ignore the open and close dates.'),
+      '#description'   => t('Ignore the open and close dates.'),
     );
     $form['quiz_availability']['quiz_open'] = array(
       '#type'          => 'date',
-      '#title'         => t('Open Date'),
+      '#title'         => t('Open date'),
       '#default_value' => $this->prepareDate($node->quiz_open),
       '#description'   => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
       '#after_build'   => array($limit_year_options),
     );
     $form['quiz_availability']['quiz_close'] = array(
       '#type'          => 'date',
-      '#title'         => t('Close Date'),
+      '#title'         => t('Close date'),
       '#default_value' => $this->prepareDate($node->quiz_close, variable_get('quiz_default_close', 30)),
-      '#description'   => t('The date this @quiz will cease to be available.', array('@quiz' => QUIZ_NAME)),
+      '#description'   => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
       '#after_build'   => array($limit_year_options),
     );
 
@@ -256,9 +260,9 @@ class NodeFormHelper extends FormHelper {
     if (variable_get('quiz_use_passfail', 1)) {
       $form['summaryoptions']['pass_rate'] = array(
         '#type'          => 'textfield',
-        '#title'         => t('Pass rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
+        '#title'         => t('Passing rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
         '#default_value' => $node->pass_rate,
-        '#description'   => t('Pass rate for the @quiz as a percentage score.', array('@quiz' => QUIZ_NAME)),
+        '#description'   => t('Passing rate for this @quiz as a percentage score.', array('@quiz' => QUIZ_NAME)),
         '#required'      => FALSE,
       );
       $form['summaryoptions']['summary_pass'] = array(
@@ -267,7 +271,7 @@ class NodeFormHelper extends FormHelper {
         '#title'         => t('Summary text if passed'),
         '#default_value' => $node->summary_pass,
         '#cols'          => 60,
-        '#description'   => t("Summary for when the user gets enough correct answers to pass the @quiz. Leave blank if you don't want to give different summary text if they passed or if you are not using the 'percent to pass' option above. If you don't use the 'Percentage needed to pass' field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
+        '#description'   => t("Summary text for when the user passes the @quiz. Leave blank to not give different summary text if passed, or if not using the \"percent to pass\" option above. If not using the \"percentage needed to pass\" field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
         '#format'        => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
       );
     }
@@ -316,7 +320,7 @@ class NodeFormHelper extends FormHelper {
     if ($num_options > 0) {
       $form['resultoptions'] = array(
         '#type'        => 'fieldset',
-        '#title'       => t('Result Comments'),
+        '#title'       => t('Result feedback'),
         '#collapsible' => TRUE,
         '#collapsed'   => TRUE,
         '#tree'        => TRUE,
@@ -334,21 +338,22 @@ class NodeFormHelper extends FormHelper {
         );
         $form['resultoptions'][$i]['option_name'] = array(
           '#type'          => 'textfield',
-          '#title'         => t('The name of the result'),
+          '#title'         => t('Range title'),
           '#default_value' => isset($option['option_name']) ? $option['option_name'] : '',
           '#maxlength'     => 40,
           '#size'          => 40,
+          '#description'   => 'e.g., "A" or "Passed"',
         );
         $form['resultoptions'][$i]['option_start'] = array(
           '#type'          => 'textfield',
-          '#title'         => t('Percentage Start Range'),
+          '#title'         => t('Percentage low'),
           '#description'   => t('Show this result for scored quizzes in this range (0-100).'),
           '#default_value' => isset($option['option_start']) ? $option['option_start'] : '',
           '#size'          => 5,
         );
         $form['resultoptions'][$i]['option_end'] = array(
           '#type'          => 'textfield',
-          '#title'         => t('Percentage End Range'),
+          '#title'         => t('Percentage high'),
           '#description'   => t('Show this result for scored quizzes in this range (0-100).'),
           '#default_value' => isset($option['option_end']) ? $option['option_end'] : '',
           '#size'          => 5,
@@ -356,9 +361,9 @@ class NodeFormHelper extends FormHelper {
         $form['resultoptions'][$i]['option_summary'] = array(
           '#type'          => 'text_format',
           '#base_type'     => 'textarea',
-          '#title'         => t('Display text for the result'),
+          '#title'         => t('Feedback'),
           '#default_value' => isset($option['option_summary']) ? $option['option_summary'] : '',
-          '#description'   => t('Result summary. This is the summary that is displayed when the user falls in this result set determined by his/her responses.'),
+          '#description'   => t("This is the text that will be displayed when the user's score falls in this range."),
           '#format'        => isset($option['option_summary_format']) ? $option['option_summary_format'] : NULL,
         );
         if (isset($option['option_id'])) {
@@ -373,7 +378,7 @@ class NodeFormHelper extends FormHelper {
     $form['remember_settings'] = array(
       '#type'        => 'checkbox',
       '#title'       => t('Remember my settings'),
-      '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
+      '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time they create a quiz.'),
       '#weight'      => 49,
     );
 
