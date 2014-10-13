@@ -76,7 +76,7 @@ function quiz_node_info() {
  * Implements hook_entity_info().
  */
 function quiz_entity_info() {
-  return array(
+  $entity_types = array(
     'quiz_result'                => array(
       'label'                  => t('Quiz result'),
       'controller class'       => 'EntityAPIController',
@@ -104,6 +104,7 @@ function quiz_entity_info() {
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
+    // @TODO: Once quiz_entity entity type is ready, remove this entity type.
     'quiz'                       => array(
       'label'                  => t('Quiz properties'),
       'controller class'       => 'EntityAPIController',
@@ -113,7 +114,66 @@ function quiz_entity_info() {
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
+    'quiz_entity'                => array(
+      'label'                  => t('Quiz properties'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_entity',
+      'entity keys'            => array('id' => 'qid'),
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+    'quiz_type'                  => array(
+      'label'            => t('!quiz type', array('!quiz' => QUIZ_NAME)),
+      'plural label'     => t('!quiz types', array('!quiz' => QUIZ_NAME)),
+      'description'      => t('Types of !quiz.', array('!quiz' => QUIZ_NAME)),
+      'entity class'     => 'ProfileType',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table'       => 'quiz_type',
+      'fieldable'        => FALSE,
+      'bundle of'        => 'quiz',
+      'exportable'       => TRUE,
+      'entity keys'      => array(
+        'id'    => 'id',
+        'name'  => 'type',
+        'label' => 'label',
+      ),
+      'access callback'  => 'quiz_type_access',
+      'module'           => 'quiz',
+      // Enable the entity API's admin UI.
+      'admin ui'         => array(
+        'path'             => 'admin/structure/quiz',
+        'file'             => 'quiz.admin.inc',
+        'controller class' => 'Drupal\quiz\Entity\QuizTypeUIController',
+      ),
+    ),
+    'primary key'                => array('qid'),
+    // 'indexes'                    => array('quiz_id' => array('vid', 'nid')),
   );
+
+  // Add bundle info but bypass entity_load() as we cannot use it here.
+  $types = db_select('quiz_type', 'qt')
+    ->fields('qt')
+    ->execute()
+    ->fetchAllAssoc('type');
+
+  foreach ($types as $type => $info) {
+    $return['quiz_entity']['bundles'][$type] = array(
+      'label' => $info->label,
+      'admin' => array(
+        'path'             => 'admin/structure/quiz/manage/%quiz_type',
+        'real path'        => 'admin/structure/quiz/manage/' . $type,
+        'bundle argument'  => 4,
+        'access arguments' => array('administer quiz'),
+      ),
+    );
+  }
+
+  // Support entity cache module.
+  if (module_exists('entitycache')) {
+    $return['quiz_entity']['field cache'] = FALSE;
+    $return['quiz_entity']['entity cache'] = TRUE;
+  }
+
+  return $entity_types;
 }
 
 /**
@@ -922,4 +982,15 @@ function quiz_take_access($quiz) {
  */
 function quiz_take_question_access($quiz, $question_number) {
   return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuestion($quiz, $question_number);
+}
+
+/**
+ * Access callback for quiz-type.
+ *
+ * @param string $op
+ * @param string $type
+ * @param stdClass $account
+ */
+function quiz_type_access($op, $type = NULL, $account = NULL) {
+  return user_access('administer quiz types', $account);
 }
