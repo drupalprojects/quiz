@@ -60,6 +60,8 @@ function quiz_end_actions($quiz, $score, $session_data) {
  * Jumper form.
  */
 function quiz_jumper($form, $form_state, $questions, $current) {
+  $form['#attached']['js'][] = drupal_get_path('module', 'quiz') . '/js/quiz.take.jumper.js';
+
   $form['question_number'] = array(
     '#type'          => 'select',
     '#options'       => $questions,

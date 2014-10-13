@@ -60,26 +60,6 @@ function theme_quiz_progress($variables) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function theme_quiz_jumper($variables) {
-  drupal_add_js('
-    (function ($) {
-      Drupal.behaviors.quizJumper = {
-        attach: function(context, settings) {
-          $("#quiz-jumper:not(.quizJumper-processed)", context).show().addClass("quizJumper-processed").change(function(){
-            $("#quiz-jumper #edit-submit").trigger("click");
-          });
-          $("#quiz-jumper-no-js:not(.quizJumper-processed)").hide().addClass("quizJumper-processed");
-        }
-      };
-    })(jQuery);
-  ', array('type' => 'inline', 'scope' => JS_DEFAULT));
-  return '';
-}
-
-/**
  * Theme the "no feedback" option.
  *
  * @return

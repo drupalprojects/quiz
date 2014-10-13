@@ -530,10 +530,6 @@ function quiz_theme($existing, $type, $theme, $path) {
       'render element' => 'form',
       'file'           => 'quiz.admin.inc',
     ),
-    'quiz_jumper'              => array(
-      'variables' => array('current' => 0, 'num_questions' => 0),
-      'file'      => 'quiz.admin.inc',
-    ),
     'quiz_question_score'      => array(
       'variables' => array('score' => NULL, 'max_score' => NULL),
       'path'      => $path . '/theme',
