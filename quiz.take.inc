@@ -346,7 +346,6 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
 
     $qi_instance = _quiz_question_response_get_instance($result_id, $question, NULL);
     $qi_instance->delete();
-    $qi_instance->saveResult();
     $bare_object = $qi_instance->toBareObject();
     quiz()->getQuizHelper()->saveQuestionResult($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
   }

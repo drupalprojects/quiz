@@ -346,11 +346,10 @@ abstract class QuizQuestionResponse {
   }
 
   /**
-   * Saves the quiz result. This is not used when a question is skipped!
-   * @todo. Now it is!
+   * Saves the quiz result. This should only be called when an answer is
+   * provided.
    */
   public function saveResult() {
-    $this->is_skipped = FALSE;
     $this->save();
   }
 
