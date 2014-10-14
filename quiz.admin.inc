@@ -201,7 +201,9 @@ function quiz_set_auto_title() {
  */
 function theme_quiz_categorized_form($variables) {
   $form = $variables['form'];
-  $output = '';
+
+  drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.admin.categorized-form.js');
+
   $rows = array();
   foreach ($form as $key => &$existing) {
     if (!is_numeric($key)) {
@@ -213,37 +215,14 @@ function theme_quiz_categorized_form($variables) {
     $cols[] = drupal_render($existing['max_score']);
     $cols[] = drupal_render($existing['remove']);
     $cols[] = drupal_render($existing['weight']);
-    $rows[] = array(
-      'data'  => $cols,
-      'class' => array('draggable'),
-    );
+    $rows[] = array('data' => $cols, 'class' => array('draggable'));
   }
+
+  $output = '';
   if (!empty($rows)) {
-    $header = array(
-      t('Category'),
-      t('Number of questions'),
-      t('Max score per question'),
-      t('Remove'),
-      t('Weight'),
-    );
+    $header = array(t('Category'), t('Number of questions'), t('Max score per question'), t('Remove'), t('Weight'));
     drupal_add_tabledrag('existing-terms', 'order', 'sibling', 'term-weight', NULL, NULL, TRUE);
     $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'existing-terms')));
   }
-  $output .= drupal_render_children($form);
-  drupal_add_js(
-    "(function ($) {
-     Drupal.behaviors.quiz_categorized = {
-     attach: function(context) {
-      $('#browse-for-term:not(.quiz-processed)').click(function(event) {
-        event.preventDefault();
-        $('#edit-term').focus().val('*').trigger('keyup');
-      }).addClass('quiz-processed');
-      $('#edit-term').click(function(){
-        if ($(this).val() == '*') {
-          $(this).val('');
-        }
-      });
-    }};}(jQuery));"
-    , array('type' => 'inline', 'group' => JS_DEFAULT));
-  return $output;
+  return $output . drupal_render_children($form);
 }
