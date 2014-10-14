@@ -261,6 +261,13 @@ function quiz_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
+      'title'                      => array(
+        'description' => 'The title of this quiz, always treated as non-markup plain text.',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
+      ),
       'created'                    => array(
         'description' => 'The Unix timestamp when the quiz was created.',
         'type'        => 'int',

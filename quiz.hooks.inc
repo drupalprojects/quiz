@@ -118,7 +118,7 @@ function quiz_entity_info() {
       'label'                  => t('Quiz properties'),
       'controller class'       => 'EntityAPIController',
       'base table'             => 'quiz_entity',
-      'entity keys'            => array('id' => 'qid'),
+      'entity keys'            => array('id' => 'qid', 'label' => 'title'),
       'views controller class' => 'EntityDefaultViewsController',
     ),
     'quiz_type'                  => array(
