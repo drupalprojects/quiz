@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz;
 
+use Drupal\quiz\Helper\HookImplementation;
 use Drupal\quiz\Helper\MailHelper;
 use Drupal\quiz\Helper\NodeHelper;
 use Drupal\quiz\Helper\QuizHelper;
@@ -26,9 +27,25 @@ use Drupal\quiz\Helper\QuizHelper;
  */
 class Quiz {
 
+  private $hookImplementation;
   private $nodeHelper;
   private $quizHelper;
   private $mailHelper;
+
+  /**
+   * @return HookImplementation
+   */
+  public function getHookImplementation() {
+    if (null === $this->hookImplementation) {
+      $this->hookImplementation = new HookImplementation();
+    }
+    return $this->hookImplementation;
+  }
+
+  public function setHookImplementation($hookImplementation) {
+    $this->hookImplementation = $hookImplementation;
+    return $this;
+  }
 
   /**
    * @return NodeHelper
@@ -44,7 +61,7 @@ class Quiz {
    * Inject node helper.
    *
    * @param NodeHelper $nodeHelper
-   * @return \Drupal\quiz\Quiz
+   * @return Quiz
    */
   public function setNodeHelper($nodeHelper) {
     $this->nodeHelper = $nodeHelper;
@@ -65,7 +82,7 @@ class Quiz {
    * Inject quizHelper.
    *
    * @param QuizHelper $quizHelper
-   * @return \Drupal\quiz\Quiz
+   * @return Quiz
    */
   public function setQuizHelper($quizHelper) {
     $this->quizHelper = $quizHelper;
@@ -86,7 +103,7 @@ class Quiz {
    * Inject mail helper.
    *
    * @param MailHelper $mailHelper
-   * @return \Drupal\quiz\Quiz
+   * @return Quiz
    */
   public function setMailHelper($mailHelper) {
     $this->mailHelper = $mailHelper;
