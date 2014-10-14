@@ -24,9 +24,8 @@ class QuizEntityTest extends QuizTestCase {
   public function testInitQuizTypeEntity() {
     $type = entity_create('quiz_type', array());
     $this->assertTrue($type instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
-  }
 
-  public function testCheckDefaultQuizType() {
+    // Default quiz type.
     $types = entity_load('quiz_type', array('quiz'));
     $quiz_type = reset($types);
     $this->assertTrue($quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
@@ -64,9 +63,14 @@ class QuizEntityTest extends QuizTestCase {
 
     // Load old revision
     $quiz_1 = entity_load('quiz_entity', array($quiz->qid), array('vid' => $old_revision_id));
+    $quiz_1 = reset($quiz_1);
     $quiz_2 = entity_load('quiz_entity', array($quiz->qid));
+    $quiz_2 = reset($quiz_2);
     $this->assertNotEqual($quiz_1->log, $quiz_2->log, 'New revision is created correctly.');
 
+    // ---------------------
+    // Delete quiz entity
+    // ---------------------
     entity_delete('quiz_entity', $quiz->identifier());
     $null_quiz = entity_load_single('quiz_entity', $quiz->identifier());
     $this->assertFalse($null_quiz, 'Quiz entity is deleted');
