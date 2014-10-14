@@ -18,6 +18,28 @@ class QuizEntityTest extends QuizTestCase {
     $quiz_type = reset($types);
     $this->assertTrue($quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
   }
+
+  public function testInitQuizEntity() {
+    $quiz = entity_create('quiz_entity', array('type' => 'quiz'));
+    $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
+
+    // Create entity
+    $quiz->changed = $quiz->created = time();
+    $quiz->label = 'Demo quiz';
+    $quiz->uid = 1;
+    entity_save('quiz_entity', $quiz);
+    $this->assertNotNull($quiz, 'Quiz entity is created successully.');
+
+    // Update entity
+    $quiz->label = 'Updated demo quiz';
+    entity_save('quiz_entity', $quiz);
+
+    // Reload entity
+    $quiz = entity_load_single('quiz_entity', $quiz->identifier());
+    $this->assertEqual('Updated demo quiz', $quiz->label, 'Quiz entity is updated.');
+
+    entity_delete('quiz_entity', $quiz->identifier());
+    $this->assertTrue(empty(entity_load_single('quiz_entity', $quiz->identifier())));
   }
 
 }
