@@ -3,13 +3,23 @@
 /**
  * @file
  * Quiz install schema for installing the quiz module
- *
  */
 
 /**
  * Implements hook_install().
  */
 function quiz_install() {
+  // Create default quiz type. In case the module is installed via an
+  // installation profile, skip that.
+  if (!drupal_installation_attempted()) {
+    entity_create('quiz_type', array(
+        'type'   => 'quiz',
+        'label'  => t('Quiz'),
+        'weight' => 0
+      ))
+      ->save();
+  }
+
   node_types_rebuild();
   $types = node_type_get_types();
   node_add_body_field($types['quiz']);

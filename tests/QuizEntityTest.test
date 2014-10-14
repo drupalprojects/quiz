@@ -8,14 +8,16 @@ use Drupal\quiz\Entity\QuizEntityType;
  */
 class QuizEntityTest extends QuizTestCase {
 
-  public function testInitQuizEntity() {
-    $quiz = entity_create('quiz_entity', array());
-    $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
+  public function testInitQuizTypeEntity() {
+    $type = entity_create('quiz_type', array());
+    $this->assertTrue($type instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
   }
 
-  public function testInitQuizTypeEntity() {
-    $quiz = entity_create('quiz_type', array());
-    $this->assertTrue($quiz instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
+  public function testCheckDefaultQuizType() {
+    $types = entity_load('quiz_type', array('quiz'));
+    $quiz_type = reset($types);
+    $this->assertTrue($quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
+  }
   }
 
 }

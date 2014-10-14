@@ -122,6 +122,7 @@ function quiz_entity_info() {
       'entity keys'            => array('id' => 'qid', 'bundle' => 'type', 'revision' => 'vid', 'label' => 'title'),
       'bundle keys'            => array('bundle' => 'type'),
       'views controller class' => 'EntityDefaultViewsController',
+      'bundles'                => array(),
     ),
     'quiz_type'                  => array(
       'label'            => t('!quiz type', array('!quiz' => QUIZ_NAME)),
