@@ -323,6 +323,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
     $rev_description = t('Allow question status changes to create a new revision of the quiz?');
   }
+
   if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
     $form['new_revision'] = array(
       '#type'          => 'checkbox',
@@ -749,67 +750,6 @@ function _quiz_get_question_row($sub_form, $id) {
     'class' => array('q-row', 'draggable', $leaf_class),
     'id'    => 'q-' . $id,
     'data'  => $data_array
-  );
-}
-
-/**
- * Helper function returning number of days as values and corresponding
- * number of milliseconds as array keys.
- *
- * @return
- *   array of options for when we want to delete partial quiz record values.
- */
-function quiz_remove_partial_quiz_record_value() {
-  return array(
-    '0'        => t('Never'),
-    '86400'    => t('1 Day'),
-    '172800'   => t('2 Days'),
-    '259200'   => t('3 Days'),
-    '345600'   => t('4 Days'),
-    '432000'   => t('5 Days'),
-    '518400'   => t('6 Days'),
-    '604800'   => t('7 Days'),
-    '691200'   => t('8 Days'),
-    '777600'   => t('9 Days'),
-    '864000'   => t('10 Days'),
-    '950400'   => t('11 Days'),
-    '1036800'  => t('12 Days'),
-    '1123200'  => t('13 Days'),
-    '1209600'  => t('14 Days'),
-    '1296000'  => t('15 Days'),
-    '1382400'  => t('16 Days'),
-    '1468800'  => t('17 Days'),
-    '1555200'  => t('18 Days'),
-    '1641600'  => t('19 Days'),
-    '1728000'  => t('20 Days'),
-    '1814400'  => t('21 Days'),
-    '1900800'  => t('22 Days'),
-    '1987200'  => t('23 Days'),
-    '2073600'  => t('24 Days'),
-    '2160000'  => t('25 Days'),
-    '2246400'  => t('26 Days'),
-    '2332800'  => t('27 Days'),
-    '2419200'  => t('28 Days'),
-    '2505600'  => t('29 Days'),
-    '2592000'  => t('30 Days'),
-    '3024000'  => t('35 Days'),
-    '3456000'  => t('40 Days'),
-    '3888000'  => t('45 Days'),
-    '4320000'  => t('50 Days'),
-    '4752000'  => t('55 Days'),
-    '5184000'  => t('60 Days'),
-    '5616000'  => t('65 Days'),
-    '6048000'  => t('70 Days'),
-    '6480000'  => t('75 Days'),
-    '6912000'  => t('80 Days'),
-    '7344000'  => t('85 Days'),
-    '7776000'  => t('90 Days'),
-    '8208000'  => t('95 Days'),
-    '8640000'  => t('100 Days'),
-    '9072000'  => t('105 Days'),
-    '9504000'  => t('110 Days'),
-    '9936000'  => t('115 Days'),
-    '10368000' => t('120 Days'),
   );
 }
 
