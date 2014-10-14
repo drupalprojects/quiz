@@ -102,39 +102,6 @@ function theme_question_selection_table($variables) {
     . drupal_render_children($form);
 }
 
-/**
- * Delete a single result, or all results for a given user and a given quiz.
- *
- * @param $result_id
- *   result if for the result to be deleted
- * @param $nid
- *   Node id for the quiz the result belongs to. If set all the users results for this quiz will be deleted.
- */
-function _quiz_delete_results($result_id, $nid = NULL) {
-  $result_ids = array();
-
-  // We are to delete all results for a certain user on a certain quiz.
-  if (isset($nid)) {
-    // TODO: We should be able to rewrite this one to use the DBTNG.
-    $res = db_query('SELECT result_id
-            FROM {quiz_node_results}
-            WHERE nid = :nid AND uid = (
-              SELECT uid
-              FROM {quiz_node_results}
-              WHERE result_id = :result_id
-            )', array(':nid' => $nid, ':result_id' => $result_id));
-
-    while ($result = $res->fetchField()) {
-      $result_ids[] = $result;
-    }
-  }
-  // We are only to delete one specific result
-  else {
-    $result_ids[] = $result_id;
-  }
-  quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
-}
-
 // HELPER FUNCTIONS
 
 /**
