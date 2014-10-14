@@ -160,19 +160,36 @@ class QuizQuestionsForm {
       '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
     );
     if ($quiz->randomization == 3) {
-      $terms = _quiz_taxonomy_select($quiz->tid);
+      $terms = $this->taxonomySelect($quiz->tid);
       if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
         $form['question_list']['random_settings']['random_term_id'] = array(
           '#type'          => 'select',
           '#title'         => t('Terms'),
           '#size'          => 1,
-          '#options'       => _quiz_taxonomy_select($quiz->tid),
+          '#options'       => $this->taxonomySelect($quiz->tid),
           '#default_value' => $quiz->tid,
           '#description'   => t('Randomly select from questions with this term, or choose from the question pool below'),
           '#weight'        => -4,
         );
       }
     }
+  }
+
+  /**
+   * Prints a taxonomy selection form for each vocabulary.
+   *
+   * @param $tid
+   *   Default selected value(s).
+   * @return
+   *   HTML output to print to screen.
+   */
+  private function taxonomySelect($tid = 0) {
+    $options = array();
+    foreach (quiz()->getVocabularies() as $vid => $vocabulary) {
+      $temp = taxonomy_form($vid, $tid);
+      $options = array_merge($options, $temp['#options']);
+    }
+    return $options;
   }
 
   /**

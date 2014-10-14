@@ -247,20 +247,3 @@ function theme_quiz_categorized_form($variables) {
     , array('type' => 'inline', 'group' => JS_DEFAULT));
   return $output;
 }
-
-/**
- * Prints a taxonomy selection form for each vocabulary.
- *
- * @param $value
- *   Default selected value(s).
- * @return
- *   HTML output to print to screen.
- */
-function _quiz_taxonomy_select($value = 0) {
-  $options = array();
-  foreach (quiz()->getVocabularies() as $vid => $vocabulary) {
-    $temp = taxonomy_form($vid, $value);
-    $options = array_merge($options, $temp['#options']);
-  }
-  return $options;
-}
