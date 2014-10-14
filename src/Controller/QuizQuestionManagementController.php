@@ -20,7 +20,7 @@ class QuizQuestionManagementController {
       return @drupal_get_form('Drupal\quiz\Form\QuizCategorizedForm::staticGet', $quiz);
     }
 
-    $mq_form = @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::getForm', $quiz);
+    $mq_form = @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::staticGet', $quiz);
     $manage_questions = drupal_render($mq_form);
     $question_bank = views_get_view('quiz_question_bank')->preview();
 
