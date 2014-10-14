@@ -167,33 +167,8 @@ function _quiz_get_question_row($sub_form, $id) {
  */
 function quiz_set_auto_title() {
   $max_length = variable_get('quiz_autotitle_length', 50);
-  drupal_add_js('
-  (function ($) {
-  $(document).ready(function () {
-    function quizStripTags(str) {
-      return str.replace(/<\/?[^>]+>/gi, \'\');
-    }
-
-    function quizUpdateTitle() {
-      var body = $("#edit-body textarea:eq(1)").val();
-      if (quizStripTags(body).length > ' . $max_length . ') {
-        $("#edit-title").val(quizStripTags(body).substring(0, ' . $max_length . ' - 3) + "...");
-      }
-      else {
-        $("#edit-title").val(quizStripTags(body).substring(0, ' . $max_length . '));
-      }
-    }
-    $("#edit-body textarea").keyup(quizUpdateTitle);
-    // Do not use auto title if a title already has been set
-    if($("#edit-title").val().length > 0){
-      $("#edit-body textarea:eq(1)").unbind("keyup", quizUpdateTitle);
-    }
-    $("#edit-title").keyup(function() {
-      $("#edit-body textarea:eq(1)").unbind("keyup", quizUpdateTitle);
-    });
-  });
-  })(jQuery);
-  ', array('type' => 'inline', 'scope' => JS_DEFAULT));
+  drupal_add_js(array('quiz_max_length' => $max_length), array('type' => 'setting'));
+  drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.auto-title.js');
 }
 
 /**
