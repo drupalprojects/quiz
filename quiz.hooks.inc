@@ -109,14 +109,15 @@ function quiz_entity_info() {
       'label'                  => t('Quiz properties'),
       'controller class'       => 'EntityAPIController',
       'base table'             => 'quiz_node_properties',
-      'entity keys'            => array(
-        'id' => 'qnp_id',
-      ),
+      'entity keys'            => array('id' => 'qnp_id'),
+      'bundle keys'            => array('bundle' => 'type'),
       'views controller class' => 'EntityDefaultViewsController',
     ),
     'quiz_entity'                => array(
       'label'                  => t('Quiz properties'),
       'controller class'       => 'EntityAPIController',
+      'description'            => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
+      'entity class'           => 'Drupal\quiz\Entity\QuizEntity',
       'base table'             => 'quiz_entity',
       'entity keys'            => array('id' => 'qid', 'label' => 'title'),
       'views controller class' => 'EntityDefaultViewsController',
@@ -125,17 +126,13 @@ function quiz_entity_info() {
       'label'            => t('!quiz type', array('!quiz' => QUIZ_NAME)),
       'plural label'     => t('!quiz types', array('!quiz' => QUIZ_NAME)),
       'description'      => t('Types of !quiz.', array('!quiz' => QUIZ_NAME)),
-      'entity class'     => 'ProfileType',
+      'entity class'     => 'Drupal\quiz\Entity\QuizEntityType',
       'controller class' => 'EntityAPIControllerExportable',
       'base table'       => 'quiz_type',
       'fieldable'        => FALSE,
-      'bundle of'        => 'quiz',
+      'bundle of'        => 'quiz_entity',
       'exportable'       => TRUE,
-      'entity keys'      => array(
-        'id'    => 'id',
-        'name'  => 'type',
-        'label' => 'label',
-      ),
+      'entity keys'      => array('id' => 'id', 'name' => 'type', 'label' => 'label'),
       'access callback'  => 'quiz_type_access',
       'module'           => 'quiz',
       // Enable the entity API's admin UI.
@@ -145,8 +142,6 @@ function quiz_entity_info() {
         'controller class' => 'Drupal\quiz\Entity\QuizTypeUIController',
       ),
     ),
-    'primary key'                => array('qid'),
-    // 'indexes'                    => array('quiz_id' => array('vid', 'nid')),
   );
 
   // Add bundle info but bypass entity_load() as we cannot use it here.

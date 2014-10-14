@@ -1,0 +1,21 @@
+<?php
+
+use Drupal\quiz\Entity\QuizEntity;
+use Drupal\quiz\Entity\QuizEntityType;
+
+/**
+ * Test aspects of quiz creation including global and user defaults.
+ */
+class QuizEntityTest extends QuizTestCase {
+
+  public function testInitQuizEntity() {
+    $quiz = entity_create('quiz_entity', array());
+    $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
+  }
+
+  public function testInitQuizTypeEntity() {
+    $quiz = entity_create('quiz_type', array());
+    $this->assertTrue($quiz instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
+  }
+
+}
