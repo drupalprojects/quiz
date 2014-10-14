@@ -21,7 +21,7 @@ class QuizEntityTest extends QuizTestCase {
     parent::setUp($modules);
   }
 
-  public function testInitQuizTypeEntity() {
+  public function testInitQuizEntityType() {
     $type = entity_create('quiz_type', array());
     $this->assertTrue($type instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
 
@@ -31,18 +31,25 @@ class QuizEntityTest extends QuizTestCase {
     $this->assertTrue($quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
   }
 
-  public function testInitQuizEntity() {
+  public function testQuizEntity() {
+    // ---------------------
+    // Create entity
+    // ---------------------
     $quiz = entity_create('quiz_entity', array('type' => 'quiz'));
     $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
 
+    // ---------------------
     // Create entity
+    // ---------------------
     $quiz->changed = $quiz->created = time();
     $quiz->title = 'Demo quiz';
     $quiz->uid = 1;
     entity_save('quiz_entity', $quiz);
     $this->assertNotNull($quiz, 'Quiz entity is created successully.');
 
+    // ---------------------
     // Update entity
+    // ---------------------
     $quiz->title = 'Updated demo quiz';
     entity_save('quiz_entity', $quiz);
 

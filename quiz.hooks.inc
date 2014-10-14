@@ -284,13 +284,13 @@ function quiz_field_extra_fields() {
  */
 function quiz_permission() {
   return array(
-    // Configure quiz:
+    // Configure quiz
     'administer quiz configuration'           => array(
       'title'           => t('Administer quiz configuration'),
       'description'     => t('Control the various settings and behaviours of quiz'),
       'restrict access' => TRUE,
     ),
-    // Managing quizzes:
+    // Managing quizzes
     'access quiz'                             => array(
       'title'       => t('Take quiz'),
       'description' => t('Can access (take) all quizzes.'),
@@ -995,5 +995,5 @@ function quiz_take_question_access($quiz, $question_number) {
  * @param stdClass $account
  */
 function quiz_type_access($op, $type = NULL, $account = NULL) {
-  return user_access('administer quiz types', $account);
+  return user_access('administer quiz configuration', $account);
 }
