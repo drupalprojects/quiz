@@ -51,6 +51,22 @@ class QuizEntityTest extends QuizTestCase {
     $quiz = entity_load_single('quiz_entity', $quiz->identifier());
     $this->assertEqual('Updated demo quiz', $quiz->title, 'Quiz entity is updated.');
 
+    // ---------------------
+    // Test revision supporting
+    // ---------------------
+    $old_revision_id = $quiz->vid;
+
+    // Save new revision
+    $quiz->title .= ' [new revision]';
+    $quiz->is_new_revision = true;
+    $quiz->log = 'Trying revision supporting';
+    entity_save('quiz_entity', $quiz);
+
+    // Load old revision
+    $quiz_1 = entity_load('quiz_entity', array($quiz->qid), array('vid' => $old_revision_id));
+    $quiz_2 = entity_load('quiz_entity', array($quiz->qid));
+    $this->assertNotEqual($quiz_1->log, $quiz_2->log, 'New revision is created correctly.');
+
     entity_delete('quiz_entity', $quiz->identifier());
     $null_quiz = entity_load_single('quiz_entity', $quiz->identifier());
     $this->assertFalse($null_quiz, 'Quiz entity is deleted');

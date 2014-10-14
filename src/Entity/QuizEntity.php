@@ -6,7 +6,11 @@ use Entity;
 
 class QuizEntity extends Entity {
 
+  /** @var int Quiz ID */
   public $qid;
+
+  /** @var int Quiz Revision ID */
+  public $vid;
 
   /** @var string The name of the quiz type. */
   public $type;
@@ -22,6 +26,12 @@ class QuizEntity extends Entity {
 
   /** @var integer The Unix timestamp when the quiz was most recently saved. */
   public $changed;
+
+  /** @var bool Magic flag to create new revision on save */
+  public $is_new_revision;
+
+  /** @var string Revision log */
+  public $log;
 
   public function __construct(array $values = array()) {
     // fill default value
