@@ -61,10 +61,6 @@ abstract class QuizTestCase extends DrupalWebTestCase {
     return $this->drupalCreateNode($settings);
   }
 
-  public function testQuizNodeSettings() {
-
-  }
-
   public function quizDeleteAllResults() {
     db_query('DELETE FROM {quiz_node_results}');
   }

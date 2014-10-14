@@ -53,7 +53,7 @@ class QuizEntityTest extends QuizTestCase {
 
     entity_delete('quiz_entity', $quiz->identifier());
     $null_quiz = entity_load_single('quiz_entity', $quiz->identifier());
-    $this->assertTrue($null_quiz);
+    $this->assertFalse($null_quiz, 'Quiz entity is deleted');
   }
 
 }
