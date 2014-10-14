@@ -20,15 +20,12 @@ class QuizQuestionManagementController {
       return @drupal_get_form('Drupal\quiz\Form\QuizCategorizedForm::staticGet', $quiz);
     }
 
-    $mq_form = drupal_get_form('quiz_questions_form', $quiz);
+    $mq_form = @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::getForm', $quiz);
     $manage_questions = drupal_render($mq_form);
     $question_bank = views_get_view('quiz_question_bank')->preview();
 
     // Insert into vert tabs
-    $form['vert_tabs'] = array(
-      '#type'   => 'vertical_tabs',
-      '#weight' => 0,
-    );
+    $form['vert_tabs'] = array('#type' => 'vertical_tabs', '#weight' => 0);
     $form['vert_tabs']['question_admin'] = array(
       '#type'  => 'fieldset',
       '#title' => t('Manage questions'),
