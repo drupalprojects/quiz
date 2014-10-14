@@ -435,6 +435,12 @@ function quiz_menu() {
   );
 
   $items['node/%quiz_menu/quiz-results/%quiz_result/view'] = array(
+    'title'  => 'View',
+    'type'   => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+
+  $items['node/%quiz_menu/quiz-results/%quiz_result'] = array(
     'title'            => 'User results',
     'page callback'    => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
     'page arguments'   => array(3),
