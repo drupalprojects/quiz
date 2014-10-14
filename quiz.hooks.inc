@@ -118,6 +118,7 @@ function quiz_entity_info() {
       'description'            => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
       'entity class'           => 'Drupal\quiz\Entity\QuizEntity',
       'base table'             => 'quiz_entity',
+      'revision table'         => 'quiz_entity_revision',
       'entity keys'            => array('id' => 'qid', 'label' => 'title'),
       'bundle keys'            => array('bundle' => 'type'),
       'views controller class' => 'EntityDefaultViewsController',
