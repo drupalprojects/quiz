@@ -17,7 +17,7 @@ class QuizQuestionManagementController {
     drupal_set_title($quiz->title);
 
     if ($quiz->randomization >= 3) {
-      return drupal_get_form('quiz_categorized_form', $quiz);
+      return @drupal_get_form('Drupal\quiz\Form\QuizCategorizedForm::staticGet', $quiz);
     }
 
     $mq_form = drupal_get_form('quiz_questions_form', $quiz);
