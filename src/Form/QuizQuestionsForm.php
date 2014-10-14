@@ -2,11 +2,13 @@
 
 namespace Drupal\quiz\Form;
 
+use stdClass;
+
 class QuizQuestionsForm {
 
   public static function staticGet($form, $form_state, $quiz) {
     $obj = new static();
-    return $obj->getForm($form, $form_state, $quiz);
+    return $obj->formGet($form, $form_state, $quiz);
   }
 
   /**
@@ -23,7 +25,7 @@ class QuizQuestionsForm {
    * @return
    *  HTML output to create page.
    */
-  public function getForm($form, $form_state, $quiz) {
+  public function formGet($form, $form_state, $quiz) {
     $form['#submit'][] = array($this, 'formSubmit');
     $form['#validate'][] = array($this, 'formValidate');
 
@@ -68,11 +70,10 @@ class QuizQuestionsForm {
     $form['timestamp'] = array('#type' => 'hidden', '#default_value' => REQUEST_TIME);
 
     $form['actions']['#type'] = 'actions';
-
     $form['actions']['submit'] = array(
       '#type'   => 'submit',
       '#value'  => t('Submit'),
-      '#submit' => array('quiz_questions_form_submit'),
+      '#submit' => array(array($this, 'formSubmit')),
     );
     return $form;
   }
@@ -234,9 +235,7 @@ class QuizQuestionsForm {
         '#disabled'      => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
         '#default_value' => isset($question->max_score) ? $question->max_score : 0,
         '#states'        => array(
-          'disabled' => array(
-            "#edit-auto-update-max-scores-$id" => array('checked' => TRUE),
-          )
+          'disabled' => array("#edit-auto-update-max-scores-$id" => array('checked' => TRUE))
         ),
       );
 
@@ -294,9 +293,7 @@ class QuizQuestionsForm {
       );
       // Add a checkbox to update to the latest revision of the question
       if ($question->vid == $question->latest_vid) {
-        $update_cell = array(
-          '#markup' => t('<em>Up to date</em>'),
-        );
+        $update_cell = array('#markup' => t('<em>Up to date</em>'));
       }
       else {
         $update_cell = array(
@@ -346,7 +343,6 @@ class QuizQuestionsForm {
     $question_types = array_keys(_quiz_get_question_types());
 
     foreach ($weight_map as $id => $weight) {
-
       list($nid, $vid) = explode('-', $id, 2);
 
       // If a node isn't one of the questionstypes we remove it from the question list
@@ -407,16 +403,12 @@ class QuizQuestionsForm {
     $refreshes = isset($form_state['values']['revision']) ? $form_state['values']['revision'] : NULL;
     $stayers = $form_state['values']['stayers'];
     $compulsories = isset($form_state['values']['compulsories']) ? $form_state['values']['compulsories'] : NULL;
-
     $num_random = isset($form_state['values']['num_random_questions']) ? $form_state['values']['num_random_questions'] : 0;
-
-
     $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random'] : 1;
     $term_id = isset($form_state['values']['random_term_id']) ? (int) $form_state['values']['random_term_id'] : 0;
 
-
     // Store what questions belong to the quiz
-    $questions = $this->_quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories, $stayers);
+    $questions = $this->updateItems($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories, $stayers);
 
     // If using random questions and no term ID is specified, make sure we have enough.
     if (empty($term_id)) {
