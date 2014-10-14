@@ -8,42 +8,24 @@ class QuizEntity extends Entity {
 
   public $qid;
 
-  /**
-   * The name of the profile type.
-   *
-   * @var string
-   */
+  /** @var string The name of the quiz type. */
   public $type;
 
-  /**
-   * The profile label.
-   *
-   * @var string
-   */
-  public $label;
+  /** @var string The quiz label. */
+  public $title;
 
-  /**
-   * The user id of the profile owner.
-   *
-   * @var integer
-   */
+  /** @var integer The user id of the quiz owner. */
   public $uid;
 
-  /**
-   * The Unix timestamp when the profile was created.
-   *
-   * @var integer
-   */
+  /** @var integer The Unix timestamp when the quiz was created. */
   public $created;
 
-  /**
-   * The Unix timestamp when the profile was most recently saved.
-   *
-   * @var integer
-   */
+  /** @var integer The Unix timestamp when the quiz was most recently saved. */
   public $changed;
 
   public function __construct(array $values = array()) {
+    // fill default value
+    $values += (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
     parent::__construct($values, 'quiz_entity');
   }
 

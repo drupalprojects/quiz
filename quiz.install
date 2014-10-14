@@ -333,7 +333,7 @@ function quiz_schema() {
       'aid'                        => array(
         'type'     => 'varchar',
         'length'   => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'number_of_random_questions' => array(
         'type'     => 'int',
