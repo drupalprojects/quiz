@@ -110,7 +110,6 @@ function quiz_entity_info() {
       'controller class'       => 'EntityAPIController',
       'base table'             => 'quiz_node_properties',
       'entity keys'            => array('id' => 'qnp_id'),
-      'bundle keys'            => array('bundle' => 'type'),
       'views controller class' => 'EntityDefaultViewsController',
     ),
     'quiz_entity'                => array(
@@ -120,6 +119,7 @@ function quiz_entity_info() {
       'entity class'           => 'Drupal\quiz\Entity\QuizEntity',
       'base table'             => 'quiz_entity',
       'entity keys'            => array('id' => 'qid', 'label' => 'title'),
+      'bundle keys'            => array('bundle' => 'type'),
       'views controller class' => 'EntityDefaultViewsController',
     ),
     'quiz_type'                  => array(
