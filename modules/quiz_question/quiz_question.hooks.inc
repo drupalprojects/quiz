@@ -38,13 +38,6 @@ function quiz_question_menu() {
  * Implements hook_theme().
  */
 function quiz_question_theme() {
-  $hooks = array(
-    'quiz_question_navigation_form' => array(
-      'render element' => 'form',
-      'file'           => 'quiz_question.theme.inc',
-    ),
-  );
-
   $hooks['quiz_question_feedback'] = array(
     'variables' => NULL,
     'pattern'   => 'quiz_question_feedback__',

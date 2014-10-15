@@ -101,7 +101,6 @@ class QuizAnsweringForm extends QuestionHelper {
     $is_last = $this->showFinishButton($quiz);
 
     $form['navigation']['#type'] = 'actions';
-    $form['navigation']['#theme'] = 'quiz_question_navigation_form';
 
     if (!empty($quiz->backwards_navigation) && (arg(3) != 1)) {
       // Backwards navigation enabled, and we are looking at not the first
