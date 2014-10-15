@@ -385,6 +385,7 @@ function quiz_form_alter(&$form, $form_state, $form_id) {
   if ('quiz_node_form' == $form_id && isset($form['menu']['#weight'])) {
     $form['menu']['#weight'] = 1;
   }
+
   // Remove revision fieldset if user don't have access to revise quiz manually.
   if (isset($form['#quiz_check_revision_access'])) {
     if (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1)) {
@@ -766,4 +767,14 @@ function quiz_take_question_access($quiz, $question_number) {
  */
 function quiz_type_access($op, $type = NULL, $account = NULL) {
   return user_access('administer quiz configuration', $account);
+}
+
+/**
+ * Access callback for quiz-entity.
+ * @param string $op
+ * @param string $type
+ * @param stdClass $account
+ */
+function quiz_entity_access($op, $type = NULL, $account = NULL) {
+  return TRUE;
 }

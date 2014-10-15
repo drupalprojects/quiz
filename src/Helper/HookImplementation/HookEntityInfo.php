@@ -61,12 +61,18 @@ class HookEntityInfo {
       'fieldable'        => TRUE,
       'entity keys'      => array('id' => 'qid', 'bundle' => 'type', 'revision' => 'vid', 'label' => 'title'),
       'bundle keys'      => array('bundle' => 'type'),
+      'access callback'  => 'quiz_entity_access',
       'label callback'   => 'entity_class_label',
       'uri callback'     => 'entity_class_uri',
       'module'           => 'quiz',
       'bundles'          => array(), # 'views controller class' => 'EntityDefaultViewsController',
       'view modes'       => array(
         'question' => array('label' => t('Question'), 'custom settings' => TRUE),
+      ),
+      'admin ui'         => array(// Enable the entity API's admin UI.
+        'path'             => 'admin/content/quiz',
+        'file'             => 'quiz.admin.inc',
+        'controller class' => 'Drupal\quiz\Entity\QuizUIController',
       ),
     );
 

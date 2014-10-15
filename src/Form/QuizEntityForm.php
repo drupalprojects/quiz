@@ -1,81 +1,108 @@
 <?php
 
-namespace Drupal\quiz\Helper\Node;
+namespace Drupal\quiz\Form;
 
+use Drupal\quiz\Entity\QuizEntity;
 use Drupal\quiz\Helper\FormHelper;
 
-class NodeFormHelper extends FormHelper {
+class QuizEntityForm extends FormHelper {
 
-  public function execute(&$node, &$form_state) {
-    $form = array();
+  /** @var QuizEntity */
+  private $quiz;
 
+  public function __construct($quiz) {
+    $this->quiz = $quiz;
+  }
+
+  /**
+   * Main endpoint to get structure for quiz entity editing form.
+   *
+   * @param array $form
+   * @param array $form_state
+   * @param string $op
+   * @return array
+   */
+  public function get($form, &$form_state, $op) {
     // We tell quiz_form_alter to check for the manual revisioning permission.
-    $form['#quiz_check_revision_access'] = TRUE;
+    // $form['#quiz_check_revision_access'] = TRUE;
 
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),
-      '#default_value' => isset($node->title) ? $node->title : '',
+      '#default_value' => isset($this->quiz->title) ? $this->quiz->title : '',
       '#description'   => t('The name of this @quiz.', array('@quiz' => QUIZ_NAME)),
       '#required'      => TRUE,
+      '#weight'        => -20,
     );
 
+    $form['vtabs'] = array('#type' => 'vertical_tabs');
+
+    $this->defineTakingOptions($form);
+    $this->defineAvailabilityOptionsFields($form);
+    $this->definePassFailOptionsFields($form);
+    $this->defineResultFeedbackFields($form);
+    $this->defineRememberConfigOptions($form);
+
+    return $form;
+  }
+
+  private function defineTakingOptions(&$form) {
     $form['taking'] = array(
       '#type'        => 'fieldset',
       '#title'       => t('Taking options'),
       '#collapsed'   => isset($settings_loaded) ? $settings_loaded : FALSE, // @todo: Why check non-existent var?
       '#collapsible' => TRUE,
       '#attributes'  => array('id' => 'taking-fieldset'),
-      '#group'       => 'additional_settings',
+      '#group'       => 'vtabs',
       '#weight'      => -2,
     );
     $form['taking']['allow_resume'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow resume'),
-      '#default_value' => $node->allow_resume,
+      '#default_value' => $this->quiz->allow_resume,
       '#description'   => t('Allow users to leave this @quiz incomplete and then resume it from where they left off.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['allow_skipping'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow skipping'),
-      '#default_value' => $node->allow_skipping,
+      '#default_value' => $this->quiz->allow_skipping,
       '#description'   => t('Allow users to skip questions in this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['allow_jumping'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow jumping'),
-      '#default_value' => $node->allow_jumping,
+      '#default_value' => $this->quiz->allow_jumping,
       '#description'   => t('Allow users to jump to any question using a menu or pager in this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['allow_change'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Allow changing answers'),
       // https://www.drupal.org/node/2354355#comment-9241781
-      '#default_value' => isset($node->allow_change) ? $node->allow_change : 1,
+      '#default_value' => isset($this->quiz->allow_change) ? $this->quiz->allow_change : 1,
       '#description'   => t('If the user is able to visit a previous question, allow them to change the answer.'),
     );
     $form['taking']['backwards_navigation'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Backwards navigation'),
-      '#default_value' => $node->backwards_navigation,
+      '#default_value' => $this->quiz->backwards_navigation,
       '#description'   => t('Allow users to go back and revisit questions already answered.'),
     );
     $form['taking']['repeat_until_correct'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Repeat until correct'),
-      '#default_value' => $node->repeat_until_correct,
+      '#default_value' => $this->quiz->repeat_until_correct,
       '#description'   => t('Require the user to retry the question until answered correctly.'),
     );
     $form['taking']['mark_doubtful'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Mark doubtful'),
-      '#default_value' => $node->mark_doubtful,
+      '#default_value' => $this->quiz->mark_doubtful,
       '#description'   => t('Allow users to mark their answers as doubtful.'),
     );
     $form['taking']['show_passed'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Show passed status'),
-      '#default_value' => $node->show_passed,
+      '#default_value' => $this->quiz->show_passed,
       '#description'   => t('Show a message if the user has previously passed the @quiz.', array('@quiz' => QUIZ_NAME)),
     );
 
@@ -91,7 +118,7 @@ class NodeFormHelper extends FormHelper {
       '#description'   => t('<strong>Random order</strong> - all questions display in random order')
       . '<br/>' . t("<strong>Random questions</strong> - specific number of questions are drawn randomly from this Quiz's pool of questions")
       . '<br/>' . t('<strong>Categorized random questions</strong> - specific number of questions are drawn from each specified taxonomy term'),
-      '#default_value' => $node->randomization,
+      '#default_value' => $this->quiz->randomization,
     );
     $form['taking']['review_options'] = array(
       '#type'        => 'fieldset',
@@ -108,7 +135,7 @@ class NodeFormHelper extends FormHelper {
         '#title'         => $when,
         '#type'          => 'checkboxes',
         '#options'       => $review_options,
-        '#default_value' => isset($node->review_options[$key]) ? $node->review_options[$key] : array(),
+        '#default_value' => isset($this->quiz->review_options[$key]) ? $this->quiz->review_options[$key] : array(),
       );
     }
     $options = array(t('Unlimited'));
@@ -126,14 +153,14 @@ class NodeFormHelper extends FormHelper {
     $form['taking']['multiple_takes']['takes'] = array(
       '#type'          => 'select',
       '#title'         => t('Allowed number of attempts'),
-      '#default_value' => $node->takes,
+      '#default_value' => $this->quiz->takes,
       '#options'       => $options,
       '#description'   => t('The number of times a user is allowed to take this @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['multiple_takes']['show_attempt_stats'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Display allowed number of attempts'),
-      '#default_value' => $node->show_attempt_stats,
+      '#default_value' => $this->quiz->show_attempt_stats,
       '#description'   => t('Display the allowed number of attempts on the starting page for this quiz.'),
     );
 
@@ -142,18 +169,14 @@ class NodeFormHelper extends FormHelper {
         '#type'          => 'radios',
         '#title'         => t('Store results'),
         '#description'   => t('These results should be stored for each user.'),
-        '#options'       => array(
-          t('The best'),
-          t('The newest'),
-          t('All'),
-        ),
-        '#default_value' => $node->keep_results,
+        '#options'       => array(t('The best'), t('The newest'), t('All')),
+        '#default_value' => $this->quiz->keep_results,
       );
     }
     else {
       $form['taking']['multiple_takes']['keep_results'] = array(
         '#type'  => 'value',
-        '#value' => $node->keep_results,
+        '#value' => $this->quiz->keep_results,
       );
     }
 
@@ -167,15 +190,12 @@ class NodeFormHelper extends FormHelper {
       $form['taking']['addons']['time_limit'] = array(
         '#type'          => 'textfield',
         '#title'         => t('Time limit'),
-        '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
+        '#default_value' => isset($this->quiz->time_limit) ? $this->quiz->time_limit : 0,
         '#description'   => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
       );
     }
     else {
-      $form['taking']['addons']['time_limit'] = array(
-        '#type'  => 'value',
-        '#value' => 0,
-      );
+      $form['taking']['addons']['time_limit'] = array('#type' => 'value', '#value' => 0);
     }
 
     if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
@@ -184,11 +204,11 @@ class NodeFormHelper extends FormHelper {
         '#title'       => t('Userpoints'),
         '#collapsible' => TRUE,
         '#collapsed'   => FALSE,
-        '#group'       => 'additional_settings',
+        '#group'       => 'vtabs',
       );
       $form['userpoints']['has_userpoints'] = array(
         '#type'          => 'checkbox',
-        '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
+        '#default_value' => (isset($this->quiz->has_userpoints) ? $this->quiz->has_userpoints : 1),
         '#title'         => t('Enable UserPoints Module Integration'),
         '#description'   => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
       );
@@ -201,13 +221,16 @@ class NodeFormHelper extends FormHelper {
             ':input[name=has_userpoints]' => array('checked' => TRUE),
           ),
         ),
-        '#default_value' => isset($node->userpoints_tid) ? $node->userpoints_tid : 0,
+        '#default_value' => isset($this->quiz->userpoints_tid) ? $this->quiz->userpoints_tid : 0,
         '#description'   => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
       );
     }
+  }
 
-    // Set up the availability options.
-
+  /**
+   * Set up the availability options.
+   */
+  private function defineAvailabilityOptionsFields(&$form) {
     /**
      * Limit the year options to the years 1970 - 2030 for form items of type date.
      *
@@ -231,29 +254,31 @@ class NodeFormHelper extends FormHelper {
       '#collapsed'   => TRUE,
       '#collapsible' => TRUE,
       '#attributes'  => array('id' => 'availability-fieldset'),
-      '#group'       => 'additional_settings',
+      '#group'       => 'vtabs',
     );
     $form['quiz_availability']['quiz_always'] = array(
       '#type'          => 'checkbox',
       '#title'         => t('Always available'),
-      '#default_value' => $node->quiz_always,
+      '#default_value' => $this->quiz->quiz_always,
       '#description'   => t('Ignore the open and close dates.'),
     );
     $form['quiz_availability']['quiz_open'] = array(
       '#type'          => 'date',
       '#title'         => t('Open date'),
-      '#default_value' => $this->prepareDate($node->quiz_open),
+      '#default_value' => $this->prepareDate($this->quiz->quiz_open),
       '#description'   => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
       '#after_build'   => array($limit_year_options),
     );
     $form['quiz_availability']['quiz_close'] = array(
       '#type'          => 'date',
       '#title'         => t('Close date'),
-      '#default_value' => $this->prepareDate($node->quiz_close, variable_get('quiz_default_close', 30)),
+      '#default_value' => $this->prepareDate($this->quiz->quiz_close, variable_get('quiz_default_close', 30)),
       '#description'   => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
       '#after_build'   => array($limit_year_options),
     );
+  }
 
+  private function definePassFailOptionsFields(&$form) {
     // Quiz summary options.
     $form['summaryoptions'] = array(
       '#type'        => 'fieldset',
@@ -261,14 +286,14 @@ class NodeFormHelper extends FormHelper {
       '#collapsible' => TRUE,
       '#collapsed'   => TRUE,
       '#attributes'  => array('id' => 'summaryoptions-fieldset'),
-      '#group'       => 'additional_settings',
+      '#group'       => 'vtabs',
     );
     // If pass/fail option is checked, present the form elements.
     if (variable_get('quiz_use_passfail', 1)) {
       $form['summaryoptions']['pass_rate'] = array(
         '#type'          => 'textfield',
         '#title'         => t('Passing rate for @quiz (%)', array('@quiz' => QUIZ_NAME)),
-        '#default_value' => $node->pass_rate,
+        '#default_value' => $this->quiz->pass_rate,
         '#description'   => t('Passing rate for this @quiz as a percentage score.', array('@quiz' => QUIZ_NAME)),
         '#required'      => FALSE,
       );
@@ -276,17 +301,17 @@ class NodeFormHelper extends FormHelper {
         '#type'          => 'text_format',
         '#base_type'     => 'textarea',
         '#title'         => t('Summary text if passed'),
-        '#default_value' => $node->summary_pass,
+        '#default_value' => $this->quiz->summary_pass,
         '#cols'          => 60,
         '#description'   => t("Summary text for when the user passes the @quiz. Leave blank to not give different summary text if passed, or if not using the \"percent to pass\" option above. If not using the \"percentage needed to pass\" field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
-        '#format'        => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
+        '#format'        => isset($this->quiz->summary_pass_format) && !empty($this->quiz->summary_pass_format) ? $this->quiz->summary_pass_format : NULL,
       );
     }
     // If the pass/fail option is unchecked, use the default and hide it.
     else {
       $form['summaryoptions']['pass_rate'] = array(
         '#type'     => 'hidden',
-        '#value'    => $node->pass_rate,
+        '#value'    => $this->quiz->pass_rate,
         '#required' => FALSE,
       );
     }
@@ -296,32 +321,34 @@ class NodeFormHelper extends FormHelper {
       '#type'          => 'text_format',
       '#base_type'     => 'textarea',
       '#title'         => t('Default summary text'),
-      '#default_value' => $node->summary_default,
+      '#default_value' => $this->quiz->summary_default,
       '#cols'          => 60,
       '#description'   => t("Default summary. Leave blank if you don't want to give a summary."),
-      '#format'        => isset($node->summary_default_format) && !empty($node->summary_default_format) ? $node->summary_default_format : NULL,
+      '#format'        => isset($this->quiz->summary_default_format) && !empty($this->quiz->summary_default_format) ? $this->quiz->summary_default_format : NULL,
     );
 
     // Number of random questions, max score and tid for random questions are set on
     // the manage questions tab. We repeat them here so that they're not removed
     // if the quiz is being updated.
-    $num_rand = (isset($node->number_of_random_questions)) ? $node->number_of_random_questions : 0;
+    $num_rand = (isset($this->quiz->number_of_random_questions)) ? $this->quiz->number_of_random_questions : 0;
     $form['number_of_random_questions'] = array(
       '#type'  => 'value',
       '#value' => $num_rand,
     );
-    $max_score_for_random = (isset($node->max_score_for_random)) ? $node->max_score_for_random : 0;
+    $max_score_for_random = (isset($this->quiz->max_score_for_random)) ? $this->quiz->max_score_for_random : 0;
     $form['max_score_for_random'] = array(
       '#type'  => 'value',
       '#value' => $max_score_for_random,
     );
-    $tid = (isset($node->tid)) ? $node->tid : 0;
+    $tid = (isset($this->quiz->tid)) ? $this->quiz->tid : 0;
     $form['tid'] = array(
       '#type'  => 'value',
       '#value' => $tid,
     );
+  }
 
-    $options = !empty($node->resultoptions) ? $node->resultoptions : array();
+  private function defineResultFeedbackFields(&$form) {
+    $options = !empty($this->quiz->resultoptions) ? $this->quiz->resultoptions : array();
     $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
 
     if ($num_options > 0) {
@@ -332,7 +359,7 @@ class NodeFormHelper extends FormHelper {
         '#collapsed'   => TRUE,
         '#tree'        => TRUE,
         '#attributes'  => array('id' => 'resultoptions-fieldset'),
-        '#group'       => 'additional_settings',
+        '#group'       => 'vtabs',
       );
 
       for ($i = 0; $i < $num_options; $i++) {
@@ -381,27 +408,28 @@ class NodeFormHelper extends FormHelper {
         }
       }
     }
+  }
 
+  private function defineRememberConfigOptions(&$form) {
     $form['remember_settings'] = array(
       '#type'        => 'checkbox',
       '#title'       => t('Remember my settings'),
       '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time they create a quiz.'),
-      '#weight'      => 49,
+      '#weight'      => -15,
     );
 
     $form['remember_global'] = array(
       '#type'        => 'checkbox',
       '#title'       => t('Remember as global'),
       '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time you create a quiz.'),
-      '#weight'      => 49,
+      '#weight'      => -15,
       '#access'      => user_access('administer quiz configuration'),
     );
 
-    if (quiz_has_been_answered($node) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
-      $node->revision = 1;
-      $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
+    if (quiz_has_been_answered($this->quiz) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
+      $this->quiz->revision = 1;
+      $this->quiz->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
     }
-    return $form;
   }
 
 }

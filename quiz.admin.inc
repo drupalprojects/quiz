@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\quiz\Form\QuizEntityForm;
 use Drupal\quiz\Form\QuizTypeForm;
 
 /**
@@ -8,6 +9,14 @@ use Drupal\quiz\Form\QuizTypeForm;
 function quiz_type_form($form, &$form_state, $quiz_type, $op = 'edit') {
   $obj = new QuizTypeForm();
   return $obj->get($form, $form_state, $quiz_type, $op);
+}
+
+/**
+ * Define quiz-entity editing form.
+ */
+function quiz_entity_form($form, &$form_state, $quiz, $op = 'edit') {
+  $obj = new QuizEntityForm($quiz);
+  return $obj->get($form, $form_state, $op);
 }
 
 /**
