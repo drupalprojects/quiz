@@ -65,7 +65,9 @@ class HookEntityInfo {
       'uri callback'     => 'entity_class_uri',
       'module'           => 'quiz',
       'bundles'          => array(), # 'views controller class' => 'EntityDefaultViewsController',
-      'question'         => array('label' => t('Question'), 'custom settings' => TRUE),
+      'view modes'       => array(
+        'question' => array('label' => t('Question'), 'custom settings' => TRUE),
+      ),
     );
 
     $entity_types['quiz_type'] = array(
