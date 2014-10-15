@@ -3,12 +3,6 @@
 use Drupal\quiz\Form\QuizTypeForm;
 
 /**
- * Administrator interface for Quiz module.
- *
- * @file
- */
-
-/**
  * Define quiz-type editing form.
  */
 function quiz_type_form($form, &$form_state, $quiz_type, $op = 'edit') {
@@ -19,10 +13,8 @@ function quiz_type_form($form, &$form_state, $quiz_type, $op = 'edit') {
 /**
  * Adds checkbox for creating new revision. Checks it by default if answers exists.
  *
- * @param $form
- *   FAPI form(array)
- * @param $quiz
- *   Quiz node(object)
+ * @param array $form FAPI form(array)
+ * @param stdClass $quiz Quiz node(object)
  */
 function _quiz_add_revision_checkbox(&$form, &$quiz) {
   // Recomend and preselect to create the quiz as a new revision if it already has been answered
@@ -170,15 +162,6 @@ function _quiz_get_question_row($sub_form, $id) {
     'id'    => 'q-' . $id,
     'data'  => $data_array
   );
-}
-
-/**
- * Adds inline js to automatically set the question's node title.
- */
-function quiz_set_auto_title() {
-  $max_length = variable_get('quiz_autotitle_length', 50);
-  drupal_add_js(array('quiz_max_length' => $max_length), array('type' => 'setting'));
-  drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.auto-title.js');
 }
 
 /**

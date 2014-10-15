@@ -39,10 +39,6 @@ function quiz_question_menu() {
  */
 function quiz_question_theme() {
   $hooks = array(
-    'quiz_question_creation_form'   => array(
-      'render element' => 'form',
-      'file'           => 'quiz_question.theme.inc',
-    ),
     'quiz_question_navigation_form' => array(
       'render element' => 'form',
       'file'           => 'quiz_question.theme.inc',

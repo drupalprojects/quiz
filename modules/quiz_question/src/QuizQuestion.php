@@ -98,7 +98,8 @@ abstract class QuizQuestion {
 
     // Allow user to set title?
     if (user_access('edit question titles')) {
-      $form['helper']['#theme'] = 'quiz_question_creation_form';
+      $this->includeAutoTitleScript();
+
       $form['title'] = array(
         '#type'          => 'textfield',
         '#title'         => t('Title'),
@@ -109,19 +110,12 @@ abstract class QuizQuestion {
       );
     }
     else {
-      $form['title'] = array(
-        '#type'  => 'value',
-        '#value' => $this->node->title,
-      );
+      $form['title'] = array('#type' => 'value', '#value' => $this->node->title);
     }
 
     // Store quiz id in the form
-    $form['quiz_nid'] = array(
-      '#type' => 'hidden',
-    );
-    $form['quiz_vid'] = array(
-      '#type' => 'hidden',
-    );
+    $form['quiz_nid'] = array('#type' => 'hidden');
+    $form['quiz_vid'] = array('#type' => 'hidden');
 
     if (isset($_GET['quiz_nid']) && isset($_GET['quiz_vid'])) {
       $form['quiz_nid']['#value'] = intval($_GET['quiz_nid']);
@@ -143,6 +137,15 @@ abstract class QuizQuestion {
       $this->node->log = $log;
     }
     return $form;
+  }
+
+  /**
+   * Adds inline js to automatically set the question's node title.
+   */
+  private function includeAutoTitleScript() {
+    $max_length = variable_get('quiz_autotitle_length', 50);
+    drupal_add_js(array('quiz_max_length' => $max_length), array('type' => 'setting'));
+    drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.auto-title.js');
   }
 
   /**
