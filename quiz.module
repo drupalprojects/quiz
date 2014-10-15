@@ -58,6 +58,26 @@ function quiz($className = 'Drupal\quiz\Quiz') {
 }
 
 /**
+ * Gets an array of all quiz types, keyed by the type name.
+ *
+ * @return \Drupal\quiz\Entity\QuizEntityType[]
+ */
+function quiz_get_types() {
+  return entity_load_multiple_by_name('quiz_type');
+}
+
+/**
+ * Get quiz-type by machine name.
+ *
+ * @param string $name
+ * @return \Drupal\quiz\Entity\QuizEntityType
+ */
+function quiz_type_load($name) {
+  $type = entity_load_multiple_by_name('quiz_type', array($name));
+  return isset($type[$name]) ? $type[$name] : null;
+}
+
+/**
  * Menu loader callback. Load a quiz node if the given node ID is a quiz.
  */
 function quiz_menu_load($nid) {

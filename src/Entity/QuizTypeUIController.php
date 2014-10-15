@@ -11,7 +11,7 @@ class QuizTypeUIController extends EntityDefaultUIController {
    */
   public function hook_menu() {
     $items = parent::hook_menu();
-    $items[$this->path]['description'] = strtr('Manage !quiz, including fields.', array('!quiz' => QUIZ_NAME));
+    $items[$this->path]['description'] = strtr('Manage !quiz types, including fields.', array('!quiz' => QUIZ_NAME));
     return $items;
   }
 

@@ -1,10 +1,20 @@
 <?php
 
+use Drupal\quiz\Form\QuizTypeForm;
+
 /**
  * Administrator interface for Quiz module.
  *
  * @file
  */
+
+/**
+ * Define quiz-type editing form.
+ */
+function quiz_type_form($form, &$form_state, $quiz_type, $op = 'edit') {
+  $obj = new QuizTypeForm();
+  return $obj->get($form, $form_state, $quiz_type, $op);
+}
 
 /**
  * Adds checkbox for creating new revision. Checks it by default if answers exists.
