@@ -51,7 +51,7 @@ class SettingHelper extends FormHelper {
     }
 
     // No defaults set yet.
-    return $this->getNodeDefaultSettings();
+    return $this->getQuizDefaultSettings();
   }
 
   public function updateUserDefaultSettings($node) {
