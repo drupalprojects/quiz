@@ -16,7 +16,13 @@ class QuizEntityForm {
 
   public function get($form, &$form_state, $op) {
     $def = new FormDefinition($this->quiz);
-    return $def->get($form, $form_state, $op);
+    $return = $def->get($form, $form_state, $op);
+
+    // Define callbacks
+    $return['#validate'][] = array($this, 'validate');
+    $return['#submit'][] = array($this, 'submit');
+
+    return $return;
   }
 
   public function validate($form, &$form_state) {

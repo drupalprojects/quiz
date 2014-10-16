@@ -23,9 +23,6 @@ class FormDefinition extends FormHelper {
    * @return array
    */
   public function get($form, &$form_state, $op) {
-    $form['#validate'][] = array($this, 'validate');
-    $form['#submit'][] = array($this, 'submit');
-
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),
