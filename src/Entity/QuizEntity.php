@@ -13,7 +13,7 @@ class QuizEntity extends Entity {
   public $vid;
 
   /** @var string The name of the quiz type. */
-  public $type;
+  public $type = 'quiz';
 
   /** @var string The quiz label. */
   public $title;

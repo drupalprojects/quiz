@@ -12,11 +12,7 @@ function quiz_install() {
   // Create default quiz type. In case the module is installed via an
   // installation profile, skip that.
   if (!drupal_installation_attempted()) {
-    entity_create('quiz_type', array(
-        'type'   => 'quiz',
-        'label'  => t('Quiz'),
-        'weight' => 0
-      ))
+    entity_create('quiz_type', array('type' => 'quiz', 'label' => t('Quiz'), 'weight' => 0))
       ->save();
   }
 
