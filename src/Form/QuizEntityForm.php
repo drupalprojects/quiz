@@ -397,7 +397,7 @@ class QuizEntityForm extends FormHelper {
     }
   }
 
-  private function defineRememberConfigOptions(&$form) {
+  private function defineRememberConfigOptionsFields(&$form) {
     $form['remember_settings'] = array(
       '#type'        => 'checkbox',
       '#title'       => t('Remember my settings'),
@@ -419,6 +419,42 @@ class QuizEntityForm extends FormHelper {
     }
   }
 
+  private function defineRevisionOptionsFields(&$form) {
+    $form['revision_information'] = array(
+      '#type'        => 'fieldset',
+      '#title'       => t('Revision information'),
+      '#collapsible' => TRUE,
+      '#collapsed'   => TRUE,
+      '#group'       => 'vtabs',
+      '#attributes'  => array('class' => array('node-form-revision-information')),
+      '#attached'    => array('js' => array(drupal_get_path('module', 'node') . '/node.js')),
+      '#weight'      => 20,
+      '#access'      => TRUE,
+    );
+
+    $form['revision_information']['revision'] = array(
+      '#type'          => 'checkbox',
+      '#title'         => t('Create new revision'),
+      '#default_value' => FALSE,
+      '#state'         => array('checked' => array('textarea[name="log"]' => array('empty' => FALSE))),
+    );
+
+    $form['revision_information']['log'] = array(
+      '#type'          => 'textarea',
+      '#title'         => t('Revision log message'),
+      '#row'           => 4,
+      '#default_value' => '',
+      '#description'   => t('Provide an explanation of the changes you are making. This will help other authors understand your motivations.'),
+    );
+
+    if (variable_get('quiz_auto_revisioning', 1) || !user_access('manual quiz revisioning')) {
+      $form['revision_information']['revision']['#type'] = 'value';
+      $form['revision_information']['revision']['#value'] = $form['revision_information']['revision']['#default_value'];
+      $form['revision_information']['log']['#type'] = 'value';
+      $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
+      $form['revision_information']['#access'] = FALSE;
+    }
+  }
 
   public function validate($form, &$form_state) {
     form_set_error('title', 'working…');
