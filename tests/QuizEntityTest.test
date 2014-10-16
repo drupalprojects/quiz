@@ -35,7 +35,7 @@ class QuizEntityTest extends QuizTestCase {
     // ---------------------
     // Create entity
     // ---------------------
-    $quiz = entity_create('quiz_entity', array('type' => 'quiz'));
+    $quiz = entity_create('quiz_entity', array('type' => 'quiz', 'pass_rate' => 95));
     $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
 
     // ---------------------
@@ -82,6 +82,7 @@ class QuizEntityTest extends QuizTestCase {
     $quiz_2 = entity_load('quiz_entity', array($quiz->qid));
     $quiz_2 = reset($quiz_2);
     $this->assertNotEqual($quiz_1->log, $quiz_2->log, 'New revision is created correctly.');
+    $this->assertEquals(95, $quiz_1->pass_rate, 'Quiz property is saved and loaded correctly.');
 
     // ---------------------
     // Delete quiz entity

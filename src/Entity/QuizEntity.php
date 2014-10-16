@@ -66,4 +66,9 @@ class QuizEntity extends Entity {
     return array('path' => 'quiz/' . $this->identifier());
   }
 
+  public function __get($name) {
+    $default = quiz()->getQuizHelper()->getSettingHelper()->getQuizDefaultSettings();
+    return isset($default[$name]) ? $default[$name] : NULL;
+  }
+
 }
