@@ -775,6 +775,6 @@ function quiz_type_access($op, $type = NULL, $account = NULL) {
  * @param string $type
  * @param stdClass $account
  */
-function quiz_entity_access($op, $type = NULL, $account = NULL) {
+function quiz_entity_access_callback($op, $type = NULL, $account = NULL) {
   return TRUE;
 }

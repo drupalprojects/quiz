@@ -48,7 +48,7 @@ class HookEntityInfo {
       'fieldable'        => TRUE,
       'entity keys'      => array('id' => 'qid', 'bundle' => 'type', 'revision' => 'vid', 'label' => 'title'),
       'bundle keys'      => array('bundle' => 'type'),
-      'access callback'  => 'quiz_entity_access',
+      'access callback'  => 'quiz_entity_access_callback',
       'label callback'   => 'entity_class_label',
       'uri callback'     => 'entity_class_uri',
       'module'           => 'quiz',
