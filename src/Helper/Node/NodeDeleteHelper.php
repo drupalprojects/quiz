@@ -5,10 +5,9 @@ namespace Drupal\quiz\Helper\Node;
 class NodeDeleteHelper {
 
   public function execute($node) {
-    $res = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid', array(':nid' => $node->nid));
+    $result = db_query('SELECT result_id FROM {quiz_node_results} WHERE nid = :nid', array(':nid' => $node->nid));
     $result_ids = array();
-    while ($result_id = $res->fetchField()) {
+    while ($result_id = $result->fetchField()) {
       $result_ids[] = $result_id;
     }
     quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
