@@ -78,6 +78,13 @@ function quiz_type_load($name) {
 }
 
 /**
+ * Load quiz entity
+ */
+function quiz_entity_single_load($id) {
+  return entity_load_single('quiz_entity', $id);
+}
+
+/**
  * Menu loader callback. Load a quiz node if the given node ID is a quiz.
  */
 function quiz_menu_load($nid) {

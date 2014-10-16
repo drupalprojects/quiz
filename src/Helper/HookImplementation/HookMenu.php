@@ -98,6 +98,16 @@ class HookMenu {
 
   private function getQuizEntityItems() {
     $items = array();
+
+    $items['quiz/%quiz_entity_single'] = array(
+      'title callback'   => 'entity_class_label',
+      'title arguments'  => array(1),
+      'access callback'  => 'quiz_entity_access_callback',
+      'access arguments' => array('view'),
+      'page callback'    => 'Drupal\quiz\Controller\QuizEntityViewController::staticCallback',
+      'page arguments'   => array(1),
+    );
+
     return $items;
   }
 
