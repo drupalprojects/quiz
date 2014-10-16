@@ -382,7 +382,7 @@ function quiz_theme($existing, $type, $theme, $path) {
  */
 function quiz_form_alter(&$form, $form_state, $form_id) {
   // Set taking options the first vertical tab item
-  if ('quiz_node_form' == $form_id && isset($form['menu']['#weight'])) {
+  if ('quiz_node_form' === $form_id && isset($form['menu']['#weight'])) {
     $form['menu']['#weight'] = 1;
   }
 
