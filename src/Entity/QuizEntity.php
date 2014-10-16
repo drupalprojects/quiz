@@ -39,4 +39,11 @@ class QuizEntity extends Entity {
     parent::__construct($values, 'quiz_entity');
   }
 
+  /**
+   * Default quiz entity uri.
+   */
+  protected function defaultUri() {
+    return array('path' => 'quiz/' . $this->identifier());
+  }
+
 }
