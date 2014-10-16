@@ -5,50 +5,37 @@ namespace Drupal\quiz\Helper\HookImplementation;
 class HookEntityInfo {
 
   public function execute() {
-    $entity_types = $this->getQuizEntity();
-
-    $entity_types += array(
+    $entity_types = array(
       'quiz_result'                => array(
         'label'                  => t('Quiz result'),
         'controller class'       => 'EntityAPIController',
         'base table'             => 'quiz_node_results',
-        'entity keys'            => array(
-          'id' => 'result_id',
-        ),
+        'entity keys'            => array('id' => 'result_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),
       'quiz_result_answer'         => array(
         'label'                  => t('Quiz result answer'),
         'controller class'       => 'EntityAPIController',
         'base table'             => 'quiz_node_results_answers',
-        'entity keys'            => array(
-          'id' => 'result_answer_id',
-        ),
+        'entity keys'            => array('id' => 'result_answer_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),
       'quiz_question_relationship' => array(
         'label'                  => t('Quiz question relationship'),
         'controller class'       => 'EntityAPIController',
         'base table'             => 'quiz_node_relationship',
-        'entity keys'            => array(
-          'id' => 'qnr_id',
-        ),
-        'views controller class' => 'EntityDefaultViewsController',
-      ),
-      // @TODO: Once quiz_entity entity type is ready, remove this entity type.
-      'quiz'                       => array(
-        'label'                  => t('Quiz properties'),
-        'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_node_properties',
-        'entity keys'            => array('id' => 'qnp_id'),
+        'entity keys'            => array('id' => 'qnr_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),
     );
 
+    $entity_types += $this->getQuizEntityInfo();
+    $entity_types += $this->getDepratedEntityInfo();
+
     return $entity_types;
   }
 
-  private function getQuizEntity() {
+  private function getQuizEntityInfo() {
     $entity_types = array();
 
     $entity_types['quiz_entity'] = array(
@@ -116,6 +103,19 @@ class HookEntityInfo {
     }
 
     return $entity_types;
+  }
+
+  private function getDepratedEntityInfo() {
+    return array(
+      // @TODO: Once quiz entity is ready, remove this
+      'quiz' => array(
+        'label'                  => t('Quiz properties'),
+        'controller class'       => 'EntityAPIController',
+        'base table'             => 'quiz_node_properties',
+        'entity keys'            => array('id' => 'qnp_id'),
+        'views controller class' => 'EntityDefaultViewsController',
+      ),
+    );
   }
 
 }
