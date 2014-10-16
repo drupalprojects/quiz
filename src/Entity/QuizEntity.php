@@ -39,6 +39,20 @@ class QuizEntity extends Entity {
     parent::__construct($values, 'quiz_entity');
   }
 
+  public function save() {
+    global $user;
+
+    if ($this->is_new = isset($this->is_new) ? $this->is_new : 0) {
+      $this->created = time();
+      if (null === $this->uid) {
+        $this->uid = $user->uid;
+      }
+    }
+
+    $this->changed = time();
+    return parent::save();
+  }
+
   /**
    * Default quiz entity uri.
    */
