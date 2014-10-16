@@ -267,10 +267,17 @@ function quiz_permission() {
  * Implements hook_admin_paths().
  */
 function quiz_admin_paths() {
-  return array(
-    'node/*/quiz'   => TRUE,
-    'node/*/quiz/*' => TRUE,
-  );
+  $items = array('node/*/quiz' => TRUE, 'node/*/quiz/*' => TRUE);
+
+  if (variable_get('node_admin_theme', TRUE)) {
+    $items['quiz/add'] = TRUE;
+    $items['quiz/add/*'] = TRUE;
+    $items['quiz/*/edit'] = TRUE;
+    $items['quiz/*/edit/*'] = TRUE;
+    $items['quiz/*/delete'] = TRUE;
+  }
+
+  return $items;
 }
 
 /**
