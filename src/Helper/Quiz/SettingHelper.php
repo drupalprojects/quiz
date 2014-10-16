@@ -33,19 +33,17 @@ class SettingHelper extends FormHelper {
    * @return
    *   An array of settings. The array is empty in case no settings are available.
    */
-  public function getUserDefaultSettings() {
+  public function getUserDefaultSettings($legacy = TRUE) {
     global $user;
 
-    $entity = entity_load('quiz', FALSE, array('uid' => $user->uid, 'nid' => 0, 'vid' => 0));
-    if (count($entity)) {
+    if ($legacy && $entity = entity_load('quiz', FALSE, array('uid' => $user->uid, 'nid' => 0, 'vid' => 0))) {
       // We found user defaults.
       $defaults = reset($entity);
       unset($defaults->nid, $defaults->uid, $defaults->vid);
       return $defaults;
     }
 
-    $entity = entity_load('quiz', FALSE, array('uid' => 0, 'nid' => 0, 'vid' => 0));
-    if (count($entity)) {
+    if ($legacy && $entity = entity_load('quiz', FALSE, array('uid' => 0, 'nid' => 0, 'vid' => 0))) {
       // Found global defaults.
       $defaults = reset($entity);
       unset($defaults->nid, $defaults->uid, $defaults->vid);
