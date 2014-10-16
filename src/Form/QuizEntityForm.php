@@ -32,7 +32,23 @@ class QuizEntityForm {
   }
 
   public function submit($form, &$form_state) {
-    $values = &$form_state['values'];
+    /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
+    $quiz = entity_ui_controller('quiz_entity')->entityFormSubmitBuildEntity($form, $form_state);
+
+    // convert formatted text fields
+    $quiz->summary_default_format = $quiz->summary_default['format'];
+    $quiz->summary_default = $quiz->summary_default['value'];
+    $quiz->summary_pass_format = $quiz->summary_pass['format'];
+    $quiz->summary_pass = $quiz->summary_pass['value'];
+
+    // convert value from date widget to timestamp
+    $quiz->quiz_open = mktime(0, 0, 0, $quiz->quiz_open['month'], $quiz->quiz_open['day'], $quiz->quiz_open['year']);
+    $quiz->quiz_close = mktime(0, 0, 0, $quiz->quiz_close['month'], $quiz->quiz_close['day'], $quiz->quiz_close['year']);
+
+    // Add in created and changed times.
+    $quiz->save();
+
+    $form_state['redirect'] = 'admin/content/quiz';
   }
 
 }
