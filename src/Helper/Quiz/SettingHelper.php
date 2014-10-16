@@ -110,7 +110,7 @@ class SettingHelper extends FormHelper {
    * @return
    *   Array of default values.
    */
-  public function getNodeDefaultSettings() {
+  public function getQuizDefaultSettings() {
     return (object) array(
         'aid'                        => NULL,
         'allow_jumping'              => 0,
