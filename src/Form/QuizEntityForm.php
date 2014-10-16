@@ -23,9 +23,6 @@ class QuizEntityForm extends FormHelper {
    * @return array
    */
   public function get($form, &$form_state, $op) {
-    // We tell quiz_form_alter to check for the manual revisioning permission.
-    // $form['#quiz_check_revision_access'] = TRUE;
-
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),
@@ -41,7 +38,13 @@ class QuizEntityForm extends FormHelper {
     $this->defineAvailabilityOptionsFields($form);
     $this->definePassFailOptionsFields($form);
     $this->defineResultFeedbackFields($form);
-    $this->defineRememberConfigOptions($form);
+    $this->defineRememberConfigOptionsFields($form);
+    $this->defineRevisionOptionsFields($form);
+
+    $form['actions'] = array('#type' => 'action');
+    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
+    $form['#validate'][] = array($this, 'validate');
+    $form['#submit'][] = array($this, 'submit');
 
     return $form;
   }
@@ -129,7 +132,6 @@ class QuizEntityForm extends FormHelper {
     );
 
     $review_options = quiz()->getQuizHelper()->getFeedbackHelper()->getOptions();
-
     foreach (array('question' => 'After the question', 'end' => 'After the quiz') as $key => $when) {
       $form['taking']['review_options'][$key] = array(
         '#title'         => $when,
@@ -430,6 +432,15 @@ class QuizEntityForm extends FormHelper {
       $this->quiz->revision = 1;
       $this->quiz->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
     }
+  }
+
+
+  public function validate($form, &$form_state) {
+    form_set_error('title', 'working…');
+  }
+
+  public function submit($form, &$form_state) {
+    $values = &$form_state['values'];
   }
 
 }
