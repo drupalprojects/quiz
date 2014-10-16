@@ -42,6 +42,8 @@ class QuizEntity extends Entity {
   public function save() {
     global $user;
 
+    // Entity datetime
+    $this->changed = time();
     if ($this->is_new = isset($this->is_new) ? $this->is_new : 0) {
       $this->created = time();
       if (null === $this->uid) {
@@ -49,7 +51,13 @@ class QuizEntity extends Entity {
       }
     }
 
-    $this->changed = time();
+    // Default properties
+    foreach ((array) quiz()->getQuizHelper()->getSettingHelper()->getQuizDefaultSettings() as $k => $v) {
+      if (!isset($this->{$k})) {
+        $this->{$k} = $v;
+      }
+    }
+
     return parent::save();
   }
 
