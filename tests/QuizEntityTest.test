@@ -39,7 +39,15 @@ class QuizEntityTest extends QuizTestCase {
     $this->assertTrue($quiz instanceof QuizEntity, 'Quiz entity is created correctly using entity_create().');
 
     // ---------------------
-    // Create entity
+    // Entity form, no warning
+    // ---------------------
+    $form = entity_form('quiz_entity', $quiz);
+    foreach (array('title', 'vtabs', 'taking', 'summaryoptions', 'resultoptions', 'quiz_availability') as $k) {
+      $this->assertTrue(isset($form[$k]), "Found {$k} in form.");
+    }
+
+    // ---------------------
+    // Insert entity
     // ---------------------
     $quiz->changed = $quiz->created = time();
     $quiz->title = 'Demo quiz';
