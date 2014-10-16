@@ -216,9 +216,7 @@ class QuizEntityForm extends FormHelper {
         '#options'       => $this->getUserpointsType(),
         '#title'         => t('Userpoints Category'),
         '#states'        => array(
-          'visible' => array(
-            ':input[name=has_userpoints]' => array('checked' => TRUE),
-          ),
+          'visible' => array(':input[name=has_userpoints]' => array('checked' => TRUE)),
         ),
         '#default_value' => isset($this->quiz->userpoints_tid) ? $this->quiz->userpoints_tid : 0,
         '#description'   => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
@@ -230,23 +228,6 @@ class QuizEntityForm extends FormHelper {
    * Set up the availability options.
    */
   private function defineAvailabilityOptionsFields(&$form) {
-    /**
-     * Limit the year options to the years 1970 - 2030 for form items of type date.
-     *
-     * Some systems don't support all the dates the forms api lets you choose from.
-     * This function limits the options to dates most systems support.
-     *
-     * @param $form_element
-     *   Form element of type date.
-     *
-     * @return
-     *   Form element with a more limited set of years to choose from.
-     */
-    $limit_year_options = function ($form_element) {
-      $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
-      return $form_element;
-    };
-
     $form['quiz_availability'] = array(
       '#type'        => 'fieldset',
       '#title'       => t('Availability options'),
@@ -261,20 +242,27 @@ class QuizEntityForm extends FormHelper {
       '#default_value' => $this->quiz->quiz_always,
       '#description'   => t('Ignore the open and close dates.'),
     );
+
     $form['quiz_availability']['quiz_open'] = array(
       '#type'          => 'date',
       '#title'         => t('Open date'),
       '#default_value' => $this->prepareDate($this->quiz->quiz_open),
       '#description'   => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
-      '#after_build'   => array($limit_year_options),
     );
     $form['quiz_availability']['quiz_close'] = array(
       '#type'          => 'date',
       '#title'         => t('Close date'),
       '#default_value' => $this->prepareDate($this->quiz->quiz_close, variable_get('quiz_default_close', 30)),
       '#description'   => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
-      '#after_build'   => array($limit_year_options),
     );
+
+    // Limit the year options to the years 1970 - 2030 for form items of type date.
+    // Some systems don't support all the dates the forms api lets you choose from.
+    // This function limits the options to dates most systems support.
+    $form['quiz_availability']['quiz_open']['#after_build'] = $form['quiz_availability']['quiz_close']['#after_build'] = function ($form_element) {
+      $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
+      return $form_element;
+    };
   }
 
   private function definePassFailOptionsFields(&$form) {
