@@ -4,6 +4,7 @@ namespace Drupal\quiz\Form;
 
 use Drupal\quiz\Entity\QuizEntity;
 use Drupal\quiz\Form\QuizEntityForm\FormDefinition;
+use Drupal\quiz\Form\QuizEntityForm\FormValidation;
 
 class QuizEntityForm {
 
@@ -26,7 +27,8 @@ class QuizEntityForm {
   }
 
   public function validate($form, &$form_state) {
-    form_set_error('title', 'working…');
+    $validator = new FormValidation($form, $form_state);
+    return $validator->validate();
   }
 
   public function submit($form, &$form_state) {
