@@ -140,10 +140,7 @@ class QuizEntityForm extends FormHelper {
         '#default_value' => isset($this->quiz->review_options[$key]) ? $this->quiz->review_options[$key] : array(),
       );
     }
-    $options = array(t('Unlimited'));
-    for ($i = 1; $i < 10; $i++) {
-      $options[$i] = $i;
-    }
+
     $form['taking']['multiple_takes'] = array(
       '#type'        => 'fieldset',
       '#title'       => t('Multiple takes'),
@@ -156,7 +153,7 @@ class QuizEntityForm extends FormHelper {
       '#type'          => 'select',
       '#title'         => t('Allowed number of attempts'),
       '#default_value' => $this->quiz->takes,
-      '#options'       => $options,
+      '#options'       => array(t('Unlimited')) + range(0, 10),
       '#description'   => t('The number of times a user is allowed to take this @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
     );
     $form['taking']['multiple_takes']['show_attempt_stats'] = array(
