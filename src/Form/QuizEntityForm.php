@@ -23,6 +23,9 @@ class QuizEntityForm extends FormHelper {
    * @return array
    */
   public function get($form, &$form_state, $op) {
+    $form['#validate'][] = array($this, 'validate');
+    $form['#submit'][] = array($this, 'submit');
+
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),
@@ -32,19 +35,21 @@ class QuizEntityForm extends FormHelper {
       '#weight'        => -20,
     );
 
-    $form['vtabs'] = array('#type' => 'vertical_tabs');
+    $form['actions'] = array(
+      '#type'   => 'action',
+      '#weight' => 50,
+      'submit'  => array('#type' => 'submit', '#value' => t('Save')),
+    );
 
+    // Provides details in vertical tabs.
+    $form['vtabs'] = array('#type' => 'vertical_tabs');
     $this->defineTakingOptions($form);
+    $this->defineUserPointOptionsFields($form);
     $this->defineAvailabilityOptionsFields($form);
     $this->definePassFailOptionsFields($form);
     $this->defineResultFeedbackFields($form);
     $this->defineRememberConfigOptionsFields($form);
     $this->defineRevisionOptionsFields($form);
-
-    $form['actions'] = array('#type' => 'action');
-    $form['actions']['submit'] = array('#type' => 'submit', '#value' => t('Save'));
-    $form['#validate'][] = array($this, 'validate');
-    $form['#submit'][] = array($this, 'submit');
 
     return $form;
   }
@@ -53,7 +58,7 @@ class QuizEntityForm extends FormHelper {
     $form['taking'] = array(
       '#type'        => 'fieldset',
       '#title'       => t('Taking options'),
-      '#collapsed'   => isset($settings_loaded) ? $settings_loaded : FALSE, // @todo: Why check non-existent var?
+      '#collapsed'   => FALSE,
       '#collapsible' => TRUE,
       '#attributes'  => array('id' => 'taking-fieldset'),
       '#group'       => 'vtabs',
@@ -196,32 +201,36 @@ class QuizEntityForm extends FormHelper {
     else {
       $form['taking']['addons']['time_limit'] = array('#type' => 'value', '#value' => 0);
     }
+  }
 
-    if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
-      $form['userpoints'] = array(
-        '#type'        => 'fieldset',
-        '#title'       => t('Userpoints'),
-        '#collapsible' => TRUE,
-        '#collapsed'   => FALSE,
-        '#group'       => 'vtabs',
-      );
-      $form['userpoints']['has_userpoints'] = array(
-        '#type'          => 'checkbox',
-        '#default_value' => (isset($this->quiz->has_userpoints) ? $this->quiz->has_userpoints : 1),
-        '#title'         => t('Enable UserPoints Module Integration'),
-        '#description'   => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
-      );
-      $form['userpoints']['userpoints_tid'] = array(
-        '#type'          => 'select',
-        '#options'       => $this->getUserpointsType(),
-        '#title'         => t('Userpoints Category'),
-        '#states'        => array(
-          'visible' => array(':input[name=has_userpoints]' => array('checked' => TRUE)),
-        ),
-        '#default_value' => isset($this->quiz->userpoints_tid) ? $this->quiz->userpoints_tid : 0,
-        '#description'   => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
-      );
+  private function defineUserPointOptionsFields($form) {
+    if (!function_exists('userpoints_userpointsapi') || !variable_get('quiz_has_userpoints', 1)) {
+      return;
     }
+
+    $form['userpoints'] = array(
+      '#type'        => 'fieldset',
+      '#title'       => t('Userpoints'),
+      '#collapsible' => TRUE,
+      '#collapsed'   => FALSE,
+      '#group'       => 'vtabs',
+    );
+    $form['userpoints']['has_userpoints'] = array(
+      '#type'          => 'checkbox',
+      '#default_value' => (isset($this->quiz->has_userpoints) ? $this->quiz->has_userpoints : 1),
+      '#title'         => t('Enable UserPoints Module Integration'),
+      '#description'   => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
+    );
+    $form['userpoints']['userpoints_tid'] = array(
+      '#type'          => 'select',
+      '#options'       => $this->getUserpointsType(),
+      '#title'         => t('Userpoints Category'),
+      '#states'        => array(
+        'visible' => array(':input[name=has_userpoints]' => array('checked' => TRUE)),
+      ),
+      '#default_value' => isset($this->quiz->userpoints_tid) ? $this->quiz->userpoints_tid : 0,
+      '#description'   => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
+    );
   }
 
   /**
