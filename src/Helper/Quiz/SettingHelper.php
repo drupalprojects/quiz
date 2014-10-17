@@ -33,19 +33,17 @@ class SettingHelper extends FormHelper {
    * @return
    *   An array of settings. The array is empty in case no settings are available.
    */
-  public function getUserDefaultSettings() {
+  public function getUserDefaultSettings($legacy = TRUE) {
     global $user;
 
-    $entity = entity_load('quiz', FALSE, array('uid' => $user->uid, 'nid' => 0, 'vid' => 0));
-    if (count($entity)) {
+    if ($legacy && $entity = entity_load('quiz', FALSE, array('uid' => $user->uid, 'nid' => 0, 'vid' => 0))) {
       // We found user defaults.
       $defaults = reset($entity);
       unset($defaults->nid, $defaults->uid, $defaults->vid);
       return $defaults;
     }
 
-    $entity = entity_load('quiz', FALSE, array('uid' => 0, 'nid' => 0, 'vid' => 0));
-    if (count($entity)) {
+    if ($legacy && $entity = entity_load('quiz', FALSE, array('uid' => 0, 'nid' => 0, 'vid' => 0))) {
       // Found global defaults.
       $defaults = reset($entity);
       unset($defaults->nid, $defaults->uid, $defaults->vid);
@@ -53,7 +51,7 @@ class SettingHelper extends FormHelper {
     }
 
     // No defaults set yet.
-    return $this->getNodeDefaultSettings();
+    return $this->getQuizDefaultSettings();
   }
 
   public function updateUserDefaultSettings($node) {
@@ -95,10 +93,11 @@ class SettingHelper extends FormHelper {
    * Insert or update the quiz node properties accordingly.
    */
   public function saveQuizSettings($entity) {
-    $sql = "SELECT qnp_id FROM {quiz_node_properties}
-    WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
-    OR (uid = :uid and uid > 0)
-    OR (nid = :nid and uid = :uid and vid = :vid)";
+    $sql = "SELECT qnp_id 
+      FROM {quiz_node_properties}
+      WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
+        OR (uid = :uid and uid > 0)
+        OR (nid = :nid and uid = :uid and vid = :vid)";
     $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
     $entity->qnp_id = $result->fetchField();
     return entity_save('quiz', $entity);
@@ -112,7 +111,7 @@ class SettingHelper extends FormHelper {
    * @return
    *   Array of default values.
    */
-  public function getNodeDefaultSettings() {
+  public function getQuizDefaultSettings() {
     return (object) array(
         'aid'                        => NULL,
         'allow_jumping'              => 0,

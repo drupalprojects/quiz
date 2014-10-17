@@ -2,14 +2,19 @@ name = Quiz
 package = Quiz Core
 description = Create interactive quizzes. This module must have at least one question type module enabled in order to function properly.
 core = 7.x
+
+dependencies[] = filter
 dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = views
 dependencies[] = views_bulk_operations
 dependencies[] = xautoload (>= 7.x-4.0)
+
 test_dependencies[] = taxonomy
 test_dependencies[] = views
+
 stylesheets[all][] = quiz.css
+
 files[] = includes/views/handlers/quiz_views_handler_argument_quiz_nid.inc
 files[] = includes/views/handlers/quiz_views_handler_argument_user_uid_nullable.inc
 files[] = includes/views/handlers/quiz_views_handler_field_number_questions.inc

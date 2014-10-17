@@ -108,6 +108,26 @@ class HookMenu {
       'page arguments'   => array(1),
     );
 
+    if (($types = quiz_get_types()) && (1 < count($types))) {
+      $items['quiz/add'] = array(
+        'title'           => 'Add ' . QUIZ_NAME,
+        'access callback' => 'quiz_can_create_quiz_entity',
+        'page callback'   => 'Drupal\quiz\Controller\QuizEntityAddController::staticCallback',
+      );
+
+      foreach (array_keys($types) as $name) {
+        $items["quiz/add/{$name}"] = array(
+          'title callback'   => 'entity_ui_get_action_title',
+          'title arguments'  => array('add', 'quiz_entity'),
+          'access callback'  => 'entity_access',
+          'access arguments' => array('create', 'quiz_entity'),
+          'page callback'    => 'Drupal\quiz\Form\QuizEntityForm::staticCallback',
+          'page arguments'   => array('add', $name),
+          'file'             => 'quiz.admin.inc',
+        );
+      }
+    }
+
     return $items;
   }
 

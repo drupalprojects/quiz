@@ -20,6 +20,9 @@ class NodeHelper {
   private $nodeViewHelper;
   private $nodeFormHelper;
 
+  /**
+   * @return NodeDeleteHelper
+   */
   public function getNodeDeleteHelper() {
     if (null === $this->nodeDeleteHelper) {
       $this->nodeDeleteHelper = new NodeDeleteHelper();
@@ -32,6 +35,9 @@ class NodeHelper {
     return $this;
   }
 
+  /**
+   * @return NodeValidateHelper
+   */
   public function getNodeValidateHelper() {
     if (null === $this->nodeValidateHelper) {
       $this->nodeValidateHelper = new NodeValidateHelper();
@@ -44,6 +50,9 @@ class NodeHelper {
     return $this;
   }
 
+  /**
+   * @return NodeInsertHelper
+   */
   public function getNodeInsertHelper() {
     if (null === $this->nodeInsertHelper) {
       $this->nodeInsertHelper = new NodeInsertHelper();
@@ -56,6 +65,9 @@ class NodeHelper {
     return $this;
   }
 
+  /**
+   * @return NodeUpdateHelper
+   */
   public function getNodeUpdateHelper() {
     if (null === $this->nodeUpdateHelper) {
       $this->nodeUpdateHelper = new NodeUpdateHelper();
@@ -68,6 +80,9 @@ class NodeHelper {
     return $this;
   }
 
+  /**
+   * @return NodePresaveHelper
+   */
   public function getNodePresaveHelper() {
     if (null === $this->nodePresaveHelper) {
       $this->nodePresaveHelper = new NodePresaveHelper();
@@ -80,6 +95,9 @@ class NodeHelper {
     return $this;
   }
 
+  /**
+   * @return NodeViewHelper
+   */
   public function getNodeViewHelper() {
     if (null === $this->nodeViewHelper) {
       $this->nodeViewHelper = new NodeViewHelper();

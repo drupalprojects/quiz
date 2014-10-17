@@ -141,53 +141,7 @@ function quiz_entity_property_info_alter(&$info) {
  * Implements hook_field_extra_fields().
  */
 function quiz_field_extra_fields() {
-  $extra['node']['quiz'] = array(
-    'display' => array(
-      'take'  => array(
-        'label'       => t('Take quiz button'),
-        'description' => t('The take button.'),
-        'weight'      => 10,
-      ),
-      'stats' => array(
-        'label'       => t('Quiz summary'),
-        'description' => t('Quiz summary'),
-        'weight'      => 9,
-      ),
-    ),
-    'form'    => array(
-      'taking'            => array(
-        'label'       => t('Taking options'),
-        'description' => t('Fieldset for customizing how a quiz is taken'),
-        'weight'      => 0,
-      ),
-      'quiz_availability' => array(
-        'label'       => t('Availability options'),
-        'description' => t('Fieldset for customizing when a quiz is available'),
-        'weight'      => 0,
-      ),
-      'summaryoptions'    => array(
-        'label'       => t('Summary options'),
-        'description' => t('Fieldset for customizing summaries in the quiz reports'),
-        'weight'      => 0,
-      ),
-      'resultoptions'     => array(
-        'label'       => t('Result options'),
-        'description' => t('Fieldset for customizing result comments in quiz reports'),
-        'weight'      => 0,
-      ),
-      'remember_settings' => array(
-        'label'       => t('Remember settings'),
-        'description' => t('Checkbox for remembering quiz settings'),
-        'weight'      => 0,
-      ),
-      'remember_global'   => array(
-        'label'       => t('Remember as global'),
-        'description' => t('Checkbox for remembering quiz settings'),
-        'weight'      => 0,
-      ),
-    ),
-  );
-  return $extra;
+  return quiz()->getHookImplementation()->getHookFieldExtraFields()->execute();
 }
 
 /**
@@ -267,10 +221,17 @@ function quiz_permission() {
  * Implements hook_admin_paths().
  */
 function quiz_admin_paths() {
-  return array(
-    'node/*/quiz'   => TRUE,
-    'node/*/quiz/*' => TRUE,
-  );
+  $items = array('node/*/quiz' => TRUE, 'node/*/quiz/*' => TRUE);
+
+  if (variable_get('node_admin_theme', TRUE)) {
+    $items['quiz/add'] = TRUE;
+    $items['quiz/add/*'] = TRUE;
+    $items['quiz/*/edit'] = TRUE;
+    $items['quiz/*/edit/*'] = TRUE;
+    $items['quiz/*/delete'] = TRUE;
+  }
+
+  return $items;
 }
 
 /**
@@ -315,6 +276,19 @@ function quiz_cron() {
  */
 function quiz_menu() {
   return quiz()->getHookImplementation()->getHookMenu()->execute();
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Add action link to 'quiz/add' on 'admin/content/quiz' page.
+ */
+function quiz_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path === 'admin/content/quiz') {
+    if (($item = menu_get_item('quiz/add')) && $item['access']) {
+      $data['actions']['output'][] = array('#theme' => 'menu_local_action', '#link' => $item);
+    }
+  }
 }
 
 /**
@@ -382,7 +356,7 @@ function quiz_theme($existing, $type, $theme, $path) {
  */
 function quiz_form_alter(&$form, $form_state, $form_id) {
   // Set taking options the first vertical tab item
-  if ('quiz_node_form' == $form_id && isset($form['menu']['#weight'])) {
+  if ('quiz_node_form' === $form_id && isset($form['menu']['#weight'])) {
     $form['menu']['#weight'] = 1;
   }
 
@@ -776,5 +750,15 @@ function quiz_type_access($op, $type = NULL, $account = NULL) {
  * @param stdClass $account
  */
 function quiz_entity_access_callback($op, $type = NULL, $account = NULL) {
+  return TRUE;
+}
+
+/**
+ * @TODO: Access callback for /quiz/add.
+ *
+ * @return bool
+ *  TRUE only if user can create at least one quiz type.
+ */
+function quiz_can_create_quiz_entity() {
   return TRUE;
 }

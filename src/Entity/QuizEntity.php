@@ -13,7 +13,7 @@ class QuizEntity extends Entity {
   public $vid;
 
   /** @var string The name of the quiz type. */
-  public $type;
+  public $type = 'quiz';
 
   /** @var string The quiz label. */
   public $title;
@@ -34,9 +34,29 @@ class QuizEntity extends Entity {
   public $log;
 
   public function __construct(array $values = array()) {
-    // fill default value
-    $values += (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
     parent::__construct($values, 'quiz_entity');
+  }
+
+  public function save() {
+    global $user;
+
+    // Entity datetime
+    $this->changed = time();
+    if ($this->is_new = isset($this->is_new) ? $this->is_new : 0) {
+      $this->created = time();
+      if (null === $this->uid) {
+        $this->uid = $user->uid;
+      }
+    }
+
+    // Default properties
+    foreach ((array) quiz()->getQuizHelper()->getSettingHelper()->getQuizDefaultSettings() as $k => $v) {
+      if (!isset($this->{$k})) {
+        $this->{$k} = $v;
+      }
+    }
+
+    return parent::save();
   }
 
   /**

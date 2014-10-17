@@ -12,11 +12,7 @@ function quiz_install() {
   // Create default quiz type. In case the module is installed via an
   // installation profile, skip that.
   if (!drupal_installation_attempted()) {
-    entity_create('quiz_type', array(
-        'type'   => 'quiz',
-        'label'  => t('Quiz'),
-        'weight' => 0
-      ))
+    entity_create('quiz_type', array('type' => 'quiz', 'label' => t('Quiz'), 'weight' => 0))
       ->save();
   }
 
@@ -51,9 +47,7 @@ function quiz_schema() {
   $schema['quiz_node_properties'] = array(
     'description' => 'The base table for quiz nodes',
     'fields'      => array(
-      'qnp_id'                     => array(
-        'type' => 'serial',
-      ),
+      'qnp_id'                     => array('type' => 'serial'),
       'vid'                        => array(
         'type'     => 'int',
         'unsigned' => TRUE,
@@ -79,11 +73,7 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 0,
       ),
-      'aid'                        => array(
-        'type'     => 'varchar',
-        'length'   => 255,
-        'not null' => TRUE,
-      ),
+      'aid'                        => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'number_of_random_questions' => array(
         'type'     => 'int',
         'size'     => 'small',
@@ -91,35 +81,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 0,
       ),
-      'max_score_for_random'       => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
-      'pass_rate'                  => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'summary_pass'               => array(
-        'type' => 'text',
-      ),
-      'summary_pass_format'        => array(
-        'type'     => 'varchar',
-        'length'   => 255,
-        'not null' => TRUE,
-      ),
-      'summary_default'            => array(
-        'type' => 'text',
-      ),
-      'summary_default_format'     => array(
-        'type'     => 'varchar',
-        'length'   => 255,
-        'not null' => TRUE,
-      ),
+      'max_score_for_random'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1),
+      'pass_rate'                  => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE),
+      'summary_pass'               => array('type' => 'text'),
+      'summary_pass_format'        => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      'summary_default'            => array('type' => 'text'),
+      'summary_default_format'     => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'randomization'              => array(
         'type'     => 'int',
         'size'     => 'small',
@@ -147,25 +114,9 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 0,
       ),
-      'quiz_open'                  => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'quiz_close'                 => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'takes'                      => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'quiz_open'                  => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'quiz_close'                 => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'takes'                      => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'show_attempt_stats'         => array(
         'type'     => 'int',
         'size'     => 'tiny',
@@ -173,24 +124,14 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 1,
       ),
-      'time_limit'                 => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'time_limit'                 => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'quiz_always'                => array(
         'type'     => 'int',
         'size'     => 'tiny',
         'not null' => TRUE,
         'default'  => 0
       ),
-      'tid'                        => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'tid'                        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'has_userpoints'             => array(
         'type'     => 'int',
         'size'     => 'tiny',
@@ -198,35 +139,11 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 0
       ),
-      'userpoints_tid'             => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0
-      ),
-      'time_left'                  => array(
-        'type'     => 'int',
-        'size'     => 'small',
-        'not null' => TRUE,
-        'default'  => 0
-      ),
-      'max_score'                  => array(
-        'type'     => 'int',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'allow_skipping'             => array(
-        'type'     => 'int',
-        'size'     => 'small',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'allow_resume'               => array(
-        'type'     => 'int',
-        'size'     => 'small',
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
+      'userpoints_tid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
+      'time_left'                  => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+      'max_score'                  => array('type' => 'int', 'not null' => TRUE, 'default' => 0,),
+      'allow_skipping'             => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+      'allow_resume'               => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 1),
       'allow_jumping'              => array(
         'type'     => 'int',
         'size'     => 'tiny',
@@ -234,12 +151,7 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 0,
       ),
-      'allow_change'               => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
+      'allow_change'               => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 1),
       'show_passed'                => array(
         'type'     => 'int',
         'size'     => 'tiny',
@@ -247,16 +159,8 @@ function quiz_schema() {
         'not null' => TRUE,
         'default'  => 1,
       ),
-      'mark_doubtful'              => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'review_options'             => array(
-        'type'      => 'text',
-        'serialize' => TRUE,
-      ),
+      'mark_doubtful'              => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
+      'review_options'             => array('type' => 'text', 'serialize' => TRUE),
     ),
     'primary key' => array('qnp_id'),
     // 'unique keys' => array('vid'),

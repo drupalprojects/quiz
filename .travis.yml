@@ -44,6 +44,7 @@ before_script:
   # ---------------------
   - drush vset --yes file_temporary_path /tmp
   - drush en -y simpletest long_answer matching multichoice quiz_ddlines quiz_directions quiz_page quiz_question scale short_answer truefalse
+  - drush vset --yes simpletest_verbose FALSE
 
   # ---------------------
   # No cache data!
