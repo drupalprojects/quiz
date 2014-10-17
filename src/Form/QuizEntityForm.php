@@ -16,7 +16,13 @@ class QuizEntityForm {
   }
 
   public static function staticCallback($op, $quiz_type) {
-    $quiz = $op === 'add' ? entity_create('quiz_entity', array('type' => $quiz_type)) : NULL;
+    $quiz = NULL;
+
+    if ($op === 'add') {
+      $values = array('type' => $quiz_type);
+      $values += (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE);
+      $quiz = entity_create('quiz_entity', $values);
+    }
     return entity_ui_get_form('quiz_entity', $quiz, $op);
   }
 

@@ -34,8 +34,6 @@ class QuizEntity extends Entity {
   public $log;
 
   public function __construct(array $values = array()) {
-    // fill default value
-    $values += (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE);
     parent::__construct($values, 'quiz_entity');
   }
 
