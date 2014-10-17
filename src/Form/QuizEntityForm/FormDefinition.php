@@ -48,6 +48,9 @@ class FormDefinition extends FormHelper {
     $this->defineRememberConfigOptionsFields($form);
     $this->defineRevisionOptionsFields($form);
 
+    // Attach custom fields by admin
+    field_attach_form('quiz_entity', $this->quiz, $form, $form_state);
+
     return $form;
   }
 
@@ -248,27 +251,20 @@ class FormDefinition extends FormHelper {
       '#default_value' => $this->quiz->quiz_always,
       '#description'   => t('Ignore the open and close dates.'),
     );
-
     $form['quiz_availability']['quiz_open'] = array(
       '#type'          => 'date',
       '#title'         => t('Open date'),
       '#default_value' => $this->prepareDate($this->quiz->quiz_open),
       '#description'   => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
+      '#after_build'   => array('_quiz_after_build_fix_year_options'),
     );
     $form['quiz_availability']['quiz_close'] = array(
       '#type'          => 'date',
       '#title'         => t('Close date'),
       '#default_value' => $this->prepareDate($this->quiz->quiz_close, variable_get('quiz_default_close', 30)),
       '#description'   => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
+      '#after_build'   => array('_quiz_after_build_fix_year_options'),
     );
-
-    // Limit the year options to the years 1970 - 2030 for form items of type date.
-    // Some systems don't support all the dates the forms api lets you choose from.
-    // This function limits the options to dates most systems support.
-    $form['quiz_availability']['quiz_open']['#after_build'] = $form['quiz_availability']['quiz_close']['#after_build'] = function ($form_element) {
-      $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
-      return $form_element;
-    };
   }
 
   private function definePassFailOptionsFields(&$form) {

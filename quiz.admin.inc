@@ -203,3 +203,13 @@ function theme_quiz_categorized_form($variables) {
   }
   return $output . drupal_render_children($form);
 }
+
+/**
+ * Limit the year options to the years 1970 - 2030 for form items of type date.
+ * Some systems don't support all the dates the forms api lets you choose from.
+ * This function limits the options to dates most systems support.
+ */
+function _quiz_after_build_fix_year_options() {
+  $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
+  return $form_element;
+}
