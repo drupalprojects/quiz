@@ -18,7 +18,6 @@ class QuizEntityForm {
   public static function staticCallback($op, $quiz_type) {
     $quiz = NULL;
     if ($op === 'add') {
-      $values = (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE);
       $values['type'] = $quiz_type;
       $quiz = entity_create('quiz_entity', $values);
     }
@@ -62,6 +61,10 @@ class QuizEntityForm {
 
     // Add in created and changed times.
     $quiz->save();
+
+    // Use would like remembering settings
+    if (!empty($form_state['values']['remember_settings'])) {
+    }
 
     $form_state['redirect'] = 'admin/content/quiz';
   }
