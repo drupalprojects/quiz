@@ -4,6 +4,7 @@ description = Create interactive quizzes. This module must have at least one que
 core = 7.x
 dependencies[] = ctools
 dependencies[] = entity
+dependencies[] = filter
 dependencies[] = views
 dependencies[] = views_bulk_operations
 test_dependencies[] = taxonomy
