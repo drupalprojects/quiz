@@ -5,14 +5,12 @@ namespace Drupal\quiz\Helper\HookImplementation;
 class HookFieldExtraFields {
 
   public function execute() {
-    $extra['node']['quiz'] = array(
-      'display' => $this->getQuizDisplayFields(),
-      'form'    => $this->getQuizFormExtraFields(),
-    );
-
     if ($types = quiz_get_types()) {
       foreach (array_keys($types) as $name) {
-        $extra['quiz_entity'][$name] = $extra['node']['quiz'];
+        $extra['quiz_entity'][$name] = array(
+          'display' => $this->getQuizDisplayFields(),
+          'form'    => $this->getQuizFormExtraFields(),
+        );
       }
     }
 
