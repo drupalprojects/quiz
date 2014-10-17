@@ -64,9 +64,13 @@ class QuizEntityForm {
 
     // Use would like remembering settings
     if (!empty($form_state['values']['remember_settings'])) {
+      $this->remeberSettings();
     }
 
     $form_state['redirect'] = 'admin/content/quiz';
+  }
+
+  private function remeberSettings() {
   }
 
 }
