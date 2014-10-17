@@ -15,6 +15,11 @@ class QuizEntityForm {
     $this->quiz = $quiz;
   }
 
+  public static function staticCallback($op, $quiz_type) {
+    $quiz = $op === 'add' ? entity_create('quiz_entity', array('type' => $quiz_type)) : NULL;
+    return entity_ui_get_form('quiz_entity', $quiz, $op);
+  }
+
   public function get($form, &$form_state, $op) {
     $def = new FormDefinition($this->quiz);
     $return = $def->get($form, $form_state, $op);

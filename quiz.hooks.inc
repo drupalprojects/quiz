@@ -798,3 +798,13 @@ function quiz_type_access($op, $type = NULL, $account = NULL) {
 function quiz_entity_access_callback($op, $type = NULL, $account = NULL) {
   return TRUE;
 }
+
+/**
+ * @TODO: Access callback for /quiz/add.
+ *
+ * @return bool
+ *  TRUE only if user can create at least one quiz type.
+ */
+function quiz_can_create_quiz_entity() {
+  return TRUE;
+}
