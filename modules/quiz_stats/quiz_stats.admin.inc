@@ -337,22 +337,27 @@ function theme_quiz_grade_range($variables) {
 function theme_quiz_top_scorers($variables) {
   $attendees = $variables['scorer'];
   $chart = array(
-    '#chart_id' => 'quiz_top_scorers',
+    '#type' => 'chart',
     '#title' => t('Quiz Top Scorers'),
-    '#type' => CHART_TYPE_BAR_V_GROUPED,
-    '#size' => chart_size(600, 400),
-    '#grid_lines' => chart_grid_lines(10, 10),
-    '#bar_size' => chart_bar_size(20, 15),
+    '#chart_type' => 'column',
+  );
+  $chart['bar_data'] = array(
+    '#type' => 'chart_data',
+    '#title' => 'Result',
   );
   foreach ($attendees as $attendee) {
-    $chart['#data'][][] = $attendee['score'];
-    $chart['#data_colors'][] = chart_unique_color(count($chart['#data']));
-    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label(t('Quiz Attendees'), 50);
-    $chart['#legends'][] = $attendee['name'] . ' ' . $attendee['score'] . ' %';
+    $chart['bar_data']['#data'][] = (float) $attendee['score'];
+    $chart['bar_data']['#labels'][] = $attendee['name'] . ' ' . $attendee['score'] . '%';
   }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label(t('Score') . ' (%)', 100);
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, 100);
-  return theme('chart', array('chart' => $chart));
+  $chart['yaxis'] = array(
+    '#title' => t('Score') . ' (%)',
+    '#type' => 'chart_yaxis',
+  );
+  $chart['xaxis'] = array(
+    '#title' => 'Quiz Attendees',
+    '#type' => 'chart_xaxis',
+  );
+  return drupal_render($chart);
 }
 
 /**
