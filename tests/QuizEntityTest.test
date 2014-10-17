@@ -49,9 +49,6 @@ class QuizEntityTest extends QuizTestCase {
     // ---------------------
     // Insert entity
     // ---------------------
-    $quiz->changed = $quiz->created = time();
-    $quiz->title = 'Demo quiz';
-    $quiz->uid = 1;
     entity_save('quiz_entity', $quiz);
     $this->assertNotNull($quiz, 'Quiz entity is created successully.');
 
