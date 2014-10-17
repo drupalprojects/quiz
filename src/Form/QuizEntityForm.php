@@ -56,6 +56,11 @@ class QuizEntityForm {
     $quiz->quiz_open = mktime(0, 0, 0, $quiz->quiz_open['month'], $quiz->quiz_open['day'], $quiz->quiz_open['year']);
     $quiz->quiz_close = mktime(0, 0, 0, $quiz->quiz_close['month'], $quiz->quiz_close['day'], $quiz->quiz_close['year']);
 
+    // Enable revision flag.
+    if (!empty($form_state['values']['revision'])) {
+      $quiz->is_new_revision = TRUE;
+    }
+
     // Add in created and changed times.
     $quiz->save();
 
