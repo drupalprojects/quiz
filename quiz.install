@@ -462,14 +462,14 @@ function quiz_schema() {
       'description' => array(
         'description'  => 'A brief description of this quiz type.',
         'type'         => 'text',
-        'not null'     => TRUE,
+        'not null'     => FALSE,
         'size'         => 'medium',
         'translatable' => TRUE,
       ),
       'help'        => array(
         'description'  => 'Help information shown to the user when creating a quiz entity of this type.',
         'type'         => 'text',
-        'not null'     => TRUE,
+        'not null'     => FALSE,
         'size'         => 'medium',
         'translatable' => TRUE,
       ),
