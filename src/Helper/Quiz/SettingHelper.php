@@ -93,10 +93,11 @@ class SettingHelper extends FormHelper {
    * Insert or update the quiz node properties accordingly.
    */
   public function saveQuizSettings($entity) {
-    $sql = "SELECT qnp_id FROM {quiz_node_properties}
-    WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
-    OR (uid = :uid and uid > 0)
-    OR (nid = :nid and uid = :uid and vid = :vid)";
+    $sql = "SELECT qnp_id 
+      FROM {quiz_node_properties}
+      WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
+        OR (uid = :uid and uid > 0)
+        OR (nid = :nid and uid = :uid and vid = :vid)";
     $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
     $entity->qnp_id = $result->fetchField();
     return entity_save('quiz', $entity);

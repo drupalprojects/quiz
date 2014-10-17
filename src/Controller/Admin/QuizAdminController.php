@@ -137,7 +137,9 @@ class QuizAdminController {
    */
   private function saveUserSettings($node) {
     global $user;
+
     $node = (object) $node;
+
     // We do not save settings if the node has been created by the system,
     // or if the user haven't requested it
     if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {

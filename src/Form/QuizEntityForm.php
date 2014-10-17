@@ -17,10 +17,9 @@ class QuizEntityForm {
 
   public static function staticCallback($op, $quiz_type) {
     $quiz = NULL;
-
     if ($op === 'add') {
-      $values = array('type' => $quiz_type);
-      $values += (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE);
+      $values = (array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE);
+      $values['type'] = $quiz_type;
       $quiz = entity_create('quiz_entity', $values);
     }
     return entity_ui_get_form('quiz_entity', $quiz, $op);
@@ -43,7 +42,7 @@ class QuizEntityForm {
   }
 
   public function submit($form, &$form_state) {
-    /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
+    /* @var $quiz QuizEntity */
     $quiz = entity_ui_controller('quiz_entity')->entityFormSubmitBuildEntity($form, $form_state);
 
     // convert formatted text fields
