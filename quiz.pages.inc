@@ -269,8 +269,10 @@ function theme_quiz_answer_result($variables) {
  * @ingroup themeable
  */
 function theme_quiz_progress($variables) {
+  drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.jumper.js');
   $output = '';
   $output .= '<div id="quiz-progress">';
+  $text = 'Page <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>';
 
   if ($variables['allow_jumping']) {
     // Show jump form.
@@ -282,13 +284,13 @@ function theme_quiz_progress($variables) {
       ));
     }
     else {
-      $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
-      $output .= drupal_render($current_question);
+      $selectbox = drupal_get_form('quiz_jumper_form', $variables['questions'], $variables['current']);
+      $output = t($text, array('!x' => drupal_render($selectbox), '@y' => count($variables['questions'])));
     }
   }
   else {
     // Just text.
-    $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $variables['current'], '@y' => count($variables['questions'])));
+    $output .= t($text, array('!x' => $variables['current'], '@y' => count($variables['questions'])));
   }
 
   $output .= '</div>' . "\n";
@@ -297,26 +299,6 @@ function theme_quiz_progress($variables) {
     $output .= '<div class="countdown"></div>';
   }
   return $output;
-}
-
-/**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
- */
-function theme_quiz_jumper($variables) {
-  drupal_add_js('
-    (function ($) {
-      Drupal.behaviors.quizJumper = {
-        attach: function(context, settings) {
-          $("#quiz-jumper:not(.quizJumper-processed)", context).show().addClass("quizJumper-processed").change(function(){
-            $("#quiz-jumper #edit-submit").trigger("click");
-          });
-          $("#quiz-jumper-no-js:not(.quizJumper-processed)").hide().addClass("quizJumper-processed");
-        }
-      };
-    })(jQuery);
-  ', array('type' => 'inline', 'scope' => JS_DEFAULT));
-  return '';
 }
 
 /**

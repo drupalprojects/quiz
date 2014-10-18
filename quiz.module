@@ -547,9 +547,6 @@ function quiz_theme($existing, $type, $theme, $path) {
       'render element' => 'form',
       'file' => 'quiz.admin.inc',
     ),
-    'quiz_jumper' => array(
-      'variables' => array('current' => 0, 'num_questions' => 0),
-    ),
     'quiz_question_score' => array(
       'variables' => array('score' => NULL, 'max_score' => NULL),
       'path' => $path . '/theme',
@@ -1897,12 +1894,14 @@ function quiz_take_question($quiz, $question_number) {
   // Added the progress info to the view.
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $questions = array();
+  $i = 0;
   foreach ($quiz_result->layout as $idx => $question) {
-    if (!empty($question['number'])) {
-      // Question has a number associated with it. Show it in the jumper.
-      $questions[$idx] = $question['number'];
+    if (empty($question['qnr_pid'])) {
+      // Question has no parent. Show it in the jumper.
+      $questions[$idx] = ++$i;
     }
   }
+
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'questions' => $questions,
     'current' => arg(3),
@@ -4077,13 +4076,11 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz']['properties']['quiz_close']['type'] = 'date';
 }
 
-function quiz_jumper($form, $form_state, $questions, $current) {
+function quiz_jumper_form($form, $form_state, $questions, $current) {
   $form['question_number'] = array(
     '#type' => 'select',
     '#options' => $questions,
     '#default_value' => $current,
-    '#prefix' => t('Question'),
-    '#suffix' => t('of @num', array('@num' => count($questions))),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -4093,7 +4090,7 @@ function quiz_jumper($form, $form_state, $questions, $current) {
   return $form;
 }
 
-function quiz_jumper_submit($form, &$form_state) {
+function quiz_jumper_form_submit($form, &$form_state) {
   $quiz = node_load(arg(1));
   quiz_question_goto($quiz, $form_state['values']['question_number'] - 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
