@@ -58,10 +58,11 @@ class QuizTakeQuestionController extends QuestionHelper {
     // Added the progress info to the view.
     $quiz_result = quiz_result_load($_SESSION['quiz'][$this->quiz->nid]['result_id']);
     $questions = array();
+    $i = 0;
     foreach ($quiz_result->layout as $idx => $question) {
-      if (!empty($question['number'])) {
-        // Question has a number associated with it. Show it in the jumper.
-        $questions[$idx] = $question['number'];
+      if (empty($question['qnr_pid'])) {
+        // Question has no parent. Show it in the jumper.
+        $questions[$idx] = ++$i;
       }
     }
     $content['progress']['#markup'] = theme('quiz_progress', array(

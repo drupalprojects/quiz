@@ -31,6 +31,7 @@ function theme_quiz_answer_result($variables) {
 function theme_quiz_progress($variables) {
   $output = '';
   $output .= '<div id="quiz-progress">';
+  $text = 'Page <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>';
   if ($variables['allow_jumping']) {
     // Show jump form.
     if ($variables['pager']) {
@@ -42,13 +43,13 @@ function theme_quiz_progress($variables) {
       ));
     }
     else {
-      $current_question = drupal_get_form('quiz_jumper', $variables['questions'], $variables['current']);
-      $output .= drupal_render($current_question);
+      $selectbox = drupal_get_form('quiz_jumper_form', $variables['questions'], $variables['current']);
+      $output = t($text, array('!x' => drupal_render($selectbox), '@y' => count($variables['questions'])));
     }
   }
   else {
     // Just text.
-    $output .= t('Question <span id="quiz-question-number">!x</span> of <span id="quiz-num-questions">@y</span>', array('!x' => $variables['current'], '@y' => count($variables['questions'])));
+    $output .= t($text, array('!x' => $variables['current'], '@y' => count($variables['questions'])));
   }
 
   $output .= '</div>' . "\n";
