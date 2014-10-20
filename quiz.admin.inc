@@ -61,7 +61,7 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
  */
 function theme_quiz_node_form($variables) {
   $form = $variables['form'];
-  $path = drupal_get_path('module', 'quiz') . '/theme/quiz_node_form.js';
+  $path = drupal_get_path('module', 'quiz') . '/js/quiz_node_form.js';
   drupal_add_js($path);
   return theme('node_form', array('form' => $form));
 }
