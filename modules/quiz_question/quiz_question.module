@@ -31,7 +31,7 @@ require_once dirname(__FILE__) . '/quiz_question.hooks.inc';
  */
 function quiz_question_access_to_score($vid, $result_id) {
   global $user;
-  $sql = 'SELECT * FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_vid = :question_vid';
+  $sql = 'SELECT * FROM {quiz_results_answers} WHERE result_id = :result_id AND question_vid = :question_vid';
   $answer = db_query($sql, array(':result_id' => $result_id, ':question_vid' => $vid))->fetch();
   if (!$answer) {
     return FALSE;
@@ -40,14 +40,14 @@ function quiz_question_access_to_score($vid, $result_id) {
     return TRUE;
   }
   if (user_access('score taken quiz answer')) {
-    $uid = db_query('SELECT uid from {quiz_node_results} qnr WHERE qnr.result_id = :result_id', array(':result_id' => $result_id))->fetchField();
+    $uid = db_query('SELECT uid from {quiz_results} qnr WHERE qnr.result_id = :result_id', array(':result_id' => $result_id))->fetchField();
     if ($uid == $user->uid) {
       return TRUE;
     }
   }
   if (user_access('score own quiz')) {
     return db_query('SELECT r.uid FROM {node_revision} r
-            JOIN {quiz_node_results} qnr ON (r.nid = qnr.nid)
+            JOIN {quiz_results} qnr ON (r.nid = qnr.nid)
             WHERE qnr.result_id = :result_id
             ', array(':result_id' => $result_id))->fetchField() == $user->uid;
   }
@@ -348,7 +348,7 @@ function quiz_question_report_form($question) {
   $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
-    $vid = db_query('SELECT vid FROM {quiz_node_results}
+    $vid = db_query('SELECT vid FROM {quiz_results}
       WHERE result_id = :rid', array(':rid' => $answer['result_id']))
       ->fetchField();
 
@@ -357,8 +357,8 @@ function quiz_question_report_form($question) {
       ->fetchField();
 
     if ($qnr_max_score === FALSE) {
-      $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_node_results} qnr
-         JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id)
+      $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_results} qnr
+         JOIN {quiz_results_answers} qnra ON (qnr.result_id = qnra.result_id)
          JOIN {quiz_terms} qt ON (qt.vid = qnr.vid AND qt.tid = qnra.tid)
          WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid', array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
         ->fetchField();

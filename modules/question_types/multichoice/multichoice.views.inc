@@ -143,7 +143,7 @@ function multichoice_views_data() {
       'sort'         => array('handler' => 'views_handler_sort'),
       'relationship' => array(
         'handler'    => 'views_handler_relationship',
-        'base'       => 'quiz_node_results',
+        'base'       => 'quiz_results',
         'field'      => 'result_id',
         'base field' => 'result_id',
         'label'      => t('Result'),

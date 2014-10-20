@@ -9,7 +9,7 @@ namespace Drupal\quiz\Helper\Quiz;
 class AccessHelper {
 
   public function userHasResult($quiz, $uid) {
-    $sql = 'SELECT 1 FROM {quiz_node_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated';
+    $sql = 'SELECT 1 FROM {quiz_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated';
     return db_query($sql, array(':nid' => $quiz->nid, ':uid' => $uid, ':is_evaluated' => 1))
         ->fetchField();
   }
@@ -45,7 +45,7 @@ class AccessHelper {
     // If rid is set we must make sure the result belongs to the quiz we are
     // viewing results for.
     if (isset($result_id)) {
-      $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
+      $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
       if ($res && $res->nid != $quiz->nid) {
         return FALSE;
       }

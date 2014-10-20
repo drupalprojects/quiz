@@ -113,7 +113,7 @@ class QuizTakeController {
 
     // Get any quiz that is open, for this user, and has not already
     // been completed.
-    $result_id = db_query('SELECT result_id FROM {quiz_node_results} qnr
+    $result_id = db_query('SELECT result_id FROM {quiz_results} qnr
           INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
           WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
           AND qnr.vid = :vid
@@ -132,7 +132,7 @@ class QuizTakeController {
    *   The quiz node.
    *
    * @return
-   *   Return quiz_node_results result_id, or FALSE if there is an error.
+   *   Return quiz_results result_id, or FALSE if there is an error.
    */
   private function startCheck($account) {
     $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $this->quiz->uid == $account->uid);
@@ -157,7 +157,7 @@ class QuizTakeController {
 
     // Check to see if this user is allowed to take the quiz again:
     if ($this->quiz->takes > 0) {
-      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $account->uid, ':nid' => $this->quiz->nid))->fetchField();
+      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $account->uid, ':nid' => $this->quiz->nid))->fetchField();
       $allowed_times = format_plural($this->quiz->takes, '1 time', '@count times');
       $taken_times = format_plural($taken, '1 time', '@count times');
 
@@ -225,7 +225,7 @@ class QuizTakeController {
    *   The result id.
    */
   private function createRid($quiz) {
-    $result_id = db_insert('quiz_node_results')
+    $result_id = db_insert('quiz_results')
       ->fields(array(
         'nid'        => $quiz->nid,
         'vid'        => $quiz->vid,

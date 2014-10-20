@@ -81,7 +81,7 @@ class QuizTakeQuestionController extends QuestionHelper {
         // The page was probably submitted by the js, we allow the data to be stored
         $time = 1;
       }
-      db_update('quiz_node_results')
+      db_update('quiz_results')
         ->fields(array('time_left' => $time))
         ->condition('result_id', $_SESSION['quiz'][$this->quiz->nid]['result_id'])
         ->execute();

@@ -189,7 +189,7 @@ function quiz_schema() {
    * Quiz specific options concerning  availability and access to scores.
    */
   // Create the quiz node results table
-  $schema['quiz_node_results'] = array(
+  $schema['quiz_results'] = array(
     'description' => 'Table storing the total results for a quiz',
     'fields'      => array(
       'result_id'    => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE,),
@@ -215,7 +215,7 @@ function quiz_schema() {
   /**
    * Information about a particular question in a result
    */
-  $schema['quiz_node_results_answers'] = array(
+  $schema['quiz_results_answers'] = array(
     'description' => 'Table storing information about the results for the questions',
     'fields'      => array(
       'result_answer_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'The result answer ID',),
@@ -309,11 +309,11 @@ function quiz_update_7402(&$sandbox) {
 }
 
 /**
- * Adds index on vid column to the quiz_node_results table and on child_vid to
+ * Adds index on vid column to the quiz_results table and on child_vid to
  * the quiz_relationship table.
  */
 function quiz_update_7403() {
-  db_add_index('quiz_node_results', 'vid', array('vid'));
+  db_add_index('quiz_results', 'vid', array('vid'));
   db_add_index('quiz_relationship', 'child_id', array('child_vid'));
 }
 
@@ -328,7 +328,7 @@ function quiz_update_7404() {
     'not null' => TRUE,
     'default'  => 0,
   ));
-  db_change_field('quiz_node_results_answers', 'number', 'number', array(
+  db_change_field('quiz_results_answers', 'number', 'number', array(
     'type'     => 'int',
     'size'     => 'small',
     'unsigned' => FALSE,
@@ -339,7 +339,7 @@ function quiz_update_7404() {
 }
 
 /**
- * Remove unsigned attribute from field time_start and time_end in quiz_node_results table.
+ * Remove unsigned attribute from field time_start and time_end in quiz_results table.
  */
 function quiz_update_7405() {
   $spec = array(
@@ -347,9 +347,9 @@ function quiz_update_7405() {
     'unsigned' => FALSE,
     'default'  => 0,
   );
-  db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
-  db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
-  return t('Removed unsigned attribute from field time_start and time_end in quiz_node_results table');
+  db_change_field('quiz_results', 'time_start', 'time_start', $spec);
+  db_change_field('quiz_results', 'time_end', 'time_end', $spec);
+  return t('Removed unsigned attribute from field time_start and time_end in quiz_results table');
 }
 
 /**
@@ -362,7 +362,7 @@ function quiz_update_7406(&$sandbox) {
     'default'  => 0,
     'size'     => 'tiny'
   );
-  db_add_field('quiz_node_results_answers', 'is_doubtful', $spec);
+  db_add_field('quiz_results_answers', 'is_doubtful', $spec);
   db_add_field('quiz_node_properties', 'mark_doubtful', $spec);
   return t('Added new format fields to the tables');
 }
@@ -403,7 +403,7 @@ function quiz_uninstall() {
 }
 
 /**
- * Add new layout field to the quiz_node_results table.
+ * Add new layout field to the quiz_results table.
  */
 function quiz_update_7500() {
   $spec = array(
@@ -412,24 +412,24 @@ function quiz_update_7500() {
     'description' => "Serialized layout data.",
     'size'        => 'medium',
   );
-  db_add_field('quiz_node_results', 'layout', $spec);
-  return t('Added new layout field to the quiz_node_results table');
+  db_add_field('quiz_results', 'layout', $spec);
+  return t('Added new layout field to the quiz_results table');
 }
 
 /**
- * Add new result_answer_id field to the quiz_node_results_answers table.
+ * Add new result_answer_id field to the quiz_results_answers table.
  */
 function quiz_update_7501() {
-  db_drop_primary_key('quiz_node_results_answers');
-  db_add_unique_key('quiz_node_results_answers', 'result_answer', array('result_id', 'question_nid', 'question_vid'));
+  db_drop_primary_key('quiz_results_answers');
+  db_add_unique_key('quiz_results_answers', 'result_answer', array('result_id', 'question_nid', 'question_vid'));
   $spec = array(
     'description' => 'The result answer ID.',
     'type'        => 'serial',
     'unsigned'    => TRUE,
     'not null'    => TRUE,
   );
-  db_add_field('quiz_node_results_answers', 'result_answer_id', $spec, array('primary key' => array('result_answer_id')));
-  return t('Added new result_answer_id field to the quiz_node_results_answers table.');
+  db_add_field('quiz_results_answers', 'result_answer_id', $spec, array('primary key' => array('result_answer_id')));
+  return t('Added new result_answer_id field to the quiz_results_answers table.');
 }
 
 /**
@@ -472,10 +472,10 @@ function quiz_update_7504() {
     'type'     => 'int',
     'unsigned' => FALSE,
   );
-  db_change_field('quiz_node_results', 'time_start', 'time_start', $spec);
-  db_change_field('quiz_node_results', 'time_end', 'time_end', $spec);
-  db_query("UPDATE {quiz_node_results} SET time_end = NULL WHERE time_end = 0");
-  return t('Removed default attribute from field time_start and time_end in quiz_node_results table.');
+  db_change_field('quiz_results', 'time_start', 'time_start', $spec);
+  db_change_field('quiz_results', 'time_end', 'time_end', $spec);
+  db_query("UPDATE {quiz_results} SET time_end = NULL WHERE time_end = 0");
+  return t('Removed default attribute from field time_start and time_end in quiz_results table.');
 }
 
 /**

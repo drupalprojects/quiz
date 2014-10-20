@@ -28,7 +28,7 @@ class ResultHelper {
     global $user;
 
     $score = $this->calculateScore($quiz, $result_id);
-    db_update('quiz_node_results')
+    db_update('quiz_results')
       ->fields(array(
         'score' => $score['percentage_score'],
       ))
@@ -39,7 +39,7 @@ class ResultHelper {
       // Call hook_quiz_scored().
       module_invoke_all('quiz_scored', $quiz, $score, $result_id);
       $this->maintainResult($user, $quiz, $result_id);
-      db_update('quiz_node_results')
+      db_update('quiz_results')
         ->fields(array('is_evaluated' => 1))
         ->condition('result_id', $result_id)
         ->execute();
@@ -59,18 +59,18 @@ class ResultHelper {
       return;
     }
 
-    $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
+    $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_results_answers}
           WHERE result_id IN(:result_id)';
     $result = db_query($sql, array(':result_id' => $result_ids));
     foreach ($result as $record) {
       quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
     }
 
-    db_delete('quiz_node_results_answers')
+    db_delete('quiz_results_answers')
       ->condition('result_id', $result_ids, 'IN')
       ->execute();
 
-    db_delete('quiz_node_results')
+    db_delete('quiz_results')
       ->condition('result_id', $result_ids, 'IN')
       ->execute();
   }
@@ -79,7 +79,7 @@ class ResultHelper {
    * Load a specific result answer.
    */
   public function loadAnswerResult($result_id, $nid, $vid) {
-    $sql = 'SELECT * from {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
+    $sql = 'SELECT * from {quiz_results_answers} WHERE result_id = :result_id AND question_nid = :nid AND question_vid = :vid';
     $result = db_query($sql, array(':result_id' => $result_id, ':nid' => $nid, ':vid' => $vid));
     if ($row = $result->fetch()) {
       return entity_load_single('quiz_result_answer', $row->result_answer_id);
@@ -98,9 +98,9 @@ class ResultHelper {
   public function getAnswers($quiz, $result_id) {
     $questions = array();
     $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score, qt.max_score as term_max_score
-                   FROM {quiz_node_results_answers} ra
+                   FROM {quiz_results_answers} ra
                    LEFT JOIN {node} n ON (ra.question_nid = n.nid)
-                   LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
+                   LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id)
                    LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.quiz_vid = r.vid
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
                    WHERE ra.result_id = :rid
@@ -154,7 +154,7 @@ class ResultHelper {
   public function calculateScore($quiz, $result_id) {
     // 1. Fetch all questions and their max scores
     $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
-    FROM {quiz_node_results_answers} a
+    FROM {quiz_results_answers} a
     LEFT JOIN {node} n ON (a.question_nid = n.nid)
     LEFT OUTER JOIN {quiz_relationship} r ON (r.child_vid = a.question_vid) AND r.quiz_vid = :vid
     WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
@@ -216,7 +216,7 @@ class ResultHelper {
 
   public function isResultCompleted($result_id) {
     // Check if the quiz taking has been completed.
-    $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
+    $time_end = db_query('SELECT time_end FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
     return $time_end > 0;
   }
 
@@ -227,7 +227,7 @@ class ResultHelper {
    *  The users id
    */
   public function deleteByUserId($uid) {
-    $res = db_query("SELECT result_id FROM {quiz_node_results} WHERE uid = :uid", array(':uid' => $uid));
+    $res = db_query("SELECT result_id FROM {quiz_results} WHERE uid = :uid", array(':uid' => $uid));
     $result_ids = array();
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;
@@ -255,7 +255,7 @@ class ResultHelper {
       case QUIZ_KEEP_ALL:
         return FALSE;
       case QUIZ_KEEP_BEST:
-        $best_result_id = db_query('SELECT result_id FROM {quiz_node_results}
+        $best_result_id = db_query('SELECT result_id FROM {quiz_results}
           WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated
           ORDER BY score DESC', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1)
           )
@@ -263,7 +263,7 @@ class ResultHelper {
         if (!$best_result_id) {
           return;
         }
-        $res = db_query('SELECT result_id FROM {quiz_node_results}
+        $res = db_query('SELECT result_id FROM {quiz_results}
           WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
         );
         $result_ids = array();
@@ -273,7 +273,7 @@ class ResultHelper {
         $this->deleteByIds($result_ids);
         return !empty($result_ids);
       case QUIZ_KEEP_LATEST:
-        $res = db_query('SELECT result_id FROM {quiz_node_results}
+        $res = db_query('SELECT result_id FROM {quiz_results}
               WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $account->uid, ':is_evaluated' => 1, ':result_id' => $result_id));
         $result_ids = array();
         while ($result_id2 = $res->fetchField()) {
@@ -295,7 +295,7 @@ class ResultHelper {
    *   The userid of the user the old in progress results belong to.
    */
   public function deleteIncompletedResultsByUserId($quiz, $uid) {
-    $res = db_query('SELECT qnr.result_id FROM {quiz_node_results} qnr
+    $res = db_query('SELECT qnr.result_id FROM {quiz_results} qnr
           WHERE qnr.uid = :uid
           AND qnr.nid = :nid
           AND qnr.time_end = :time_end

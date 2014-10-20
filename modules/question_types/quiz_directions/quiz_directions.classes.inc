@@ -119,10 +119,10 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
     $quiz_key = 'quiz_' . $quiz_nid;
     if (isset($_SESSION[$quiz_key]['previous_quiz_questions']) && count($_SESSION[$quiz_key]['previous_quiz_questions']) === 1) {
       // reset the timer.
-      $sql = 'UPDATE {quiz_node_results} SET time_start=%d WHERE result_id = %d';
+      $sql = 'UPDATE {quiz_results} SET time_start=%d WHERE result_id = %d';
       // TODO Please review the conversion of this statement to the D7 database API syntax.
       /* db_query($sql, REQUEST_TIME, $this->result_id) */
-      db_update('quiz_node_results')
+      db_update('quiz_results')
   ->fields(array(
     'time_start' => REQUEST_TIME,
   ))

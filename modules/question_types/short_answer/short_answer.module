@@ -179,7 +179,7 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
       $points_awarded = $score;
     }
 
-    db_update('quiz_node_results_answers')
+    db_update('quiz_results_answers')
       ->fields(array(
         'points_awarded' => $points_awarded,
         'is_correct' => $is_correct,
@@ -229,7 +229,7 @@ function short_answer_report_submit($values) {
 function short_answer_get_answer($question_nid, $question_vid, $result_id) {
   $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
-    JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
+    JOIN {quiz_results} qnr ON (sa.result_id = qnr.result_id)
     JOIN {quiz_relationship} rel ON (qnr.vid = rel.quiz_vid AND rel.child_vid = sa.question_vid)
     WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $results ? $results : FALSE;

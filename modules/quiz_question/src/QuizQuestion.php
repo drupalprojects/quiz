@@ -251,7 +251,7 @@ abstract class QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     // Delete answeres
-    $delete = db_delete('quiz_node_results_answers')
+    $delete = db_delete('quiz_results_answers')
       ->condition('question_nid', $this->node->nid);
     if ($only_this_version) {
       $delete->condition('question_vid', $this->node->vid);
@@ -409,7 +409,7 @@ abstract class QuizQuestion {
     if (!isset($this->node->vid)) {
       return FALSE;
     }
-    $answered = db_query_range('SELECT 1 FROM {quiz_node_results} qnres
+    $answered = db_query_range('SELECT 1 FROM {quiz_results} qnres
             JOIN {quiz_relationship} qnrel ON (qnres.vid = qnrel.quiz_vid)
             WHERE qnrel.child_vid = :child_vid', 0, 1, array(':child_vid' => $this->node->vid))->fetch();
     return $answered ? TRUE : FALSE;

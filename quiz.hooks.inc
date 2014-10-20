@@ -261,7 +261,7 @@ function quiz_cron() {
   $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
 
   if ($rm_time) { // $time = 0 for never.
-    db_delete('quiz_node_results')
+    db_delete('quiz_results')
       ->condition('time_end', 0)
       ->where('(:request_time - time_start) > :remove_time', array(
         ':request_time' => REQUEST_TIME,
@@ -541,8 +541,8 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
   // @TODO convert to entity/rules
   $result_id = $session_data['result_id'];
   // Load data about the quiz taker
-  $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
+  $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_query('SELECT mail FROM {users} WHERE uid = :uid', array(':uid' => $quiz->uid))->fetchField();
@@ -590,7 +590,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  */
 function quiz_quiz_scored($quiz, $score, $result_id) {
   // @TODO Rules
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $result_id))->fetch();
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $result_id))->fetch();
   if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
     drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t('The results has been sent to the users e-mail address.'));

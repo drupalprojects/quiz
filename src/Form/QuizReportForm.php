@@ -105,7 +105,7 @@ class QuizReportForm {
 
       // Load the quiz
       if (!isset($quiz)) {
-        $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
+        $result = db_query('SELECT nid, uid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
         $quiz = node_load($result->nid, $result->vid);
         $result_id = $q_values['result_id'];
       }
@@ -117,7 +117,7 @@ class QuizReportForm {
     }
     // Scores may have been changed. We take the necessary actions
     $this->updateLastTotalScore($result_id, $quiz->vid);
-    $changed = db_update('quiz_node_results')
+    $changed = db_update('quiz_results')
       ->fields(array('is_evaluated' => 1))
       ->condition('result_id', $result_id)
       ->execute();
@@ -185,7 +185,7 @@ class QuizReportForm {
           FROM {quiz_node_properties}
           WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
     $total_score = db_query('SELECT SUM(points_awarded)
-          FROM {quiz_node_results_answers}
+          FROM {quiz_results_answers}
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
     return array(
@@ -206,7 +206,7 @@ class QuizReportForm {
    *  Quiz node version id
    */
   private function updateLastTotalScore($result_id, $quiz_vid) {
-    $subq1 = db_select('quiz_node_results_answers', 'a');
+    $subq1 = db_select('quiz_results_answers', 'a');
     $subq1
       ->condition('a.result_id', $result_id)
       ->addExpression('SUM(a.points_awarded)');
@@ -218,7 +218,7 @@ class QuizReportForm {
       ->addField('qnp', 'max_score');
     $res2 = $subq2->execute()->fetchField();
 
-    db_update('quiz_node_results')
+    db_update('quiz_results')
       ->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
       ->condition('result_id', $result_id)
       ->execute();

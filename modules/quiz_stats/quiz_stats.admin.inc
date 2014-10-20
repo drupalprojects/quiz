@@ -97,7 +97,7 @@ function _get_quiz_grade_range_chart($vid, $uid = 0) {
     SUM(score >= 40 && score < 60) AS fourty_to_sixty,
     SUM(score >= 60 && score < 80) AS sixty_to_eighty,
     SUM(score >= 80 && score <= 100) AS eighty_to_hundred
-    FROM {quiz_node_results}
+    FROM {quiz_results}
     WHERE vid = :vid';
   $arg[':vid'] = $vid;
   if ($uid != 0) {
@@ -135,7 +135,7 @@ function _get_quiz_grade_range_chart($vid, $uid = 0) {
  */
 function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   $top_scorers = array();
-  $sql = 'SELECT name, score FROM {quiz_node_results} qnr
+  $sql = 'SELECT name, score FROM {quiz_results} qnr
     LEFT JOIN {users} u ON (u.uid = qnr.uid)
     WHERE vid = :vid';
   $arg[':vid'] = $vid;
@@ -181,7 +181,7 @@ function _get_quiz_status_chart($vid, $uid = 0) {
     return;
   }
   // get the count value of results row above and below pass rate
-  $quiz = db_query("SELECT SUM(score >= $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(is_evaluated = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = :vid", array(':vid' => $vid))
+  $quiz = db_query("SELECT SUM(score >= $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(is_evaluated = 0) AS no_incomplete FROM {quiz_results} WHERE vid = :vid", array(':vid' => $vid))
     ->fetchAssoc();
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 1) {
     return FALSE; // no sufficient data
@@ -213,7 +213,7 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
   $takeup = array();
   $sql = "SELECT COUNT(result_id) AS count,
             DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
-            FROM {quiz_node_results}
+            FROM {quiz_results}
             WHERE vid = :vid";
   $sql_args[':vid'] = $vid;
   if ($uid != 0) {
@@ -263,7 +263,7 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
  *   been attended, can be filtered by uid.
  */
 function _quiz_get_attempt_count($nid, $uid = 0) {
-  $sql = 'SELECT COUNT(result_id) FROM {quiz_node_results} WHERE nid = :nid';
+  $sql = 'SELECT COUNT(result_id) FROM {quiz_results} WHERE nid = :nid';
   $arg[':nid'] = $nid;
   if ($uid != 0) {
     $sql .= ' AND uid = :uid';

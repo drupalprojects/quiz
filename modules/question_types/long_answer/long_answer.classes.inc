@@ -207,7 +207,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
     $query->join('node_revision', 'r', 'a.question_vid = r.vid');
-    $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
+    $query->join('quiz_results', 'qnr', 'a.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');
     $query->condition('a.is_evaluated', 0);
     if (user_access('score own quiz') && user_access('score taken quiz answer')) {

@@ -22,13 +22,13 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
   var $secondary_tables = array(
     'none' => array(
       'secondary_group_by' => 'nid',
-      'secondary_table' => 'quiz_node_results',
+      'secondary_table' => 'quiz_results',
       'secondary_vid' => 'vid',
       'secondary_nid' => 'nid',
     ),
     'results' => array(
       'secondary_group_by' => 'uid',
-      'secondary_table' => 'quiz_node_results',
+      'secondary_table' => 'quiz_results',
       'secondary_vid' => 'vid',
       'secondary_nid' => 'nid',
     ),

@@ -84,7 +84,7 @@ $handler->display->display_options['fields']['takes']['table'] = 'quiz_node_prop
 $handler->display->display_options['fields']['takes']['field'] = 'takes';
 /* Contextual filter: Quiz Results: User */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
-$handler->display->display_options['arguments']['uid']['table'] = 'quiz_node_results';
+$handler->display->display_options['arguments']['uid']['table'] = 'quiz_results';
 $handler->display->display_options['arguments']['uid']['field'] = 'uid';
 $handler->display->display_options['arguments']['uid']['default_action'] = 'not found';
 $handler->display->display_options['arguments']['uid']['exception']['title_enable'] = TRUE;

@@ -9,14 +9,14 @@ class HookEntityInfo {
       'quiz_result'                => array(
         'label'                  => t('Quiz result'),
         'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_node_results',
+        'base table'             => 'quiz_results',
         'entity keys'            => array('id' => 'result_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),
       'quiz_result_answer'         => array(
         'label'                  => t('Quiz result answer'),
         'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_node_results_answers',
+        'base table'             => 'quiz_results_answers',
         'entity keys'            => array('id' => 'result_answer_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),

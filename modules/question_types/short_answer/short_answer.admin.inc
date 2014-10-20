@@ -154,7 +154,7 @@ function short_answer_score_form_validate($form, $form_state) {
  * Submit the score form
  */
 function short_answer_score_form_submit($form, &$form_state) {
-  $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetchobject();
+  $result = db_query('SELECT nid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetchobject();
   $result = short_answer_score_an_answer(array(
     'quiz' => node_load($result->nid, $result->vid),
     'nid' => $form_state['values']['question_nid'],

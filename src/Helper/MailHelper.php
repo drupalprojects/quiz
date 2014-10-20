@@ -28,7 +28,7 @@ class MailHelper {
       '!total' => $score['possible_score'],
       '!percentage' => $score['percentage_score'],
       '!url' => url("user/{$account->uid}/quiz-results/{$result_id}/view", array('absolute' => TRUE)),
-      '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_node_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $result_id))->fetchField()
+      '!minutes' => db_query("SELECT CEIL((time_end - time_start)/60) FROM {quiz_results} WHERE result_id = :result_id AND time_end", array(':result_id' => $result_id))->fetchField()
     );
     $type = $target !== 'author' ? '_taker' : '';
     $test = variable_get('quiz_email_results_body' . $type, $this->formatBody($target, $account));

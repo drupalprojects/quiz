@@ -162,7 +162,7 @@ function long_answer_score_form_validate($form, $form_state) {
  * Submit handler for the long answer score form
  */
 function long_answer_score_form_submit($form, &$form_state) {
-  $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetch();
+  $result = db_query('SELECT nid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetch();
 
   $result = long_answer_score_an_answer(array(
     'quiz' => node_load($result->nid, $result->vid),

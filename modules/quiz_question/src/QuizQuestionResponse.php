@@ -39,7 +39,7 @@ abstract class QuizQuestionResponse {
     $this->question = $question_node;
     $this->quizQuestion = _quiz_question_get_instance($question_node);
     $this->answer = $answer;
-    $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
+    $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_results_answers}
             WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetch();
     if (is_object($result)) {
       $this->is_doubtful = $result->is_doubtful;

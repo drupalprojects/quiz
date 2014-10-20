@@ -93,7 +93,7 @@ function quiz_views_data_alter(&$data) {
     ),
   );
 
-  $data['quiz_node_results']['table']['join'] = array(
+  $data['quiz_results']['table']['join'] = array(
     // This is vid because vid is always more specific.
     'node' => array(
       'left_field' => 'vid',
@@ -126,12 +126,12 @@ function quiz_views_data_alter(&$data) {
     ),
   );
 
-  $data['quiz_node_results_answers']['table']['join'] = array(
+  $data['quiz_results_answers']['table']['join'] = array(
     'quiz_node_properties' => array(
       'left_table' => 'quiz_relationship',
       'left_field' => 'child_nid',
       'field' => 'question_nid',
-      'extra' => 'quiz_node_results_answers.result_id = quiz_node_results.result_id',
+      'extra' => 'quiz_results_answers.result_id = quiz_results.result_id',
     ),
   );
 

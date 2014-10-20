@@ -57,7 +57,7 @@ $handler->display->display_options['style_options']['info'] = array(
 );
 /* Relationship: Quiz Results: Quiz Node VID */
 $handler->display->display_options['relationships']['vid']['id'] = 'vid';
-$handler->display->display_options['relationships']['vid']['table'] = 'quiz_node_results';
+$handler->display->display_options['relationships']['vid']['table'] = 'quiz_results';
 $handler->display->display_options['relationships']['vid']['field'] = 'vid';
 $handler->display->display_options['relationships']['vid']['label'] = 'quiz revision';
 $handler->display->display_options['relationships']['vid']['required'] = TRUE;
@@ -68,24 +68,24 @@ $handler->display->display_options['fields']['title']['field'] = 'title';
 $handler->display->display_options['fields']['title']['relationship'] = 'vid';
 /* Field: Quiz Results: Score */
 $handler->display->display_options['fields']['score']['id'] = 'score';
-$handler->display->display_options['fields']['score']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['score']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['score']['field'] = 'score';
 /* Field: Quiz Results: Quiz Start Time */
 $handler->display->display_options['fields']['time_start']['id'] = 'time_start';
-$handler->display->display_options['fields']['time_start']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_start']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['time_start']['field'] = 'time_start';
 $handler->display->display_options['fields']['time_start']['label'] = 'Quiz Start Time.';
 /* Field: Quiz Results: Quiz End Time */
 $handler->display->display_options['fields']['time_end']['id'] = 'time_end';
-$handler->display->display_options['fields']['time_end']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_end']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['time_end']['field'] = 'time_end';
 /* Field: Quiz Results: Quiz State */
 $handler->display->display_options['fields']['quiz_state']['id'] = 'quiz_state';
-$handler->display->display_options['fields']['quiz_state']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['quiz_state']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['quiz_state']['field'] = 'quiz_state';
 /* Contextual filter: Quiz Results: User */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
-$handler->display->display_options['arguments']['uid']['table'] = 'quiz_node_results';
+$handler->display->display_options['arguments']['uid']['table'] = 'quiz_results';
 $handler->display->display_options['arguments']['uid']['field'] = 'uid';
 $handler->display->display_options['arguments']['uid']['default_action'] = 'not found';
 $handler->display->display_options['arguments']['uid']['exception']['title_enable'] = TRUE;

@@ -16,7 +16,7 @@ class QuizResultController {
    */
   public static function staticCallback($quiz, $result_id) {
     // Make sure we have the right version of the quiz
-    $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
+    $result = db_query('SELECT vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
     if ($quiz->vid != $result->vid) {
       $quiz = node_load($quiz->nid, $result->vid);
     }

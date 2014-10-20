@@ -93,7 +93,7 @@ class QuizAnsweringForm extends QuestionHelper {
           ),
         );
         if (isset($node->result_id)) {
-          $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->result_id, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
+          $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->result_id, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
         }
       }
     }

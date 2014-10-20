@@ -669,11 +669,11 @@ class QuizHelper {
           FROM {node} n
           JOIN {quiz_node_properties} p
           ON n.vid = p.vid
-          LEFT OUTER JOIN {quiz_node_results} r
+          LEFT OUTER JOIN {quiz_results} r
           ON r.nid = n.nid AND r.uid = :uid
           LEFT OUTER JOIN (
             SELECT nid, max(score) as highest_score
-            FROM {quiz_node_results}
+            FROM {quiz_results}
             GROUP BY nid
           ) rm
           ON n.nid = rm.nid AND r.score = rm.highest_score
@@ -736,7 +736,7 @@ class QuizHelper {
       $result->score = $result->is_correct ? 1 : 0;
     }
 
-    // Points are stored pre-scaled in the quiz_node_results_answers table. We get the scale.
+    // Points are stored pre-scaled in the quiz_results_answers table. We get the scale.
     if ($quiz->randomization < 2) {
       $scale = db_query("SELECT (max_score / (
                   SELECT max_score
@@ -777,7 +777,7 @@ class QuizHelper {
     $points = round($result->score * $scale);
     // Insert result data, or update existing data.
     $result_answer_id = db_query("SELECT result_answer_id
-              FROM {quiz_node_results_answers}
+              FROM {quiz_results_answers}
               WHERE question_nid = :question_nid
               AND question_vid = :question_vid
               AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
@@ -838,16 +838,16 @@ class QuizHelper {
 
     $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $vids, ':max_score' => 0))->fetchCol();
     if (!empty($results_to_update)) {
-      db_update('quiz_node_results')
+      db_update('quiz_results')
         ->expression('score', 'ROUND(
         100 * (
           SELECT COALESCE (SUM(a.points_awarded), 0)
-          FROM {quiz_node_results_answers} a
-          WHERE a.result_id = {quiz_node_results}.result_id
+          FROM {quiz_results_answers} a
+          WHERE a.result_id = {quiz_results}.result_id
         ) / (
           SELECT max_score
           FROM {quiz_node_properties} qnp
-          WHERE qnp.vid = {quiz_node_results}.vid
+          WHERE qnp.vid = {quiz_results}.vid
         )
       )')
         ->condition('vid', $results_to_update, 'IN')
@@ -901,7 +901,7 @@ class QuizHelper {
    *   The version ID.
    */
   public function isPassed($uid, $nid, $vid) {
-    $passed = db_query('SELECT COUNT(result_id) AS passed_count FROM {quiz_node_results} qnrs
+    $passed = db_query('SELECT COUNT(result_id) AS passed_count FROM {quiz_results} qnrs
     INNER JOIN {quiz_node_properties} USING (vid, nid)
     WHERE qnrs.vid = :vid
       AND qnrs.nid = :nid
@@ -922,7 +922,7 @@ class QuizHelper {
     if (!isset($node->nid)) {
       return FALSE;
     }
-    $query = db_select('quiz_node_results', 'qnr');
+    $query = db_select('quiz_results', 'qnr');
     $query->addField('qnr', 'result_id');
     $query->condition('nid', $node->nid);
     $query->condition('vid', $node->vid);

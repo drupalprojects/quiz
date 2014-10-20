@@ -4,7 +4,7 @@ $view = new view();
 $view->name = 'quiz_user_results';
 $view->description = '';
 $view->tag = 'default';
-$view->base_table = 'quiz_node_results';
+$view->base_table = 'quiz_results';
 $view->human_name = 'quiz_results';
 $view->core = 7;
 $view->api_version = '3.0';
@@ -31,31 +31,31 @@ $handler->display->display_options['empty']['area']['content'] = 'There are no a
 $handler->display->display_options['empty']['area']['format'] = 'filtered_html';
 /* Relationship: Quiz result: Uid */
 $handler->display->display_options['relationships']['uid']['id'] = 'uid';
-$handler->display->display_options['relationships']['uid']['table'] = 'quiz_node_results';
+$handler->display->display_options['relationships']['uid']['table'] = 'quiz_results';
 $handler->display->display_options['relationships']['uid']['field'] = 'uid';
 /* Field: Quiz result: Date started */
 $handler->display->display_options['fields']['time_start']['id'] = 'time_start';
-$handler->display->display_options['fields']['time_start']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_start']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['time_start']['field'] = 'time_start';
 $handler->display->display_options['fields']['time_start']['date_format'] = 'short';
 /* Field: Quiz result: Date finished */
 $handler->display->display_options['fields']['time_end']['id'] = 'time_end';
-$handler->display->display_options['fields']['time_end']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_end']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['time_end']['field'] = 'time_end';
 $handler->display->display_options['fields']['time_end']['date_format'] = 'short';
 /* Field: Quiz result: Score */
 $handler->display->display_options['fields']['score']['id'] = 'score';
-$handler->display->display_options['fields']['score']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['score']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['score']['field'] = 'score';
 /* Field: Quiz result: Nid */
 $handler->display->display_options['fields']['nid']['id'] = 'nid';
-$handler->display->display_options['fields']['nid']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['nid']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['nid']['field'] = 'nid';
 $handler->display->display_options['fields']['nid']['exclude'] = TRUE;
 $handler->display->display_options['fields']['nid']['separator'] = '';
 /* Field: Quiz result: Quiz result ID */
 $handler->display->display_options['fields']['result_id']['id'] = 'result_id';
-$handler->display->display_options['fields']['result_id']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['result_id']['table'] = 'quiz_results';
 $handler->display->display_options['fields']['result_id']['field'] = 'result_id';
 $handler->display->display_options['fields']['result_id']['exclude'] = TRUE;
 /* Field: Global: Custom text */
@@ -68,7 +68,7 @@ $handler->display->display_options['fields']['nothing']['alter']['make_link'] = 
 $handler->display->display_options['fields']['nothing']['alter']['path'] = 'node/[nid]/quiz-results/[result_id]/view';
 /* Contextual filter: Quiz result: Nid */
 $handler->display->display_options['arguments']['nid']['id'] = 'nid';
-$handler->display->display_options['arguments']['nid']['table'] = 'quiz_node_results';
+$handler->display->display_options['arguments']['nid']['table'] = 'quiz_results';
 $handler->display->display_options['arguments']['nid']['field'] = 'nid';
 $handler->display->display_options['arguments']['nid']['default_action'] = 'access denied';
 $handler->display->display_options['arguments']['nid']['default_argument_type'] = 'fixed';
@@ -84,7 +84,7 @@ $handler->display->display_options['arguments']['nid']['validate_options']['acce
 $handler->display->display_options['arguments']['nid']['validate_options']['access_op'] = 'update';
 /* Contextual filter: Quiz result: Uid */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
-$handler->display->display_options['arguments']['uid']['table'] = 'quiz_node_results';
+$handler->display->display_options['arguments']['uid']['table'] = 'quiz_results';
 $handler->display->display_options['arguments']['uid']['field'] = 'uid';
 $handler->display->display_options['arguments']['uid']['default_action'] = 'default';
 $handler->display->display_options['arguments']['uid']['default_argument_type'] = 'current_user';
@@ -95,7 +95,7 @@ $handler->display->display_options['arguments']['uid']['specify_validation'] = T
 $handler->display->display_options['arguments']['uid']['validate']['type'] = 'user';
 /* Filter criterion: Quiz result: Evaluated */
 $handler->display->display_options['filters']['is_evaluated']['id'] = 'is_evaluated';
-$handler->display->display_options['filters']['is_evaluated']['table'] = 'quiz_node_results';
+$handler->display->display_options['filters']['is_evaluated']['table'] = 'quiz_results';
 $handler->display->display_options['filters']['is_evaluated']['field'] = 'is_evaluated';
 $handler->display->display_options['filters']['is_evaluated']['value'] = '1';
 
@@ -116,7 +116,7 @@ $handler = $view->new_display('page', 'Page', 'page_1');
 $handler->display->display_options['defaults']['arguments'] = FALSE;
 /* Contextual filter: Quiz result: Uid */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
-$handler->display->display_options['arguments']['uid']['table'] = 'quiz_node_results';
+$handler->display->display_options['arguments']['uid']['table'] = 'quiz_results';
 $handler->display->display_options['arguments']['uid']['field'] = 'uid';
 $handler->display->display_options['arguments']['uid']['default_action'] = 'default';
 $handler->display->display_options['arguments']['uid']['default_argument_type'] = 'current_user';
