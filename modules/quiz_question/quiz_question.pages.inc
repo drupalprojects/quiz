@@ -208,11 +208,11 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
 
       $res = db_query('SELECT weight, question_status FROM {quiz_node_relationship}
-              WHERE parent_nid = :parent_nid AND parent_vid = :parent_vid AND child_nid = :child_nid', array(':parent_nid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
+              WHERE quiz_qid = :quiz_qid AND parent_vid = :parent_vid AND child_nid = :child_nid', array(':quiz_qid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
       if ($res_o = $res->fetch()) {
         // Remove old revsions of the question from the quiz
         db_delete('quiz_node_relationship')
-          ->condition('parent_nid', $quiz_nid)
+          ->condition('quiz_qid', $quiz_nid)
           ->condition('parent_vid', $quiz_vid)
           ->condition('child_nid', $form_state['values']['q_nid'])
           ->execute();
@@ -232,7 +232,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
       // Insert the newest revision of the question into the quiz
       $entity = (object) array(
-          'parent_nid' => $quiz_nid,
+          'quiz_qid' => $quiz_nid,
           'parent_vid' => $quiz_vid,
           'child_nid' => $form_state['values']['q_nid'],
           'child_vid' => $form_state['values']['q_vid'],

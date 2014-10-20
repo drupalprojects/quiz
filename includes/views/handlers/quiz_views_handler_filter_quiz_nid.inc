@@ -36,7 +36,7 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
       'secondary_group_by' => 'child_nid',
       'secondary_table' => 'quiz_node_relationship',
       'secondary_vid' => 'parent_vid',
-      'secondary_nid' => 'parent_nid',
+      'secondary_nid' => 'quiz_qid',
     ),
   );
 

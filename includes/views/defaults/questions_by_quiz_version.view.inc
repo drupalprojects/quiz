@@ -22,13 +22,13 @@ $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['grouping'] = 'parent_vid';
 $handler->display->display_options['style_options']['columns'] = array(
-  'timestamp' => 'parent_nid',
+  'timestamp' => 'quiz_qid',
   'title' => 'title',
   'type' => 'type',
   'child_nid' => 'child_nid',
   'child_vid' => 'child_vid',
   'question_status' => 'question_status',
-  'parent_nid' => 'timestamp',
+  'quiz_qid' => 'timestamp',
   'parent_vid' => 'parent_vid',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
@@ -57,7 +57,7 @@ $handler->display->display_options['style_options']['info'] = array(
     'sortable' => 0,
     'separator' => '',
   ),
-  'parent_nid' => array(
+  'quiz_qid' => array(
     'sortable' => 0,
     'separator' => '',
   ),
@@ -78,10 +78,10 @@ $handler->display->display_options['relationships']['child_vid']['table'] = 'qui
 $handler->display->display_options['relationships']['child_vid']['field'] = 'child_vid';
 $handler->display->display_options['relationships']['child_vid']['label'] = 'question node revision';
 /* Field: Quiz Questions: Quiz Node ID */
-$handler->display->display_options['fields']['parent_nid']['id'] = 'parent_nid';
-$handler->display->display_options['fields']['parent_nid']['table'] = 'quiz_node_relationship';
-$handler->display->display_options['fields']['parent_nid']['field'] = 'parent_nid';
-$handler->display->display_options['fields']['parent_nid']['separator'] = '';
+$handler->display->display_options['fields']['quiz_qid']['id'] = 'quiz_qid';
+$handler->display->display_options['fields']['quiz_qid']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['fields']['quiz_qid']['field'] = 'quiz_qid';
+$handler->display->display_options['fields']['quiz_qid']['separator'] = '';
 /* Field: Quiz Questions: Quiz Node VID */
 $handler->display->display_options['fields']['parent_vid']['id'] = 'parent_vid';
 $handler->display->display_options['fields']['parent_vid']['table'] = 'quiz_node_relationship';

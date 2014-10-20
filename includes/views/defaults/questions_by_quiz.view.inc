@@ -22,13 +22,13 @@ $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['grouping'] = 'parent_vid';
 $handler->display->display_options['style_options']['columns'] = array(
-  'timestamp' => 'parent_nid',
+  'timestamp' => 'quiz_qid',
   'title' => 'title',
   'type' => 'type',
   'child_nid' => 'child_nid',
   'child_vid' => 'child_vid',
   'question_status' => 'question_status',
-  'parent_nid' => 'timestamp',
+  'quiz_qid' => 'timestamp',
   'parent_vid' => 'parent_vid',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
@@ -57,7 +57,7 @@ $handler->display->display_options['style_options']['info'] = array(
     'sortable' => 0,
     'separator' => '',
   ),
-  'parent_nid' => array(
+  'quiz_qid' => array(
     'sortable' => 0,
     'separator' => '',
   ),

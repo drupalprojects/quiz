@@ -100,7 +100,7 @@ function quiz_entity_info_alter(&$info) {
 function quiz_entity_property_info_alter(&$info) {
   $info['quiz_question_relationship']['properties']['child_nid']['type'] = 'node';
   $info['quiz_question_relationship']['properties']['child_vid']['type'] = 'integer';
-  $info['quiz_question_relationship']['properties']['parent_nid']['type'] = 'node';
+  $info['quiz_question_relationship']['properties']['quiz_qid']['type'] = 'node';
   $info['quiz_question_relationship']['properties']['parent_vid']['type'] = 'integer';
 
   $info['quiz_result_answer']['properties']['result_id']['type'] = 'quiz_result';

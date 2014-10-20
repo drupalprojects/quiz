@@ -357,7 +357,7 @@ abstract class QuizQuestion {
 
       $nid = $this->node->nid;
 
-      $insert_values[$nid]['parent_nid'] = $quiz_node->nid;
+      $insert_values[$nid]['quiz_qid'] = $quiz_node->nid;
       $insert_values[$nid]['parent_vid'] = $quiz_node->vid;
       $insert_values[$nid]['child_nid'] = $this->node->nid;
       $insert_values[$nid]['child_vid'] = $this->node->vid;
@@ -368,7 +368,7 @@ abstract class QuizQuestion {
       $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
       $insert_qnr = db_insert('quiz_node_relationship');
-      $insert_qnr->fields(array('parent_nid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
+      $insert_qnr->fields(array('quiz_qid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
       foreach ($insert_values as $insert_value) {
         $insert_qnr->values($insert_value);
       }

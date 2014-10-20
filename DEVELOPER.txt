@@ -38,13 +38,13 @@ WHERE n.nid IS NULL
 
 # see what quizzes are deleted but still have questions
 SELECT qnr.* FROM quiz_node_relationship qnr
-LEFT JOIN node n ON qnr.parent_nid = n.nid 
+LEFT JOIN node n ON qnr.quiz_qid = n.nid 
 WHERE n.nid IS NULL
 
 # delete quizzes that are deleted but still have questions
 DELETE qnr
 FROM quiz_node_relationship qnr
-LEFT JOIN node n ON qnr.parent_nid = n.nid 
+LEFT JOIN node n ON qnr.quiz_qid = n.nid 
 WHERE n.nid IS NULL
 
 # see what revisions are stored for nodes that are deleted

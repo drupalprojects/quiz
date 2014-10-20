@@ -18,7 +18,7 @@ class NodeDeleteHelper {
       ->execute();
     // Remove quiz node records from table quiz_node_relationship
     db_delete('quiz_node_relationship')
-      ->condition('parent_nid', $node->nid)
+      ->condition('quiz_qid', $node->nid)
       ->execute();
     // Remove quiz node records from table quiz_node_results
     db_delete('quiz_node_results')

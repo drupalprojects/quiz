@@ -185,7 +185,7 @@ class QuizHelper {
     $query->join('node_revision', 'nr', 'n.nid = nr.nid');
     $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
     $query->condition('n.status', 1);
-    $query->condition('qnr.parent_nid', $quiz_nid);
+    $query->condition('qnr.quiz_qid', $quiz_nid);
     if ($quiz_vid) {
       $query->condition('qnr.parent_vid', $quiz_vid);
     }
@@ -259,12 +259,12 @@ class QuizHelper {
         FROM {quiz_node_relationship} qnr
         JOIN {node} n on qnr.child_nid = n.nid
         WHERE qnr.parent_vid = :parent_vid
-        AND qnr.parent_nid = :parent_nid
+        AND qnr.quiz_qid = :quiz_qid
         AND qnr.question_status = :question_status
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
           ':parent_vid'      => $quiz->vid,
-          ':parent_nid'      => $quiz->nid,
+          ':quiz_qid'      => $quiz->nid,
           ':question_status' => QUESTION_RANDOM
           )
         );
@@ -356,7 +356,7 @@ class QuizHelper {
     // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
     // So we go with the brute force method:
     db_delete('quiz_node_relationship')
-      ->condition('parent_nid', $quiz->nid)
+      ->condition('quiz_qid', $quiz->nid)
       ->condition('parent_vid', $quiz->vid)
       ->execute();
 
@@ -367,7 +367,7 @@ class QuizHelper {
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qnr_id] = array(
-          'parent_nid'            => $quiz->nid,
+          'quiz_qid'            => $quiz->nid,
           'parent_vid'            => $quiz->vid,
           'child_nid'             => $question->nid,
           // Update to latest OR use the version given.
@@ -390,7 +390,7 @@ class QuizHelper {
       db_update('quiz_node_relationship')
         ->condition('qnr_pid', $question_insert['old_qnr_id'])
         ->condition('parent_vid', $quiz->vid)
-        ->condition('parent_nid', $quiz->nid)
+        ->condition('quiz_qid', $quiz->nid)
         ->fields(array('qnr_pid' => $question_insert['qnr_id']))
         ->execute();
     }
@@ -608,7 +608,7 @@ class QuizHelper {
       // Save the relationship between the new question and the quiz.
       db_insert('quiz_node_relationship')
         ->fields(array(
-          'parent_nid'            => $node->nid,
+          'quiz_qid'            => $node->nid,
           'parent_vid'            => $node->vid,
           'child_nid'             => $original_question->nid,
           'child_vid'             => $original_question->vid,
@@ -744,11 +744,11 @@ class QuizHelper {
                   WHERE nid = :nid AND vid = :vid
                 )) as scale
                 FROM {quiz_node_relationship}
-                WHERE parent_nid = :parent_nid
+                WHERE quiz_qid = :quiz_qid
                 AND parent_vid = :parent_vid
                 AND child_nid = :child_nid
                 AND child_vid = :child_vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':parent_nid' => $quiz->nid, ':parent_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
+               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':parent_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
     }
     elseif ($quiz->randomization == 2) {
       $scale = db_query("SELECT (max_score_for_random / (

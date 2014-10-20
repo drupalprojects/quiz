@@ -455,7 +455,7 @@ function quiz_schema() {
     'fields'      => array(
       'qnr_id'                => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
       'qnr_pid'               => array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL),
-      'parent_nid'            => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'quiz_qid'            => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'parent_vid'            => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'child_nid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'child_vid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -466,7 +466,7 @@ function quiz_schema() {
     ),
     'primary key' => array('qnr_id'),
     'unique keys' => array(
-      'parent_child' => array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'),
+      'parent_child' => array('quiz_qid', 'parent_vid', 'child_nid', 'child_vid'),
     ),
     'indexes'     => array(
       'parent_id' => array('parent_vid'),
@@ -895,7 +895,7 @@ function quiz_update_7501() {
  */
 function quiz_update_7502() {
   db_drop_primary_key('quiz_node_relationship');
-  db_add_unique_key('quiz_node_relationship', 'parent_child', array('parent_nid', 'parent_vid', 'child_nid', 'child_vid'));
+  db_add_unique_key('quiz_node_relationship', 'parent_child', array('quiz_qid', 'parent_vid', 'child_nid', 'child_vid'));
   $spec = array(
     'type'     => 'serial',
     'size'     => 'normal',

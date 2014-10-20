@@ -53,8 +53,8 @@ class NodeUpdateHelper extends NodeHelper {
   private function updateQuestionRelationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
     // query for questions in previous version
     $result = db_select('quiz_node_relationship', 'qnr')
-      ->fields('qnr', array('parent_nid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
-      ->condition('parent_nid', $quiz_nid)
+      ->fields('qnr', array('quiz_qid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
+      ->condition('quiz_qid', $quiz_nid)
       ->condition('parent_vid', $old_quiz_vid)
       ->condition('question_status', QUESTION_NEVER, '!=')
       ->execute();
@@ -64,7 +64,7 @@ class NodeUpdateHelper extends NodeHelper {
       $questions = $result->fetchAll(PDO::FETCH_ASSOC);
       foreach ($questions as &$quiz_question) {
         $quiz_question['old_qnr_id'] = $quiz_question['qnr_id'];
-        $quiz_question['parent_nid'] = $quiz_nid;
+        $quiz_question['quiz_qid'] = $quiz_nid;
         $quiz_question['parent_vid'] = $new_quiz_vid;
         unset($quiz_question['qnr_id']);
         drupal_write_record('quiz_node_relationship', $quiz_question);
@@ -75,7 +75,7 @@ class NodeUpdateHelper extends NodeHelper {
       foreach ($questions as $question) {
         db_update('quiz_node_relationship')
           ->condition('qnr_pid', $question['old_qnr_id'])
-          ->condition('parent_nid', $quiz_nid)
+          ->condition('quiz_qid', $quiz_nid)
           ->condition('parent_vid', $new_quiz_vid)
           ->fields(array('qnr_pid' => $question['qnr_id']))
           ->execute();
