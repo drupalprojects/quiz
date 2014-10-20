@@ -297,8 +297,8 @@ function quiz_menu_local_tasks_alter(&$data, $router_item, $root_path) {
 function quiz_theme($existing, $type, $theme, $path) {
   return array(
     'quiz_view_stats'          => array(
-      'variables' => array('node' => NULL),
-      'file'      => 'quiz.pages.inc',
+      'variables' => array('quiz' => NULL),
+      'file'      => 'quiz.pages.inc'
     ),
     'quiz_categorized_form'    => array(
       'render element' => 'form',

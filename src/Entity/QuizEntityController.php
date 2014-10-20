@@ -12,7 +12,7 @@ class QuizEntityController extends EntityAPIController {
     // Render Stats
     if ($extra_fields['stats']['visible']) {
       $content['quiz_entity'][$entity->qid]['stats'] = array(
-        '#markup' => @theme('quiz_view_stats', array('node' => $entity)),
+        '#markup' => theme('quiz_view_stats', array('quiz' => $entity)),
         '#weight' => $extra_fields['stats']['weight'],
       );
     }

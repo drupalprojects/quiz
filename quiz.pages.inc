@@ -74,65 +74,45 @@ function theme_quiz_no_feedback() {
 
 /**
  * Theme the stats on the views page
- *
- * @param $node
- *   The quiz node
  */
 function theme_quiz_view_stats($variables) {
-  $node = $variables['node'];
+  $quiz = $variables['quiz'];
+
   // Fetch data
-  $stats = array(
-    array(
-      'title' => t('Questions'),
-      'data'  => $node->number_of_questions,
-    ),
-  );
-  if ($node->show_attempt_stats) {
-    $takes = $node->takes == 0 ? t('Unlimited') : $node->takes;
-    $stats[] = array(
-      'title' => t('Attempts allowed'),
-      'data'  => $takes,
-    );
+  $stats[] = array('title' => t('Questions'), 'data' => isset($quiz->number_of_questions) ? $quiz->number_of_questions : 0);
+
+  if ($quiz->show_attempt_stats) {
+    $takes = $quiz->takes == 0 ? t('Unlimited') : $quiz->takes;
+    $stats[] = array('title' => t('Attempts allowed'), 'data' => $takes);
   }
-  if ($node->quiz_always) {
-    $stats[] = array(
-      'title' => t('Available'),
-      'data'  => t('Always'),
-    );
+
+  if ($quiz->quiz_always) {
+    $stats[] = array('title' => t('Available'), 'data' => t('Always'));
   }
   else {
-    $stats[] = array(
-      'title' => t('Opens'),
-      'data'  => format_date($node->quiz_open, 'short'),
-    );
-    $stats[] = array(
-      'title' => t('Closes'),
-      'data'  => format_date($node->quiz_close, 'short'),
-    );
+    $stats[] = array('title' => t('Opens'), 'data' => format_date($quiz->quiz_open, 'short'));
+    $stats[] = array('title' => t('Closes'), 'data' => format_date($quiz->quiz_close, 'short'));
   }
-  if (!empty($node->pass_rate)) {
-    $stats[] = array(
-      'title' => t('Pass rate'),
-      'data'  => $node->pass_rate . ' %',
-    );
+
+  if (!empty($quiz->pass_rate)) {
+    $stats[] = array('title' => t('Pass rate'), 'data' => $quiz->pass_rate . ' %');
   }
-  if (!empty($node->time_limit)) {
-    $stats[] = array(
-      'title' => t('Time limit'),
-      'data'  => quiz()->formatDuration($node->time_limit),
-    );
+
+  if (!empty($quiz->time_limit)) {
+    $stats[] = array('title' => t('Time limit'), 'data' => quiz()->formatDuration($quiz->time_limit));
   }
-  $stats[] = array(
-    'title' => t('Backwards navigation'),
-    'data'  => $node->backwards_navigation ? t('Allowed') : t('Forbidden'),
-  );
+
+  $stats[] = array('title' => t('Backwards navigation'), 'data' => $quiz->backwards_navigation ? t('Allowed') : t('Forbidden'));
+
   // Format and output the data
-  $out = '<table id="quiz-view-table">' . "\n";
+  $table = '';
   foreach ($stats as $stat) {
-    $out .= '<tr><td class="quiz-view-table-title"><strong>' . $stat['title'] . ':</strong></td><td class="quiz-view-table-data"><em>' . $stat['data'] . '</em></td></tr>' . "\n";
+    $table .= '<tr>'
+      . '<td class="quiz-view-table-title"><strong>' . $stat['title'] . ':</strong></td>'
+      . '<td class="quiz-view-table-data"><em>' . $stat['data'] . '</em></td>'
+      . '</tr>';
   }
-  $out .= '</table>' . "\n";
-  return $out;
+  return '<table id="quiz-view-table">' . $table . '</table>';
 }
 
 /**

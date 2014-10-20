@@ -12,7 +12,7 @@ class NodeViewHelper {
     $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
 
     $node->content['stats'] = array(
-      '#markup' => theme('quiz_view_stats', array('node' => $node)),
+      '#markup' => theme('quiz_view_stats', array('quiz' => $node)),
       '#weight' => -1,
     );
 
