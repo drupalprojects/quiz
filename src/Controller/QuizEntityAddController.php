@@ -5,16 +5,16 @@ namespace Drupal\quiz\Controller;
 class QuizEntityAddController {
 
   /**
-   * @TODO Add QuizType.description.
-   * @TODO Add quiz type description at /quiz/add
    * @TODO Only list quiz type if user has permission to create it.
    */
   public static function staticCallback() {
     $output = '<ul class="admin-list quiz-type-list">';
-    foreach (quiz_get_types() as $name => $info) {
+    foreach (quiz_get_types() as $name => $quiz_type) {
       $output .= '<li>';
-      $output .= '<span class="label">' . l($info->label, "quiz/add/{$name}") . '</span>';
-      $output .= '<div class="description">…</div>';
+      $output .= '<span class="label">' . l($quiz_type->label, "quiz/add/{$name}") . '</span>';
+      if (!empty($quiz_type->description)) {
+        $output .= '<div class="description">' . $quiz_type->description . '</div>';
+      }
       $output .= '</li>';
     }
     $output .= '</ul>';
