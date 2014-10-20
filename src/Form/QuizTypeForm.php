@@ -11,12 +11,19 @@ class QuizTypeForm {
     }
 
     $form['label'] = array(
-      '#title'         => t('Label'),
       '#type'          => 'textfield',
+      '#title'         => t('Label'),
       '#default_value' => $quiz_type->label,
       '#description'   => t('The human-readable name of this !quiz type.', array('!quiz' => QUIZ_NAME)),
       '#required'      => TRUE,
       '#size'          => 30,
+    );
+
+    $form['description'] = array(
+      '#type'          => 'textarea',
+      '#title'         => t('Description'),
+      '#description'   => t('Describe this !quiz type. The text will be displayed on the Add new !quiz page.', array('!quiz' => QUIZ_NAME)),
+      '#default_value' => $quiz_type->description,
     );
 
     // Machine-readable type name.
@@ -55,6 +62,7 @@ class QuizTypeForm {
    */
   function submit(&$form, &$form_state) {
     $quiz_type = entity_ui_form_submit_build_entity($form, $form_state);
+    $quiz_type->description = filter_xss_admin($quiz_type->description);
     $quiz_type->save();
     $form_state['redirect'] = 'admin/structure/quiz';
   }
