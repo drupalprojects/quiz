@@ -481,7 +481,7 @@ function quiz_load($nodes) {
   }
 
   // Fetching result options.
-  $query = db_select('quiz_node_result_options', 'qnro');
+  $query = db_select('quiz_result_options', 'qnro');
   $query->fields('qnro');
   $query->condition('vid', $vids);
   $options = $query->execute();

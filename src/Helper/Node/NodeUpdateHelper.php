@@ -33,7 +33,7 @@ class NodeUpdateHelper extends NodeHelper {
    */
   private function updateResultOptions($quiz) {
     // Brute force method. Easier to get correct, and probably faster as well.
-    db_delete('quiz_node_result_options')
+    db_delete('quiz_result_options')
       ->condition('vid', $quiz->vid)
       ->execute();
     $this->insertResultOptions($quiz);

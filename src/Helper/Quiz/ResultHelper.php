@@ -389,7 +389,7 @@ class ResultHelper {
    *   Summary text for the user's score.
    */
   private function pickResultOption($qnid, $qvid, $score) {
-    return db_query('SELECT option_summary, option_summary_format FROM {quiz_node_result_options}
+    return db_query('SELECT option_summary, option_summary_format FROM {quiz_result_options}
       WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
       )->fetch();
   }

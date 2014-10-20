@@ -121,7 +121,7 @@ class QuizAdminController {
           $settings[$key] = $value;
         }
       }
-      $settings['resultoptions'][] = db_select('quiz_node_result_options', 'qnro')
+      $settings['resultoptions'][] = db_select('quiz_result_options', 'qnro')
         ->fields('qnro')
         ->condition('nid', $res['nid'])
         ->condition('vid', $res['vid'])

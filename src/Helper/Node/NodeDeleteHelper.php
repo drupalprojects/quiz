@@ -24,8 +24,8 @@ class NodeDeleteHelper {
     db_delete('quiz_results')
       ->condition('nid', $node->nid)
       ->execute();
-    // Remove quiz node records from table quiz_node_result_options
-    db_delete('quiz_node_result_options')
+    // Remove quiz node records from table quiz_result_options
+    db_delete('quiz_result_options')
       ->condition('nid', $node->nid)
       ->execute();
   }

@@ -17,7 +17,7 @@ abstract class NodeHelper {
       return;
     }
 
-    $query = db_insert('quiz_node_result_options')
+    $query = db_insert('quiz_result_options')
       ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
 
     foreach ($quiz->resultoptions as $id => $option) {
