@@ -44,6 +44,7 @@ class HookEntityInfo {
       'description'               => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
       'entity class'              => 'Drupal\quiz\Entity\QuizEntity',
       'metadata controller class' => 'Drupal\quiz\Entity\QuizEntityMetadataController',
+      'views controller class'    => 'Drupal\quiz\Entity\QuizViewsController',
       'base table'                => 'quiz_entity',
       'revision table'            => 'quiz_entity_revision',
       'fieldable'                 => TRUE,
@@ -53,7 +54,7 @@ class HookEntityInfo {
       'label callback'            => 'entity_class_label',
       'uri callback'              => 'entity_class_uri',
       'module'                    => 'quiz',
-      'bundles'                   => array(), # 'views controller class' => 'EntityDefaultViewsController',
+      'bundles'                   => array(),
       'view modes'                => array(
         'question' => array('label' => t('Question'), 'custom settings' => TRUE),
       ),
