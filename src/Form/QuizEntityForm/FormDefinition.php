@@ -55,6 +55,14 @@ class FormDefinition extends FormHelper {
       'submit'  => array('#type' => 'submit', '#value' => t('Save')),
     );
 
+    if (!empty($this->quiz->qid)) {
+      $form['actions']['delete'] = array(
+        '#type'   => 'submit',
+        '#value'  => t('Delete'),
+        '#suffix' => l(t('Cancel'), 'admin' === arg(0) ? 'admin/content/quiz' : 'quiz/' . $this->quiz->qid),
+      );
+    }
+
     // Provides details in vertical tabs.
     $form['vtabs'] = array('#type' => 'vertical_tabs');
     $this->defineTakingOptions($form);

@@ -36,8 +36,14 @@ class QuizEntityForm {
   }
 
   public function validate($form, &$form_state) {
-    $validator = new FormValidation($form, $form_state);
-    return $validator->validate();
+    if (t('Delete') === $form_state['clicked_button']['#value']) {
+      $path = 'admin' === arg(0) ? 'admin/content/quiz/manage/' . $this->quiz->qid . '/delete' : 'quiz/' . $this->quiz->qid . '/delete';
+      drupal_goto($path);
+    }
+    else {
+      $validator = new FormValidation($form, $form_state);
+      return $validator->validate();
+    }
   }
 
   public function submit($form, &$form_state) {
@@ -67,7 +73,7 @@ class QuizEntityForm {
       $this->remeberSettings();
     }
 
-    $form_state['redirect'] = 'admin' === arg(0) ? 'admin/content/quiz' : 'quiz/' . $this->quiz->qid;
+    $form_state['redirect'] = ('admin' === arg(0)) ? 'admin/content/quiz' : 'quiz/' . $quiz->qid;
   }
 
   private function remeberSettings() {
