@@ -13,6 +13,10 @@ class HookFieldExtraFields {
     if ($types = quiz_get_types()) {
       foreach (array_keys($types) as $name) {
         $extra['quiz_entity'][$name] = $extra['node']['quiz'];
+        $extra['quiz_entity'][$name]['form']['quiz_help'] = array(
+          'label'  => t('Explanation or submission guidelines'),
+          'weight' => -25,
+        );
       }
     }
 

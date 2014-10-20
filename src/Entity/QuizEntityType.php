@@ -9,6 +9,7 @@ class QuizEntityType extends Entity {
   public $type;
   public $label;
   public $description;
+  public $help;
   public $weight = 0;
 
   public function __construct(array $values = array()) {

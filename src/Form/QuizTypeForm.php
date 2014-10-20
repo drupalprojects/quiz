@@ -26,6 +26,13 @@ class QuizTypeForm {
       '#default_value' => $quiz_type->description,
     );
 
+    $form['help'] = array(
+      '#type'          => 'textarea',
+      '#title'         => t('Explanation or submission guidelines'),
+      '#description'   => t('This text will be displayed at the top of the page when creating or editing !quiz of this type.', array('!quiz' => QUIZ_NAME)),
+      '#default_value' => $quiz_type->help,
+    );
+
     // Machine-readable type name.
     $form['type'] = array(
       '#type'          => 'machine_name',
@@ -63,6 +70,7 @@ class QuizTypeForm {
   function submit(&$form, &$form_state) {
     $quiz_type = entity_ui_form_submit_build_entity($form, $form_state);
     $quiz_type->description = filter_xss_admin($quiz_type->description);
+    $quiz_type->help = filter_xss_admin($quiz_type->help);
     $quiz_type->save();
     $form_state['redirect'] = 'admin/structure/quiz';
   }

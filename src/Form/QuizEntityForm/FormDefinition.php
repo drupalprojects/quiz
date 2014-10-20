@@ -30,6 +30,16 @@ class FormDefinition extends FormHelper {
    * @return array
    */
   public function get($form, &$form_state, $op) {
+    $quiz_type = quiz_type_load($this->quiz->type);
+
+    if (!empty($quiz_type->help)) {
+      $form['quiz_help'] = array(
+        '#prefix' => '<div class="quiz-help">!!!',
+        '#markup' => $quiz_type->help,
+        '#suffix' => '</div>',
+      );
+    }
+
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),
