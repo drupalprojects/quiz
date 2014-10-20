@@ -57,12 +57,7 @@ function quiz_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
-      'uid'                        => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'uid'                        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,),
       'aid'                        => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'number_of_random_questions' => array(
         'type'     => 'int',
@@ -77,19 +72,8 @@ function quiz_schema() {
       'summary_pass_format'        => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       'summary_default'            => array('type' => 'text'),
       'summary_default_format'     => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
-      'randomization'              => array(
-        'type'     => 'int',
-        'size'     => 'small',
-        'not null' => TRUE,
-        'default'  => 0
-      ),
-      'backwards_navigation'       => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
+      'randomization'              => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
+      'backwards_navigation'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1),
       'keep_results'               => array(
         'type'     => 'int',
         'size'     => 'tiny',
@@ -115,40 +99,17 @@ function quiz_schema() {
         'default'  => 1,
       ),
       'time_limit'                 => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'quiz_always'                => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'not null' => TRUE,
-        'default'  => 0
-      ),
+      'quiz_always'                => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
       'tid'                        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
-      'has_userpoints'             => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 0
-      ),
+      'has_userpoints'             => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'userpoints_tid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'time_left'                  => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
       'max_score'                  => array('type' => 'int', 'not null' => TRUE, 'default' => 0,),
       'allow_skipping'             => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
       'allow_resume'               => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 1),
-      'allow_jumping'              => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => FALSE,
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'allow_jumping'              => array('type' => 'int', 'size' => 'tiny', 'unsigned' => FALSE, 'not null' => TRUE, 'default' => 0),
       'allow_change'               => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 1),
-      'show_passed'                => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => FALSE,
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
+      'show_passed'                => array('type' => 'int', 'size' => 'tiny', 'unsigned' => FALSE, 'not null' => TRUE, 'default' => 1),
       'mark_doubtful'              => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
       'review_options'             => array('type' => 'text', 'serialize' => TRUE),
     ),
@@ -475,9 +436,7 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('id'),
-    'unique keys' => array(
-      'type' => array('type'),
-    ),
+    'unique keys' => array('type' => array('type')),
   );
 
   /*
@@ -494,62 +453,16 @@ function quiz_schema() {
   $schema['quiz_node_relationship'] = array(
     'description' => 'Table storing what questions belong to what quizzes',
     'fields'      => array(
-      'qnr_id'                => array(
-        'type'     => 'serial',
-        'size'     => 'normal',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'qnr_pid'               => array(
-        'type'     => 'int',
-        'size'     => 'normal',
-        'unsigned' => TRUE,
-        'not null' => FALSE,
-        'default'  => NULL,
-      ),
-      'parent_nid'            => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'parent_vid'            => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'child_nid'             => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'child_vid'             => array(
-        'type'     => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'question_status'       => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default'  => 1,
-      ),
-      'weight'                => array(
-        'type'     => 'int',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'max_score'             => array(
-        'type'     => 'int',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
-      'auto_update_max_score' => array(
-        'type'     => 'int',
-        'size'     => 'tiny',
-        'not null' => TRUE,
-        'default'  => 0,
-      ),
+      'qnr_id'                => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
+      'qnr_pid'               => array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL),
+      'parent_nid'            => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'parent_vid'            => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'child_nid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'child_vid'             => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'question_status'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1),
+      'weight'                => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'max_score'             => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
+      'auto_update_max_score' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
     ),
     'primary key' => array('qnr_id'),
     'unique keys' => array(
