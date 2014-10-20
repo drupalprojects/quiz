@@ -89,7 +89,7 @@ class QuizAnsweringForm extends QuestionHelper {
           '#suffix'        => '</div>',
           '#default_value' => 0,
           '#attached'      => array(
-            'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
+            'js' => array(drupal_get_path('module', 'quiz') . '/js/quiz_take.js'),
           ),
         );
         if (isset($node->result_id)) {
@@ -134,7 +134,7 @@ class QuizAnsweringForm extends QuestionHelper {
       $form['#attributes']['class'][] = 'quiz-answer-confirm';
       $form['#attributes']['data-confirm-message'] = t("By proceeding you won't be able to go back and edit your answers.");
       $form['#attached'] = array(
-        'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_confirm.js'),
+        'js' => array(drupal_get_path('module', 'quiz') . '/js/quiz_confirm.js'),
       );
     }
 

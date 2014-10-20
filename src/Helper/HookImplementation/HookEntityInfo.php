@@ -39,24 +39,25 @@ class HookEntityInfo {
     $entity_types = array();
 
     $entity_types['quiz_entity'] = array(
-      'label'            => t('Quiz properties'),
-      'controller class' => 'EntityAPIController',
-      'description'      => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
-      'entity class'     => 'Drupal\quiz\Entity\QuizEntity',
-      'base table'       => 'quiz_entity',
-      'revision table'   => 'quiz_entity_revision',
-      'fieldable'        => TRUE,
-      'entity keys'      => array('id' => 'qid', 'bundle' => 'type', 'revision' => 'vid', 'label' => 'title'),
-      'bundle keys'      => array('bundle' => 'type'),
-      'access callback'  => 'quiz_entity_access_callback',
-      'label callback'   => 'entity_class_label',
-      'uri callback'     => 'entity_class_uri',
-      'module'           => 'quiz',
-      'bundles'          => array(), # 'views controller class' => 'EntityDefaultViewsController',
-      'view modes'       => array(
+      'label'                     => t('Quiz properties'),
+      'controller class'          => 'EntityAPIController',
+      'description'               => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
+      'entity class'              => 'Drupal\quiz\Entity\QuizEntity',
+      'metadata controller class' => 'Drupal\quiz\Entity\QuizEntityMetadataController',
+      'base table'                => 'quiz_entity',
+      'revision table'            => 'quiz_entity_revision',
+      'fieldable'                 => TRUE,
+      'entity keys'               => array('id' => 'qid', 'bundle' => 'type', 'revision' => 'vid', 'label' => 'title'),
+      'bundle keys'               => array('bundle' => 'type'),
+      'access callback'           => 'quiz_entity_access_callback',
+      'label callback'            => 'entity_class_label',
+      'uri callback'              => 'entity_class_uri',
+      'module'                    => 'quiz',
+      'bundles'                   => array(), # 'views controller class' => 'EntityDefaultViewsController',
+      'view modes'                => array(
         'question' => array('label' => t('Question'), 'custom settings' => TRUE),
       ),
-      'admin ui'         => array(// Enable the entity API's admin UI.
+      'admin ui'                  => array(// Enable the entity API's admin UI.
         'path'             => 'admin/content/quiz',
         'file'             => 'quiz.admin.inc',
         'controller class' => 'Drupal\quiz\Entity\QuizUIController',
