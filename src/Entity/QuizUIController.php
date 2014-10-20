@@ -14,6 +14,12 @@ class QuizUiController extends EntityDefaultUIController {
     $items['quiz/add'] = $items['admin/content/quiz/add'];
     unset($items['admin/content/quiz/add']);
 
+    // quiz/%/edit
+    $items['quiz/%entity_object/edit'] = $items['admin/content/quiz/manage/%entity_object'];
+    $items['quiz/%entity_object/edit']['title arguments'][1] = 1;
+    $items['quiz/%entity_object/edit']['page arguments'][1] = 1;
+    $items['quiz/%entity_object/edit']['access arguments'][2] = 1;
+
     return $items;
   }
 
