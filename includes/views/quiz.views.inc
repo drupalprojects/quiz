@@ -113,15 +113,15 @@ function quiz_views_data_alter(&$data) {
     // This is vid because vid is always more specific.
     'node' => array(
       'left_field' => 'vid',
-      'field' => 'parent_vid',
+      'field' => 'quiz_vid',
     ),
     'node_revisions' => array(
       'left_field' => 'vid',
-      'field' => 'parent_vid',
+      'field' => 'quiz_vid',
     ),
     'quiz_node_properties' => array(
       'left_field' => 'vid',
-      'field' => 'parent_vid',
+      'field' => 'quiz_vid',
       'type' => 'INNER',
     ),
   );

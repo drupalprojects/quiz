@@ -31,7 +31,7 @@ class quiz_views_handler_field_number_questions extends views_handler_field {
     if ($this->options['include_random']) {
       $properties_alias = $this->query->ensure_table('quiz_node_properties');
 
-      $formula .= " + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = $this->table_alias.parent_vid)";
+      $formula .= " + (SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = $this->table_alias.quiz_vid)";
     }
     $this->query->add_field(NULL, "$formula", $this->field_alias);
   }

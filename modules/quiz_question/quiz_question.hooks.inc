@@ -340,7 +340,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
   // @todo reconsider this QUESTION_NEVER status, since the node is actually gone
   // then remove it from {quiz_node_relationship} linking table
   //$base_sql = "UPDATE {quiz_node_relationship} SET question_status = " . QUESTION_NEVER;
-  $select_sql = 'SELECT parent_vid FROM {quiz_node_relationship}';
+  $select_sql = 'SELECT quiz_vid FROM {quiz_node_relationship}';
   if ($only_this_version) {
     $select_sql .= ' WHERE child_nid = :child_nid AND child_vid = :child_vid';
     $filter_arg = array(':child_nid' => $node->nid, ':child_vid' => $node->vid);

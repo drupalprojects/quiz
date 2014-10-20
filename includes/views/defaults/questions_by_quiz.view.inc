@@ -20,7 +20,7 @@ $handler->display->display_options['query']['type'] = 'views_query';
 $handler->display->display_options['exposed_form']['type'] = 'basic';
 $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['style_plugin'] = 'table';
-$handler->display->display_options['style_options']['grouping'] = 'parent_vid';
+$handler->display->display_options['style_options']['grouping'] = 'quiz_vid';
 $handler->display->display_options['style_options']['columns'] = array(
   'timestamp' => 'quiz_qid',
   'title' => 'title',
@@ -29,7 +29,7 @@ $handler->display->display_options['style_options']['columns'] = array(
   'child_vid' => 'child_vid',
   'question_status' => 'question_status',
   'quiz_qid' => 'timestamp',
-  'parent_vid' => 'parent_vid',
+  'quiz_vid' => 'quiz_vid',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
 $handler->display->display_options['style_options']['info'] = array(
@@ -61,17 +61,17 @@ $handler->display->display_options['style_options']['info'] = array(
     'sortable' => 0,
     'separator' => '',
   ),
-  'parent_vid' => array(
+  'quiz_vid' => array(
     'sortable' => 0,
     'separator' => '',
   ),
 );
 /* Relationship: Quiz Questions: Quiz Node VID */
-$handler->display->display_options['relationships']['parent_vid']['id'] = 'parent_vid';
-$handler->display->display_options['relationships']['parent_vid']['table'] = 'quiz_node_relationship';
-$handler->display->display_options['relationships']['parent_vid']['field'] = 'parent_vid';
-$handler->display->display_options['relationships']['parent_vid']['label'] = 'node';
-$handler->display->display_options['relationships']['parent_vid']['required'] = TRUE;
+$handler->display->display_options['relationships']['quiz_vid']['id'] = 'quiz_vid';
+$handler->display->display_options['relationships']['quiz_vid']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['relationships']['quiz_vid']['field'] = 'quiz_vid';
+$handler->display->display_options['relationships']['quiz_vid']['label'] = 'node';
+$handler->display->display_options['relationships']['quiz_vid']['required'] = TRUE;
 /* Relationship: Quiz Questions: Question Node VID */
 $handler->display->display_options['relationships']['child_vid']['id'] = 'child_vid';
 $handler->display->display_options['relationships']['child_vid']['table'] = 'quiz_node_relationship';

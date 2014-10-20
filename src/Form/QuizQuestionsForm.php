@@ -467,7 +467,7 @@ class QuizQuestionsForm {
       // Get sum of max_score
       $query = db_select('quiz_node_relationship', 'qnr');
       $query->addExpression('SUM(max_score)', 'sum');
-      $query->condition('parent_vid', $quiz->vid);
+      $query->condition('quiz_vid', $quiz->vid);
       $query->condition('question_status', QUESTION_ALWAYS);
       $score = $query->execute()->fetchAssoc();
 

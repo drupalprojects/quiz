@@ -193,7 +193,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
 
     if ($update == '1') {
       $res_relationship = db_query('SELECT max_score, auto_update_max_score FROM {quiz_node_relationship}
-              WHERE parent_vid = :parent_vid AND child_nid = :child_nid', array(':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']))->fetch();
+              WHERE quiz_vid = :quiz_vid AND child_nid = :child_nid', array(':quiz_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']))->fetch();
 
       $auto_update_max_score = isset($res_relationship->auto_update_max_score) ? $res_relationship->auto_update_max_score : 0;
 
@@ -208,12 +208,12 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
 
       $res = db_query('SELECT weight, question_status FROM {quiz_node_relationship}
-              WHERE quiz_qid = :quiz_qid AND parent_vid = :parent_vid AND child_nid = :child_nid', array(':quiz_qid' => $quiz_nid, ':parent_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
+              WHERE quiz_qid = :quiz_qid AND quiz_vid = :quiz_vid AND child_nid = :child_nid', array(':quiz_qid' => $quiz_nid, ':quiz_vid' => $quiz_vid, ':child_nid' => $form_state['values']['q_nid']));
       if ($res_o = $res->fetch()) {
         // Remove old revsions of the question from the quiz
         db_delete('quiz_node_relationship')
           ->condition('quiz_qid', $quiz_nid)
-          ->condition('parent_vid', $quiz_vid)
+          ->condition('quiz_vid', $quiz_vid)
           ->condition('child_nid', $form_state['values']['q_nid'])
           ->execute();
         $weight = $res_o->weight;
@@ -223,7 +223,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
         $weight = 1 + db_query(
             "SELECT MAX(weight)
           FROM {quiz_node_relationship}
-          WHERE parent_vid = :parent_vid", array(':parent_vid' => $quiz_vid))->fetchField();
+          WHERE quiz_vid = :quiz_vid", array(':quiz_vid' => $quiz_vid))->fetchField();
         $quiz_randomization = db_query(
           "SELECT randomization
           FROM {quiz_node_properties}
@@ -233,7 +233,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       // Insert the newest revision of the question into the quiz
       $entity = (object) array(
           'quiz_qid' => $quiz_nid,
-          'parent_vid' => $quiz_vid,
+          'quiz_vid' => $quiz_vid,
           'child_nid' => $form_state['values']['q_nid'],
           'child_vid' => $form_state['values']['q_vid'],
           'max_score' => $max_score,

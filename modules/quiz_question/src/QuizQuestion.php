@@ -358,17 +358,17 @@ abstract class QuizQuestion {
       $nid = $this->node->nid;
 
       $insert_values[$nid]['quiz_qid'] = $quiz_node->nid;
-      $insert_values[$nid]['parent_vid'] = $quiz_node->vid;
+      $insert_values[$nid]['quiz_vid'] = $quiz_node->vid;
       $insert_values[$nid]['child_nid'] = $this->node->nid;
       $insert_values[$nid]['child_vid'] = $this->node->vid;
       $insert_values[$nid]['max_score'] = $this->getMaximumScore();
       $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
-      $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
+      $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE quiz_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
       $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
       $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
       $insert_qnr = db_insert('quiz_node_relationship');
-      $insert_qnr->fields(array('quiz_qid', 'parent_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
+      $insert_qnr->fields(array('quiz_qid', 'quiz_vid', 'child_nid', 'child_vid', 'max_score', 'weight', 'question_status', 'auto_update_max_score'));
       foreach ($insert_values as $insert_value) {
         $insert_qnr->values($insert_value);
       }
@@ -378,7 +378,7 @@ abstract class QuizQuestion {
       // for question
       $quizzes_to_update = array();
       $result = db_query(
-        'SELECT parent_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+        'SELECT quiz_vid as vid from {quiz_node_relationship} where child_nid = :nid and child_vid = :vid and auto_update_max_score=1', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
       foreach ($result as $record) {
         $quizzes_to_update[] = $record->vid;
       }
@@ -410,7 +410,7 @@ abstract class QuizQuestion {
       return FALSE;
     }
     $answered = db_query_range('SELECT 1 FROM {quiz_node_results} qnres
-            JOIN {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.parent_vid)
+            JOIN {quiz_node_relationship} qnrel ON (qnres.vid = qnrel.quiz_vid)
             WHERE qnrel.child_vid = :child_vid', 0, 1, array(':child_vid' => $this->node->vid))->fetch();
     return $answered ? TRUE : FALSE;
   }

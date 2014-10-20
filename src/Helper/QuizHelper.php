@@ -187,7 +187,7 @@ class QuizHelper {
     $query->condition('n.status', 1);
     $query->condition('qnr.quiz_qid', $quiz_nid);
     if ($quiz_vid) {
-      $query->condition('qnr.parent_vid', $quiz_vid);
+      $query->condition('qnr.quiz_vid', $quiz_vid);
     }
     $query->condition('qnr_pid', NULL, 'IS');
     $query->orderBy('qnr.weight');
@@ -258,12 +258,12 @@ class QuizHelper {
           "SELECT child_nid as nid, child_vid as vid, n.type
         FROM {quiz_node_relationship} qnr
         JOIN {node} n on qnr.child_nid = n.nid
-        WHERE qnr.parent_vid = :parent_vid
+        WHERE qnr.quiz_vid = :quiz_vid
         AND qnr.quiz_qid = :quiz_qid
         AND qnr.question_status = :question_status
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
-          ':parent_vid'      => $quiz->vid,
+          ':quiz_vid'      => $quiz->vid,
           ':quiz_qid'      => $quiz->nid,
           ':question_status' => QUESTION_RANDOM
           )
@@ -357,7 +357,7 @@ class QuizHelper {
     // So we go with the brute force method:
     db_delete('quiz_node_relationship')
       ->condition('quiz_qid', $quiz->nid)
-      ->condition('parent_vid', $quiz->vid)
+      ->condition('quiz_vid', $quiz->vid)
       ->execute();
 
     if (empty($questions)) {
@@ -368,7 +368,7 @@ class QuizHelper {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qnr_id] = array(
           'quiz_qid'            => $quiz->nid,
-          'parent_vid'            => $quiz->vid,
+          'quiz_vid'            => $quiz->vid,
           'child_nid'             => $question->nid,
           // Update to latest OR use the version given.
           'child_vid'             => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
@@ -389,7 +389,7 @@ class QuizHelper {
     foreach ($question_inserts as $question_insert) {
       db_update('quiz_node_relationship')
         ->condition('qnr_pid', $question_insert['old_qnr_id'])
-        ->condition('parent_vid', $quiz->vid)
+        ->condition('quiz_vid', $quiz->vid)
         ->condition('quiz_qid', $quiz->nid)
         ->fields(array('qnr_pid' => $question_insert['qnr_id']))
         ->execute();
@@ -428,10 +428,10 @@ class QuizHelper {
     FROM {quiz_node_relationship} qnr
     JOIN {node} n ON qnr.child_nid = n.nid
     LEFT JOIN {quiz_node_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
-    WHERE qnr.parent_vid = :parent_vid
+    WHERE qnr.quiz_vid = :quiz_vid
     AND qnr.question_status = :question_status
     AND n.status = 1
-    ORDER BY qnr2.weight, qnr.weight', array(':parent_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
+    ORDER BY qnr2.weight, qnr.weight', array(':quiz_vid' => $quiz->vid, ':question_status' => QUESTION_ALWAYS));
       $i = 0;
       while ($question_node = $query->fetchAssoc()) {
         // Just to make it easier on us, let's use a 1-based index.
@@ -586,7 +586,7 @@ class QuizHelper {
     // Find original questions.
     $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score
     FROM {quiz_node_relationship}
-    WHERE parent_vid = :parent_vid', array(':parent_vid' => $node->translation_source->vid));
+    WHERE quiz_vid = :quiz_vid', array(':quiz_vid' => $node->translation_source->vid));
     foreach ($query as $res_o) {
       $original_question = node_load($res_o->child_nid);
 
@@ -609,7 +609,7 @@ class QuizHelper {
       db_insert('quiz_node_relationship')
         ->fields(array(
           'quiz_qid'            => $node->nid,
-          'parent_vid'            => $node->vid,
+          'quiz_vid'            => $node->vid,
           'child_nid'             => $original_question->nid,
           'child_vid'             => $original_question->vid,
           'question_status'       => $res_o->question_status,
@@ -696,13 +696,13 @@ class QuizHelper {
 
     // Fetch total number of questions.
     if ($include_num_questions) {
-      $res = db_query('SELECT COUNT(*) AS num_always_questions, parent_vid
+      $res = db_query('SELECT COUNT(*) AS num_always_questions, quiz_vid
             FROM {quiz_node_relationship}
-            WHERE parent_vid IN (' . implode(', ', $vids) . ')
+            WHERE quiz_vid IN (' . implode(', ', $vids) . ')
             AND question_status = ' . QUESTION_ALWAYS . '
-            GROUP BY parent_vid');
+            GROUP BY quiz_vid');
       foreach ($res as $res_o) {
-        $to_return[$res_o->parent_vid]->num_questions = $to_return[$res_o->parent_vid]->num_random_questions + $res_o->num_always_questions;
+        $to_return[$res_o->quiz_vid]->num_questions = $to_return[$res_o->quiz_vid]->num_random_questions + $res_o->num_always_questions;
       }
     }
 
@@ -745,10 +745,10 @@ class QuizHelper {
                 )) as scale
                 FROM {quiz_node_relationship}
                 WHERE quiz_qid = :quiz_qid
-                AND parent_vid = :parent_vid
+                AND quiz_vid = :quiz_vid
                 AND child_nid = :child_nid
                 AND child_vid = :child_vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':parent_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
+               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':quiz_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
     }
     elseif ($quiz->randomization == 2) {
       $scale = db_query("SELECT (max_score_for_random / (
@@ -814,7 +814,7 @@ class QuizHelper {
       SELECT COALESCE(SUM(max_score), 0)
       FROM {quiz_node_relationship} qnr
       WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
-      AND parent_vid = {quiz_node_properties}.vid)')
+      AND quiz_vid = {quiz_node_properties}.vid)')
       ->condition('vid', $vids, 'IN')
       ->execute();
 
