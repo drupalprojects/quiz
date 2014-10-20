@@ -67,10 +67,11 @@ class QuizEntityForm {
       $this->remeberSettings();
     }
 
-    $form_state['redirect'] = 'admin/content/quiz';
+    $form_state['redirect'] = 'admin' === arg(0) ? 'admin/content/quiz' : 'quiz/' . $this->quiz->qid;
   }
 
   private function remeberSettings() {
+
   }
 
 }
