@@ -18,6 +18,13 @@ class QuizEntityMetadataController extends EntityDefaultMetadataController {
     $properties['changed']['setter callback'] = 'entity_property_verbatim_set';
     $properties['changed']['setter permission'] = 'administer quizzes';
 
+    foreach (entity_metadata_convert_schema($this->info['revision table']) as $k => $v) {
+      if (isset($properties[$k])) {
+        continue;
+      }
+      $properties[$k] = $v;
+    }
+
     return $info;
   }
 
