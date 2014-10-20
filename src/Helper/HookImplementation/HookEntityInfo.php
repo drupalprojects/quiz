@@ -40,9 +40,9 @@ class HookEntityInfo {
 
     $entity_types['quiz_entity'] = array(
       'label'                     => t('Quiz properties'),
-      'controller class'          => 'EntityAPIController',
       'description'               => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
       'entity class'              => 'Drupal\quiz\Entity\QuizEntity',
+      'controller class'          => 'Drupal\quiz\Entity\QuizEntityController',
       'metadata controller class' => 'Drupal\quiz\Entity\QuizEntityMetadataController',
       'views controller class'    => 'Drupal\quiz\Entity\QuizViewsController',
       'base table'                => 'quiz_entity',
