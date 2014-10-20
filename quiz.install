@@ -154,14 +154,14 @@ function quiz_schema() {
    * Both a quiz and a quiz question are nodes with versions.  A quiz is a parent node of a quiz question,
    * making the quiz question the child.
    *
-   * The quiz_node_relationship table stores this relationship in a way that allows a quiz question to be
+   * The quiz_relationship table stores this relationship in a way that allows a quiz question to be
    * the child of multiple quizzes without losing version history.
    *
    * Future functionality will allow a quiz question to be a parent of another quiz question with the same
    * data model.  This will make adaptive quiz functionality possible without redesign.
    */
   // Create the quiz node relationship table
-  $schema['quiz_node_relationship'] = array(
+  $schema['quiz_relationship'] = array(
     'description' => 'Table storing what questions belong to what quizzes',
     'fields'      => array(
       'qnr_id'                => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -310,11 +310,11 @@ function quiz_update_7402(&$sandbox) {
 
 /**
  * Adds index on vid column to the quiz_node_results table and on child_vid to
- * the quiz_node_relationship table.
+ * the quiz_relationship table.
  */
 function quiz_update_7403() {
   db_add_index('quiz_node_results', 'vid', array('vid'));
-  db_add_index('quiz_node_relationship', 'child_id', array('child_vid'));
+  db_add_index('quiz_relationship', 'child_id', array('child_vid'));
 }
 
 /**
@@ -377,8 +377,8 @@ function quiz_update_7407(&$sandbox) {
     'not null' => TRUE,
     'default'  => 0,
   );
-  db_add_field('quiz_node_relationship', 'auto_update_max_score', $spec);
-  return t('Added new auto update max score field to the quiz_node_relationship table');
+  db_add_field('quiz_relationship', 'auto_update_max_score', $spec);
+  return t('Added new auto update max score field to the quiz_relationship table');
 }
 
 /**
@@ -433,23 +433,23 @@ function quiz_update_7501() {
 }
 
 /**
- * Add new qnr_id field to the quiz_node_relationship table.
+ * Add new qnr_id field to the quiz_relationship table.
  */
 function quiz_update_7502() {
-  db_drop_primary_key('quiz_node_relationship');
-  db_add_unique_key('quiz_node_relationship', 'parent_child', array('quiz_qid', 'quiz_vid', 'child_nid', 'child_vid'));
+  db_drop_primary_key('quiz_relationship');
+  db_add_unique_key('quiz_relationship', 'parent_child', array('quiz_qid', 'quiz_vid', 'child_nid', 'child_vid'));
   $spec = array(
     'type'     => 'serial',
     'size'     => 'normal',
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
-  db_add_field('quiz_node_relationship', 'qnr_id', $spec, array('primary key' => array('qnr_id')));
-  return t('Added new qnr_id field to the quiz_node_relationship table.');
+  db_add_field('quiz_relationship', 'qnr_id', $spec, array('primary key' => array('qnr_id')));
+  return t('Added new qnr_id field to the quiz_relationship table.');
 }
 
 /**
- * Add new qnr_pid field to the quiz_node_relationship table.
+ * Add new qnr_pid field to the quiz_relationship table.
  */
 function quiz_update_7503() {
   $spec = array(
@@ -459,8 +459,8 @@ function quiz_update_7503() {
     'not null' => FALSE,
     'default'  => NULL,
   );
-  db_add_field('quiz_node_relationship', 'qnr_pid', $spec);
-  return t('Added new qnr_pid field to the quiz_node_relationship table.');
+  db_add_field('quiz_relationship', 'qnr_pid', $spec);
+  return t('Added new qnr_pid field to the quiz_relationship table.');
 }
 
 /**

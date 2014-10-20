@@ -23,7 +23,7 @@ class HookEntityInfo {
       'quiz_question_relationship' => array(
         'label'                  => t('Quiz question relationship'),
         'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_node_relationship',
+        'base table'             => 'quiz_relationship',
         'entity keys'            => array('id' => 'qnr_id'),
         'views controller class' => 'EntityDefaultViewsController',
       ),

@@ -183,7 +183,7 @@ class QuizHelper {
     $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->join('node_revision', 'nr', 'n.nid = nr.nid');
-    $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+    $query->leftJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.child_vid');
     $query->condition('n.status', 1);
     $query->condition('qnr.quiz_qid', $quiz_nid);
     if ($quiz_vid) {
@@ -256,7 +256,7 @@ class QuizHelper {
         // Select random question from assigned pool.
         $result = db_query_range(
           "SELECT child_nid as nid, child_vid as vid, n.type
-        FROM {quiz_node_relationship} qnr
+        FROM {quiz_relationship} qnr
         JOIN {node} n on qnr.child_nid = n.nid
         WHERE qnr.quiz_vid = :quiz_vid
         AND qnr.quiz_qid = :quiz_qid
@@ -351,11 +351,11 @@ class QuizHelper {
     }
 
     // When node_save() calls all of the node API hooks, old quiz info is
-    // automatically inserted into quiz_node_relationship. We could get clever and
+    // automatically inserted into quiz_relationship. We could get clever and
     // try to do strategic updates/inserts/deletes, but that method has already
     // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
     // So we go with the brute force method:
-    db_delete('quiz_node_relationship')
+    db_delete('quiz_relationship')
       ->condition('quiz_qid', $quiz->nid)
       ->condition('quiz_vid', $quiz->vid)
       ->execute();
@@ -380,14 +380,14 @@ class QuizHelper {
           'qnr_id'                => !$set_new_revision ? $question->qnr_id : NULL,
           'old_qnr_id'            => $question->qnr_id,
         );
-        drupal_write_record('quiz_node_relationship', $question_inserts[$question->qnr_id]);
+        drupal_write_record('quiz_relationship', $question_inserts[$question->qnr_id]);
       }
     }
 
     // Update the parentage when a new revision is created.
     // @todo this is copy pasta from quiz_update_quiz_question_relationship
     foreach ($question_inserts as $question_insert) {
-      db_update('quiz_node_relationship')
+      db_update('quiz_relationship')
         ->condition('qnr_pid', $question_insert['old_qnr_id'])
         ->condition('quiz_vid', $quiz->vid)
         ->condition('quiz_qid', $quiz->nid)
@@ -425,9 +425,9 @@ class QuizHelper {
     else {
       // Get required questions first.
       $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
-    FROM {quiz_node_relationship} qnr
+    FROM {quiz_relationship} qnr
     JOIN {node} n ON qnr.child_nid = n.nid
-    LEFT JOIN {quiz_node_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
+    LEFT JOIN {quiz_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
     WHERE qnr.quiz_vid = :quiz_vid
     AND qnr.question_status = :question_status
     AND n.status = 1
@@ -538,7 +538,7 @@ class QuizHelper {
     $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->innerJoin('node_revision', 'nr', 'n.nid = nr.nid');
-    $query->innerJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+    $query->innerJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.child_vid');
     $query->condition('qnr_pid', $qnr_pid);
     $query->orderBy('weight');
     $result = $query->execute();
@@ -585,7 +585,7 @@ class QuizHelper {
   public function copyQuestions($node) {
     // Find original questions.
     $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score
-    FROM {quiz_node_relationship}
+    FROM {quiz_relationship}
     WHERE quiz_vid = :quiz_vid', array(':quiz_vid' => $node->translation_source->vid));
     foreach ($query as $res_o) {
       $original_question = node_load($res_o->child_nid);
@@ -606,7 +606,7 @@ class QuizHelper {
       node_save($original_question);
 
       // Save the relationship between the new question and the quiz.
-      db_insert('quiz_node_relationship')
+      db_insert('quiz_relationship')
         ->fields(array(
           'quiz_qid'            => $node->nid,
           'quiz_vid'            => $node->vid,
@@ -697,7 +697,7 @@ class QuizHelper {
     // Fetch total number of questions.
     if ($include_num_questions) {
       $res = db_query('SELECT COUNT(*) AS num_always_questions, quiz_vid
-            FROM {quiz_node_relationship}
+            FROM {quiz_relationship}
             WHERE quiz_vid IN (' . implode(', ', $vids) . ')
             AND question_status = ' . QUESTION_ALWAYS . '
             GROUP BY quiz_vid');
@@ -743,7 +743,7 @@ class QuizHelper {
                   FROM {quiz_question_properties}
                   WHERE nid = :nid AND vid = :vid
                 )) as scale
-                FROM {quiz_node_relationship}
+                FROM {quiz_relationship}
                 WHERE quiz_qid = :quiz_qid
                 AND quiz_vid = :quiz_vid
                 AND child_nid = :child_nid
@@ -812,7 +812,7 @@ class QuizHelper {
     db_update('quiz_node_properties')
       ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
       SELECT COALESCE(SUM(max_score), 0)
-      FROM {quiz_node_relationship} qnr
+      FROM {quiz_relationship} qnr
       WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
       AND quiz_vid = {quiz_node_properties}.vid)')
       ->condition('vid', $vids, 'IN')

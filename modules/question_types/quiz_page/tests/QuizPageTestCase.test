@@ -55,7 +55,7 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     );
     $this->drupalPost(NULL, $post, t('Submit'));
 
-    $sql = "SELECT * FROM {quiz_node_relationship}";
+    $sql = "SELECT * FROM {quiz_relationship}";
     $data = db_query($sql)->fetchAllAssoc('qnr_id');
     // Check the relationships properly saved.
     foreach ($data as $qnr_id => $rel) {

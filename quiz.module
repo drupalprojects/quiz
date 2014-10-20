@@ -234,7 +234,7 @@ function _quiz_check_num_always(&$node) {
   if ($node->randomization != 3) {
     return;
   }
-  db_delete('quiz_node_relationship')
+  db_delete('quiz_relationship')
     ->condition('quiz_vid', $node->vid)
     ->execute();
 }
@@ -250,7 +250,7 @@ function _quiz_check_num_random(&$node) {
   if ($node->randomization == 2) {
     return;
   }
-  db_delete('quiz_node_relationship')
+  db_delete('quiz_relationship')
     ->condition('question_status', QUESTION_RANDOM)
     ->condition('quiz_vid', $node->vid)
     ->execute();
@@ -267,7 +267,7 @@ function _quiz_check_num_random(&$node) {
  *   Number of compulsory questions.
  */
 function _quiz_get_num_always_questions($vid) {
-  return db_query('SELECT COUNT(*) FROM {quiz_node_relationship} qnr
+  return db_query('SELECT COUNT(*) FROM {quiz_relationship} qnr
           JOIN {node} n ON n.nid = qnr.child_nid
           WHERE n.status=1 AND qnr.quiz_vid = :quiz_vid AND qnr.question_status = :question_status', array(':quiz_vid' => $vid, ':question_status' => QUESTION_ALWAYS))->fetchField();
 }

@@ -338,9 +338,9 @@ function _quiz_delete_question(&$node, $only_this_version) {
   // FIXME QuizQuestion class makes these relationships, so it should handle their 'deletion' too
   // FIXME alternately, move the relationship handling out of QuizQuestion class
   // @todo reconsider this QUESTION_NEVER status, since the node is actually gone
-  // then remove it from {quiz_node_relationship} linking table
-  //$base_sql = "UPDATE {quiz_node_relationship} SET question_status = " . QUESTION_NEVER;
-  $select_sql = 'SELECT quiz_vid FROM {quiz_node_relationship}';
+  // then remove it from {quiz_relationship} linking table
+  //$base_sql = "UPDATE {quiz_relationship} SET question_status = " . QUESTION_NEVER;
+  $select_sql = 'SELECT quiz_vid FROM {quiz_relationship}';
   if ($only_this_version) {
     $select_sql .= ' WHERE child_nid = :child_nid AND child_vid = :child_vid';
     $filter_arg = array(':child_nid' => $node->nid, ':child_vid' => $node->vid);
@@ -353,7 +353,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
   $res = db_query($select_sql, $filter_arg);
 
   //db_query($base_sql . $filter_sql, $node->nid, $node->vid);
-  $update = db_update('quiz_node_relationship')
+  $update = db_update('quiz_relationship')
     ->fields(array('question_status' => QUESTION_NEVER))
     ->condition('child_nid', $node->nid);
   if ($only_this_version) {

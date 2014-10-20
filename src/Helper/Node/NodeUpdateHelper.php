@@ -9,7 +9,7 @@ class NodeUpdateHelper extends NodeHelper {
   public function execute($quiz) {
     // Quiz node vid (revision) was updated.
     if (isset($quiz->revision) && $quiz->revision) {
-      // Create new quiz-question relation entries in the quiz_node_relationship table.
+      // Create new quiz-question relation entries in the quiz_relationship table.
       $this->updateQuestionRelationship($quiz->old_vid, $quiz->vid, $quiz->nid);
     }
 
@@ -40,7 +40,7 @@ class NodeUpdateHelper extends NodeHelper {
   }
 
   /**
-   * Copies quiz-question relation entries in the quiz_node_relationship table
+   * Copies quiz-question relation entries in the quiz_relationship table
    * from an old version of a quiz to a new.
    *
    * @param $old_quiz_vid
@@ -52,7 +52,7 @@ class NodeUpdateHelper extends NodeHelper {
    */
   private function updateQuestionRelationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
     // query for questions in previous version
-    $result = db_select('quiz_node_relationship', 'qnr')
+    $result = db_select('quiz_relationship', 'qnr')
       ->fields('qnr', array('quiz_qid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
       ->condition('quiz_qid', $quiz_nid)
       ->condition('quiz_vid', $old_quiz_vid)
@@ -67,13 +67,13 @@ class NodeUpdateHelper extends NodeHelper {
         $quiz_question['quiz_qid'] = $quiz_nid;
         $quiz_question['quiz_vid'] = $new_quiz_vid;
         unset($quiz_question['qnr_id']);
-        drupal_write_record('quiz_node_relationship', $quiz_question);
+        drupal_write_record('quiz_relationship', $quiz_question);
       }
 
       // Update the parentage when a new revision is created.
       // @todo this is copy pasta from quiz_set_questions
       foreach ($questions as $question) {
-        db_update('quiz_node_relationship')
+        db_update('quiz_relationship')
           ->condition('qnr_pid', $question['old_qnr_id'])
           ->condition('quiz_qid', $quiz_nid)
           ->condition('quiz_vid', $new_quiz_vid)

@@ -9,13 +9,13 @@
  * quiz (settings for quiz nodes)
  * quiz_result (quiz attempt/result)
  * quiz_result_answer (answer to a specific question in a quiz result)
- * quiz_node_relationship (relationship from quiz to question)
+ * quiz_relationship (relationship from quiz to question)
  *
  * So for example
  *
  * hook_quiz_result_presave(&$course_report)
  *   - Runs before a result is saved to the DB.
- * hook_quiz_node_relationship_insert($course_object_fulfillment)
+ * hook_quiz_relationship_insert($course_object_fulfillment)
  *  - Runs when a new question is added to a quiz.
  *
  * Enjoy :)

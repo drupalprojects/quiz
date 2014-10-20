@@ -68,18 +68,18 @@ $handler->display->display_options['style_options']['info'] = array(
 );
 /* Relationship: Quiz Questions: Quiz Node VID */
 $handler->display->display_options['relationships']['quiz_vid']['id'] = 'quiz_vid';
-$handler->display->display_options['relationships']['quiz_vid']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['relationships']['quiz_vid']['table'] = 'quiz_relationship';
 $handler->display->display_options['relationships']['quiz_vid']['field'] = 'quiz_vid';
 $handler->display->display_options['relationships']['quiz_vid']['label'] = 'node';
 $handler->display->display_options['relationships']['quiz_vid']['required'] = TRUE;
 /* Relationship: Quiz Questions: Question Node VID */
 $handler->display->display_options['relationships']['child_vid']['id'] = 'child_vid';
-$handler->display->display_options['relationships']['child_vid']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['relationships']['child_vid']['table'] = 'quiz_relationship';
 $handler->display->display_options['relationships']['child_vid']['field'] = 'child_vid';
 $handler->display->display_options['relationships']['child_vid']['label'] = 'question node revision';
 /* Field: Quiz Questions: Question Node ID */
 $handler->display->display_options['fields']['child_nid']['id'] = 'child_nid';
-$handler->display->display_options['fields']['child_nid']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['fields']['child_nid']['table'] = 'quiz_relationship';
 $handler->display->display_options['fields']['child_nid']['field'] = 'child_nid';
 $handler->display->display_options['fields']['child_nid']['exclude'] = TRUE;
 $handler->display->display_options['fields']['child_nid']['separator'] = '';
@@ -94,7 +94,7 @@ $handler->display->display_options['fields']['title']['alter']['path'] = 'node/[
 $handler->display->display_options['fields']['title']['link_to_node'] = TRUE;
 /* Field: Quiz Questions: Question Status */
 $handler->display->display_options['fields']['question_status']['id'] = 'question_status';
-$handler->display->display_options['fields']['question_status']['table'] = 'quiz_node_relationship';
+$handler->display->display_options['fields']['question_status']['table'] = 'quiz_relationship';
 $handler->display->display_options['fields']['question_status']['field'] = 'question_status';
 /* Contextual filter: Quiz: Quiz Node NID */
 $handler->display->display_options['arguments']['nid']['id'] = 'nid';

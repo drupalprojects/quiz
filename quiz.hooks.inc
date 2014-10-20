@@ -394,7 +394,7 @@ function quiz_form_quiz_node_form_alter(&$form, $form_state) {
     }
 
     // If the quiz don't have any questions jump to the manage questions tab.
-    $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE quiz_vid = :vid', array(':vid' => $node->vid))->fetchField();
+    $res = db_query('SELECT child_vid FROM {quiz_relationship} WHERE quiz_vid = :vid', array(':vid' => $node->vid))->fetchField();
     if (!is_numeric($res)) {
       $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
     }

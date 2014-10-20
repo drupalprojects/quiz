@@ -101,12 +101,12 @@ class ResultHelper {
                    FROM {quiz_node_results_answers} ra
                    LEFT JOIN {node} n ON (ra.question_nid = n.nid)
                    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
-                   LEFT OUTER JOIN {quiz_node_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.quiz_vid = r.vid
+                   LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.child_vid) AND rs.quiz_vid = r.vid
                    LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
                    WHERE ra.result_id = :rid
                    ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $result_id));
     while ($line = $ids->fetch()) {
-      // Questions picked from term id's won't be found in the quiz_node_relationship table
+      // Questions picked from term id's won't be found in the quiz_relationship table
       if ($line->max_score === NULL) {
         if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
           $line->max_score = $quiz->max_score_for_random;
@@ -156,14 +156,14 @@ class ResultHelper {
     $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
     FROM {quiz_node_results_answers} a
     LEFT JOIN {node} n ON (a.question_nid = n.nid)
-    LEFT OUTER JOIN {quiz_node_relationship} r ON (r.child_vid = a.question_vid) AND r.quiz_vid = :vid
+    LEFT OUTER JOIN {quiz_relationship} r ON (r.child_vid = a.question_vid) AND r.quiz_vid = :vid
     WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
     // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
     // Fetched from the db, not calculated....
     $scores = array();
     $count = 0;
     foreach ($questions as $question) {
-      // Questions picked from term id's won't be found in the quiz_node_relationship table
+      // Questions picked from term id's won't be found in the quiz_relationship table
       if ($question->max_score === NULL && isset($quiz->tid) && $quiz->tid > 0) {
         $question->max_score = $quiz->max_score_for_random;
       }
