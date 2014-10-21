@@ -129,18 +129,18 @@ function quiz_schema() {
   /**
    * Quiz specific options concerning  availability and access to scores.
    */
-  // Create the quiz node results table
+  // Create the quiz entity results table
   $schema['quiz_results'] = array(
     'description' => 'Table storing the total results for a quiz',
     'fields'      => array(
       'result_id'    => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'nid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'vid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'uid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'time_start'   => array('type' => 'int', 'unsigned' => FALSE,),
-      'time_end'     => array('type' => 'int', 'unsigned' => FALSE,),
-      'released'     => array('type' => 'int', 'unsigned' => TRUE, 'default' => 0,),
-      'score'        => array('type' => 'int', 'not null' => TRUE, 'default' => 0,),
+      'nid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'ID of quiz node'),
+      'vid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Version ID of quiz node'),
+      'uid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Author ID'),
+      'time_start'   => array('type' => 'int', 'unsigned' => FALSE),
+      'time_end'     => array('type' => 'int', 'unsigned' => FALSE),
+      'released'     => array('type' => 'int', 'unsigned' => TRUE, 'default' => 0),
+      'score'        => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
       'is_invalid'   => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'is_evaluated' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'time_left'    => array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 0),
