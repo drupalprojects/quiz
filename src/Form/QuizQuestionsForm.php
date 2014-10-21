@@ -116,6 +116,7 @@ class QuizQuestionsForm {
         '#access' => $access,
       );
     }
+
     if (!$create_question) {
       $form['additional_questions']['create'] = array(
         '#type'   => 'markup',
