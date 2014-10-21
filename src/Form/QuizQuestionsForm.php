@@ -7,6 +7,13 @@ use stdClass;
 class QuizQuestionsForm {
 
   public static function staticGet($form, $form_state, $quiz) {
+    module_load_include('admin.inc', 'quiz', 'quiz');
+
+    // @TODO: Remove legacy code
+    if (!isset($quiz->nid) && isset($quiz->qid)) {
+      $quiz->nid = $quiz->qid;
+    }
+
     $obj = new static();
     return $obj->formGet($form, $form_state, $quiz);
   }
@@ -29,10 +36,6 @@ class QuizQuestionsForm {
     $form['#submit'][] = array($this, 'formSubmit');
     $form['#validate'][] = array($this, 'formValidate');
 
-    $types = _quiz_get_question_types();
-
-    $this->addFieldsForCreatingQuestions($form, $types, $quiz);
-
     // Display questions in this quiz.
     $form['question_list'] = array(
       '#type'           => 'fieldset',
@@ -46,7 +49,8 @@ class QuizQuestionsForm {
     // Add randomization settings if this quiz allows randomized questions
     $this->addFieldsForRandomQuiz($form, $quiz);
 
-    $include_random = $quiz->randomization == 2;
+    $quiz->randomization == 2;
+
     // @todo deal with $include_random
     $questions = quiz()->getQuizHelper()->getQuestions($quiz->nid, $quiz->vid);
 
@@ -57,6 +61,7 @@ class QuizQuestionsForm {
     }
 
     // We add the questions to the form array
+    $types = _quiz_get_question_types();
     $this->addQuestionsToForm($form, $questions, $quiz, $types);
 
     // Show the number of questions in the table header.
@@ -116,6 +121,7 @@ class QuizQuestionsForm {
         '#access' => $access,
       );
     }
+
     if (!$create_question) {
       $form['additional_questions']['create'] = array(
         '#type'   => 'markup',

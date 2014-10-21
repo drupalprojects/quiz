@@ -4,6 +4,12 @@ namespace Drupal\quiz\Controller;
 
 class QuizQuestionManagementController {
 
+  private $quiz;
+
+  public function __construct($quiz) {
+    $this->quiz = $quiz;
+  }
+
   /**
    * Callback for node/%quiz_menu/quiz/questions (question management tab).
    * Creates a form for quiz questions.
@@ -16,28 +22,59 @@ class QuizQuestionManagementController {
   public static function staticCallback($quiz) {
     drupal_set_title($quiz->title);
 
+    $obj = new self($quiz);
+
     if ($quiz->randomization >= 3) {
       return @drupal_get_form('Drupal\quiz\Form\QuizCategorizedForm::staticGet', $quiz);
     }
 
-    $mq_form = @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::staticGet', $quiz);
-    $manage_questions = drupal_render($mq_form);
-    $question_bank = views_get_view('quiz_question_bank')->preview();
-
     // Insert into vert tabs
-    $form['vert_tabs'] = array('#type' => 'vertical_tabs', '#weight' => 0);
-    $form['vert_tabs']['question_admin'] = array(
-      '#type'  => 'fieldset',
-      '#title' => t('Manage questions'),
-      '#value' => $manage_questions,
-    );
-    $form['vert_tabs']['global_questions'] = array(
-      '#type'  => 'fieldset',
-      '#title' => t('Question bank'),
-      '#value' => $question_bank,
-    );
+    return array('vert_tabs' => array(
+        '#type'            => 'vertical_tabs',
+        '#weight'          => 0,
+        'question_admin'   => array(
+          '#type'  => 'fieldset',
+          '#title' => t('Manage questions'),
+          '#value' => '',
+          'links'  => array(
+            '#type'        => 'fieldset',
+            '#title'       => t('Create new question'),
+            '#collapsible' => TRUE,
+            '#collapsed'   => TRUE,
+            '#value'       => '',
+            'links'        => array(
+              '#theme' => 'item_list',
+              '#items' => $obj->getQuestionAddingLinks(),
+            ),
+          ),
+          'form'   => @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::staticGet', $quiz),
+        ),
+        'global_questions' => array(
+          '#type'  => 'fieldset',
+          '#title' => t('Question bank'),
+          '#value' => views_get_view('quiz_question_bank')->preview(),
+        ),
+    ));
+  }
 
-    return $form;
+  public function getQuestionAddingLinks() {
+    $items = array();
+
+    foreach (_quiz_get_question_types() as $type => $info) {
+      if (!node_access('create', $type)) {
+        continue;
+      }
+
+      $text = $info['name'];
+      $url = 'node/add/' . $type;
+      $items[] = l($text, $url, array('query' => drupal_get_destination()));
+    }
+
+    if (empty($items)) {
+      $items[] = t('You have not enabled any question type module or no has permission been given to create any question.');
+    }
+
+    return $items;
   }
 
   /**
