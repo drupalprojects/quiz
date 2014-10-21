@@ -5,40 +5,39 @@ namespace Drupal\quiz\Helper\HookImplementation;
 class HookEntityInfo {
 
   public function execute() {
-    $entity_types = array(
-      'quiz_result'                => array(
-        'label'                  => t('Quiz result'),
-        'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_results',
-        'entity keys'            => array('id' => 'result_id'),
-        'views controller class' => 'EntityDefaultViewsController',
-      ),
-      'quiz_result_answer'         => array(
-        'label'                  => t('Quiz result answer'),
-        'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_results_answers',
-        'entity keys'            => array('id' => 'result_answer_id'),
-        'views controller class' => 'EntityDefaultViewsController',
-      ),
-      'quiz_question_relationship' => array(
-        'label'                  => t('Quiz question relationship'),
-        'controller class'       => 'EntityAPIController',
-        'base table'             => 'quiz_relationship',
-        'entity keys'            => array('id' => 'qr_id'),
-        'views controller class' => 'EntityDefaultViewsController',
+    return array(
+      'quiz_type'                  => $this->getQuizEntityTypeInfo(),
+      'quiz_entity'                => $this->getQuizEntityInfo(),
+      'quiz_question_relationship' => $this->getQuizQuestionRelationshipInfo(),
+      'quiz_result'                => $this->getQuizResultInfo(),
+      'quiz_result_answer'         => $this->getQuizResultAnswerInfo(),
+      ) + $this->getDepratedEntityInfo();
+  }
+
+  private function getQuizEntityTypeInfo() {
+    return array(
+      'label'            => t('!quiz type', array('!quiz' => QUIZ_NAME)),
+      'plural label'     => t('!quiz types', array('!quiz' => QUIZ_NAME)),
+      'description'      => t('Types of !quiz.', array('!quiz' => QUIZ_NAME)),
+      'entity class'     => 'Drupal\quiz\Entity\QuizEntityType',
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table'       => 'quiz_type',
+      'fieldable'        => FALSE,
+      'bundle of'        => 'quiz_entity',
+      'exportable'       => TRUE,
+      'entity keys'      => array('id' => 'id', 'name' => 'type', 'label' => 'label'),
+      'access callback'  => 'quiz_type_access',
+      'module'           => 'quiz',
+      'admin ui'         => array(// Enable the entity API's admin UI.
+        'path'             => 'admin/structure/quiz',
+        'file'             => 'quiz.admin.inc',
+        'controller class' => 'Drupal\quiz\Entity\QuizTypeUIController',
       ),
     );
-
-    $entity_types += $this->getQuizEntityInfo();
-    $entity_types += $this->getDepratedEntityInfo();
-
-    return $entity_types;
   }
 
   private function getQuizEntityInfo() {
-    $entity_types = array();
-
-    $entity_types['quiz_entity'] = array(
+    $entity_info = array(
       'label'                     => t('Quiz properties'),
       'description'               => t('!quiz entity', array('!quiz' => QUIZ_NAME)),
       'entity class'              => 'Drupal\quiz\Entity\QuizEntity',
@@ -65,29 +64,9 @@ class HookEntityInfo {
       ),
     );
 
-    $entity_types['quiz_type'] = array(
-      'label'            => t('!quiz type', array('!quiz' => QUIZ_NAME)),
-      'plural label'     => t('!quiz types', array('!quiz' => QUIZ_NAME)),
-      'description'      => t('Types of !quiz.', array('!quiz' => QUIZ_NAME)),
-      'entity class'     => 'Drupal\quiz\Entity\QuizEntityType',
-      'controller class' => 'EntityAPIControllerExportable',
-      'base table'       => 'quiz_type',
-      'fieldable'        => FALSE,
-      'bundle of'        => 'quiz_entity',
-      'exportable'       => TRUE,
-      'entity keys'      => array('id' => 'id', 'name' => 'type', 'label' => 'label'),
-      'access callback'  => 'quiz_type_access',
-      'module'           => 'quiz',
-      'admin ui'         => array(// Enable the entity API's admin UI.
-        'path'             => 'admin/structure/quiz',
-        'file'             => 'quiz.admin.inc',
-        'controller class' => 'Drupal\quiz\Entity\QuizTypeUIController',
-      ),
-    );
-
     // Add bundle info but bypass entity_load() as we cannot use it here.
     foreach (db_select('quiz_type', 'qt')->fields('qt')->execute()->fetchAllAssoc('type') as $type => $info) {
-      $entity_types['quiz_entity']['bundles'][$type] = array(
+      $entity_info['bundles'][$type] = array(
         'label' => $info->label,
         'admin' => array(
           'path'             => 'admin/structure/quiz/manage/%quiz_type',
@@ -100,11 +79,41 @@ class HookEntityInfo {
 
     // Support entity cache module.
     if (module_exists('entitycache')) {
-      $entity_types['quiz_entity']['field cache'] = FALSE;
-      $entity_types['quiz_entity']['entity cache'] = TRUE;
+      $entity_info['field cache'] = FALSE;
+      $entity_info['entity cache'] = TRUE;
     }
 
-    return $entity_types;
+    return $entity_info;
+  }
+
+  private function getQuizQuestionRelationshipInfo() {
+    return array(
+      'label'                  => t('Quiz question relationship'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_relationship',
+      'entity keys'            => array('id' => 'qr_id'),
+      'views controller class' => 'EntityDefaultViewsController',
+    );
+  }
+
+  private function getQuizResultInfo() {
+    return array(
+      'label'                  => t('Quiz result'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_results',
+      'entity keys'            => array('id' => 'result_id'),
+      'views controller class' => 'EntityDefaultViewsController',
+    );
+  }
+
+  private function getQuizResultAnswerInfo() {
+    return array(
+      'label'                  => t('Quiz result answer'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_results_answers',
+      'entity keys'            => array('id' => 'result_answer_id'),
+      'views controller class' => 'EntityDefaultViewsController',
+    );
   }
 
   private function getDepratedEntityInfo() {
