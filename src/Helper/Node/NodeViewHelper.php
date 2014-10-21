@@ -16,32 +16,25 @@ class NodeViewHelper {
       '#weight' => -1,
     );
 
-    $available = quiz()->getQuizHelper()->isAvailable($node);
-    if ($available === TRUE) {
+    if ($available = quiz()->getQuizHelper()->isAvailable($node)) {
       // Check the permission before displaying start button.
       if (user_access('access quiz')) {
         // Add a link to the take tab as a button if this isn't a teaser view.
         if ($view_mode !== 'teaser') {
           // @TODO: Why do we need form for a simple link?
-          $quiz_form = @drupal_get_form(get_class($this) . '::startQuizButtonForm', $node);
-          $node->content['take'] = array(
-            '#markup' => drupal_render($quiz_form),
-            '#weight' => 2,
-          );
+          $node->content['take'] = @drupal_get_form(get_class($this) . '::startQuizButtonForm', $node);
         }
         // Add a link to the take tab if this is a teaser view.
         else {
-          $node->content['take'] = array(
-            '#markup' => l(t('Start quiz'), 'node/' . $node->nid . '/take'),
-            '#weight' => 2,
-          );
+          $node->content['take']['#markup'] = l(t('Start quiz'), 'node/' . $node->nid . '/take');
         }
       }
     }
     else {
       $node->content['take'] = array(
-        '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
-        '#weight' => 2,
+        '#prefix' => '<div class="quiz-not-available">',
+        '#suffix' => '</div>',
+        '#markup' => $available,
       );
     }
 
