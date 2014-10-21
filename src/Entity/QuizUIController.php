@@ -59,6 +59,17 @@ class QuizUiController extends EntityDefaultUIController {
     $items['quiz/%entity_object/edit']['page arguments'][1] = 1;
     $items['quiz/%entity_object/edit']['access arguments'][2] = 1;
 
+    // Define menu structure for /quiz/%/revisions
+    $items['quiz/%entity_object/revisions'] = array(
+      'title'            => 'Revisions',
+      'type'             => MENU_LOCAL_TASK,
+      'access callback'  => 'entity_access',
+      'access arguments' => array('update', 'quiz_entity', 1),
+      'page callback'    => 'Drupal\quiz\Controller\Admin\QuizRevisionsAdminController::staticCallback',
+      'page arguments'   => array(1),
+      'load arguments'   => array('quiz_entity'),
+    );
+
     // Define menu structure for /quiz/%/questions
     $items['quiz/%entity_object/questions'] = array(
       'title'            => 'Questions',
