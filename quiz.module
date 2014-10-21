@@ -79,9 +79,18 @@ function quiz_type_load($name) {
 
 /**
  * Load quiz entity
+ *
+ * @return \Drupal\quiz\Entity\QuizEntity
  */
-function quiz_entity_single_load($id) {
-  return entity_load_single('quiz_entity', $id);
+function quiz_entity_single_load($id, $vid = NULL) {
+  if (NULL === $vid) {
+    return entity_load_single('quiz_entity', $id);
+  }
+
+  $results = entity_load('quiz_entity', array($id), array('vid' => $vid));
+  if (!empty($results[$id])) {
+    return $results[$id];
+  }
 }
 
 /**

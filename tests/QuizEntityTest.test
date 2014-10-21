@@ -73,11 +73,10 @@ class QuizEntityTest extends QuizTestCase {
     $quiz->log = 'Trying revision supporting';
     entity_save('quiz_entity', $quiz);
 
+    # quiz_entity_single_load
     // Load old revision
-    $quiz_1 = entity_load('quiz_entity', array($quiz->qid), array('vid' => $old_revision_id));
-    $quiz_1 = reset($quiz_1);
-    $quiz_2 = entity_load('quiz_entity', array($quiz->qid));
-    $quiz_2 = reset($quiz_2);
+    $quiz_1 = quiz_entity_single_load($quiz->qid, $old_revision_id);
+    $quiz_2 = quiz_entity_single_load($quiz->qid);
     $this->assertNotEqual($quiz_1->log, $quiz_2->log, 'New revision is created correctly.');
     $this->assertEqual(95, $quiz_1->pass_rate, 'Quiz property is saved and loaded correctly.');
 
