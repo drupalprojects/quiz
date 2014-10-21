@@ -5,17 +5,13 @@ namespace Drupal\quiz\Helper\HookImplementation;
 class HookFieldExtraFields {
 
   public function execute() {
-    $extra['node']['quiz'] = array(
-      'display' => $this->getQuizDisplayFields(),
-      'form'    => $this->getQuizFormExtraFields(),
-    );
+    $extra = array();
 
     if ($types = quiz_get_types()) {
       foreach (array_keys($types) as $name) {
-        $extra['quiz_entity'][$name] = $extra['node']['quiz'];
-        $extra['quiz_entity'][$name]['form']['quiz_help'] = array(
-          'label'  => t('Explanation or submission guidelines'),
-          'weight' => -25,
+        $extra['quiz_entity'][$name] = array(
+          'display' => $this->getQuizDisplayFields(),
+          'form'    => $this->getQuizFormExtraFields(),
         );
       }
     }
@@ -49,6 +45,10 @@ class HookFieldExtraFields {
         'label'       => t('Availability options'),
         'description' => t('Fieldset for customizing when a quiz is available'),
         'weight'      => 0,
+      ),
+      'quiz_help'         => array(
+        'label'  => t('Explanation or submission guidelines'),
+        'weight' => -25,
       ),
       'summaryoptions'    => array(
         'label'       => t('Summary options'),
