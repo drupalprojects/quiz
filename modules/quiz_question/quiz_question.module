@@ -353,7 +353,7 @@ function quiz_question_report_form($question) {
       ->fetchField();
 
     $qnr_max_score = db_query('SELECT qnr.max_score FROM {quiz_relationship} qnr
-      WHERE qnr.child_vid = :child_vid AND qnr.quiz_vid = :quiz_vid', array(':child_vid' => $question->vid, ':quiz_vid' => $vid))
+      WHERE qnr.question_vid = :question_vid AND qnr.quiz_vid = :quiz_vid', array(':question_vid' => $question->vid, ':quiz_vid' => $vid))
       ->fetchField();
 
     if ($qnr_max_score === FALSE) {

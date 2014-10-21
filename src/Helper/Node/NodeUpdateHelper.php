@@ -53,7 +53,7 @@ class NodeUpdateHelper extends NodeHelper {
   private function updateQuestionRelationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
     // query for questions in previous version
     $result = db_select('quiz_relationship', 'qnr')
-      ->fields('qnr', array('quiz_qid', 'child_nid', 'child_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
+      ->fields('qnr', array('quiz_qid', 'question_nid', 'question_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
       ->condition('quiz_qid', $quiz_nid)
       ->condition('quiz_vid', $old_quiz_vid)
       ->condition('question_status', QUESTION_NEVER, '!=')

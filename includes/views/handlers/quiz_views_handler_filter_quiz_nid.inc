@@ -4,6 +4,7 @@
  * @file
  * // options are either a) show only the most recent version, b) show the original version.
  */
+
 class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
 
   /**
@@ -20,23 +21,23 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
   var $secondary_table;
   var $secondary_table_alias;
   var $secondary_tables = array(
-    'none' => array(
+    'none'      => array(
       'secondary_group_by' => 'nid',
-      'secondary_table' => 'quiz_results',
-      'secondary_vid' => 'vid',
-      'secondary_nid' => 'nid',
+      'secondary_table'    => 'quiz_results',
+      'secondary_vid'      => 'vid',
+      'secondary_nid'      => 'nid',
     ),
-    'results' => array(
+    'results'   => array(
       'secondary_group_by' => 'uid',
-      'secondary_table' => 'quiz_results',
-      'secondary_vid' => 'vid',
-      'secondary_nid' => 'nid',
+      'secondary_table'    => 'quiz_results',
+      'secondary_vid'      => 'vid',
+      'secondary_nid'      => 'nid',
     ),
     'questions' => array(
-      'secondary_group_by' => 'child_nid',
-      'secondary_table' => 'quiz_relationship',
-      'secondary_vid' => 'quiz_vid',
-      'secondary_nid' => 'quiz_qid',
+      'secondary_group_by' => 'question_nid',
+      'secondary_table'    => 'quiz_relationship',
+      'secondary_vid'      => 'quiz_vid',
+      'secondary_nid'      => 'quiz_qid',
     ),
   );
 
@@ -67,14 +68,14 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
   function options_form(&$form, &$form_state) {
     parent::options_form($form, $form_state);
     $form['which_vid'] = array(
-      '#type' => 'select',
-      '#title' => t('Quiz revision(s) to use'),
-      '#options' => array(
-        'latest' => t('Latest: most recent version of the quiz ONLY.'),
+      '#type'          => 'select',
+      '#title'         => t('Quiz revision(s) to use'),
+      '#options'       => array(
+        'latest'  => t('Latest: most recent version of the quiz ONLY.'),
         'initial' => t('Initial: original version of the quiz ONLY.'),
-        // 'all' => t('All: ALL versions of the quiz.')
+      // 'all' => t('All: ALL versions of the quiz.')
       ),
-      '#description' => t('The filter will limit score results for a particular quiz node id(s) into one or more quiz node revision ids, depending on your selection.'),
+      '#description'   => t('The filter will limit score results for a particular quiz node id(s) into one or more quiz node revision ids, depending on your selection.'),
       '#default_value' => $this->options['which_vid'],
     );
 
@@ -82,11 +83,11 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
     $tables['results'] = t('Use Quiz Results');
     $tables['questions'] = t('Use Quiz Questions');
     $form['secondary'] = array(
-      '#type' => 'radios',
-      '#title' => t('Secondary Grouping'),
-      '#options' => $tables,
+      '#type'          => 'radios',
+      '#title'         => t('Secondary Grouping'),
+      '#options'       => $tables,
       '#default_value' => $this->options['secondary'],
-      '#description' => t('If you are looking to generate a list of either quiz questions or quiz results, you must select the appropriate option from this list.'),
+      '#description'   => t('If you are looking to generate a list of either quiz questions or quiz results, you must select the appropriate option from this list.'),
     );
   }
 
@@ -137,6 +138,6 @@ class quiz_views_handler_filter_quiz_nid extends views_handler_filter {
     $subselect .= "$subalias.$this->secondary_group_by = $this->secondary_table_alias.$this->secondary_group_by AND ";
     $subselect .= "$subalias.$this->secondary_nid = $this->secondary_table_alias.$this->secondary_nid";
     return $subselect;
-
   }
+
 }

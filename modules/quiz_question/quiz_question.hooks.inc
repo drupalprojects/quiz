@@ -342,12 +342,12 @@ function _quiz_delete_question(&$node, $only_this_version) {
   //$base_sql = "UPDATE {quiz_relationship} SET question_status = " . QUESTION_NEVER;
   $select_sql = 'SELECT quiz_vid FROM {quiz_relationship}';
   if ($only_this_version) {
-    $select_sql .= ' WHERE child_nid = :child_nid AND child_vid = :child_vid';
-    $filter_arg = array(':child_nid' => $node->nid, ':child_vid' => $node->vid);
+    $select_sql .= ' WHERE question_nid = :question_nid AND question_vid = :question_vid';
+    $filter_arg = array(':question_nid' => $node->nid, ':question_vid' => $node->vid);
   }
   else {
-    $select_sql .= ' WHERE child_nid = :child_nid';
-    $filter_arg = array(':child_nid' => $node->nid);
+    $select_sql .= ' WHERE question_nid = :question_nid';
+    $filter_arg = array(':question_nid' => $node->nid);
   }
   //$res = db_query($select_sql . $filter_sql, $node->nid, $node->vid);
   $res = db_query($select_sql, $filter_arg);
@@ -355,9 +355,9 @@ function _quiz_delete_question(&$node, $only_this_version) {
   //db_query($base_sql . $filter_sql, $node->nid, $node->vid);
   $update = db_update('quiz_relationship')
     ->fields(array('question_status' => QUESTION_NEVER))
-    ->condition('child_nid', $node->nid);
+    ->condition('question_nid', $node->nid);
   if ($only_this_version) {
-    $update = $update->condition('child_vid', $node->vid);
+    $update = $update->condition('question_vid', $node->vid);
   }
   $update->execute();
 

@@ -27,7 +27,7 @@ class quiz_views_handler_field_number_questions extends views_handler_field {
   function query() {
     $this->ensure_my_table();
     $this->field_alias = 'question_count';
-    $formula = "COUNT($this->table_alias.child_vid)";
+    $formula = "COUNT($this->table_alias.question_vid)";
     if ($this->options['include_random']) {
       $properties_alias = $this->query->ensure_table('quiz_node_properties');
 

@@ -1,4 +1,5 @@
 <?php
+
 $view = new view();
 $view->name = 'questions_by_quiz_version';
 $view->description = 'View of all the questions associated with a particular revision of a quiz';
@@ -22,47 +23,47 @@ $handler->display->display_options['pager']['type'] = 'none';
 $handler->display->display_options['style_plugin'] = 'table';
 $handler->display->display_options['style_options']['grouping'] = 'quiz_vid';
 $handler->display->display_options['style_options']['columns'] = array(
-  'timestamp' => 'quiz_qid',
-  'title' => 'title',
-  'type' => 'type',
-  'child_nid' => 'child_nid',
-  'child_vid' => 'child_vid',
+  'timestamp'       => 'quiz_qid',
+  'title'           => 'title',
+  'type'            => 'type',
+  'question_nid'    => 'question_nid',
+  'question_vid'    => 'question_vid',
   'question_status' => 'question_status',
-  'quiz_qid' => 'timestamp',
-  'quiz_vid' => 'quiz_vid',
+  'quiz_qid'        => 'timestamp',
+  'quiz_vid'        => 'quiz_vid',
 );
 $handler->display->display_options['style_options']['default'] = 'title';
 $handler->display->display_options['style_options']['info'] = array(
-  'timestamp' => array(
-    'sortable' => 0,
+  'timestamp'       => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'title' => array(
-    'sortable' => 0,
+  'title'           => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'type' => array(
-    'sortable' => 0,
+  'type'            => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'child_nid' => array(
-    'sortable' => 0,
+  'question_nid'    => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'child_vid' => array(
-    'sortable' => 0,
+  'question_vid'    => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
   'question_status' => array(
-    'sortable' => 0,
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'quiz_qid' => array(
-    'sortable' => 0,
+  'quiz_qid'        => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
-  'quiz_vid' => array(
-    'sortable' => 0,
+  'quiz_vid'        => array(
+    'sortable'  => 0,
     'separator' => '',
   ),
 );
@@ -73,10 +74,10 @@ $handler->display->display_options['relationships']['quiz_vid']['field'] = 'quiz
 $handler->display->display_options['relationships']['quiz_vid']['label'] = 'node';
 $handler->display->display_options['relationships']['quiz_vid']['required'] = TRUE;
 /* Relationship: Quiz Questions: Question Node VID */
-$handler->display->display_options['relationships']['child_vid']['id'] = 'child_vid';
-$handler->display->display_options['relationships']['child_vid']['table'] = 'quiz_relationship';
-$handler->display->display_options['relationships']['child_vid']['field'] = 'child_vid';
-$handler->display->display_options['relationships']['child_vid']['label'] = 'question node revision';
+$handler->display->display_options['relationships']['question_vid']['id'] = 'question_vid';
+$handler->display->display_options['relationships']['question_vid']['table'] = 'quiz_relationship';
+$handler->display->display_options['relationships']['question_vid']['field'] = 'question_vid';
+$handler->display->display_options['relationships']['question_vid']['label'] = 'question node revision';
 /* Field: Quiz Questions: Quiz Node ID */
 $handler->display->display_options['fields']['quiz_qid']['id'] = 'quiz_qid';
 $handler->display->display_options['fields']['quiz_qid']['table'] = 'quiz_relationship';
@@ -97,19 +98,19 @@ $handler->display->display_options['fields']['timestamp']['label'] = 'Quiz Creat
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'node_revision';
 $handler->display->display_options['fields']['title']['field'] = 'title';
-$handler->display->display_options['fields']['title']['relationship'] = 'child_vid';
+$handler->display->display_options['fields']['title']['relationship'] = 'question_vid';
 $handler->display->display_options['fields']['title']['label'] = 'Question Title';
 $handler->display->display_options['fields']['title']['link_to_node'] = TRUE;
 /* Field: Quiz Questions: Question Node ID */
-$handler->display->display_options['fields']['child_nid']['id'] = 'child_nid';
-$handler->display->display_options['fields']['child_nid']['table'] = 'quiz_relationship';
-$handler->display->display_options['fields']['child_nid']['field'] = 'child_nid';
-$handler->display->display_options['fields']['child_nid']['separator'] = '';
+$handler->display->display_options['fields']['question_nid']['id'] = 'question_nid';
+$handler->display->display_options['fields']['question_nid']['table'] = 'quiz_relationship';
+$handler->display->display_options['fields']['question_nid']['field'] = 'question_nid';
+$handler->display->display_options['fields']['question_nid']['separator'] = '';
 /* Field: Quiz Questions: Question Node VID */
-$handler->display->display_options['fields']['child_vid']['id'] = 'child_vid';
-$handler->display->display_options['fields']['child_vid']['table'] = 'quiz_relationship';
-$handler->display->display_options['fields']['child_vid']['field'] = 'child_vid';
-$handler->display->display_options['fields']['child_vid']['separator'] = '';
+$handler->display->display_options['fields']['question_vid']['id'] = 'question_vid';
+$handler->display->display_options['fields']['question_vid']['table'] = 'quiz_relationship';
+$handler->display->display_options['fields']['question_vid']['field'] = 'question_vid';
+$handler->display->display_options['fields']['question_vid']['separator'] = '';
 /* Field: Quiz Questions: Question Status */
 $handler->display->display_options['fields']['question_status']['id'] = 'question_status';
 $handler->display->display_options['fields']['question_status']['table'] = 'quiz_relationship';

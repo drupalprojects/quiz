@@ -98,8 +98,8 @@ function quiz_entity_info_alter(&$info) {
  * Define our special schema fields and relationships.
  */
 function quiz_entity_property_info_alter(&$info) {
-  $info['quiz_question_relationship']['properties']['child_nid']['type'] = 'node';
-  $info['quiz_question_relationship']['properties']['child_vid']['type'] = 'integer';
+  $info['quiz_question_relationship']['properties']['question_nid']['type'] = 'node';
+  $info['quiz_question_relationship']['properties']['question_vid']['type'] = 'integer';
   $info['quiz_question_relationship']['properties']['quiz_qid']['type'] = 'node';
   $info['quiz_question_relationship']['properties']['quiz_vid']['type'] = 'integer';
 
@@ -394,7 +394,7 @@ function quiz_form_quiz_node_form_alter(&$form, $form_state) {
     }
 
     // If the quiz don't have any questions jump to the manage questions tab.
-    $res = db_query('SELECT child_vid FROM {quiz_relationship} WHERE quiz_vid = :vid', array(':vid' => $node->vid))->fetchField();
+    $res = db_query('SELECT question_vid FROM {quiz_relationship} WHERE quiz_vid = :vid', array(':vid' => $node->vid))->fetchField();
     if (!is_numeric($res)) {
       $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
     }

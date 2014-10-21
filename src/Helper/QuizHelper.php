@@ -183,7 +183,7 @@ class QuizHelper {
     $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->join('node_revision', 'nr', 'n.nid = nr.nid');
-    $query->leftJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+    $query->leftJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.question_vid');
     $query->condition('n.status', 1);
     $query->condition('qnr.quiz_qid', $quiz_nid);
     if ($quiz_vid) {
@@ -255,16 +255,16 @@ class QuizHelper {
       else {
         // Select random question from assigned pool.
         $result = db_query_range(
-          "SELECT child_nid as nid, child_vid as vid, n.type
+          "SELECT question_nid as nid, question_vid as vid, n.type
         FROM {quiz_relationship} qnr
-        JOIN {node} n on qnr.child_nid = n.nid
+        JOIN {node} n on qnr.question_nid = n.nid
         WHERE qnr.quiz_vid = :quiz_vid
         AND qnr.quiz_qid = :quiz_qid
         AND qnr.question_status = :question_status
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
-          ':quiz_vid'      => $quiz->vid,
-          ':quiz_qid'      => $quiz->nid,
+          ':quiz_vid'        => $quiz->vid,
+          ':quiz_qid'        => $quiz->nid,
           ':question_status' => QUESTION_RANDOM
           )
         );
@@ -367,11 +367,11 @@ class QuizHelper {
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qnr_id] = array(
-          'quiz_qid'            => $quiz->nid,
-          'quiz_vid'            => $quiz->vid,
-          'child_nid'             => $question->nid,
+          'quiz_qid'              => $quiz->nid,
+          'quiz_vid'              => $quiz->vid,
+          'question_nid'          => $question->nid,
           // Update to latest OR use the version given.
-          'child_vid'             => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
+          'question_vid'          => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
           'question_status'       => $question->state,
           'weight'                => $question->weight,
           'max_score'             => (int) $question->max_score,
@@ -426,7 +426,7 @@ class QuizHelper {
       // Get required questions first.
       $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
     FROM {quiz_relationship} qnr
-    JOIN {node} n ON qnr.child_nid = n.nid
+    JOIN {node} n ON qnr.question_nid = n.nid
     LEFT JOIN {quiz_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
     WHERE qnr.quiz_vid = :quiz_vid
     AND qnr.question_status = :question_status
@@ -538,7 +538,7 @@ class QuizHelper {
     $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->innerJoin('node_revision', 'nr', 'n.nid = nr.nid');
-    $query->innerJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.child_vid');
+    $query->innerJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.question_vid');
     $query->condition('qnr_pid', $qnr_pid);
     $query->orderBy('weight');
     $result = $query->execute();
@@ -584,11 +584,11 @@ class QuizHelper {
    */
   public function copyQuestions($node) {
     // Find original questions.
-    $query = db_query('SELECT child_nid, child_vid, question_status, weight, max_score, auto_update_max_score
+    $query = db_query('SELECT question_nid, question_vid, question_status, weight, max_score, auto_update_max_score
     FROM {quiz_relationship}
     WHERE quiz_vid = :quiz_vid', array(':quiz_vid' => $node->translation_source->vid));
     foreach ($query as $res_o) {
-      $original_question = node_load($res_o->child_nid);
+      $original_question = node_load($res_o->question_nid);
 
       // Set variables we can't or won't carry with us to the translated node to
       // NULL.
@@ -608,10 +608,10 @@ class QuizHelper {
       // Save the relationship between the new question and the quiz.
       db_insert('quiz_relationship')
         ->fields(array(
-          'quiz_qid'            => $node->nid,
-          'quiz_vid'            => $node->vid,
-          'child_nid'             => $original_question->nid,
-          'child_vid'             => $original_question->vid,
+          'quiz_qid'              => $node->nid,
+          'quiz_vid'              => $node->vid,
+          'question_nid'          => $original_question->nid,
+          'question_vid'          => $original_question->vid,
           'question_status'       => $res_o->question_status,
           'weight'                => $res_o->weight,
           'max_score'             => $res_o->max_score,
@@ -746,9 +746,9 @@ class QuizHelper {
                 FROM {quiz_relationship}
                 WHERE quiz_qid = :quiz_qid
                 AND quiz_vid = :quiz_vid
-                AND child_nid = :child_nid
-                AND child_vid = :child_vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':quiz_vid' => $quiz->vid, ':child_nid' => $result->nid, ':child_vid' => $result->vid))->fetchField();
+                AND question_nid = :question_nid
+                AND question_vid = :question_vid
+               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':quiz_vid' => $quiz->vid, ':question_nid' => $result->nid, ':question_vid' => $result->vid))->fetchField();
     }
     elseif ($quiz->randomization == 2) {
       $scale = db_query("SELECT (max_score_for_random / (

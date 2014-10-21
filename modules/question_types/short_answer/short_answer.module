@@ -154,7 +154,7 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
   // When we set the score we make sure that the max score in the quiz the question belongs to is considered
   $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
 
-  $quiz_max_score = db_query('SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
+  $quiz_max_score = db_query('SELECT max_score FROM {quiz_relationship} WHERE quiz_vid = :pvid AND question_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
 
   $changed = db_update('quiz_short_answer_user_answers')
     ->fields(array(
@@ -230,7 +230,7 @@ function short_answer_get_answer($question_nid, $question_vid, $result_id) {
   $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_results} qnr ON (sa.result_id = qnr.result_id)
-    JOIN {quiz_relationship} rel ON (qnr.vid = rel.quiz_vid AND rel.child_vid = sa.question_vid)
+    JOIN {quiz_relationship} rel ON (qnr.vid = rel.quiz_vid AND rel.question_vid = sa.question_vid)
     WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $results ? $results : FALSE;
 }

@@ -13,7 +13,7 @@ function multichoice_views_data() {
       'join'  => array(
         'quiz_node_properties' => array(
           'left_table' => 'quiz_relationship',
-          'left_field' => 'child_nid',
+          'left_field' => 'question_nid',
           'field'      => 'question_nid',
         ),
       ),
@@ -99,7 +99,7 @@ function multichoice_views_data() {
       'join'  => array(
         'quiz_node_properties' => array(
           'left_table' => 'quiz_relationship',
-          'left_field' => 'child_nid',
+          'left_field' => 'question_nid',
           'field'      => 'question_nid',
         ),
       ),
