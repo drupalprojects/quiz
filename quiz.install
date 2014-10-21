@@ -102,19 +102,13 @@ function quiz_schema() {
     'indexes'     => array('fpid' => array('qid', 'vid')),
   );
 
-  // Both a quiz and a quiz question are entities with versions. A quiz is a
-  // parent entity of a quiz question, making the quiz question the child.
-  //
-  // The quiz_relationship table stores this relationship in a way that allows
-  // a quiz question to be the child of multiple quizzes without losing version
-  // history.
   $schema['quiz_relationship'] = array(
-    'description' => 'Table storing what questions belong to what quizzes',
+    'description' => 'Table storing what questions belong to what quizzes aware of revision.',
     'fields'      => array(
       'qr_id'                 => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
-      'qr_pid'                => array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL),
       'quiz_qid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'quiz_vid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'qr_pid'                => array('type' => 'int', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL, 'description' => 'ID of parent page (question node)'),
       'question_nid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'question_vid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'question_status'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 1),
