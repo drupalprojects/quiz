@@ -45,9 +45,17 @@ class QuizUiController extends EntityDefaultUIController {
       'page arguments'   => array(1),
     );
 
+    $items['quiz/%quiz_entity_single/view'] = array(
+      'title'  => 'View',
+      'type'   => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+    );
+
     // Define menu item structure for /quiz/%/edit
     $items['quiz/%entity_object/edit'] = $items['admin/content/quiz/manage/%entity_object'];
-    $items['quiz/%entity_object/edit']['title arguments'][1] = 1;
+    $items['quiz/%entity_object/edit']['title'] = 'Edit';
+    unset($items['quiz/%entity_object/edit']['title callback'], $items['quiz/%entity_object/edit']['title arguments']);
+    $items['quiz/%entity_object/edit']['type'] = MENU_LOCAL_TASK;
     $items['quiz/%entity_object/edit']['page arguments'][1] = 1;
     $items['quiz/%entity_object/edit']['access arguments'][2] = 1;
 
