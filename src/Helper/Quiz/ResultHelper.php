@@ -97,7 +97,7 @@ class ResultHelper {
    */
   public function getAnswers($quiz, $result_id) {
     $questions = array();
-    $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score, qt.max_score as term_max_score
+    $ids = db_query("SELECT ra.question_nid, ra.question_vid, n.type, rs.max_score, qt.max_score as term_max_score
                    FROM {quiz_results_answers} ra
                    LEFT JOIN {node} n ON (ra.question_nid = n.nid)
                    LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id)
