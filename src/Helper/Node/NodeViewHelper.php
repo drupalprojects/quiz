@@ -16,7 +16,8 @@ class NodeViewHelper {
       '#weight' => -1,
     );
 
-    if ($available = quiz()->getQuizHelper()->isAvailable($node)) {
+    $available = quiz()->getQuizHelper()->isAvailable($node);
+    if (TRUE === $available) {
       // Check the permission before displaying start button.
       if (user_access('access quiz')) {
         // Add a link to the take tab as a button if this isn't a teaser view.

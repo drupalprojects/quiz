@@ -73,7 +73,6 @@ class QuizEntityTest extends QuizTestCase {
     $quiz->log = 'Trying revision supporting';
     entity_save('quiz_entity', $quiz);
 
-    # quiz_entity_single_load
     // Load old revision
     $quiz_1 = quiz_entity_single_load($quiz->qid, $old_revision_id);
     $quiz_2 = quiz_entity_single_load($quiz->qid);
