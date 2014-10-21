@@ -53,11 +53,35 @@ class QuizUiController extends EntityDefaultUIController {
 
     // Define menu item structure for /quiz/%/edit
     $items['quiz/%entity_object/edit'] = $items['admin/content/quiz/manage/%entity_object'];
-    $items['quiz/%entity_object/edit']['title'] = 'Edit';
+    $items['quiz/%entity_object/edit']['title'] = 'Settings';
     unset($items['quiz/%entity_object/edit']['title callback'], $items['quiz/%entity_object/edit']['title arguments']);
     $items['quiz/%entity_object/edit']['type'] = MENU_LOCAL_TASK;
     $items['quiz/%entity_object/edit']['page arguments'][1] = 1;
     $items['quiz/%entity_object/edit']['access arguments'][2] = 1;
+
+    // Define menu structure for /quiz/%/questions
+    $items['quiz/%entity_object/questions'] = array(
+      'title'            => 'Questions',
+      'type'             => MENU_LOCAL_TASK,
+      'access callback'  => 'entity_access',
+      'access arguments' => array('update', 'quiz_entity', 1),
+      'page callback'    => 'Drupal\quiz\Controller\Admin\QuizQuestionAdminController::staticCallback',
+      'page arguments'   => array(1),
+      'load arguments'   => array('quiz_entity'),
+      'weight'           => 5,
+    );
+
+    // Define menu structure for /quiz/%/results
+    $items['quiz/%entity_object/results'] = array(
+      'title'            => 'Results',
+      'type'             => MENU_LOCAL_TASK,
+      'access callback'  => 'entity_access',
+      'access arguments' => array('update', 'quiz_entity', 1),
+      'page callback'    => 'Drupal\quiz\Controller\Admin\QuizResultsAdminController::staticCallback',
+      'page arguments'   => array(1),
+      'load arguments'   => array('quiz_entity'),
+      'weight'           => 6,
+    );
 
     // Define menu item structure for /quiz/%/delete
     $items['quiz/%entity_object/delete'] = array(
