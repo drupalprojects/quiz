@@ -29,7 +29,7 @@ class QuizAnsweringForm extends QuestionHelper {
 
       $quizzes = array(node_load($quizzes->nid));
       foreach ($quiz_result->layout as $question2) {
-        if ($question2['qnr_pid'] != $question['qnr_id']) {
+        if ($question2['qr_pid'] != $question['qr_id']) {
           continue;
         }
 
@@ -172,7 +172,7 @@ class QuizAnsweringForm extends QuestionHelper {
           $last_page = FALSE;
         }
       }
-      else if (empty($question['qnr_pid'])) {
+      else if (empty($question['qr_pid'])) {
         // A question without a parent showed up.
         $in_page = FALSE;
         $last_page = FALSE;
@@ -286,9 +286,9 @@ class QuizAnsweringForm extends QuestionHelper {
     $this->redirect($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
     $question = $quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']];
-    if (!empty($question['qnr_pid'])) {
+    if (!empty($question['qr_pid'])) {
       foreach ($quiz_result->layout as $question2) {
-        if ($question2['qnr_id'] == $question['qnr_pid']) {
+        if ($question2['qr_id'] == $question['qr_pid']) {
           $this->redirect($quiz, $question2['number']);
         }
       }

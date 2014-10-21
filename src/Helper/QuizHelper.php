@@ -180,7 +180,7 @@ class QuizHelper {
     $query = db_select('node', 'n');
     $query->fields('n', array('nid', 'type'));
     $query->fields('nr', array('vid', 'title'));
-    $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
+    $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qr_id', 'qr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->join('node_revision', 'nr', 'n.nid = nr.nid');
     $query->leftJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.question_vid');
@@ -189,13 +189,13 @@ class QuizHelper {
     if ($quiz_vid) {
       $query->condition('qnr.quiz_vid', $quiz_vid);
     }
-    $query->condition('qnr_pid', NULL, 'IS');
+    $query->condition('qr_pid', NULL, 'IS');
     $query->orderBy('qnr.weight');
 
     $result = $query->execute();
     foreach ($result as $question) {
       $questions[] = $question;
-      $this->getSubQuestions($question->qnr_id, $questions);
+      $this->getSubQuestions($question->qr_id, $questions);
     }
 
     foreach ($questions as &$node) {
@@ -229,8 +229,8 @@ class QuizHelper {
       $question->auto_update_max_score = $node->auto_update_max_score;
     }
     $question->weight = $node->weight;
-    $question->qnr_id = $node->qnr_id;
-    $question->qnr_pid = $node->qnr_pid;
+    $question->qr_id = $node->qr_id;
+    $question->qr_pid = $node->qr_pid;
 
     return $question;
   }
@@ -366,7 +366,7 @@ class QuizHelper {
 
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
-        $question_inserts[$question->qnr_id] = array(
+        $question_inserts[$question->qr_id] = array(
           'quiz_qid'              => $quiz->nid,
           'quiz_vid'              => $quiz->vid,
           'question_nid'          => $question->nid,
@@ -376,11 +376,11 @@ class QuizHelper {
           'weight'                => $question->weight,
           'max_score'             => (int) $question->max_score,
           'auto_update_max_score' => (int) $question->auto_update_max_score,
-          'qnr_pid'               => $question->qnr_pid,
-          'qnr_id'                => !$set_new_revision ? $question->qnr_id : NULL,
-          'old_qnr_id'            => $question->qnr_id,
+          'qr_pid'               => $question->qr_pid,
+          'qr_id'                => !$set_new_revision ? $question->qr_id : NULL,
+          'old_qr_id'            => $question->qr_id,
         );
-        drupal_write_record('quiz_relationship', $question_inserts[$question->qnr_id]);
+        drupal_write_record('quiz_relationship', $question_inserts[$question->qr_id]);
       }
     }
 
@@ -388,10 +388,10 @@ class QuizHelper {
     // @todo this is copy pasta from quiz_update_quiz_question_relationship
     foreach ($question_inserts as $question_insert) {
       db_update('quiz_relationship')
-        ->condition('qnr_pid', $question_insert['old_qnr_id'])
+        ->condition('qr_pid', $question_insert['old_qr_id'])
         ->condition('quiz_vid', $quiz->vid)
         ->condition('quiz_qid', $quiz->nid)
-        ->fields(array('qnr_pid' => $question_insert['qnr_id']))
+        ->fields(array('qr_pid' => $question_insert['qr_id']))
         ->execute();
     }
 
@@ -424,10 +424,10 @@ class QuizHelper {
     }
     else {
       // Get required questions first.
-      $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
+      $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qr_id, qnr.qr_pid
     FROM {quiz_relationship} qnr
     JOIN {node} n ON qnr.question_nid = n.nid
-    LEFT JOIN {quiz_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
+    LEFT JOIN {quiz_relationship} qnr2 ON (qnr.qr_pid = qnr2.qr_id OR (qnr.qr_pid IS NULL AND qnr.qr_id = qnr2.qr_id))
     WHERE qnr.quiz_vid = :quiz_vid
     AND qnr.question_status = :question_status
     AND n.status = 1
@@ -531,15 +531,15 @@ class QuizHelper {
     return $questions;
   }
 
-  public function getSubQuestions($qnr_pid, &$questions) {
+  public function getSubQuestions($qr_pid, &$questions) {
     $query = db_select('node', 'n');
     $query->fields('n', array('nid', 'type'));
     $query->fields('nr', array('vid', 'title'));
-    $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
+    $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qr_id', 'qr_pid'));
     $query->addField('n', 'vid', 'latest_vid');
     $query->innerJoin('node_revision', 'nr', 'n.nid = nr.nid');
     $query->innerJoin('quiz_relationship', 'qnr', 'nr.vid = qnr.question_vid');
-    $query->condition('qnr_pid', $qnr_pid);
+    $query->condition('qr_pid', $qr_pid);
     $query->orderBy('weight');
     $result = $query->execute();
     foreach ($result as $question) {

@@ -43,9 +43,9 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->drupalGet("node/$quiz_node->nid/quiz/questions");
     $post = array(
       // Make the questions have parents.
-      "qnr_pids[{$question_node1->nid}-{$question_node1->vid}]" => 4,
-      "qnr_pids[{$question_node2->nid}-{$question_node2->vid}]" => 4,
-      "qnr_pids[{$question_node3->nid}-{$question_node3->vid}]" => 5,
+      "qr_pids[{$question_node1->nid}-{$question_node1->vid}]" => 4,
+      "qr_pids[{$question_node2->nid}-{$question_node2->vid}]" => 4,
+      "qr_pids[{$question_node3->nid}-{$question_node3->vid}]" => 5,
       // Mirror what JS would have done by adjusting the weights.
       "weights[{$page_node1->nid}-{$page_node1->vid}]" => 2,
       "weights[{$question_node1->nid}-{$question_node1->vid}]" => 3,
@@ -56,20 +56,20 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->drupalPost(NULL, $post, t('Submit'));
 
     $sql = "SELECT * FROM {quiz_relationship}";
-    $data = db_query($sql)->fetchAllAssoc('qnr_id');
+    $data = db_query($sql)->fetchAllAssoc('qr_id');
     // Check the relationships properly saved.
-    foreach ($data as $qnr_id => $rel) {
-      switch ($qnr_id) {
+    foreach ($data as $qr_id => $rel) {
+      switch ($qr_id) {
         case 1:
         case 2:
-          $this->assertEqual($rel->qnr_pid, 4);
+          $this->assertEqual($rel->qr_pid, 4);
           break;
         case 3:
-          $this->assertEqual($rel->qnr_pid, 5);
+          $this->assertEqual($rel->qr_pid, 5);
           break;
         case 4:
         case 5:
-          $this->assertNull($rel->qnr_pid);
+          $this->assertNull($rel->qr_pid);
           break;
       };
     }

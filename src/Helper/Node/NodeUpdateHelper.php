@@ -53,7 +53,7 @@ class NodeUpdateHelper extends NodeHelper {
   private function updateQuestionRelationship($old_quiz_vid, $new_quiz_vid, $quiz_nid) {
     // query for questions in previous version
     $result = db_select('quiz_relationship', 'qnr')
-      ->fields('qnr', array('quiz_qid', 'question_nid', 'question_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'))
+      ->fields('qnr', array('quiz_qid', 'question_nid', 'question_vid', 'question_status', 'weight', 'max_score', 'auto_update_max_score', 'qr_id', 'qr_pid'))
       ->condition('quiz_qid', $quiz_nid)
       ->condition('quiz_vid', $old_quiz_vid)
       ->condition('question_status', QUESTION_NEVER, '!=')
@@ -63,10 +63,10 @@ class NodeUpdateHelper extends NodeHelper {
     if ($result->rowCount()) {
       $questions = $result->fetchAll(PDO::FETCH_ASSOC);
       foreach ($questions as &$quiz_question) {
-        $quiz_question['old_qnr_id'] = $quiz_question['qnr_id'];
+        $quiz_question['old_qr_id'] = $quiz_question['qr_id'];
         $quiz_question['quiz_qid'] = $quiz_nid;
         $quiz_question['quiz_vid'] = $new_quiz_vid;
-        unset($quiz_question['qnr_id']);
+        unset($quiz_question['qr_id']);
         drupal_write_record('quiz_relationship', $quiz_question);
       }
 
@@ -74,10 +74,10 @@ class NodeUpdateHelper extends NodeHelper {
       // @todo this is copy pasta from quiz_set_questions
       foreach ($questions as $question) {
         db_update('quiz_relationship')
-          ->condition('qnr_pid', $question['old_qnr_id'])
+          ->condition('qr_pid', $question['old_qr_id'])
           ->condition('quiz_qid', $quiz_nid)
           ->condition('quiz_vid', $new_quiz_vid)
-          ->fields(array('qnr_pid' => $question['qnr_id']))
+          ->fields(array('qr_pid' => $question['qr_id']))
           ->execute();
       }
     }

@@ -91,13 +91,13 @@ function theme_question_selection_table($variables) {
   if (!empty($form['titles'])) {
     foreach (element_children($form['titles']) as $id) {
       $form['weights'][$id]['#attributes']['class'] = array('question-list-weight');
-      $form['qnr_ids'][$id]['#attributes']['class'] = array('qnr-id');
-      $form['qnr_pids'][$id]['#attributes']['class'] = array('qnr-pid');
+      $form['qr_ids'][$id]['#attributes']['class'] = array('qnr-id');
+      $form['qr_pids'][$id]['#attributes']['class'] = array('qnr-pid');
       $rows[] = _quiz_get_question_row($form, $id);
     }
     // Make sure the same fields aren't rendered twice
     unset($form['types'], $form['view_links'], $form['remove_links'], $form['stayers']);
-    unset($form['max_scores'], $form['auto_update_max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories'], $form['qnr_ids'], $form['qnr_pids']);
+    unset($form['max_scores'], $form['auto_update_max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories'], $form['qr_ids'], $form['qr_pids']);
   }
   $html_attr = array('id' => 'question-list');
 
@@ -143,10 +143,10 @@ function _quiz_get_question_row($sub_form, $id) {
       'class' => array('links', 'inline'),
     ),
   ));
-  $qnr_pid = $sub_form['qnr_pids'][$id]['#default_value'];
+  $qr_pid = $sub_form['qr_pids'][$id]['#default_value'];
   $data_array = array(
     // The checkbox and the title
-    ($qnr_pid ? theme('indentation', array('size' => 1)) : NULL) . drupal_render($sub_form['titles'][$id]),
+    ($qr_pid ? theme('indentation', array('size' => 1)) : NULL) . drupal_render($sub_form['titles'][$id]),
     $type,
     $action,
     isset($sub_form['revision'][$id]) ? drupal_render($sub_form['revision'][$id]) : t("Up to date"),
@@ -158,10 +158,10 @@ function _quiz_get_question_row($sub_form, $id) {
     $data_array[] = drupal_render($sub_form['compulsories'][$id]);
   }
   $data_array[] = drupal_render($sub_form['weights'][$id]);
-  $data_array[] = drupal_render($sub_form['qnr_pids'][$id]);
+  $data_array[] = drupal_render($sub_form['qr_pids'][$id]);
   $data_array[] = array(
     'class' => array('tabledrag-hide'),
-    'data'  => drupal_render($sub_form['qnr_ids'][$id]),
+    'data'  => drupal_render($sub_form['qr_ids'][$id]),
   );
 
   $leaf_class = $sub_form['types'][$id]['#question_type'] != 'quiz_page' ? 'tabledrag-leaf' : '';

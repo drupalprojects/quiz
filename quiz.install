@@ -111,8 +111,8 @@ function quiz_schema() {
   $schema['quiz_relationship'] = array(
     'description' => 'Table storing what questions belong to what quizzes',
     'fields'      => array(
-      'qnr_id'                => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
-      'qnr_pid'               => array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL),
+      'qr_id'                 => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
+      'qr_pid'                => array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL),
       'quiz_qid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'quiz_vid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
       'question_nid'          => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
@@ -122,7 +122,7 @@ function quiz_schema() {
       'max_score'             => array('type' => 'int', 'not null' => TRUE, 'default' => 0),
       'auto_update_max_score' => array('type' => 'int', 'size' => 'tiny', 'not null' => TRUE, 'default' => 0),
     ),
-    'primary key' => array('qnr_id'),
+    'primary key' => array('qr_id'),
     'unique keys' => array(
       'parent_child' => array('quiz_qid', 'quiz_vid', 'question_nid', 'question_vid'),
     ),
@@ -166,10 +166,10 @@ function quiz_schema() {
     'description' => 'Table storing information about the results for the questions',
     'fields'      => array(
       'result_answer_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'The result answer ID',),
-      'result_id'        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'question_nid'     => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'question_vid'     => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE,),
-      'tid'              => array('type' => 'int', 'unsigned' => TRUE,),
+      'result_id'        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'question_nid'     => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'question_vid'     => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE),
+      'tid'              => array('type' => 'int', 'unsigned' => TRUE),
       'is_correct'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0,),
       'is_skipped'       => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0),
       'points_awarded'   => array('type' => 'int', 'size' => 'tiny', 'unsigned' => FALSE, 'not null' => TRUE, 'default' => 0,),
@@ -426,7 +426,7 @@ function quiz_update_7501() {
 }
 
 /**
- * Add new qnr_id field to the quiz_relationship table.
+ * Add new qr_id field to the quiz_relationship table.
  */
 function quiz_update_7502() {
   db_drop_primary_key('quiz_relationship');
@@ -437,12 +437,12 @@ function quiz_update_7502() {
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
-  db_add_field('quiz_relationship', 'qnr_id', $spec, array('primary key' => array('qnr_id')));
-  return t('Added new qnr_id field to the quiz_relationship table.');
+  db_add_field('quiz_relationship', 'qr_id', $spec, array('primary key' => array('qr_id')));
+  return t('Added new qr_id field to the quiz_relationship table.');
 }
 
 /**
- * Add new qnr_pid field to the quiz_relationship table.
+ * Add new qr_pid field to the quiz_relationship table.
  */
 function quiz_update_7503() {
   $spec = array(
@@ -452,8 +452,8 @@ function quiz_update_7503() {
     'not null' => FALSE,
     'default'  => NULL,
   );
-  db_add_field('quiz_relationship', 'qnr_pid', $spec);
-  return t('Added new qnr_pid field to the quiz_relationship table.');
+  db_add_field('quiz_relationship', 'qr_pid', $spec);
+  return t('Added new qr_pid field to the quiz_relationship table.');
 }
 
 /**

@@ -31,10 +31,10 @@ class QuizTakeQuestionController extends QuestionHelper {
       $quiz_result = quiz_result_load($_SESSION['quiz'][$this->quiz->nid]['result_id']);
       $question = $quiz_result->layout[$question_number];
 
-      if (!empty($question['qnr_pid'])) {
+      if (!empty($question['qr_pid'])) {
         // Find the parent.
         foreach ($quiz_result->layout as $pquestion) {
-          if ($pquestion['qnr_id'] == $question['qnr_pid']) {
+          if ($pquestion['qr_id'] == $question['qr_pid']) {
             // Load the page that the requested question belongs to.
             $question_node = node_load($pquestion['nid']);
           }
@@ -60,7 +60,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     $questions = array();
     $i = 0;
     foreach ($quiz_result->layout as $idx => $question) {
-      if (empty($question['qnr_pid'])) {
+      if (empty($question['qr_pid'])) {
         // Question has no parent. Show it in the jumper.
         $questions[$idx] = ++$i;
       }

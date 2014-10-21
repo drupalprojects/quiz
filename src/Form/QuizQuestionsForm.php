@@ -206,8 +206,8 @@ class QuizQuestionsForm {
    */
   private function addQuestionsToForm(&$form, &$questions, &$quiz, &$question_types) {
     $form['question_list']['weights'] = array('#tree' => TRUE);
-    $form['question_list']['qnr_ids'] = array('#tree' => TRUE);
-    $form['question_list']['qnr_pids'] = array('#tree' => TRUE);
+    $form['question_list']['qr_ids'] = array('#tree' => TRUE);
+    $form['question_list']['qr_pids'] = array('#tree' => TRUE);
     $form['question_list']['max_scores'] = array('#tree' => TRUE);
     $form['question_list']['auto_update_max_scores'] = array('#tree' => TRUE);
     $form['question_list']['stayers'] = array('#tree' => TRUE);
@@ -230,18 +230,18 @@ class QuizQuestionsForm {
         '#default_value' => isset($question->weight) ? $question->weight : 0,
       );
 
-      $form[$fieldset]['qnr_pids'][$id] = array(
+      $form[$fieldset]['qr_pids'][$id] = array(
         '#type'          => 'textfield',
         '#size'          => 3,
         '#maxlength'     => 4,
-        '#default_value' => $question->qnr_pid,
+        '#default_value' => $question->qr_pid,
       );
 
-      $form[$fieldset]['qnr_ids'][$id] = array(
+      $form[$fieldset]['qr_ids'][$id] = array(
         '#type'          => 'textfield',
         '#size'          => 3,
         '#maxlength'     => 4,
-        '#default_value' => $question->qnr_id,
+        '#default_value' => $question->qr_id,
       );
 
       // Quiz directions don't have scoring...
@@ -413,8 +413,8 @@ class QuizQuestionsForm {
     $this->questionBrowserSubmit($form, $form_state);
 
     $weight_map = $form_state['values']['weights'];
-    $qnr_pids_map = $form_state['values']['qnr_pids'];
-    $qnr_ids_map = $form_state['values']['qnr_ids'];
+    $qr_pids_map = $form_state['values']['qr_pids'];
+    $qr_ids_map = $form_state['values']['qr_ids'];
     $max_scores = $form_state['values']['max_scores'];
     $auto_update_max_scores = $form_state['values']['auto_update_max_scores'];
     $refreshes = isset($form_state['values']['revision']) ? $form_state['values']['revision'] : NULL;
@@ -425,7 +425,7 @@ class QuizQuestionsForm {
     $term_id = isset($form_state['values']['random_term_id']) ? (int) $form_state['values']['random_term_id'] : 0;
 
     // Store what questions belong to the quiz
-    $questions = $this->updateItems($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories, $stayers);
+    $questions = $this->updateItems($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qr_ids_map, $qr_pids_map, $compulsories, $stayers);
 
     // If using random questions and no term ID is specified, make sure we have enough.
     if (empty($term_id)) {
@@ -535,7 +535,7 @@ class QuizQuestionsForm {
    *   Array of boolean values determining if the question is compulsory or not.
    * @return array set of questions after updating
    */
-  private function updateItems($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids, $qnr_pids, $compulsories = NULL) {
+  private function updateItems($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qr_ids, $qr_pids, $compulsories = NULL) {
     $questions = array();
     foreach ($weight_map as $id => $weight) {
       if ($stayers[$id]) {
@@ -562,8 +562,8 @@ class QuizQuestionsForm {
       $question->weight = $weight;
       $question->max_score = $max_scores[$id];
       $question->auto_update_max_score = $auto_update_max_scores[$id];
-      $question->qnr_pid = $qnr_pids[$id] > 0 ? $qnr_pids[$id] : NULL;
-      $question->qnr_id = $qnr_ids[$id] > 0 ? $qnr_ids[$id] : NULL;
+      $question->qr_pid = $qr_pids[$id] > 0 ? $qr_pids[$id] : NULL;
+      $question->qr_id = $qr_ids[$id] > 0 ? $qr_ids[$id] : NULL;
       $question->refresh = (isset($refreshes[$id]) && $refreshes[$id] == 1);
 
       // Add item as an object in the questions array.
