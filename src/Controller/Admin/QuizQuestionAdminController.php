@@ -14,6 +14,7 @@ class QuizQuestionAdminController {
 
   public static function staticCallback(QuizEntity $quiz) {
     $obj = new self($quiz);
+
     return array(
       '#type'            => 'vertical_tabs',
       'question_admin'   => array(
@@ -31,7 +32,7 @@ class QuizQuestionAdminController {
             '#items' => $obj->getQuestionAddingLinks(),
           ),
         ),
-      // 'form'   => drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::staticGet', $quiz),
+        'form'   => @drupal_get_form('Drupal\quiz\Form\QuizQuestionsForm::staticGet', $quiz),
       ),
       'global_questions' => array(
         '#type'  => 'fieldset',
@@ -49,9 +50,9 @@ class QuizQuestionAdminController {
         continue;
       }
 
-      $text = $info['name']; // t('Create @name', array('@name' => $info['name']));
+      $text = $info['name'];
       $url = 'node/add/' . $type;
-      $items[] = l($text, $url, array('destination' => drupal_get_destination()));
+      $items[] = l($text, $url, array('query' => drupal_get_destination()));
     }
 
     if (empty($items)) {
