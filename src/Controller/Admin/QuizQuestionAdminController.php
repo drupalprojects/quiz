@@ -51,7 +51,7 @@ class QuizQuestionAdminController {
       }
 
       $text = $info['name'];
-      $url = 'node/add/' . $type;
+      $url = 'node/add/' . str_replace('_', '-', $type);
       $items[] = l($text, $url, array('query' => drupal_get_destination()));
     }
 
