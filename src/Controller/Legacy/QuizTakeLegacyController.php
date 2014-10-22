@@ -55,24 +55,24 @@ class QuizTakeLegacyController {
    *   progress, this will return 0.
    */
   protected function activeResultId($uid, $vid, $now = NULL) {
-    $sql = 'SELECT qnr.result_id'
-      . ' FROM {quiz_results} qnr'
-      . '   INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid '
-      . ' WHERE '
-      . '   (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close)) '
+    $quiz_table = $this->isNode() ? 'quiz_node_properties' : 'quiz_entity_revision';
+
+    $sql = 'SELECT qnr.result_id '
+      . ' FROM {quiz_results} qnr '
+      . '   INNER JOIN {' . $quiz_table . '} quiz ON qnr.vid = quiz.vid'
+      . 'WHERE '
+      . '   (quiz.quiz_always = :quiz_always OR (:between BETWEEN quiz.quiz_open AND quiz.quiz_close)) '
       . '   AND qnr.vid = :vid '
       . '   AND qnr.uid = :uid '
       . '   AND qnr.time_end IS NULL';
 
-    $params = array(
-      ':quiz_always' => 1,
-      ':between'     => $now ? $now : REQUEST_TIME,
-      ':vid'         => $vid,
-      ':uid'         => $uid
-    );
-
     // Get any quiz that is open, for this user, and has not already been completed.
-    return (int) db_query($sql, $params)->fetchField();
+    return (int) db_query($sql, array(
+        ':quiz_always' => 1,
+        ':between'     => $now ? $now : REQUEST_TIME,
+        ':vid'         => $vid,
+        ':uid'         => $uid
+      ))->fetchField();
   }
 
 }
