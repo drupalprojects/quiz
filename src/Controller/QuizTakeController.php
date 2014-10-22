@@ -3,7 +3,6 @@
 namespace Drupal\quiz\Controller;
 
 use Drupal\quiz\Controller\Legacy\QuizTakeLegacyController;
-use Drupal\quiz\Entity\QuizEntity;
 use RuntimeException;
 use stdClass;
 
@@ -39,8 +38,8 @@ class QuizTakeController extends QuizTakeLegacyController {
   public function __construct($quiz, $account) {
     parent::__construct(isset($quiz->nid) ? 'node' : 'quiz_entity');
     $this->quiz = $quiz;
-    $this->initQuizResult();
     $this->account = $account;
+    $this->initQuizResult();
   }
 
   private function initQuizResult() {
