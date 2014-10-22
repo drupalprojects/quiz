@@ -3,7 +3,6 @@
 namespace Drupal\quiz\Entity;
 
 use EntityAPIController;
-use TrueFalseUnitTest;
 
 class QuizEntityController extends EntityAPIController {
 

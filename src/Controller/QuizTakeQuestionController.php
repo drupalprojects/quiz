@@ -114,34 +114,14 @@ class QuizTakeQuestionController extends QuestionHelper {
   private function attachJs($time) {
     jquery_countdown_add('.countdown', array(
       'until'    => $time,
-      'onExpiry' => 'finished',
+      'onExpiry' => 'quiz_take_finished',
       'compact'  => TRUE,
       'layout'   => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'
     ));
 
-    // These are the two button op values that are accepted for answering
-    // questions.
-    $button_op1 = drupal_json_encode(t('Finish'));
-    $button_op2 = drupal_json_encode(t('Next'));
-    $js = "
-            function finished() {
-              // Find all buttons with a name of 'op'.
-              var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
-              // Filter out the ones that don't have the right op value.
-              buttons = buttons.filter(function() {
-                return this.value == $button_op1 || this.value == $button_op2;
-              });
-              if (buttons.length == 1) {
-                // Since only one button was found, this must be it.
-                buttons.click();
-              }
-              else {
-                // Zero, or more than one buttons were found; fall back on a page refresh.
-                window.location = window.location.href;
-              }
-            }
-          ";
-    drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
+    // These are the two button op values that are accepted for answering questions.
+    $vars = array('quiz_button_1' => t('Finish'), 'quiz_button_2' => t('Next'));
+    drupal_add_js($vars, array('type' => 'setting'));
   }
 
 }
