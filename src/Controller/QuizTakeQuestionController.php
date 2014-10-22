@@ -9,8 +9,8 @@ use RuntimeException;
 class QuizTakeQuestionController extends QuestionHelper {
 
   private $quiz;
-  private $question_number;
   private $question;
+  private $page_number;
   private $result;
   private $is_quiz_node;
   private $quiz_uri;
@@ -54,7 +54,7 @@ class QuizTakeQuestionController extends QuestionHelper {
 
     $this->quiz = $quiz;
     $this->result = $result;
-    $this->question_number = $question_number;
+    $this->page_number = $question_number;
     $this->question = $question;
 
     // Legacy code
@@ -76,7 +76,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     $i = 0;
 
     // Mark this as the current question.
-    $this->redirect($this->quiz, $this->question_number);
+    $this->redirect($this->quiz, $this->page_number);
 
     // Added the progress info to the view.
     foreach ($this->result->layout as $idx => $question) {
@@ -88,7 +88,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     $content['progress']['#markup'] = theme('quiz_progress', array(
       'quiz'          => $this->quiz,
       'questions'     => $questions,
-      'current'       => $this->question_number,
+      'current'       => $this->page_number,
       'allow_jumping' => $this->quiz->allow_jumping,
       'pager'         => count($questions) >= variable_get('quiz_pager_start', 100),
       'time_limit'    => $this->quiz->time_limit,
@@ -100,7 +100,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     }
 
     $form_id = 'Drupal\quiz\Form\QuizAnsweringForm::staticCallback';
-    $question_form = @drupal_get_form($form_id, $this->question, $this->result->result_id);
+    $question_form = @drupal_get_form($form_id, $this->quiz, $this->question, $this->page_number, $this->result);
     $content['body']['question']['#markup'] = drupal_render($question_form);
 
     return $content;
