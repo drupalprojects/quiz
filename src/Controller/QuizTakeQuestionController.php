@@ -9,9 +9,12 @@ use RuntimeException;
 class QuizTakeQuestionController extends QuestionHelper {
 
   private $quiz;
-  private $quiz_number;
+  private $question_number;
   private $question;
   private $result;
+  private $is_quiz_node;
+  private $quiz_uri;
+  private $quiz_id;
 
   /**
    * Callback for node/%quiz_menu/take/%question_number. Take a quiz questions.
@@ -23,9 +26,10 @@ class QuizTakeQuestionController extends QuestionHelper {
    */
   public static function staticCallback($quiz, $question_number) {
     $result = $question = NULL;
+    $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
 
-    if (isset($_SESSION['quiz'][$quiz->nid]['result_id'])) {
-      $result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
+    if (isset($_SESSION['quiz'][$quiz_id]['result_id'])) {
+      $result = quiz_result_load($_SESSION['quiz'][$quiz_id]['result_id']);
     }
 
     if ($result && empty($result->layout[$question_number]['qr_pid'])) {
@@ -50,14 +54,19 @@ class QuizTakeQuestionController extends QuestionHelper {
 
     $this->quiz = $quiz;
     $this->result = $result;
-    $this->quiz_number = $question_number;
+    $this->question_number = $question_number;
     $this->question = $question;
+
+    // Legacy code
+    $this->is_quiz_node = isset($quiz->nid);
+    $this->quiz_uri = isset($quiz->nid) ? 'node/' . $quiz->nid : 'quiz/' . $quiz->qid;
+    $this->quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
 
     // Question disappeared or invalid session. Start over.
     if (!$question) {
       drupal_set_message(t('Invalid session.'), 'error');
-      unset($_SESSION['quiz'][$quiz->nid]);
-      drupal_goto("node/{$this->quiz->nid}");
+      unset($_SESSION['quiz'][$this->quiz_id]);
+      drupal_goto($this->quiz_uri);
     }
   }
 
@@ -79,14 +88,14 @@ class QuizTakeQuestionController extends QuestionHelper {
     $content['progress']['#markup'] = theme('quiz_progress', array(
       'quiz'          => $this->quiz,
       'questions'     => $questions,
-      'current'       => $this->quiz_number,
+      'current'       => $this->question_number,
       'allow_jumping' => $this->quiz->allow_jumping,
       'pager'         => count($questions) >= variable_get('quiz_pager_start', 100),
       'time_limit'    => $this->quiz->time_limit,
     ));
     $content['progress']['#weight'] = -50;
 
-    if (isset($_SESSION['quiz'][$this->quiz->nid]['question_duration'])) {
+    if (isset($_SESSION['quiz'][$this->quiz_id]['question_duration'])) {
       $this->updateQuestionDuration();
     }
 
@@ -98,7 +107,7 @@ class QuizTakeQuestionController extends QuestionHelper {
   }
 
   private function updateQuestionDuration() {
-    $time = $_SESSION['quiz'][$this->quiz->nid]['question_duration'];
+    $time = $_SESSION['quiz'][$this->quiz_id]['question_duration'];
 
     if ($time < 1) {
       // The page was probably submitted by the js, we allow the data to be stored
@@ -121,7 +130,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     }
 
     // Update start time in session
-    $_SESSION['quiz'][$this->quiz->nid]['question_start_time'] = REQUEST_TIME;
+    $_SESSION['quiz'][$this->quiz_id]['question_start_time'] = REQUEST_TIME;
   }
 
   /**
