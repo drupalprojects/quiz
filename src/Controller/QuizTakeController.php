@@ -26,6 +26,7 @@ class QuizTakeController extends QuizTakeLegacyController {
       }
 
       $controller = new static($quiz, $user);
+      $controller->initQuizResult();
       if ($controller->getResultId()) {
         drupal_goto($controller->getQuestionTakePath());
       }
@@ -39,10 +40,9 @@ class QuizTakeController extends QuizTakeLegacyController {
     parent::__construct(isset($quiz->nid) ? 'node' : 'quiz_entity');
     $this->quiz = $quiz;
     $this->account = $account;
-    $this->initQuizResult();
   }
 
-  private function initQuizResult() {
+  public function initQuizResult() {
     // Inject result from user's session
     if (!empty($_SESSION['quiz'][$this->getQuizId()]['result_id'])) {
       $this->result_id = $_SESSION['quiz'][$this->getQuizId()]['result_id'];
@@ -65,13 +65,13 @@ class QuizTakeController extends QuizTakeLegacyController {
         throw new RuntimeException(t('This quiz is closed.'));
       }
 
-      $this->quiz_result = $this->createQuizResultObject();
-      $this->result_id = $this->quiz_result->result_id;
-      $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $this->quiz_result->result_id;
+      $this->result = $this->createQuizResultObject();
+      $this->result_id = $this->result->result_id;
+      $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $this->result->result_id;
       $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
 
       // Call hook_quiz_begin().
-      module_invoke_all('quiz_begin', $this->quiz, $this->quiz_result->result_id);
+      module_invoke_all('quiz_begin', $this->quiz, $this->result->result_id);
     }
 
     if (!quiz()->getQuizHelper()->isAvailable($this->quiz)) {
@@ -82,50 +82,19 @@ class QuizTakeController extends QuizTakeLegacyController {
   /**
    * If we allow resuming we can load it from the database.
    */
-  private function initQuizResume() {
+  public function initQuizResume() {
     if (!$result_id = $this->activeResultId($this->account->uid, $this->quiz->vid)) {
       return FALSE;
     }
 
-    $this->result_id = $result_id;
-
-    $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $this->result_id;
+    $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $result_id;
     $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
-    $quiz_result = quiz_result_load($result_id);
-    $this->quiz = $this->loadQuiz($quiz_result->nid, $quiz_result->vid);
+    $this->result = quiz_result_load($result_id);
+    $this->quiz = $this->loadQuiz($this->result->nid, $this->result->vid);
+    $this->result_id = $result_id;
 
     // Resume a quiz from the database.
     drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
-  }
-
-  /**
-   * Returns the result ID for any current result set for the given quiz.
-   *
-   * @param int $uid
-   * @param int $vid Quiz version ID
-   * @param int $now
-   *   Timestamp used to check whether the quiz is still open. Default: current
-   *   time.
-   *
-   * @return int
-   *   If a quiz is still open and the user has not finished the quiz,
-   *   return the result set ID so that the user can continue. If no quiz is in
-   *   progress, this will return 0.
-   */
-  protected function activeResultId($uid, $vid, $now = NULL) {
-    if (!isset($now)) {
-      $now = REQUEST_TIME;
-    }
-
-    // Get any quiz that is open, for this user, and has not already
-    // been completed.
-    $result_id = db_query('SELECT result_id FROM {quiz_results} qnr
-          INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
-          WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
-          AND qnr.vid = :vid
-          AND qnr.uid = :uid
-          AND qnr.time_end IS NULL', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid))->fetchField();
-    return (int) $result_id;
   }
 
   /**
