@@ -2,6 +2,9 @@
 
 namespace Drupal\quiz\Helper\Quiz;
 
+use Drupal\quiz\Controller\QuizTakeController;
+use Drupal\quiz\Quiz;
+
 /**
  * Helper class to provide methods to check user access right to quiz,
  * questions, feedback, score, …
@@ -113,8 +116,18 @@ class AccessHelper {
   }
 
   public function canAccessQuestion($quiz, $question_number) {
+    global $user;
+
     if (!$question_number) {
       return FALSE;
+    }
+
+    // User maybe revisiting the quiz, trying to resume
+    if (!isset($_SESSION['quiz'][$quiz->nid])) {
+      $controller = new QuizTakeController($quiz, $user, FALSE);
+      if (FALSE === $controller->initQuizResume()) {
+        return FALSE;
+      }
     }
 
     if ($quiz->allow_jumping) { // Access to go to any question. Yay.
@@ -122,6 +135,7 @@ class AccessHelper {
     }
 
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+
     $quiz_result = quiz_result_load($result_id);
     $question_index = $question_number;
     $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
