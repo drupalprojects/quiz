@@ -117,11 +117,16 @@ class AccessHelper {
       return FALSE;
     }
 
+    if (!isset($_SESSION['quiz'][$quiz->nid])) {
+      drupal_goto("node/{$quiz->nid}");
+    }
+
     if ($quiz->allow_jumping) { // Access to go to any question. Yay.
       return TRUE;
     }
 
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
+
     $quiz_result = quiz_result_load($result_id);
     $question_index = $question_number;
     $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
