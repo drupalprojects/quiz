@@ -3,10 +3,9 @@
 namespace Drupal\quiz\Form;
 
 use Drupal\quiz\Form\QuizAnsweringForm\FormSubmission;
-use Drupal\quiz\Helper\Quiz\QuestionHelper;
 use stdClass;
 
-class QuizAnsweringForm extends QuestionHelper {
+class QuizAnsweringForm {
 
   private $quiz;
   private $question;
@@ -25,7 +24,7 @@ class QuizAnsweringForm extends QuestionHelper {
 
   public function getSubmit() {
     if (null === $this->submit) {
-      $this->submit = new FormSubmission($this->quiz, $this->result);
+      $this->submit = new FormSubmission($this->quiz, $this->result, $this->page_number);
     }
     return $this->submit;
   }

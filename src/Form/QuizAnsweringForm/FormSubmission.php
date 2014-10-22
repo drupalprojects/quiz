@@ -2,14 +2,29 @@
 
 namespace Drupal\quiz\Form\QuizAnsweringForm;
 
-class FormSubmission {
+use Drupal\quiz\Entity\QuizEntity;
+use Drupal\quiz\Helper\Quiz\QuestionHelper;
+use stdClass;
+
+class FormSubmission extends QuestionHelper {
 
   private $quiz;
+  private $quiz_id;
+  private $quiz_uri;
   private $result;
+  private $page_number;
 
-  public function __construct($quiz, $result) {
+  /**
+   * @param QuizEntity $quiz
+   * @param stdClass $result
+   * @param int $page_number
+   */
+  public function __construct($quiz, $result, $page_number) {
     $this->quiz = $quiz;
+    $this->quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $this->quiz_uri = isset($quiz->nid) ? 'node/' . $quiz->nid : 'quiz/' . $quiz->qid;
     $this->result = $result;
+    $this->page_number = $page_number;
     $this->quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
   }
 
@@ -17,17 +32,16 @@ class FormSubmission {
    * Submit handler for "back".
    */
   public function formBackSubmit(&$form, &$form_state) {
-    // Back a question.
-    $this->redirect($this->quiz, $_SESSION['quiz'][$this->quiz_id]['current'] - 1);
-    $question = $this->result->layout[$_SESSION['quiz'][$this->quiz_id]['current']];
-    if (!empty($question['qr_pid'])) {
+    $this->redirect($this->quiz, $this->page_number - 1);
+    $item = $this->result->layout[$this->page_number];
+    if (!empty($item['qr_pid'])) {
       foreach ($this->result->layout as $item) {
-        if ($item['qr_id'] == $question['qr_pid']) {
+        if ($item['qr_id'] == $item['qr_pid']) {
           $this->redirect($this->quiz, $item['number']);
         }
       }
     }
-    $form_state['redirect'] = "node/$this->quiz_id/take/" . ($_SESSION['quiz'][$this->quiz_id]['current']);
+    $form_state['redirect'] = $this->quiz_uri . "/take/" . $this->getCurrentPageNumber($this->quiz);
   }
 
   /**
@@ -54,8 +68,8 @@ class FormSubmission {
     }
 
     // Advance to next question.
-    $this->redirect($this->quiz, $_SESSION['quiz'][$this->quiz_id]['current'] + 1);
-    $form_state['redirect'] = "node/{$this->quiz_id}/take/" . $_SESSION['quiz'][$this->quiz_id]['current'];
+    $this->redirect($this->quiz, $this->page_number + 1);
+    $form_state['redirect'] = $this->quiz_uri . "/take/" . $this->page_number;
   }
 
   /**
@@ -68,35 +82,35 @@ class FormSubmission {
     global $user;
 
     if (!empty($form_state['values']['question'])) {
-      foreach ($form_state['values']['question'] as $nid => $answer) {
-        $current_question = node_load($nid);
+      foreach (array_keys($form_state['values']['question']) as $question_id) {
+        $_question = node_load($question_id);
         foreach ($this->result->layout as $item) {
-          if ($item['nid'] == $current_question->nid) {
+          if ($item['nid'] == $_question->nid) {
             $question_array = $item;
           }
         }
-        $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$this->quiz_id]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+        $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$this->quiz_id]['result_id'], $_question, $form_state['values']['question'][$_question->nid]);
         $qi_instance->delete();
         $qi_instance->saveResult();
         $result = $qi_instance->toBareObject();
         quiz()->getQuizHelper()->saveQuestionResult($this->quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
         // Increment the counter.
-        $this->redirect($this->quiz, $_SESSION['quiz'][$this->quiz_id]['current'] + 1);
+        $this->redirect($this->quiz, $this->page_number + 1);
       }
     }
 
     // Wat do?
     if (!empty($this->quiz->review_options['question']) && array_filter($this->quiz->review_options['question'])) {
       // We have question feedback.
-      $form_state['redirect'] = "node/$this->quiz_id/take/" . ($_SESSION['quiz'][$this->quiz_id]['current'] - 1) . '/feedback';
+      $form_state['redirect'] = $this->quiz_uri . "/take/" . ($this->getCurrentPageNumber($this->quiz) - 1) . '/feedback';
     }
     else {
       // No question feedback. Go to next question.
-      $form_state['redirect'] = "node/$this->quiz_id/take/" . ($_SESSION['quiz'][$this->quiz_id]['current']);
+      $form_state['redirect'] = $this->quiz_uri . "/take/" . $this->getCurrentPageNumber($this->quiz);
     }
 
-    if (!isset($this->result->layout[$_SESSION['quiz'][$this->quiz_id]['current']])) {
+    if (!isset($this->result->layout[$this->page_number])) {
       // No more questions. Score quiz.
       $score = quiz_end_scoring($_SESSION['quiz'][$this->quiz_id]['result_id']);
 
@@ -104,7 +118,7 @@ class FormSubmission {
       quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $this->quiz, $this->result->result_id);
       if (empty($this->quiz->review_options['question']) || !array_filter($this->quiz->review_options['question'])) {
         // Only redirect to question results if there is not question feedback.
-        $form_state['redirect'] = "node/{$this->quiz_id}/quiz-results/{$this->result->result_id}/view";
+        $form_state['redirect'] = $this->quiz_uri . "/quiz-results/{$this->result->result_id}/view";
       }
 
       quiz_end_actions($this->quiz, $score, $_SESSION['quiz'][$this->quiz_id]);

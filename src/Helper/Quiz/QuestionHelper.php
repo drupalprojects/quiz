@@ -17,4 +17,9 @@ class QuestionHelper {
     $_SESSION['quiz'][$id]['current'] = $question_number;
   }
 
+  public function getCurrentPageNumber($quiz) {
+    $id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    return isset($_SESSION['quiz'][$id]['current']) ? $_SESSION['quiz'][$id]['current'] : 1;
+  }
+
 }
