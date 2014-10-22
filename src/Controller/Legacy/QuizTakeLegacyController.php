@@ -60,7 +60,7 @@ class QuizTakeLegacyController {
     $sql = 'SELECT qnr.result_id '
       . ' FROM {quiz_results} qnr '
       . '   INNER JOIN {' . $quiz_table . '} quiz ON qnr.vid = quiz.vid'
-      . 'WHERE '
+      . ' WHERE '
       . '   (quiz.quiz_always = :quiz_always OR (:between BETWEEN quiz.quiz_open AND quiz.quiz_close)) '
       . '   AND qnr.vid = :vid '
       . '   AND qnr.uid = :uid '
