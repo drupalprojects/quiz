@@ -104,6 +104,14 @@ class QuizUiController extends EntityDefaultUIController {
       'file'             => 'includes/entity.ui.inc',
     );
 
+    // Define menu item structure for /quiz/%/take
+    $items['quiz/%entity_object/take'] = array(
+      'load arguments'   => array('quiz_entity'),
+      'page callback'    => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
+      'page arguments'   => array(1),
+      'access arguments' => array('access quiz'),
+    );
+
     return $items;
   }
 
