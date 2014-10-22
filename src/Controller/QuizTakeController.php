@@ -2,111 +2,117 @@
 
 namespace Drupal\quiz\Controller;
 
-class QuizTakeController {
+use Drupal\quiz\Controller\Legacy\QuizTakeLegacyController;
+use Drupal\quiz\Entity\QuizEntity;
+use RuntimeException;
+use stdClass;
 
-  private $quiz;
+class QuizTakeController extends QuizTakeLegacyController {
 
-  public function __construct($quiz) {
-    $this->quiz = $quiz;
-  }
+  /** @var stdClass */
+  private $result;
+
+  /** @var stdClass */
+  private $account;
 
   /**
    * Callback for node/%quiz_menu/take
    */
   public static function staticCallback($quiz) {
     global $user;
-    $controller = new static($quiz);
-    return $controller->render($user);
+
+    try {
+      if (isset($quiz->rendered_content)) {
+        return $quiz->rendered_content;
+      }
+
+      $controller = new static($quiz, $user);
+      if ($controller->getResultId()) {
+        drupal_goto($controller->getQuestionTakePath());
+      }
+    }
+    catch (RuntimeException $e) {
+      return array('body' => ['#markup' => $e->getMessage()]);
+    }
   }
 
-  /**
-   * Primary quiz-taking view on 'Take' tab.
-   */
-  public function render($account) {
-    if (isset($this->quiz->rendered_content)) {
-      return $this->quiz->rendered_content;
-    }
-
-    $render_array = $this->buildRenderArray($account);
-    return drupal_render($render_array);
+  public function __construct($quiz, $account) {
+    parent::__construct(isset($quiz->nid) ? 'node' : 'quiz_entity');
+    $this->quiz = $quiz;
+    $this->initQuizResult();
+    $this->account = $account;
   }
 
-  /**
-   * Handles quiz taking.
-   *
-   * This gets executed when the main quiz node is first loaded.
-   *
-   * @param $quiz
-   *   The quiz node.
-   *
-   * @return
-   *   Content array.
-   */
-  public function buildRenderArray($account) {
-    // Make sure we use the same revision of the quiz throughout the quiz taking
-    // session.
-    $result_id = !empty($_SESSION['quiz'][$this->quiz->nid]['result_id']) ? $_SESSION['quiz'][$this->quiz->nid]['result_id'] : NULL;
-    if ($result_id && $quiz_result = quiz_result_load($result_id)) {
-      // Enforce that we have the same quiz version.
-      $this->quiz = node_load($quiz_result->nid, $quiz_result->vid);
-    }
-    else {
-      // User doesn't have attempt in session. If we allow resuming we can load it
-      // from the database.
-      if ($this->quiz->allow_resume) {
-        if ($result_id = $this->activeResultId($account->uid, $this->quiz->nid, $this->quiz->vid)) {
-          $_SESSION['quiz'][$this->quiz->nid]['result_id'] = $result_id;
-          $_SESSION['quiz'][$this->quiz->nid]['current'] = 1;
-          $quiz_result = quiz_result_load($result_id);
-          $this->quiz = node_load($quiz_result->nid, $quiz_result->vid);
-          // Resume a quiz from the database.
-          drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
-        }
-      }
+  private function initQuizResult() {
+    // Inject result from user's session
+    if (!empty($_SESSION['quiz'][$this->getQuizId()]['result_id'])) {
+      $this->result_id = $_SESSION['quiz'][$this->getQuizId()]['result_id'];
+      $this->result = quiz_result_load($this->result_id);
     }
 
-    if (!$result_id) {
-      // Can user start quiz?
-      if ($this->startCheck($account)) {
-        // Set up a new attempt.
-        $quiz_result = $this->init();
-        $_SESSION['quiz'][$this->quiz->nid]['result_id'] = $quiz_result->result_id;
-        $_SESSION['quiz'][$this->quiz->nid]['current'] = 1;
+    // Enforce that we have the same quiz version.
+    if ((null !== $this->result) && ($this->quiz->vid != $this->result->vid)) {
+      $this->quiz = $this->loadQuiz($this->getQuizId(), $this->quiz->vid);
+    }
 
-        // Call hook_quiz_begin().
-        module_invoke_all('quiz_begin', $this->quiz, $quiz_result->result_id);
+    // Resume quiz progress
+    if (!$this->result && $this->quiz->allow_resume) {
+      $this->initQuizResume();
+    }
+
+    // Start new quiz progress
+    if (!$this->result) {
+      if (!$this->checkAvailability($this->account)) {
+        throw new RuntimeException(t('This quiz is closed.'));
       }
-      else {
-        return array('body' => array('#markup' => t('This quiz is closed.')));
-      }
+
+      $this->quiz_result = $this->createQuizResultObject();
+      $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $this->quiz_result->result_id;
+      $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
+
+      // Call hook_quiz_begin().
+      module_invoke_all('quiz_begin', $this->quiz, $this->quiz_result->result_id);
     }
 
     if (!quiz()->getQuizHelper()->isAvailable($this->quiz)) {
-      return array('body' => array('#markup' => t('This quiz is not available.')));
+      throw new RuntimeException(t('This quiz is not available.'));
+    }
+  }
+
+  /**
+   * If we allow resuming we can load it from the database.
+   */
+  private function initQuizResume() {
+    if (!$result_id = $this->activeResultId($this->account->uid, $this->quiz->vid)) {
+      return FALSE;
     }
 
-    drupal_goto("node/{$this->quiz->nid}/take/" . ($_SESSION['quiz'][$this->quiz->nid]['current']));
+    $this->result_id = $result_id;
+
+    $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $this->result_id;
+    $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
+    $quiz_result = quiz_result_load($result_id);
+    $this->quiz = $this->loadQuiz($quiz_result->nid, $quiz_result->vid);
+
+    // Resume a quiz from the database.
+    drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
   }
 
   /**
    * Returns the result ID for any current result set for the given quiz.
    *
-   * @param $uid
-   *   User ID
-   * @param $nid
-   *   Quiz node ID
-   * @param $vid
-   *   Quiz node version ID
-   * @param $now
+   * @param int $uid
+   * @param int $vid Quiz version ID
+   * @param int $now
    *   Timestamp used to check whether the quiz is still open. Default: current
    *   time.
    *
-   * @return
+   * @return int
    *   If a quiz is still open and the user has not finished the quiz,
    *   return the result set ID so that the user can continue. If no quiz is in
    *   progress, this will return 0.
    */
-  protected function activeResultId($uid, $nid, $vid, $now = NULL) {
+  protected function activeResultId($uid, $vid, $now = NULL) {
     if (!isset($now)) {
       $now = REQUEST_TIME;
     }
@@ -128,13 +134,10 @@ class QuizTakeController {
    * This is called when the quiz node is viewed for the first time. It ensures
    * that the quiz can be taken at this time.
    *
-   * @param $quiz
-   *   The quiz node.
-   *
    * @return
    *   Return quiz_results result_id, or FALSE if there is an error.
    */
-  private function startCheck($account) {
+  private function checkAvailability($account) {
     $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $this->quiz->uid == $account->uid);
 
     // Make sure this is available.
@@ -157,7 +160,7 @@ class QuizTakeController {
 
     // Check to see if this user is allowed to take the quiz again:
     if ($this->quiz->takes > 0) {
-      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $account->uid, ':nid' => $this->quiz->nid))->fetchField();
+      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $account->uid, ':nid' => $this->getQuizId()))->fetchField();
       $allowed_times = format_plural($this->quiz->takes, '1 time', '@count times');
       $taken_times = format_plural($taken, '1 time', '@count times');
 
@@ -181,7 +184,7 @@ class QuizTakeController {
     }
 
     // Check to see if the user is registered, and user alredy passed this quiz.
-    if ($this->quiz->show_passed && $account->uid && quiz()->getQuizHelper()->isPassed($account->uid, $this->quiz->nid, $this->quiz->vid)) {
+    if ($this->quiz->show_passed && $account->uid && quiz()->getQuizHelper()->isPassed($account->uid, $this->getQuizId(), $this->quiz->vid)) {
       drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
     }
 
@@ -194,50 +197,31 @@ class QuizTakeController {
    * @return QuizResult
    *   The quiz attempt.
    */
-  private function init() {
+  private function createQuizResultObject() {
     // Create question list.
     $questions = quiz()->getQuizHelper()->getQuestionList($this->quiz);
     if ($questions === FALSE) {
-      drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
-      return FALSE;
+      $msg = t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME));
+      throw new RuntimeException($msg);
     }
 
-    if (count($questions) == 0) {
-      drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . $this->quiz->nid . '/quiz/questions'))), 'error');
-      return FALSE;
+    if (!count($questions)) {
+      $msg = t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . $this->getQuizId() . '/quiz/questions')));
+      throw new RuntimeException($msg);
     }
 
-    $quiz_result = quiz_result_load($this->createRid($this->quiz));
-    $quiz_result->layout = $questions;
+    $quiz_result = entity_create('quiz_result', array(
+      'nid'        => $this->getQuizId(),
+      'vid'        => $this->quiz->vid,
+      'uid'        => $this->account->uid,
+      'time_start' => REQUEST_TIME,
+      'layout'     => $questions,
+    ));
 
     // Write the layout for this result.
     entity_save('quiz_result', $quiz_result);
 
     return $quiz_result;
-  }
-
-  /**
-   * Creates a unique id to be used when storing results for a quiz taker.
-   *
-   * @param $quiz
-   *   The quiz node.
-   * @return $result_id
-   *   The result id.
-   */
-  private function createRid($quiz) {
-    $result_id = db_insert('quiz_results')
-      ->fields(array(
-        'nid'        => $quiz->nid,
-        'vid'        => $quiz->vid,
-        'uid'        => $GLOBALS['user']->uid,
-        'time_start' => REQUEST_TIME,
-      ))
-      ->execute();
-    if (!is_numeric($result_id)) {
-      form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
-      return FALSE;
-    }
-    return $result_id;
   }
 
 }
