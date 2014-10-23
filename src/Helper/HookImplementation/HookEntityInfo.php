@@ -99,6 +99,7 @@ class HookEntityInfo {
   private function getQuizResultInfo() {
     return array(
       'label'                  => t('Quiz result'),
+      'entity class'           => 'Drupal\quiz\Entity\Result',
       'controller class'       => 'EntityAPIController',
       'base table'             => 'quiz_results',
       'entity keys'            => array('id' => 'result_id'),
