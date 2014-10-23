@@ -10,31 +10,7 @@ class QuizUiController extends EntityDefaultUIController {
     $items = parent::hook_menu();
     $items['admin/content/quiz']['type'] = MENU_LOCAL_TASK;
 
-    // Change path from /admin/content/quiz/add -> /quizz/add
-    $items['quiz/add'] = $items['admin/content/quiz/add'];
-    unset($items['admin/content/quiz/add']);
-
-    // Menu items for /quiz/add/*
-    if (($types = quiz_get_types()) && (1 < count($types))) {
-      $items['quiz/add'] = array(
-        'title'           => 'Add ' . QUIZ_NAME,
-        'access callback' => 'quiz_can_create_quiz_entity',
-        'page callback'   => 'Drupal\quiz\Controller\QuizEntityAddController::staticCallback',
-      );
-
-      foreach (array_keys($types) as $name) {
-        $items["quiz/add/{$name}"] = array(
-          'title callback'   => 'entity_ui_get_action_title',
-          'title arguments'  => array('add', 'quiz_entity'),
-          'access callback'  => 'entity_access',
-          'access arguments' => array('create', 'quiz_entity'),
-          'page callback'    => 'Drupal\quiz\Form\QuizEntityForm::staticCallback',
-          'page arguments'   => array('add', $name),
-          'file path'        => drupal_get_path('module', 'quiz'),
-          'file'             => 'quiz.admin.inc',
-        );
-      }
-    }
+    $this->addQuizAddLinks($items);
 
     $items['quiz/%quiz_entity_single'] = array(
       'title callback'   => 'entity_class_label',
@@ -122,6 +98,34 @@ class QuizUiController extends EntityDefaultUIController {
     );
 
     return $items;
+  }
+
+  private function addQuizAddLinks(&$items) {
+    // Change path from /admin/content/quiz/add -> /quizz/add
+    $items['quiz/add'] = $items['admin/content/quiz/add'];
+    unset($items['admin/content/quiz/add']);
+
+    // Menu items for /quiz/add/*
+    if (($types = quiz_get_types()) && (1 < count($types))) {
+      $items['quiz/add'] = array(
+        'title'           => 'Add ' . QUIZ_NAME,
+        'access callback' => 'quiz_can_create_quiz_entity',
+        'page callback'   => 'Drupal\quiz\Controller\QuizEntityAddController::staticCallback',
+      );
+
+      foreach (array_keys($types) as $name) {
+        $items["quiz/add/{$name}"] = array(
+          'title callback'   => 'entity_ui_get_action_title',
+          'title arguments'  => array('add', 'quiz_entity'),
+          'access callback'  => 'entity_access',
+          'access arguments' => array('create', 'quiz_entity'),
+          'page callback'    => 'Drupal\quiz\Form\QuizEntityForm::staticCallback',
+          'page arguments'   => array('add', $name),
+          'file path'        => drupal_get_path('module', 'quiz'),
+          'file'             => 'quiz.admin.inc',
+        );
+      }
+    }
   }
 
 }
