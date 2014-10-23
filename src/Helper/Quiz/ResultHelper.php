@@ -183,9 +183,8 @@ class ResultHelper {
       $function = $mod . '_quiz_question_score';
 
       if (function_exists($function)) {
-        $score = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
         // Allow for max score to be considered.
-        $scores[] = $score;
+        $scores[] = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
       }
       else {
         drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
@@ -327,6 +326,7 @@ class ResultHelper {
   public function getSummaryText($quiz, $score) {
     $summary = array();
     $admin = (arg(0) == 'admin');
+    $quiz_id = __quiz_entity_id($quiz);
     $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
     if (!$admin) {
       if (!empty($score['result_option'])) {
@@ -334,7 +334,7 @@ class ResultHelper {
         $summary['result'] = check_markup($score['result_option'], $quiz_format);
       }
       else {
-        $result_option = $this->pickResultOption($quiz->nid, $quiz->vid, $score['percentage_score']);
+        $result_option = $this->pickResultOption($quiz_id, $quiz->vid, $score['percentage_score']);
         $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
       }
     }
