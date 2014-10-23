@@ -27,11 +27,9 @@ function quiz_take_question_feedback_submit($form, &$form_state) {
 /**
  * Actions to take at the end of a quiz
  *
- * @param $quiz
+ * @param \Drupal\quiz\Entity\QuizEntity $quiz
  *  The quiz node
- * @param $result_id
- *  Result id
- * @param $score
+ * @param int $score
  *  Score as a number
  */
 function quiz_end_actions($quiz, $score, $session_data) {

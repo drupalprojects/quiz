@@ -3,7 +3,9 @@
 namespace Drupal\quiz\Helper\Quiz;
 
 use Drupal\quiz\Controller\QuizTakeController;
+use Drupal\quiz\Entity\QuizEntity;
 use Drupal\quiz\Quiz;
+use stdClass;
 
 /**
  * Helper class to provide methods to check user access right to quiz,
@@ -115,10 +117,17 @@ class AccessHelper {
     return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
   }
 
-  public function canAccessQuestion($quiz, $question_number) {
+  /**
+   *
+   * @global stdClass $user
+   * @param QuizEntity $quiz
+   * @param int $page_number
+   * @return boolean
+   */
+  public function canAccessQuestion($quiz, $page_number) {
     global $user;
 
-    if (!$question_number) {
+    if (!$page_number) {
       return FALSE;
     }
 
@@ -139,22 +148,24 @@ class AccessHelper {
     $result_id = $_SESSION['quiz'][$quiz_id]['result_id'];
 
     $quiz_result = quiz_result_load($result_id);
-    $question_index = $question_number;
-    $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
+    $question_index = $page_number;
+    $qinfo_last = $page_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
+
+    if (!isset($quiz_result->layout[$question_index])) {
+      kpr($quiz_result);
+      exit;
+    }
+
     $qinfo = $quiz_result->layout[$question_index];
 
-    if (!$quiz->backwards_navigation) { // No backwards navigation.
-      if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
-        // Already have an answer for the requested question.
-        return FALSE;
-      }
+    // No backwards navigation & Already have an answer for the requested question.
+    if (!$quiz->backwards_navigation && quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+      return FALSE;
     }
 
     // Enforce normal navigation.
-    if ($question_number == 1 || $qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
-      //  Previous answer was submitted or this is the first question.
-      return TRUE;
-    }
+    //  Previous answer was submitted or this is the first question.
+    return ($page_number == 1) || quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid']);
   }
 
   public function canTakeQuiz($quiz, $account) {
