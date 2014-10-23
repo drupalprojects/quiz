@@ -189,7 +189,7 @@ function quiz_result_answer_load($result_id, $nid, $vid) {
  * Action to add questions to the current quiz.
  */
 function quiz_add_question_to_quiz($question) {
-  $quiz = node_load(arg(1)); // @TODO: Is this correct? We can load quiz from question thou!
+  $quiz = 'node' === arg(0) ? node_load(arg(1)) : quiz_entity_single_load(arg(1));
   return quiz()->getQuizHelper()->addQuestion($quiz, $question);
 }
 
