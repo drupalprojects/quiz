@@ -71,7 +71,7 @@ class QuizPageTestCase extends QuizQuestionTestCase {
         case 5:
           $this->assertNull($rel->qr_pid);
           break;
-      };
+      }
     }
 
     // Take the quiz. Ensure the pages are correct.
