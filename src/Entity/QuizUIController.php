@@ -88,6 +88,18 @@ class QuizUiController extends EntityDefaultUIController {
       'load arguments'   => array('quiz_entity'),
       'weight'           => 6,
     );
+
+    // Define menu structure for /quiz/%/results
+    $items['quiz/%entity_object/my-results'] = array(
+      'title'            => 'My results',
+      'type'             => MENU_LOCAL_TASK,
+      'access callback'  => 'entity_access',
+      'access arguments' => array('update', 'quiz_entity', 1),
+      'page callback'    => 'Drupal\quiz\Controller\QuizMyResultsController::staticCallback',
+      'page arguments'   => array(1),
+      'load arguments'   => array('quiz_entity'),
+      'weight'           => 6,
+    );
   }
 
   private function addQuizAddLinks(&$items) {
