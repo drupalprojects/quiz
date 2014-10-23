@@ -169,6 +169,15 @@ class HookMenu {
       'file'             => 'quiz.pages.inc',
     );
 
+    $items['quiz-result/%quiz_result'] = array(
+      'title'            => 'User results',
+      'access callback'  => 'quiz_access_my_result',
+      'access arguments' => array(1),
+      'page callback'    => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
+      'page arguments'   => array(1),
+      'file'             => 'quiz.pages.inc',
+    );
+
     return $items;
   }
 
