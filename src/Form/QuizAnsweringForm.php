@@ -145,7 +145,7 @@ class QuizAnsweringForm {
   }
 
   private function buildSubmitButtons(&$form, $allow_skipping) {
-    $is_last = $this->showFinishButton($this->quiz);
+    $is_last = $this->result->isLastPage($this->page_number);
 
     $form['navigation']['#type'] = 'actions';
 
@@ -196,31 +196,6 @@ class QuizAnsweringForm {
       '#limit_validation_errors' => array(),
       '#access'                  => $this->quiz->allow_skipping,
     );
-  }
-
-  /**
-   * Show the finish button?
-   */
-  private function showFinishButton() {
-    foreach ($this->result->layout as $idx => $question) {
-      if ($question['type'] == 'quiz_page') {
-        if ($this->page_number == $idx) {
-          // Found a page that we are on
-          $in_page = TRUE;
-          $last_page = TRUE;
-        }
-        else {
-          // Found a quiz page that we are not on.
-          $last_page = FALSE;
-        }
-      }
-      elseif (empty($question['qr_pid'])) {
-        // A question without a parent showed up.
-        $in_page = FALSE;
-        $last_page = FALSE;
-      }
-    }
-    return $last_page || !isset($this->result->layout[$this->page_number + 1]);
   }
 
   /**
