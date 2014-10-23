@@ -404,8 +404,9 @@ class QuizQuestionsForm {
    * Updates from the "manage questions" tab.
    */
   public function formSubmit($form, &$form_state) {
-    // Load the quiz node
-    $quiz = node_load(intval(arg(1)));
+    /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
+    $quiz = 'node' === arg(0) ? node_load(arg(1)) : quiz_entity_single_load(arg(1));
+
     // Update the refresh latest quizzes table so that we know what the users latest quizzes are
     if (variable_get('quiz_auto_revisioning', 1)) {
       $is_new_revision = quiz_has_been_answered($quiz);
@@ -456,32 +457,21 @@ class QuizQuestionsForm {
       }
     }
 
-    if ($quiz->type == 'quiz') {
-      // Update the quiz node properties.
-      $success = db_update('quiz_node_properties')
-        ->fields(array(
-          'number_of_random_questions' => $num_random ? $num_random : 0,
-          'max_score_for_random'       => $quiz->max_score_for_random,
-          'tid'                        => $term_id,
-        ))
-        ->condition('vid', $quiz->vid)
-        ->condition('nid', $quiz->nid)
-        ->execute();
+    // Get sum of max_score
+    $query = db_select('quiz_relationship', 'qnr');
+    $query->addExpression('SUM(max_score)', 'sum');
+    $query->condition('quiz_vid', $quiz->vid);
+    $query->condition('question_status', QUESTION_ALWAYS);
+    $score = $query->execute()->fetchAssoc();
 
-      // Get sum of max_score
-      $query = db_select('quiz_relationship', 'qnr');
-      $query->addExpression('SUM(max_score)', 'sum');
-      $query->condition('quiz_vid', $quiz->vid);
-      $query->condition('question_status', QUESTION_ALWAYS);
-      $score = $query->execute()->fetchAssoc();
+    // Update the quiz's properties.
+    $quiz->number_of_random_questions = $num_random ? $num_random : 0;
+    $quiz->max_score_for_random = $quiz->max_score_for_random;
+    $quiz->tid = $term_id;
+    $quiz->max_score = $quiz->max_score_for_random * $quiz->number_of_random_questions + $score['sum'];
+    $quiz->is_new_revision = $is_new_revision;
 
-      $success2 = db_update('quiz_node_properties')
-        ->expression('max_score', 'max_score_for_random * number_of_random_questions + :sum', array(':sum' => (int) $score['sum']))
-        ->condition('vid', $quiz->vid)
-        ->execute();
-    }
-
-    if (isset($success) && isset($success2)) {
+    if (entity_save('quiz_entity', $quiz)) {
       drupal_set_message(t('Questions updated successfully.'));
     }
     else {

@@ -341,24 +341,35 @@ abstract class QuizQuestion {
    */
   function saveRelationships() {
     if (!empty($this->node->quiz_nid) && !empty($this->node->quiz_vid)) {
-      $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
-      $nid_vid[0] = $quiz_node->nid;
-      $nid_vid[1] = $quiz_node->vid;
+      $legacy = 'node' === arg(0);
 
-      if (quiz_has_been_answered($quiz_node)) {
-        // We need to revise the quiz node if it has been answered
-        $quiz_node->revision = 1;
-        $quiz_node->auto_created = TRUE;
-        node_save($quiz_node);
-        $nid_vid[0] = $quiz_node->nid;
-        $nid_vid[1] = $quiz_node->vid;
-        drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $quiz_node->title, '@quiz' => QUIZ_NAME)));
+      /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
+      $quiz = $legacy ? node_load($this->node->quiz_nid, $this->node->quiz_vid) : quiz_entity_single_load($this->node->quiz_nid, $this->node->quiz_vid);
+      $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+      $nid_vid[0] = $quiz_id;
+      $nid_vid[1] = $quiz->vid;
+
+      if (quiz_has_been_answered($quiz)) {
+        // We need to revise the quiz if it has been answered
+        if ($legacy) {
+          $quiz->revision = 1;
+          $quiz->auto_created = TRUE;
+          node_save($quiz);
+        }
+        else {
+          $quiz->is_new_revision = 1;
+          entity_save('quiz_entity', $quiz);
+        }
+
+        $nid_vid[0] = $quiz_id;
+        $nid_vid[1] = $quiz->vid;
+        drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $quiz->title, '@quiz' => QUIZ_NAME)));
       }
 
       $nid = $this->node->nid;
 
-      $insert_values[$nid]['quiz_qid'] = $quiz_node->nid;
-      $insert_values[$nid]['quiz_vid'] = $quiz_node->vid;
+      $insert_values[$nid]['quiz_qid'] = $quiz_id;
+      $insert_values[$nid]['quiz_vid'] = $quiz->vid;
       $insert_values[$nid]['question_nid'] = $this->node->nid;
       $insert_values[$nid]['question_vid'] = $this->node->vid;
       $insert_values[$nid]['max_score'] = $this->getMaximumScore();
@@ -391,7 +402,7 @@ abstract class QuizQuestion {
         ->execute();
 
       quiz_update_max_score_properties($quizzes_to_update);
-      quiz_update_max_score_properties(array($quiz_node->vid));
+      quiz_update_max_score_properties(array($quiz->vid));
     }
   }
 
