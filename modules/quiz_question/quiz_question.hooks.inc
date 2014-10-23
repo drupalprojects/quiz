@@ -281,8 +281,7 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
   $dummy_node->nid = $question_nid;
   $dummy_node->vid = $question_vid;
 
-  $question = _quiz_question_get_instance($dummy_node, TRUE);
-  if (!$question) {
+  if (!$question = _quiz_question_get_instance($dummy_node, TRUE)) {
     return FALSE;
   }
 

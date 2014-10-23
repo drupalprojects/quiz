@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz\Form;
 
+use Drupal\quiz\Entity\QuizEntity;
 use stdClass;
 
 class QuizQuestionsForm {
@@ -27,8 +28,7 @@ class QuizQuestionsForm {
    *
    * @param $form_state
    *  The form state variable
-   * @param $quiz
-   *  The quiz node.
+   * @param QuizEntity $quiz
    * @return
    *  HTML output to create page.
    */

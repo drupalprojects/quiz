@@ -49,7 +49,10 @@ class QuizUserResultController {
     $this->quiz_revision = $quiz_revision;
     $this->result = $result;
     $this->quiz_id = $this->result->nid;
-    $this->score = quiz()->getQuizHelper()->getResultHelper()->calculateScore($this->quiz_revision, $this->result->result_id);
+    $this->score = quiz()
+      ->getQuizHelper()
+      ->getResultHelper()
+      ->calculateScore($this->quiz_revision, $this->result->result_id);
   }
 
   /**
