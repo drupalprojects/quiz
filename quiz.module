@@ -17,6 +17,8 @@ use Drupal\quiz\Quiz;
  * Then they are in quiz.admin.inc.
  *
  * Views support is included in includes/views/quiz.views.inc
+ *
+ * Function starts with __quiz_ will be removed.
  */
 define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 
@@ -189,7 +191,7 @@ function quiz_result_answer_load($result_id, $nid, $vid) {
  * Action to add questions to the current quiz.
  */
 function quiz_add_question_to_quiz($question) {
-  $quiz = node_load(arg(1)); // @TODO: Is this correct? We can load quiz from question thou!
+  $quiz = 'node' === arg(0) ? node_load(arg(1)) : quiz_entity_single_load(arg(1));
   return quiz()->getQuizHelper()->addQuestion($quiz, $question);
 }
 
@@ -350,4 +352,8 @@ function _quiz_get_question_types() {
 function _quiz_get_quiz_name() {
   // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
   return variable_get('quiz_name', 'Quiz');
+}
+
+function __quiz_entity_id($quiz) {
+  return isset($quiz->nid) ? $quiz->nid : $quiz->qid;
 }

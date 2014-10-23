@@ -145,7 +145,8 @@ class QuizHelper {
   }
 
   public function addQuestion($quiz, $question) {
-    $quiz_questions = $this->getQuestions($quiz->nid, $quiz->vid);
+    $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $quiz_questions = $this->getQuestions($quiz_id, $quiz->vid);
 
     // Do not add a question if it's already been added (selected in an earlier checkbox)
     foreach ($quiz_questions as $q) {
@@ -155,7 +156,7 @@ class QuizHelper {
     }
 
     // Otherwise let's add a relationship!
-    $question->quiz_nid = $quiz->nid;
+    $question->quiz_nid = $quiz_id;
     $question->quiz_vid = $quiz->vid;
     _quiz_question_get_instance($question)->saveRelationships();
     quiz_update_max_score_properties(array($quiz->vid));
@@ -376,9 +377,9 @@ class QuizHelper {
           'weight'                => $question->weight,
           'max_score'             => (int) $question->max_score,
           'auto_update_max_score' => (int) $question->auto_update_max_score,
-          'qr_pid'               => $question->qr_pid,
-          'qr_id'                => !$set_new_revision ? $question->qr_id : NULL,
-          'old_qr_id'            => $question->qr_id,
+          'qr_pid'                => $question->qr_pid,
+          'qr_id'                 => !$set_new_revision ? $question->qr_id : NULL,
+          'old_qr_id'             => $question->qr_id,
         );
         drupal_write_record('quiz_relationship', $question_inserts[$question->qr_id]);
       }

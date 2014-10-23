@@ -171,6 +171,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
       $to_return->node->{$key} = $value;
     }
   }
+
   // Cache the node
   $question_instances[$vid] = $to_return;
 

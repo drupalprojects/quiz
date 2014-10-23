@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz\Helper\Quiz;
 
+use Drupal\quiz\Entity\QuizEntity;
 use stdClass;
 
 class ResultHelper {
@@ -51,6 +52,8 @@ class ResultHelper {
   /**
    * Delete quiz results.
    *
+   * @TODO: Should use entity_delete_multiple($entity_type, $ids);
+   *
    * @param $result_ids
    *   Result ids for the results to be deleted.
    */
@@ -89,55 +92,56 @@ class ResultHelper {
   /**
    * Get answer data for a specific result.
    *
-   * @param $result_id
-   *   Result id.
-   *
+   * @param QuizEntity $quiz
+   * @param int $result_id
    * @return
    *   Array of answers.
    */
   public function getAnswers($quiz, $result_id) {
-    $questions = array();
-    $ids = db_query("SELECT ra.question_nid, ra.question_vid, n.type, rs.max_score, qt.max_score as term_max_score
-                   FROM {quiz_results_answers} ra
-                   LEFT JOIN {node} n ON (ra.question_nid = n.nid)
-                   LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id)
-                   LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.question_vid) AND rs.quiz_vid = r.vid
-                   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
-                   WHERE ra.result_id = :rid
-                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $result_id));
+    $sql = "SELECT ra.question_nid, ra.question_vid, n.type, rs.max_score, qt.max_score as term_max_score "
+      . " FROM {quiz_results_answers} ra "
+      . "   LEFT JOIN {node} n ON (ra.question_nid = n.nid) "
+      . "   LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id) "
+      . "   LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.question_vid) AND rs.quiz_vid = r.vid "
+      . "   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid) "
+      . " WHERE ra.result_id = :rid "
+      . " ORDER BY ra.number, ra.answer_timestamp";
+    $ids = db_query($sql, array(':vid' => $quiz->vid, ':rid' => $result_id));
     while ($line = $ids->fetch()) {
-      // Questions picked from term id's won't be found in the quiz_relationship table
-      if ($line->max_score === NULL) {
-        if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
-          $line->max_score = $quiz->max_score_for_random;
-        }
-        elseif ($quiz->randomization == 3) {
-          $line->max_score = $line->term_max_score;
-        }
-      }
-      $module = quiz_question_module_for_type($line->type);
-      if (!$module) {
-        continue;
-      }
-      // Invoke hook_get_report().
-      $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $result_id);
-      if (!$report) {
-        continue;
-      }
-      $questions[$line->question_nid] = $report;
-      // Add max score info to the question.
-      if (!isset($questions[$line->question_nid]->score_weight)) {
-        if ($questions[$line->question_nid]->max_score == 0) {
-          $score_weight = 0;
-        }
-        else {
-          $score_weight = $line->max_score / $questions[$line->question_nid]->max_score;
-        }
-        $questions[$line->question_nid]->qnr_max_score = $line->max_score;
-        $questions[$line->question_nid]->score_weight = $score_weight;
+      if ($report = $this->getAnswer($quiz, $line, $result_id)) {
+        $questions[] = $report;
       }
     }
-    return $questions;
+    return !empty($questions) ? $questions : array();
+  }
+
+  private function getAnswer($quiz, $db_row, $result_id) {
+    // Questions picked from term id's won't be found in the quiz_relationship table
+    if ($db_row->max_score === NULL) {
+      if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
+        $db_row->max_score = $quiz->max_score_for_random;
+      }
+      elseif ($quiz->randomization == 3) {
+        $db_row->max_score = $db_row->term_max_score;
+      }
+    }
+
+    if (!$module = quiz_question_module_for_type($db_row->type)) {
+      return;
+    }
+
+    // Invoke hook_get_report().
+    if (!$report = module_invoke($module, 'get_report', $db_row->question_nid, $db_row->question_vid, $result_id)) {
+      return;
+    }
+
+    // Add max score info to the question.
+    if (!isset($report->score_weight)) {
+      $report->qnr_max_score = $db_row->max_score;
+      $report->score_weight = !$report->max_score ? 0 : ($db_row->max_score / $report->max_score);
+    }
+
+    return $report;
   }
 
   /**
@@ -154,10 +158,11 @@ class ResultHelper {
   public function calculateScore($quiz, $result_id) {
     // 1. Fetch all questions and their max scores
     $questions = db_query('SELECT a.question_nid, a.question_vid, n.type, r.max_score
-    FROM {quiz_results_answers} a
-    LEFT JOIN {node} n ON (a.question_nid = n.nid)
-    LEFT OUTER JOIN {quiz_relationship} r ON (r.question_vid = a.question_vid) AND r.quiz_vid = :vid
-    WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
+      FROM {quiz_results_answers} a
+      LEFT JOIN {node} n ON (a.question_nid = n.nid)
+      LEFT OUTER JOIN {quiz_relationship} r ON (r.question_vid = a.question_vid) AND r.quiz_vid = :vid
+      WHERE result_id = :rid', array(':vid' => $quiz->vid, ':rid' => $result_id));
+
     // 2. Callback into the modules and let them do the scoring. @todo after 4.0: Why isn't the scores already saved? They should be
     // Fetched from the db, not calculated....
     $scores = array();
@@ -178,9 +183,8 @@ class ResultHelper {
       $function = $mod . '_quiz_question_score';
 
       if (function_exists($function)) {
-        $score = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
         // Allow for max score to be considered.
-        $scores[] = $score;
+        $scores[] = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
       }
       else {
         drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
@@ -191,6 +195,7 @@ class ResultHelper {
       }
       ++$count;
     }
+
     // 3. Sum the results.
     $possible_score = 0;
     $total_score = 0;
@@ -214,12 +219,6 @@ class ResultHelper {
     );
   }
 
-  public function isResultCompleted($result_id) {
-    // Check if the quiz taking has been completed.
-    $time_end = db_query('SELECT time_end FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
-    return $time_end > 0;
-  }
-
   /**
    * Deletes all results associated with a given user.
    *
@@ -238,9 +237,9 @@ class ResultHelper {
   /**
    * Deletes results for a quiz according to the keep results setting
    *
-   * @param $quiz
+   * @param \Drupal\quiz\Entity\QuizEntity $quiz
    *  The quiz node to be maintained
-   * @param $result_id
+   * @param int $result_id
    *  The result id of the latest result for the current user
    * @return
    *  TRUE if results where deleted.
@@ -327,6 +326,7 @@ class ResultHelper {
   public function getSummaryText($quiz, $score) {
     $summary = array();
     $admin = (arg(0) == 'admin');
+    $quiz_id = __quiz_entity_id($quiz);
     $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
     if (!$admin) {
       if (!empty($score['result_option'])) {
@@ -334,7 +334,7 @@ class ResultHelper {
         $summary['result'] = check_markup($score['result_option'], $quiz_format);
       }
       else {
-        $result_option = $this->pickResultOption($quiz->nid, $quiz->vid, $score['percentage_score']);
+        $result_option = $this->pickResultOption($quiz_id, $quiz->vid, $score['percentage_score']);
         $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
       }
     }
