@@ -9,7 +9,7 @@ class QuizResultController {
    *
    * Quiz result report page for the quiz admin section
    *
-   * @param $quiz
+   * @param \Drupal\quiz\Entity\QuizEntity $quiz
    *   The quiz node
    * @param $result_id
    *   The result id

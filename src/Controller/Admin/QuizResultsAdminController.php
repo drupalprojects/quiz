@@ -7,7 +7,8 @@ use Drupal\quiz\Entity\QuizEntity;
 class QuizResultsAdminController {
 
   public static function staticCallback(QuizEntity $quiz) {
-    return '…';
+    global $user;
+    return views_embed_view('quiz_results', 'page', $quiz->qid, $user->uid);
   }
 
 }
