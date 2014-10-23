@@ -11,6 +11,8 @@ class QuizTakeQuestionController extends QuestionHelper {
   private $quiz;
   private $question;
   private $page_number;
+
+  /** @var \Drupal\quiz\Entity\Result */
   private $result;
   private $is_quiz_node;
   private $quiz_uri;
@@ -20,32 +22,24 @@ class QuizTakeQuestionController extends QuestionHelper {
    * Callback for node/%quiz_menu/take/%question_number. Take a quiz questions.
    *
    * @param QuizEntity $quiz A quiz entity
-   * @param int $question_number
+   * @param int $page_number
    *   A question number, starting at 1. Pages do not have question numbers. Quiz
    *   directions are considered part of the numbering.
    */
-  public static function staticCallback($quiz, $question_number) {
-    $result = $question = NULL;
+  public static function staticCallback($quiz, $page_number) {
+    $result = $layout_item = NULL;
     $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
 
     if (isset($_SESSION['quiz'][$quiz_id]['result_id'])) {
       $result = quiz_result_load($_SESSION['quiz'][$quiz_id]['result_id']);
     }
 
-    if ($result && empty($result->layout[$question_number]['qr_pid'])) {
-      $question = node_load($result->layout[$question_number]['nid']);
-    }
-
     // Load the page that the requested question belongs to.
-    if ($result && !empty($result->layout[$question_number]['qr_pid'])) {
-      foreach ($result->layout as $page) {
-        if ($page['qr_id'] == $result->layout[$question_number]['qr_pid']) {
-          $question = node_load($page['nid']);
-        }
-      }
+    if ($result && ($_layout_item = $result->getPageItem($page_number))) {
+      $layout_item = node_load($_layout_item['nid']);
     }
 
-    $controller = new static($quiz, $result, $question_number, $question);
+    $controller = new static($quiz, $result, $page_number, $layout_item);
     return $controller->render();
   }
 

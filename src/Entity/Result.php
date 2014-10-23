@@ -40,4 +40,15 @@ class Result extends Entity {
     return $page_number + 1;
   }
 
+  public function getPageItem($page_number) {
+    $number = 0;
+    foreach ($this->layout as $item) {
+      if (('quiz_page' === $item['type']) || !$item['qr_pid']) {
+        if (++$number == $page_number) {
+          return $item;
+        }
+      }
+    }
+  }
+
 }

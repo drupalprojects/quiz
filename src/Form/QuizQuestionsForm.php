@@ -49,8 +49,6 @@ class QuizQuestionsForm {
     // Add randomization settings if this quiz allows randomized questions
     $this->addFieldsForRandomQuiz($form, $quiz);
 
-    $quiz->randomization == 2;
-
     // @todo deal with $include_random
     $questions = quiz()->getQuizHelper()->getQuestions($quiz->nid, $quiz->vid);
 
