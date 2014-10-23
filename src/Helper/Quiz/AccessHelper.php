@@ -150,12 +150,6 @@ class AccessHelper {
     $quiz_result = quiz_result_load($result_id);
     $question_index = $page_number;
     $qinfo_last = $page_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
-
-    if (!isset($quiz_result->layout[$question_index])) {
-      kpr($quiz_result);
-      exit;
-    }
-
     $qinfo = $quiz_result->layout[$question_index];
 
     // No backwards navigation & Already have an answer for the requested question.
