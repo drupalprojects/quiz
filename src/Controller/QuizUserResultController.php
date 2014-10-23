@@ -61,6 +61,8 @@ class QuizUserResultController {
    * Check issue #2362097
    */
   public function render() {
+    $this->setBreadcrumb();
+
     $data = array(
       'quiz'      => $this->quiz_revision,
       'questions' => quiz()->getQuizHelper()->getResultHelper()->getAnswers($this->quiz_revision, $this->result->result_id),
@@ -82,6 +84,12 @@ class QuizUserResultController {
 
     // User cannot view own results or show solution. Show summary.
     return theme('quiz_result', $data);
+  }
+
+  private function setBreadcrumb() {
+    $bc = drupal_get_breadcrumb();
+    $bc[] = l($this->quiz->title, isset($this->quiz->nid) ? 'node/' . $this->quiz_id : 'quiz/' . $this->quiz_id);
+    drupal_set_breadcrumb($bc);
   }
 
 }
