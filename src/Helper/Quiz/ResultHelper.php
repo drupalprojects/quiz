@@ -218,12 +218,6 @@ class ResultHelper {
     );
   }
 
-  public function isResultCompleted($result_id) {
-    // Check if the quiz taking has been completed.
-    $time_end = db_query('SELECT time_end FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
-    return $time_end > 0;
-  }
-
   /**
    * Deletes all results associated with a given user.
    *
@@ -242,9 +236,9 @@ class ResultHelper {
   /**
    * Deletes results for a quiz according to the keep results setting
    *
-   * @param $quiz
+   * @param \Drupal\quiz\Entity\QuizEntity $quiz
    *  The quiz node to be maintained
-   * @param $result_id
+   * @param int $result_id
    *  The result id of the latest result for the current user
    * @return
    *  TRUE if results where deleted.

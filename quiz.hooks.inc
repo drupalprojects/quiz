@@ -679,14 +679,16 @@ function quiz_access_multi_or() {
 /**
  * Helper function to determine if a user has access to view a specific quiz result.
  *
- * @param int|stdClass $result
+ * @param \Drupal\quiz\Entity\Result|int $result
  *  Result id
  * @return boolean
  *  True if access, false otherwise
  */
 function quiz_access_my_result($result) {
-  $result_id = is_object($result) ? $result->result_id : $result;
-  return quiz()->getQuizHelper()->getResultHelper()->isResultCompleted($result_id);
+  if (is_numeric($result) && !$result = quiz_result_load($result)) {
+    throw new RuntimeException('Invalid result ID.');
+  }
+  return $result->time_end > 0;
 }
 
 /**
