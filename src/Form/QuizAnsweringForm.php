@@ -2,16 +2,25 @@
 
 namespace Drupal\quiz\Form;
 
+use Drupal\quiz\Entity\QuizEntity;
+use Drupal\quiz\Entity\Result;
 use Drupal\quiz\Form\QuizAnsweringForm\FormSubmission;
 use stdClass;
 
 class QuizAnsweringForm {
 
+  /** @var QuizEntity */
   private $quiz;
   private $question;
   private $page_number;
+
+  /** @var Result */
   private $result;
+
+  /** @var int */
   private $quiz_id;
+
+  /** @var FormSubmission */
   private $submit;
 
   public function __construct($quiz, $question, $page_number, $result) {

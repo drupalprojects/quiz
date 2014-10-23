@@ -106,7 +106,7 @@ class FormSubmission extends QuestionHelper {
       $form_state['redirect'] = $this->quiz_uri . '/take/' . ($this->getCurrentPageNumber($this->quiz) - 1) . '/feedback';
     }
 
-    if ($this->result->isLastPage($this->getCurrentPageNumber($this->quiz))) {
+    if ($this->result->isLastPage($this->page_number)) {
       $this->formSubmitLastPage($form_state);
     }
   }
