@@ -27,6 +27,9 @@ class QuizEntity extends Entity {
   /** @var integer The Unix timestamp when the quiz was most recently saved. */
   public $changed;
 
+  /** @var bool */
+  public $allow_jumping;
+
   /** @var bool Magic flag to create new revision on save */
   public $is_new_revision;
 

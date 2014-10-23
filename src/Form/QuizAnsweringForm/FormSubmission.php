@@ -61,7 +61,7 @@ class FormSubmission extends QuestionHelper {
         }
       }
 
-      $qi_instance = _quiz_question_response_get_instance($this->resultresult_id, $question, NULL);
+      $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $question, NULL);
       $qi_instance->delete();
       $bare_object = $qi_instance->toBareObject();
       quiz()
@@ -70,8 +70,8 @@ class FormSubmission extends QuestionHelper {
     }
 
     // Advance to next question.
-    $this->redirect($this->quiz, $this->page_number + 1);
-    $form_state['redirect'] = $this->quiz_uri . '/take/' . $this->page_number;
+    $this->redirect($this->quiz, $this->result->getNextPageNumber($this->page_number));
+    $form_state['redirect'] = $this->quiz_uri . '/take/' . $this->getCurrentPageNumber($this->quiz);
   }
 
   /**

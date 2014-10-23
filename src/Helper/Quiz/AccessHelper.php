@@ -141,7 +141,7 @@ class AccessHelper {
       }
     }
 
-    if ($quiz->allow_jumping) { // Access to go to any question. Yay.
+    if ($quiz->allow_jumping) { // Access to go to any question
       return TRUE;
     }
 
