@@ -61,3 +61,4 @@ script:
 
 notifications:
   email: false
+  hipchat: 76d833fa0b6bae8860f279a0e7dba0@me.Andy
