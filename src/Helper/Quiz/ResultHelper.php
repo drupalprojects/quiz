@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz\Helper\Quiz;
 
+use Drupal\quiz\Entity\QuizEntity;
 use stdClass;
 
 class ResultHelper {
@@ -51,6 +52,8 @@ class ResultHelper {
   /**
    * Delete quiz results.
    *
+   * @TODO: Should use entity_delete_multiple($entity_type, $ids);
+   *
    * @param $result_ids
    *   Result ids for the results to be deleted.
    */
@@ -89,55 +92,56 @@ class ResultHelper {
   /**
    * Get answer data for a specific result.
    *
-   * @param $result_id
-   *   Result id.
-   *
+   * @param QuizEntity $quiz
+   * @param int $result_id
    * @return
    *   Array of answers.
    */
   public function getAnswers($quiz, $result_id) {
-    $questions = array();
-    $ids = db_query("SELECT ra.question_nid, ra.question_vid, n.type, rs.max_score, qt.max_score as term_max_score
-                   FROM {quiz_results_answers} ra
-                   LEFT JOIN {node} n ON (ra.question_nid = n.nid)
-                   LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id)
-                   LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.question_vid) AND rs.quiz_vid = r.vid
-                   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid)
-                   WHERE ra.result_id = :rid
-                   ORDER BY ra.number, ra.answer_timestamp", array(':vid' => $quiz->vid, ':rid' => $result_id));
+    $sql = "SELECT ra.question_nid, ra.question_vid, n.type, rs.max_score, qt.max_score as term_max_score "
+      . " FROM {quiz_results_answers} ra "
+      . "   LEFT JOIN {node} n ON (ra.question_nid = n.nid) "
+      . "   LEFT JOIN {quiz_results} r ON (ra.result_id = r.result_id) "
+      . "   LEFT OUTER JOIN {quiz_relationship} rs ON (ra.question_vid = rs.question_vid) AND rs.quiz_vid = r.vid "
+      . "   LEFT OUTER JOIN {quiz_terms} qt ON (qt.vid = :vid AND qt.tid = ra.tid) "
+      . " WHERE ra.result_id = :rid "
+      . " ORDER BY ra.number, ra.answer_timestamp";
+    $ids = db_query($sql, array(':vid' => $quiz->vid, ':rid' => $result_id));
     while ($line = $ids->fetch()) {
-      // Questions picked from term id's won't be found in the quiz_relationship table
-      if ($line->max_score === NULL) {
-        if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
-          $line->max_score = $quiz->max_score_for_random;
-        }
-        elseif ($quiz->randomization == 3) {
-          $line->max_score = $line->term_max_score;
-        }
-      }
-      $module = quiz_question_module_for_type($line->type);
-      if (!$module) {
-        continue;
-      }
-      // Invoke hook_get_report().
-      $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $result_id);
-      if (!$report) {
-        continue;
-      }
-      $questions[$line->question_nid] = $report;
-      // Add max score info to the question.
-      if (!isset($questions[$line->question_nid]->score_weight)) {
-        if ($questions[$line->question_nid]->max_score == 0) {
-          $score_weight = 0;
-        }
-        else {
-          $score_weight = $line->max_score / $questions[$line->question_nid]->max_score;
-        }
-        $questions[$line->question_nid]->qnr_max_score = $line->max_score;
-        $questions[$line->question_nid]->score_weight = $score_weight;
+      if ($report = $this->getAnswer($quiz, $line, $result_id)) {
+        $questions[] = $report;
       }
     }
-    return $questions;
+    return !empty($questions) ? $questions : array();
+  }
+
+  private function getAnswer($quiz, $db_row, $result_id) {
+    // Questions picked from term id's won't be found in the quiz_relationship table
+    if ($db_row->max_score === NULL) {
+      if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
+        $db_row->max_score = $quiz->max_score_for_random;
+      }
+      elseif ($quiz->randomization == 3) {
+        $db_row->max_score = $db_row->term_max_score;
+      }
+    }
+
+    if (!$module = quiz_question_module_for_type($db_row->type)) {
+      return;
+    }
+
+    // Invoke hook_get_report().
+    if (!$report = module_invoke($module, 'get_report', $db_row->question_nid, $db_row->question_vid, $result_id)) {
+      return;
+    }
+
+    // Add max score info to the question.
+    if (!isset($report->score_weight)) {
+      $report->qnr_max_score = $db_row->max_score;
+      $report->score_weight = !$report->max_score ? 0 : ($db_row->max_score / $report->max_score);
+    }
+
+    return $report;
   }
 
   /**
