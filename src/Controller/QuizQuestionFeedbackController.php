@@ -49,7 +49,7 @@ class QuizQuestionFeedbackController {
 
     // Invoke hook_get_report().
     if ($report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id)) {
-      $report_form = drupal_get_form('Drupal\quiz\Form\QuizReportForm::staticCallback', array($report));
+      $report_form = @drupal_get_form('Drupal\quiz\Form\QuizReportForm::staticCallback', array($report));
       return $report_form;
     }
   }
