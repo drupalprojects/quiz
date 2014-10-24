@@ -108,26 +108,6 @@ class HookMenu {
       'type'             => MENU_LOCAL_TASK,
     );
 
-    // Take question.
-    // @todo Thought - the 4th argument could be a "page" instead of a question
-    // number
-    $items['node/%quiz_menu/take/%question_number'] = array(
-      'title'            => 'Take',
-      'page callback'    => 'Drupal\quiz\Controller\QuizTakeQuestionController::staticCallback',
-      'page arguments'   => array(1, 3),
-      'access callback'  => 'quiz_take_question_access',
-      'access arguments' => array(1, 3),
-    );
-
-    // Feedback
-    $items['node/%quiz_menu/take/%question_number/feedback'] = array(
-      'title'            => 'Feedback',
-      'page callback'    => 'Drupal\quiz\Controller\QuizQuestionFeedbackController::staticCallback',
-      'page arguments'   => array(1, 3),
-      'access callback'  => 'quiz_question_feedback_access',
-      'access arguments' => array(1, 3),
-    );
-
     $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
       'title'            => 'Results',
       'page callback'    => 'Drupal\quiz\Controller\QuizResultController::staticCallback',
