@@ -3,6 +3,7 @@
 namespace Drupal\quiz\Entity;
 
 use EntityAPIController;
+use stdClass;
 
 class QuizEntityController extends EntityAPIController {
 
@@ -32,6 +33,18 @@ class QuizEntityController extends EntityAPIController {
     }
 
     return parent::buildContent($quiz, $view_mode, $langcode, $content);
+  }
+
+  /**
+   * Force save revision author ID.
+   * 
+   * @global stdClass $user
+   * @param QuizEntity $entity
+   */
+  protected function saveRevision($entity) {
+    global $user;
+    $entity->uid = $user->uid;
+    return parent::saveRevision($entity);
   }
 
 }
