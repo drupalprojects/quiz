@@ -12,9 +12,9 @@ class QuizFeedbackTest extends QuizTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Quiz feedback'),
+      'name'        => t('Quiz feedback'),
       'description' => t('Unit test for Quiz feedback.'),
-      'group' => t('Quiz'),
+      'group'       => t('Quiz'),
     );
   }
 
@@ -37,11 +37,11 @@ class QuizFeedbackTest extends QuizTestCase {
     variable_set('quiz_auto_revisioning', 0);
 
     $review_options = array(
-      'attempt' => t('Your answer'),
-      'correct' => t('Correct?'),
-      'score' => t('Score'),
+      'attempt'         => t('Your answer'),
+      'correct'         => t('Correct?'),
+      'score'           => t('Score'),
       'answer_feedback' => t('Feedback'),
-      'solution' => t('Correct answer'),
+      'solution'        => t('Correct answer'),
     );
 
     $this->drupalLogin($this->user);
