@@ -57,14 +57,18 @@ function quiz_jumper_form($form, $form_state, $questions, $current) {
     '#options'       => $questions,
     '#default_value' => $current,
   );
+
   $form['submit'] = array(
     '#type'       => 'submit',
     '#value'      => t('Jump'),
     '#attributes' => array('class' => array('js-hide')),
     '#submit'     => array(function($form, &$form_state) {
-        $quiz = node_load(arg(1));
-        quiz()->getQuizHelper()->getQuestionHelper()->redirect($quiz, $form_state['values']['question_number'] - 1);
-        $form_state['redirect'] = "node/" . __quiz_entity_id($quiz) . "/take/" . $form_state['values']['question_number'];
+        $quiz = __quiz_load_context_entity();
+        quiz()
+          ->getQuizHelper()
+          ->getQuestionHelper()
+          ->redirect($quiz, $form_state['values']['question_number'] - 1);
+        $form_state['redirect'] = "quiz/" . __quiz_entity_id($quiz) . "/take/" . $form_state['values']['question_number'];
       }),
   );
   return $form;
