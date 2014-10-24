@@ -59,11 +59,12 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
   foreach ($quizzes as $quiz) {
     $published = $quiz->status == 1 ? t('published') : t('unpublished');
     $answered = $quiz->answered ? t('answered') : t('unanswered');
+    $quiz_id = __quiz_entity_id($quiz);
 
     // We fetch the revision options from a helper function
     $options = _quiz_question_revision_options($quiz->status == 1, $quiz->answered);
 
-    $form['quizzes'][$quiz->nid . '-' . $quiz->vid . '-' . $quiz->status . '-' . ($quiz->answered ? '1' : '0')] = array(
+    $form['quizzes'][$quiz_id . '-' . $quiz->vid . '-' . $quiz->status . '-' . ($quiz->answered ? '1' : '0')] = array(
       '#type' => 'radios',
       '#title' => check_plain($quiz->title) . ' (' . $published . ' ' . t('and') . ' ' . $answered . ')',
       '#default_value' => $options['default'],

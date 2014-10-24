@@ -15,7 +15,7 @@ class AccessHelper {
 
   public function userHasResult($quiz, $uid) {
     $sql = 'SELECT 1 FROM {quiz_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated';
-    return db_query($sql, array(':nid' => $quiz->nid, ':uid' => $uid, ':is_evaluated' => 1))
+    return db_query($sql, array(':nid' => __quiz_entity_id($quiz), ':uid' => $uid, ':is_evaluated' => 1))
         ->fetchField();
   }
 
@@ -51,7 +51,7 @@ class AccessHelper {
     // viewing results for.
     if (isset($result_id)) {
       $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
-      if ($res && $res->nid != $quiz->nid) {
+      if ($res && $res->nid != __quiz_entity_id($quiz)) {
         return FALSE;
       }
     }
@@ -131,7 +131,7 @@ class AccessHelper {
       return FALSE;
     }
 
-    $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $quiz_id = __quiz_entity_id($quiz);
 
     // User maybe revisiting the quiz, trying to resume
     if (!isset($_SESSION['quiz'][$quiz_id])) {

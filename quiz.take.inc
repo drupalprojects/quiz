@@ -20,8 +20,9 @@ function quiz_question_feedback($quiz, $question) {
  * Submit handler to go to the next question from the question feedback.
  */
 function quiz_take_question_feedback_submit($form, &$form_state) {
-  $quiz = node_load(arg(1));
-  $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
+  $quiz = __quiz_load_context_entity();
+  $quiz_id = __quiz_entity_id($quiz);
+  $form_state['redirect'] = "node/{$quiz_id}/take/" . $_SESSION['quiz'][$quiz_id]['current'];
 }
 
 /**
@@ -72,7 +73,7 @@ function quiz_jumper_form($form, $form_state, $questions, $current) {
     '#submit'     => array(function($form, &$form_state) {
         $quiz = node_load(arg(1));
         quiz()->getQuizHelper()->getQuestionHelper()->redirect($quiz, $form_state['values']['question_number'] - 1);
-        $form_state['redirect'] = "node/{$quiz->nid}/take/" . $form_state['values']['question_number'];
+        $form_state['redirect'] = "node/" . __quiz_entity_id($quiz) . "/take/" . $form_state['values']['question_number'];
       }),
   );
   return $form;
@@ -120,7 +121,7 @@ function quiz_end_scoring($result_id) {
   $quiz_result->time_end = REQUEST_TIME;
   entity_save('quiz_result', $quiz_result);
   if ($user->uid) {
-    $score['passing'] = quiz()->getQuizHelper()->isPassed($user->uid, $quiz->nid, $quiz->vid);
+    $score['passing'] = quiz()->getQuizHelper()->isPassed($user->uid, __quiz_entity_id($quiz), $quiz->vid);
   }
   else {
     $score['passing'] = $score['percentage_score'] >= $quiz->pass_rate;

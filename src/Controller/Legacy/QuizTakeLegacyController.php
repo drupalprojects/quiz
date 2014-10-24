@@ -23,7 +23,7 @@ class QuizTakeLegacyController {
   }
 
   protected function getQuizId() {
-    return $this->isNode() ? $this->quiz->nid : $this->quiz->qid;
+    return __quiz_entity_id($this->quiz);
   }
 
   public function loadQuiz($id, $vid) {

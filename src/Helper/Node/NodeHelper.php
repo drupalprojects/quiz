@@ -29,13 +29,13 @@ abstract class NodeHelper {
           $option['option_summary'] = $option['option_summary']['value'];
         }
         $query->values(array(
-          'nid' => $quiz->nid,
-          'vid' => $quiz->vid,
-          'option_name' => $option['option_name'],
-          'option_summary' => $option['option_summary'],
+          'nid'                   => __quiz_entity_id($quiz),
+          'vid'                   => $quiz->vid,
+          'option_name'           => $option['option_name'],
+          'option_summary'        => $option['option_summary'],
           'option_summary_format' => $option['option_summary_format'],
-          'option_start' => $option['option_start'],
-          'option_end' => $option['option_end']
+          'option_start'          => $option['option_start'],
+          'option_end'            => $option['option_end']
         ));
       }
     }

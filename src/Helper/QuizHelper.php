@@ -145,7 +145,7 @@ class QuizHelper {
   }
 
   public function addQuestion($quiz, $question) {
-    $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $quiz_id = __quiz_entity_id($quiz);
     $quiz_questions = $this->getQuestions($quiz_id, $quiz->vid);
 
     // Do not add a question if it's already been added (selected in an earlier checkbox)
@@ -265,7 +265,7 @@ class QuizHelper {
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
           ':quiz_vid'        => $quiz->vid,
-          ':quiz_qid'        => $quiz->nid,
+          ':quiz_qid'        => __quiz_entity_id($quiz),
           ':question_status' => QUESTION_RANDOM
           )
         );
@@ -357,7 +357,7 @@ class QuizHelper {
     // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
     // So we go with the brute force method:
     db_delete('quiz_relationship')
-      ->condition('quiz_qid', $quiz->nid)
+      ->condition('quiz_qid', __quiz_entity_id($quiz))
       ->condition('quiz_vid', $quiz->vid)
       ->execute();
 
@@ -368,7 +368,7 @@ class QuizHelper {
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qr_id] = array(
-          'quiz_qid'              => $quiz->nid,
+          'quiz_qid'              => __quiz_entity_id($quiz),
           'quiz_vid'              => $quiz->vid,
           'question_nid'          => $question->nid,
           // Update to latest OR use the version given.
@@ -391,7 +391,7 @@ class QuizHelper {
       db_update('quiz_relationship')
         ->condition('qr_pid', $question_insert['old_qr_id'])
         ->condition('quiz_vid', $quiz->vid)
-        ->condition('quiz_qid', $quiz->nid)
+        ->condition('quiz_qid', __quiz_entity_id($quiz))
         ->fields(array('qr_pid' => $question_insert['qr_id']))
         ->execute();
     }
@@ -572,7 +572,7 @@ class QuizHelper {
     $query->orderBy('n.nid');
     $quizzes = $query->execute();
     foreach ($quizzes as $quiz) {
-      $results[$quiz->nid] = (array) $quiz;
+      $results[__quiz_entity_id($quiz)] = (array) $quiz;
     }
     return $results;
   }
@@ -749,7 +749,7 @@ class QuizHelper {
                 AND quiz_vid = :quiz_vid
                 AND question_nid = :question_nid
                 AND question_vid = :question_vid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => $quiz->nid, ':quiz_vid' => $quiz->vid, ':question_nid' => $result->nid, ':question_vid' => $result->vid))->fetchField();
+               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':quiz_qid' => __quiz_entity_id($quiz), ':quiz_vid' => $quiz->vid, ':question_nid' => $result->nid, ':question_vid' => $result->vid))->fetchField();
     }
     elseif ($quiz->randomization == 2) {
       $scale = db_query("SELECT (max_score_for_random / (

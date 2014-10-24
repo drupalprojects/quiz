@@ -29,7 +29,7 @@ class QuizCategorizedForm {
     $this->existingTermsForm($form, $form_state, $quiz);
     $this->categorizedNewTermForm($form, $form_state, $quiz);
 
-    $form['nid'] = array('#type' => 'value', '#value' => $quiz->nid);
+    $form['nid'] = array('#type' => 'value', '#value' => __quiz_entity_id($quiz));
     $form['vid'] = array('#type' => 'value', '#value' => $quiz->vid);
     $form['tid'] = array('#type' => 'value', '#value' => NULL);
 
@@ -96,7 +96,7 @@ class QuizCategorizedForm {
       '#type'              => 'textfield',
       '#title'             => t('Category'),
       '#description'       => t('Type in the name of the term you would like to add questions from.'),
-      '#autocomplete_path' => "node/$quiz->nid/questions/term_ahah",
+      '#autocomplete_path' => "node/" . __quiz_entity_id($quiz) . "/questions/term_ahah",
       '#field_suffix'      => '<a id="browse-for-term" href="javascript:void(0)">' . t('browse') . '</a>',
     );
     $form['new']['number'] = array(

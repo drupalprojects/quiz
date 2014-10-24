@@ -28,7 +28,7 @@ class QuizAnsweringForm {
     $this->question = $question;
     $this->page_number = $page_number;
     $this->result = $result;
-    $this->quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $this->quiz_id = __quiz_entity_id($quiz);
   }
 
   public function getSubmit() {
