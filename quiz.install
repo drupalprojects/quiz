@@ -66,7 +66,7 @@ function quiz_schema() {
     'fields'      => array(
       'qid'                        => array('type' => 'int', 'not null' => TRUE, 'description' => 'The id this revision belongs to'),
       'vid'                        => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'The primary identifier for this version.'),
-      'uid'                        => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'Author of quiz revision.'),
+      'revision_uid'               => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0, 'description' => 'Author of quiz revision.'),
       'log'                        => array('type' => 'text', 'size' => 'big', 'description' => t('A log message associated with the revision.')),
       'changed'                    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'The Unix timestamp when the quiz was most recently saved.'),
       'aid'                        => array('type' => 'varchar', 'length' => 255, 'not null' => FALSE),

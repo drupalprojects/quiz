@@ -37,13 +37,13 @@ class QuizEntityController extends EntityAPIController {
 
   /**
    * Force save revision author ID.
-   * 
+   *
    * @global stdClass $user
    * @param QuizEntity $entity
    */
   protected function saveRevision($entity) {
     global $user;
-    $entity->uid = $user->uid;
+    $entity->revision_uid = $user->uid;
     return parent::saveRevision($entity);
   }
 
