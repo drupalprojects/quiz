@@ -124,7 +124,7 @@ class FormSubmission extends QuestionHelper {
 
     // Only redirect to question results if there is not question feedback.
     if (empty($this->quiz->review_options['question']) || !array_filter($this->quiz->review_options['question'])) {
-      $form_state['redirect'] = $this->quiz_uri . "/quiz-results/{$this->result->result_id}/view";
+      $form_state['redirect'] = "quiz-result/{$this->result->result_id}";
     }
 
     quiz_end_actions($this->quiz, $score, $this->quiz_id);

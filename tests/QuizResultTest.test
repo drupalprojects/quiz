@@ -1,6 +1,8 @@
 <?php
 
-class QuizResultTest extends QuizTestCase {
+class QuizResultTest extends QuizEntityTestCase {
+
+  protected $extraModules = array('truefalse');
 
   public static function getInfo() {
     return array(
@@ -10,17 +12,12 @@ class QuizResultTest extends QuizTestCase {
     );
   }
 
-  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
-    $modules[] = 'truefalse';
-    parent::setUp($modules);
-  }
-
   /**
    * Test the various result summaries and pass rate.
    */
   public function testPassRateSummary() {
     // By default, the feedback is after the quiz.
-    $quiz_node = $this->drupalCreateQuiz(array(
+    $quiz = $this->drupalCreateQuiz(array(
       'pass_rate'              => 75,
       'summary_pass'           => 'This is the summary if passed',
       'summary_pass_format'    => 'plain_text',
@@ -53,54 +50,36 @@ class QuizResultTest extends QuizTestCase {
 
     // 3 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q1Feedback'));
-    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $this->linkQuestionToQuiz($question_node1, $quiz);
     $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q2Feedback'));
-    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz);
     $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q3Feedback'));
-    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $this->linkQuestionToQuiz($question_node3, $quiz);
 
     // Test 100%
     $this->drupalLogin($this->user);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node3->nid]" => 1,
-      ), t('Finish'));
+    $this->drupalGet("quiz/$quiz->qid/take");
+    $this->drupalPost(NULL, array("question[$question_node1->nid]" => 1), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node2->nid]" => 1), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node3->nid]" => 1), t('Finish'));
     $this->assertText('You got 90 or more on the quiz');
     $this->assertText('This is the summary if passed');
     $this->assertNoText('This is the default summary text');
 
     // Test 66%
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node3->nid]" => 0,
-      ), t('Finish'));
+    $this->drupalGet("quiz/$quiz->qid/take");
+    $this->drupalPost(NULL, array("question[$question_node1->nid]" => 1), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node2->nid]" => 1), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node3->nid]" => 0), t('Finish'));
     $this->assertText('You got between 50 and 89');
     $this->assertNoText('This is the summary if passed');
     $this->assertText('This is the default summary text');
 
     // Test 33%
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 0,
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node3->nid]" => 0,
-      ), t('Finish'));
+    $this->drupalGet("quiz/$quiz->qid/take");
+    $this->drupalPost(NULL, array("question[$question_node1->nid]" => 1), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node2->nid]" => 0), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node3->nid]" => 0), t('Finish'));
     $this->assertText('You failed bro');
     $this->assertNoText('This is the summary if passed');
     $this->assertText('This is the default summary text');
