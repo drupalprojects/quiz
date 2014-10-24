@@ -276,9 +276,7 @@ function quiz_admin_node_form($form, &$form_state) {
   // Create a dummy node to use as input for quiz_form
   $dummy_node = new stdClass();
   // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
-  $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
-  $settings = _quiz_load_user_settings();
-  $settings += _quiz_get_node_defaults();
+  $settings = quiz_get_defaults();
   foreach ($settings as $key => $value) {
     if (!isset($dummy_node->$key)) {
       $dummy_node->{$key} = $value;
@@ -291,7 +289,14 @@ function quiz_admin_node_form($form, &$form_state) {
   );
   // unset values we can't or won't let the user edit default values for
   unset(
-    $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions']
+    $form['#quiz_check_revision_access'],
+    $form['title'], $form['body_field'],
+    $form['taking']['aid'], $form['taking']['addons'],
+    $form['quiz_availability']['quiz_open'],
+    $form['quiz_availability']['quiz_close'],
+    $form['resultoptions'],
+    $form['number_of_random_questions'],
+    $form['remember_global']
   );
 
   $form['remember_settings']['#type'] = 'value';
@@ -334,11 +339,15 @@ function quiz_admin_node_form_validate($form, &$form_state) {
  */
 function quiz_admin_node_form_submit($form, &$form_state) {
   // We add the uid for the "default user"
-  $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
-  $form_state['values']['nid'] = 0;
-  $form_state['values']['vid'] = 0;
-  $form_state['values']['aid'] = '';
-  _quiz_save_user_settings($form_state['values']);
+  // Generate the node object:
+  $node = (object) $form_state['values'];
+  $node->uid = 0;
+  $node->nid = 0;
+  $node->vid = 0;
+
+  quiz_update_defaults($node);
+
+  $form_state['node'] = $node;
 }
 
 // QUIZ RESULTS ADMIN

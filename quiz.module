@@ -663,10 +663,10 @@ function quiz_update_defaults($node) {
 
   $entity = clone $node;
   $entity->aid = !empty($entity->aid) ? $entity->aid : 0;
-  $entity->summary_pass = is_array($entity->summary_pass) ? $entity->summary_pass['value'] : $entity->summary_pass;
-  $entity->summary_pass_format = is_array($entity->summary_pass) ? $entity->summary_pass['format'] : $entity->summary_pass_format;
-  $entity->summary_default = is_array($entity->summary_default) ? $entity->summary_default['value'] : $entity->summary_default;
-  $entity->summary_default_format = is_array($entity->summary_default) ? $entity->summary_default['format'] : $entity->summary_default_format;
+  $entity->summary_pass = is_array($node->summary_pass) ? $node->summary_pass['value'] : $node->summary_pass;
+  $entity->summary_pass_format = is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format;
+  $entity->summary_default = is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default;
+  $entity->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
   $entity->tid = (isset($entity->tid) ? $entity->tid : 0);
 
   // Save the node values.
