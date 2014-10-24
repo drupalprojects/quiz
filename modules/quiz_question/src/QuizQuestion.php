@@ -298,7 +298,8 @@ abstract class QuizQuestion {
    * Element validator (for repeat until correct).
    */
   public function elementValidate(&$element, &$form_state) {
-    $quiz = node_load(arg(1));
+    $quiz = __quiz_load_context_entity();
+
     $question_nid = $element['#array_parents'][1];
     $answer = $form_state['values']['question'][$question_nid];
     $current_question = node_load($question_nid);
