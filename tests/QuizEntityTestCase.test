@@ -7,18 +7,7 @@ use Drupal\quiz\Entity\QuizEntity;
  */
 abstract class QuizEntityTestCase extends DrupalWebTestCase {
 
-  protected static $testName;
-  protected static $testDescription;
-  protected static $testGroup;
   protected $extraModules = array();
-
-  public static function getInfo() {
-    return array(
-      'name'        => t(self::$testName),
-      'description' => t(self::$testDescription),
-      'group'       => t(self::$testGroup),
-    );
-  }
 
   /**
    * Set up a question test case.

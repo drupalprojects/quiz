@@ -8,9 +8,13 @@ use Drupal\quiz\Entity\QuizEntityType;
  */
 class QuizEntityTest extends QuizEntityTestCase {
 
-  protected $name = 'Quiz entity';
-  protected $description = 'Unit test for Quiz entity.';
-  protected $group = 'Quiz';
+  public static function getInfo() {
+    return array(
+      'name'        => t('Quiz entity'),
+      'description' => t('Unit test for Quiz entity.'),
+      'group'       => t('Quiz'),
+    );
+  }
 
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'quiz';
