@@ -406,7 +406,6 @@ function quiz_question_add_body_field($type) {
 function theme_quiz_question_feedback($variables) {
   $rows = $variables['data'];
   $headers = array_intersect_key($variables['labels'], $rows[0]);
-
   return theme('table', array('header' => $headers, 'rows' => $rows));
 }
 

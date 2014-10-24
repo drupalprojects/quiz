@@ -438,7 +438,6 @@ abstract class QuizQuestion {
    */
   public function viewCanRevealCorrect() {
     global $user;
-    $quiz_node = node_load(arg(1));
 
     $reveal_correct[] = user_access('view any quiz question correct response');
     $reveal_correct[] = ($user->uid == $this->node->uid);

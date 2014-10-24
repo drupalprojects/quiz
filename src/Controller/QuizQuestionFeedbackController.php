@@ -2,9 +2,13 @@
 
 namespace Drupal\quiz\Controller;
 
+use Drupal\quiz\Entity\QuizEntity;
 class QuizQuestionFeedbackController {
 
+  /** @var QuizEntity */
   private $quiz;
+
+  /** @var int */
   private $quiz_id;
 
   public function __construct($quiz) {
