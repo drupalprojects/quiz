@@ -83,4 +83,17 @@ class QuizEntityTest extends QuizEntityTestCase {
     $this->assertFalse($null_quiz, 'Quiz entity is deleted');
   }
 
+  /**
+   * Test basic quiz creation.
+   */
+  public function testQuizCreation() {
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("quiz/add");
+    $this->drupalPost(NULL, array(
+      'title'             => 'Test quiz creation',
+      'remember_global'   => 0,
+      'remember_settings' => 0), t('Save'));
+    $this->assertText('has been created');
+  }
+
 }
