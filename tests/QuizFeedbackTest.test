@@ -3,7 +3,7 @@
 /**
  * Base test class for Quiz questions.
  */
-class QuizFeedback extends QuizTestCase {
+class QuizFeedbackTest extends QuizTestCase {
 
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';

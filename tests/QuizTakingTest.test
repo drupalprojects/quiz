@@ -1,6 +1,6 @@
 <?php
 
-class QuizTaking extends QuizTestCase {
+class QuizTakingTest extends QuizTestCase {
 
   public static function getInfo() {
     return array(

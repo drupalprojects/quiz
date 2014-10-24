@@ -1,12 +1,12 @@
 <?php
 
-class QuizResult extends QuizTestCase {
+class QuizResultTest extends QuizTestCase {
 
   public static function getInfo() {
     return array(
-      'name' => t('Quiz results'),
+      'name'        => t('Quiz results'),
       'description' => t('Unit test for Quiz results.'),
-      'group' => t('Quiz'),
+      'group'       => t('Quiz'),
     );
   }
 
@@ -21,32 +21,32 @@ class QuizResult extends QuizTestCase {
   public function testPassRateSummary() {
     // By default, the feedback is after the quiz.
     $quiz_node = $this->drupalCreateQuiz(array(
-      'pass_rate' => 75,
-      'summary_pass' => 'This is the summary if passed',
-      'summary_pass_format' => 'plain_text',
-      'summary_default' => 'This is the default summary text',
+      'pass_rate'              => 75,
+      'summary_pass'           => 'This is the summary if passed',
+      'summary_pass_format'    => 'plain_text',
+      'summary_default'        => 'This is the default summary text',
       'summary_default_format' => 'plain_text',
-      'resultoptions' => array(
+      'resultoptions'          => array(
         array(
-          'option_name' => '90 and higher',
-          'option_summary' => 'You got 90 or more on the quiz',
+          'option_name'           => '90 and higher',
+          'option_summary'        => 'You got 90 or more on the quiz',
           'option_summary_format' => 'filtered_html',
-          'option_start' => 90,
-          'option_end' => 100,
+          'option_start'          => 90,
+          'option_end'            => 100,
         ),
         array(
-          'option_name' => '50 and higher',
-          'option_summary' => 'You got between 50 and 89',
+          'option_name'           => '50 and higher',
+          'option_summary'        => 'You got between 50 and 89',
           'option_summary_format' => 'filtered_html',
-          'option_start' => 50,
-          'option_end' => 89,
+          'option_start'          => 50,
+          'option_end'            => 89,
         ),
         array(
-          'option_name' => 'Below 50',
-          'option_summary' => 'You failed bro',
+          'option_name'           => 'Below 50',
+          'option_summary'        => 'You failed bro',
           'option_summary_format' => 'filtered_html',
-          'option_start' => 0,
-          'option_end' => 49,
+          'option_start'          => 0,
+          'option_end'            => 49,
         ),
       ),
     ));

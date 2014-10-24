@@ -3,7 +3,7 @@
 /**
  * Test aspects of quiz creation including global and user defaults.
  */
-class QuizCreation extends QuizTestCase {
+class QuizCreationTest extends QuizTestCase {
 
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'quiz';
