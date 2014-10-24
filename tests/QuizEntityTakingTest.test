@@ -1,6 +1,6 @@
 <?php
 
-class QuizTakingTest extends QuizEntityTestCase {
+class QuizEntityTakingTest extends QuizEntityTestCase {
 
   protected $extraModules = array('truefalse');
 

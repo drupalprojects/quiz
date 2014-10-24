@@ -34,9 +34,8 @@ files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question.inc
 
 files[] = tests/QuizEntityTestCase.test
 files[] = tests/QuizEntityTest.test
-files[] = tests/QuizCreationTest.test
+files[] = tests/QuizEntityTakingTest.test
 files[] = tests/QuizFeedbackTest.test
 files[] = tests/QuizNavigationTest.test
 files[] = tests/QuizResultTest.test
-files[] = tests/QuizTakingTest.test
 files[] = tests/QuizTestCase.test
