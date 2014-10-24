@@ -476,7 +476,7 @@ class FormDefinition extends FormHelper {
 
     if (variable_get('quiz_auto_revisioning', 1) || !user_access('manual quiz revisioning')) {
       $form['revision_information']['revision']['#type'] = 'value';
-      $form['revision_information']['revision']['#value'] = $form['revision_information']['revision']['#default_value'];
+      $form['revision_information']['revision']['#value'] = variable_get('quiz_auto_revisioning', 1);
       $form['revision_information']['log']['#type'] = 'value';
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       $form['revision_information']['#access'] = FALSE;
