@@ -83,17 +83,20 @@ class FormSubmission extends QuestionHelper {
   public function formSubmit(&$form, &$form_state) {
     if (!empty($form_state['values']['question'])) {
       foreach (array_keys($form_state['values']['question']) as $question_id) {
-        $_question = node_load($question_id);
         foreach ($this->result->layout as $item) {
-          if ($item['nid'] == $_question->nid) {
+          if ($item['nid'] == $question_id) {
             $question_array = $item;
           }
         }
-        $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $_question, $form_state['values']['question'][$_question->nid]);
+        $_question = node_load($question_id);
+        $_answer = $form_state['values']['question'][$question_id];
+        $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $_question, $_answer);
         $qi_instance->delete();
         $qi_instance->saveResult();
         $result = $qi_instance->toBareObject();
-        quiz()->getQuizHelper()->saveQuestionResult($this->quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
+        quiz()
+          ->getQuizHelper()
+          ->saveQuestionResult($this->quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
         // Increment the counter.
         $this->redirect($this->quiz, $this->result->getNextPageNumber($this->page_number));

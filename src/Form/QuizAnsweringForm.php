@@ -176,16 +176,6 @@ class QuizAnsweringForm {
       '#submit' => array(array($this->getSubmit(), 'formSubmit')),
     );
 
-    if ($is_last && $this->quiz->backwards_navigation && !$this->quiz->repeat_until_correct) {
-      // Display a confirmation dialogue if this is the last question and a user
-      // is able to navigate backwards but not forced to answer correctly.
-      $form['#attributes']['class'][] = 'quiz-answer-confirm';
-      $form['#attributes']['data-confirm-message'] = t("By proceeding you won't be able to go back and edit your answers.");
-      $form['#attached'] = array(
-        'js' => array(drupal_get_path('module', 'quiz') . '/js/quiz_confirm.js'),
-      );
-    }
-
     // @TODO: Check this
     $form['navigation']['skip'] = array(
       '#weight'                  => 20,
@@ -196,6 +186,14 @@ class QuizAnsweringForm {
       '#limit_validation_errors' => array(),
       '#access'                  => $this->quiz->allow_skipping,
     );
+
+    // Display a confirmation dialogue if this is the last question and a user
+    // is able to navigate backwards but not forced to answer correctly.
+    if ($is_last && $this->quiz->backwards_navigation && !$this->quiz->repeat_until_correct) {
+      $form['#attributes']['class'][] = 'quiz-answer-confirm';
+      $form['#attributes']['data-confirm-message'] = t("By proceeding you won't be able to go back and edit your answers.");
+      $form['#attached']['js'][] = drupal_get_path('module', 'quiz') . '/js/quiz_confirm.js';
+    }
   }
 
   /**
