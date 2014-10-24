@@ -15,7 +15,7 @@ class QuizTakeController extends QuizTakeLegacyController {
   private $account;
 
   /**
-   * Callback for node/%quiz_menu/take
+   * Callback for quiz/%/take
    */
   public static function staticCallback($quiz) {
     global $user;
@@ -179,7 +179,7 @@ class QuizTakeController extends QuizTakeLegacyController {
     }
 
     if (!count($questions)) {
-      $msg = t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . $this->getQuizId() . '/quiz/questions')));
+      $msg = t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'quiz/' . $this->getQuizId() . '/questions')));
       throw new RuntimeException($msg);
     }
 

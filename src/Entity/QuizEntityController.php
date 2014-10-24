@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz\Entity;
 
+use DatabaseTransaction;
 use EntityAPIController;
 use stdClass;
 
@@ -47,6 +48,14 @@ class QuizEntityController extends EntityAPIController {
     }
 
     return $entities;
+  }
+
+  public function save($quiz, DatabaseTransaction $transaction = NULL) {
+    // QuizFeedbackTest::testFeedback() failed without this, mess!
+    if (empty($quiz->is_new_revision)) {
+      $quiz->is_new = $quiz->revision = 0;
+    }
+    return parent::save($quiz, $transaction);
   }
 
   /**

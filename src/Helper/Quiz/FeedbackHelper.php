@@ -67,8 +67,8 @@ class FeedbackHelper {
       return !empty($quiz->review_options['end'][$option]);
     }
 
+    // Quiz ongoing. Pull from the "after question" settings.
     if (!$result->time_end || $result->time_end >= REQUEST_TIME - 5) {
-      // Quiz ongoing. Pull from the "after question" settings.
       return !empty($quiz->review_options['question'][$option]);
     }
   }

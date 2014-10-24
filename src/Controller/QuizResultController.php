@@ -5,7 +5,7 @@ namespace Drupal\quiz\Controller;
 class QuizResultController {
 
   /**
-   * Callback for node/%quiz_menu/quiz/results/%quiz_rid/view
+   * Callback for quiz-result/%
    *
    * Quiz result report page for the quiz admin section
    *

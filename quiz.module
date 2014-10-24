@@ -360,11 +360,15 @@ function __quiz_entity_id($quiz) {
   return isset($quiz->nid) ? $quiz->nid : $quiz->qid;
 }
 
+function __quiz_get_context_id() {
+  return (int) arg(1);
+}
+
 function __quiz_load_context_entity() {
-  $id = (int) arg(1);
+  $id = __quiz_get_context_id();
   return 'node' === arg(0) ? node_load($id) : quiz_entity_single_load($id);
 }
 
-function __quiz_load_from_result(Result $result) {
+function __quiz_load_from_result($result) {
   return 'node' === arg(0) ? node_load($result->nid, $result->vid) : quiz_entity_single_load($result->nid, $result->vid);
 }

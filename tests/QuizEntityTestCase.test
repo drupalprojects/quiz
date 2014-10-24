@@ -62,6 +62,9 @@ abstract class QuizEntityTestCase extends DrupalWebTestCase {
     return $quiz;
   }
 
+  /**
+   * @return QuizEntity
+   */
   public function drupalCreateQuiz($settings = array()) {
     $quiz = entity_create('quiz_entity', $settings + array(
       'review_options' => array(

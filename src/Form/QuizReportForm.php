@@ -60,13 +60,21 @@ class QuizReportForm {
       else {
         $form['next'] = array(
           '#type'   => 'submit',
-          '#submit' => array('quiz_take_question_feedback_submit'),
+          '#submit' => array(array($this, 'formSubmitFeedback')),
           '#value'  => t('Next question'),
         );
       }
     }
 
     return $form;
+  }
+
+  /**
+   * Submit handler to go to the next question from the question feedback.
+   */
+  public function formSubmitFeedback($form, &$form_state) {
+    $quiz_id = __quiz_get_context_id();
+    $form_state['redirect'] = "quiz/{$quiz_id}/take/" . $_SESSION['quiz'][$quiz_id]['current'];
   }
 
   /**
@@ -105,7 +113,7 @@ class QuizReportForm {
       // Load the quiz
       if (!isset($quiz)) {
         $result = db_query('SELECT nid, uid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
-        $quiz = node_load($result->nid, $result->vid);
+        $quiz = __quiz_load_from_result($result);
         $result_id = $q_values['result_id'];
       }
 
@@ -137,7 +145,7 @@ class QuizReportForm {
     drupal_set_message(t('The scoring data you provided has been saved.') . $add);
     if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
       if ($result && $result->uid == $user->uid) {
-        $form_state['redirect'] = 'node/' . __quiz_entity_id($quiz) . '/quiz/results/' . $result_id;
+        $form_state['redirect'] = 'quiz-result/' . $result_id;
       }
     }
   }
@@ -146,9 +154,8 @@ class QuizReportForm {
    * Submit handler to go to the quiz results from the last question's feedback.
    */
   public function formEndSubmit($form, &$form_state) {
-    $quiz = __quiz_load_context_entity();
     $result_id = $_SESSION['quiz']['temp']['result_id'];
-    $form_state['redirect'] = "node/" . __quiz_entity_id($quiz) . "/quiz-results/$result_id/view";
+    $form_state['redirect'] = "quiz-result/{$result_id}";
   }
 
   /**

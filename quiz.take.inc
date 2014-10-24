@@ -17,15 +17,6 @@ function quiz_question_feedback($quiz, $question) {
 }
 
 /**
- * Submit handler to go to the next question from the question feedback.
- */
-function quiz_take_question_feedback_submit($form, &$form_state) {
-  $quiz = __quiz_load_context_entity();
-  $quiz_id = __quiz_entity_id($quiz);
-  $form_state['redirect'] = "node/{$quiz_id}/take/" . $_SESSION['quiz'][$quiz_id]['current'];
-}
-
-/**
  * Actions to take at the end of a quiz
  *
  * @param \Drupal\quiz\Entity\QuizEntity $quiz

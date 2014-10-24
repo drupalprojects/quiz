@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\quiz\Entity\QuizEntity;
+
 /**
  * Base test class for Quiz questions.
  */
@@ -44,6 +46,11 @@ class QuizFeedbackTest extends QuizEntityTestCase {
 
     $this->drupalLogin($this->user);
 
+    $this->checkAfterQuestion($quiz, $question_node1, $review_options);
+    $this->checkAfterQuiz($quiz, $question_node2, $review_options);
+  }
+
+  private function checkAfterQuestion(QuizEntity $quiz, $question_node1, $review_options) {
     // Answer the first question.
     $this->drupalGet("quiz/{$quiz->qid}/take");
     $this->drupalPost(NULL, array("question[$question_node1->nid]" => 1), t('Next'));
@@ -55,13 +62,16 @@ class QuizFeedbackTest extends QuizEntityTestCase {
 
       $this->drupalGet("quiz/{$quiz->qid}/take/1/feedback");
       $this->assertRaw('<th>' . $text . '</th>');
+
       foreach ($review_options as $option2 => $text2) {
         if ($option != $option2) {
           $this->assertNoRaw('<th>' . $text2 . '</th>');
         }
       }
     }
+  }
 
+  private function checkAfterQuiz(QuizEntity $quiz, $question_node2, $review_options) {
     // Feedback only after the quiz.
     $this->drupalGet("quiz/{$quiz->qid}/take/1/feedback");
     $this->drupalPost(NULL, array(), t('Next question'));
@@ -72,7 +82,7 @@ class QuizFeedbackTest extends QuizEntityTestCase {
       $quiz->review_options = array('end' => array($option => $option));
       entity_save('quiz_entity', $quiz);
 
-      $this->drupalGet("quiz/{$quiz->qid}/quiz-results/1/view");
+      $this->drupalGet("quiz-result/1");
       $this->assertRaw('<th>' . $text . '</th>');
       foreach ($review_options as $option2 => $text2) {
         if ($option != $option2) {
