@@ -21,7 +21,7 @@ function quiz_stats_help($path, $arg) {
  */
 function quiz_stats_permission() {
   $permission = array(
-    'access user stats' => array(
+    'access user stats'   => array(
       'title' => t('access user stats'),
     ),
     'access author stats' => array(
@@ -36,51 +36,51 @@ function quiz_stats_permission() {
  */
 function quiz_stats_menu() {
   $items['admin/quiz/reports/stats/creator'] = array(
-    'title' => 'Quiz Statistics',
-    'description' => 'Generates a report on quiz results for quiz creators.',
-    'file' => 'quiz_stats.admin.inc',
-    'page callback' => 'quiz_stats_get_basic_stats',
+    'title'            => 'Quiz Statistics',
+    'description'      => 'Generates a report on quiz results for quiz creators.',
+    'file'             => 'quiz_stats.admin.inc',
+    'page callback'    => 'quiz_stats_get_basic_stats',
     'access arguments' => array('access author stats'),
-    'type' => MENU_NORMAL_ITEM,
+    'type'             => MENU_NORMAL_ITEM,
   );
   $items['node/%node/quiz/statistics'] = array(
-    'title' => 'Statistics',
-    'description' => 'Generates a report on quiz results for quiz creators.',
-    'file' => 'quiz_stats.admin.inc',
-    'page callback' => 'quiz_stats_revision_selector_page',
-    'page arguments' => array(1),
-    'access callback' => 'quiz_type_confirm',
+    'title'            => 'Statistics',
+    'description'      => 'Generates a report on quiz results for quiz creators.',
+    'file'             => 'quiz_stats.admin.inc',
+    'page callback'    => 'quiz_stats_revision_selector_page',
+    'page arguments'   => array(1),
+    'access callback'  => 'quiz_type_confirm',
     'access arguments' => array(1, 'access user stats'),
-    'type' => MENU_LOCAL_TASK,
-    'weight' => 4,
+    'type'             => MENU_LOCAL_TASK,
+    'weight'           => 4,
   );
   $items['node/%node/quiz/statistics/%'] = array(
-    'title' => 'Statistics',
-    'description' => 'Generates a report on quiz results for quiz creators.',
-    'file' => 'quiz_stats.admin.inc',
-    'page callback' => 'quiz_stats_get_adv_stats',
-    'page arguments' => array(4),
-    'access callback' => 'quiz_stats_validate_vid',
+    'title'            => 'Statistics',
+    'description'      => 'Generates a report on quiz results for quiz creators.',
+    'file'             => 'quiz_stats.admin.inc',
+    'page callback'    => 'quiz_stats_get_adv_stats',
+    'page arguments'   => array(4),
+    'access callback'  => 'quiz_stats_validate_vid',
     'access arguments' => array(1, 4),
-    'type' => MENU_CALLBACK,
-    'weight' => 4,
+    'type'             => MENU_CALLBACK,
+    'weight'           => 4,
   );
   $items['user/%/stats'] = array(
-    'title' => 'Result Statistics',
-    'description' => 'Generates a report on quiz results for quiz creators.',
-    'file' => 'quiz_stats.admin.inc',
-    'page callback' => 'quiz_stats_get_basic_stats',
-    'page arguments' => array(1),
+    'title'            => 'Result Statistics',
+    'description'      => 'Generates a report on quiz results for quiz creators.',
+    'file'             => 'quiz_stats.admin.inc',
+    'page callback'    => 'quiz_stats_get_basic_stats',
+    'page arguments'   => array(1),
     'access arguments' => array('access user stats'),
-    'type' => MENU_LOCAL_TASK,
+    'type'             => MENU_LOCAL_TASK,
   );
   $items['user/%/stats/%/view'] = array(
-    'title' => 'Result Statistics',
-    'file' => 'quiz_stats.admin.inc',
-    'page callback' => 'quiz_stats_get_adv_stats',
-    'page arguments' => array(3, 1),
+    'title'            => 'Result Statistics',
+    'file'             => 'quiz_stats.admin.inc',
+    'page callback'    => 'quiz_stats_get_adv_stats',
+    'page arguments'   => array(3, 1),
     'access arguments' => array('access user stats'),
-    'type' => MENU_CALLBACK,
+    'type'             => MENU_CALLBACK,
   );
   return $items;
 }
@@ -91,35 +91,35 @@ function quiz_stats_menu() {
 function quiz_stats_theme() {
   $path = drupal_get_path('module', 'quiz_stats') . '/theme';
   return array(
-    'quiz_stats_get_basic_stats' => array(
+    'quiz_stats_get_basic_stats'   => array(
       'variables' => array('results' => NULL),
-      'file' => 'quiz_stats.admin.inc',
+      'file'      => 'quiz_stats.admin.inc',
     ),
-    'date_vs_takeup_count' => array(
+    'date_vs_takeup_count'         => array(
       'variables' => array('takeup' => NULL),
-      'file' => 'quiz_stats.admin.inc',
+      'file'      => 'quiz_stats.admin.inc',
     ),
-    'get_quiz_status_chart' => array(
+    'get_quiz_status_chart'        => array(
       'variables' => array('quiz' => NULL),
-      'file' => 'quiz_stats.admin.inc',
+      'file'      => 'quiz_stats.admin.inc',
     ),
-    'quiz_top_scorers' => array(
+    'quiz_top_scorers'             => array(
       'variables' => array('scorer' => NULL),
-      'file' => 'quiz_stats.admin.inc',
+      'file'      => 'quiz_stats.admin.inc',
     ),
-    'quiz_grade_range' => array(
+    'quiz_grade_range'             => array(
       'variables' => array('range' => NULL),
-      'file' => 'quiz_stats.admin.inc',
+      'file'      => 'quiz_stats.admin.inc',
     ),
     'quiz_stats_revision_selector' => array(
       'variables' => array('content' => NULL),
-      'path' => $path,
-      'template' => 'quiz_stats_revision_selector',
+      'path'      => $path,
+      'template'  => 'quiz_stats_revision_selector',
     ),
-    'quiz_stats_charts' => array(
+    'quiz_stats_charts'            => array(
       'variables' => array('charts' => NULL),
-      'path' => $path,
-      'template' => 'quiz_stats_charts',
+      'path'      => $path,
+      'template'  => 'quiz_stats_charts',
     ),
   );
 }
@@ -141,5 +141,5 @@ function quiz_stats_validate_vid($quiz, $vid) {
   if (!user_access('access author stats')) {
     return FALSE;
   }
-  return $quiz->nid == db_query('SELECT n.nid FROM {node} n INNER JOIN {node_revision} nr ON (n.nid = nr.nid) WHERE nr.vid = :vid', array(':vid' => $vid))->fetchField();
+  return __quiz_entity_id($quiz) == db_query('SELECT n.nid FROM {node} n INNER JOIN {node_revision} nr ON (n.nid = nr.nid) WHERE nr.vid = :vid', array(':vid' => $vid))->fetchField();
 }

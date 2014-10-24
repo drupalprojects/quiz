@@ -9,12 +9,6 @@ class QuizQuestionsForm {
 
   public static function staticGet($form, $form_state, $quiz) {
     module_load_include('admin.inc', 'quiz', 'quiz');
-
-    // @TODO: Remove legacy code
-    if (!isset($quiz->nid) && isset($quiz->qid)) {
-      $quiz->nid = $quiz->qid;
-    }
-
     $obj = new static();
     return $obj->formGet($form, $form_state, $quiz);
   }
@@ -50,7 +44,7 @@ class QuizQuestionsForm {
     $this->addFieldsForRandomQuiz($form, $quiz);
 
     // @todo deal with $include_random
-    $questions = quiz()->getQuizHelper()->getQuestions($quiz->nid, $quiz->vid);
+    $questions = quiz()->getQuizHelper()->getQuestions(__quiz_entity_id($quiz), $quiz->vid);
 
     if (empty($questions)) {
       $form['question_list']['no_questions'] = array(
@@ -101,7 +95,7 @@ class QuizQuestionsForm {
     );
 
     $url_query = drupal_get_destination();
-    $url_query['quiz_nid'] = $quiz->nid;
+    $url_query['quiz_nid'] = __quiz_entity_id($quiz);
     $url_query['quiz_vid'] = $quiz->vid;
     $create_question = FALSE;
     foreach ($types as $type => $info) {

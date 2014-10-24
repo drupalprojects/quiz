@@ -7,9 +7,9 @@ use Drupal\quiz\Entity\QuizEntity;
 class QuizRevisionsAdminController {
 
   public static function staticCallback(QuizEntity $quiz) {
-    $revisions = db_query('SELECT qr.vid, qr.log, qr.changed, qr.uid, u.uid, u.name'
+    $revisions = db_query('SELECT qr.vid, qr.log, qr.changed, qr.revision_uid, u.uid, u.name'
       . ' FROM {quiz_entity_revision} qr'
-      . '   LEFT JOIN {users} u ON qr.uid = u.uid'
+      . '   LEFT JOIN {users} u ON qr.revision_uid = u.uid'
       . ' WHERE qr.qid = :qid'
       . ' ORDER BY qr.vid DESC', array(':qid' => $quiz->qid))->fetchAll();
 

@@ -20,13 +20,12 @@ class QuizReportForm {
    *   FAPI form array
    */
   public function getForm($form, $form_state, $questions) {
+    $form['#theme'] = 'quiz_report_form';
+    $form['#tree'] = TRUE;
     $form['#submit'][] = array($this, 'formSubmit');
 
-    // The submit button is only shown if one or more of the questions has input elements
-    $show_submit = FALSE;
     foreach ($questions as $question) {
-      $module = quiz_question_module_for_type($question->type);
-      if (!$module) {
+      if (!$module = quiz_question_module_for_type($question->type)) {
         return array();
       }
       $function = $module . '_report_form';
@@ -37,9 +36,9 @@ class QuizReportForm {
       $form_to_add['#element_validate'][] = array($this, 'validateElement');
       $form[] = $form_to_add;
     }
-    $form['#theme'] = 'quiz_report_form';
-    $form['#tree'] = TRUE;
-    if ($show_submit) {
+
+    // The submit button is only shown if one or more of the questions has input elements
+    if (!empty($show_submit)) {
       $form['submit'] = array(
         '#type'   => 'submit',
         '#submit' => array(array($this, 'formSubmit')),
@@ -47,11 +46,11 @@ class QuizReportForm {
       );
     }
 
-    if (arg(4) == 'feedback') {
+    if (arg(4) === 'feedback') {
       // @todo figure something better than args.
-      $quiz = node_load(arg(1));
-      if (empty($_SESSION['quiz'][$quiz->nid])) {
-        // Quiz is done.
+      $quiz = __quiz_load_context_entity();
+      $quiz_id = __quiz_entity_id($quiz);
+      if (empty($_SESSION['quiz'][$quiz_id])) { // Quiz is done.
         $form['finish'] = array(
           '#type'   => 'submit',
           '#submit' => array(array($this, formEndSubmit)),
@@ -138,7 +137,7 @@ class QuizReportForm {
     drupal_set_message(t('The scoring data you provided has been saved.') . $add);
     if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
       if ($result && $result->uid == $user->uid) {
-        $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/results/' . $result_id;
+        $form_state['redirect'] = 'node/' . __quiz_entity_id($quiz) . '/quiz/results/' . $result_id;
       }
     }
   }
@@ -147,9 +146,9 @@ class QuizReportForm {
    * Submit handler to go to the quiz results from the last question's feedback.
    */
   public function formEndSubmit($form, &$form_state) {
-    $quiz = node_load(arg(1));
+    $quiz = __quiz_load_context_entity();
     $result_id = $_SESSION['quiz']['temp']['result_id'];
-    $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/$result_id/view";
+    $form_state['redirect'] = "node/" . __quiz_entity_id($quiz) . "/quiz-results/$result_id/view";
   }
 
   /**

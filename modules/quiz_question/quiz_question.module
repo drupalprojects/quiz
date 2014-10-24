@@ -74,7 +74,7 @@ function _quiz_question_teaser_content($node) {
  * @see http://drupal.org/node/1354
  */
 function quiz_question_has_been_answered($node) {
-  if ($question_instance = _quiz_question_get_instance($node, true)->hasBeenAnswered()) {
+  if ($question_instance = _quiz_question_get_instance($node, true)) {
     return $question_instance->hasBeenAnswered();
   }
 }

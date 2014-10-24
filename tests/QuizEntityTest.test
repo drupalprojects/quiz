@@ -6,7 +6,7 @@ use Drupal\quiz\Entity\QuizEntityType;
 /**
  * Test aspects of quiz creation including global and user defaults.
  */
-class QuizEntityTest extends QuizTestCase {
+class QuizEntityTest extends QuizEntityTestCase {
 
   public static function getInfo() {
     return array(
@@ -85,6 +85,20 @@ class QuizEntityTest extends QuizTestCase {
     entity_delete('quiz_entity', $quiz->identifier());
     $null_quiz = entity_load_single('quiz_entity', $quiz->identifier());
     $this->assertFalse($null_quiz, 'Quiz entity is deleted');
+  }
+
+  /**
+   * Test basic quiz creation.
+   */
+  public function testQuizCreation() {
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("quiz/add");
+    $this->drupalPost(NULL, array(
+      'title'             => 'Test quiz creation',
+      'remember_global'   => 0,
+      'remember_settings' => 0), t('Save'));
+    $this->assertText('Test quiz creation');
+    $this->assertText('Start quiz');
   }
 
 }

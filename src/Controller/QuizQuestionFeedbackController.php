@@ -5,9 +5,11 @@ namespace Drupal\quiz\Controller;
 class QuizQuestionFeedbackController {
 
   private $quiz;
+  private $quiz_id;
 
   public function __construct($quiz) {
     $this->quiz = $quiz;
+    $this->quiz_id = __quiz_entity_id($this->quiz);
   }
 
   /**
@@ -20,11 +22,11 @@ class QuizQuestionFeedbackController {
   }
 
   public function render($question_number) {
-    if (empty($_SESSION['quiz'][$this->quiz->nid]['result_id'])) {
+    if (empty($_SESSION['quiz'][__quiz_entity_id($this->quiz)]['result_id'])) {
       $result_id = $_SESSION['quiz']['temp']['result_id'];
     }
     else {
-      $result_id = $_SESSION['quiz'][$this->quiz->nid]['result_id'];
+      $result_id = $_SESSION['quiz'][__quiz_entity_id($this->quiz)]['result_id'];
     }
     $quiz_result = quiz_result_load($result_id);
     $question = node_load($quiz_result->layout[$question_number]['nid']);
@@ -33,20 +35,20 @@ class QuizQuestionFeedbackController {
   }
 
   public function buildRenderArray($question) {
-    if (empty($_SESSION['quiz'][$this->quiz->nid]['result_id'])) {
+    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz') . '/quiz.pages.inc';
+
+    if (empty($_SESSION['quiz'][$this->quiz_id]['result_id'])) {
       $result_id = $_SESSION['quiz']['temp']['result_id'];
     }
     else {
-      $result_id = $_SESSION['quiz'][$this->quiz->nid]['result_id'];
+      $result_id = $_SESSION['quiz'][$this->quiz_id]['result_id'];
     }
 
     $types = _quiz_get_question_types();
     $module = $types[$question->type]['module'];
 
     // Invoke hook_get_report().
-    $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
-    require_once DRUPAL_ROOT . '/' . drupal_get_path('module', 'quiz') . '/quiz.pages.inc';
-    if ($report) {
+    if ($report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id)) {
       $report_form = @drupal_get_form('Drupal\quiz\Form\QuizReportForm::staticCallback', array($report));
       return $report_form;
     }

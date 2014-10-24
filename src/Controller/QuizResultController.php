@@ -18,7 +18,8 @@ class QuizResultController {
     // Make sure we have the right version of the quiz
     $result = db_query('SELECT vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
     if ($quiz->vid != $result->vid) {
-      $quiz = node_load($quiz->nid, $result->vid);
+      $quiz_id = __quiz_entity_id($quiz);
+      $quiz = isset($quiz->nid) ? node_load($quiz_id, $result->vid) : quiz_entity_single_load($quiz_id, $result->vid);
     }
 
     // Get all the data we need.
@@ -29,7 +30,7 @@ class QuizResultController {
     // Lets add the quiz title to the breadcrumb array.
     # $breadcrumb = drupal_get_breadcrumb();
     # $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
-    # $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . $quiz->nid);
+    # $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . __quiz_entity_id($quiz));
     # drupal_set_breadcrumb($breadcrumb);
 
     $data = array(

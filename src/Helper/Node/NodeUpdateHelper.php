@@ -10,7 +10,7 @@ class NodeUpdateHelper extends NodeHelper {
     // Quiz node vid (revision) was updated.
     if (isset($quiz->revision) && $quiz->revision) {
       // Create new quiz-question relation entries in the quiz_relationship table.
-      $this->updateQuestionRelationship($quiz->old_vid, $quiz->vid, $quiz->nid);
+      $this->updateQuestionRelationship($quiz->old_vid, $quiz->vid, __quiz_entity_id($quiz));
     }
 
     // Update an existing row in the quiz_node_properties table.

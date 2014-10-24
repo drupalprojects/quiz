@@ -35,15 +35,29 @@ class QuizEntityController extends EntityAPIController {
     return parent::buildContent($quiz, $view_mode, $langcode, $content);
   }
 
+  public function load($ids = array(), $conditions = array()) {
+    $entities = parent::load($ids, $conditions);
+
+    // quiz_entity_revision.review_options => serialize = TRUE already, not sure
+    // why it's string here
+    foreach ($entities as $entity) {
+      if (!empty($entity->review_options) && is_string($entity->review_options)) {
+        $entity->review_options = unserialize($entity->review_options);
+      }
+    }
+
+    return $entities;
+  }
+
   /**
    * Force save revision author ID.
-   * 
+   *
    * @global stdClass $user
    * @param QuizEntity $entity
    */
   protected function saveRevision($entity) {
     global $user;
-    $entity->uid = $user->uid;
+    $entity->revision_uid = $user->uid;
     return parent::saveRevision($entity);
   }
 

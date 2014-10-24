@@ -298,13 +298,15 @@ abstract class QuizQuestion {
    * Element validator (for repeat until correct).
    */
   public function elementValidate(&$element, &$form_state) {
-    $quiz = node_load(arg(1));
+    $quiz = __quiz_load_context_entity();
+    $quiz_id = __quiz_entity_id($quiz);
+
     $question_nid = $element['#array_parents'][1];
     $answer = $form_state['values']['question'][$question_nid];
     $current_question = node_load($question_nid);
 
     // There was an answer submitted.
-    $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $answer);
+    $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz_id]['result_id'], $current_question, $answer);
     if ($quiz->repeat_until_correct && !$result->isCorrect()) {
       form_set_error('', t('The answer was incorrect. Please try again.'));
 
@@ -345,7 +347,7 @@ abstract class QuizQuestion {
 
       /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
       $quiz = $legacy ? node_load($this->node->quiz_nid, $this->node->quiz_vid) : quiz_entity_single_load($this->node->quiz_nid, $this->node->quiz_vid);
-      $quiz_id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+      $quiz_id = __quiz_entity_id($quiz);
       $nid_vid[0] = $quiz_id;
       $nid_vid[1] = $quiz->vid;
 

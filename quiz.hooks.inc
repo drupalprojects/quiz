@@ -564,7 +564,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
                   SELECT tid
                   FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
                   WHERE t_t_d.vid = :vid
-                )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
+                )", array(':nid' => __quiz_entity_id($quiz), ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
       '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
@@ -602,10 +602,10 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
 
     //Looking up the tid of the selected Userpoint vocabulary
     $selected_tid = db_query("SELECT ti.tid
-                FROM {taxonomy_index} ti
-                JOIN {taxonomy_term_data} td
-                  ON td.tid = ti.tid AND td.vid = :vid
-                WHERE ti.nid = :nid", array(':nid' => $quiz->nid, ':vid' => userpoints_get_vid()))->fetchField();
+      FROM {taxonomy_index} ti
+      JOIN {taxonomy_term_data} td
+        ON td.tid = ti.tid AND td.vid = :vid
+      WHERE ti.nid = :nid", array(':nid' => __quiz_entity_id($quiz), ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
       '@quiz'  => variable_get('quiz_name', QUIZ_NAME),

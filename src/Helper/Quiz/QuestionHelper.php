@@ -13,12 +13,12 @@ class QuestionHelper {
    *   Question number starting at 1.
    */
   public function redirect($quiz, $question_number) {
-    $id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $id = __quiz_entity_id($quiz);
     $_SESSION['quiz'][$id]['current'] = $question_number;
   }
 
   public function getCurrentPageNumber($quiz) {
-    $id = isset($quiz->nid) ? $quiz->nid : $quiz->qid;
+    $id = __quiz_entity_id($quiz);
     return isset($_SESSION['quiz'][$id]['current']) ? $_SESSION['quiz'][$id]['current'] : 1;
   }
 

@@ -27,7 +27,7 @@ class TakeJumperHelper {
     $items = array();
     $items[] = array(
       'class' => array('pager-first'),
-      'data'  => l(t('first'), "node/{$this->quiz->nid}/take/1"),
+      'data'  => l(t('first'), "node/" . __quiz_entity_id($this->quiz) . "/take/1"),
     );
 
     foreach ($this->buildElements() as $i) {
@@ -40,14 +40,14 @@ class TakeJumperHelper {
       else {
         $items[] = array(
           'class' => array('pager-item'),
-          'data'  => l($i, "node/{$this->quiz->nid}/take/{$i}"),
+          'data'  => l($i, "node/" . __quiz_entity_id($this->quiz) . "/take/{$i}"),
         );
       }
     }
 
     $items[] = array(
       'class' => array('pager-last'),
-      'data'  => l(t('last'), "node/{$this->quiz->nid}/take/{$this->total}"),
+      'data'  => l(t('last'), "node/" . __quiz_entity_id($this->quiz) . "/take/{$this->total}"),
     );
 
     return $items;
