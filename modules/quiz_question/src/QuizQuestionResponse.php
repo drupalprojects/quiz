@@ -238,8 +238,8 @@ abstract class QuizQuestionResponse {
     drupal_alter('quiz_feedback_labels', $labels);
 
     foreach ($this->getReportFormResponse() as $idx => $row) {
-      foreach ($labels as $reviewType => $label) {
-        if (in_array($reviewType, array('choice')) || (isset($row[$reviewType]) && $this->canReview($reviewType))) {
+      foreach (array_keys($labels) as $reviewType) {
+        if (('choice' === $reviewType) || (isset($row[$reviewType]) && $this->canReview($reviewType))) {
           $rows[$idx][$reviewType] = $row[$reviewType];
         }
       }

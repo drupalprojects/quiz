@@ -8,6 +8,7 @@ use Drupal\quiz\Entity\QuizEntity;
 abstract class QuizEntityTestCase extends DrupalWebTestCase {
 
   protected $extraModules = array();
+  protected $extraUserPermissions = array();
 
   /**
    * Set up a question test case.
@@ -34,7 +35,13 @@ abstract class QuizEntityTestCase extends DrupalWebTestCase {
     $admin_permissions[] = 'edit any quiz content';
     $admin_permissions[] = 'edit question titles';
     $admin_permissions[] = 'access quiz';
+
     $user_permissions[] = 'access quiz';
+    foreach ($this->extraUserPermissions as $perm) {
+      if (!in_array($perm, $user_permissions)) {
+        $user_permissions[] = $perm;
+      }
+    }
 
     $this->admin = $this->drupalCreateUser(array_unique($admin_permissions));
     $this->user = $this->drupalCreateUser(array_unique($user_permissions));

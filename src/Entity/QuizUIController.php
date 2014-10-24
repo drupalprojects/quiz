@@ -147,6 +147,15 @@ class QuizUiController extends EntityDefaultUIController {
       'access callback'  => 'quiz_take_question_access',
       'access arguments' => array(1, 3),
     );
+
+    $items['quiz/%entity_object/take/%question_number/feedback'] = array(
+      'title'            => 'Feedback',
+      'load arguments'   => array('quiz_entity'),
+      'page callback'    => 'Drupal\quiz\Controller\QuizQuestionFeedbackController::staticCallback',
+      'page arguments'   => array(1, 3),
+      'access callback'  => 'quiz_question_feedback_access',
+      'access arguments' => array(1, 3),
+    );
   }
 
 }

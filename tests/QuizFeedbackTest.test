@@ -3,12 +3,10 @@
 /**
  * Base test class for Quiz questions.
  */
-class QuizFeedbackTest extends QuizTestCase {
+class QuizFeedbackTest extends QuizEntityTestCase {
 
-  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
-    $modules[] = 'truefalse';
-    parent::setUp($modules);
-  }
+  protected $extraModules = array('truefalse');
+  protected $extraUserPermissions = array('view any quiz question correct response');
 
   public static function getInfo() {
     return array(
@@ -25,13 +23,13 @@ class QuizFeedbackTest extends QuizTestCase {
    */
   public function testFeedback() {
     $this->drupalLogin($this->admin);
-    $quiz_node = $this->drupalCreateQuiz();
+    $quiz = $this->drupalCreateQuiz();
 
     // 3 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q1Feedback'));
-    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $this->linkQuestionToQuiz($question_node1, $quiz);
     $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q2Feedback'));
-    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz);
 
     // This is a dynamic test that only tests the feedback columns showing up.
     variable_set('quiz_auto_revisioning', 0);
@@ -47,17 +45,15 @@ class QuizFeedbackTest extends QuizTestCase {
     $this->drupalLogin($this->user);
 
     // Answer the first question.
-    $this->drupalGet("node/{$quiz_node->nid}/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
-      ), t('Next'));
+    $this->drupalGet("quiz/{$quiz->qid}/take");
+    $this->drupalPost(NULL, array("question[$question_node1->nid]" => 1), t('Next'));
 
     // Check feedback after the Question
     foreach ($review_options as $option => $text) {
-      $quiz_node->review_options = array('question' => array($option => $option));
-      node_save($quiz_node);
+      $quiz->review_options = array('question' => array($option => $option));
+      entity_save('quiz_entity', $quiz);
 
-      $this->drupalGet("node/{$quiz_node->nid}/take/1/feedback");
+      $this->drupalGet("quiz/{$quiz->qid}/take/1/feedback");
       $this->assertRaw('<th>' . $text . '</th>');
       foreach ($review_options as $option2 => $text2) {
         if ($option != $option2) {
@@ -67,18 +63,16 @@ class QuizFeedbackTest extends QuizTestCase {
     }
 
     // Feedback only after the quiz.
-    $this->drupalGet("node/{$quiz_node->nid}/take/1/feedback");
+    $this->drupalGet("quiz/{$quiz->qid}/take/1/feedback");
     $this->drupalPost(NULL, array(), t('Next question'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
-      ), t('Finish'));
+    $this->drupalPost(NULL, array("question[$question_node2->nid]" => 1), t('Finish'));
 
     // Check feedback after the Quiz
     foreach ($review_options as $option => $text) {
-      $quiz_node->review_options = array('end' => array($option => $option));
-      node_save($quiz_node);
+      $quiz->review_options = array('end' => array($option => $option));
+      entity_save('quiz_entity', $quiz);
 
-      $this->drupalGet("node/{$quiz_node->nid}/quiz-results/1/view");
+      $this->drupalGet("quiz/{$quiz->qid}/quiz-results/1/view");
       $this->assertRaw('<th>' . $text . '</th>');
       foreach ($review_options as $option2 => $text2) {
         if ($option != $option2) {

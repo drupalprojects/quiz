@@ -58,16 +58,16 @@ class FeedbackHelper {
    * apply. So we check to make sure that we are in question taking and the
    * feedback is viewed within 5 seconds of completing the question/quiz.
    */
-  public function canReview($option, $quiz_result) {
-    $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+  public function canReview($option, $result) {
+    $quiz = __quiz_load_from_result($result);
 
     // Check what context the result is in.
-    if ($quiz_result->time_end && arg(2) != 'take') {
+    if ($result->time_end && arg(2) !== 'take') {
       // Quiz is over. Pull from the "at quiz end" settings.
       return !empty($quiz->review_options['end'][$option]);
     }
 
-    if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
+    if (!$result->time_end || $result->time_end >= REQUEST_TIME - 5) {
       // Quiz ongoing. Pull from the "after question" settings.
       return !empty($quiz->review_options['question'][$option]);
     }
