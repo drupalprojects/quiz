@@ -10,6 +10,7 @@ abstract class QuizEntityTestCase extends DrupalWebTestCase {
   protected static $testName;
   protected static $testDescription;
   protected static $testGroup;
+  protected $extraModules = array();
 
   public static function getInfo() {
     return array(
@@ -32,6 +33,11 @@ abstract class QuizEntityTestCase extends DrupalWebTestCase {
   public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'quiz';
     $modules[] = 'quiz_question';
+    foreach ($this->extraModules as $module) {
+      if (!in_array($module, $modules)) {
+        $modules[] = $module;
+      }
+    }
     parent::setUp($modules);
 
     $admin_permissions[] = 'administer quiz configuration';
