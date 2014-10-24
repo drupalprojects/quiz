@@ -1,5 +1,6 @@
 <?php
 
+use Drupal\quiz\Entity\QuizEntityType;
 use Drupal\quiz\Entity\Result;
 use Drupal\quiz\Quiz;
 
@@ -362,4 +363,8 @@ function __quiz_entity_id($quiz) {
 function __quiz_load_context_entity() {
   $id = (int) arg(1);
   return 'node' === arg(0) ? node_load($id) : quiz_entity_single_load($id);
+}
+
+function __quiz_load_from_result(Result $result) {
+  return 'node' === arg(0) ? node_load($result->nid, $result->vid) : quiz_entity_single_load($result->nid, $result->vid);
 }
