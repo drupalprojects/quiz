@@ -108,18 +108,6 @@ class HookMenu {
       'type'             => MENU_LOCAL_TASK,
     );
 
-    // Add questions to quiz.
-    $items['node/%quiz_menu/quiz/questions'] = array(
-      'title'            => 'Manage questions',
-      'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::staticCallback',
-      'page arguments'   => array(1),
-      'access callback'  => 'quiz_type_confirm',
-      'access arguments' => array(1, 'update'),
-      'type'             => MENU_LOCAL_TASK,
-      'file'             => 'quiz.admin.inc',
-      'weight'           => 2,
-    );
-
     $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
       'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
       'type'             => MENU_CALLBACK,
