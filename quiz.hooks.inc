@@ -60,19 +60,6 @@ function quiz_ctools_plugin_api($module, $api) {
 }
 
 /**
- * Implements hook_node_info().
- */
-function quiz_node_info() {
-  return array(
-    'quiz' => array(
-      'name'        => t('@quiz', array("@quiz" => QUIZ_NAME)),
-      'base'        => 'quiz',
-      'description' => t('Create interactive quizzes for site visitors'),
-    )
-  );
-}
-
-/**
  * Implements hook_entity_info().
  */
 function quiz_entity_info() {
