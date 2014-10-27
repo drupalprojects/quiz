@@ -127,6 +127,7 @@ class HookMenu {
       'file'             => 'quiz.admin.inc',
       'weight'           => 2,
     );
+
     $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
       'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
       'type'             => MENU_CALLBACK,
@@ -138,15 +139,6 @@ class HookMenu {
       'title'  => 'View',
       'type'   => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10,
-    );
-
-    $items['node/%quiz_menu/quiz-results/%quiz_result'] = array(
-      'title'            => 'User results',
-      'page callback'    => 'Drupal\quiz\Controller\QuizUserResultController::staticCallback',
-      'page arguments'   => array(3),
-      'access callback'  => 'quiz_access_my_result',
-      'access arguments' => array(3),
-      'file'             => 'quiz.pages.inc',
     );
 
     $items['quiz-result/%quiz_result'] = array(

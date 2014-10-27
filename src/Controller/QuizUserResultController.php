@@ -31,15 +31,8 @@ class QuizUserResultController {
    * @param Result $result
    */
   public static function staticCallback($result) {
-    if ('node' === arg(0)) { // Legacy code
-      $quiz = node_load($result->nid);
-      $quiz_revision = node_load($result->nid, $result->vid);
-    }
-    else {
-      $quiz = quiz_entity_single_load($result->nid);
-      $quiz_revision = quiz_entity_single_load($result->nid, $result->vid);
-    }
-
+    $quiz = quiz_entity_single_load($result->nid);
+    $quiz_revision = quiz_entity_single_load($result->nid, $result->vid);
     $obj = new static($quiz, $quiz_revision, $result);
     return $obj->render();
   }
