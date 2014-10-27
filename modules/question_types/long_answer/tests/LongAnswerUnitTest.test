@@ -30,23 +30,20 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalLogin($this->admin);
 
     $question_node1 = $this->testCreateQuizQuestion();
-    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+    $quiz = $this->linkQuestionToQuiz($question_node1);
 
     $question_node2 = $this->testCreateQuizQuestion();
-    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz);
 
     // Test correct.
     $this->drupalLogin($this->user);
-    $this->drupalGet("node/$quiz_node->nid/take");
-    $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 'the answer is the zero one infinity rule',
-      ), t('Next'));
-    $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 'the number two really is ridiculous',
-      ), t('Finish'));
+    $this->drupalGet("quiz/$quiz->qid/take");
+    $this->drupalPost(NULL, array("question[$question_node1->nid]" => 'the answer is the zero one infinity rule'), t('Next'));
+    $this->drupalPost(NULL, array("question[$question_node2->nid]" => 'the number two really is ridiculous'), t('Finish'));
     $this->assertText('Your score: 0%');
+
     // Strange behavior - extra spacing in the HTML.
-    //$this->assertText('Score ? of 10');
+    // $this->assertText('Score ? of 10');
     $this->assertText('This answer has not yet been scored.');
     $this->assertNoFieldByName('0[score]');
     $this->assertNoFieldByName('1[score]');
@@ -61,8 +58,7 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
       "0[answer_feedback][value]"  => 'Feedback for answer 1.',
       "1[answer_feedback][value]"  => 'Feedback for answer 2.',
       "0[answer_feedback][format]" => 'filtered_html',
-      "1[answer_feedback][format]" => 'filtered_html',
-      ), t('Save Score'));
+      "1[answer_feedback][format]" => 'filtered_html'), t('Save Score'));
     $this->assertText('The scoring data you provided has been saved.');
 
     // Test the score and feedback are visible to the user.
@@ -70,9 +66,10 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalGet($url_of_result);
     $this->assertText('You got 10 of 20 possible points.');
     $this->assertText('Your score: 50%');
+
     // Strange behavior - extra spacing in the HTML.
-    //$this->assertText('Score 3 of 10');
-    //$this->assertText('Score 7 of 10');
+    // $this->assertText('Score 3 of 10');
+    // $this->assertText('Score 7 of 10');
     $this->assertText('Feedback for answer 1.');
     $this->assertText('Feedback for answer 2.');
   }

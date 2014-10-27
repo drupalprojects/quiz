@@ -3,7 +3,7 @@
 /**
  * Base test class for Quiz questions.
  */
-abstract class QuizQuestionTestCase extends QuizTestCase {
+abstract class QuizQuestionTestCase extends QuizEntityTestCase {
 
   var $question_node_type = 'quiz_question';
 
@@ -21,9 +21,7 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
     $modules[] = 'quiz_question';
     $admin_permissions[] = "create {$this->question_node_type} content";
     $admin_permissions[] = "edit any {$this->question_node_type} content";
-
     $user_permissions[] = 'access quiz';
-
     parent::setUp($modules, $admin_permissions, $user_permissions);
   }
 
@@ -31,8 +29,8 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
    * Test the subclass's quiz question implementation.
    */
   public function testQuizQuestionImplementation() {
-    $qq = _quiz_question_get_implementations();
-    $this->assertTrue(isset($qq[$this->question_node_type]), t('Check that the question implementation is correct.'));
+    $question_info = _quiz_question_get_implementations();
+    $this->assertTrue(isset($question_info[$this->question_node_type]), t('Check that the question implementation is correct.'));
   }
 
 }
