@@ -147,6 +147,12 @@ function quiz_permission() {
       'title'       => t('Take quiz'),
       'description' => t('Can access (take) all quizzes.'),
     ),
+    'create quiz content'                     => array(
+      'title' => t('Create quiz content'),
+    ),
+    'edit any quiz content'                   => array(
+      'title' => t('Edit any quiz content'),
+    ),
     // viewing results:
     'view any quiz results'                   => array(
       'title'       => t('View any quiz results'),
@@ -245,9 +251,7 @@ function quiz_action_info() {
  */
 function quiz_cron() {
   // Remove old quiz results that haven't been finished.
-  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
-
-  if ($rm_time) { // $time = 0 for never.
+  if ($rm_time = variable_get('quiz_remove_partial_quiz_record', '0')) { // $time = 0 for never.
     db_delete('quiz_results')
       ->condition('time_end', 0)
       ->where('(:request_time - time_start) > :remove_time', array(
