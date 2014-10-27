@@ -20,7 +20,7 @@ abstract class NodeHelper {
     $query = db_insert('quiz_result_options')
       ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
 
-    foreach ($quiz->resultoptions as $id => $option) {
+    foreach ($quiz->resultoptions as $option) {
       if (!empty($option['option_name'])) {
         // When this function called direct from node form submit the $option['option_summary']['value'] and $option['option_summary']['format'] are we need
         // But when updating a quiz node eg. on manage questions page, this values come from loaded node, not from a submitted form.

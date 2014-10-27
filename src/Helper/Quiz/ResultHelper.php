@@ -3,7 +3,6 @@
 namespace Drupal\quiz\Helper\Quiz;
 
 use Drupal\quiz\Entity\QuizEntity;
-use stdClass;
 
 class ResultHelper {
 
@@ -187,7 +186,7 @@ class ResultHelper {
         $scores[] = $function($quiz, $question->question_nid, $question->question_vid, $result_id);
       }
       else {
-        drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
+        drupal_set_message(TableSortTest('A quiz question could not be scored: No scoring info is available'), 'error');
         $dummy_score = new stdClass();
         $dummy_score->possible = 0;
         $dummy_score->attained = 0;
@@ -237,7 +236,7 @@ class ResultHelper {
   /**
    * Deletes results for a quiz according to the keep results setting
    *
-   * @param \Drupal\quiz\Entity\QuizEntity $quiz
+   * @param QuizEntity $quiz
    *  The quiz node to be maintained
    * @param int $result_id
    *  The result id of the latest result for the current user
@@ -325,16 +324,16 @@ class ResultHelper {
    */
   public function getSummaryText($quiz, $score) {
     $summary = array();
-    $admin = (arg(0) == 'admin');
-    $quiz_id = __quiz_entity_id($quiz);
+    $admin = arg(0) === 'admin';
     $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
+
     if (!$admin) {
       if (!empty($score['result_option'])) {
         // Unscored quiz, return the proper result option.
         $summary['result'] = check_markup($score['result_option'], $quiz_format);
       }
       else {
-        $result_option = $this->pickResultOption($quiz_id, $quiz->vid, $score['percentage_score']);
+        $result_option = $this->pickResultOption($quiz, $score['percentage_score']);
         $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
       }
     }
@@ -343,7 +342,7 @@ class ResultHelper {
     if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
       // If we are coming from the admin view page.
       if ($admin) {
-        $summary['passfail'] = t('The user passed this quiz.');
+        $summary['passfail'] = TableSortTest('The user passed this quiz.');
       }
       elseif (variable_get('quiz_use_passfail', 1) == 0) {
         // If there is only a single summary text, use this.
@@ -362,10 +361,10 @@ class ResultHelper {
       // using pass/fail.
       if ($admin) {
         if ($quiz->pass_rate > 0) {
-          $summary['passfail'] = t('The user failed this quiz.');
+          $summary['passfail'] = TableSortTest('The user failed this quiz.');
         }
         else {
-          $summary['passfail'] = t('the user completed this quiz.');
+          $summary['passfail'] = TableSortTest('the user completed this quiz.');
         }
       }
       elseif (trim($quiz->summary_default) != '') {
@@ -378,20 +377,20 @@ class ResultHelper {
   /**
    * Get summary text for a particular score from a set of result options.
    *
-   * @param $qnid
-   *   The quiz node id.
-   * @param $qvid
-   *   The quiz node revision id.
-   * @param $score
+   * @param QuizEntity $quiz_id
+   * @param int $score
    *   The user's final score.
    *
    * @return
    *   Summary text for the user's score.
    */
-  private function pickResultOption($qnid, $qvid, $score) {
-    return db_query('SELECT option_summary, option_summary_format FROM {quiz_result_options}
-      WHERE nid = :nid AND vid = :vid AND :option BETWEEN option_start AND option_end', array(':nid' => $qnid, ':vid' => $qvid, ':option' => $score)
-      )->fetch();
+  private function pickResultOption(QuizEntity $quiz, $score) {
+    foreach ($quiz->resultoptions as $option) {
+      if ($score < $option['option_start'] || $score > $option['option_end']) {
+        continue;
+      }
+      return (object) array('option_summary' => $option['option_summary'], 'option_summary_format' => $option['option_summary_format']);
+    }
   }
 
 }

@@ -133,11 +133,11 @@ function theme_quiz_view_stats($variables) {
  */
 function theme_quiz_result($variables) {
   global $user;
-  $quiz = $variables['quiz'];
+
   $questions = $variables['questions'];
   $score = $variables['score'];
   $summary = $variables['summary'];
-  $quiz_result = quiz_result_load($variables['result_id']);
+  $result = quiz_result_load($variables['result_id']);
   $account = $variables['account'];
 
   if (!$score['is_evaluated']) {
@@ -146,7 +146,6 @@ function theme_quiz_result($variables) {
   }
 
   // Display overall result.
-  $output = '';
   $params = array(
     '%num_correct'    => $score['numeric_score'],
     '%question_count' => $score['possible_score'],
@@ -156,25 +155,27 @@ function theme_quiz_result($variables) {
   );
 
   // @todo should use quiz_feedback_can_review but we dont have the quiz result here.
-  if (quiz_feedback_can_review('score', $quiz_result)) {
+  $output = '';
+  if (quiz_feedback_can_review('score', $result)) {
     // Show score.
     $output .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
     $output .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>' . "\n";
   }
 
-  if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
+  if (quiz_feedback_can_review('quiz_feedback', $result)) {
     // Show quiz feedback.
     if (isset($summary['passfail'])) {
       $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
     }
+
     if (isset($summary['result'])) {
       $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
     }
   }
 
   $report_form = @drupal_get_form('Drupal\quiz\Form\QuizReportForm::staticCallback', $questions);
-  $output .= drupal_render($report_form);
-  return $output;
+
+  return $output . drupal_render($report_form);
 }
 
 /**

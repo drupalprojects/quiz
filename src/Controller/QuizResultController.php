@@ -41,6 +41,7 @@ class QuizResultController {
       'result_id' => $result_id,
       'account'   => user_load($result->uid),
     );
+
     return theme('quiz_result', $data);
   }
 
