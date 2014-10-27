@@ -38,4 +38,3 @@ files[] = tests/QuizEntityTakingTest.test
 files[] = tests/QuizEntityFeedbackTest.test
 files[] = tests/QuizNavigationTest.test
 files[] = tests/QuizResultTest.test
-files[] = tests/QuizTestCase.test
