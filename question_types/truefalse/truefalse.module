@@ -89,11 +89,6 @@ function truefalse_field_extra_fields() {
         'description' => t('The answer for this question.'),
         'weight' => -4,
       ),
-      'feedback_fields' => array(
-        'label' => t('Feedback Settings'),
-        'description' => t('Settings pertaining to feedback given along with results.'),
-        'weight' => -4,
-      ),
     ),
   );
   return $extra;

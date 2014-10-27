@@ -29,7 +29,6 @@ class QuizTaking extends QuizTestCase {
     $question_node = $this->drupalCreateNode(array(
       'type' => 'truefalse',
       'correct_answer' => 1,
-      'feedback' => 'Feedback for repeat until correct.',
     ));
     $this->linkQuestionToQuiz($question_node, $quiz_node);
 
@@ -38,7 +37,6 @@ class QuizTaking extends QuizTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
-    $this->assertText('Feedback for repeat until correct.');
     $this->assertText('The answer was incorrect. Please try again.');
     // Check that we are still on the question.
     $this->assertUrl("node/{$quiz_node->nid}/take/1");

@@ -34,7 +34,6 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $question_node = $this->drupalCreateNode(array(
       'type' => 'truefalse',
       'title' => 'TF 1 title',
-      'feedback' => 'Feedback about TF 1 title',
       'correct_answer' => 1,
       'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
     ));
@@ -106,7 +105,6 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 1,
       ), t('Finish'));
-    $this->assertText('Feedback about TF 1 title');
     $this->assertRaw('quiz-score-icon correct');
     $this->assertRaw('quiz-score-icon should');
     // Take the quiz.
@@ -114,7 +112,6 @@ class TrueFalseUnitTest extends QuizQuestionTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node->nid]" => 0,
       ), t('Finish'));
-    $this->assertText('Feedback about TF 1 title');
     $this->assertRaw('quiz-score-icon incorrect');
     $this->assertRaw('quiz-score-icon should');
   }

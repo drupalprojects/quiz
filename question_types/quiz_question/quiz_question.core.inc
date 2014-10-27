@@ -127,6 +127,19 @@ abstract class QuizQuestion {
       '#value' => TRUE
     );
 
+    if (!empty($this->node->nid)) {
+      if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->node->nid, 'vid' => $this->node->vid))) {
+        $quiz_question = reset($properties);
+      }
+    }
+    $form['feedback'] = array(
+      '#type' => 'text_format',
+      '#title' => t('Question feedback'),
+      '#default_value' => !empty($quiz_question->feedback) ? $quiz_question->feedback : '',
+      '#format' => !empty($quiz_question->feedback_format) ? $quiz_question->feedback_format : filter_default_format(),
+      '#description' => t('This feedback will show when configured and the user answers a question, regardless of correctness.'),
+    );
+
     //Add question type specific content
     $form = array_merge($form, $this->getCreationForm($form_state));
 
@@ -213,6 +226,8 @@ abstract class QuizQuestion {
         'nid' => $this->node->nid,
         'vid' => $this->node->vid,
         'max_score' => $this->getMaximumScore(),
+        'feedback' => !empty($this->node->feedback['value']) ? $this->node->feedback['value'] : '',
+        'feedback_format' => !empty($this->node->feedback['format']) ? $this->node->feedback['format'] : filter_default_format(),
       ))
       ->execute();
 
@@ -713,6 +728,13 @@ abstract class QuizQuestionResponse {
     $headers = array_intersect_key($labels, $rows[0]);
     $type = $this->getQuizQuestion()->node->type;
     $form['response']['#markup'] = theme('quiz_question_feedback__' . $type, array('labels' => $headers, 'data' => $rows));
+
+    if ($this->canReview('question_feedback')) {
+      if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->quizQuestion->node->nid, 'vid' => $this->quizQuestion->node->vid))) {
+        $quiz_question = reset($properties);
+        $form['question_feedback']['#markup'] = check_markup($quiz_question->feedback, $quiz_question->feedback_format);
+      }
+    }
 
     $form['#theme'] = $this->getReportFormTheme();
     return $form;

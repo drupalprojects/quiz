@@ -238,7 +238,6 @@ function quiz_schema() {
       ),
     ),
     'primary key' => array('qnp_id'),
-    // 'unique keys' => array('vid'),
     'indexes' => array('quiz_id' => array('vid', 'nid')),
   );
   /*

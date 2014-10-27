@@ -1108,3 +1108,17 @@ function theme_quiz_question_feedback($variables) {
 function quiz_icon($icon) {
   return theme('quiz_answer_result', array('type' => $icon));
 }
+
+function quiz_question_entity_info() {
+  return array(
+    'quiz_question' => array(
+      'label' => t('Quiz question properties'),
+      'controller class' => 'EntityAPIController',
+      'base table' => 'quiz_question_properties',
+      'entity keys' => array(
+        'id' => 'qqp_id',
+      ),
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+  );
+}

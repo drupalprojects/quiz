@@ -66,7 +66,6 @@ function quiz_report_form($form, $form_state, $questions) {
     $form_to_add['#element_validate'][] = 'quiz_report_form_element_validate';
     $form[] = $form_to_add;
   }
-  $form['#theme'] = 'quiz_report_form';
   $form['#tree'] = TRUE;
   if ($show_submit) {
     $form['submit'] = array(

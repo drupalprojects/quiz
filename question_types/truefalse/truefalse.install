@@ -93,9 +93,6 @@ function truefalse_schema() {
         'size' => 'tiny',
         'default' => 0,
       ),
-      'feedback' => array(
-        'type' => 'text',
-      ),
     ),
     'primary key' => array(
       'vid', 'nid'

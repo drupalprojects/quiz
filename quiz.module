@@ -1439,7 +1439,7 @@ function quiz_validate($node) {
   }
 
   if (!empty($node->pass_rate)) {
-   if (!_quiz_is_int($node->pass_rate, 0, 100)) {
+    if (!_quiz_is_int($node->pass_rate, 0, 100)) {
       form_set_error('pass_rate', t('"Passing rate" must be a number between 0 and 100.'));
     }
   }

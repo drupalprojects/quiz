@@ -105,5 +105,4 @@ class QuizResult extends QuizTestCase {
     $this->assertNoText('This is the summary if passed');
     $this->assertText('This is the default summary text');
   }
-
 }
