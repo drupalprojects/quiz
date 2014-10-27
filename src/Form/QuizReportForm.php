@@ -122,6 +122,7 @@ class QuizReportForm {
       // We call the submit function provided by the question
       call_user_func($q_values['submit'], $q_values);
     }
+
     // Scores may have been changed. We take the necessary actions
     $this->updateLastTotalScore($result_id, $quiz->vid);
     $changed = db_update('quiz_results')
@@ -207,25 +208,21 @@ class QuizReportForm {
    * Updates the total score using only one mySql query.
    *
    * @param $result_id
-   *  Result id
-   * @param $quiz_vid
-   *  Quiz node version id
+   * @param int $quiz_vid
+   *  Quiz version ID
    */
   private function updateLastTotalScore($result_id, $quiz_vid) {
     $subq1 = db_select('quiz_results_answers', 'a');
     $subq1
       ->condition('a.result_id', $result_id)
       ->addExpression('SUM(a.points_awarded)');
-    $res1 = $subq1->execute()->fetchField();
 
-    $subq2 = db_select('quiz_node_properties', 'qnp');
-    $subq2
-      ->condition('qnp.vid', $quiz_vid)
-      ->addField('qnp', 'max_score');
-    $res2 = $subq2->execute()->fetchField();
+    $score = $subq1->execute()->fetchField();
+    $max_score = quiz_entity_single_load(NULL, $quiz_vid)->max_score;
+    $final_score = round(100 * ($score / $max_score));
 
     db_update('quiz_results')
-      ->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
+      ->expression('score', $final_score)
       ->condition('result_id', $result_id)
       ->execute();
   }
