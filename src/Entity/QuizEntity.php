@@ -30,6 +30,9 @@ class QuizEntity extends Entity {
   /** @var bool */
   public $allow_jumping;
 
+  /** @var array */
+  public $resultoptions = array();
+
   /** @var bool Magic flag to create new revision on save */
   public $is_new_revision;
 
