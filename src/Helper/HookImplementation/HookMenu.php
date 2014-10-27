@@ -135,12 +135,6 @@ class HookMenu {
       'access arguments' => array('create', 'quiz'),
     );
 
-    $items['node/%quiz_menu/quiz-results/%quiz_result/view'] = array(
-      'title'  => 'View',
-      'type'   => MENU_DEFAULT_LOCAL_TASK,
-      'weight' => -10,
-    );
-
     $items['quiz-result/%quiz_result'] = array(
       'title'            => 'User results',
       'access callback'  => 'quiz_access_my_result',
