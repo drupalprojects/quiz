@@ -98,16 +98,6 @@ class HookMenu {
   private function getQuizNodeMenuItems() {
     $items = array();
 
-    // Take quiz.
-    $items['node/%quiz_menu/take'] = array(
-      'title'            => 'Take',
-      'page callback'    => 'Drupal\quiz\Controller\QuizTakeController::staticCallback',
-      'page arguments'   => array(1),
-      'access callback'  => 'quiz_take_access',
-      'access arguments' => array(1),
-      'type'             => MENU_LOCAL_TASK,
-    );
-
     $items['node/%quiz_menu/questions/term_ahah'] = array(// @TODO: Add node access instead of user access...
       'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
       'type'             => MENU_CALLBACK,
