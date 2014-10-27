@@ -320,10 +320,6 @@ function quiz_theme($existing, $type, $theme, $path) {
       'path'           => $path . '/theme',
       'template'       => 'quiz-report-form',
     ),
-    'quiz_node_form'           => array(
-      'render element' => 'form',
-      'file'           => 'quiz.admin.inc',
-    ),
     'quiz_browser'             => array(
       'render element' => 'form',
       'file'           => 'quiz.admin.inc',

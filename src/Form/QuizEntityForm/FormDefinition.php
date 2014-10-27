@@ -40,6 +40,8 @@ class FormDefinition extends FormHelper {
       );
     }
 
+    $form['#attached']['js'][] = drupal_get_path('module', 'quiz') . '/js/quiz.entity-form.js';
+
     $form['title'] = array(
       '#type'          => 'textfield',
       '#title'         => t('Title'),

@@ -52,21 +52,6 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
 // THEME FUNCTIONS
 
 /**
- * Theme the quiz node form
- *
- * Adds js to enhance the ux.
- *
- * @param $form
- *   FAPI form array
- */
-function theme_quiz_node_form($variables) {
-  $form = $variables['form'];
-  $path = drupal_get_path('module', 'quiz') . '/js/quiz_node_form.js';
-  drupal_add_js($path);
-  return theme('node_form', array('form' => $form));
-}
-
-/**
  * Theme a question selection table, adding drag and drop support.
  */
 function theme_question_selection_table($variables) {
