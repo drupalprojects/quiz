@@ -18,8 +18,8 @@ class QuizResultController {
     // Make sure we have the right version of the quiz
     $result = db_query('SELECT vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
     if ($quiz->vid != $result->vid) {
-      $quiz_id = __quiz_entity_id($quiz);
-      $quiz = isset($quiz->nid) ? node_load($quiz_id, $result->vid) : quiz_entity_single_load($quiz_id, $result->vid);
+      $quiz_id = $quiz->qid;
+      $quiz = quiz_entity_single_load($quiz_id, $result->vid);
     }
 
     // Get all the data we need.

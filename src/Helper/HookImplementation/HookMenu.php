@@ -108,14 +108,6 @@ class HookMenu {
       'type'             => MENU_LOCAL_TASK,
     );
 
-    $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
-      'title'            => 'Results',
-      'page callback'    => 'Drupal\quiz\Controller\QuizResultController::staticCallback',
-      'page arguments'   => array(1, 4),
-      'access callback'  => 'quiz_access_results',
-      'access arguments' => array(1, 4),
-    );
-
     // Add questions to quiz.
     $items['node/%quiz_menu/quiz/questions'] = array(
       'title'            => 'Manage questions',
