@@ -77,7 +77,7 @@ class QuizEntityForm {
       $form_state['redirect'] = 'admin/content/quiz';
     }
 
-    if (!$form['#quiz']->qiz) {
+    if (!$form['#quiz']->qid) {
       drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
       $form_state['redirect'] = "quiz/" . $quiz->qid . "/questions";
     }
