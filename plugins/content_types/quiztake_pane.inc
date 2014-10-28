@@ -39,7 +39,7 @@ function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $conte
   }
 
   $block->module = 'node';
-  $block->delta = __quiz_entity_id($quiz);
+  $block->delta = $quiz->qid;
 
   if (isset($quiz->rendered_content)) {
     $block->content = $quiz->rendered_content;

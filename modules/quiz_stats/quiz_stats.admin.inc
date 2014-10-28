@@ -9,13 +9,11 @@
 /**
  * Page for selecting between several quiz revisions
  *
- * @param $nid
- *  Quiz node id
- * @return
- *  Themed html
+ * @param \Drupal\quiz\Entity\QuizEntity $quiz
+ * @return string
  */
-function quiz_stats_revision_selector_page($quiz) {
-  $quiz_id = __quiz_entity_id($quiz);
+function quiz_stats_revision_selector_page(\Drupal\quiz\Entity\QuizEntity $quiz) {
+  $quiz_id = $quiz->qid;
   $res = db_query('SELECT vid FROM {node_revision} WHERE nid = :nid ORDER BY vid', array(':nid' => $quiz_id));
   $count = 0; //uses this variable to slightly increase performance
   $vids = array();
@@ -46,7 +44,7 @@ function quiz_stats_revision_selector_page($quiz) {
 /**
  * Returns statistics for all available quizzes
  *
- * @param $uid
+ * @param int $uid
  *   User id
  * @return
  *   HTML table

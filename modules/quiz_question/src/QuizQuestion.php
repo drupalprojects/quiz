@@ -299,7 +299,7 @@ abstract class QuizQuestion {
    */
   public function elementValidate(&$element, &$form_state) {
     $quiz = __quiz_load_context_entity();
-    $quiz_id = __quiz_entity_id($quiz);
+    $quiz_id = $quiz->qid;
 
     $question_nid = $element['#array_parents'][1];
     $answer = $form_state['values']['question'][$question_nid];
@@ -343,25 +343,16 @@ abstract class QuizQuestion {
    */
   function saveRelationships() {
     if (!empty($this->node->quiz_nid) && !empty($this->node->quiz_vid)) {
-      $legacy = 'node' === arg(0);
-
       /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
-      $quiz = $legacy ? node_load($this->node->quiz_nid, $this->node->quiz_vid) : quiz_entity_single_load($this->node->quiz_nid, $this->node->quiz_vid);
-      $quiz_id = __quiz_entity_id($quiz);
+      $quiz = quiz_entity_single_load($this->node->quiz_nid, $this->node->quiz_vid);
+      $quiz_id = $quiz->qid;
       $nid_vid[0] = $quiz_id;
       $nid_vid[1] = $quiz->vid;
 
       if (quiz_has_been_answered($quiz)) {
         // We need to revise the quiz if it has been answered
-        if ($legacy) {
-          $quiz->revision = 1;
-          $quiz->auto_created = TRUE;
-          node_save($quiz);
-        }
-        else {
-          $quiz->is_new_revision = 1;
-          entity_save('quiz_entity', $quiz);
-        }
+        $quiz->is_new_revision = 1;
+        entity_save('quiz_entity', $quiz);
 
         $nid_vid[0] = $quiz_id;
         $nid_vid[1] = $quiz->vid;

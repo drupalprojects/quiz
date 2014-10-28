@@ -49,7 +49,7 @@ class QuizReportForm {
     if (arg(4) === 'feedback') {
       // @todo figure something better than args.
       $quiz = __quiz_load_context_entity();
-      $quiz_id = __quiz_entity_id($quiz);
+      $quiz_id = $quiz->qid;
       if (empty($_SESSION['quiz'][$quiz_id])) { // Quiz is done.
         $form['finish'] = array(
           '#type'   => 'submit',

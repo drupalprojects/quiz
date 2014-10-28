@@ -18,7 +18,7 @@ class QuizQuestionFeedbackController {
 
   public function __construct(QuizEntity $quiz, Result $result) {
     $this->quiz = $quiz;
-    $this->quiz_id = __quiz_entity_id($this->quiz);
+    $this->quiz_id = $this->quiz->qid;
     $this->result = $result;
   }
 
@@ -27,7 +27,7 @@ class QuizQuestionFeedbackController {
    * question response.
    */
   public static function staticCallback($quiz, $page_number) {
-    $quiz_id = __quiz_entity_id($quiz);
+    $quiz_id = $quiz->qid;
     $result_id = empty($_SESSION['quiz'][$quiz_id]['result_id']) ? $_SESSION['quiz']['temp']['result_id'] : $_SESSION['quiz'][$quiz_id]['result_id'];
     $result = quiz_result_load($result_id);
 

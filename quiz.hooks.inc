@@ -538,22 +538,20 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
   }
 
   if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id,
-      'taker'));
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
   // Calls userpoints functions to credit user point based on number of correct
   // answers.
   if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
-
-    //Looking up the tid of the selected Userpoint vocabulary
+    // Looking up the tid of the selected Userpoint vocabulary
     $selected_tid = db_query("SELECT tid FROM {taxonomy_index}
                 WHERE nid = :nid AND tid IN (
                   SELECT tid
                   FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
                   WHERE t_t_d.vid = :vid
-                )", array(':nid' => __quiz_entity_id($quiz), ':vid' => $quiz->vid,
+                )", array(':nid' => $quiz->qid, ':vid' => $quiz->vid,
       ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
@@ -597,7 +595,7 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
       FROM {taxonomy_index} ti
       JOIN {taxonomy_term_data} td
         ON td.tid = ti.tid AND td.vid = :vid
-      WHERE ti.nid = :nid", array(':nid' => __quiz_entity_id($quiz), ':vid' => userpoints_get_vid()))->fetchField();
+      WHERE ti.nid = :nid", array(':nid' => $quiz->qid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
       '@quiz'  => variable_get('quiz_name', QUIZ_NAME),

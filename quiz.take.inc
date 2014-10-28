@@ -68,7 +68,7 @@ function quiz_jumper_form($form, $form_state, $questions, $current) {
           ->getQuizHelper()
           ->getQuestionHelper()
           ->redirect($quiz, $form_state['values']['question_number'] - 1);
-        $form_state['redirect'] = "quiz/" . __quiz_entity_id($quiz) . "/take/" . $form_state['values']['question_number'];
+        $form_state['redirect'] = "quiz/" . $quiz->qid . "/take/" . $form_state['values']['question_number'];
       }),
   );
   return $form;
@@ -116,7 +116,7 @@ function quiz_end_scoring($result_id) {
   $quiz_result->time_end = REQUEST_TIME;
   entity_save('quiz_result', $quiz_result);
   if ($user->uid) {
-    $score['passing'] = quiz()->getQuizHelper()->isPassed($user->uid, __quiz_entity_id($quiz), $quiz->vid);
+    $score['passing'] = quiz()->getQuizHelper()->isPassed($user->uid, $quiz->qid, $quiz->vid);
   }
   else {
     $score['passing'] = $score['percentage_score'] >= $quiz->pass_rate;

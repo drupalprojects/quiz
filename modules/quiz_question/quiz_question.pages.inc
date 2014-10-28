@@ -51,15 +51,13 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
   }
 
   $text = t('You have created a new revision of a question that belongs to %num quizzes. Choose what you want to do with the different quizzes.', array('%num' => count($quizzes)));
-  $form['intro'] = array(
-    '#markup' => $text,
-  );
+  $form['intro'] = array('#markup' => $text);
   $form['quizzes'] = array();
   // Create a form element for each quiz
   foreach ($quizzes as $quiz) {
     $published = $quiz->status == 1 ? t('published') : t('unpublished');
     $answered = $quiz->answered ? t('answered') : t('unanswered');
-    $quiz_id = __quiz_entity_id($quiz);
+    $quiz_id = $quiz->qid;
 
     // We fetch the revision options from a helper function
     $options = _quiz_question_revision_options($quiz->status == 1, $quiz->answered);

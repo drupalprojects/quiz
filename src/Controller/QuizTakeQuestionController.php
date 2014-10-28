@@ -28,7 +28,7 @@ class QuizTakeQuestionController extends QuestionHelper {
    */
   public static function staticCallback($quiz, $page_number) {
     $result = $layout_item = NULL;
-    $quiz_id = __quiz_entity_id($quiz);
+    $quiz_id = $quiz->qid;
 
     if (isset($_SESSION['quiz'][$quiz_id]['result_id'])) {
       $result = quiz_result_load($_SESSION['quiz'][$quiz_id]['result_id']);
@@ -54,7 +54,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     // Legacy code
     $this->is_quiz_node = isset($quiz->nid);
     $this->quiz_uri = isset($quiz->nid) ? 'node/' . $quiz->nid : 'quiz/' . $quiz->qid;
-    $this->quiz_id = __quiz_entity_id($quiz);
+    $this->quiz_id = $quiz->qid;
 
     // Question disappeared or invalid session. Start over.
     if (!$question) {

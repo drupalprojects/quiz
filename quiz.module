@@ -307,10 +307,6 @@ function _quiz_get_quiz_name() {
   return variable_get('quiz_name', 'Quiz');
 }
 
-function __quiz_entity_id($quiz) {
-  return isset($quiz->nid) ? $quiz->nid : $quiz->qid;
-}
-
 function __quiz_get_context_id() {
   return (int) arg(1);
 }

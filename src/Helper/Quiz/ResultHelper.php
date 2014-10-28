@@ -225,7 +225,8 @@ class ResultHelper {
    *  The users id
    */
   public function deleteByUserId($uid) {
-    $res = db_query("SELECT result_id FROM {quiz_results} WHERE uid = :uid", array(':uid' => $uid));
+    $res = db_query("SELECT result_id FROM {quiz_results} WHERE uid = :uid", array(
+      ':uid' => $uid));
     $result_ids = array();
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;
@@ -255,15 +256,20 @@ class ResultHelper {
       case QUIZ_KEEP_BEST:
         $best_result_id = db_query('SELECT result_id FROM {quiz_results}
           WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated
-          ORDER BY score DESC', array(':nid' => __quiz_entity_id($quiz), ':uid' => $account->uid, ':is_evaluated' => 1)
+          ORDER BY score DESC', array(':nid'          => $quiz->qid, ':uid'          => $account->uid,
+          ':is_evaluated' => 1)
           )
           ->fetchField();
         if (!$best_result_id) {
           return;
         }
         $res = db_query('SELECT result_id FROM {quiz_results}
-          WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(':nid' => __quiz_entity_id($quiz), ':uid' => $account->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
-        );
+          WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(
+          ':nid'          => $quiz->qid,
+          ':uid'          => $account->uid,
+          ':is_evaluated' => 1,
+          ':best_rid'     => $best_result_id
+        ));
         $result_ids = array();
         while ($result_id2 = $res->fetchField()) {
           $result_ids[] = $result_id2;
@@ -271,8 +277,17 @@ class ResultHelper {
         $this->deleteByIds($result_ids);
         return !empty($result_ids);
       case QUIZ_KEEP_LATEST:
-        $res = db_query('SELECT result_id FROM {quiz_results}
-              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => __quiz_entity_id($quiz), ':uid' => $account->uid, ':is_evaluated' => 1, ':result_id' => $result_id));
+        $res = db_query('SELECT result_id
+            FROM {quiz_results}
+            WHERE nid = :nid
+              AND uid = :uid
+              AND is_evaluated = :is_evaluated
+              AND result_id != :result_id', array(
+          ':nid'          => $quiz->qid,
+          ':uid'          => $account->uid,
+          ':is_evaluated' => 1,
+          ':result_id'    => $result_id
+        ));
         $result_ids = array();
         while ($result_id2 = $res->fetchField()) {
           $result_ids[] = $result_id2;
@@ -297,7 +312,11 @@ class ResultHelper {
           WHERE qnr.uid = :uid
           AND qnr.nid = :nid
           AND qnr.time_end = :time_end
-          AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => __quiz_entity_id($quiz), ':time_end' => 1, ':vid' => $quiz->vid));
+          AND qnr.vid < :vid', array(
+      ':uid'      => $uid,
+      ':nid'      => $quiz->qid,
+      ':time_end' => 1,
+      ':vid'      => $quiz->vid));
     $result_ids = array();
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;

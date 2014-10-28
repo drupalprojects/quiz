@@ -44,7 +44,7 @@ class QuizQuestionsForm {
     $this->addFieldsForRandomQuiz($form, $quiz);
 
     // @todo deal with $include_random
-    $questions = quiz()->getQuizHelper()->getQuestions(__quiz_entity_id($quiz), $quiz->vid);
+    $questions = quiz()->getQuizHelper()->getQuestions($quiz->qid, $quiz->vid);
 
     if (empty($questions)) {
       $form['question_list']['no_questions'] = array(
@@ -95,7 +95,7 @@ class QuizQuestionsForm {
     );
 
     $url_query = drupal_get_destination();
-    $url_query['quiz_nid'] = __quiz_entity_id($quiz);
+    $url_query['quiz_nid'] = $quiz->qid;
     $url_query['quiz_vid'] = $quiz->vid;
     $create_question = FALSE;
     foreach ($types as $type => $info) {

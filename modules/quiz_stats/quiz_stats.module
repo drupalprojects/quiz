@@ -125,21 +125,21 @@ function quiz_stats_theme() {
 }
 
 /**
- * Validate that a node is of type quiz, and that the user has access to it, and that the vid is a vid of that quiz
+ * Validate that a node is of type quiz, and that the user has access to it, and
+ * that the vid is a vid of that quiz.
  *
- * @param $quiz
- *  The quiz node
- * @param $vid
- *  The version id
- * @return
+ * @param \Drupal\quiz\Entity\QuizEntity $quiz
+ * @param int $quiz_vid
+ * @return bool
  *  TRUE if user has access
  */
-function quiz_stats_validate_vid($quiz, $vid) {
-  if ($quiz->type != 'quiz') {
-    return FALSE;
-  }
+function quiz_stats_validate_vid(\Drupal\quiz\Entity\QuizEntity $quiz, $quiz_vid) {
   if (!user_access('access author stats')) {
     return FALSE;
   }
-  return __quiz_entity_id($quiz) == db_query('SELECT n.nid FROM {node} n INNER JOIN {node_revision} nr ON (n.nid = nr.nid) WHERE nr.vid = :vid', array(':vid' => $vid))->fetchField();
+
+  return $quiz->qid == db_query('SELECT n.nid '
+      . ' FROM {node} n '
+      . ' INNER JOIN {node_revision} nr ON (n.nid = nr.nid) '
+      . ' WHERE nr.vid = :vid', array(':vid' => $quiz_vid))->fetchField();
 }

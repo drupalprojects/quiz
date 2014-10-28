@@ -33,11 +33,11 @@ class FeedbackHelper {
 
     if (array_filter($quiz->review_options['question'])) {
       $question_index = $question_number;
-      if (empty($_SESSION['quiz'][__quiz_entity_id($quiz)]['result_id'])) {
+      if (empty($_SESSION['quiz'][$quiz->qid]['result_id'])) {
         $result_id = $_SESSION['quiz']['temp']['result_id'];
       }
       else {
-        $result_id = $_SESSION['quiz'][__quiz_entity_id($quiz)]['result_id'];
+        $result_id = $_SESSION['quiz'][$quiz->qid]['result_id'];
       }
       $quiz_result = quiz_result_load($result_id);
       $qinfo = $quiz_result->layout[$question_index];
