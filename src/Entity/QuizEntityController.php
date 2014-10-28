@@ -121,4 +121,33 @@ class QuizEntityController extends EntityAPIController {
     return parent::saveRevision($entity);
   }
 
+  public function delete($ids, DatabaseTransaction $transaction = NULL) {
+    $return = parent::delete($ids, $transaction);
+
+    // Delete quiz results
+    $query = db_select('quiz_results');
+    $query->fields('quiz_results', array('result_id'));
+    $query->condition('nid', $ids);
+    if ($result_ids = $query->execute()->fetchCol()) {
+      quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
+    }
+
+    // Remove quiz records from table quiz_relationship
+    db_delete('quiz_relationship')
+      ->condition('quiz_qid', $ids)
+      ->execute();
+
+    // Remove quiz records from table quiz_results
+    db_delete('quiz_results')
+      ->condition('nid', $ids)
+      ->execute();
+
+    // Remove quiz records from table quiz_result_options
+    db_delete('quiz_result_options')
+      ->condition('nid', $ids)
+      ->execute();
+
+    return $return;
+  }
+
 }

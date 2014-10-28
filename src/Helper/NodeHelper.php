@@ -12,28 +12,12 @@ use Drupal\quiz\Helper\Node\NodeViewHelper;
 
 class NodeHelper {
 
-  private $nodeDeleteHelper;
   private $nodeValidateHelper;
   private $nodeInsertHelper;
   private $nodeUpdateHelper;
   private $nodePresaveHelper;
   private $nodeViewHelper;
   private $nodeFormHelper;
-
-  /**
-   * @return NodeDeleteHelper
-   */
-  public function getNodeDeleteHelper() {
-    if (null === $this->nodeDeleteHelper) {
-      $this->nodeDeleteHelper = new NodeDeleteHelper();
-    }
-    return $this->nodeDeleteHelper;
-  }
-
-  public function setNodeDeleteHelper($helper) {
-    $this->nodeDeleteHelper = $helper;
-    return $this;
-  }
 
   /**
    * @return NodeValidateHelper
@@ -108,10 +92,6 @@ class NodeHelper {
   public function setNodeViewHelper($nodeViewHelper) {
     $this->nodeViewHelper = $nodeViewHelper;
     return $this;
-  }
-
-  public function delete($node) {
-    $this->getNodeDeleteHelper()->execute($node);
   }
 
   public function validate($node) {
