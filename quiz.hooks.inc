@@ -509,53 +509,7 @@ function quiz_mail($key, &$message, $params) {
  * Performs actions like sending quiz results over email at the end of quiz.
  */
 function quiz_quiz_finished($quiz, $score, $session_data) {
-  // @TODO convert to entity/rules
-  $result_id = $session_data['result_id'];
-
-  // Load data about the quiz taker
-  $sql = 'SELECT u.uid, u.mail'
-    . ' FROM {users} u '
-    . ' JOIN {quiz_results} qnr ON u.uid = qnr.uid'
-    . ' WHERE result_id = :result_id';
-  $taker = db_query($sql, array(':result_id' => $result_id))->fetch();
-
-  if (variable_get('quiz_results_to_quiz_author', 0)) {
-    $author_mail = db_query('SELECT mail FROM {users} WHERE uid = :uid', array(':uid' => $quiz->uid))->fetchField();
-    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $result_id, 'author'));
-  }
-
-  if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
-    drupal_set_message(t('Your results have been sent to your e-mail address.'));
-  }
-
-  // Calls userpoints functions to credit user point based on number of correct
-  // answers.
-  if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
-    // Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT tid FROM {taxonomy_index}
-                WHERE nid = :nid AND tid IN (
-                  SELECT tid
-                  FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
-                  WHERE t_t_d.vid = :vid
-                )", array(':nid' => $quiz->qid, ':vid' => $quiz->vid,
-      ':vid' => userpoints_get_vid()))->fetchField();
-    $variables = array(
-      '@title' => $quiz->title,
-      '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
-      '@time'  => date('l jS \of F Y h:i:s A'),
-    );
-    $params = array(
-      'points'      => $score['numeric_score'],
-      'description' => t('Attended @title @quiz on @time', $variables),
-      'tid'         => $selected_tid,
-      'uid'         => $taker->uid,
-    );
-    if ($quiz->userpoints_tid != 0) {
-      $params['tid'] = $quiz->userpoints_tid;
-    }
-    userpoints_userpointsapi($params);
-  }
+  return quiz()->getHookImplementation()->getHookQuizFinished($quiz, $score, $session_data)->execute();
 }
 
 /**
