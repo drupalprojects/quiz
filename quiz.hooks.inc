@@ -304,11 +304,21 @@ function quiz_theme($existing, $type, $theme, $path) {
       'file'           => 'quiz.admin.inc'
     ),
     'quiz_result'              => array(
-      'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'result_id' => NULL),
+      'variables' => array(
+        'quiz'      => NULL,
+        'questions' => NULL,
+        'score'     => NULL,
+        'summary'   => NULL,
+        'result_id' => NULL),
       'file'      => 'quiz.pages.inc',
     ),
     'quiz_progress'            => array(
-      'variables' => array('quiz' => null, 'question_number' => NULL, 'num_questions' => NULL, 'allow_jumping' => NULL, 'time_limit' => NULL),
+      'variables' => array(
+        'quiz'            => null,
+        'question_number' => NULL,
+        'num_questions'   => NULL,
+        'allow_jumping'   => NULL,
+        'time_limit'      => NULL),
       'file'      => 'quiz.pages.inc',
     ),
     'quiz_no_feedback'         => array(
@@ -418,7 +428,8 @@ function quiz_node_prepare($node) {
   if ($node->type == 'quiz' && !isset($node->nid)) {
     // If this is a new node we apply the user defaults for the quiz settings.
     if (arg(0) === 'node') {
-      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME)));
+      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array(
+        '@quiz' => QUIZ_NAME)));
     }
     $settings = quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
     foreach ($settings as $key => $value) {
@@ -517,15 +528,18 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
   $result_id = $session_data['result_id'];
   // Load data about the quiz taker
   $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(
+    ':result_id' => $result_id))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
     $author_mail = db_query('SELECT mail FROM {users} WHERE uid = :uid', array(':uid' => $quiz->uid))->fetchField();
-    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $result_id, 'author'));
+    drupal_mail('quiz', 'notice', $author_mail, NULL, array($quiz, $score, $result_id,
+      'author'));
   }
 
   if (variable_get('quiz_email_results', 0) && variable_get('quiz_use_passfail', 1) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id,
+      'taker'));
     drupal_set_message(t('Your results have been sent to your e-mail address.'));
   }
 
@@ -539,7 +553,8 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
                   SELECT tid
                   FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
                   WHERE t_t_d.vid = :vid
-                )", array(':nid' => __quiz_entity_id($quiz), ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
+                )", array(':nid' => __quiz_entity_id($quiz), ':vid' => $quiz->vid,
+      ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
       '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
@@ -565,9 +580,11 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  */
 function quiz_quiz_scored($quiz, $score, $result_id) {
   // @TODO Rules
-  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(':rid' => $result_id))->fetch();
+  $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_results} qnr ON u.uid = qnr.uid WHERE result_id = :rid', array(
+    ':rid' => $result_id))->fetch();
   if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
+    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id,
+      'taker'));
     drupal_set_message(t('The results has been sent to the users e-mail address.'));
   }
 
