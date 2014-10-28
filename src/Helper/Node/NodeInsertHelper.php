@@ -38,7 +38,6 @@ class NodeInsertHelper extends NodeHelper {
     _quiz_check_num_always($quiz);
 
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
-    $this->insertResultOptions($quiz);
   }
 
 }

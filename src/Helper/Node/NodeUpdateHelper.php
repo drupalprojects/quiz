@@ -17,26 +17,11 @@ class NodeUpdateHelper extends NodeHelper {
     $this->presaveActions($quiz);
 
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
-    $this->updateResultOptions($quiz);
 
     _quiz_check_num_random($quiz);
     _quiz_check_num_always($quiz);
     quiz_update_max_score_properties(array($quiz->vid));
     drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
-  }
-
-  /**
-   * Modify result of option-specific updates.
-   *
-   * @param $node
-   *   The quiz node.
-   */
-  private function updateResultOptions($quiz) {
-    // Brute force method. Easier to get correct, and probably faster as well.
-    db_delete('quiz_result_options')
-      ->condition('vid', $quiz->vid)
-      ->execute();
-    $this->insertResultOptions($quiz);
   }
 
   /**
