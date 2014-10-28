@@ -516,7 +516,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
   $sql = 'SELECT u.uid, u.mail'
     . ' FROM {users} u '
     . ' JOIN {quiz_results} qnr ON u.uid = qnr.uid'
-    . ' WHERE result_id = %d';
+    . ' WHERE result_id = :result_id';
   $taker = db_query($sql, array(':result_id' => $result_id))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
