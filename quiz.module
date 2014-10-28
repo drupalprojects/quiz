@@ -278,21 +278,20 @@ function _quiz_is_int($value, $min = 1, $max = NULL) {
  *  Array of question types.
  */
 function _quiz_get_question_types() {
-  static $to_return = array();
+  static $quiz_questions = array();
 
   // We vastly improves performance by statically caching the question types.
-  if (!empty($to_return)) {
-    return $to_return;
+  if (!empty($quiz_questions)) {
+    return $quiz_questions;
   }
 
   // Get question types from the modules that defines them..
-  $quiz_questions = module_invoke_all('quiz_question_info');
-  if (empty($quiz_questions)) {
-    drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
-    return array();
+  if (!$quiz_questions = module_invoke_all('quiz_question_info')) {
+    return $quiz_questions;
   }
 
-  return $quiz_questions;
+  drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
+  return array();
 }
 
 /**
