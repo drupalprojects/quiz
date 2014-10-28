@@ -410,24 +410,8 @@ function quiz_node_presave($node) {
  * Implementation of hook_node_prepare().
  */
 function quiz_node_prepare($node) {
-  if ($node->type == 'quiz' && !isset($node->nid)) {
-    // If this is a new node we apply the user defaults for the quiz settings.
-    if (arg(0) === 'node') {
-      drupal_set_message(t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array(
-        '@quiz' => QUIZ_NAME)));
-    }
-    $settings = quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings();
-    foreach ($settings as $key => $value) {
-      if (!isset($node->$key)) {
-        $node->$key = $value;
-      }
-    }
-  }
-
-  if (isset($node->is_quiz_question)) {
-    if (variable_get('quiz_auto_revisioning', 1)) {
-      $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
-    }
+  if (isset($node->is_quiz_question) && variable_get('quiz_auto_revisioning', 1)) {
+    $node->revision = (quiz_question_has_been_answered($node)) ? 1 : 0;
   }
 }
 

@@ -12,7 +12,12 @@ class FormDefinition extends FormHelper {
 
   public function __construct($quiz) {
     $this->quiz = $quiz;
+
     if (empty($this->quiz->qid)) {
+      // If this is a new node we apply the user defaults for the quiz settings.
+      $msg = t('You are making your first @quiz. On this page you set the attributes, most of which you may tell the system to remember as defaults for the future. On the next screen you can add questions.', array('@quiz' => QUIZ_NAME));
+      drupal_set_message($msg);
+
       foreach ((array) quiz()->getQuizHelper()->getSettingHelper()->getUserDefaultSettings($legacy = FALSE) as $k => $v) {
         if (!isset($this->quiz->{$k}) || is_null($this->quiz->{$k})) {
           $this->quiz->{$k} = $v;
