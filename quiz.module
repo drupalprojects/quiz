@@ -286,7 +286,7 @@ function _quiz_get_question_types() {
   }
 
   // Get question types from the modules that defines them.
-  if (!$quiz_questions = module_invoke_all('quiz_question_info')) {
+  if ($quiz_questions = module_invoke_all('quiz_question_info')) {
     return $quiz_questions;
   }
 
