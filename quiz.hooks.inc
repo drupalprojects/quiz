@@ -87,11 +87,6 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_result_answer']['properties']['is_skipped']['type'] = 'boolean';
   $info['quiz_result_answer']['properties']['is_doubtful']['type'] = 'boolean';
   $info['quiz_result_answer']['properties']['answer_timestamp']['type'] = 'date';
-
-  $info['quiz_entity']['properties']['quiz_open']['label'] = 'Open date';
-  $info['quiz_entity']['properties']['quiz_open']['type'] = 'date';
-  $info['quiz_entity']['properties']['quiz_close']['label'] = 'Close date';
-  $info['quiz_entity']['properties']['quiz_close']['type'] = 'date';
 }
 
 /**

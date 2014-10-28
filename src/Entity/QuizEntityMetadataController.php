@@ -17,6 +17,10 @@ class QuizEntityMetadataController extends EntityDefaultMetadataController {
     $properties['changed']['type'] = 'date';
     $properties['changed']['setter callback'] = 'entity_property_verbatim_set';
     $properties['changed']['setter permission'] = 'administer quizzes';
+    $properties['quiz_open']['label'] = 'Open date';
+    $properties['quiz_open']['type'] = 'date';
+    $properties['quiz_close']['label'] = 'Close date';
+    $properties['quiz_close']['type'] = 'date';
 
     foreach (entity_metadata_convert_schema($this->info['revision table']) as $k => $v) {
       if (isset($properties[$k])) {
