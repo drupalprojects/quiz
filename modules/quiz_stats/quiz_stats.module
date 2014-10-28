@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\quiz\Entity\QuizEntity;
+
 /**
  * @file
  * Quiz stats
@@ -39,25 +41,25 @@ function quiz_stats_menu() {
     'access arguments' => array('access author stats'),
     'type'             => MENU_NORMAL_ITEM,
   );
-  $items['node/%node/quiz/statistics'] = array(
+  $items['quiz/%quiz_entity_single/statistics'] = array(
     'title'            => 'Statistics',
     'description'      => 'Generates a report on quiz results for quiz creators.',
     'file'             => 'quiz_stats.admin.inc',
-    'page callback'    => 'quiz_stats_revision_selector_page',
+    'page callback'    => 'Drupal\quiz_stats\Controller\RevisionListingController::staticCallback',
     'page arguments'   => array(1),
     'access callback'  => 'quiz_type_confirm',
     'access arguments' => array(1, 'access user stats'),
     'type'             => MENU_LOCAL_TASK,
     'weight'           => 4,
   );
-  $items['node/%node/quiz/statistics/%'] = array(
+  $items['quiz/%quiz_entity_single/statistics/%'] = array(
     'title'            => 'Statistics',
     'description'      => 'Generates a report on quiz results for quiz creators.',
     'file'             => 'quiz_stats.admin.inc',
-    'page callback'    => 'quiz_stats_get_adv_stats',
-    'page arguments'   => array(4),
+    'page callback'    => 'Drupal\quiz_stats\Controller\RevisionStatsController::staticCallback',
+    'page arguments'   => array(3),
     'access callback'  => 'quiz_stats_validate_vid',
-    'access arguments' => array(1, 4),
+    'access arguments' => array(1, 3),
     'type'             => MENU_CALLBACK,
     'weight'           => 4,
   );
@@ -124,18 +126,19 @@ function quiz_stats_theme() {
  * Validate that a node is of type quiz, and that the user has access to it, and
  * that the vid is a vid of that quiz.
  *
- * @param \Drupal\quiz\Entity\QuizEntity $quiz
+ * @param QuizEntity $quiz
  * @param int $quiz_vid
  * @return bool
  *  TRUE if user has access
  */
-function quiz_stats_validate_vid(\Drupal\quiz\Entity\QuizEntity $quiz, $quiz_vid) {
+function quiz_stats_validate_vid(QuizEntity $quiz, $quiz_vid) {
   if (!user_access('access author stats')) {
     return FALSE;
   }
 
-  return $quiz->qid == db_query('SELECT n.nid '
-      . ' FROM {node} n '
-      . ' INNER JOIN {node_revision} nr ON (n.nid = nr.nid) '
-      . ' WHERE nr.vid = :vid', array(':vid' => $quiz_vid))->fetchField();
+  if (!$revision = quiz_entity_single_load(NULL, $quiz_vid)) {
+    return FALSE;
+  }
+
+  return $quiz->qid == $revision->qid;
 }
