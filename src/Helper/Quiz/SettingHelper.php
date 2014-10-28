@@ -14,7 +14,9 @@ class SettingHelper extends FormHelper {
    */
   public function getQuizOptions() {
     $options = array();
-    $results = db_query('SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = :type', array(':type' => 'quiz'));
+    $results = db_query('SELECT n.nid, n.title, n.type '
+      . ' FROM {node} n '
+      . ' WHERE n.type = :type', array(':type' => 'quiz'));
     foreach ($results as $result) {
       $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
     }
@@ -57,16 +59,16 @@ class SettingHelper extends FormHelper {
   public function updateUserDefaultSettings($node) {
     global $user;
 
-    $entity = clone $node;
-    $entity->aid = !empty($entity->aid) ? $entity->aid : 0;
-    $entity->summary_pass = is_array($entity->summary_pass) ? $entity->summary_pass['value'] : $entity->summary_pass;
-    $entity->summary_pass_format = is_array($entity->summary_pass) ? $entity->summary_pass['format'] : $entity->summary_pass_format;
-    $entity->summary_default = is_array($entity->summary_default) ? $entity->summary_default['value'] : $entity->summary_default;
-    $entity->summary_default_format = is_array($entity->summary_default) ? $entity->summary_default['format'] : $entity->summary_default_format;
-    $entity->tid = (isset($entity->tid) ? $entity->tid : 0);
+    $quiz = clone $node;
+    $quiz->aid = !empty($quiz->aid) ? $quiz->aid : 0;
+    $quiz->summary_pass = is_array($node->summary_pass) ? $node->summary_pass['value'] : $node->summary_pass;
+    $quiz->summary_pass_format = is_array($node->summary_pass) ? $node->summary_pass['format'] : $node->summary_pass_format;
+    $quiz->summary_default = is_array($node->summary_default) ? $node->summary_default['value'] : $node->summary_default;
+    $quiz->summary_default_format = is_array($node->summary_default) ? $node->summary_default['format'] : $node->summary_default_format;
+    $quiz->tid = isset($quiz->tid) ? $quiz->tid : 0;
 
     // Save the node values.
-    $quiz_props = clone $entity;
+    $quiz_props = clone $quiz;
     $quiz_props->uid = 0;
     $this->saveQuizSettings($quiz_props);
 
@@ -93,7 +95,7 @@ class SettingHelper extends FormHelper {
    * Insert or update the quiz node properties accordingly.
    */
   public function saveQuizSettings($entity) {
-    $sql = "SELECT qnp_id 
+    $sql = "SELECT qnp_id
       FROM {quiz_node_properties}
       WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
         OR (uid = :uid and uid > 0)

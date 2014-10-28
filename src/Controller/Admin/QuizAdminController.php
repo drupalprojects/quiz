@@ -2,6 +2,7 @@
 
 namespace Drupal\quiz\Controller\Admin;
 
+use Drupal\quiz\Entity\QuizEntity;
 use stdClass;
 
 class QuizAdminController {
@@ -21,24 +22,31 @@ class QuizAdminController {
    */
   public function getForm($form, &$form_state) {
     // Create a dummy node to use as input for quiz_form
-    $dummy_node = new stdClass();
+    $dummy_quiz = new stdClass();
     // def_uid is the uid of the default user holding the default values for the node form(no real user with this uid exists)
-    $dummy_node->def_uid = variable_get('quiz_def_uid', 1);
-    $settings = $this->loadUserSettings();
-    $settings += (array) quiz()->getQuizHelper()->getSettingHelper()->getQuizDefaultSettings();
-    foreach ($settings as $key => $value) {
-      if (!isset($dummy_node->$key)) {
-        $dummy_node->{$key} = $value;
+    foreach (quiz_get_defaults() as $key => $value) {
+      if (!isset($dummy_quiz->$key)) {
+        $dummy_quiz->{$key} = $value;
       }
     }
-    $form = quiz_form($dummy_node, $form_state);
+
+    $form = quiz_form($dummy_quiz, $form_state);
     $form['direction'] = array(
       '#markup' => t('Here you can change the default quiz settings for new users.'),
       '#weight' => -10,
     );
+
     // unset values we can't or won't let the user edit default values for
     unset(
-      $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions']
+      $form['#quiz_check_revision_access'], $form['title'], $form['body_field'],
+      $form['taking']['aid'], $form['taking']['addons'],
+      $form['quiz_availability']['quiz_open'],
+      $form['quiz_availability']['quiz_close'], $form['resultoptions'],
+      $form['number_of_random_questions'], $form['#quiz_check_revision_access'],
+      $form['title'], $form['body_field'], $form['taking']['aid'],
+      $form['taking']['addons'], $form['quiz_availability']['quiz_open'],
+      $form['quiz_availability']['quiz_close'], $form['resultoptions'],
+      $form['number_of_random_questions'], $form['remember_global']
     );
 
     $form['remember_settings']['#type'] = 'value';
@@ -85,11 +93,12 @@ class QuizAdminController {
    */
   function submit($form, &$form_state) {
     // We add the uid for the "default user"
-    $form_state['values']['save_def_uid'] = variable_get('quiz_def_uid', NULL);
-    $form_state['values']['nid'] = 0;
-    $form_state['values']['vid'] = 0;
-    $form_state['values']['aid'] = '';
-    $this->saveUserSettings($form_state['values']);
+    // Generate the node object:
+    $quiz = (object) $form_state['values'];
+    $quiz->qid = 0;
+    $quiz->vid = 0;
+    $quiz->uid = 0;
+    quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
   }
 
   /**
@@ -130,61 +139,6 @@ class QuizAdminController {
       return $settings;
     }
     return array();
-  }
-
-  /**
-   * This is copied from _quiz_save_user_settings() in previous revision.
-   */
-  private function saveUserSettings($node) {
-    global $user;
-
-    $node = (object) $node;
-
-    // We do not save settings if the node has been created by the system,
-    // or if the user haven't requested it
-    if (isset($node->auto_created) || !isset($node->remember_settings) || !$node->remember_settings) {
-      return FALSE;
-    }
-
-    $summary_pass_format = filter_fallback_format();
-    if (isset($node->summary_pass['format']) && !empty($node->summary_pass['format'])) {
-      $summary_pass_format = $node->summary_pass['format'];
-    }
-
-    $summary_default_format = filter_fallback_format();
-    if (isset($node->summary_default['format']) && !empty($node->summary_default['format'])) {
-      $summary_default_format = $node->summary_default['format'];
-    }
-
-    db_merge('quiz_user_settings')
-      ->key(array('uid' => $user->uid))
-      ->fields(array(
-        'uid'                    => isset($node->uid) ? $node->uid : $node->save_def_uid,
-        'nid'                    => $node->nid,
-        'vid'                    => $node->vid,
-        'aid'                    => isset($node->aid) ? $node->aid : 0,
-        'pass_rate'              => $node->pass_rate,
-        'summary_pass'           => isset($node->summary_pass['value']) ? $node->summary_pass['value'] : '',
-        'summary_pass_format'    => $summary_pass_format,
-        'summary_default'        => $node->summary_default['value'],
-        'summary_default_format' => $summary_default_format,
-        'randomization'          => $node->randomization,
-        'backwards_navigation'   => $node->backwards_navigation,
-        'keep_results'           => $node->keep_results,
-        'repeat_until_correct'   => $node->repeat_until_correct,
-        'feedback_time'          => $node->feedback_time,
-        'display_feedback'       => $node->display_feedback,
-        'takes'                  => $node->takes,
-        'show_attempt_stats'     => $node->show_attempt_stats,
-        'time_limit'             => isset($node->time_limit) ? $node->time_limit : 0,
-        'quiz_always'            => $node->quiz_always,
-        'has_userpoints'         => isset($node->has_userpoints) ? $node->has_userpoints : 0,
-        'allow_skipping'         => $node->allow_skipping,
-        'allow_resume'           => $node->allow_resume,
-        'allow_jumping'          => $node->allow_jumping,
-        'show_passed'            => $node->show_passed,
-      ))->execute();
-    drupal_set_message(t('Default settings have been saved'));
   }
 
 }

@@ -16,9 +16,6 @@ function quiz_install() {
       ->save();
   }
 
-  // Create the quiz_def_uid variable holding an artificial uid to use when storing default settings.
-  variable_set('quiz_def_uid', 1);
-
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Create Content -> Quiz.', array(
     '!create_a_quiz' => l(t('create a quiz'), 'quiz/add')
   )));
