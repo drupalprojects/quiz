@@ -58,19 +58,6 @@ function quiz_entity_info() {
 }
 
 /**
- * Implements hook_entity_info_alter().
- */
-function quiz_entity_info_alter(&$info) {
-  // Add a new view mode for displaying the question when taking a quiz
-  $info['node']['view modes'] += array(
-    'question' => array(
-      'label'           => t('Question'),
-      'custom settings' => TRUE,
-    ),
-  );
-}
-
-/**
  * Implements hook_field_extra_fields().
  */
 function quiz_field_extra_fields() {
