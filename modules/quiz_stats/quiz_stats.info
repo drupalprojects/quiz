@@ -3,4 +3,4 @@ description = "Creates a report to compare and analyse the results of quiz atten
 core = 7.x
 package = Quiz Addon
 dependencies[] = quiz
-dependencies[] = charts
+dependencies[] = chart
