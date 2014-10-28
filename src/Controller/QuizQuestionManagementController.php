@@ -11,7 +11,7 @@ class QuizQuestionManagementController {
   }
 
   /**
-   * Callback for node/%quiz_menu/quiz/questions (question management tab).
+   * Callback for quiz/%/questions (question management tab).
    * Creates a form for quiz questions.
    *
    * @param $quiz
@@ -78,8 +78,7 @@ class QuizQuestionManagementController {
   }
 
   /**
-   * Callback for node/%quiz_menu/questions/term_ahah. Ahah function for finding
-   * terms...
+   * Callback for quiz/%/questions/term_ahah. Ahah function for finding terms…
    *
    * @param string $start
    *  The start of the string we are looking for

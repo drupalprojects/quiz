@@ -106,7 +106,7 @@ class HookMenu {
 
   private function getQuizNodeMenuItems() {
     return array(
-      'node/%quiz_menu/questions/term_ahah' => array(
+      'node/%node/questions/term_ahah' => array(
         'page callback'    => 'Drupal\quiz\Controller\QuizQuestionManagementController::categorizedTermAhah',
         'type'             => MENU_CALLBACK,
         'access callback'  => 'node_access',

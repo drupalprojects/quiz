@@ -19,7 +19,7 @@ class QuizTakeQuestionController extends QuestionHelper {
   private $quiz_id;
 
   /**
-   * Callback for node/%quiz_menu/take/%question_number. Take a quiz questions.
+   * Callback for quiz/%/take/%. Take a quiz questions.
    *
    * @param QuizEntity $quiz A quiz entity
    * @param int $page_number

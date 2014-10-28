@@ -8,7 +8,7 @@ use Drupal\quiz\Entity\Result;
 /**
  * Callback for:
  *
- *  - node/%quiz_menu/quiz-results/%quiz_result/view.
+ *  - quiz-result/%
  *  - user/%/quiz-results/%quiz_result/view
  *
  * Show result page for a given result
