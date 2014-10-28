@@ -20,24 +20,19 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
-    if (!isset($this->node->feedback)) {
-      $this->node->feedback = '';
-    }
     if ($is_new || $this->node->revision == 1) {
       $id = db_insert('quiz_truefalse_node')
         ->fields(array(
           'nid'            => $this->node->nid,
           'vid'            => $this->node->vid,
           'correct_answer' => $this->node->correct_answer,
-          'feedback'       => $this->node->feedback,
         ))
         ->execute();
     }
     else {
       db_update('quiz_truefalse_node')
         ->fields(array(
-          'correct_answer' => (int) $this->node->correct_answer,
-          'feedback'       => $this->node->feedback,
+          'correct_answer' => (int) $this->node->correct_answer
         ))
         ->condition('nid', $this->node->nid)
         ->condition('vid', $this->node->vid)
@@ -88,7 +83,11 @@ class TrueFalseQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $res_a = db_query('SELECT correct_answer, feedback FROM {quiz_truefalse_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
+    $res_a = db_query('SELECT correct_answer '
+      . ' FROM {quiz_truefalse_node} '
+      . ' WHERE nid = :nid AND vid = :vid', array(
+      ':nid' => $this->node->nid,
+      ':vid' => $this->node->vid))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
@@ -180,23 +179,6 @@ class TrueFalseQuestion extends QuizQuestion {
       '#required'      => TRUE,
       '#weight'        => -4,
       '#description'   => t('Choose if the correct answer for this question is "true" or "false".')
-    );
-    $form['feedback_fields'] = array(
-      '#type'        => 'fieldset',
-      '#title'       => t('Feedback Settings'),
-      '#description' => t('Settings pertaining to feedback given along with results.'),
-      '#collapsible' => TRUE,
-      '#collapsed'   => TRUE,
-      '#weight'      => -3,
-    );
-    $form['feedback_fields']['feedback'] = array(// @todo: Does this make sense?
-      '#type'          => 'textarea',
-      '#title'         => t('Feedback Text'),
-      '#description'   => t('Text to be displayed when the results are displayed'),
-      '#rows'          => 5,
-      '#cols'          => 60,
-      '#required'      => FALSE,
-      '#default_value' => isset($this->node->feedback) ? $this->node->feedback : '',
     );
     return $form;
   }
@@ -317,7 +299,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
       'attempt'         => $answer ? quiz_icon('selected') : '',
       'correct'         => $answer == 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
       'score'           => intval($correct_answer == 1 && $answer == 1),
-      'answer_feedback' => $answer ? check_markup($this->question->feedback, $this->getFormat()) : '',
+      'answer_feedback' => '',
       'solution'        => $correct_answer == 1 ? quiz_icon('should') : '',
       'quiz_feedback'   => "Quiz feedback",
     );
@@ -327,9 +309,8 @@ class TrueFalseResponse extends QuizQuestionResponse {
       'attempt'         => !$answer ? quiz_icon('selected') : '',
       'correct'         => $answer == 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
       'score'           => intval($correct_answer == 0 && $answer == 0),
-      'answer_feedback' => !$answer ? check_markup($this->question->feedback, $this->getFormat()) : '',
+      'answer_feedback' => '',
       'solution'        => $correct_answer == 0 ? quiz_icon('should') : '',
-      'quiz_feedback'   => "Quiz feedback",
     );
 
     return $data;

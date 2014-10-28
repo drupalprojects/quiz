@@ -20,7 +20,7 @@ class QuizReportForm {
    *   FAPI form array
    */
   public function getForm($form, $form_state, $questions) {
-    $form['#theme'] = 'quiz_report_form';
+    $form['#theme'] = 'quiz_report_form'; # @TODO: Remove me
     $form['#tree'] = TRUE;
     $form['#submit'][] = array($this, 'formSubmit');
 

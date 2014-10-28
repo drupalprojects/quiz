@@ -26,15 +26,12 @@ class QuizEntityTakingTest extends QuizEntityTestCase {
     $question_node = $this->drupalCreateNode(array(
       'type'           => 'truefalse',
       'correct_answer' => 1,
-      'feedback'       => 'Feedback for repeat until correct.',
     ));
     $this->linkQuestionToQuiz($question_node, $quiz);
 
     $this->drupalLogin($this->user);
     $this->drupalGet("quiz/{$quiz->qid}/take");
     $this->drupalPost(NULL, array("question[$question_node->nid]" => 0), t('Finish'));
-    # @TODO: Where is this message is set?
-    # $this->assertText('Feedback for repeat until correct.');
     $this->assertText('The answer was incorrect. Please try again.');
 
     // Check that we are still on the question.

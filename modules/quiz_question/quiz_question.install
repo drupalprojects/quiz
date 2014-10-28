@@ -19,42 +19,52 @@ function quiz_question_schema() {
   $schema = array();
   $schema['quiz_question_properties'] = array(
     'description' => 'Properties common for all quizzes',
-    'fields' => array(
-      'nid' => array(
-        'type' => 'int',
+    'fields'      => array(
+      'qqp_id'          => array(
+        'type' => 'serial',
+      ),
+      'nid'             => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'vid' => array(
-        'type' => 'int',
+      'vid'             => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'max_score' => array(
-        'type' => 'int',
+      'max_score'       => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
-        'default' => 0,
+        'default'  => 0,
+      ),
+      'feedback'        => array(
+        'type' => 'text',
+      ),
+      'feedback_format' => array(
+        'type'     => 'varchar',
+        'length'   => 255,
+        'not null' => FALSE,
       ),
     ),
-    'primary key' => array(
-      'nid', 'vid'
-    ),
+    'primary key' => array('qqp_id'),
+    'indexes'     => array('question_id' => array('vid', 'nid')),
   );
   $schema['quiz_question_latest_quizzes'] = array(
     'description' => 'Stores the latest quizzes each user has been involved in',
-    'fields' => array(
+    'fields'      => array(
       'quiz_nid' => array(
-        'type' => 'int',
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'uid' => array(
-        'type' => 'int',
+      'uid'      => array(
+        'type'     => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'id' => array(
-        'type' => 'serial',
+      'id'       => array(
+        'type'     => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
@@ -87,13 +97,34 @@ function quiz_question_update_7401() {
     $instance = field_read_instance('node', 'body', $question_type);
 
     $instance['display']['question'] = array(
-      'label' => 'hidden',
-      'type' => 'text_default',
-      'weight' => 1,
+      'label'    => 'hidden',
+      'type'     => 'text_default',
+      'weight'   => 1,
       'settings' => array(),
-      'module' => 'text',
+      'module'   => 'text',
     );
 
     field_update_instance($instance);
   }
+}
+
+/**
+ * Add fields for general question feedback.
+ */
+function quiz_question_update_7500() {
+  db_drop_primary_key('quiz_question_properties');
+  db_add_field('quiz_question_properties', 'qqp_id', array('type' => 'serial'), array('primary key' => array('qqp_id')));
+  db_add_field('quiz_question_properties', 'feedback', array('type' => 'text'));
+  db_add_field('quiz_question_properties', 'feedback_format', array('type' => 'varchar', 'length' => 255, 'not null' => FALSE));
+
+  // Migrate the truefalse feedback, since we have generic feedback now.
+  $filter = filter_default_format();
+  db_query("UPDATE {quiz_question_properties} qqp
+    INNER JOIN {quiz_truefalse_node} qtn ON (qtn.vid = qqp.vid)
+    SET qqp.feedback = qtn.feedback, qqp.feedback_format = :format", array(':format' => $filter));
+
+  // Drop old field.
+  db_drop_field('quiz_truefalse_node', 'feedback');
+
+  return t('Added global quiz question feedback fields and migrated true/false feedback.');
 }

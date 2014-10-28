@@ -10,6 +10,23 @@ function quiz_question_help($path, $args) {
 }
 
 /**
+ * Implements hook_entity_info()
+ */
+function quiz_question_entity_info() {
+  return array(
+    'quiz_question' => array(
+      'label'                  => t('Quiz question properties'),
+      'controller class'       => 'EntityAPIController',
+      'base table'             => 'quiz_question_properties',
+      'entity keys'            => array(
+        'id' => 'qqp_id',
+      ),
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+  );
+}
+
+/**
  * Implements hook_menu().
  */
 function quiz_question_menu() {

@@ -128,7 +128,21 @@ abstract class QuizQuestion {
       '#value' => TRUE
     );
 
-    //Add question type specific content
+    if (!empty($this->node->nid)) {
+      if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->node->nid, 'vid' => $this->node->vid))) {
+        $quiz_question = reset($properties);
+      }
+    }
+
+    $form['feedback'] = array(
+      '#type'          => 'text_format',
+      '#title'         => t('Question feedback'),
+      '#default_value' => !empty($quiz_question->feedback) ? $quiz_question->feedback : '',
+      '#format'        => !empty($quiz_question->feedback_format) ? $quiz_question->feedback_format : filter_default_format(),
+      '#description'   => t('This feedback will show when configured and the user answers a question, regardless of correctness.'),
+    );
+
+    // Add question type specific content
     $form = array_merge($form, $this->getCreationForm($form_state));
 
     if ($this->hasBeenAnswered()) {
@@ -216,6 +230,8 @@ abstract class QuizQuestion {
         'nid'       => $this->node->nid,
         'vid'       => $this->node->vid,
         'max_score' => $this->getMaximumScore(),
+        'feedback'  => !empty($this->node->feedback['value']) ? $this->node->feedback['value'] : '',
+        'feedback_format' => !empty($this->node->feedback['format']) ? $this->node->feedback['format'] : filter_default_format(),
       ))
       ->execute();
 

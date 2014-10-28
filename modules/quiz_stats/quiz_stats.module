@@ -21,12 +21,8 @@ function quiz_stats_help($path, $arg) {
  */
 function quiz_stats_permission() {
   $permission = array(
-    'access user stats'   => array(
-      'title' => t('access user stats'),
-    ),
-    'access author stats' => array(
-      'title' => t('access author stats'),
-    ),
+    'access user stats'   => array('title' => t('access user stats')),
+    'access author stats' => array('title' => t('access author stats')),
   );
   return $permission;
 }
