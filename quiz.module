@@ -98,26 +98,6 @@ function quiz_entity_single_load($id = NULL, $vid = NULL) {
 }
 
 /**
- * Validate that a node is of type quiz, and that the user has access to it.
- *
- * @param stdClass $node
- * @param string $op
- * @return bool
- */
-function quiz_type_confirm($node, $op = NULL) {
-  if ($node->type !== 'quiz') {
-    return FALSE;
-  }
-
-  if (isset($op)) {
-    $node_ops = array('view', 'update', 'delete', 'create');
-    return in_array($op, $node_ops) ? node_access($op, $node) : user_access($op);
-  }
-
-  return user_access('access quiz');
-}
-
-/**
  * This function was copied from the triggers module as to prevent having to be
  * dependent on that module for the actions to work.  The trigger function is
  * called trigger_options().
