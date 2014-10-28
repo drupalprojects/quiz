@@ -1,8 +1,8 @@
 <?php
 
-use Drupal\quiz\Entity\QuizEntity;
-
 namespace Drupal\quiz\Helper\Quiz;
+
+use Drupal\quiz\Entity\QuizEntity;
 
 class QuestionHelper {
 
