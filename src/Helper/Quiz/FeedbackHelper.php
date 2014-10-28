@@ -59,7 +59,7 @@ class FeedbackHelper {
    * feedback is viewed within 5 seconds of completing the question/quiz.
    */
   public function canReview($option, $result) {
-    $quiz = __quiz_load_from_result($result);
+    $quiz = quiz_entity_single_load($result->nid, $result->vid);
 
     // Check what context the result is in.
     if ($result->time_end && arg(2) !== 'take') {

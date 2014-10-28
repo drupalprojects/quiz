@@ -113,7 +113,7 @@ class QuizReportForm {
       // Load the quiz
       if (!isset($quiz)) {
         $result = db_query('SELECT nid, uid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
-        $quiz = __quiz_load_from_result($result);
+        $quiz = quiz_entity_single_load($result->nid, $result->vid);
         $result_id = $q_values['result_id'];
       }
 

@@ -316,11 +316,3 @@ function __quiz_get_context_id() {
 function __quiz_load_context_entity() {
   return quiz_entity_single_load($id = __quiz_get_context_id());
 }
-
-/**
- * @param \Drupal\quiz\Entity\Result $result
- * @return \Drupal\quiz\Entity\QuizEntity
- */
-function __quiz_load_from_result($result) {
-  return 'node' === arg(0) ? node_load($result->nid, $result->vid) : quiz_entity_single_load($result->nid, $result->vid);
-}
