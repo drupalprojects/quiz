@@ -518,41 +518,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
  * Performs actions like sending quiz results over email at the end of quiz.
  */
 function quiz_quiz_scored($quiz, $score, $result_id) {
-  // @TODO Rules
-  $taker = db_query('SELECT u.uid, u.mail'
-    . ' FROM {users} u '
-    . '   JOIN {quiz_results} qnr ON u.uid = qnr.uid '
-    . ' WHERE result_id = :rid', array(':rid' => $result_id))->fetch();
-  if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
-    drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
-    drupal_set_message(t('The results has been sent to the users e-mail address.'));
-  }
-
-  // Calls userpoints functions to credit user point based on number of correct
-  // answers.
-  if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
-
-    //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT ti.tid
-      FROM {taxonomy_index} ti
-      JOIN {taxonomy_term_data} td
-        ON td.tid = ti.tid AND td.vid = :vid
-      WHERE ti.nid = :nid", array(':nid' => $quiz->qid, ':vid' => userpoints_get_vid()))->fetchField();
-    $variables = array(
-      '@title' => $quiz->title,
-      '@quiz'  => variable_get('quiz_name', QUIZ_NAME),
-      '@time'  => date('l jS \of F Y h:i:s A'),
-    );
-    $params = array(
-      'points'      => $score['numeric_score'],
-      'description' => t('Attended @title @quiz on @time', $variables),
-      'tid'         => $selected_tid,
-    );
-    if ($quiz->userpoints_tid != 0) {
-      $params['tid'] = $quiz->userpoints_tid;
-    }
-    userpoints_userpointsapi($params);
-  }
+  return quiz()->getHookImplementation()->getHookQuizScored($quiz, $score, $result_id)->execute();
 }
 
 // ---------------------

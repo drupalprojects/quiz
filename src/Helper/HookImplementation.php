@@ -7,6 +7,7 @@ use Drupal\quiz\Helper\HookImplementation\HookEntityInfo;
 use Drupal\quiz\Helper\HookImplementation\HookFieldExtraFields;
 use Drupal\quiz\Helper\HookImplementation\HookMenu;
 use Drupal\quiz\Helper\HookImplementation\HookQuizFinished;
+use Drupal\quiz\Helper\HookImplementation\HookQuizScored;
 
 class HookImplementation {
 
@@ -14,6 +15,7 @@ class HookImplementation {
   private $hookEntityInfo;
   private $hookFieldExtraFields;
   private $hookQuizFinished;
+  private $hookQuizScored;
 
   /**
    * @return HookMenu
@@ -75,6 +77,21 @@ class HookImplementation {
 
   public function setHookQuizFinished($hookQuizFinished) {
     $this->hookQuizFinished = $hookQuizFinished;
+    return $this;
+  }
+
+  /**
+   * @return HookQuizScored
+   */
+  public function getHookQuizScored($quiz, $score, $result_id) {
+    if (NULL === $this->hookQuizScored) {
+      $this->hookQuizScored = new HookQuizScored($quiz, $score, $result_id);
+    }
+    return $this->hookQuizScored;
+  }
+
+  public function setHookQuizScored($hookQuizScored) {
+    $this->hookQuizScored = $hookQuizScored;
     return $this;
   }
 
