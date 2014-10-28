@@ -5,8 +5,6 @@ namespace Drupal\quiz\Helper\Node;
 class NodeInsertHelper extends NodeHelper {
 
   public function execute($quiz) {
-    global $user;
-
     // Need to set max_score if this is a cloned node
     $max_score = 0;
 
@@ -34,7 +32,7 @@ class NodeInsertHelper extends NodeHelper {
     $this->presaveActions($quiz);
 
     // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
-    _quiz_check_num_random($quiz);
+    $this->checkNumRandom($quiz);
     _quiz_check_num_always($quiz);
 
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);

@@ -18,7 +18,7 @@ class NodeUpdateHelper extends NodeHelper {
 
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
 
-    _quiz_check_num_random($quiz);
+    $this->checkNumRandom($quiz);
     _quiz_check_num_always($quiz);
     quiz_update_max_score_properties(array($quiz->vid));
     drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
