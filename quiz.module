@@ -237,22 +237,6 @@ function quiz_question_module_for_type($question_type) {
 // ---------------------
 
 /**
- * If a quiz is saved with random categories we should make sure all questions
- * are removed from the quiz
- *
- * @param $node
- *   Quiz node.
- */
-function _quiz_check_num_always(&$node) {
-  if ($node->randomization != 3) {
-    return;
-  }
-  db_delete('quiz_relationship')
-    ->condition('quiz_vid', $node->vid)
-    ->execute();
-}
-
-/**
  * Get the number of compulsory questions for a quiz.
  *
  * @param $nid

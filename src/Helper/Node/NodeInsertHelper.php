@@ -33,7 +33,7 @@ class NodeInsertHelper extends NodeHelper {
 
     // If the quiz is saved as not randomized we have to make sure that questions belonging to the quiz are saved as not random
     $this->checkNumRandom($quiz);
-    _quiz_check_num_always($quiz);
+    $this->checkNumAlways($quiz);
 
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
   }
