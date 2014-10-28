@@ -432,36 +432,6 @@ function quiz_node_prepare($node) {
 }
 
 /**
- * Implements hook_load().
- *
- * Load up quiz properties onto quiz nodes.
- */
-function quiz_load($nodes) {
-  foreach ($nodes as $node) {
-    $vids[] = $node->vid;
-  }
-
-  $quiz_properties = entity_load('quiz', FALSE, array('vid' => $vids));
-
-  foreach ($quiz_properties as $qnp_id => $props) {
-    foreach ($props as $name => $value) {
-      if (!in_array($name, array('uid', 'nid', 'vid'))) {
-        $nodes[$props->nid]->$name = $value;
-      }
-    }
-  }
-
-  // Fetching result options.
-  $query = db_select('quiz_result_options', 'qnro');
-  $query->fields('qnro');
-  $query->condition('vid', $vids);
-  $options = $query->execute();
-  foreach ($options as $option) {
-    $nodes[$option->nid]->resultoptions[$option->option_id] = (array) $option;
-  }
-}
-
-/**
  * Implements hook_view().
  */
 function quiz_view($node, $view_mode) {
