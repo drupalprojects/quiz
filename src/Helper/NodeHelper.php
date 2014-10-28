@@ -2,13 +2,11 @@
 
 namespace Drupal\quiz\Helper;
 
-use Drupal\quiz\Helper\Node\NodeDeleteHelper;
 use Drupal\quiz\Helper\Node\NodeFormHelper;
 use Drupal\quiz\Helper\Node\NodeInsertHelper;
 use Drupal\quiz\Helper\Node\NodePresaveHelper;
 use Drupal\quiz\Helper\Node\NodeUpdateHelper;
 use Drupal\quiz\Helper\Node\NodeValidateHelper;
-use Drupal\quiz\Helper\Node\NodeViewHelper;
 
 class NodeHelper {
 
@@ -16,7 +14,6 @@ class NodeHelper {
   private $nodeInsertHelper;
   private $nodeUpdateHelper;
   private $nodePresaveHelper;
-  private $nodeViewHelper;
   private $nodeFormHelper;
 
   /**
@@ -79,21 +76,6 @@ class NodeHelper {
     return $this;
   }
 
-  /**
-   * @return NodeViewHelper
-   */
-  public function getNodeViewHelper() {
-    if (null === $this->nodeViewHelper) {
-      $this->nodeViewHelper = new NodeViewHelper();
-    }
-    return $this->nodeViewHelper;
-  }
-
-  public function setNodeViewHelper($nodeViewHelper) {
-    $this->nodeViewHelper = $nodeViewHelper;
-    return $this;
-  }
-
   public function validate($node) {
     $this->getNodeValidateHelper()->execute($node);
   }
@@ -108,10 +90,6 @@ class NodeHelper {
 
   public function presave($node) {
     $this->getNodePresaveHelper()->execute($node);
-  }
-
-  public function view($node, $view_mode) {
-    return $this->getNodeViewHelper()->execute($node, $view_mode);
   }
 
   /**

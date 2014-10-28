@@ -432,13 +432,6 @@ function quiz_node_prepare($node) {
 }
 
 /**
- * Implements hook_view().
- */
-function quiz_view($node, $view_mode) {
-  return quiz()->getNodeHelper()->view($node, $view_mode);
-}
-
-/**
  * Implements hook_user_cancel().
  */
 function quiz_user_cancel($edit, $account, $method) {

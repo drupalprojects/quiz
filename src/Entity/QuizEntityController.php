@@ -12,10 +12,15 @@ class QuizEntityController extends EntityAPIController {
    * @param QuizEntity $quiz
    */
   public function buildContent($quiz, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    drupal_alter('quiz_view', $quiz, $view_mode);
+
     $extra_fields = field_extra_fields_get_display($this->entityType, $quiz->type, $view_mode);
 
     // Render Stats
     if ($extra_fields['stats']['visible']) {
+      // Number of questions is needed on the statistics page.
+      $quiz->number_of_questions = $quiz->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($quiz->vid);
+
       $content['quiz_entity'][$quiz->qid]['stats'] = array(
         '#markup' => theme('quiz_view_stats', array('quiz' => $quiz)),
         '#weight' => $extra_fields['stats']['weight'],
