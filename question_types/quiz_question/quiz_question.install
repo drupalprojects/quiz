@@ -40,11 +40,12 @@ function quiz_question_schema() {
       ),
       'feedback' => array(
         'type' => 'text',
+        'not null' => FALSE,
       ),
       'feedback_format' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
     ),
     'primary key' => array('qqp_id'),
@@ -120,12 +121,13 @@ function quiz_question_update_7500() {
 
   db_add_field('quiz_question_properties', 'feedback', array(
     'type' => 'text',
+    'not null' => FALSE,
   ));
 
   db_add_field('quiz_question_properties', 'feedback_format', array(
     'type' => 'varchar',
     'length' => 255,
-    'not null' => TRUE,
+    'not null' => FALSE,
   ));
 
   // Migrate the truefalse feedback, since we have generic feedback now.
