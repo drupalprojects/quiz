@@ -88,11 +88,12 @@ class HookEntityInfo {
 
   private function getQuizQuestionRelationshipInfo() {
     return array(
-      'label'                  => t('Quiz question relationship'),
-      'controller class'       => 'EntityAPIController',
-      'base table'             => 'quiz_relationship',
-      'entity keys'            => array('id' => 'qr_id'),
-      'views controller class' => 'EntityDefaultViewsController',
+      'label'                     => t('Quiz question relationship'),
+      'controller class'          => 'EntityAPIController',
+      'base table'                => 'quiz_relationship',
+      'entity keys'               => array('id' => 'qr_id'),
+      'views controller class'    => 'EntityDefaultViewsController',
+      'metadata controller class' => 'Drupal\quiz\Entity\RelationshipMetadataController',
     );
   }
 

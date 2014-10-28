@@ -71,18 +71,6 @@ function quiz_entity_info_alter(&$info) {
 }
 
 /**
- * Implements hook_entity_property_info_alter().
- *
- * Define our special schema fields and relationships.
- */
-function quiz_entity_property_info_alter(&$info) {
-  $info['quiz_question_relationship']['properties']['question_nid']['type'] = 'node';
-  $info['quiz_question_relationship']['properties']['question_vid']['type'] = 'integer';
-  $info['quiz_question_relationship']['properties']['quiz_qid']['type'] = 'node';
-  $info['quiz_question_relationship']['properties']['quiz_vid']['type'] = 'integer';
-}
-
-/**
  * Implements hook_field_extra_fields().
  */
 function quiz_field_extra_fields() {
