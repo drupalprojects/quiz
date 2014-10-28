@@ -243,12 +243,14 @@ class FormDefinition extends FormHelper {
       '#collapsed'   => FALSE,
       '#group'       => 'vtabs',
     );
+
     $form['userpoints']['has_userpoints'] = array(
       '#type'          => 'checkbox',
       '#default_value' => (isset($this->quiz->has_userpoints) ? $this->quiz->has_userpoints : 1),
       '#title'         => t('Enable UserPoints Module Integration'),
       '#description'   => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
     );
+
     $form['userpoints']['userpoints_tid'] = array(
       '#type'          => 'select',
       '#options'       => $this->getUserpointsType(),
@@ -348,20 +350,10 @@ class FormDefinition extends FormHelper {
     // the manage questions tab. We repeat them here so that they're not removed
     // if the quiz is being updated.
     $num_rand = (isset($this->quiz->number_of_random_questions)) ? $this->quiz->number_of_random_questions : 0;
-    $form['number_of_random_questions'] = array(
-      '#type'  => 'value',
-      '#value' => $num_rand,
-    );
+    $form['number_of_random_questions'] = array('#type' => 'value', '#value' => $num_rand);
     $max_score_for_random = (isset($this->quiz->max_score_for_random)) ? $this->quiz->max_score_for_random : 0;
-    $form['max_score_for_random'] = array(
-      '#type'  => 'value',
-      '#value' => $max_score_for_random,
-    );
-    $tid = (isset($this->quiz->tid)) ? $this->quiz->tid : 0;
-    $form['tid'] = array(
-      '#type'  => 'value',
-      '#value' => $tid,
-    );
+    $form['max_score_for_random'] = array('#type' => 'value', '#value' => $max_score_for_random);
+    $form['tid'] = array('#type' => 'value', '#value' => (isset($this->quiz->tid)) ? $this->quiz->tid : 0);
   }
 
   private function defineResultFeedbackFields(&$form) {
