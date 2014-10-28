@@ -2655,7 +2655,7 @@ function quiz_calculate_score($quiz, $result_id) {
  *   hook.
  */
 function quiz_question_module_for_type($type) {
-  $types = _quiz_get_question_types();
+  $types = quiz_get_question_types();
   if (!isset($types[$type])) {
     drupal_set_message(t('The module for the questiontype %type is not enabled', array('%type' => $type)), 'warning');
     return FALSE;
@@ -2744,7 +2744,7 @@ function _quiz_build_categorized_question_list($quiz) {
   $terms = _quiz_get_terms($quiz->vid);
   $questions = array();
   $nids = array();
-  $question_types = array_keys(_quiz_get_question_types());
+  $question_types = array_keys(quiz_get_question_types());
   if (empty($question_types)) {
     return array();
   }
@@ -3176,7 +3176,7 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
     FROM {node} n
     INNER JOIN {taxonomy_index} tn USING (nid)
     WHERE n.status = 1 AND tn.tid IN ($term_ids)
-    AND n.type IN ('" . implode("','", array_keys(_quiz_get_question_types()))
+    AND n.type IN ('" . implode("','", array_keys(quiz_get_question_types()))
     . "') ORDER BY RAND()");
 
   $questions = array();
@@ -3194,22 +3194,21 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
  * @return
  *  Array of question types.
  */
-function _quiz_get_question_types() {
-  static $to_return = array();
+function quiz_get_question_types() {
+  $quiz_questions = &drupal_static(__FUNCTION__);
 
   // We vastly improves performance by statically caching the question types.
-  if (!empty($to_return)) {
-    return $to_return;
+  if (!empty($quiz_questions)) {
+    return $quiz_questions;
   }
 
-  // Get question types from the modules that defines them..
-  $quiz_questions = module_invoke_all('quiz_question_info');
-  if (empty($quiz_questions)) {
-    drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
-    return array();
+  // Get question types from the modules that defines them.
+  if ($quiz_questions = module_invoke_all('quiz_question_info')) {
+    return $quiz_questions;
   }
 
-  return $quiz_questions;
+  drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
+  return array();
 }
 
 /**
@@ -3220,7 +3219,7 @@ function _quiz_get_question_types() {
  */
 function _quiz_get_vocabularies() {
   $vocabularies = array();
-  $types = array_keys(_quiz_get_question_types());
+  $types = array_keys(quiz_get_question_types());
   foreach ($types as $type) {
     foreach (taxonomy_get_vocabularies($type) as $vid => $vocabulary) {
       $vocabularies[$vid] = $vocabulary;

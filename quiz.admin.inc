@@ -739,7 +739,7 @@ function _quiz_search_terms($start, $all = FALSE) {
  */
 function quiz_questions_form($form, $form_state, $quiz) {
 
-  $types = _quiz_get_question_types();
+  $types = quiz_get_question_types();
 
   _quiz_add_fields_for_creating_questions($form, $types, $quiz);
 
@@ -1089,7 +1089,7 @@ function quiz_questions_form_validate($form, $form_state) {
     return;
   }
 
-  $question_types = array_keys(_quiz_get_question_types());
+  $question_types = array_keys(quiz_get_question_types());
 
   foreach ($weight_map as $id => $weight) {
 
@@ -1428,7 +1428,7 @@ function _quiz_delete_results($result_id, $nid = NULL) {
  *   Array defining a table row
  */
 function _quiz_get_question_row($sub_form, $id) {
-  $question_types = _quiz_get_question_types();
+  $question_types = quiz_get_question_types();
   $type = $sub_form['types'][$id]['#markup'];
 
   $action = theme('item_list', array(

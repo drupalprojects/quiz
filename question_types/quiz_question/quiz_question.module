@@ -920,7 +920,7 @@ function quiz_question_feedback($quiz, $question) {
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   }
 
-  $types = _quiz_get_question_types();
+  $types = quiz_get_question_types();
   $module = $types[$question->type]['module'];
   // Invoke hook_get_report().
   $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
