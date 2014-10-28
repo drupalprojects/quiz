@@ -110,11 +110,12 @@ class HookEntityInfo {
 
   private function getQuizResultAnswerInfo() {
     return array(
-      'label'                  => t('Quiz result answer'),
-      'controller class'       => 'EntityAPIController',
-      'base table'             => 'quiz_results_answers',
-      'entity keys'            => array('id' => 'result_answer_id'),
-      'views controller class' => 'EntityDefaultViewsController',
+      'label'                     => t('Quiz result answer'),
+      'controller class'          => 'EntityAPIController',
+      'base table'                => 'quiz_results_answers',
+      'entity keys'               => array('id' => 'result_answer_id'),
+      'views controller class'    => 'EntityDefaultViewsController',
+      'metadata controller class' => 'Drupal\quiz\Entity\AnswerMetadataController',
     );
   }
 

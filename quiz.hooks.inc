@@ -80,13 +80,6 @@ function quiz_entity_property_info_alter(&$info) {
   $info['quiz_question_relationship']['properties']['question_vid']['type'] = 'integer';
   $info['quiz_question_relationship']['properties']['quiz_qid']['type'] = 'node';
   $info['quiz_question_relationship']['properties']['quiz_vid']['type'] = 'integer';
-
-  $info['quiz_result_answer']['properties']['result_id']['type'] = 'quiz_result';
-  $info['quiz_result_answer']['properties']['question_nid']['type'] = 'node';
-  $info['quiz_result_answer']['properties']['is_correct']['type'] = 'boolean';
-  $info['quiz_result_answer']['properties']['is_skipped']['type'] = 'boolean';
-  $info['quiz_result_answer']['properties']['is_doubtful']['type'] = 'boolean';
-  $info['quiz_result_answer']['properties']['answer_timestamp']['type'] = 'date';
 }
 
 /**
