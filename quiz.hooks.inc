@@ -19,7 +19,15 @@ function quiz_help($path, $arg) {
 
 <p>For more information about quiz, and resources on how to use quiz, see the <a href="http://drupal.org/project/quiz">Quiz project website</a></p>
 
-    ', array('@quiz' => QUIZ_NAME, '@admin-access' => url('admin/user/permissions'), '@admin-modules' => url('admin/modules'), '@admin-taxonomy' => url('admin/structure/taxonomy'), '@create-content' => url('node/add'), '@multichoice' => url('node/add/multichoice'), '@create-quiz' => url('node/add/quiz')));
+    ', array(
+        '@quiz'           => QUIZ_NAME,
+        '@admin-access'   => url('admin/user/permissions'),
+        '@admin-modules'  => url('admin/modules'),
+        '@admin-taxonomy' => url('admin/structure/taxonomy'),
+        '@create-content' => url('node/add'),
+        '@multichoice'    => url('node/add/multichoice'),
+        '@create-quiz'    => url('quiz/add')
+      ));
     case 'node/add#quiz':
       return t('A collection of questions designed to create interactive tests');
     default:
