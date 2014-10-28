@@ -239,11 +239,8 @@ function quiz_question_module_for_type($question_type) {
 /**
  * Get the number of compulsory questions for a quiz.
  *
- * @param $nid
- *   Quiz node id.
- * @param $vid
- *   Quiz node version id.
- * @return
+ * @param int $vid
+ * @return int
  *   Number of compulsory questions.
  */
 function _quiz_get_num_always_questions($vid) {

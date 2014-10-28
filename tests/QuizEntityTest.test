@@ -97,6 +97,7 @@ class QuizEntityTest extends QuizEntityTestCase {
       'title'             => 'Test quiz creation',
       'remember_global'   => 0,
       'remember_settings' => 0), t('Save'));
+    $this->drupalGet("quiz/1");
     $this->assertText('Test quiz creation');
     $this->assertText('Start quiz');
   }
