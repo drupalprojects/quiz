@@ -298,7 +298,7 @@ abstract class QuizQuestion {
    * Element validator (for repeat until correct).
    */
   public function elementValidate(&$element, &$form_state) {
-    $quiz = __quiz_load_context_entity();
+    $quiz = quiz_entity_single_load(__quiz_get_context_id());
     $quiz_id = $quiz->qid;
 
     $question_nid = $element['#array_parents'][1];

@@ -309,10 +309,3 @@ function _quiz_get_quiz_name() {
 function __quiz_get_context_id() {
   return (int) arg(1);
 }
-
-/**
- * @return \Drupal\quiz\Entity\QuizEntity
- */
-function __quiz_load_context_entity() {
-  return quiz_entity_single_load($id = __quiz_get_context_id());
-}
