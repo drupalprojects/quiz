@@ -6,28 +6,14 @@ use Drupal\quiz\Entity\QuizEntity;
 
 class QuizTakeLegacyController {
 
-  private $quiz_entity_type;
-
   /** @var int */
   protected $result_id;
 
   /** @var QuizEntity */
   protected $quiz;
 
-  public function __construct($quiz_entity_type) {
-    $this->quiz_entity_type = $quiz_entity_type;
-  }
-
-  protected function isNode() {
-    return $this->quiz_entity_type === 'node';
-  }
-
   protected function getQuizId() {
     return $this->quiz->qid;
-  }
-
-  public function loadQuiz($id, $vid) {
-    return $this->isNode() ? node_load($id, $vid) : quiz_entity_single_load($id, $vid);
   }
 
   public function getResultId() {
@@ -37,7 +23,7 @@ class QuizTakeLegacyController {
   public function getQuestionTakePath() {
     $id = $this->getQuizId();
     $current = $_SESSION['quiz'][$id]['current'];
-    return $this->isNode() ? "node/{$id}/take/{$current}" : "quiz/{$id}/take/{$current}";
+    return "quiz/{$id}/take/{$current}";
   }
 
   /**
@@ -55,11 +41,9 @@ class QuizTakeLegacyController {
    *   progress, this will return 0.
    */
   protected function activeResultId($uid, $vid, $now = NULL) {
-    $quiz_table = $this->isNode() ? 'quiz_node_properties' : 'quiz_entity_revision';
-
     $sql = 'SELECT qnr.result_id '
       . ' FROM {quiz_results} qnr '
-      . '   INNER JOIN {' . $quiz_table . '} quiz ON qnr.vid = quiz.vid'
+      . '   INNER JOIN {quiz_entity_revision} quiz ON qnr.vid = quiz.vid'
       . ' WHERE '
       . '   (quiz.quiz_always = :quiz_always OR (:between BETWEEN quiz.quiz_open AND quiz.quiz_close)) '
       . '   AND qnr.vid = :vid '

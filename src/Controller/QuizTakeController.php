@@ -37,7 +37,6 @@ class QuizTakeController extends QuizTakeLegacyController {
   }
 
   public function __construct($quiz, $account) {
-    parent::__construct(isset($quiz->nid) ? 'node' : 'quiz_entity');
     $this->quiz = $quiz;
     $this->account = $account;
   }
@@ -51,7 +50,7 @@ class QuizTakeController extends QuizTakeLegacyController {
 
     // Enforce that we have the same quiz version.
     if (($this->result) && ($this->quiz->vid != $this->result->vid)) {
-      $this->quiz = $this->loadQuiz($this->getQuizId(), $this->quiz->vid);
+      $this->quiz = quiz_entity_single_load($this->getQuizId(), $this->quiz->vid);
     }
 
     // Resume quiz progress
@@ -90,7 +89,7 @@ class QuizTakeController extends QuizTakeLegacyController {
     $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $result_id;
     $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
     $this->result = quiz_result_load($result_id);
-    $this->quiz = $this->loadQuiz($this->result->nid, $this->result->vid);
+    $this->quiz = quiz_entity_single_load($this->result->nid, $this->result->vid);
     $this->result_id = $result_id;
 
     // Resume a quiz from the database.
