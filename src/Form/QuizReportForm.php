@@ -196,7 +196,7 @@ class QuizReportForm {
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
     return array(
-      'question_count'   => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
+      'question_count'   => $properties->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($quiz_vid),
       'possible_score'   => $properties->max_score,
       'numeric_score'    => $total_score,
       'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),

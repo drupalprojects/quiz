@@ -9,7 +9,7 @@ class NodeViewHelper {
     node_invoke($node, 'prepare');
 
     // Number of questions is needed on the statistics page.
-    $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
+    $node->number_of_questions = $node->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($node->vid);
 
     $node->content['stats'] = array(
       '#markup' => theme('quiz_view_stats', array('quiz' => $node)),
