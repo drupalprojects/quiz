@@ -364,8 +364,20 @@ function quiz_user_cancel($edit, $account, $method) {
  * This is an admin form used to build a new quiz. It is called as part of the
  * node edit form.
  */
-function quiz_form(&$node, &$form_state) {
-  return quiz()->getNodeHelper()->getNodeFormHelper()->execute($node, $form_state);
+function quiz_form(&$quiz, &$form_state) {
+  $form = array();
+
+  if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
+    $helper = new \Drupal\quiz\Helper\FormHelper();
+    $form['userpoints']['userpoints_tid'] = array(
+      '#title'         => t('Userpoints Category'),
+      '#type'          => 'select',
+      '#options'       => $helper->getUserpointsType(),
+      '#default_value' => isset($quiz->userpoints_tid) ? $quiz->userpoints_tid : 0,
+    );
+  }
+  
+  return $form;
 }
 
 /**

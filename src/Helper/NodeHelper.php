@@ -2,7 +2,6 @@
 
 namespace Drupal\quiz\Helper;
 
-use Drupal\quiz\Helper\Node\NodeFormHelper;
 use Drupal\quiz\Helper\Node\NodeInsertHelper;
 use Drupal\quiz\Helper\Node\NodeUpdateHelper;
 use Drupal\quiz\Helper\Node\NodeValidateHelper;
@@ -12,8 +11,6 @@ class NodeHelper {
   private $nodeValidateHelper;
   private $nodeInsertHelper;
   private $nodeUpdateHelper;
-  private $nodePresaveHelper;
-  private $nodeFormHelper;
 
   /**
    * @return NodeValidateHelper
@@ -70,21 +67,6 @@ class NodeHelper {
 
   public function update($node) {
     $this->getNodeUpdateHelper()->execute($node);
-  }
-
-  /**
-   * @return NodeFormHelper
-   */
-  public function getNodeFormHelper() {
-    if (null === $this->nodeFormHelper) {
-      $this->nodeFormHelper = new NodeFormHelper();
-    }
-    return $this->nodeFormHelper;
-  }
-
-  public function setNodeFormHelper($nodeFormHelper) {
-    $this->nodeFormHelper = $nodeFormHelper;
-    return $this;
   }
 
 }

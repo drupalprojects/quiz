@@ -480,6 +480,10 @@ class FormDefinition extends FormHelper {
       $form['revision_information']['log']['#type'] = 'value';
       $form['revision_information']['log']['#value'] = $form['revision_information']['log']['#default_value'];
       $form['revision_information']['#access'] = FALSE;
+      if (quiz_has_been_answered($this->quiz)) {
+        $this->quiz->revision = 1;
+        $this->quiz->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
+      }
     }
   }
 
