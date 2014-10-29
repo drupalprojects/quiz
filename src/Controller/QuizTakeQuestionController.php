@@ -14,7 +14,6 @@ class QuizTakeQuestionController extends QuestionHelper {
 
   /** @var \Drupal\quiz\Entity\Result */
   private $result;
-  private $is_quiz_node;
   private $quiz_uri;
   private $quiz_id;
 
@@ -52,8 +51,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     $this->question = $question;
 
     // Legacy code
-    $this->is_quiz_node = isset($quiz->nid);
-    $this->quiz_uri = isset($quiz->nid) ? 'node/' . $quiz->nid : 'quiz/' . $quiz->qid;
+    $this->quiz_uri = 'quiz/' . $quiz->qid;
     $this->quiz_id = $quiz->qid;
 
     // Question disappeared or invalid session. Start over.
@@ -80,12 +78,12 @@ class QuizTakeQuestionController extends QuestionHelper {
     }
 
     $content['progress']['#markup'] = theme('quiz_progress', array(
-      'quiz'          => $this->quiz,
-      'questions'     => $questions,
-      'current'       => $this->page_number,
-      'allow_jumping' => $this->quiz->allow_jumping,
-      'pager'         => count($questions) >= variable_get('quiz_pager_start', 100),
-      'time_limit'    => $this->quiz->time_limit,
+        'quiz'          => $this->quiz,
+        'questions'     => $questions,
+        'current'       => $this->page_number,
+        'allow_jumping' => $this->quiz->allow_jumping,
+        'pager'         => count($questions) >= variable_get('quiz_pager_start', 100),
+        'time_limit'    => $this->quiz->time_limit,
     ));
     $content['progress']['#weight'] = -50;
 
@@ -133,10 +131,10 @@ class QuizTakeQuestionController extends QuestionHelper {
    */
   private function attachJs($time) {
     jquery_countdown_add('.countdown', array(
-      'until'    => $time,
-      'onExpiry' => 'quiz_take_finished',
-      'compact'  => TRUE,
-      'layout'   => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'
+        'until'    => $time,
+        'onExpiry' => 'quiz_take_finished',
+        'compact'  => TRUE,
+        'layout'   => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'
     ));
 
     // These are the two button op values that are accepted for answering questions.

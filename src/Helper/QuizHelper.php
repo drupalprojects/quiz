@@ -264,9 +264,9 @@ class QuizHelper {
         AND qnr.question_status = :question_status
         AND n.status = 1
         ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
-          ':quiz_vid'        => $quiz->vid,
-          ':quiz_qid'        => $quiz->qid,
-          ':question_status' => QUESTION_RANDOM
+            ':quiz_vid'        => $quiz->vid,
+            ':quiz_qid'        => $quiz->qid,
+            ':question_status' => QUESTION_RANDOM
           )
         );
         while ($question_node = $result->fetchAssoc()) {
@@ -368,19 +368,19 @@ class QuizHelper {
     foreach ($questions as $question) {
       if ($question->state != QUESTION_NEVER) {
         $question_inserts[$question->qr_id] = array(
-          'quiz_qid'              => $quiz->qid,
-          'quiz_vid'              => $quiz->vid,
-          'question_nid'          => $question->nid,
-          // Update to latest OR use the version given.
-          'question_vid'          => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(
-              ':nid' => $question->nid))->fetchField() : $question->vid,
-          'question_status'       => $question->state,
-          'weight'                => $question->weight,
-          'max_score'             => (int) $question->max_score,
-          'auto_update_max_score' => (int) $question->auto_update_max_score,
-          'qr_pid'                => $question->qr_pid,
-          'qr_id'                 => !$set_new_revision ? $question->qr_id : NULL,
-          'old_qr_id'             => $question->qr_id,
+            'quiz_qid'              => $quiz->qid,
+            'quiz_vid'              => $quiz->vid,
+            'question_nid'          => $question->nid,
+            // Update to latest OR use the version given.
+            'question_vid'          => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(
+                  ':nid' => $question->nid))->fetchField() : $question->vid,
+            'question_status'       => $question->state,
+            'weight'                => $question->weight,
+            'max_score'             => (int) $question->max_score,
+            'auto_update_max_score' => (int) $question->auto_update_max_score,
+            'qr_pid'                => $question->qr_pid,
+            'qr_id'                 => !$set_new_revision ? $question->qr_id : NULL,
+            'old_qr_id'             => $question->qr_id,
         );
         drupal_write_record('quiz_relationship', $question_inserts[$question->qr_id]);
       }
@@ -610,14 +610,14 @@ class QuizHelper {
       // Save the relationship between the new question and the quiz.
       db_insert('quiz_relationship')
         ->fields(array(
-          'quiz_qid'              => $node->nid,
-          'quiz_vid'              => $node->vid,
-          'question_nid'          => $original_question->nid,
-          'question_vid'          => $original_question->vid,
-          'question_status'       => $res_o->question_status,
-          'weight'                => $res_o->weight,
-          'max_score'             => $res_o->max_score,
-          'auto_update_max_score' => $res_o->auto_update_max_score,
+            'quiz_qid'              => $node->nid,
+            'quiz_vid'              => $node->vid,
+            'question_nid'          => $original_question->nid,
+            'question_vid'          => $original_question->vid,
+            'question_status'       => $res_o->question_status,
+            'weight'                => $res_o->weight,
+            'max_score'             => $res_o->max_score,
+            'auto_update_max_score' => $res_o->auto_update_max_score,
         ))
         ->execute();
     }
@@ -655,8 +655,8 @@ class QuizHelper {
       WHERE n.status=1
         AND qnr.quiz_vid = :quiz_vid
         AND qnr.question_status = :question_status', array(
-        ':quiz_vid'        => $quiz_vid,
-        ':question_status' => QUESTION_ALWAYS
+          ':quiz_vid'        => $quiz_vid,
+          ':question_status' => QUESTION_ALWAYS
       ))->fetchField();
   }
 
@@ -763,67 +763,78 @@ class QuizHelper {
     if ($quiz->randomization < 2) {
       $scale = db_query("
         SELECT (max_score / (
-            SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid
-          )) as scale
-          FROM {quiz_relationship}
-          WHERE quiz_qid = :quiz_qid
-          AND quiz_vid = :quiz_vid
-          AND question_nid = :question_nid
-          AND question_vid = :question_vid", array(
-        ':nid'          => $result->nid,
-        ':vid'          => $result->vid,
-        ':quiz_qid'     => $quiz->qid,
-        ':quiz_vid'     => $quiz->vid,
-        ':question_nid' => $result->nid,
-        ':question_vid' => $result->vid))->fetchField();
+              SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid
+            )) as scale
+            FROM {quiz_relationship}
+            WHERE quiz_qid = :quiz_qid
+            AND quiz_vid = :quiz_vid
+            AND question_nid = :question_nid
+            AND question_vid = :question_vid", array(
+          ':nid'          => $result->quiz_qid,
+          ':vid'          => $result->quiz_vid,
+          ':quiz_qid'     => $quiz->qid,
+          ':quiz_vid'     => $quiz->vid,
+          ':question_nid' => $result->quiz_qid,
+          ':question_vid' => $result->quiz_vid
+        ))->fetchField();
     }
     elseif ($quiz->randomization == 2) {
-      $scale = db_query("SELECT (max_score_for_random / (
-                  SELECT max_score
-                  FROM {quiz_question_properties}
-                  WHERE nid = :question_nid AND vid = :question_vid
-                )) as scale
-                FROM {quiz_node_properties}
-                WHERE vid = :quiz_vid
-               ", array(':question_nid' => $result->nid, ':question_vid' => $result->vid,
-        ':quiz_vid'     => $quiz->vid))->fetchField();
+      $scale = db_query("
+          SELECT
+            (max_score_for_random /
+              (SELECT max_score FROM {quiz_question_properties} WHERE nid = :question_nid AND vid = :question_vid)
+            ) as scale
+          FROM {quiz_node_properties}
+          WHERE vid = :quiz_vid", array(
+          ':question_nid' => $result->quiz_qid,
+          ':question_vid' => $result->quiz_vid,
+          ':quiz_vid'     => $quiz->vid
+        ))->fetchField();
     }
     elseif ($quiz->randomization == 3) {
       if (isset($options['question_data']['tid'])) {
         $result->tid = $options['question_data']['tid'];
       }
-      $scale = db_query("SELECT (max_score / (
-                  SELECT max_score
-                  FROM {quiz_question_properties}
-                  WHERE nid = :nid AND vid = :vid
-                )) as scale
-                FROM {quiz_terms}
-                WHERE vid = :vid
-                AND tid = :tid
-               ", array(':nid' => $result->nid, ':vid' => $result->vid, ':vid' => $quiz->vid, ':tid' => $result->tid))->fetchField();
+      $scale = db_query("
+          SELECT
+            (max_score /
+              (SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid)
+            ) as scale
+          FROM {quiz_terms} WHERE vid = :vid AND tid = :tid", array(
+          ':nid' => $result->quiz_qid,
+          ':vid' => $result->quiz_vid,
+          ':vid' => $quiz->vid,
+          ':tid' => $result->tid
+        ))->fetchField();
     }
     $points = round($result->score * $scale);
+
     // Insert result data, or update existing data.
     $result_answer_id = db_query("SELECT result_answer_id
-              FROM {quiz_results_answers}
-              WHERE question_nid = :question_nid
-              AND question_vid = :question_vid
-              AND result_id = :result_id", array(':question_nid' => $result->nid, ':question_vid' => $result->vid, ':result_id' => $result->result_id))->fetchField();
+        FROM {quiz_results_answers}
+        WHERE question_nid = :question_nid
+          AND question_vid = :question_vid
+          AND result_id = :result_id", array(
+        ':question_nid' => $result->quiz_qid,
+        ':question_vid' => $result->quiz_vid,
+        ':result_id'    => $result->result_id
+      ))->fetchField();
 
-    $entity = (object) array(
-        'result_answer_id' => $result_answer_id,
-        'question_nid'     => $result->nid,
-        'question_vid'     => $result->vid,
-        'result_id'        => $result->result_id,
-        'is_correct'       => (int) $result->is_correct,
-        'points_awarded'   => $points,
-        'answer_timestamp' => REQUEST_TIME,
-        'is_skipped'       => (int) $result->is_skipped,
-        'is_doubtful'      => (int) $result->is_doubtful,
-        'number'           => $options['question_data']['number'],
-        'tid'              => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
+    $answer = (object) array(
+          'result_answer_id' => $result_answer_id,
+          'question_nid'     => $result->quiz_qid,
+          'question_vid'     => $result->quiz_vid,
+          'result_id'        => $result->result_id,
+          'is_correct'       => (int) $result->is_correct,
+          'points_awarded'   => $points,
+          'answer_timestamp' => REQUEST_TIME,
+          'is_skipped'       => (int) $result->is_skipped,
+          'is_doubtful'      => (int) $result->is_doubtful,
+          'number'           => $options['question_data']['number'],
+          'tid'              => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
     );
-    entity_save('quiz_result_answer', $entity);
+
+    entity_save('quiz_result_answer', $answer);
   }
 
   /**
@@ -929,12 +940,19 @@ class QuizHelper {
    *   The version ID.
    */
   public function isPassed($uid, $nid, $vid) {
-    $passed = db_query('SELECT COUNT(result_id) AS passed_count FROM {quiz_results} qnrs
-    INNER JOIN {quiz_node_properties} USING (vid, nid)
-    WHERE qnrs.vid = :vid
-      AND qnrs.nid = :nid
-      AND qnrs.uid = :uid
-      AND score >= pass_rate', array(':vid' => $vid, ':nid' => $nid, ':uid' => $uid))->fetchField();
+    $passed = db_query(
+      'SELECT COUNT(result_id) AS passed_count
+          FROM {quiz_results} result
+            INNER JOIN {quiz_entity_revision} revision
+              ON result.quiz_vid = revision.vid AND result.quiz_qid = revision.vid
+          WHERE result.quiz_vid = :vid
+            AND result.quiz_qid = :qid
+            AND result.uid = :uid
+            AND score >= pass_rate', array(
+        ':vid' => $vid,
+        ':qid' => $nid,
+        ':uid' => $uid
+      ))->fetchField();
 
     // Force into boolean context.
     return ($passed !== FALSE && $passed > 0);

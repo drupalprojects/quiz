@@ -16,7 +16,9 @@ class QuizResultController {
    */
   public static function staticCallback($quiz, $result_id) {
     // Make sure we have the right version of the quiz
-    $result = db_query('SELECT vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
+    $result = db_query('SELECT quiz_vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(
+        ':result_id' => $result_id
+      ))->fetchObject();
     if ($quiz->vid != $result->vid) {
       $quiz_id = $quiz->qid;
       $quiz = quiz_entity_single_load($quiz_id, $result->vid);
@@ -34,12 +36,12 @@ class QuizResultController {
     # drupal_set_breadcrumb($breadcrumb);
 
     $data = array(
-      'quiz'      => $quiz,
-      'questions' => $questions,
-      'score'     => $score,
-      'summary'   => $summary,
-      'result_id' => $result_id,
-      'account'   => user_load($result->uid),
+        'quiz'      => $quiz,
+        'questions' => $questions,
+        'score'     => $score,
+        'summary'   => $summary,
+        'result_id' => $result_id,
+        'account'   => user_load($result->uid),
     );
 
     return theme('quiz_result', $data);

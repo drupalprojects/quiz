@@ -7,8 +7,8 @@ use Entity;
 class Result extends Entity {
 
   public $result_id;
-  public $nid;
-  public $vid;
+  public $quiz_qid;
+  public $quiz_vid;
   public $uid;
   public $time_start;
   public $time_end;

@@ -230,7 +230,7 @@ function short_answer_get_answer($question_nid, $question_vid, $result_id) {
   $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
     FROM {quiz_short_answer_user_answers} sa
     JOIN {quiz_results} qnr ON (sa.result_id = qnr.result_id)
-    JOIN {quiz_relationship} rel ON (qnr.vid = rel.quiz_vid AND rel.question_vid = sa.question_vid)
+    JOIN {quiz_relationship} rel ON (qnr.quiz_vid = rel.quiz_vid AND rel.question_vid = sa.question_vid)
     WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $results ? $results : FALSE;
 }

@@ -31,8 +31,8 @@ class QuizUserResultController {
    * @param Result $result
    */
   public static function staticCallback($result) {
-    $quiz = quiz_entity_single_load($result->nid);
-    $quiz_revision = quiz_entity_single_load($result->nid, $result->vid);
+    $quiz = quiz_entity_single_load($result->quiz_qid);
+    $quiz_revision = quiz_entity_single_load($result->quiz_qid, $result->quiz_vid);
     $obj = new static($quiz, $quiz_revision, $result);
     return $obj->render();
   }
@@ -41,7 +41,7 @@ class QuizUserResultController {
     $this->quiz = $quiz;
     $this->quiz_revision = $quiz_revision;
     $this->result = $result;
-    $this->quiz_id = $this->result->nid;
+    $this->quiz_id = $this->result->quiz_qid;
     $this->score = quiz()
       ->getQuizHelper()
       ->getResultHelper()
@@ -57,12 +57,12 @@ class QuizUserResultController {
     $this->setBreadcrumb();
 
     $data = array(
-      'quiz'      => $this->quiz_revision,
-      'questions' => quiz()->getQuizHelper()->getResultHelper()->getAnswers($this->quiz_revision, $this->result->result_id),
-      'score'     => $this->score,
-      'summary'   => quiz()->getQuizHelper()->getResultHelper()->getSummaryText($this->quiz_revision, $this->score),
-      'result_id' => $this->result->result_id,
-      'account'   => user_load($this->result->uid),
+        'quiz'      => $this->quiz_revision,
+        'questions' => quiz()->getQuizHelper()->getResultHelper()->getAnswers($this->quiz_revision, $this->result->result_id),
+        'score'     => $this->score,
+        'summary'   => quiz()->getQuizHelper()->getResultHelper()->getSummaryText($this->quiz_revision, $this->score),
+        'result_id' => $this->result->result_id,
+        'account'   => user_load($this->result->uid),
     );
 
     // User can view own quiz results OR the current quiz has "display solution".
@@ -81,7 +81,7 @@ class QuizUserResultController {
 
   private function setBreadcrumb() {
     $bc = drupal_get_breadcrumb();
-    $bc[] = l($this->quiz->title, isset($this->quiz->nid) ? 'node/' . $this->quiz_id : 'quiz/' . $this->quiz_id);
+    $bc[] = l($this->quiz->title, 'quiz/' . $this->quiz_id);
     drupal_set_breadcrumb($bc);
   }
 

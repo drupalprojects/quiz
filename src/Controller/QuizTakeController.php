@@ -32,6 +32,7 @@ class QuizTakeController extends QuizTakeLegacyController {
       }
     }
     catch (RuntimeException $e) {
+      throw $e;
       return array('body' => ['#markup' => $e->getMessage()]);
     }
   }
@@ -49,7 +50,7 @@ class QuizTakeController extends QuizTakeLegacyController {
     }
 
     // Enforce that we have the same quiz version.
-    if (($this->result) && ($this->quiz->vid != $this->result->vid)) {
+    if (($this->result) && ($this->quiz->vid != $this->result->quiz_vid)) {
       $this->quiz = quiz_entity_single_load($this->getQuizId(), $this->quiz->vid);
     }
 
@@ -89,7 +90,7 @@ class QuizTakeController extends QuizTakeLegacyController {
     $_SESSION['quiz'][$this->getQuizId()]['result_id'] = $result_id;
     $_SESSION['quiz'][$this->getQuizId()]['current'] = 1;
     $this->result = quiz_result_load($result_id);
-    $this->quiz = quiz_entity_single_load($this->result->nid, $this->result->vid);
+    $this->quiz = quiz_entity_single_load($this->result->quiz_qid, $this->result->quiz_vid);
     $this->result_id = $result_id;
 
     // Resume a quiz from the database.
@@ -129,7 +130,10 @@ class QuizTakeController extends QuizTakeLegacyController {
 
     // Check to see if this user is allowed to take the quiz again:
     if ($this->quiz->takes > 0) {
-      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $this->account->uid, ':nid' => $this->getQuizId()))->fetchField();
+      $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_results} WHERE uid = :uid AND quiz_qid = :qid", array(
+          ':uid' => $this->account->uid,
+          ':qid' => $this->getQuizId()
+        ))->fetchField();
       $allowed_times = format_plural($this->quiz->takes, '1 time', '@count times');
       $taken_times = format_plural($taken, '1 time', '@count times');
 
@@ -183,11 +187,11 @@ class QuizTakeController extends QuizTakeLegacyController {
     }
 
     $quiz_result = entity_create('quiz_result', array(
-      'nid'        => $this->getQuizId(),
-      'vid'        => $this->quiz->vid,
-      'uid'        => $this->account->uid,
-      'time_start' => REQUEST_TIME,
-      'layout'     => $questions,
+        'quiz_qid'   => $this->getQuizId(),
+        'quiz_vid'   => $this->quiz->vid,
+        'uid'        => $this->account->uid,
+        'time_start' => REQUEST_TIME,
+        'layout'     => $questions,
     ));
 
     // Write the layout for this result.

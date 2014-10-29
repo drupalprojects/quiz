@@ -43,19 +43,19 @@ class QuizTakeLegacyController {
   protected function activeResultId($uid, $vid, $now = NULL) {
     $sql = 'SELECT qnr.result_id '
       . ' FROM {quiz_results} qnr '
-      . '   INNER JOIN {quiz_entity_revision} quiz ON qnr.vid = quiz.vid'
+      . '   INNER JOIN {quiz_entity_revision} quiz ON qnr.quiz_vid = quiz.vid'
       . ' WHERE '
       . '   (quiz.quiz_always = :quiz_always OR (:between BETWEEN quiz.quiz_open AND quiz.quiz_close)) '
-      . '   AND qnr.vid = :vid '
+      . '   AND qnr.quiz_vid = :vid '
       . '   AND qnr.uid = :uid '
       . '   AND qnr.time_end IS NULL';
 
     // Get any quiz that is open, for this user, and has not already been completed.
     return (int) db_query($sql, array(
-        ':quiz_always' => 1,
-        ':between'     => $now ? $now : REQUEST_TIME,
-        ':vid'         => $vid,
-        ':uid'         => $uid
+          ':quiz_always' => 1,
+          ':between'     => $now ? $now : REQUEST_TIME,
+          ':vid'         => $vid,
+          ':uid'         => $uid
       ))->fetchField();
   }
 

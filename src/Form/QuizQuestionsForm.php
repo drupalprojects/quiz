@@ -32,12 +32,12 @@ class QuizQuestionsForm {
 
     // Display questions in this quiz.
     $form['question_list'] = array(
-      '#type'           => 'fieldset',
-      '#title'          => t('Questions in this quiz'),
-      '#theme'          => 'question_selection_table',
-      '#collapsible'    => TRUE,
-      '#attributes'     => array('id' => 'mq-fieldset'),
-      'question_status' => array('#tree' => TRUE),
+        '#type'           => 'fieldset',
+        '#title'          => t('Questions in this quiz'),
+        '#theme'          => 'question_selection_table',
+        '#collapsible'    => TRUE,
+        '#attributes'     => array('id' => 'mq-fieldset'),
+        'question_status' => array('#tree' => TRUE),
     );
 
     // Add randomization settings if this quiz allows randomized questions
@@ -48,7 +48,7 @@ class QuizQuestionsForm {
 
     if (empty($questions)) {
       $form['question_list']['no_questions'] = array(
-        '#markup' => '<div id = "no-questions">' . t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') . '</div>',
+          '#markup' => '<div id = "no-questions">' . t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') . '</div>',
       );
     }
 
@@ -68,9 +68,9 @@ class QuizQuestionsForm {
 
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = array(
-      '#type'   => 'submit',
-      '#value'  => t('Submit'),
-      '#submit' => array(array($this, 'formSubmit')),
+        '#type'   => 'submit',
+        '#value'  => t('Submit'),
+        '#submit' => array(array($this, 'formSubmit')),
     );
     return $form;
   }
@@ -88,36 +88,36 @@ class QuizQuestionsForm {
   private function addFieldsForCreatingQuestions(&$form, &$types, &$quiz) {
     // Display links to create other questions.
     $form['additional_questions'] = array(
-      '#type'        => 'fieldset',
-      '#title'       => t('Create new question'),
-      '#collapsible' => TRUE,
-      '#collapsed'   => TRUE,
+        '#type'        => 'fieldset',
+        '#title'       => t('Create new question'),
+        '#collapsible' => TRUE,
+        '#collapsed'   => TRUE,
     );
 
     $url_query = drupal_get_destination();
-    $url_query['quiz_nid'] = $quiz->qid;
+    $url_query['quiz_qid'] = $quiz->qid;
     $url_query['quiz_vid'] = $quiz->vid;
     $create_question = FALSE;
     foreach ($types as $type => $info) {
       $url_type = str_replace('_', '-', $type);
       $options = array(
-        'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
-        'query'      => $url_query,
+          'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),
+          'query'      => $url_query,
       );
       $access = node_access('create', $type);
       if ($access) {
         $create_question = TRUE;
       }
       $form['additional_questions'][$type] = array(
-        '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
-        '#access' => $access,
+          '#markup' => '<div class="add-questions">' . l($info['name'], "node/add/$url_type", $options) . '</div>',
+          '#access' => $access,
       );
     }
 
     if (!$create_question) {
       $form['additional_questions']['create'] = array(
-        '#type'   => 'markup',
-        '#markup' => t('You have not enabled any question type module or no has permission been given to create any question.'),
+          '#type'   => 'markup',
+          '#markup' => t('You have not enabled any question type module or no has permission been given to create any question.'),
         // @todo revisit UI text
       );
     }
@@ -136,38 +136,38 @@ class QuizQuestionsForm {
       return;
     }
     $form['question_list']['random_settings'] = array(
-      '#type'        => 'fieldset',
-      '#title'       => t('Settings for random questions'),
-      '#collapsible' => TRUE,
+        '#type'        => 'fieldset',
+        '#title'       => t('Settings for random questions'),
+        '#collapsible' => TRUE,
     );
     $form['question_list']['random_settings']['num_random_questions'] = array(
-      '#type'          => 'textfield',
-      '#size'          => 3,
-      '#maxlength'     => 3,
-      '#weight'        => -5,
-      '#title'         => t('Number of random questions'),
-      '#description'   => t('The number of questions to be randomly selected each time someone takes this quiz'),
-      '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
+        '#type'          => 'textfield',
+        '#size'          => 3,
+        '#maxlength'     => 3,
+        '#weight'        => -5,
+        '#title'         => t('Number of random questions'),
+        '#description'   => t('The number of questions to be randomly selected each time someone takes this quiz'),
+        '#default_value' => isset($quiz->number_of_random_questions) ? $quiz->number_of_random_questions : 10,
     );
     $form['question_list']['random_settings']['max_score_for_random'] = array(
-      '#type'          => 'textfield',
-      '#size'          => 3,
-      '#maxlength'     => 3,
-      '#weight'        => -5,
-      '#title'         => t('Max score for each random question'),
-      '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
+        '#type'          => 'textfield',
+        '#size'          => 3,
+        '#maxlength'     => 3,
+        '#weight'        => -5,
+        '#title'         => t('Max score for each random question'),
+        '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
     );
     if ($quiz->randomization == 3) {
       $terms = $this->taxonomySelect($quiz->tid);
       if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
         $form['question_list']['random_settings']['random_term_id'] = array(
-          '#type'          => 'select',
-          '#title'         => t('Terms'),
-          '#size'          => 1,
-          '#options'       => $this->taxonomySelect($quiz->tid),
-          '#default_value' => $quiz->tid,
-          '#description'   => t('Randomly select from questions with this term, or choose from the question pool below'),
-          '#weight'        => -4,
+            '#type'          => 'select',
+            '#title'         => t('Terms'),
+            '#size'          => 1,
+            '#options'       => $this->taxonomySelect($quiz->tid),
+            '#default_value' => $quiz->tid,
+            '#description'   => t('Randomly select from questions with this term, or choose from the question pool below'),
+            '#weight'        => -4,
         );
       }
     }
@@ -222,62 +222,62 @@ class QuizQuestionsForm {
       $id = $question->nid . '-' . $question->vid;
 
       $form[$fieldset]['weights'][$id] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#maxlength'     => 4,
-        '#default_value' => isset($question->weight) ? $question->weight : 0,
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#maxlength'     => 4,
+          '#default_value' => isset($question->weight) ? $question->weight : 0,
       );
 
       $form[$fieldset]['qr_pids'][$id] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#maxlength'     => 4,
-        '#default_value' => $question->qr_pid,
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#maxlength'     => 4,
+          '#default_value' => $question->qr_pid,
       );
 
       $form[$fieldset]['qr_ids'][$id] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#maxlength'     => 4,
-        '#default_value' => $question->qr_id,
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#maxlength'     => 4,
+          '#default_value' => $question->qr_id,
       );
 
       // Quiz directions don't have scoring...
       $form[$fieldset]['max_scores'][$id] = array(
-        '#type'          => $instance->isGraded() ? 'textfield' : 'hidden',
-        '#size'          => 2,
-        '#maxlength'     => 2,
-        '#disabled'      => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
-        '#default_value' => isset($question->max_score) ? $question->max_score : 0,
-        '#states'        => array(
-          'disabled' => array("#edit-auto-update-max-scores-$id" => array('checked' => TRUE))
-        ),
+          '#type'          => $instance->isGraded() ? 'textfield' : 'hidden',
+          '#size'          => 2,
+          '#maxlength'     => 2,
+          '#disabled'      => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
+          '#default_value' => isset($question->max_score) ? $question->max_score : 0,
+          '#states'        => array(
+              'disabled' => array("#edit-auto-update-max-scores-$id" => array('checked' => TRUE))
+          ),
       );
 
       $form[$fieldset]['auto_update_max_scores'][$id] = array(
-        '#type'          => $instance->isGraded() ? 'checkbox' : 'hidden',
-        '#default_value' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : 0,
+          '#type'          => $instance->isGraded() ? 'checkbox' : 'hidden',
+          '#default_value' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : 0,
       );
 
       // Add checkboxes to remove questions in js disabled browsers...
       $form[$fieldset]['stayers'][$id] = array(
-        '#type'          => 'checkbox',
-        '#default_value' => 0,
-        '#attributes'    => array('class' => array('q-staying')),
+          '#type'          => 'checkbox',
+          '#default_value' => 0,
+          '#attributes'    => array('class' => array('q-staying')),
       );
 
       //Add checkboxes to mark compulsory questions for randomized quizzes.
       if ($quiz->randomization == 2) {
         $form[$fieldset]['compulsories'][$id] = array(
-          '#type'          => 'checkbox',
-          '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
-          '#attributes'    => array('class' => array('q-compulsory')),
+            '#type'          => 'checkbox',
+            '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
+            '#attributes'    => array('class' => array('q-compulsory')),
         );
       }
 
       if (user_access('view quiz question outside of a quiz')) {
         $link_options = array(
-          'attributes' => array('class' => array('handle-changes')),
+            'attributes' => array('class' => array('handle-changes')),
         );
         $question_titles = l($question->title, 'node/' . $question->nid, $link_options);
       }
@@ -289,22 +289,22 @@ class QuizQuestionsForm {
 
 
       $form[$fieldset]['types'][$id] = array(
-        '#markup'        => $question_types[$question->type]['name'],
-        '#question_type' => $question->type,
+          '#markup'        => $question_types[$question->type]['name'],
+          '#question_type' => $question->type,
       );
 
       $form[$fieldset]['view_links'][$id] = array(
-        '#markup' => l(
-          t('Edit'), 'node/' . $question->nid . '/edit', array(
-          'query'      => drupal_get_destination(),
-          'attributes' => array('class' => array('handle-changes')),
-          )
-        ),
-        '#access' => node_access('update', node_load($question->nid, $question->vid)),
+          '#markup' => l(
+            t('Edit'), 'node/' . $question->nid . '/edit', array(
+              'query'      => drupal_get_destination(),
+              'attributes' => array('class' => array('handle-changes')),
+            )
+          ),
+          '#access' => node_access('update', node_load($question->nid, $question->vid)),
       );
       // For js enabled browsers questions are removed by pressing a remove link
       $form[$fieldset]['remove_links'][$id] = array(
-        '#markup' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
+          '#markup' => '<a href="#" class="rem-link">' . t('Remove') . '</a>',
       );
       // Add a checkbox to update to the latest revision of the question
       if ($question->vid == $question->latest_vid) {
@@ -312,11 +312,11 @@ class QuizQuestionsForm {
       }
       else {
         $update_cell = array(
-          '#type'  => 'checkbox',
-          '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $question->latest_vid . '/view')
-          . ' of ' .
-          l(t('revisions'), 'node/' . $question->nid . '/revisions')
-          ),
+            '#type'  => 'checkbox',
+            '#title' => (l(t('Latest'), 'node/' . $question->nid . '/revisions/' . $question->latest_vid . '/view')
+            . ' of ' .
+            l(t('revisions'), 'node/' . $question->nid . '/revisions')
+            ),
         );
       }
       $form[$fieldset]['revision'][$id] = $update_cell;
@@ -360,7 +360,7 @@ class QuizQuestionsForm {
     foreach ($weight_map as $id => $weight) {
       list($nid, $vid) = explode('-', $id, 2);
 
-      // If a node isn't one of the questionstypes we remove it from the question list
+      // If a node isn't one of the question types we remove it from the question list
       $has_questions = (Boolean) db_select('node', 'n')
           ->fields('n', array('nid'))
           ->condition('type', $question_types, 'IN')
@@ -530,11 +530,9 @@ class QuizQuestionsForm {
         continue;
       }
       list($nid, $vid) = explode('-', $id, 2);
-      $nid = (int) $nid;
-      $vid = (int) $vid;
       $question = new stdClass();
-      $question->nid = $nid;
-      $question->vid = $vid;
+      $question->nid = (int) $nid;
+      $question->vid = (int) $vid;
       if (isset($compulsories)) {
         if ($compulsories[$id] == 1) {
           $question->state = QUESTION_ALWAYS;

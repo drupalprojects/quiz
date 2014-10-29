@@ -28,24 +28,24 @@ function long_answer_help($path, $arg) {
  */
 function long_answer_menu() {
   $items['admin/quiz/reports/score-long-answer'] = array(
-    'title' => 'Score long answer questions',
-    'description' => 'Score the answers from quizzes that use long answer questions.',
-    'page callback' => 'long_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
-    'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'long_answer.admin.inc',
+      'title'            => 'Score long answer questions',
+      'description'      => 'Score the answers from quizzes that use long answer questions.',
+      'page callback'    => 'long_answer_view_unscored',
+      'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
+      'access callback'  => 'quiz_access_multi_or',
+      'type'             => MENU_NORMAL_ITEM,
+      'file'             => 'long_answer.admin.inc',
   );
   // Pass vid and rid to this path.
   $items['admin/quiz/reports/score-long-answer/%/%'] = array(
-    'title' => 'Score long answer response',
-    'description' => 'Score a response to a long answer question.',
-    'page callback' => 'long_answer_edit_score',
-    'page arguments' => array(4, 5),
-    'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array(4, 5),
-    'access callback' => 'quiz_question_access_to_score',
-    'file' => 'long_answer.admin.inc'
+      'title'            => 'Score long answer response',
+      'description'      => 'Score a response to a long answer question.',
+      'page callback'    => 'long_answer_edit_score',
+      'page arguments'   => array(4, 5),
+      'type'             => MENU_NORMAL_ITEM,
+      'access arguments' => array(4, 5),
+      'access callback'  => 'quiz_question_access_to_score',
+      'file'             => 'long_answer.admin.inc'
   );
 
   return $items;
@@ -56,13 +56,13 @@ function long_answer_menu() {
  */
 function long_answer_quiz_question_info() {
   return array(
-    'long_answer' => array(
-      'name' => t('Long answer question'),
-      'description' => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
-      'question provider' => 'LongAnswerQuestion',
-      'response provider' => 'LongAnswerResponse',
-      'module' => 'quiz_question', // All wrapper functions are in that module.
-    ),
+      'long_answer' => array(
+          'name'              => t('Long answer question'),
+          'description'       => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
+          'question provider' => 'LongAnswerQuestion',
+          'response provider' => 'LongAnswerResponse',
+          'module'            => 'quiz_question', // All wrapper functions are in that module.
+      ),
   );
 }
 
@@ -71,10 +71,10 @@ function long_answer_quiz_question_info() {
  */
 function long_answer_quiz_question_config() {
   $form['long_answer_default_max_score'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Default max score'),
-    '#description' => t('Choose the default maximum score for a long answer question.'),
-    '#default_value' => variable_get('long_answer_default_max_score', 10),
+      '#type'          => 'textfield',
+      '#title'         => t('Default max score'),
+      '#description'   => t('Choose the default maximum score for a long answer question.'),
+      '#default_value' => variable_get('long_answer_default_max_score', 10),
   );
   $form['#validate'][] = 'long_answer_config_validate';
   return $form;
@@ -94,21 +94,21 @@ function long_answer_config_validate($form, $form_state) {
  */
 function long_answer_theme() {
   return array(
-    'long_answer_view_unscored' => array(
-      'variables' => array('unscored' => array()),
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
-      'file' => 'long_answer.theme.inc',
-    ),
-    'long_answer_response_form' => array(
-      'render element' => 'form',
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
-      'file' => 'long_answer.theme.inc',
-    ),
-    'long_answer_answering_form' => array(
-      'render element' => 'form',
-      'path' => drupal_get_path('module', 'long_answer') . '/theme',
-      'template' => 'long-answer-answering-form',
-    ),
+      'long_answer_view_unscored'  => array(
+          'variables' => array('unscored' => array()),
+          'path'      => drupal_get_path('module', 'long_answer') . '/theme',
+          'file'      => 'long_answer.theme.inc',
+      ),
+      'long_answer_response_form'  => array(
+          'render element' => 'form',
+          'path'           => drupal_get_path('module', 'long_answer') . '/theme',
+          'file'           => 'long_answer.theme.inc',
+      ),
+      'long_answer_answering_form' => array(
+          'render element' => 'form',
+          'path'           => drupal_get_path('module', 'long_answer') . '/theme',
+          'template'       => 'long-answer-answering-form',
+      ),
   );
 }
 
@@ -151,10 +151,10 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
 
   $changed = db_update('quiz_long_answer_user_answers')
     ->fields(array(
-      'score' => $score * $question_max_score / $quiz_max_score,
-      'is_evaluated' => 1,
-      'answer_feedback' => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
-      'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
+        'score'                  => $score * $question_max_score / $quiz_max_score,
+        'is_evaluated'           => 1,
+        'answer_feedback'        => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
+        'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
@@ -176,8 +176,8 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
 
     db_update('quiz_results_answers')
       ->fields(array(
-        'points_awarded' => $points_awarded,
-        'is_correct' => $is_correct,
+          'points_awarded' => $points_awarded,
+          'is_correct'     => $is_correct,
       ))
       ->condition('question_vid', $vid)
       ->condition('result_id', $result_id)
@@ -216,9 +216,11 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
  *  </code>
  */
 function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, la.answer_feedback_format, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
+  $result = db_query('
+    SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, la.answer_feedback_format, rel.max_score AS rel_max_score
+    FROM {quiz_long_answer_user_answers} la
     JOIN {quiz_results} qnr ON (la.result_id = qnr.result_id)
-    JOIN {quiz_relationship} rel ON (qnr.vid = rel.quiz_vid AND rel.question_vid = la.question_vid)
+    JOIN {quiz_relationship} rel ON (qnr.quiz_vid = rel.quiz_vid AND rel.question_vid = la.question_vid)
     WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
   return $result ? $result : FALSE;
 }
@@ -273,9 +275,9 @@ function long_answer_get_all_unscored_answers($count = 50, $offset = 0) {
  */
 function long_answer_questions_list() {
   $questions = array();
-  $results = db_query('SELECT nid, title FROM {node} WHERE type = :type', array(':type' => 'long_answer'));
-  foreach ($results as $result) {
-    $questions[$result->nid] = check_plain($result->title);
+  $query = db_query('SELECT nid, title FROM {node} WHERE type = :type', array(':type' => 'long_answer'));
+  foreach ($query as $question) {
+    $questions[$question->nid] = check_plain($question->title);
   }
   return $questions;
 }
@@ -295,13 +297,13 @@ function long_answer_report_submit($values) {
  */
 function long_answer_field_extra_fields() {
   $extra['node']['long_answer'] = array(
-    'form' => array(
-      'rubric' => array(
-        'label' => t('Rubric'),
-        'description' => t('Specify the criteria for grading the response'),
-        'weight' => -4,
+      'form' => array(
+          'rubric' => array(
+              'label'       => t('Rubric'),
+              'description' => t('Specify the criteria for grading the response'),
+              'weight'      => -4,
+          ),
       ),
-    ),
   );
   return $extra;
 }

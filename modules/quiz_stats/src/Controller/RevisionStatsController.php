@@ -33,23 +33,23 @@ class RevisionStatsController {
    */
   public function render() {
     return array(
-      '#theme'    => 'quiz_stats_charts',
-      '#chart'    => $this->buildChartStructure(),
-      '#attached' => array(
-        'css' => array(drupal_get_path('module', 'quiz_stats') . '/quiz_stats.css')
-      )
+        '#theme'    => 'quiz_stats_charts',
+        '#chart'    => $this->buildChartStructure(),
+        '#attached' => array(
+            'css' => array(drupal_get_path('module', 'quiz_stats') . '/quiz_stats.css')
+        )
     );
   }
 
   private function buildChartStructure() {
     return array(
-      'takeup'      => $this->getDateVSTakeupCountChart(),
-      // line chart/graph showing quiz takeup date along x-axis and count along y-axis
-      'status'      => $this->getQuizStatusChart($this->vid, $this->uid),
-      // 3D pie chart showing percentage of pass, fail, incomplete quiz status
-      'top_scorers' => $this->getQuizTopScorersChart(),
-      // Bar chart displaying top scorers
-      'grade_range' => $this->getQuizGradeRangeChart(),
+        'takeup'      => $this->getDateVSTakeupCountChart(),
+        // line chart/graph showing quiz takeup date along x-axis and count along y-axis
+        'status'      => $this->getQuizStatusChart($this->vid, $this->uid),
+        // 3D pie chart showing percentage of pass, fail, incomplete quiz status
+        'top_scorers' => $this->getQuizTopScorersChart(),
+        // Bar chart displaying top scorers
+        'grade_range' => $this->getQuizGradeRangeChart(),
     );
   }
 
@@ -64,7 +64,7 @@ class RevisionStatsController {
     $sql = "SELECT COUNT(result_id) AS count,
             DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
             FROM {quiz_results}
-            WHERE vid = :vid";
+            WHERE quiz_vid = :vid";
     $sql_args[':vid'] = $this->vid;
     if ($this->uid) {
       $sql .= " AND uid = :uid";
@@ -96,11 +96,11 @@ class RevisionStatsController {
 
     // generate date vs takeup count line chart
     return array(
-      'chart'       => '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">' . $chart . '</div>',
-      'title'       => t('Activity'),
-      'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array(
-        '!days' => $end
-      )),
+        'chart'       => '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">' . $chart . '</div>',
+        'title'       => t('Activity'),
+        'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array(
+            '!days' => $end
+        )),
     );
   }
 
@@ -120,11 +120,13 @@ class RevisionStatsController {
     }
 
     // get the count value of results row above and below pass rate
-    $quiz = db_query("SELECT SUM(score >= $pass_rate) AS no_pass, "
-      . " SUM(score < $pass_rate) AS no_fail, "
-      . " SUM(is_evaluated = 0) AS no_incomplete "
+    $quiz = db_query(
+      "SELECT "
+      . "   SUM(score >= $pass_rate) AS no_pass, "
+      . "   SUM(score < $pass_rate) AS no_fail, "
+      . "   SUM(is_evaluated = 0) AS no_incomplete "
       . " FROM {quiz_results} "
-      . " WHERE vid = :vid", array(':vid' => $this->vid))->fetchAssoc();
+      . " WHERE quiz_vid = :vid", array(':vid' => $this->vid))->fetchAssoc();
 
     if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 1) {
       return FALSE; // no sufficient data
@@ -135,9 +137,9 @@ class RevisionStatsController {
     $chart .= theme('get_quiz_status_chart', array('quiz' => $quiz));
     $chart .= '</div>';
     return array(
-      'chart'       => $chart,
-      'title'       => t('Status'),
-      'explanation' => t('This chart shows the status for all attempts made to answer this revision of the quiz.'),
+        'chart'       => $chart,
+        'title'       => t('Status'),
+        'explanation' => t('This chart shows the status for all attempts made to answer this revision of the quiz.'),
     );
   }
 
@@ -152,7 +154,7 @@ class RevisionStatsController {
     $sql = 'SELECT name, score
       FROM {quiz_results} qnr
       LEFT JOIN {users} u ON (u.uid = qnr.uid)
-      WHERE vid = :vid';
+      WHERE quiz_vid = :vid';
     $arg[':vid'] = $this->vid;
     if ($this->uid) {
       $sql .= ' AND qnr.uid = :uid';
@@ -171,9 +173,9 @@ class RevisionStatsController {
 
     $chart = theme('quiz_top_scorers', array('scorer' => $top_scorers));
     return array(
-      'chart'       => '<div id="quiz_top_scorers" class="quiz-stats-chart-space">' . $chart . '</div>',
-      'title'       => t('Top scorers'),
-      'explanation' => t('This chart shows what question takers have the highest scores'),
+        'chart'       => '<div id="quiz_top_scorers" class="quiz-stats-chart-space">' . $chart . '</div>',
+        'title'       => t('Top scorers'),
+        'explanation' => t('This chart shows what question takers have the highest scores'),
     );
   }
 
@@ -191,7 +193,7 @@ class RevisionStatsController {
               SUM(score >= 60 && score < 80) AS sixty_to_eighty,
               SUM(score >= 80 && score <= 100) AS eighty_to_hundred
             FROM {quiz_results}
-            WHERE vid = :vid';
+            WHERE quiz_vid = :vid';
     $arg[':vid'] = $this->vid;
     if ($this->uid) {
       $sql .= ' AND uid = :uid';
@@ -208,9 +210,9 @@ class RevisionStatsController {
 
     // Return the chart with some meta data
     return array(
-      'chart'       => '<div id="quiz_top_scorers" class="quiz-stats-chart-space">' . $chart . '</div>',
-      'title'       => t('Distribution'),
-      'explanation' => t('This chart shows the distribution of the scores on this quiz.'),
+        'chart'       => '<div id="quiz_top_scorers" class="quiz-stats-chart-space">' . $chart . '</div>',
+        'title'       => t('Distribution'),
+        'explanation' => t('This chart shows the distribution of the scores on this quiz.'),
     );
   }
 

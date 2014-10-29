@@ -63,8 +63,8 @@ function quiz_question_access_to_score($vid, $result_id) {
  */
 function _quiz_question_teaser_content($node) {
   $content['question_type'] = array(
-    '#markup' => '<div class="question_type_name">' . node_type_get_type($node)->name . '</div>',
-    '#weight' => -100,
+      '#markup' => '<div class="question_type_name">' . node_type_get_type($node)->name . '</div>',
+      '#weight' => -100,
   );
   return $content;
 }
@@ -279,8 +279,8 @@ function quiz_question_refresh_latest_quizzes($nid) {
   // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)
   $id = db_insert('quiz_question_latest_quizzes')
     ->fields(array(
-      'uid'      => $user->uid,
-      'quiz_nid' => $nid,
+        'uid'      => $user->uid,
+        'quiz_nid' => $nid,
     ))
     ->execute();
 
@@ -346,9 +346,9 @@ function quiz_question_report_form($question) {
   $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
-    $vid = db_query('SELECT vid FROM {quiz_results}
-      WHERE result_id = :rid', array(':rid' => $answer['result_id']))
-      ->fetchField();
+    $vid = db_query('SELECT quiz_vid FROM {quiz_results} WHERE result_id = :rid', array(
+        ':rid' => $answer['result_id']
+      ))->fetchField();
 
     $qnr_max_score = db_query('SELECT qnr.max_score FROM {quiz_relationship} qnr
       WHERE qnr.question_vid = :question_vid AND qnr.quiz_vid = :quiz_vid', array(':question_vid' => $question->vid, ':quiz_vid' => $vid))
@@ -357,7 +357,7 @@ function quiz_question_report_form($question) {
     if ($qnr_max_score === FALSE) {
       $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_results} qnr
          JOIN {quiz_results_answers} qnra ON (qnr.result_id = qnra.result_id)
-         JOIN {quiz_terms} qt ON (qt.vid = qnr.vid AND qt.tid = qnra.tid)
+         JOIN {quiz_terms} qt ON (qt.vid = qnr.quiz_vid AND qt.tid = qnra.tid)
          WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid', array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
         ->fetchField();
     }
@@ -387,11 +387,11 @@ function quiz_question_add_body_field($type) {
 
   // Make the question body visible by default for the question view mode
   $instance['display']['question'] = array(
-    'label'    => 'hidden',
-    'type'     => 'text_default',
-    'weight'   => 1,
-    'settings' => array(),
-    'module'   => 'text',
+      'label'    => 'hidden',
+      'type'     => 'text_default',
+      'weight'   => 1,
+      'settings' => array(),
+      'module'   => 'text',
   );
 
   field_update_instance($instance);

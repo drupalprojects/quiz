@@ -9,9 +9,9 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
 
   public static function getInfo() {
     return array(
-      'name'        => t('Long answer'),
-      'description' => t('Unit test for Long answers question type.'),
-      'group'       => t('Quiz'),
+        'name'        => t('Long answer'),
+        'description' => t('Unit test for Long answers question type.'),
+        'group'       => t('Quiz'),
     );
   }
 
@@ -53,12 +53,12 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalLogin($this->admin);
     $this->drupalGet($url_of_result);
     $this->drupalPost(NULL, array(
-      "0[score]"                   => 3,
-      "1[score]"                   => 7,
-      "0[answer_feedback][value]"  => 'Feedback for answer 1.',
-      "1[answer_feedback][value]"  => 'Feedback for answer 2.',
-      "0[answer_feedback][format]" => 'filtered_html',
-      "1[answer_feedback][format]" => 'filtered_html'), t('Save Score'));
+        "0[score]"                   => 3,
+        "1[score]"                   => 7,
+        "0[answer_feedback][value]"  => 'Feedback for answer 1.',
+        "1[answer_feedback][value]"  => 'Feedback for answer 2.',
+        "0[answer_feedback][format]" => 'filtered_html',
+        "1[answer_feedback][format]" => 'filtered_html'), t('Save Score'));
     $this->assertText('The scoring data you provided has been saved.');
 
     // Test the score and feedback are visible to the user.
@@ -80,7 +80,7 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
   function testCreateQuizQuestion($settings = NULL) {
     if (!$settings) {
       $settings = array(
-        'rubric' => 'LA 1 rubric.',
+          'rubric' => 'LA 1 rubric.',
       );
     }
 
@@ -88,9 +88,9 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
     $this->drupalLogin($this->admin);
 
     $question_node = $this->drupalCreateNode(array(
-      'type'  => $this->question_node_type,
-      'title' => 'LA 1 title',
-      'body'  => array(LANGUAGE_NONE => array(array('value' => 'LA 1 body text.'))),
+        'type'  => $this->question_node_type,
+        'title' => 'LA 1 title',
+        'body'  => array(LANGUAGE_NONE => array(array('value' => 'LA 1 body text.'))),
       ) + $settings);
 
     return $question_node;

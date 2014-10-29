@@ -10,8 +10,8 @@ class ResultMetadataController extends EntityDefaultMetadataController {
     $info = parent::entityPropertyInfo();
     $properties = &$info[$this->type]['properties'];
 
-    $properties['nid']['type'] = 'quiz_entity';
-    $properties['vid']['type'] = 'integer';
+    $properties['quiz_qid']['type'] = 'quiz_entity';
+    $properties['quiz_vid']['type'] = 'integer';
     $properties['uid']['type'] = 'user';
     $properties['time_start']['label'] = 'Date started';
     $properties['time_start']['type'] = 'date';

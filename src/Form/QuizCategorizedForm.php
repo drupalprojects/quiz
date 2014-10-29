@@ -52,29 +52,29 @@ class QuizCategorizedForm {
     }
     foreach ($terms as $term) {
       $form[$term->tid]['name'] = array(
-        '#markup' => check_plain($term->name),
+          '#markup' => check_plain($term->name),
       );
       $form[$term->tid]['number'] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#default_value' => $term->number,
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#default_value' => $term->number,
       );
       $form[$term->tid]['max_score'] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#default_value' => $term->max_score,
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#default_value' => $term->max_score,
       );
       $form[$term->tid]['remove'] = array(
-        '#type'          => 'checkbox',
-        '#default_value' => 0,
+          '#type'          => 'checkbox',
+          '#default_value' => 0,
       );
       $form[$term->tid]['weight'] = array(
-        '#type'          => 'textfield',
-        '#size'          => 3,
-        '#default_value' => $term->weight,
-        '#attributes'    => array(
-          'class' => array('term-weight')
-        ),
+          '#type'          => 'textfield',
+          '#size'          => 3,
+          '#default_value' => $term->weight,
+          '#attributes'    => array(
+              'class' => array('term-weight')
+          ),
       );
     }
   }
@@ -86,29 +86,29 @@ class QuizCategorizedForm {
    */
   private function categorizedNewTermForm(&$form, $form_state, $quiz) {
     $form['new'] = array(
-      '#type'        => 'fieldset',
-      '#title'       => t('Add category'),
-      '#collapsible' => FALSE,
-      '#collapsed'   => FALSE,
-      '#tree'        => FALSE,
+        '#type'        => 'fieldset',
+        '#title'       => t('Add category'),
+        '#collapsible' => FALSE,
+        '#collapsed'   => FALSE,
+        '#tree'        => FALSE,
     );
     $form['new']['term'] = array(
-      '#type'              => 'textfield',
-      '#title'             => t('Category'),
-      '#description'       => t('Type in the name of the term you would like to add questions from.'),
-      '#autocomplete_path' => "node/" . $quiz->qid . "/questions/term_ahah",
-      '#field_suffix'      => '<a id="browse-for-term" href="javascript:void(0)">' . t('browse') . '</a>',
+        '#type'              => 'textfield',
+        '#title'             => t('Category'),
+        '#description'       => t('Type in the name of the term you would like to add questions from.'),
+        '#autocomplete_path' => "node/" . $quiz->qid . "/questions/term_ahah",
+        '#field_suffix'      => '<a id="browse-for-term" href="javascript:void(0)">' . t('browse') . '</a>',
     );
     $form['new']['number'] = array(
-      '#type'        => 'textfield',
-      '#title'       => t('Number of questions'),
-      '#description' => t('How many questions would you like to draw from this term?'),
+        '#type'        => 'textfield',
+        '#title'       => t('Number of questions'),
+        '#description' => t('How many questions would you like to draw from this term?'),
     );
     $form['new']['max_score'] = array(
-      '#type'          => 'textfield',
-      '#title'         => t('Max score for each question'),
-      '#description'   => t('The number of points a user will be awarded for each question he gets correct.'),
-      '#default_value' => 1,
+        '#type'          => 'textfield',
+        '#title'         => t('Max score for each question'),
+        '#description'   => t('The number of points a user will be awarded for each question he gets correct.'),
+        '#default_value' => 1,
     );
   }
 
@@ -176,6 +176,9 @@ class QuizCategorizedForm {
    * Submit the categorized form
    */
   public function formSubmit($form, $form_state) {
+    kpr($form_state['values']);
+    exit;
+
     $quiz = node_load($form_state['values']['nid'], $form_state['values']['vid']);
     $quiz->number_of_random_questions = 0;
     // Update the refresh latest quizzes table so that we know what the users latest quizzes are

@@ -22,19 +22,19 @@ class QuizEntityController extends EntityAPIController {
       $quiz->number_of_questions = $quiz->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($quiz->vid);
 
       $content['quiz_entity'][$quiz->qid]['stats'] = array(
-        '#markup' => theme('quiz_view_stats', array('quiz' => $quiz)),
-        '#weight' => $extra_fields['stats']['weight'],
+          '#markup' => theme('quiz_view_stats', array('quiz' => $quiz)),
+          '#weight' => $extra_fields['stats']['weight'],
       );
     }
 
     // Render take button
     if ($extra_fields['take']['visible']) {
       $content['quiz_entity'][$quiz->qid]['take'] = array(
-        '#prefix' => '<div class="quiz-not-available">',
-        '#suffix' => '</div>',
-        '#access' => quiz()->getQuizHelper()->isAvailable($quiz),
-        '#weight' => $extra_fields['take']['weight'],
-        '#markup' => l(t('Start quiz'), 'quiz/' . $quiz->qid . '/take'),
+          '#prefix' => '<div class="quiz-not-available">',
+          '#suffix' => '</div>',
+          '#access' => quiz()->getQuizHelper()->isAvailable($quiz),
+          '#weight' => $extra_fields['take']['weight'],
+          '#markup' => l(t('Start quiz'), 'quiz/' . $quiz->qid . '/take'),
       );
     }
 
@@ -101,13 +101,13 @@ class QuizEntityController extends EntityAPIController {
       }
 
       $query->values(array(
-        'nid'                   => $quiz->qid,
-        'vid'                   => $quiz->vid,
-        'option_name'           => $option['option_name'],
-        'option_summary'        => $option['option_summary'],
-        'option_summary_format' => $option['option_summary_format'],
-        'option_start'          => $option['option_start'],
-        'option_end'            => $option['option_end']
+          'nid'                   => $quiz->qid,
+          'vid'                   => $quiz->vid,
+          'option_name'           => $option['option_name'],
+          'option_summary'        => $option['option_summary'],
+          'option_summary_format' => $option['option_summary_format'],
+          'option_start'          => $option['option_start'],
+          'option_end'            => $option['option_end']
       ));
     }
 
@@ -132,25 +132,19 @@ class QuizEntityController extends EntityAPIController {
     // Delete quiz results
     $query = db_select('quiz_results');
     $query->fields('quiz_results', array('result_id'));
-    $query->condition('nid', $ids);
+    $query->condition('quiz_qid', $ids);
     if ($result_ids = $query->execute()->fetchCol()) {
       quiz()->getQuizHelper()->getResultHelper()->deleteByIds($result_ids);
     }
 
     // Remove quiz records from table quiz_relationship
-    db_delete('quiz_relationship')
-      ->condition('quiz_qid', $ids)
-      ->execute();
+    db_delete('quiz_relationship')->condition('quiz_qid', $ids)->execute();
 
     // Remove quiz records from table quiz_results
-    db_delete('quiz_results')
-      ->condition('nid', $ids)
-      ->execute();
+    db_delete('quiz_results')->condition('quiz_qid', $ids)->execute();
 
     // Remove quiz records from table quiz_result_options
-    db_delete('quiz_result_options')
-      ->condition('nid', $ids)
-      ->execute();
+    db_delete('quiz_result_options')->condition('nid', $ids)->execute();
 
     return $return;
   }

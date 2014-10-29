@@ -7,18 +7,16 @@ use Drupal\quiz\Helper\FormHelper;
 class SettingHelper extends FormHelper {
 
   /**
-   * Returns an array with quiz titles keyed with quiz node ids.
+   * Returns an array with quiz titles keyed with quiz ids.
    *
    * @return array
    *   Options suitable for a form, in which the value is nid.
    */
   public function getQuizOptions() {
     $options = array();
-    $results = db_query('SELECT n.nid, n.title, n.type '
-      . ' FROM {node} n '
-      . ' WHERE n.type = :type', array(':type' => 'quiz'));
-    foreach ($results as $result) {
-      $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
+    $rows = db_query('SELECT q.qid, q.title FROM {quiz_entity} q WHERE 1');
+    foreach ($rows as $quiz_row) {
+      $options[$quiz_row->qid] = drupal_substr(check_plain($quiz_row->title), 0, 30);
     }
     return $options;
   }
@@ -115,37 +113,37 @@ class SettingHelper extends FormHelper {
    */
   public function getQuizDefaultSettings() {
     return (object) array(
-        'aid'                        => NULL,
-        'allow_jumping'              => 0,
-        'allow_resume'               => 1,
-        'allow_skipping'             => 1,
-        'always_available'           => TRUE,
-        'backwards_navigation'       => 1,
-        'has_userpoints'             => 0,
-        'keep_results'               => 2,
-        'mark_doubtful'              => 0,
-        'max_score'                  => 0,
-        'max_score_for_random'       => 1,
-        'number_of_random_questions' => 0,
-        'pass_rate'                  => 75,
-        'quiz_always'                => 1,
-        'quiz_close'                 => 0,
-        'quiz_close'                 => $this->prepareDate(NULL, variable_get('quiz_default_close', 30)),
-        'quiz_open'                  => 0,
-        'quiz_open'                  => $this->prepareDate(),
-        'randomization'              => 0,
-        'repeat_until_correct'       => 0,
-        'review_options'             => array('question' => array(), 'end' => array()),
-        'show_attempt_stats'         => 1,
-        'show_passed'                => 1,
-        'summary_default'            => '',
-        'summary_default_format'     => filter_fallback_format(),
-        'summary_pass'               => '',
-        'summary_pass_format'        => filter_fallback_format(),
-        'takes'                      => 0,
-        'tid'                        => 0,
-        'time_limit'                 => 0,
-        'userpoints_tid'             => 0,
+          'aid'                        => NULL,
+          'allow_jumping'              => 0,
+          'allow_resume'               => 1,
+          'allow_skipping'             => 1,
+          'always_available'           => TRUE,
+          'backwards_navigation'       => 1,
+          'has_userpoints'             => 0,
+          'keep_results'               => 2,
+          'mark_doubtful'              => 0,
+          'max_score'                  => 0,
+          'max_score_for_random'       => 1,
+          'number_of_random_questions' => 0,
+          'pass_rate'                  => 75,
+          'quiz_always'                => 1,
+          'quiz_close'                 => 0,
+          'quiz_close'                 => $this->prepareDate(NULL, variable_get('quiz_default_close', 30)),
+          'quiz_open'                  => 0,
+          'quiz_open'                  => $this->prepareDate(),
+          'randomization'              => 0,
+          'repeat_until_correct'       => 0,
+          'review_options'             => array('question' => array(), 'end' => array()),
+          'show_attempt_stats'         => 1,
+          'show_passed'                => 1,
+          'summary_default'            => '',
+          'summary_default_format'     => filter_fallback_format(),
+          'summary_pass'               => '',
+          'summary_pass_format'        => filter_fallback_format(),
+          'takes'                      => 0,
+          'tid'                        => 0,
+          'time_limit'                 => 0,
+          'userpoints_tid'             => 0,
     );
   }
 

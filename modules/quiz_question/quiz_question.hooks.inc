@@ -14,15 +14,15 @@ function quiz_question_help($path, $args) {
  */
 function quiz_question_entity_info() {
   return array(
-    'quiz_question' => array(
-      'label'                  => t('Quiz question properties'),
-      'controller class'       => 'EntityAPIController',
-      'base table'             => 'quiz_question_properties',
-      'entity keys'            => array(
-        'id' => 'qqp_id',
+      'quiz_question' => array(
+          'label'                  => t('Quiz question properties'),
+          'controller class'       => 'EntityAPIController',
+          'base table'             => 'quiz_question_properties',
+          'entity keys'            => array(
+              'id' => 'qqp_id',
+          ),
+          'views controller class' => 'EntityDefaultViewsController',
       ),
-      'views controller class' => 'EntityDefaultViewsController',
-    ),
   );
 }
 
@@ -32,21 +32,21 @@ function quiz_question_entity_info() {
 function quiz_question_menu() {
   $items = array();
   $items['quiz_question/%/%/revision_actions'] = array(
-    'title'            => 'Revision actions',
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('quiz_question_revision_actions', 1, 2),
-    'access arguments' => array('manual quiz revisioning'),
-    'file'             => 'quiz_question.pages.inc',
-    'type'             => MENU_NORMAL_ITEM,
+      'title'            => 'Revision actions',
+      'page callback'    => 'drupal_get_form',
+      'page arguments'   => array('quiz_question_revision_actions', 1, 2),
+      'access arguments' => array('manual quiz revisioning'),
+      'file'             => 'quiz_question.pages.inc',
+      'type'             => MENU_NORMAL_ITEM,
   );
   // Menu items for admin view of each question type.
   $items['admin/quiz/settings/questions_settings'] = array(
-    'title'            => 'Question configuration',
-    'description'      => 'Configure the question types.',
-    'page callback'    => 'drupal_get_form',
-    'page arguments'   => array('quiz_question_config'),
-    'access arguments' => array('administer quiz configuration'),
-    'type'             => MENU_NORMAL_ITEM,
+      'title'            => 'Question configuration',
+      'description'      => 'Configure the question types.',
+      'page callback'    => 'drupal_get_form',
+      'page arguments'   => array('quiz_question_config'),
+      'access arguments' => array('administer quiz configuration'),
+      'type'             => MENU_NORMAL_ITEM,
   );
   return $items;
 }
@@ -56,8 +56,8 @@ function quiz_question_menu() {
  */
 function quiz_question_theme() {
   $hooks['quiz_question_feedback'] = array(
-    'variables' => NULL,
-    'pattern'   => 'quiz_question_feedback__',
+      'variables' => NULL,
+      'pattern'   => 'quiz_question_feedback__',
   );
 
   return $hooks;
@@ -70,9 +70,9 @@ function quiz_question_node_info() {
   $node_info = array();
   foreach (_quiz_question_get_implementations(NULL, TRUE) as $type => $definition) {
     $node_info[$type] = array(
-      'name'        => $definition['name'],
-      'base'        => 'quiz_question',
-      'description' => $definition['description']
+        'name'        => $definition['name'],
+        'base'        => 'quiz_question',
+        'description' => $definition['description']
     );
     //$info[$type] = $node_info + $defaults;
   }
@@ -145,12 +145,12 @@ function quiz_question_node_access_records($node) {
     // permission. We set a priority of 2 because OG has a 1 priority and we
     // want to get around it.
     $grants[] = array(
-      'realm'        => 'quiz_question',
-      'gid'          => 1,
-      'grant_view'   => 1,
-      'grant_update' => 0,
-      'grant_delete' => 0,
-      'priority'     => 2,
+        'realm'        => 'quiz_question',
+        'gid'          => 1,
+        'grant_view'   => 1,
+        'grant_update' => 0,
+        'grant_delete' => 0,
+        'priority'     => 2,
     );
   }
   return $grants;
@@ -319,15 +319,15 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
 /**
  * Implements hook_delete_result().
  *
- * @param $result_id
+ * @param int $result_id
  *  Result id
- * @param $nid
+ * @param int $question_nid
  *  Question node id
- * @param $vid
+ * @param int $question_vid
  *  Question node version id
  */
-function quiz_question_delete_result($result_id, $nid, $vid) {
-  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $nid, $vid);
+function quiz_question_delete_result($result_id, $question_nid, $question_vid) {
+  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $question_nid, $question_vid);
   if ($response) {
     $response->delete();
   }

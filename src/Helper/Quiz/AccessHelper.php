@@ -14,8 +14,8 @@ use stdClass;
 class AccessHelper {
 
   public function userHasResult($quiz, $uid) {
-    $sql = 'SELECT 1 FROM {quiz_results} WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated';
-    return db_query($sql, array(':nid' => $quiz->qid, ':uid' => $uid, ':is_evaluated' => 1))
+    $sql = 'SELECT 1 FROM {quiz_results} WHERE quiz_qid = :qid AND uid = :uid AND is_evaluated = :is_evaluated';
+    return db_query($sql, array(':qid' => $quiz->qid, ':uid' => $uid, ':is_evaluated' => 1))
         ->fetchField();
   }
 
@@ -50,20 +50,26 @@ class AccessHelper {
     // If rid is set we must make sure the result belongs to the quiz we are
     // viewing results for.
     if (isset($result_id)) {
-      $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
-      if ($res && $res->nid != $quiz->qid) {
+      $result = db_query('SELECT qnr.quiz_qid, qnr.uid '
+        . ' FROM {quiz_results} qnr '
+        . ' WHERE result_id = :result_id', array(':result_id' => $result_id)
+        )->fetch();
+      if ($result && $result->quiz_qid != $quiz->qid) {
         return FALSE;
       }
     }
+
     if (user_access('view any quiz results')) {
       return TRUE;
     }
+
     if (user_access('view results for own quiz') && $account->uid == $quiz->uid) {
       return TRUE;
     }
+
     if (user_access('score taken quiz answer')) {
-      //check if the taken user is seeing his result
-      if (isset($result_id) && $res && $res->uid == $account->uid) {
+      // check if the taken user is seeing his result
+      if (isset($result_id) && $result && $result->uid == $account->uid) {
         return TRUE;
       }
     }

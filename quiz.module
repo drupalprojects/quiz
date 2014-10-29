@@ -155,8 +155,8 @@ function quiz_question_feedback_access($quiz, $question_number) {
 /**
  * Load a specific result answer.
  */
-function quiz_result_answer_load($result_id, $nid, $vid) {
-  return quiz()->getQuizHelper()->getResultHelper()->loadAnswerResult($result_id, $nid, $vid);
+function quiz_result_answer_load($result_id, $question_nid, $question_vid) {
+  return quiz()->getQuizHelper()->getResultHelper()->loadAnswerResult($result_id, $question_nid, $question_vid);
 }
 
 /**

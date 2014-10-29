@@ -9,13 +9,13 @@ class FeedbackHelper {
    */
   public function getOptions() {
     $feedback_options = array(
-      'attempt'           => "Attempt",
-      'correct'           => "Whether correct",
-      'score'             => "Score",
-      'answer_feedback'   => 'Answer feedback',
-      'question_feedback' => 'Question feedback',
-      'solution'          => "Correct answer",
-      'quiz_feedback'     => "Quiz feedback",
+        'attempt'           => "Attempt",
+        'correct'           => "Whether correct",
+        'score'             => "Score",
+        'answer_feedback'   => 'Answer feedback',
+        'question_feedback' => 'Question feedback',
+        'solution'          => "Correct answer",
+        'quiz_feedback'     => "Quiz feedback",
     );
 
     drupal_alter('quiz_feedback_options', $feedback_options);
@@ -59,7 +59,7 @@ class FeedbackHelper {
    * feedback is viewed within 5 seconds of completing the question/quiz.
    */
   public function canReview($option, $result) {
-    $quiz = quiz_entity_single_load($result->nid, $result->vid);
+    $quiz = quiz_entity_single_load($result->quiz_qid, $result->quiz_vid);
 
     // Check what context the result is in.
     if ($result->time_end && arg(2) !== 'take') {

@@ -133,17 +133,17 @@ abstract class QuizQuestionResponse {
    * - $is_correct
    */
   function toBareObject() {
-    $obj = new stdClass();
-    $obj->score = $this->getScore(); // This can be 0 for unscored.
-    $obj->nid = $this->question->nid;
-    $obj->vid = $this->question->vid;
-    $obj->result_id = $this->result_id;
-    $obj->is_correct = (int) $this->isCorrect();
-    $obj->is_evaluated = $this->isEvaluated();
-    $obj->is_skipped = 0;
-    $obj->is_doubtful = isset($_POST['is_doubtful']) ? $_POST['is_doubtful'] : 0;
-    $obj->is_valid = $this->isValid();
-    return $obj;
+    $result = new stdClass();
+    $result->score = $this->getScore(); // This can be 0 for unscored.
+    $result->quiz_qid = $this->question->nid;
+    $result->quiz_vid = $this->question->vid;
+    $result->result_id = $this->result_id;
+    $result->is_correct = (int) $this->isCorrect();
+    $result->is_evaluated = $this->isEvaluated();
+    $result->is_skipped = 0;
+    $result->is_doubtful = isset($_POST['is_doubtful']) ? (int) ($_POST['is_doubtful']) : 0;
+    $result->is_valid = $this->isValid();
+    return $result;
   }
 
   /**
@@ -173,14 +173,14 @@ abstract class QuizQuestionResponse {
     // Basically, we encode internal information in a
     // legacy array format for Quiz.
     $report = array(
-      'answer_id'    => 0, // <-- Stupid vestige of multichoice.
-      'answer'       => $this->answer,
-      'is_evaluated' => $this->isEvaluated(),
-      'is_correct'   => $this->isCorrect(),
-      'score'        => $this->getScore(),
-      'question_vid' => $this->question->vid,
-      'question_nid' => $this->question->nid,
-      'result_id'    => $this->result_id,
+        'answer_id'    => 0, // <-- Stupid vestige of multichoice.
+        'answer'       => $this->answer,
+        'is_evaluated' => $this->isEvaluated(),
+        'is_correct'   => $this->isCorrect(),
+        'score'        => $this->getScore(),
+        'question_vid' => $this->question->vid,
+        'question_nid' => $this->question->nid,
+        'result_id'    => $this->result_id,
     );
     return $report;
   }
@@ -199,21 +199,21 @@ abstract class QuizQuestionResponse {
     // Add general data, and data from the question type implementation
     $form = array();
     $form['nid'] = array(
-      '#type'  => 'value',
-      '#value' => $this->question->nid,
+        '#type'  => 'value',
+        '#value' => $this->question->nid,
     );
     $form['vid'] = array(
-      '#type'  => 'value',
-      '#value' => $this->question->vid,
+        '#type'  => 'value',
+        '#value' => $this->question->vid,
     );
     $form['result_id'] = array(
-      '#type'  => 'value',
-      '#value' => $this->result_id,
+        '#type'  => 'value',
+        '#value' => $this->result_id,
     );
     if ($submit = $this->getReportFormSubmit()) {
       $form['submit'] = array(
-        '#type'  => 'value',
-        '#value' => $submit,
+          '#type'  => 'value',
+          '#value' => $submit,
       );
     }
     $form['question'] = $this->getReportFormQuestion();
@@ -221,19 +221,19 @@ abstract class QuizQuestionResponse {
     $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
 
     $form['max_score'] = array(
-      '#type'  => 'value',
-      '#value' => ($this->canReview('score')) ? $this->getMaxScore() : '?',
+        '#type'  => 'value',
+        '#value' => ($this->canReview('score')) ? $this->getMaxScore() : '?',
     );
 
     $rows = array();
 
     $labels = array(
-      'attempt'         => t('Your answer'),
-      'choice'          => t('Choice'),
-      'correct'         => t('Correct?'),
-      'score'           => t('Score'),
-      'answer_feedback' => t('Feedback'),
-      'solution'        => t('Correct answer'),
+        'attempt'         => t('Your answer'),
+        'choice'          => t('Choice'),
+        'correct'         => t('Correct?'),
+        'score'           => t('Score'),
+        'answer_feedback' => t('Feedback'),
+        'solution'        => t('Correct answer'),
     );
     drupal_alter('quiz_feedback_labels', $labels);
 
@@ -305,14 +305,14 @@ abstract class QuizQuestionResponse {
     $data = array();
 
     $data[] = array(
-      'choice'            => 'True',
-      'attempt'           => 'Did the user choose this?',
-      'correct'           => 'Was their answer correct?',
-      'score'             => 'Points earned for this answer',
-      'answer_feedback'   => 'Feedback specific to the answer',
-      'question_feedback' => 'General question feedback for any answer',
-      'solution'          => 'Is this choice the correct solution?',
-      'quiz_feedback'     => 'Quiz feedback at this time',
+        'choice'            => 'True',
+        'attempt'           => 'Did the user choose this?',
+        'correct'           => 'Was their answer correct?',
+        'score'             => 'Points earned for this answer',
+        'answer_feedback'   => 'Feedback specific to the answer',
+        'question_feedback' => 'General question feedback for any answer',
+        'solution'          => 'Is this choice the correct solution?',
+        'quiz_feedback'     => 'Quiz feedback at this time',
     );
 
     return $data;
@@ -404,15 +404,15 @@ abstract class QuizQuestionResponse {
   public function getReportFormScore() {
     $score = ($this->isEvaluated()) ? $this->getScore() : '';
     return array(
-      '#title'            => 'Enter score',
-      '#type'             => 'textfield',
-      '#default_value'    => $score,
-      '#size'             => 3,
-      '#maxlength'        => 3,
-      '#attributes'       => array('class' => array('quiz-report-score')),
-      '#element_validate' => array('element_validate_integer'),
-      '#required'         => TRUE,
-      '#field_suffix'     => '/ ' . $this->getMaxScore(),
+        '#title'            => 'Enter score',
+        '#type'             => 'textfield',
+        '#default_value'    => $score,
+        '#size'             => 3,
+        '#maxlength'        => 3,
+        '#attributes'       => array('class' => array('quiz-report-score')),
+        '#element_validate' => array('element_validate_integer'),
+        '#required'         => TRUE,
+        '#field_suffix'     => '/ ' . $this->getMaxScore(),
     );
   }
 

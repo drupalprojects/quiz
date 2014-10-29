@@ -40,9 +40,9 @@ class QuizReportForm {
     // The submit button is only shown if one or more of the questions has input elements
     if (!empty($show_submit)) {
       $form['submit'] = array(
-        '#type'   => 'submit',
-        '#submit' => array(array($this, 'formSubmit')),
-        '#value'  => t('Save Score'),
+          '#type'   => 'submit',
+          '#submit' => array(array($this, 'formSubmit')),
+          '#value'  => t('Save Score'),
       );
     }
 
@@ -52,16 +52,16 @@ class QuizReportForm {
       $quiz_id = $quiz->qid;
       if (empty($_SESSION['quiz'][$quiz_id])) { // Quiz is done.
         $form['finish'] = array(
-          '#type'   => 'submit',
-          '#submit' => array(array($this, formEndSubmit)),
-          '#value'  => t('Finish'),
+            '#type'   => 'submit',
+            '#submit' => array(array($this, formEndSubmit)),
+            '#value'  => t('Finish'),
         );
       }
       else {
         $form['next'] = array(
-          '#type'   => 'submit',
-          '#submit' => array(array($this, 'formSubmitFeedback')),
-          '#value'  => t('Next question'),
+            '#type'   => 'submit',
+            '#submit' => array(array($this, 'formSubmitFeedback')),
+            '#value'  => t('Next question'),
         );
       }
     }
@@ -112,8 +112,11 @@ class QuizReportForm {
 
       // Load the quiz
       if (!isset($quiz)) {
-        $result = db_query('SELECT nid, uid, vid FROM {quiz_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
-        $quiz = quiz_entity_single_load($result->nid, $result->vid);
+        $result = db_query(
+          'SELECT quiz_qid, quiz_vid, uid FROM {quiz_results} WHERE result_id = :result_id', array(
+            ':result_id' => $q_values['result_id']
+          ))->fetchObject();
+        $quiz = quiz_entity_single_load($result->quiz_qid, $result->quiz_vid);
         $result_id = $q_values['result_id'];
       }
 
@@ -196,11 +199,11 @@ class QuizReportForm {
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
     return array(
-      'question_count'   => $properties->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($quiz_vid),
-      'possible_score'   => $properties->max_score,
-      'numeric_score'    => $total_score,
-      'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),
-      'is_evaluated'     => $is_evaluated,
+        'question_count'   => $properties->number_of_random_questions + quiz()->getQuizHelper()->countAlwaysQuestions($quiz_vid),
+        'possible_score'   => $properties->max_score,
+        'numeric_score'    => $total_score,
+        'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),
+        'is_evaluated'     => $is_evaluated,
     );
   }
 

@@ -25,7 +25,7 @@ class FormSubmission extends QuestionHelper {
   public function __construct($quiz, $result, $page_number) {
     $this->quiz = $quiz;
     $this->quiz_id = $quiz->qid;
-    $this->quiz_uri = isset($quiz->nid) ? 'node/' . $quiz->nid : 'quiz/' . $quiz->qid;
+    $this->quiz_uri = 'quiz/' . $quiz->qid;
     $this->result = $result;
     $this->page_number = $page_number;
   }

@@ -32,30 +32,22 @@ class QuizAdminController {
 
     $form = quiz_form($dummy_quiz, $form_state);
     $form['direction'] = array(
-      '#markup' => t('Here you can change the default quiz settings for new users.'),
-      '#weight' => -10,
+        '#markup' => t('Here you can change the default quiz settings for new users.'),
+        '#weight' => -10,
     );
 
     // unset values we can't or won't let the user edit default values for
     unset(
-      $form['#quiz_check_revision_access'], $form['title'], $form['body_field'],
-      $form['taking']['aid'], $form['taking']['addons'],
-      $form['quiz_availability']['quiz_open'],
-      $form['quiz_availability']['quiz_close'], $form['resultoptions'],
-      $form['number_of_random_questions'], $form['#quiz_check_revision_access'],
-      $form['title'], $form['body_field'], $form['taking']['aid'],
-      $form['taking']['addons'], $form['quiz_availability']['quiz_open'],
-      $form['quiz_availability']['quiz_close'], $form['resultoptions'],
-      $form['number_of_random_questions'], $form['remember_global']
+      $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions'], $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions'], $form['remember_global']
     );
 
     $form['remember_settings']['#type'] = 'value';
     $form['remember_settings']['#default_value'] = TRUE;
 
     $form['submit'] = array(
-      '#type'   => 'submit',
-      '#value'  => t('Save'),
-      '#submit' => array(array($this, 'submit')),
+        '#type'   => 'submit',
+        '#value'  => t('Save'),
+        '#submit' => array(array($this, 'submit')),
     );
 
     $form['#validate'][] = array($this, 'validate');
@@ -120,9 +112,7 @@ class QuizAdminController {
     // settings store for the current user.
     $uid = isset($uid) ? $uid : $GLOBALS['user']->uid;
 
-    $query = db_select('quiz_user_settings', 'qus')
-      ->fields('qus')
-      ->condition('uid', $uid);
+    $query = db_select('quiz_user_settings', 'qus')->fields('qus')->condition('uid', $uid);
     $res = $query->execute()->fetchAssoc();
     if (!empty($res)) {
       foreach ($res as $key => $value) {
