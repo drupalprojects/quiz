@@ -475,3 +475,106 @@ function quiz_update_7508() {
   db_change_field('quiz_result_options', 'vid', 'quiz_vid', array());
   db_rename_table('quiz_node_results_answers', 'quiz_results_answers');
 }
+
+/**
+ * Convert quiz nodes to quiz entity
+ */
+function quiz_update_7509() {
+  // create temp columns quiz_revision.{node_nid, node_vid} to save old data
+  db_add_field('quiz_entity', 'node_nid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+  db_add_index('quiz_entity', 'quiz_node', array('node_qid'));
+  db_add_field('quiz_entity_revision', 'node_vid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
+
+  // create default quiz type
+  $quiz_type = entity_create('quiz_type', array('type' => 'quiz', 'label' => t('Quiz'), 'weight' => 0));
+  $quiz_type->save();
+
+  // migrate basic quiz
+  $select = db_select('node', 'n');
+  $select->innerJoin('node_revision', 'r', 'n.nid = r.nid');
+  $select->fields('r', array('nid', 'vid', 'uid', 'title', 'log', 'timestamp'));
+  $select->fields('n', array('created'));
+  $select->condition('n.type', 'quiz');
+  $select->orderBy('r.vid', 'ASC');
+  $result = $select->execute();
+  while ($row = $result->fetchAll()) {
+    _quiz_update_7509($row);
+  }
+}
+
+/**
+ * Create quiz revision with quiz-node basic data.
+ *
+ * @param stdClass $row
+ */
+function _quiz_update_7509($row) {
+  // find quiz revision
+  if ($quiz_id = db_query('SELECT qid FROM {quiz_entity} WHERE node_nid = :nid', array(':nid' => $row->nid))) {
+    $quiz = quiz_entity_single_load($quiz_id);
+  }
+  else {
+    $quiz = entity_create('quiz_entityt', array(
+        'type'     => 'quiz',
+        'uid'      => $row->uid,
+        'title'    => $row->title,
+        'created'  => $row->created,
+        'changed'  => $row->timestamp,
+        'node_nid' => $row->nid,
+        'node_vid' => $row->vid,
+    ));
+  }
+
+  $quiz->is_new_revision = 1;
+  $quiz->log = $row->log;
+  entity_save('quiz_entity', $quiz);
+}
+
+/**
+ * Convet quiz-node fields data to quiz entity
+ */
+function quiz_update_7510() {
+  // quiz node type is defined by quiz.module, but this modules no longer power
+  // it. Reown to core 'node' module.
+  db_update("UDPATE {node_type} set module = 'node' WHERE type='quiz'");
+
+  $field_instances = field_info_instances('node', 'quiz');
+  $field_names = array_keys($field_instances);
+
+  // copy fields from quiz node to quiz entity
+  foreach ($field_instances as $name => $instance) {
+    if ('body' === $name) { // body field is auto created via internal API
+      continue;
+    }
+
+    unset($instance['id']);
+    $instance['entity_type'] = 'quiz_entity';
+    $instance['bundle'] = 'quiz';
+    field_create_instance($instance);
+  }
+
+  // migrate basic quiz
+  $select = db_select('node', 'n');
+  $select->innerJoin('node_revision', 'r', 'n.nid = r.nid');
+  $select->fields('r', array('nid', 'vid'));
+  $select->condition('n.type', 'quiz');
+  $result = $select->execute();
+  while ($row = $result->fetchAll()) {
+    $quiz_node = node_load($row->nid, $row->vid);
+    _quiz_update_7510($quiz_node, $field_names);
+  }
+}
+
+function _quiz_update_7510($quiz_node, $field_names) {
+  $sql = 'SELECT vid FROM {quiz_entity_revision} WHERE node_vid = :vid';
+  if ($quiz_vid = db_query($sql, array(':vid' => $quiz_node->vid))->fetchColumn()) {
+    $quiz = quiz_entity_single_load(NULL, $quiz_vid);
+    foreach ($field_names as $field_name) {
+      if (empty($quiz_node->{$field_name})) {
+        continue;
+      }
+      $quiz->{$field_name} = $quiz_node->{$field_name};
+    }
+    entity_save('quiz_entity', $quiz);
+  }
+}
+
