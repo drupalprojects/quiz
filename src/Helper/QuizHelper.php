@@ -857,7 +857,7 @@ class QuizHelper {
       ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
             SELECT COALESCE(SUM(max_score), 0)
             FROM {quiz_relationship} qnr
-            WHERE qnr.question_status = :status AND quiz_vid = {quiz_node_properties}.vid)', array(
+            WHERE qnr.question_status = :status AND quiz_vid = {quiz_entity_revision}.vid)', array(
           ':status' => QUESTION_ALWAYS))
       ->condition('vid', $vids, 'IN')
       ->execute();
@@ -889,17 +889,16 @@ class QuizHelper {
     if (!empty($results_to_update)) {
       db_update('quiz_results')
         ->expression('score', 'ROUND(
-        100 * (
-          SELECT COALESCE (SUM(a.points_awarded), 0)
-          FROM {quiz_results_answers} a
-          WHERE a.result_id = {quiz_results}.result_id
-        ) / (
-          SELECT max_score
-          FROM {quiz_entity_revision} qnp
-          WHERE qnp.vid = {quiz_results}.vid
-        )
-      )')
-        ->condition('vid', $results_to_update, 'IN')
+          100 * (
+            SELECT COALESCE (SUM(a.points_awarded), 0)
+            FROM {quiz_results_answers} a
+            WHERE a.result_id = {quiz_results}.result_id
+          ) / (
+            SELECT max_score
+            FROM {quiz_entity_revision} qnp
+            WHERE qnp.vid = {quiz_results}.quiz_vid
+          ))')
+        ->condition('quiz_vid', $results_to_update, 'IN')
         ->execute();
     }
   }

@@ -79,9 +79,7 @@ class LongAnswerUnitTest extends QuizQuestionTestCase {
    */
   function testCreateQuizQuestion($settings = NULL) {
     if (!$settings) {
-      $settings = array(
-          'rubric' => 'LA 1 rubric.',
-      );
+      $settings = array('rubric' => 'LA 1 rubric.');
     }
 
     // Login as our privileged user.
