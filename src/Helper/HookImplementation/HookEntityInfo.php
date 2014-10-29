@@ -11,7 +11,7 @@ class HookEntityInfo {
         'quiz_question_relationship' => $this->getQuizQuestionRelationshipInfo(),
         'quiz_result'                => $this->getQuizResultInfo(),
         'quiz_result_answer'         => $this->getQuizResultAnswerInfo(),
-      );
+    );
   }
 
   private function getQuizEntityTypeInfo() {
@@ -20,7 +20,7 @@ class HookEntityInfo {
         'plural label'     => t('!quiz types', array('!quiz' => QUIZ_NAME)),
         'description'      => t('Types of !quiz.', array('!quiz' => QUIZ_NAME)),
         'entity class'     => 'Drupal\quiz\Entity\QuizEntityType',
-        'controller class' => 'EntityAPIControllerExportable',
+        'controller class' => 'Drupal\quiz\Entity\QuizTypeEntityController',
         'base table'       => 'quiz_type',
         'fieldable'        => FALSE,
         'bundle of'        => 'quiz_entity',

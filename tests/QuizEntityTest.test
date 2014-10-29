@@ -10,9 +10,9 @@ class QuizEntityTest extends QuizEntityTestCase {
 
   public static function getInfo() {
     return array(
-      'name'        => t('Quiz entity'),
-      'description' => t('Unit test for Quiz entity.'),
-      'group'       => t('Quiz'),
+        'name'        => t('Quiz entity'),
+        'description' => t('Unit test for Quiz entity.'),
+        'group'       => t('Quiz'),
     );
   }
 
@@ -22,13 +22,14 @@ class QuizEntityTest extends QuizEntityTestCase {
   }
 
   public function testInitQuizEntityType() {
-    $type = entity_create('quiz_type', array());
-    $this->assertTrue($type instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
-
     // Default quiz type.
     $types = entity_load('quiz_type', array('quiz'));
-    $quiz_type = reset($types);
-    $this->assertTrue($quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
+    $default_quiz_type = reset($types);
+    $this->assertTrue($default_quiz_type instanceof QuizEntityType, 'Default quiz type is created.');
+
+    $quiz_type = entity_create('quiz_type', array('type' => 'new_quiz'));
+    $this->assertTrue($quiz_type instanceof QuizEntityType, 'Quiz type entity is created correctly using entity_create().');
+    entity_save('quiz_type', $quiz_type);
   }
 
   public function testQuizEntity() {
@@ -94,9 +95,9 @@ class QuizEntityTest extends QuizEntityTestCase {
     $this->drupalLogin($this->admin);
     $this->drupalGet("quiz/add");
     $this->drupalPost(NULL, array(
-      'title'             => 'Test quiz creation',
-      'remember_global'   => 0,
-      'remember_settings' => 0), t('Save'));
+        'title'             => 'Test quiz creation',
+        'remember_global'   => 0,
+        'remember_settings' => 0), t('Save'));
     $this->drupalGet("quiz/1");
     $this->assertText('Test quiz creation');
     $this->assertText('Start quiz');
