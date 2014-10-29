@@ -454,3 +454,24 @@ function quiz_update_7506() {
 function quiz_update_7507() {
   db_add_field('quiz_node_properties', 'allow_change', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 1));
 }
+
+/**
+ * Update schema for quiz when it becomeds entity.
+ */
+function quiz_update_7508() {
+  db_rename_table('quiz_node_relationship', 'quiz_relationship');
+  db_change_field('quiz_relationship', 'qnr_id', 'qr_id', array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE));
+  db_change_field('quiz_relationship', 'parent_nid', 'quiz_qid', array());
+  db_change_field('quiz_relationship', 'parent_vid', 'quiz_vid', array());
+  db_change_field('quiz_relationship', 'child_nid', 'question_nid', array());
+  db_change_field('quiz_relationship', 'child_vid', 'question_vid', array());
+
+  db_rename_table('quiz_node_results', 'quiz_results');
+  db_change_field('quiz_results', 'nid', 'quiz_qid', array());
+  db_change_field('quiz_results', 'vid', 'quiz_vid', array());
+
+  db_rename_table('quiz_node_result_options', 'quiz_result_options');
+  db_change_field('quiz_result_options', 'nid', 'quiz_qid', array());
+  db_change_field('quiz_result_options', 'vid', 'quiz_vid', array());
+  db_rename_table('quiz_node_results_answers', 'quiz_results_answers');
+}
