@@ -56,10 +56,10 @@ class QuizEntityController extends EntityAPIController {
     if (!empty($vids)) {
       $result_options = db_select('quiz_result_options', 'ro')
         ->fields('ro')
-        ->condition('ro.vid', $vids)
+        ->condition('ro.quiz_vid', $vids)
         ->execute();
       foreach ($result_options->fetchAll() as $result_option) {
-        $entities[$result_option->nid]->resultoptions[] = (array) $result_option;
+        $entities[$result_option->quiz_qid]->resultoptions[] = (array) $result_option;
       }
     }
 
@@ -80,11 +80,11 @@ class QuizEntityController extends EntityAPIController {
 
   private function saveResultOptions(QuizEntity $quiz) {
     db_delete('quiz_result_options')
-      ->condition('vid', $quiz->vid)
+      ->condition('quiz_vid', $quiz->vid)
       ->execute();
 
     $query = db_insert('quiz_result_options')
-      ->fields(array('nid', 'vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
+      ->fields(array('quiz_qid', 'quiz_vid', 'option_name', 'option_summary', 'option_summary_format', 'option_start', 'option_end'));
 
     foreach ($quiz->resultoptions as $option) {
       if (empty($option['option_name'])) {
@@ -101,8 +101,8 @@ class QuizEntityController extends EntityAPIController {
       }
 
       $query->values(array(
-          'nid'                   => $quiz->qid,
-          'vid'                   => $quiz->vid,
+          'quiz_qid'              => $quiz->qid,
+          'quiz_vid'              => $quiz->vid,
           'option_name'           => $option['option_name'],
           'option_summary'        => $option['option_summary'],
           'option_summary_format' => $option['option_summary_format'],
@@ -144,7 +144,7 @@ class QuizEntityController extends EntityAPIController {
     db_delete('quiz_results')->condition('quiz_qid', $ids)->execute();
 
     // Remove quiz records from table quiz_result_options
-    db_delete('quiz_result_options')->condition('nid', $ids)->execute();
+    db_delete('quiz_result_options')->condition('quiz_qid', $ids)->execute();
 
     return $return;
   }

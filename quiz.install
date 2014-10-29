@@ -187,8 +187,8 @@ function quiz_schema() {
       'description' => 'Table storing result options for quizzes. Several result options may belong to a single quiz.',
       'fields'      => array(
           'option_id'             => array('type' => 'serial', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => TRUE),
-          'nid'                   => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'ID of quiz node'),
-          'vid'                   => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Version ID of quiz node'),
+          'quiz_qid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'ID of quiz entity'),
+          'quiz_vid'              => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Version ID of quiz node'),
           'option_name'           => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
           'option_summary'        => array('type' => 'text'),
           'option_summary_format' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
@@ -196,9 +196,7 @@ function quiz_schema() {
           'option_end'            => array('type' => 'int', 'unsigned' => TRUE, 'default' => 0),
       ),
       'primary key' => array('option_id'),
-      'indexes'     => array(
-          'quiz_id' => array('vid', 'nid'),
-      )
+      'indexes'     => array('quiz_id' => array('quiz_vid', 'quiz_qid'))
   );
 
   $schema['quiz_terms'] = array(
