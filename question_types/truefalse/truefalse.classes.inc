@@ -207,13 +207,15 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $r = $this->getCorrectAnswer();
+      // Get from DB
+      $r = $this->getUserAnswer();
       if (!empty($r)) {
         $this->answer = $r->answer;
         $this->score = $r->score;
       }
     }
     else {
+      // Load from input
       $this->answer = $answer;
     }
   }
@@ -264,17 +266,13 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#getResponse()
    */
   public function getResponse() {
-    if (!isset($this->answer)) {
-      $correct_answer = $this->getCorrectAnswer();
-      $this->answer = isset($correct_answer->answer) ? $correct_answer->answer : NULL;
-    }
     return $this->answer;
   }
 
   /**
    * Implementation of getCorrectAnswer
    */
-  public function getCorrectAnswer() {
+  public function getUserAnswer() {
     return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->vid, ':rid' => $this->result_id))->fetch();
   }
 

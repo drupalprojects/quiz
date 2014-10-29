@@ -1189,26 +1189,15 @@ function quiz_form(&$node, &$form_state) {
     );
   }
 
-  if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0)) {
-    $form['taking']['addons'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Quiz add-ons'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-    );
-    $form['taking']['addons']['time_limit'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Time limit'),
-      '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
-      '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME)),
-    );
-  }
-  else {
-    $form['taking']['addons']['time_limit'] = array(
-      '#type' => 'value',
-      '#value' => 0,
-    );
-  }
+  $form['taking']['time_limit'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time limit'),
+    '#default_value' => isset($node->time_limit) ? $node->time_limit : 0,
+    '#description' => t('Set the maximum allowed time in seconds for this @quiz. Use 0 for no limit.', array('@quiz' => QUIZ_NAME))
+    . '<br/>' . t('It is recommended to install the !countdown module, and enable the option in !link to show the time left to the user.', array(
+      '!link' => l('Quiz configuration', 'admin/quiz/settings/config'),
+      '!countdown' => l('jquery_countdown', 'http://drupal.org/project/jquery_countdown'),
+  )));
 
   if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
     $form['userpoints'] = array(
@@ -1919,33 +1908,13 @@ function quiz_take_question($quiz, $question_number) {
     drupal_goto('node/' . $quiz->nid . '/take');
     }
    */
-  if (isset($_SESSION['quiz'][$quiz->nid]['question_duration'])) {
-    $time = $_SESSION['quiz'][$quiz->nid]['question_duration'];
-    if ($time < 1) {
-      // The page was probably submitted by the js, we allow the data to be stored
-      $time = 1;
-    }
-    db_update('quiz_node_results')
-      ->fields(array('time_left' => $time))
-      ->condition('result_id', $_SESSION['quiz'][$quiz->nid]['result_id'])
-      ->execute();
-
-    if ($time <= 1) {
-      // Quiz has been timed out, run a loop to mark the remaining questions
-      // as skipped.
-      // @todo we just need to run quiz_end_score here, I think
-      drupal_set_message(t('You have run out of time.'), 'error');
-    }
-    else {
-      // There is still time left, so let's go ahead and insert the countdown
-      // javascript.
-      if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-        jquery_countdown_add('.countdown', array('until' => $time, 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
-        // These are the two button op values that are accepted for answering
-        // questions.
-        $button_op1 = drupal_json_encode(t('Finish'));
-        $button_op2 = drupal_json_encode(t('Next'));
-        $js = "
+  if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0) && $quiz->time_limit) {
+    jquery_countdown_add('.countdown', array('until' => ($quiz_result->time_start + $quiz->time_limit - REQUEST_TIME), 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
+    // These are the two button op values that are accepted for answering
+    // questions.
+    $button_op1 = drupal_json_encode(t('Finish'));
+    $button_op2 = drupal_json_encode(t('Next'));
+    $js = "
             function finished() {
               // Find all buttons with a name of 'op'.
               var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
@@ -1963,10 +1932,7 @@ function quiz_take_question($quiz, $question_number) {
               }
             }
           ";
-        drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
-      }
-    }
-    $_SESSION['quiz'][$quiz->nid]['question_start_time'] = REQUEST_TIME;
+    drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
   }
 
   $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
@@ -2119,9 +2085,9 @@ function quiz_end_scoring($result_id) {
     }
 
     if (!$qra) {
+      // This is the same skip code as in quiz_question_answering_form_submit() @todo find a way to save code.
       $qi_instance = _quiz_question_response_get_instance($result_id, $current_question, NULL);
       $qi_instance->delete();
-      $qi_instance->saveResult();
       $bare_object = $qi_instance->toBareObject();
       quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
     }

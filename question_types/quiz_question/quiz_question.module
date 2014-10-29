@@ -293,6 +293,7 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
       }
     }
 
+    // This is used in quiz_end_scoring when the time limit is reached.
     $qi_instance = _quiz_question_response_get_instance($result_id, $question, NULL);
     $qi_instance->delete();
     $bare_object = $qi_instance->toBareObject();
@@ -939,26 +940,36 @@ function quiz_question_feedback($quiz, $question) {
  * correct feedback.
  */
 function quiz_question_answering_form_submit(&$form, &$form_state) {
-  $quiz = node_load(arg(1));
-  $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $questions = $quiz_result->layout;
+  $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+  $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit));
+  if ($time_reached) {
+    // Too late.
+    // @todo move to quiz_question_answering_form_validate(), and then put all
+    // the "quiz end" logic in a sharable place. We just need to not fire the
+    // logic that saves all the users answers.
+    drupal_set_message(t('The last answer was not submitted, as the time ran out.'), 'error');
+  }
+  else {
+    $questions = $quiz_result->layout;
 
-  if (!empty($form_state['values']['question'])) {
-    foreach ($form_state['values']['question'] as $nid => $answer) {
-      $current_question = node_load($nid);
-      foreach ($questions as $question) {
-        if ($question['nid'] == $current_question->nid) {
-          $question_array = $question;
+    if (!empty($form_state['values']['question'])) {
+      foreach ($form_state['values']['question'] as $nid => $answer) {
+        $current_question = node_load($nid);
+        foreach ($questions as $question) {
+          if ($question['nid'] == $current_question->nid) {
+            $question_array = $question;
+          }
         }
-      }
-      $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
-      $qi_instance->delete();
-      $qi_instance->saveResult();
-      $result = $qi_instance->toBareObject();
-      quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
+        $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+        $qi_instance->delete();
+        $qi_instance->saveResult();
+        $result = $qi_instance->toBareObject();
+        quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
-      // Increment the counter.
-      quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+        // Increment the counter.
+        quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+      }
     }
   }
 
@@ -972,7 +983,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
   }
 
-  if (!isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
+  if ($time_reached || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // No more questions. Score quiz.
     $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
 
