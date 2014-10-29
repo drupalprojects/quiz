@@ -148,6 +148,7 @@ function quiz_question_validate($node, &$form) {
  */
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $quiz_result = quiz_result_load($result_id);
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
 
   if (!is_array($nodes)) {
     // One single question (or page?)
@@ -178,7 +179,6 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $class = drupal_html_class('quiz-question-' . $node->type);
     // Element for a single question
     $element = $question->getAnsweringForm($form_state, $result_id);
-    $quiz = node_load(arg(1));
 
     // Hide the label of the body field if this is an informative question.
     $options = !$question->isGraded() ? array('label' => 'hidden') : array();

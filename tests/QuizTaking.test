@@ -179,7 +179,9 @@ class QuizTaking extends QuizTestCase {
       ), t('Next'));
     $this->assertText('Score: 1 of 1');
 
-    // Restrict change after answer.
+    // Restrict change after answer. Turn auto revisioning off since we need to
+    // operate on the same result.
+    variable_set('quiz_auto_revisioning', 0);
     $quiz_node->allow_change = 0;
     node_save($quiz_node);
 
