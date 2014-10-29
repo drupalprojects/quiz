@@ -174,15 +174,11 @@ function quiz_schema() {
       'unique keys' => array(
           'result_answer' => array('result_id', 'question_nid', 'question_vid'),
       ),
-      'indexes'     => array(
-          'result_id' => array('result_id'),
-      ),
+      'indexes'     => array('result_id' => array('result_id')),
   );
 
-  /**
-   * Allows custom feedback based on the results of a user completing a quiz.
-   */
-  // Create the quiz node result options table
+  // Create the quiz node result options table.
+  // Allows custom feedback based on the results of a user completing a quiz.
   $schema['quiz_result_options'] = array(
       'description' => 'Table storing result options for quizzes. Several result options may belong to a single quiz.',
       'fields'      => array(
@@ -202,17 +198,15 @@ function quiz_schema() {
   $schema['quiz_terms'] = array(
       'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
       'fields'      => array(
-          'nid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Node id'),
-          'vid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Version id'),
+          'nid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Node ID'),
+          'vid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Version ID'),
           'weight'    => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'The terms weight decides the order of the terms'),
-          'tid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Term id'),
+          'tid'       => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Term ID'),
           'max_score' => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Max score for each question marked with this term'),
           'number'    => array('type' => 'int', 'size' => 'tiny', 'unsigned' => TRUE, 'not null' => TRUE, 'description' => 'Number of questions to be drawn from this term'),
       ),
       'primary key' => array('vid', 'tid'),
-      'indexes'     => array(
-          'version' => array('vid'),
-      ),
+      'indexes'     => array('version' => array('vid')),
   );
 
   return $schema;
@@ -391,13 +385,7 @@ function quiz_update_7502() {
  * Add new qr_pid field to the quiz_relationship table.
  */
 function quiz_update_7503() {
-  $spec = array(
-      'type'     => 'int',
-      'size'     => 'normal',
-      'unsigned' => TRUE,
-      'not null' => FALSE,
-      'default'  => NULL,
-  );
+  $spec = array('type' => 'int', 'size' => 'normal', 'unsigned' => TRUE, 'not null' => FALSE, 'default' => NULL);
   db_add_field('quiz_relationship', 'qr_pid', $spec);
   return t('Added new qr_pid field to the quiz_relationship table.');
 }
@@ -407,10 +395,7 @@ function quiz_update_7503() {
  * This lets us do better filtering in Views (where NULL).
  */
 function quiz_update_7504() {
-  $spec = array(
-      'type'     => 'int',
-      'unsigned' => FALSE,
-  );
+  $spec = array('type' => 'int', 'unsigned' => FALSE);
   db_change_field('quiz_results', 'time_start', 'time_start', $spec);
   db_change_field('quiz_results', 'time_end', 'time_end', $spec);
   db_query("UPDATE {quiz_results} SET time_end = NULL WHERE time_end = 0");
@@ -421,10 +406,7 @@ function quiz_update_7504() {
  * Revamping quiz feedback options.
  */
 function quiz_update_7505() {
-  db_add_field('quiz_node_properties', 'review_options', array(
-      'type'      => 'text',
-      'serialize' => TRUE,
-  ));
+  db_add_field('quiz_node_properties', 'review_options', array('type' => 'text', 'serialize' => TRUE));
 
   drupal_get_schema(NULL, TRUE);
 
@@ -458,16 +440,8 @@ function quiz_update_7505() {
  */
 function quiz_update_7506() {
   db_drop_primary_key('quiz_node_properties');
-  db_add_field('quiz_node_properties', 'qnp_id', array(
-      'type' => 'serial',
-    ), array('primary key' => array('qnp_id')));
-
-  db_add_field('quiz_node_properties', 'uid', array(
-      'type'     => 'int',
-      'unsigned' => TRUE,
-      'not null' => TRUE,
-      'default'  => 0,
-  ));
+  db_add_field('quiz_node_properties', 'qnp_id', array('type' => 'serial'), array('primary key' => array('qnp_id')));
+  db_add_field('quiz_node_properties', 'uid', array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0));
 
   // We could do this, but we should really migrate user settings from 4.x.
   // Patches welcome.
@@ -478,10 +452,5 @@ function quiz_update_7506() {
  * Add allow_change to restrict users from changing answers.
  */
 function quiz_update_7507() {
-  db_add_field('quiz_node_properties', 'allow_change', array(
-      'type'     => 'int',
-      'size'     => 'small',
-      'not null' => TRUE,
-      'default'  => 1,
-  ));
+  db_add_field('quiz_node_properties', 'allow_change', array('type' => 'int', 'size' => 'small', 'not null' => TRUE, 'default' => 1));
 }
