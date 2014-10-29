@@ -11,7 +11,7 @@ class HookEntityInfo {
         'quiz_question_relationship' => $this->getQuizQuestionRelationshipInfo(),
         'quiz_result'                => $this->getQuizResultInfo(),
         'quiz_result_answer'         => $this->getQuizResultAnswerInfo(),
-      ) + $this->getDepratedEntityInfo();
+      );
   }
 
   private function getQuizEntityTypeInfo() {
@@ -117,19 +117,6 @@ class HookEntityInfo {
         'entity keys'               => array('id' => 'result_answer_id'),
         'views controller class'    => 'EntityDefaultViewsController',
         'metadata controller class' => 'Drupal\quiz\Entity\AnswerMetadataController',
-    );
-  }
-
-  private function getDepratedEntityInfo() {
-    return array(
-        // @TODO: Once quiz entity is ready, remove this
-        'quiz' => array(
-            'label'                  => t('Quiz properties'),
-            'controller class'       => 'EntityAPIController',
-            'base table'             => 'quiz_node_properties',
-            'entity keys'            => array('id' => 'qnp_id'),
-            'views controller class' => 'EntityDefaultViewsController',
-        ),
     );
   }
 
