@@ -578,3 +578,30 @@ function _quiz_update_7510($quiz_node, $field_names) {
   }
 }
 
+/**
+ * Change path aliases from quiz-node to quiz-entity
+ */
+function quiz_update_7511() {
+  $select = db_select('quiz_entity');
+  $select->fields('quiz_entity', array('qid, node_nid'));
+  $result = $select->execute();
+  while ($row = $result->fetchAll()) {
+    if ($path = path_load("node/{$row->node_nid}")) {
+      $path['source'] = "quiz/{$row->qid}";
+      path_save($path);
+    }
+  }
+}
+
+/**
+ * Clean up data of when quiz was node.
+ */
+function quiz_update_7512() {
+  # db_drop_table('quiz_node_properties');
+  # delete all quiz nodes?
+  # delete quiz node type?
+
+  db_drop_index('quiz_node', 'quiz_node');
+  db_drop_field('quiz_entity', 'node_nid');
+  db_drop_field('quiz_entity_revision', 'node_vid');
+}
