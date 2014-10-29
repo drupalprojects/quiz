@@ -513,7 +513,7 @@ function _quiz_update_7509($row) {
     $quiz = quiz_entity_single_load($quiz_id);
   }
   else {
-    $quiz = entity_create('quiz_entityt', array(
+    $quiz = entity_create('quiz_entity', array(
         'type'     => 'quiz',
         'uid'      => $row->uid,
         'title'    => $row->title,
