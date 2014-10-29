@@ -3,7 +3,7 @@ $view = new view();
 $view->name = 'questions_by_quiz';
 $view->description = 'View of all the questions associated with a quiz';
 $view->tag = 'quiz';
-$view->base_table = 'quiz_node_properties';
+$view->base_table = 'quiz_entity_revision';
 $view->human_name = '';
 $view->core = 0;
 $view->api_version = '3.0';
@@ -98,7 +98,7 @@ $handler->display->display_options['fields']['question_status']['table'] = 'quiz
 $handler->display->display_options['fields']['question_status']['field'] = 'question_status';
 /* Contextual filter: Quiz: Quiz Node NID */
 $handler->display->display_options['arguments']['nid']['id'] = 'nid';
-$handler->display->display_options['arguments']['nid']['table'] = 'quiz_node_properties';
+$handler->display->display_options['arguments']['nid']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['arguments']['nid']['field'] = 'nid';
 $handler->display->display_options['arguments']['nid']['default_action'] = 'not found';
 $handler->display->display_options['arguments']['nid']['exception']['title_enable'] = TRUE;

@@ -4,7 +4,7 @@ $view = new view();
 $view->name = 'quiz_by_author';
 $view->description = 'View of all the quizzes owned by a particular user (\'author\').';
 $view->tag = 'quiz';
-$view->base_table = 'quiz_node_properties';
+$view->base_table = 'quiz_entity_revision';
 $view->human_name = '';
 $view->core = 0;
 $view->api_version = '3.0';
@@ -53,34 +53,34 @@ $handler->display->display_options['style_options']['info'] = array(
 );
 /* Relationship: Quiz: Quiz Node NID */
 $handler->display->display_options['relationships']['nid']['id'] = 'nid';
-$handler->display->display_options['relationships']['nid']['table'] = 'quiz_node_properties';
+$handler->display->display_options['relationships']['nid']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['relationships']['nid']['field'] = 'nid';
 $handler->display->display_options['relationships']['nid']['required'] = TRUE;
 /* Field: Quiz: Quiz Node NID */
 $handler->display->display_options['fields']['nid']['id'] = 'nid';
-$handler->display->display_options['fields']['nid']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['nid']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['nid']['field'] = 'nid';
 /* Field: Quiz: Quiz Node VID */
 $handler->display->display_options['fields']['vid']['id'] = 'vid';
-$handler->display->display_options['fields']['vid']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['vid']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['vid']['field'] = 'vid';
 /* Field: Quiz: Close time */
 $handler->display->display_options['fields']['quiz_close']['id'] = 'quiz_close';
-$handler->display->display_options['fields']['quiz_close']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['quiz_close']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['quiz_close']['field'] = 'quiz_close';
 $handler->display->display_options['fields']['quiz_close']['label'] = 'Quiz close time';
 /* Field: Quiz: Open time */
 $handler->display->display_options['fields']['quiz_open']['id'] = 'quiz_open';
-$handler->display->display_options['fields']['quiz_open']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['quiz_open']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['quiz_open']['field'] = 'quiz_open';
 $handler->display->display_options['fields']['quiz_open']['label'] = 'Quiz open time';
 /* Field: Quiz: Time limit */
 $handler->display->display_options['fields']['time_limit']['id'] = 'time_limit';
-$handler->display->display_options['fields']['time_limit']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['time_limit']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['time_limit']['field'] = 'time_limit';
 /* Field: Quiz: Allowed takes */
 $handler->display->display_options['fields']['takes']['id'] = 'takes';
-$handler->display->display_options['fields']['takes']['table'] = 'quiz_node_properties';
+$handler->display->display_options['fields']['takes']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['fields']['takes']['field'] = 'takes';
 /* Contextual filter: Quiz Results: User */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';

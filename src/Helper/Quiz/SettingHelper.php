@@ -96,9 +96,10 @@ class SettingHelper extends FormHelper {
     $sql = "SELECT qnp_id
       FROM {quiz_node_properties}
       WHERE (nid = :nid AND nid > 0 AND vid = :vid AND vid > 0)
-        OR (uid = :uid and uid > 0)
-        OR (nid = :nid and uid = :uid and vid = :vid)";
-    $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
+        OR (uid = :uid AND uid > 0)
+        OR (nid = :nid AND uid = :uid AND vid = :vid)";
+    $params = array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid);
+    $result = db_query($sql, $params);
     $entity->qnp_id = $result->fetchField();
     return entity_save('quiz', $entity);
   }

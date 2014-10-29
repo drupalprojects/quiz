@@ -6,6 +6,7 @@
  */
 
 class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeric {
+
   /**
    * An array that the subselect will fill with all the corresponding quiz node,
    * according to the configuration on the argument settings form. These vids
@@ -38,16 +39,16 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     //    $form['wildcard']['#weight'] = -4;
     //    $form['wildcard_substitution']['#weight'] = -4;
     $form['which_vid'] = array(
-      '#type' => 'select',
-      '#title' => t('Quiz revision(s) to use'),
-      '#options' => array(
-        'latest' => t('Latest: most recent version of the quiz ONLY.'),
-        'initial' => t('Initial: original version of the quiz ONLY.'),
-        'all' => t('All: ALL versions of the quiz.')
-      ),
-      '#description' => t('The validator will transform the incoming quiz node id(s) into one or more quiz node revisions, depending on your selection.'),
-      '#default_value' => $this->options['which_vid'],
-      '#weight' => -1,
+        '#type'          => 'select',
+        '#title'         => t('Quiz revision(s) to use'),
+        '#options'       => array(
+            'latest'  => t('Latest: most recent version of the quiz ONLY.'),
+            'initial' => t('Initial: original version of the quiz ONLY.'),
+            'all'     => t('All: ALL versions of the quiz.')
+        ),
+        '#description'   => t('The validator will transform the incoming quiz node id(s) into one or more quiz node revisions, depending on your selection.'),
+        '#default_value' => $this->options['which_vid'],
+        '#weight'        => -1,
     );
   }
 
@@ -114,18 +115,18 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
    * that time. So, called from set_argument().
    */
   function subselect_vids() {
-    $query = db_select('quiz_node_properties', 'qnp');
+    $query = db_select('quiz_entity_revision', 'qnp');
     if (count($this->value) > 1) {
       // Guaranteed to produce multiple values; therefore may need the group by
       $use_group_by = TRUE;
       $operator = empty($this->options['not']) ? 'IN' : 'NOT IN';
-      $query->condition('nid', $this->value, $operator);
+      $query->condition('quiz_qid', $this->value, $operator);
     }
     else {
       // Multiple values only possible with a NOT; only then do we need group by
       $use_group_by = !empty($this->options['not']);
       $operator = empty($this->options['not']) ? '=' : '!=';
-      $query->condition('nid', reset($this->value), $operator);
+      $query->condition('quiz_qid', reset($this->value), $operator);
     }
 
     switch ($this->options['which_vid']) {
@@ -143,7 +144,7 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
         break;
     }
     if ($use_group_by) {
-      $query->groupBy('nid');
+      $query->groupBy('quiz_qid');
     }
     $result = $query->execute();
 
@@ -155,4 +156,5 @@ class quiz_views_handler_argument_quiz_nid extends views_handler_argument_numeri
     }
     return (count($this->corresponding_vids) > 1);
   }
+
 }

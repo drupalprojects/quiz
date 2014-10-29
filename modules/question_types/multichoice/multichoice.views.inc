@@ -11,7 +11,7 @@ function multichoice_views_data() {
     'table'        => array(
       'group' => 'Quiz Multichoice Answers',
       'join'  => array(
-        'quiz_node_properties' => array(
+        'quiz_entity_revision' => array(
           'left_table' => 'quiz_relationship',
           'left_field' => 'question_nid',
           'field'      => 'question_nid',
@@ -97,7 +97,7 @@ function multichoice_views_data() {
     'table'        => array(
       'group' => 'Quiz Multichoice Answers',
       'join'  => array(
-        'quiz_node_properties' => array(
+        'quiz_entity_revision' => array(
           'left_table' => 'quiz_relationship',
           'left_field' => 'question_nid',
           'field'      => 'question_nid',
@@ -198,7 +198,7 @@ function multichoice_views_data() {
     'table'          => array(
       'group' => t('Quiz Multichoice Answers'),
       'join'  => array(
-        'quiz_node_properties' => array(
+        'quiz_entity_revision' => array(
           'left_table' => 'quiz_multichoice_user_answers',
           'left_field' => 'id',
           'field'      => 'user_answer_id',

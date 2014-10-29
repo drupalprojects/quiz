@@ -13,11 +13,8 @@ class NodeUpdateHelper extends NodeHelper {
       $this->updateQuestionRelationship($quiz->old_vid, $quiz->vid, $quiz->qid);
     }
 
-    // Update an existing row in the quiz_node_properties table.
     $this->presaveActions($quiz);
-
     quiz()->getQuizHelper()->getSettingHelper()->updateUserDefaultSettings($quiz);
-
     $this->checkNumRandom($quiz);
     $this->checkNumAlways($quiz);
     quiz_update_max_score_properties(array($quiz->vid));

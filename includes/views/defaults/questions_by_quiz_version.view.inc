@@ -4,7 +4,7 @@ $view = new view();
 $view->name = 'questions_by_quiz_version';
 $view->description = 'View of all the questions associated with a particular revision of a quiz';
 $view->tag = 'quiz';
-$view->base_table = 'quiz_node_properties';
+$view->base_table = 'quiz_entity_revision';
 $view->human_name = '';
 $view->core = 0;
 $view->api_version = '3.0';
@@ -117,7 +117,7 @@ $handler->display->display_options['fields']['question_status']['table'] = 'quiz
 $handler->display->display_options['fields']['question_status']['field'] = 'question_status';
 /* Contextual filter: Quiz: Quiz Node VID */
 $handler->display->display_options['arguments']['vid']['id'] = 'vid';
-$handler->display->display_options['arguments']['vid']['table'] = 'quiz_node_properties';
+$handler->display->display_options['arguments']['vid']['table'] = 'quiz_entity_revision';
 $handler->display->display_options['arguments']['vid']['field'] = 'vid';
 $handler->display->display_options['arguments']['vid']['exception']['title_enable'] = TRUE;
 $handler->display->display_options['arguments']['vid']['title_enable'] = TRUE;

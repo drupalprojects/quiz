@@ -636,7 +636,7 @@ class QuizHelper {
   public function countQuestion($quiz_vid) {
     return $this->countAlwaysQuestions($quiz_vid) + (int) db_query(
         'SELECT number_of_random_questions'
-        . ' FROM {quiz_node_properties}'
+        . ' FROM {quiz_entity_revision}'
         . ' WHERE vid = :vid', array(':vid' => $quiz_vid)
       )->fetchField();
   }
@@ -663,9 +663,9 @@ class QuizHelper {
   /**
    * Return highest score data for given quizzes.
    *
-   * @param $nids
-   *   nids for the quizzes we want to collect scores from.
-   * @param $uid
+   * @param int[] $qids
+   *   IDs for the quizzes we want to collect scores from.
+   * @param int $uid
    *   uid for the user we want to collect score for.
    * @param $include_num_questions
    *   Do we want to collect information about the number of questions in a quiz?
@@ -674,34 +674,38 @@ class QuizHelper {
    *   Array of score data.
    *   For several takes on the same quiz, only returns highest score.
    */
-  public function getScoreData($nids, $uid, $include_num_questions = FALSE) {
+  public function getScoreData($qids, $uid, $include_num_questions = FALSE) {
     // Validate that the nids are integers.
-    foreach ($nids as $key => $nid) {
+    foreach ($qids as $key => $nid) {
       if (!_quiz_is_int($nid)) {
-        unset($nids[$key]);
+        unset($qids[$key]);
       }
     }
-    if (empty($nids)) {
+
+    if (empty($qids)) {
       return array();
     }
 
     // Fetch score data for the validated nids.
     $to_return = array();
     $vids = array();
-    $sql = 'SELECT n.title, n.nid, n.vid, p.number_of_random_questions as num_random_questions, r.score AS percent_score, p.max_score, p.pass_rate AS percent_pass
-          FROM {node} n
-          JOIN {quiz_node_properties} p
-          ON n.vid = p.vid
-          LEFT OUTER JOIN {quiz_results} r
-          ON r.nid = n.nid AND r.uid = :uid
-          LEFT OUTER JOIN (
-            SELECT nid, max(score) as highest_score
-            FROM {quiz_results}
-            GROUP BY nid
-          ) rm
-          ON n.nid = rm.nid AND r.score = rm.highest_score
-          WHERE n.nid in (' . implode(', ', $nids) . ')
-          ';
+    $sql = '
+        SELECT quiz.title, quiz.qid, quiz.vid,
+          p.number_of_random_questions AS num_random_questions,
+          r.score AS percent_score,
+          p.max_score,
+          p.pass_rate AS percent_pass
+        FROM {quiz_entity} quiz
+          JOIN {quiz_entity_revision} p ON quiz.vid = p.vid
+          LEFT OUTER JOIN {quiz_results} r ON r.nid = quiz.qid AND r.uid = :uid
+          LEFT OUTER JOIN
+            (
+              SELECT nid, max(score) as highest_score
+              FROM {quiz_results}
+              GROUP BY nid
+            )
+            rm ON quiz.qid = rm.nid AND r.score = rm.highest_score
+        WHERE quiz.qid in (' . implode(', ', $qids) . ')';
     $res = db_query($sql, array(':uid' => $uid));
     foreach ($res as $res_o) {
       if (!$include_num_questions) {
@@ -713,6 +717,7 @@ class QuizHelper {
       // $vids will be used to fetch number of questions.
       $vids[] = $res_o->vid;
     }
+
     if (empty($vids)) {
       return array();
     }
@@ -784,7 +789,7 @@ class QuizHelper {
             (max_score_for_random /
               (SELECT max_score FROM {quiz_question_properties} WHERE nid = :question_nid AND vid = :question_vid)
             ) as scale
-          FROM {quiz_node_properties}
+          FROM {quiz_entity_revision}
           WHERE vid = :quiz_vid", array(
           ':question_nid' => $result->quiz_qid,
           ':question_vid' => $result->quiz_vid,
@@ -848,34 +853,39 @@ class QuizHelper {
       return;
     }
 
-    db_update('quiz_node_properties')
+    db_update('quiz_entity_revision')
       ->expression('max_score', 'max_score_for_random * number_of_random_questions + (
-      SELECT COALESCE(SUM(max_score), 0)
-      FROM {quiz_relationship} qnr
-      WHERE qnr.question_status = ' . QUESTION_ALWAYS . '
-      AND quiz_vid = {quiz_node_properties}.vid)')
+            SELECT COALESCE(SUM(max_score), 0)
+            FROM {quiz_relationship} qnr
+            WHERE qnr.question_status = :status AND quiz_vid = {quiz_node_properties}.vid)', array(
+          ':status' => QUESTION_ALWAYS))
       ->condition('vid', $vids, 'IN')
       ->execute();
 
-    db_update('quiz_node_properties')
+    db_update('quiz_entity_revision')
       ->expression('max_score', '(SELECT COALESCE(SUM(qt.max_score * qt.number), 0)
-      FROM {quiz_terms} qt
-      WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid)')
+            FROM {quiz_terms} qt
+            WHERE qt.nid = {quiz_entity_revision}.qid AND qt.vid = {quiz_entity_revision}.vid)')
       ->condition('randomization', 3)
       ->condition('vid', $vids, 'IN')
       ->execute();
 
-    db_update('node_revision')
-      ->fields(array('timestamp' => REQUEST_TIME))
-      ->condition('vid', $vids, 'IN')
-      ->execute();
-
-    db_update('node')
+    db_update('quiz_entity_revision')
       ->fields(array('changed' => REQUEST_TIME))
       ->condition('vid', $vids, 'IN')
       ->execute();
 
-    $results_to_update = db_query('SELECT vid FROM {quiz_node_properties} WHERE vid IN (:vid) AND max_score <> :max_score', array(':vid' => $vids, ':max_score' => 0))->fetchCol();
+    db_update('quiz_entity')
+      ->fields(array('changed' => REQUEST_TIME))
+      ->condition('vid', $vids, 'IN')
+      ->execute();
+
+    $results_to_update = db_query('SELECT vid '
+      . ' FROM {quiz_entity_revision} '
+      . ' WHERE vid IN (:vid) AND max_score <> :max_score', array(
+        ':vid'       => $vids,
+        ':max_score' => 0
+      ))->fetchCol();
     if (!empty($results_to_update)) {
       db_update('quiz_results')
         ->expression('score', 'ROUND(
@@ -885,7 +895,7 @@ class QuizHelper {
           WHERE a.result_id = {quiz_results}.result_id
         ) / (
           SELECT max_score
-          FROM {quiz_node_properties} qnp
+          FROM {quiz_entity_revision} qnp
           WHERE qnp.vid = {quiz_results}.vid
         )
       )')

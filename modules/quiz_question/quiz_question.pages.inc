@@ -63,31 +63,31 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
     $options = _quiz_question_revision_options($quiz->status == 1, $quiz->answered);
 
     $form['quizzes'][$quiz_id . '-' . $quiz->vid . '-' . $quiz->status . '-' . ($quiz->answered ? '1' : '0')] = array(
-      '#type' => 'radios',
-      '#title' => check_plain($quiz->title) . ' (' . $published . ' ' . t('and') . ' ' . $answered . ')',
-      '#default_value' => $options['default'],
-      '#options' => $options['options'],
+        '#type'          => 'radios',
+        '#title'         => check_plain($quiz->title) . ' (' . $published . ' ' . t('and') . ' ' . $answered . ')',
+        '#default_value' => $options['default'],
+        '#options'       => $options['options'],
     );
     $form['quizzes'][$quiz->vid]['#quiz_title'] = $quiz->title;
   }
 
   $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
+      '#type'  => 'submit',
+      '#value' => t('Submit'),
   );
   $form['#submit'] = array('quiz_question_revision_actions_submit');
 
   // Help texts
   $form['update_expl'] = array(
-    '#type' => 'item',
-    '#title' => t('Update'),
-    '#value' => t('Replace the old revision of the question with the new revision.'),
+      '#type'  => 'item',
+      '#title' => t('Update'),
+      '#value' => t('Replace the old revision of the question with the new revision.'),
   );
   $form['revise_expl'] = array(
-    '#type' => 'item',
-    '#title' => t('Revise'),
-    '#value' => t('If a quiz has been answered you should make a new revision to ensure that existing answer statistics and reports remain correct.'),
-    '#description' => t('If the new revision of the question only correct spelling errors etc. you don\'t need to revise.'),
+      '#type'        => 'item',
+      '#title'       => t('Revise'),
+      '#value'       => t('If a quiz has been answered you should make a new revision to ensure that existing answer statistics and reports remain correct.'),
+      '#description' => t('If the new revision of the question only correct spelling errors etc. you don\'t need to revise.'),
   );
   return $form;
 }
@@ -108,46 +108,46 @@ function quiz_question_revision_actions($form, $form_state, $nid, $vid) {
 function _quiz_question_revision_options($published, $answered) {
   // We create a data structure holding the different options for the different quiz states
   $struct = array(
-    'published' => array(
-      'answered' => array(
-        'options' => array(
-          // The key is in the form [update][revise][publish]
-          '110' => t('Update, revise and unpublish'),
-          '111' => t('Update and revise'),
-          '101' => t('Update'),
-          '001' => t('Do nothing'),
-        ),
-        'default' => '111',
+      'published'   => array(
+          'answered'   => array(
+              'options' => array(
+                  // The key is in the form [update][revise][publish]
+                  '110' => t('Update, revise and unpublish'),
+                  '111' => t('Update and revise'),
+                  '101' => t('Update'),
+                  '001' => t('Do nothing'),
+              ),
+              'default' => '111',
+          ),
+          'unanswered' => array(
+              'options' => array(
+                  '100' => t('Update and Unpublish'),
+                  '101' => t('Update'),
+                  '001' => t('Do nothing'),
+              ),
+              'default' => '101',
+          ),
       ),
-      'unanswered' => array(
-        'options' => array(
-          '100' => t('Update and Unpublish'),
-          '101' => t('Update'),
-          '001' => t('Do nothing'),
-        ),
-        'default' => '101',
+      'unpublished' => array(
+          'answered'   => array(
+              'options' => array(
+                  '111' => t('Update, revise and publish'),
+                  '110' => t('Update and revise'),
+                  '101' => t('Update and publish'),
+                  '100' => t('Update'),
+                  '000' => t('Do nothing'),
+              ),
+              'default' => '110',
+          ),
+          'unanswered' => array(
+              'options' => array(
+                  '101' => t('Update and publish'),
+                  '100' => t('Update'),
+                  '000' => t('Do nothing'),
+              ),
+              'default' => '100',
+          ),
       ),
-    ),
-    'unpublished' => array(
-      'answered' => array(
-        'options' => array(
-          '111' => t('Update, revise and publish'),
-          '110' => t('Update and revise'),
-          '101' => t('Update and publish'),
-          '100' => t('Update'),
-          '000' => t('Do nothing'),
-        ),
-        'default' => '110',
-      ),
-      'unanswered' => array(
-        'options' => array(
-          '101' => t('Update and publish'),
-          '100' => t('Update'),
-          '000' => t('Do nothing'),
-        ),
-        'default' => '100',
-      ),
-    ),
   );
   $published = $published ? 'published' : 'unpublished';
   $answered = $answered ? 'answered' : 'unanswered';
@@ -167,32 +167,40 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       continue;
     }
     list($update, $revise, $publish) = str_split($value); //FORMAT: Update[0,1], revise[0,1] and publish[0,1]
-    list($nid, $vid, $published, $answered) = explode('-', $key); //FORMAT: nid(int), vid(int), published[0,1] and answered[0,1]
-    //If we are to revise the quiz we need to do that first...
+    list($qid, $vid, $published, $answered) = explode('-', $key); //FORMAT: nid(int), vid(int), published[0,1] and answered[0,1]
+    //
+    // If we are to revise the quiz we need to do that first...
     if ($revise == '1') {
-      $quiz_node = node_load((int) $nid, (int) $vid);
-      $quiz_node->revision = 1;
+      $quiz = quiz_entity_single_load((int) $qid, (int) $vid);
+      $quiz->is_new_revision = 1;
     }
-    if (!isset($quiz_node) && $publish != $published) {
-      $quiz_node = node_load((int) $nid, (int) $vid);
+
+    if (!isset($quiz) && $publish != $published) {
+      $quiz = quiz_entity_single_load((int) $qid, (int) $vid);
     }
 
     // If the quiz node is to be revised and/or (un)published we save it now
-    if (isset($quiz_node)) {
-      $quiz_node->auto_created = TRUE;
-      $quiz_node->status = $publish;
-      node_save($quiz_node);
-      $quiz_nid = $quiz_node->nid;
-      $quiz_vid = $quiz_node->vid;
+    if (isset($quiz)) {
+      $quiz->auto_created = TRUE;
+      $quiz->status = $publish;
+      node_save($quiz);
+      $quiz_qid = $quiz->qid;
+      $quiz_vid = $quiz->vid;
     }
     else {
-      $quiz_nid = (int) $nid;
+      $quiz_qid = (int) $qid;
       $quiz_vid = (int) $vid;
     }
 
     if ($update == '1') {
-      $res_relationship = db_query('SELECT max_score, auto_update_max_score FROM {quiz_relationship}
-              WHERE quiz_vid = :quiz_vid AND question_nid = :question_nid', array(':quiz_vid' => $quiz_vid, ':question_nid' => $form_state['values']['q_nid']))->fetch();
+      $res_relationship = db_query(
+        'SELECT max_score, auto_update_max_score
+            FROM {quiz_relationship}
+            WHERE quiz_vid = :quiz_vid
+              AND question_nid = :question_nid', array(
+          ':quiz_vid'     => $quiz_vid,
+          ':question_nid' => $form_state['values']['q_nid']
+        ))->fetch();
 
       $auto_update_max_score = isset($res_relationship->auto_update_max_score) ? $res_relationship->auto_update_max_score : 0;
 
@@ -201,17 +209,28 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       }
 
       if (!$res_relationship || $auto_update_max_score) {
-        $res = db_query('SELECT max_score FROM {quiz_question_properties}
-                WHERE vid = :vid', array(':vid' => $form_state['values']['q_vid']));
+        $res = db_query(
+          'SELECT max_score
+            FROM {quiz_question_properties}
+            WHERE vid = :vid', array(':vid' => $form_state['values']['q_vid']));
         $max_score = $res->fetchField();
       }
 
-      $res = db_query('SELECT weight, question_status FROM {quiz_relationship}
-              WHERE quiz_qid = :quiz_qid AND quiz_vid = :quiz_vid AND question_nid = :question_nid', array(':quiz_qid' => $quiz_nid, ':quiz_vid' => $quiz_vid, ':question_nid' => $form_state['values']['q_nid']));
+      $res = db_query(
+        'SELECT weight, question_status
+         FROM {quiz_relationship}
+            WHERE quiz_qid = :quiz_qid
+                AND quiz_vid = :quiz_vid
+                AND question_nid = :question_nid', array(
+          ':quiz_qid'     => $quiz_qid,
+          ':quiz_vid'     => $quiz_vid,
+          ':question_nid' => $form_state['values']['q_nid']
+      ));
+
       if ($res_o = $res->fetch()) {
         // Remove old revsions of the question from the quiz
         db_delete('quiz_relationship')
-          ->condition('quiz_qid', $quiz_nid)
+          ->condition('quiz_qid', $quiz_qid)
           ->condition('quiz_vid', $quiz_vid)
           ->condition('question_nid', $form_state['values']['q_nid'])
           ->execute();
@@ -221,24 +240,26 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
       else {
         $weight = 1 + db_query(
             "SELECT MAX(weight)
-          FROM {quiz_relationship}
-          WHERE quiz_vid = :quiz_vid", array(':quiz_vid' => $quiz_vid))->fetchField();
+              FROM {quiz_relationship}
+              WHERE quiz_vid = :quiz_vid", array(':quiz_vid' => $quiz_vid))->fetchField();
+
         $quiz_randomization = db_query(
           "SELECT randomization
-          FROM {quiz_node_properties}
-          WHERE nid = :nid AND vid = :vid", array(':nid' => $quiz_nid, ':vid' => $quiz_vid))->fetchField();
+            FROM {quiz_entity_revision}
+            WHERE qid = :qid AND vid = :vid", array(':qid' => $quiz_qid, ':vid' => $quiz_vid))->fetchField();
+
         $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
       }
       // Insert the newest revision of the question into the quiz
       $entity = (object) array(
-          'quiz_qid' => $quiz_nid,
-          'quiz_vid' => $quiz_vid,
-          'question_nid' => $form_state['values']['q_nid'],
-          'question_vid' => $form_state['values']['q_vid'],
-          'max_score' => $max_score,
-          'weight' => $weight,
-          'question_status' => $question_status,
-          'auto_update_max_score' => $auto_update_max_score,
+            'quiz_qid'              => $quiz_qid,
+            'quiz_vid'              => $quiz_vid,
+            'question_nid'          => $form_state['values']['q_nid'],
+            'question_vid'          => $form_state['values']['q_vid'],
+            'max_score'             => $max_score,
+            'weight'                => $weight,
+            'question_status'       => $question_status,
+            'auto_update_max_score' => $auto_update_max_score,
       );
       entity_save('quiz_question_relationship', $entity);
     }

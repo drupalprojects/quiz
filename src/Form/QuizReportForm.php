@@ -186,15 +186,18 @@ class QuizReportForm {
   /**
    * Returns an array of score information for a quiz
    *
-   * @param unknown_type $result_id
-   * @param unknown_type $quiz_vid
-   * @param unknown_type $is_evaluated
+   * @param int $result_id
+   * @param int $quiz_vid
+   * @param int $is_evaluated
    */
   private function getScoreArray($result_id, $quiz_vid, $is_evaluated) {
-    $properties = db_query('SELECT max_score, number_of_random_questions
-          FROM {quiz_node_properties}
+    $properties = db_query(
+      'SELECT max_score, number_of_random_questions
+          FROM {quiz_entity_revision}
           WHERE vid = :vid', array(':vid' => $quiz_vid))->fetchObject();
-    $total_score = db_query('SELECT SUM(points_awarded)
+
+    $total_score = db_query(
+      'SELECT SUM(points_awarded)
           FROM {quiz_results_answers}
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 

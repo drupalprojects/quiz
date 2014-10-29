@@ -101,12 +101,12 @@ abstract class QuizQuestion {
       $this->includeAutoTitleScript();
 
       $form['title'] = array(
-        '#type'          => 'textfield',
-        '#title'         => t('Title'),
-        '#maxlength'     => 255,
-        '#default_value' => $this->node->title,
-        '#required'      => FALSE,
-        '#description'   => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
+          '#type'          => 'textfield',
+          '#title'         => t('Title'),
+          '#maxlength'     => 255,
+          '#default_value' => $this->node->title,
+          '#required'      => FALSE,
+          '#description'   => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
       );
     }
     else {
@@ -124,8 +124,8 @@ abstract class QuizQuestion {
 
     // Identify this node as a quiz question type so that it can be recognized by other modules effectively.
     $form['is_quiz_question'] = array(
-      '#type'  => 'value',
-      '#value' => TRUE
+        '#type'  => 'value',
+        '#value' => TRUE
     );
 
     if (!empty($this->node->nid)) {
@@ -135,11 +135,11 @@ abstract class QuizQuestion {
     }
 
     $form['feedback'] = array(
-      '#type'          => 'text_format',
-      '#title'         => t('Question feedback'),
-      '#default_value' => !empty($quiz_question->feedback) ? $quiz_question->feedback : '',
-      '#format'        => !empty($quiz_question->feedback_format) ? $quiz_question->feedback_format : filter_default_format(),
-      '#description'   => t('This feedback will show when configured and the user answers a question, regardless of correctness.'),
+        '#type'          => 'text_format',
+        '#title'         => t('Question feedback'),
+        '#default_value' => !empty($quiz_question->feedback) ? $quiz_question->feedback : '',
+        '#format'        => !empty($quiz_question->feedback_format) ? $quiz_question->feedback_format : filter_default_format(),
+        '#description'   => t('This feedback will show when configured and the user answers a question, regardless of correctness.'),
     );
 
     // Add question type specific content
@@ -173,8 +173,8 @@ abstract class QuizQuestion {
   public function getNodeView() {
     $type = node_type_get_type($this->node);
     $content['question_type'] = array(
-      '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
-      '#weight' => -2,
+        '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
+        '#weight' => -2,
     );
     return $content;
   }
@@ -223,15 +223,15 @@ abstract class QuizQuestion {
 
     db_merge('quiz_question_properties')
       ->key(array(
-        'nid' => $this->node->nid,
-        'vid' => $this->node->vid,
+          'nid' => $this->node->nid,
+          'vid' => $this->node->vid,
       ))
       ->fields(array(
-        'nid'       => $this->node->nid,
-        'vid'       => $this->node->vid,
-        'max_score' => $this->getMaximumScore(),
-        'feedback'  => !empty($this->node->feedback['value']) ? $this->node->feedback['value'] : '',
-        'feedback_format' => !empty($this->node->feedback['format']) ? $this->node->feedback['format'] : filter_default_format(),
+          'nid'             => $this->node->nid,
+          'vid'             => $this->node->vid,
+          'max_score'       => $this->getMaximumScore(),
+          'feedback'        => !empty($this->node->feedback['value']) ? $this->node->feedback['value'] : '',
+          'feedback_format' => !empty($this->node->feedback['format']) ? $this->node->feedback['format'] : filter_default_format(),
       ))
       ->execute();
 
@@ -328,8 +328,8 @@ abstract class QuizQuestion {
 
       $feedback = quiz_question_feedback($quiz, $current_question);
       $element['feedback'] = array(
-        '#weight' => 100,
-        '#markup' => drupal_render($feedback),
+          '#weight' => 100,
+          '#markup' => drupal_render($feedback),
       );
     }
   }
@@ -362,16 +362,16 @@ abstract class QuizQuestion {
       /* @var $quiz \Drupal\quiz\Entity\QuizEntity */
       $quiz = quiz_entity_single_load($this->node->quiz_nid, $this->node->quiz_vid);
       $quiz_id = $quiz->qid;
-      $nid_vid[0] = $quiz_id;
-      $nid_vid[1] = $quiz->vid;
+      $ids[0] = $quiz_id;
+      $ids[1] = $quiz->vid;
 
       if (quiz_has_been_answered($quiz)) {
         // We need to revise the quiz if it has been answered
         $quiz->is_new_revision = 1;
         entity_save('quiz_entity', $quiz);
 
-        $nid_vid[0] = $quiz_id;
-        $nid_vid[1] = $quiz->vid;
+        $ids[0] = $quiz_id;
+        $ids[1] = $quiz->vid;
         drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $quiz->title, '@quiz' => QUIZ_NAME)));
       }
 
@@ -383,8 +383,10 @@ abstract class QuizQuestion {
       $insert_values[$nid]['question_vid'] = $this->node->vid;
       $insert_values[$nid]['max_score'] = $this->getMaximumScore();
       $insert_values[$nid]['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
-      $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_relationship} WHERE quiz_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
-      $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
+      $insert_values[$nid]['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_relationship} WHERE quiz_vid = :vid', array(':vid' => $ids[1]))->fetchField();
+      $randomization = db_query('SELECT randomization '
+        . ' FROM {quiz_entity_revision} '
+        . ' WHERE qid = :qid AND vid = :vid', array(':qid' => $ids[0], ':vid' => $ids[1]))->fetchField();
       $insert_values[$nid]['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
 
       $insert_qnr = db_insert('quiz_relationship');
