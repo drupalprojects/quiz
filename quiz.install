@@ -387,12 +387,6 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 0
       ),
-      'layout' => array(
-        'serialize' => TRUE,
-        'type' => 'text',
-        'description' => "Serialized layout data.",
-        'size' => 'medium',
-      ),
     ),
     'primary key' => array('result_id'),
     'indexes' => array(
@@ -456,7 +450,8 @@ function quiz_schema() {
       'answer_timestamp' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
       ),
       'number' => array(
         'type' => 'int',
@@ -850,4 +845,20 @@ function quiz_update_7507() {
     'not null' => TRUE,
     'default' => 1,
   ));
+}
+
+/**
+ * Make our answer_timestamp field NULLable for storing the attempt layout in
+ * the database.
+ */
+function quiz_update_7508() {
+  db_change_field('quiz_node_results_answers', 'answer_timestamp', 'answer_timestamp', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    )
+  );
+
+  db_drop_field('quiz_result', 'layout');
 }

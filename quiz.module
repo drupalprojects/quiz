@@ -370,7 +370,7 @@ function quiz_menu() {
     'title' => 'Take',
     'page callback' => 'quiz_take_question',
     'page arguments' => array(1, 3),
-    'access callback' => 'quiz_take_question_access',
+    'access callback' => 'quiz_access_question',
     'access arguments' => array(1, 3),
   );
 
@@ -1823,7 +1823,7 @@ function quiz_take_quiz($quiz) {
     // Can user start quiz?
     if (quiz_start_check($quiz)) {
       // Set up a new attempt.
-      $quiz_result = _quiz_take_quiz_init($quiz);
+      $quiz_result = quiz_create_attempt($quiz);
       $_SESSION['quiz'][$quiz->nid]['result_id'] = $quiz_result->result_id;
       $_SESSION['quiz'][$quiz->nid]['current'] = 1;
 
@@ -1944,12 +1944,21 @@ function quiz_take_question($quiz, $question_number) {
 }
 
 /**
- * Initialize a quiz attempt.
+ * Initialize a new attempt for a Quiz for the current user.
  *
- * @return QuizResult
- *   The quiz attempt.
+ * This builds a question list from the list of questions or random options,
+ * then instantiates the attempt layout in the database.
+ *
+ * This function does not set the quiz attempt as current, the calling function
+ * should then set the current quiz attempt in the session for the user to be
+ * able to take it.
+ *
+ * @todo wrap around entity_create()? We are creating an entity here anyway.
+ *
+ * @return stdClass
+ *   The quiz attempt/result.
  */
-function _quiz_take_quiz_init($quiz) {
+function quiz_create_attempt($quiz) {
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   if ($questions === FALSE) {
@@ -1963,12 +1972,21 @@ function _quiz_take_quiz_init($quiz) {
   }
 
   $quiz_result = quiz_result_load(quiz_create_rid($quiz));
-  $quiz_result->layout = $questions;
 
   // Write the layout for this result.
   entity_save('quiz_result', $quiz_result);
+  $i = 0;
+  foreach ($questions as $question) {
+    $quiz_result_answer = entity_create('quiz_result_answer', array(
+      'result_id' => $quiz_result->result_id,
+      'question_nid' => $question['nid'],
+      'question_vid' => $question['vid'],
+      'number' => ++$i,
+    ));
+    entity_save('quiz_result_answer', $quiz_result_answer);
+  }
 
-  return $quiz_result;
+  return quiz_result_load($quiz_result->result_id);
 }
 
 /**
@@ -1983,18 +2001,6 @@ function _quiz_take_quiz_init($quiz) {
  *  ['set_msg'] - Sets a message if the last question was skipped.
  */
 function quiz_store_question_result($quiz, $result, $options) {
-  //drupal_set_message('<pre>'. print_r($result, 1) .'</pre>');
-  if (isset($result->is_skipped) && $result->is_skipped == TRUE) {
-    if ($options['set_msg']) {
-      drupal_set_message(t('Last question skipped.'), 'status');
-    }
-    $result->is_correct = FALSE;
-    $result->score = 0;
-  }
-  else {
-    // Make sure this is set.
-    $result->is_skipped = FALSE;
-  }
   if (!isset($result->score)) {
     $result->score = $result->is_correct ? 1 : 0;
   }
@@ -2056,7 +2062,7 @@ function quiz_store_question_result($quiz, $result, $options) {
       'is_skipped' => (int) $result->is_skipped,
       'is_doubtful' => (int) $result->is_doubtful,
       'number' => $options['question_data']['number'],
-      'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : 0,
+      'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : NULL,
   );
   entity_save('quiz_result_answer', $entity);
 }
@@ -2122,24 +2128,7 @@ function quiz_end_scoring($result_id) {
  */
 function quiz_end_actions($quiz, $score, $session_data) {
   // Call hook_quiz_finished().
-  // @TODO consider hook_entity_update if we make quiz results rules capable
   module_invoke_all('quiz_finished', $quiz, $score, $session_data);
-
-  // Lets piggy back here to perform the quiz defined action since were done
-  // with this quiz.
-  // We will verify that there is an associated action with this quiz and then
-  // perform that action.
-  if (!empty($quiz->aid)) {
-    // @TODO get rid of this. Replace with rules. Make quiz results entities or
-    // something
-    // Some actions are reliant on objects and I am unsure which ones, for now I
-    // have simply passed the actions_do() function an empty array. By passing
-    // this function a single id then it will retrieve the callback, get the
-    // parameters and perform that function (action) for you.
-    actions_do($quiz->aid, $quiz, $score, $session_data);
-  }
-
-  return $score;
 }
 
 /**
@@ -3935,9 +3924,9 @@ function quiz_result_load($result_id) {
 }
 
 /**
- * Meun check to see if user has access to take this question.
+ * Menu check to see if user has access to take this question.
  */
-function quiz_take_question_access($quiz, $question_number) {
+function quiz_access_question($quiz, $question_number) {
   if (!$question_number) {
     return FALSE;
   }
@@ -3952,17 +3941,19 @@ function quiz_take_question_access($quiz, $question_number) {
   $question_index = $question_number;
   $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
   $qinfo = $quiz_result->layout[$question_index];
+  $question_node = node_load($qinfo['nid'], $qinfo['vid']);
+  $question_node_last = node_load($qinfo_last['nid'], $qinfo_last['vid']);
 
   if (!$quiz->backwards_navigation) {
     // No backwards navigation.
-    if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+    if (quiz_result_is_question_answered($quiz_result, $question_node)) {
       // Already have an answer for the requested question.
       return FALSE;
     }
   }
 
   // Enforce normal navigation.
-  if ($question_number == 1 || $qra = quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid'])) {
+  if ($question_number == 1 || quiz_result_is_question_answered($quiz_result, $question_node_last)) {
     //  Previous answer was submitted or this is the first question.
     return TRUE;
   }
@@ -4179,4 +4170,49 @@ function quiz_get_feedback_options() {
   drupal_alter('quiz_feedback_options', $feedback_options);
 
   return $feedback_options;
+}
+
+/**
+ * Implements hook_quiz_result_load().
+ *
+ * Attach the layout which previously used to be stored on the result.
+ */
+function quiz_quiz_result_load($quiz_results) {
+  foreach ($quiz_results as $quiz_result) {
+    $layout = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
+    foreach ($layout as $question) {
+      // @kludge
+      // This is bulky but now we have to manually find the type and parents of
+      // the question. This is the only information that is not stored in the
+      // quiz attempt. We reference back to the node relationships for this
+      // current version to get the hieararchy.
+      $sql = "SELECT n.type, qnr_id, qnr_pid FROM {quiz_node_results} qr
+        INNER JOIN {quiz_node_relationship} qnr on (qr.nid = qnr.parent_nid and qr.vid = qnr.parent_vid)
+        INNER JOIN {node} n ON (qnr.child_nid = n.nid and qnr.child_vid = n.vid)
+        WHERE qr.result_id = :result_id and n.vid = :vid";
+      $result = db_query($sql, array(':result_id' => $quiz_result->result_id, ':vid' => $question->question_vid));
+      $extra = $result->fetch();
+
+      $quiz_result->layout[$question->number] = array(
+        'display_number' => $question->number,
+        'nid' => $question->question_nid,
+        'vid' => $question->question_vid,
+        'number' => $question->number,
+        'type' => $extra->type,
+        'qnr_id' => $extra->qnr_id,
+        'qnr_pid' => $extra->qnr_pid,
+      );
+    }
+  }
+}
+
+/**
+ * Check if the question has already been answered in the requested attempt.
+ *
+ * @return boolean
+ *   TRUE if the question has been answered in the attempt.
+ */
+function quiz_result_is_question_answered($quiz_result, $question) {
+  $qra = quiz_result_answer_load($quiz_result->result_id, $question->nid, $question->vid);
+  return !empty($qra->answer_timestamp);
 }

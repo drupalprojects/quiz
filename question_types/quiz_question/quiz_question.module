@@ -193,14 +193,9 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     );
 
     if (!$quiz->allow_change) {
-      // Should we disable this question?
-      $qras = quiz_result_answer_load($result_id, $node->nid, $node->vid);
-      if (!empty($qras)) {
-        $qra = reset($qras);
-        if (empty($qra->is_skipped)) {
-          // This question was already answered, and not skipped.
-          $form['questions'][$node->nid]['#disabled'] = TRUE;
-        }
+      if (quiz_result_is_question_answered($quiz_result, $node)) {
+        // This question was already answered, and not skipped.
+        $form['questions'][$node->nid]['#disabled'] = TRUE;
       }
     }
 
@@ -267,7 +262,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       '#type' => 'submit',
       '#value' => $is_last ? t('Leave blank and finish') : t('Leave blank'),
       '#access' => ($node->type == 'quiz_directions') ? FALSE : TRUE,
-      '#submit' => $is_last ? array('quiz_question_answering_form_submit') : array('quiz_question_answering_form_submit_blank'),
+      '#submit' => array('quiz_question_answering_form_submit_blank'),
       '#limit_validation_errors' => array(),
     );
   }
@@ -279,30 +274,33 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
  * Submit action for "leave blank".
  */
 function quiz_question_answering_form_submit_blank($form, &$form_state) {
-  $quiz = node_load(arg(1));
-  $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  $quiz_result = quiz_result_load($result_id);
-  $questions = $quiz_result->layout;
-  foreach ($form_state['input']['question'] as $nid => $input) {
+  $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+
+  foreach (array_keys($form_state['input']['question']) as $nid) {
     // Loop over all question inputs provided, and record them as skipped.
     $question = node_load($nid);
 
-    foreach ($questions as $question_item) {
-      if ($question_item['nid'] == $question->nid) {
-        $question_array = $question_item;
-      }
-    }
+    // Delete the user's answer.
+    _quiz_question_response_get_instance($quiz_result->result_id, $question)->delete();
 
-    // This is used in quiz_end_scoring when the time limit is reached.
-    $qi_instance = _quiz_question_response_get_instance($result_id, $question, NULL);
-    $qi_instance->delete();
-    $bare_object = $qi_instance->toBareObject();
-    quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+    // Mark our question attempt as skipped, reset the correct and points flag.
+    $qra = quiz_result_answer_load($quiz_result->result_id, $question->nid, $question->vid);
+    $qra->is_skipped = 1;
+    $qra->is_correct = 0;
+    $qra->points_awarded = 0;
+    $qra->answer_timestamp = REQUEST_TIME;
+    entity_save('quiz_result_answer', $qra);
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   }
 
   // Advance to next question.
-  quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
+
+  if (!isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
+    // If this is the last question, finalize the quiz.
+    quiz_question_answering_form_finalize($form, $form_state);
+  }
 }
 
 /**
@@ -352,8 +350,12 @@ function quiz_question_get_report($nid, $vid, $result_id) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Check if a question has already been answered by anyone.
+ *
+ * This is to see if a new revision of a question should be made when saving.
+ *
+ * @return boolean
+ *  TRUE if a user has submitted an answer for this question.
  */
 function quiz_question_has_been_answered($node) {
   $question_instance = _quiz_question_get_instance($node, true);
@@ -943,6 +945,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit));
+
   if ($time_reached) {
     // Too late.
     // @todo move to quiz_question_answering_form_validate(), and then put all
@@ -984,26 +987,49 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   }
 
   if ($time_reached || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
-    // No more questions. Score quiz.
-    $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
+    // If this is the last question, finalize the quiz.
+    quiz_question_answering_form_finalize($form, $form_state);
+  }
+}
 
+/**
+ * Helper function to finalize a quiz attempt.
+ * @see quiz_question_answering_form_submit()
+ * @see quiz_question_answering_form_submit_blank()
+ */
+function quiz_question_answering_form_finalize(&$form, &$form_state) {
+  $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+
+  // No more questions. Score quiz.
+  $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
+
+  if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question'])) {
+    // Only redirect to question results if there is not question feedback.
+    $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
+  }
+
+  quiz_end_actions($quiz, $score, $_SESSION['quiz'][$quiz->nid]);
+
+  // Remove all information about this quiz from the session.
+  // @todo but for anon, we might have to keep some so they could access
+  // results
+  // When quiz is completed we need to make sure that even though the quiz has
+  // been removed from the session, that the user can still access the
+  // feedback for the last question, THEN go to the results page.
+  $_SESSION['quiz']['temp']['result_id'] = $quiz_result->result_id;
+  unset($_SESSION['quiz'][$quiz->nid]);
+}
+
+/**
+ * Implements hook_quiz_result_update().
+ */
+function quiz_quiz_result_update($quiz_result) {
+  if ($quiz_result->original->is_evaluated && !$quiz_result->is_evaluated) {
+    // Quiz is finished!
+    $quiz = node_load($quiz_result->nid);
     // Delete old results if necessary.
     _quiz_maintain_results($quiz, $quiz_result->result_id);
-    if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question'])) {
-      // Only redirect to question results if there is not question feedback.
-      $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
-    }
-
-    quiz_end_actions($quiz, $score, $_SESSION['quiz'][$quiz->nid]);
-
-    // Remove all information about this quiz from the session.
-    // @todo but for anon, we might have to keep some so they could access
-    // results
-    // When quiz is completed we need to make sure that even though the quiz has
-    // been removed from the session, that the user can still access the
-    // feedback for the last question, THEN go to the results page.
-    $_SESSION['quiz']['temp']['result_id'] = $quiz_result->result_id;
-    unset($_SESSION['quiz'][$quiz->nid]);
   }
 }
 
@@ -1120,6 +1146,9 @@ function quiz_icon($icon) {
   return theme('quiz_answer_result', array('type' => $icon));
 }
 
+/**
+ * Implements hook_entity_info().
+ */
 function quiz_question_entity_info() {
   return array(
     'quiz_question' => array(
