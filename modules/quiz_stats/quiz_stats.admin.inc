@@ -158,7 +158,7 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   return array(
     'chart' => $chart,
     'title' => t('Top scorers'),
-    'explanation' => t('This chart shows what question takers have the highest scores'),
+    'explanation' => t('This chart shows which quiz takers have the highest scores.'),
   );
 }
 
@@ -212,43 +212,29 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
   $end = 30;
   $takeup = array();
   $sql = "SELECT COUNT(result_id) AS count,
-            DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y.%m.%e') AS date
+            DATE_FORMAT(FROM_UNIXTIME(time_start), '%Y-%m-%e') AS date
             FROM {quiz_node_results}
-            WHERE vid = :vid";
+            WHERE vid = :vid AND time_start > (UNIX_TIMESTAMP(NOW()) - (86400*$end))";
   $sql_args[':vid'] = $vid;
   if ($uid != 0) {
     $sql .= " AND uid = :uid";
     $sql_args[':uid'] = $uid;
   }
   $sql .= " GROUP BY date ORDER BY time_start DESC";
-  $days = _quiz_get_last_days($end);
   $results = db_query($sql, $sql_args);
-  $res_o = $results->fetch();
-  if (!is_object($res_o)) {
-    return FALSE;
+  $res_o = $results->fetchAll();
+  if ($res_o) {
+    $chart = '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">';
+    // wrapping the chart output with div for custom theming.
+    $chart .= theme('date_vs_takeup_count', array('takeup' => $res_o));
+    // generate date vs takeup count line chart
+    $chart .= '</div>';
+    return array(
+      'chart' => $chart,
+      'title' => t('Activity'),
+      'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array('!days' => $end)),
+    );
   }
-  foreach ($days as $date => &$value) {
-    if (isset($res_o->date) && $date == $res_o->date) {
-      $value->value = $res_o->count;
-      if ($res_o->count > 0) {
-        $valid_data = TRUE;
-      }
-      $res_o = $results->fetch();
-    }
-  }
-  if (!$valid_data) {
-    return FALSE;
-  }
-  $chart = '<div id="date_vs_takeup_count" class="quiz-stats-chart-space">';
-  // wrapping the chart output with div for custom theming.
-  $chart .= theme('date_vs_takeup_count', array('takeup' => $days));
-  // generate date vs takeup count line chart
-  $chart .= '</div>';
-  return array(
-    'chart' => $chart,
-    'title' => t('Activity'),
-    'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array('!days' => $end)),
-  );
 }
 
 /**
@@ -298,16 +284,15 @@ function theme_quiz_grade_range($variables) {
     '#type' => 'chart_data',
     '#title' => t('% of quiz takers'),
     '#data' => array(
-      ($range->zero_to_twenty / $count) * 100,
-      $range->twenty_to_fourty / $count * 100,
-      $range->fourty_to_sixty / $count * 100,
-      $range->sixty_to_eighty / $count * 100,
-      $range->eighty_to_hundred / $count * 100,
+      round(($range->zero_to_twenty / $count) * 100),
+      round(($range->twenty_to_fourty / $count) * 100),
+      round(($range->fourty_to_sixty / $count) * 100),
+      round(($range->sixty_to_eighty / $count) * 100),
+      round(($range->eighty_to_hundred / $count) * 100),
     ),
-    '#suffix' => '%',
   );
   $chart['xaxis'] = array(
-    '#title' => 'Score',
+    '#title' => t('Score'),
     '#type' => 'chart_xaxis',
     '#labels' => array(
       '0-20%',
@@ -318,9 +303,9 @@ function theme_quiz_grade_range($variables) {
     ),
   );
   $chart['yaxis'] = array(
-    '#title' => 'Distribution',
+    '#title' => t('Grade istribution'),
     '#type' => 'chart_yaxis',
-    '#max' => $max * 100,
+    '#max' => 100,
   );
   return drupal_render($chart);
 }
@@ -347,15 +332,19 @@ function theme_quiz_top_scorers($variables) {
   );
   foreach ($attendees as $attendee) {
     $chart['bar_data']['#data'][] = (float) $attendee['score'];
-    $chart['bar_data']['#labels'][] = $attendee['name'] . ' ' . $attendee['score'] . '%';
+    $labels[] = $attendee['name'] . ' ' . $attendee['score'] . '%';
+
   }
   $chart['yaxis'] = array(
     '#title' => t('Score') . ' (%)',
     '#type' => 'chart_yaxis',
+    '#max' => 100,
   );
   $chart['xaxis'] = array(
     '#title' => 'Quiz Attendees',
     '#type' => 'chart_xaxis',
+    '#labels' => $labels,
+
   );
   return drupal_render($chart);
 }
@@ -384,9 +373,9 @@ function theme_get_quiz_status_chart($variables) {
     '#title' => t('Result'),
     '#labels' => array('Pass', 'Incomplete', 'Fail'),
     '#data' => array(
-      ($quiz['no_pass'] / $quiz['total']) * 100,
-      ($quiz['no_incomplete'] / $quiz['total']) * 100,
-      ($quiz['no_fail'] / $quiz['total']) * 100,
+      (int) $quiz['no_pass'],
+      (int) $quiz['no_incomplete'],
+      (int) $quiz['no_fail']
     ),
   );
   return drupal_render($chart);
@@ -401,37 +390,34 @@ function theme_get_quiz_status_chart($variables) {
  *   HTML to render/display chart
  */
 function theme_date_vs_takeup_count($variables) {
-  $days = $variables['takeup'];
-  $days = array_reverse($days);
-  $max_count = 0;
   $chart = array(
-    '#chart_id' => 'test_chart',
-    '#title' => '',
-    '#type' => CHART_TYPE_LINE,
-    '#size' => chart_size(600, 400),
-    //'#chart_fill' => chart_fill('c', 'eeeeee'),
-    '#grid_lines' => chart_grid_lines(10, 10, 1, 5),
-    '#adjust_resolution' => TRUE,
+    '#type' => 'chart',
+    '#title' => t('Activity by date'),
+    '#chart_type' => 'line',
   );
-  $interval = 1;
-  foreach ($days as $date => $obj) {
-    $count = $obj->value;
-    $chart['#data'][] = $count;
-    $x_label = '|';
-    if ($interval == 7) {
-      $x_label = chart_mixed_axis_label(format_date($obj->timestamp, 'custom', 'd M'));
-      $interval = 0;
-    }
-    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][0][] = $x_label;
-    $interval++;
-    $max_count = ($max_count > $count) ? $max_count : $count;
-  }
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label(0, $max_count);
 
-  // The chart module has some bugs. If we have the time we should provide patches instead of tricking it to work...
-  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1] = array('|', chart_mixed_axis_label(t('Attempts')));
-  $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1] = array('|', chart_mixed_axis_label(t('Date')), '|');
-  return theme('chart', array('chart' => $chart));
+  $chart['line_data'] = array(
+    '#type' => 'chart_data',
+    '#title' => t('Result'),
+    '#labels' => array('Something'),
+  );
+
+  $chart['line_data']['#data'] = array();
+  $labels = array();
+  foreach ($variables['takeup'] as $point) {
+    $chart['line_data']['#data'][] = (int) $point->count;
+    $labels[] = $point->date;
+  }
+
+  $chart['xaxis'] = array(
+    '#type' => 'chart_xaxis',
+    '#labels' => $labels,
+  );
+  $chart['yaxis'] = array(
+    '#title' => 'Participants',
+    '#type' => 'chart_yaxis',
+  );
+  return drupal_render($chart);
 }
 
 /**
@@ -475,26 +461,4 @@ function theme_quiz_stats_get_basic_stats($variables) {
   module_load_include('inc', 'quiz', 'quiz.pages');
   $cc = '<em>' . t('Chart icon from !url', array('!url' => 'pinvoke.com')) . '</em>';
   return theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'tablesorter'))) . $cc;
-}
-
-/**
- * Get the timestamps for the last days
- *
- * @param $num_days
- *  How many of the last days we need timestamps for
- * @return
- *  Array of objects with timestamp and value. The value has '0' as its default value.
- */
-function _quiz_get_last_days($num_days) {
-  $to_return = array();
-  $now = REQUEST_TIME;
-  $one_day = 86400;
-  for ($i = 0; $i < $num_days; $i++) {
-    $timestamp = $now - ($one_day * $i);
-    $to_add = new stdClass();
-    $to_add->timestamp = $timestamp;
-    $to_add->value = '0';
-    $to_return[date('Y.m.j', $timestamp)] = $to_add;
-  }
-  return $to_return;
 }
