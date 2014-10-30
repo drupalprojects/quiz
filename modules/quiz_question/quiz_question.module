@@ -70,11 +70,15 @@ function _quiz_question_teaser_content($node) {
 }
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Check if a question has already been answered by anyone.
+ *
+ * This is to see if a new revision of a question should be made when saving.
+ *
+ * @return bool
+ *  TRUE if a user has submitted an answer for this question.
  */
-function quiz_question_has_been_answered($node) {
-  if ($question_instance = _quiz_question_get_instance($node, true)) {
+function quiz_question_has_been_answered($question) {
+  if ($question_instance = _quiz_question_get_instance($question, true)) {
     return $question_instance->hasBeenAnswered();
   }
 }
@@ -83,11 +87,10 @@ function quiz_question_has_been_answered($node) {
  * Get the configuration form for all enabled question types.
  */
 function quiz_question_config($form, $context) {
-  $q_types = _quiz_question_get_implementations();
-  $form = array();
   $form['#validate'] = array();
+
   // Go through all question types and merge their config forms
-  foreach ($q_types as $type => $values) {
+  foreach (_quiz_question_get_implementations() as $type => $values) {
     $function = $type . '_quiz_question_config';
     if ($admin_form = $function()) {
       $form[$type] = $admin_form;
@@ -101,6 +104,7 @@ function quiz_question_config($form, $context) {
       }
     }
   }
+
   return system_settings_form($form);
 }
 

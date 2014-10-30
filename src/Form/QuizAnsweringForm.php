@@ -106,29 +106,27 @@ class QuizAnsweringForm {
     node_build_content($question, 'question');
     unset($question->content['answers']);
     $form['questions'][$question->nid] = array(
-      '#attributes' => array('class' => array(drupal_html_class('quiz-question-' . $question->type))),
-      '#type'       => 'container',
-      'header'      => $question->content,
-      'question'    => array('#tree' => TRUE, $question->nid => $element),
+        '#attributes' => array('class' => array(drupal_html_class('quiz-question-' . $question->type))),
+        '#type'       => 'container',
+        'header'      => $question->content,
+        'question'    => array('#tree' => TRUE, $question->nid => $element),
     );
 
     // Should we disable this question?
-    if (empty($this->quiz->allow_change) && ($qras = quiz_result_answer_load($this->result->result_id, $question->nid, $question->vid))) {
-      if (($qra = reset($qras)) && empty($qra->is_skipped)) {
-        // This question was already answered, and not skipped.
-        $form['questions'][$question->nid]['#disabled'] = TRUE;
-      }
+    if (empty($this->quiz->allow_change) && quiz_result_is_question_answered($this->result, $question)) {
+      // This question was already answered, and not skipped.
+      $form['questions'][$question->nid]['#disabled'] = TRUE;
     }
 
     if ($this->quiz->mark_doubtful) {
       $form['is_doubtful'] = array(
-        '#type'          => 'checkbox',
-        '#title'         => t('doubtful'),
-        '#weight'        => 1,
-        '#prefix'        => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
-        '#suffix'        => '</div>',
-        '#default_value' => 0,
-        '#attached'      => array('js' => array(drupal_get_path('module', 'quiz') . '/js/quiz_take.js')),
+          '#type'          => 'checkbox',
+          '#title'         => t('doubtful'),
+          '#weight'        => 1,
+          '#prefix'        => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
+          '#suffix'        => '</div>',
+          '#default_value' => 0,
+          '#attached'      => array('js' => array(drupal_get_path('module', 'quiz') . '/js/quiz_take.js')),
       );
 
       // @TODO: Reduce queries
@@ -138,9 +136,9 @@ class QuizAnsweringForm {
         . '   AND question_nid = :question_nid '
         . '   AND question_vid = :question_vid';
       $form['is_doubtful']['#default_value'] = db_query($sql, array(
-        ':result_id'    => $this->result->result_id,
-        ':question_nid' => $question->nid,
-        ':question_vid' => $question->vid))->fetchField();
+          ':result_id'    => $this->result->result_id,
+          ':question_nid' => $question->nid,
+          ':question_vid' => $question->vid))->fetchField();
     }
   }
 
@@ -153,38 +151,38 @@ class QuizAnsweringForm {
       // Backwards navigation enabled, and we are looking at not the first
       // question. @todo detect when on the first page.
       $form['navigation']['back'] = array(
-        '#weight'                  => 10,
-        '#type'                    => 'submit',
-        '#value'                   => t('Back'),
-        '#submit'                  => array(array($this->getSubmit(), 'formBackSubmit')),
-        '#limit_validation_errors' => array(),
+          '#weight'                  => 10,
+          '#type'                    => 'submit',
+          '#value'                   => t('Back'),
+          '#submit'                  => array(array($this->getSubmit(), 'formBackSubmit')),
+          '#limit_validation_errors' => array(),
       );
 
       if ($is_last) {
         $form['navigation']['#last'] = TRUE;
         $form['navigation']['last_text'] = array(
-          '#weight' => 0,
-          '#markup' => '<p><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></p>',
+            '#weight' => 0,
+            '#markup' => '<p><em>' . t('This is the last question. Press Finish to deliver your answers') . '</em></p>',
         );
       }
     }
 
     $form['navigation']['submit'] = array(
-      '#weight' => 30,
-      '#type'   => 'submit',
-      '#value'  => $is_last ? t('Finish') : t('Next'),
-      '#submit' => array(array($this->getSubmit(), 'formSubmit')),
+        '#weight' => 30,
+        '#type'   => 'submit',
+        '#value'  => $is_last ? t('Finish') : t('Next'),
+        '#submit' => array(array($this->getSubmit(), 'formSubmit')),
     );
 
     // @TODO: Check this
     $form['navigation']['skip'] = array(
-      '#weight'                  => 20,
-      '#type'                    => 'submit',
-      '#value'                   => $is_last ? t('Leave blank and finish') : t('Leave blank'),
-      '#access'                  => $allow_skipping,
-      '#submit'                  => array(array($this->getSubmit(), $is_last ? 'formSubmit' : 'formBlankSubmit')),
-      '#limit_validation_errors' => array(),
-      '#access'                  => $this->quiz->allow_skipping,
+        '#weight'                  => 20,
+        '#type'                    => 'submit',
+        '#value'                   => $is_last ? t('Leave blank and finish') : t('Leave blank'),
+        '#access'                  => $allow_skipping,
+        '#submit'                  => array(array($this->getSubmit(), 'formBlankSubmit')),
+        '#limit_validation_errors' => array(),
+        '#access'                  => $this->quiz->allow_skipping,
     );
 
     // Display a confirmation dialogue if this is the last question and a user

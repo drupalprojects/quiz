@@ -456,7 +456,8 @@ function quiz_update_7507() {
 }
 
 /**
- * Update schema for quiz when it becomeds entity.
+ * Make our answer_timestamp field NULLable for storing the attempt layout in
+ * the database.
  */
 function quiz_update_7508() {
   db_rename_table('quiz_node_relationship', 'quiz_relationship');

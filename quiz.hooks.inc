@@ -69,77 +69,77 @@ function quiz_field_extra_fields() {
  */
 function quiz_permission() {
   return array(
-    // Configure quiz
-    'administer quiz configuration'           => array(
-      'title'           => t('Administer quiz configuration'),
-      'description'     => t('Control the various settings and behaviours of quiz'),
-      'restrict access' => TRUE,
-    ),
-    // Managing quizzes
-    'access quiz'                             => array(
-      'title'       => t('Take quiz'),
-      'description' => t('Can access (take) all quizzes.'),
-    ),
-    'create quiz content'                     => array(
-      'title' => t('Create quiz content'),
-    ),
-    'edit any quiz content'                   => array(
-      'title' => t('Edit any quiz content'),
-    ),
-    // viewing results:
-    'view any quiz results'                   => array(
-      'title'       => t('View any quiz results'),
-      'description' => t('Can view results for all quizzes and users.'),
-    ),
-    'view own quiz results'                   => array(
-      'title'       => t('View own quiz results'),
-      'description' => t('Quiz takers can view their own results, also when quiz is not passed.'),
-    ),
-    'view results for own quiz'               => array(
-      'title'       => t('View results for own quiz'),
-      'description' => t('Quiz makers can view results for their own quizzes.'),
-    ),
-    // deleting results:
-    'delete any quiz results'                 => array(
-      'title' => t('Delete any quiz results'),
-    ),
-    'delete results for own quiz'             => array(
-      'title' => t('Delete own quiz results'),
-    ),
-    // scoring:
-    'score any quiz'                          => array(
-      'title' => t('Score any quiz'),
-    ),
-    'score own quiz'                          => array(
-      'title' => t('Score own quiz'),
-    ),
-    'score taken quiz answer'                 => array(
-      'title'       => t('score taken quiz answer'),
-      'description' => t('Allows attendee to score questions needing manual evaluation.'),
-    ),
-    // Allow a quiz question to be viewed outside of a test.
-    'view quiz question outside of a quiz'    => array(
-      'title'       => t('View quiz question outside of a quiz'),
-      'description' => t('Questions can only be accessed through taking a quiz (not as individual nodes) unless this permission is given.'),
-    ),
-    // Allow the user to see the correct answer, when viewed outside a quiz
-    'view any quiz question correct response' => array(
-      'title'       => t('View any quiz question correct response'),
-      'description' => t('Allow the user to see the correct answer, when viewed outside a quiz.'),
-    ),
-    // Allows users to pick a name for their questions. Otherwise this is auto
-    // generated.
-    'edit question titles'                    => array(
-      'title'       => t('Edit question titles'),
-      'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
-    ),
-    // Control revisioning, only assign this permission to users who understand
-    // who permissions work. Note: If a quiz or question is changed and not
-    // revisioned you will also change existing result reports.
-    'manual quiz revisioning'                 => array(
-      'title'       => t('Manual quiz revisioning'),
-      'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
-    ),
+      // Configure quiz
+      'administer quiz configuration'           => array(
+          'title'           => t('Administer quiz configuration'),
+          'description'     => t('Control the various settings and behaviours of quiz'),
+          'restrict access' => TRUE,
+      ),
+      // Managing quizzes
+      'access quiz'                             => array(
+          'title'       => t('Take quiz'),
+          'description' => t('Can access (take) all quizzes.'),
+      ),
+      'create quiz content'                     => array(
+          'title' => t('Create quiz content'),
+      ),
+      'edit any quiz content'                   => array(
+          'title' => t('Edit any quiz content'),
+      ),
+      // viewing results:
+      'view any quiz results'                   => array(
+          'title'       => t('View any quiz results'),
+          'description' => t('Can view results for all quizzes and users.'),
+      ),
+      'view own quiz results'                   => array(
+          'title'       => t('View own quiz results'),
+          'description' => t('Quiz takers can view their own results, also when quiz is not passed.'),
+      ),
+      'view results for own quiz'               => array(
+          'title'       => t('View results for own quiz'),
+          'description' => t('Quiz makers can view results for their own quizzes.'),
+      ),
+      // deleting results:
+      'delete any quiz results'                 => array(
+          'title' => t('Delete any quiz results'),
+      ),
+      'delete results for own quiz'             => array(
+          'title' => t('Delete own quiz results'),
+      ),
+      // scoring:
+      'score any quiz'                          => array(
+          'title' => t('Score any quiz'),
+      ),
+      'score own quiz'                          => array(
+          'title' => t('Score own quiz'),
+      ),
+      'score taken quiz answer'                 => array(
+          'title'       => t('score taken quiz answer'),
+          'description' => t('Allows attendee to score questions needing manual evaluation.'),
+      ),
+      // Allow a quiz question to be viewed outside of a test.
+      'view quiz question outside of a quiz'    => array(
+          'title'       => t('View quiz question outside of a quiz'),
+          'description' => t('Questions can only be accessed through taking a quiz (not as individual nodes) unless this permission is given.'),
+      ),
+      // Allow the user to see the correct answer, when viewed outside a quiz
+      'view any quiz question correct response' => array(
+          'title'       => t('View any quiz question correct response'),
+          'description' => t('Allow the user to see the correct answer, when viewed outside a quiz.'),
+      ),
+      // Allows users to pick a name for their questions. Otherwise this is auto
+      // generated.
+      'edit question titles'                    => array(
+          'title'       => t('Edit question titles'),
+          'description' => t('Questions automatically get a title based on the question text. This allows titles to be set manually.'),
+      ),
+      // Control revisioning, only assign this permission to users who understand
+      // who permissions work. Note: If a quiz or question is changed and not
+      // revisioned you will also change existing result reports.
+      'manual quiz revisioning'                 => array(
+          'title'       => t('Manual quiz revisioning'),
+          'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
+      ),
   );
 }
 
@@ -167,10 +167,10 @@ function quiz_action_info() {
   $actions = array();
 
   $actions['quiz_add_question_to_quiz'] = array(
-    'type'             => 'node',
-    'label'            => t('Add questions to quiz'),
-    'configurable'     => FALSE,
-    'vbo_configurable' => FALSE,
+      'type'             => 'node',
+      'label'            => t('Add questions to quiz'),
+      'configurable'     => FALSE,
+      'vbo_configurable' => FALSE,
   );
 
   return $actions;
@@ -188,8 +188,8 @@ function quiz_cron() {
     db_delete('quiz_results')
       ->condition('time_end', 0)
       ->where('(:request_time - time_start) > :remove_time', array(
-        ':request_time' => REQUEST_TIME,
-        ':remove_time'  => $rm_time
+          ':request_time' => REQUEST_TIME,
+          ':remove_time'  => $rm_time
       ))
       ->execute();
   }
@@ -220,61 +220,61 @@ function quiz_menu_local_tasks_alter(&$data, $router_item, $root_path) {
  */
 function quiz_theme($existing, $type, $theme, $path) {
   return array(
-    'quiz_view_stats'          => array(
-      'variables' => array('quiz' => NULL),
-      'file'      => 'quiz.pages.inc'
-    ),
-    'quiz_categorized_form'    => array(
-      'render element' => 'form',
-      'file'           => 'quiz.admin.inc'
-    ),
-    'quiz_result'              => array(
-      'variables' => array(
-        'quiz'      => NULL,
-        'questions' => NULL,
-        'score'     => NULL,
-        'summary'   => NULL,
-        'result_id' => NULL),
-      'file'      => 'quiz.pages.inc',
-    ),
-    'quiz_progress'            => array(
-      'variables' => array(
-        'quiz'            => null,
-        'question_number' => NULL,
-        'num_questions'   => NULL,
-        'allow_jumping'   => NULL,
-        'time_limit'      => NULL),
-      'file'      => 'quiz.pages.inc',
-    ),
-    'quiz_no_feedback'         => array(
-      'file'      => 'quiz.pages.inc',
-      'variables' => array(),
-    ),
-    'question_selection_table' => array(
-      'file'           => 'quiz.admin.inc',
-      'render element' => 'form',
-    ),
-    'quiz_answer_result'       => array(
-      'file'      => 'quiz.pages.inc',
-      'variables' => array(),
-    ),
-    'quiz_report_form'         => array(
-      'render element' => 'form',
-      'path'           => $path . '/theme',
-      'template'       => 'quiz-report-form',
-    ),
-    'quiz_browser'             => array(
-      'render element' => 'form',
-      'file'           => 'quiz.admin.inc',
-    ),
-    'quiz_question_score'      => array(
-      'variables' => array('score' => NULL, 'max_score' => NULL),
-      'path'      => $path . '/theme',
-      'template'  => 'quiz-question-score',
-    ),
-    'quiz_pager'               => array(
-      'variables' => array('quiz' => null, 'total' => 0, 'current' => 0, 'siblings' => 0),
-    ),
+      'quiz_view_stats'          => array(
+          'variables' => array('quiz' => NULL),
+          'file'      => 'quiz.pages.inc'
+      ),
+      'quiz_categorized_form'    => array(
+          'render element' => 'form',
+          'file'           => 'quiz.admin.inc'
+      ),
+      'quiz_result'              => array(
+          'variables' => array(
+              'quiz'      => NULL,
+              'questions' => NULL,
+              'score'     => NULL,
+              'summary'   => NULL,
+              'result_id' => NULL),
+          'file'      => 'quiz.pages.inc',
+      ),
+      'quiz_progress'            => array(
+          'variables' => array(
+              'quiz'            => null,
+              'question_number' => NULL,
+              'num_questions'   => NULL,
+              'allow_jumping'   => NULL,
+              'time_limit'      => NULL),
+          'file'      => 'quiz.pages.inc',
+      ),
+      'quiz_no_feedback'         => array(
+          'file'      => 'quiz.pages.inc',
+          'variables' => array(),
+      ),
+      'question_selection_table' => array(
+          'file'           => 'quiz.admin.inc',
+          'render element' => 'form',
+      ),
+      'quiz_answer_result'       => array(
+          'file'      => 'quiz.pages.inc',
+          'variables' => array(),
+      ),
+      'quiz_report_form'         => array(
+          'render element' => 'form',
+          'path'           => $path . '/theme',
+          'template'       => 'quiz-report-form',
+      ),
+      'quiz_browser'             => array(
+          'render element' => 'form',
+          'file'           => 'quiz.admin.inc',
+      ),
+      'quiz_question_score'      => array(
+          'variables' => array('score' => NULL, 'max_score' => NULL),
+          'path'      => $path . '/theme',
+          'template'  => 'quiz-question-score',
+      ),
+      'quiz_pager'               => array(
+          'variables' => array('quiz' => null, 'total' => 0, 'current' => 0, 'siblings' => 0),
+      ),
   );
 }
 
@@ -499,9 +499,9 @@ function quiz_take_access($quiz) {
 }
 
 /**
- * Meun check to see if user has access to take this question.
+ * Menu check to see if user has access to take this question.
  */
-function quiz_take_question_access($quiz, $question_number) {
+function quiz_access_question($quiz, $question_number) {
   return quiz()->getQuizHelper()->getAccessHelper()->canAccessQuestion($quiz, $question_number);
 }
 
