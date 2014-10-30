@@ -2,15 +2,26 @@
 
 namespace Drupal\quiz\Entity;
 
-class ResultController extends \EntityAPIController {
+use DatabaseTransaction;
+use EntityAPIController;
 
-  public function save($entity, \DatabaseTransaction $transaction = NULL) {
-    if (isset($entity->nid)) {
-      kpr(debug_backtrace());
-      exit;
+class ResultController extends EntityAPIController {
+
+  public function delete($ids, DatabaseTransaction $transaction = NULL) {
+    $return = parent::delete($ids, $transaction);
+
+    $select = db_select('quiz_results_answers', 'answer');
+    $select->fields('answer', array('result_id', 'question_nid', 'question_vid'));
+    $select->condition('answer.result_id', $ids);
+    $result = $select->execute();
+    while ($record = $result->fetchAll()) {
+      quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
     }
 
-    return parent::save($entity, $transaction);
+    db_delete('quiz_results_answers')->condition('result_id', $ids)->execute();
+    db_delete('quiz_results')->condition('result_id', $ids)->execute();
+
+    return $return;
   }
 
 }

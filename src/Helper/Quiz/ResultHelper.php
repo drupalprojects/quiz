@@ -49,35 +49,6 @@ class ResultHelper {
   }
 
   /**
-   * Delete quiz results.
-   *
-   * @TODO: Should use entity_delete_multiple($entity_type, $ids);
-   *
-   * @param $result_ids
-   *   Result ids for the results to be deleted.
-   */
-  public function deleteByIds($result_ids) {
-    if (empty($result_ids)) {
-      return;
-    }
-
-    $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_results_answers}
-          WHERE result_id IN(:result_id)';
-    $result = db_query($sql, array(':result_id' => $result_ids));
-    foreach ($result as $record) {
-      quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
-    }
-
-    db_delete('quiz_results_answers')
-      ->condition('result_id', $result_ids, 'IN')
-      ->execute();
-
-    db_delete('quiz_results')
-      ->condition('result_id', $result_ids, 'IN')
-      ->execute();
-  }
-
-  /**
    * Load a specific result answer.
    */
   public function loadAnswerResult($result_id, $question_nid, $question_vid) {
@@ -235,7 +206,7 @@ class ResultHelper {
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;
     }
-    $this->deleteByIds($result_ids);
+    entity_delete_multiple('quiz_result', $result_ids);
   }
 
   /**
@@ -286,7 +257,7 @@ class ResultHelper {
         while ($result_id2 = $res->fetchField()) {
           $result_ids[] = $result_id2;
         }
-        $this->deleteByIds($result_ids);
+        entity_delete_multiple('quiz_result', $result_ids);
         return !empty($result_ids);
       case QUIZ_KEEP_LATEST:
         $res = db_query('SELECT result_id
@@ -304,7 +275,7 @@ class ResultHelper {
         while ($result_id2 = $res->fetchField()) {
           $result_ids[] = $result_id2;
         }
-        $this->deleteByIds($result_ids);
+        entity_delete_multiple('quiz_result', $result_ids);
         return !empty($result_ids);
     }
   }
@@ -334,7 +305,7 @@ class ResultHelper {
     while ($result_id = $res->fetchField()) {
       $result_ids[] = $result_id;
     }
-    $this->deleteByIds($result_ids);
+    entity_delete_multiple('quiz_result', $result_ids);
   }
 
   /**
