@@ -143,7 +143,7 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
     $sql .= ' AND qnr.uid = :uid';
     $arg[':uid'] = $uid;
   }
-  $sql .= ' ORDER by score DESC';
+  $sql .= ' ORDER by score DESC LIMIT 10';
   $results = db_query($sql, $arg);
   while ($result = $results->fetchAssoc()) {
     $key = $result['name'] . '-' . $result['score'];
@@ -220,7 +220,7 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
     $sql .= " AND uid = :uid";
     $sql_args[':uid'] = $uid;
   }
-  $sql .= " GROUP BY date ORDER BY time_start DESC";
+  $sql .= " GROUP BY date ORDER BY time_start ASC";
   $results = db_query($sql, $sql_args);
   $res_o = $results->fetchAll();
   if ($res_o) {
@@ -232,7 +232,7 @@ function _get_date_vs_takeup_count_chart($vid, $uid = 0) {
     return array(
       'chart' => $chart,
       'title' => t('Activity'),
-      'explanation' => t('This chart shows how many times the quiz has been taken the last !days days.', array('!days' => $end)),
+      'explanation' => t('This chart shows how many times the quiz has been taken each day over the last !days days.', array('!days' => $end)),
     );
   }
 }
@@ -320,7 +320,7 @@ function theme_quiz_grade_range($variables) {
  *   HTML to render quiz top scorers chart
  */
 function theme_quiz_top_scorers($variables) {
-  $attendees = $variables['scorer'];
+  $attendees = array_reverse($variables['scorer']);
   $chart = array(
     '#type' => 'chart',
     '#title' => t('Quiz Top Scorers'),
