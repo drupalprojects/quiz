@@ -54,24 +54,28 @@ class FormSubmission extends QuestionHelper {
       // Loop over all question inputs provided, and record them as skipped.
       $question = node_load($question_id);
 
-      foreach ($this->result->layout as $question_item) {
-        if ($question_item['nid'] == $question->nid) {
-          $question_array = $question_item;
-        }
-      }
+      // Delete the user's answer.
+      _quiz_question_response_get_instance($this->result->result_id, $question)
+        ->delete();
 
-      // This is used in quiz_end_scoring when the time limit is reached.
-      $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $question, NULL);
-      $qi_instance->delete();
-      $bare_object = $qi_instance->toBareObject();
-      quiz()
-        ->getQuizHelper()
-        ->saveQuestionResult($this->quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+      // Mark our question attempt as skipped, reset the correct and points flag.
+      $qra = quiz_result_answer_load($this->result->result_id, $question->nid, $question->vid);
+      $qra->is_skipped = 1;
+      $qra->is_correct = 0;
+      $qra->points_awarded = 0;
+      $qra->answer_timestamp = REQUEST_TIME;
+      entity_save('quiz_result_answer', $qra);
+
+      $this->redirect($this->quiz, $this->result->getNextPageNumber($this->page_number));
     }
 
     // Advance to next question.
-    $this->redirect($this->quiz, $this->result->getNextPageNumber($this->page_number));
     $form_state['redirect'] = $this->quiz_uri . '/take/' . $this->getCurrentPageNumber($this->quiz);
+
+    if (!isset($this->result->layout[$_SESSION['quiz'][$this->quiz->qid]['current']])) {
+      // If this is the last question, finalize the quiz.
+      $this->formSubmitFinalizeQuestionAnswering($form, $form_state);
+    }
   }
 
   /**
@@ -118,25 +122,30 @@ class FormSubmission extends QuestionHelper {
     }
 
     if ($time_reached || $this->result->isLastPage($this->page_number)) {
-      $this->formSubmitLastPage($form_state);
+      $this->formSubmitLastPage($form, $form_state);
     }
   }
 
-  private function formSubmitLastPage(&$form_state) {
-    global $user;
+  private function formSubmitLastPage($form, &$form_state) {
+    // If this is the last question, finalize the quiz.
+    $this->formSubmitFinalizeQuestionAnswering($form, $form_state);
+  }
 
+  /**
+   * Helper function to finalize a quiz attempt.
+   * @see quiz_question_answering_form_submit()
+   * @see quiz_question_answering_form_submit_blank()
+   */
+  private function formSubmitFinalizeQuestionAnswering($form, &$form_state) {
     // No more questions. Score quiz.
-    $score = quiz_end_scoring($this->result->result_id);
-
-    // Delete old results if necessary.
-    quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $this->quiz, $this->result->result_id);
+    $score = quiz_end_scoring($_SESSION['quiz'][$this->quiz->qid]['result_id']);
 
     // Only redirect to question results if there is not question feedback.
     if (empty($this->quiz->review_options['question']) || !array_filter($this->quiz->review_options['question'])) {
       $form_state['redirect'] = "quiz-result/{$this->result->result_id}";
     }
 
-    quiz_end_actions($this->quiz, $score, $this->quiz_id);
+    quiz_end_actions($this->quiz, $score, $_SESSION['quiz'][$this->quiz_id]);
 
     // Remove all information about this quiz from the session.
     // @todo but for anon, we might have to keep some so they could access

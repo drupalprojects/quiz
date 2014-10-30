@@ -202,6 +202,17 @@ function quiz_question_module_for_type($question_type) {
   return quiz()->getQuizHelper()->getQuestionModuleFromType($question_type);
 }
 
+/**
+ * Check if the question has already been answered in the requested attempt.
+ *
+ * @return bool
+ *   TRUE if the question has been answered in the attempt.
+ */
+function quiz_result_is_question_answered($result, $question) {
+  $qra = quiz_result_answer_load($result->result_id, $question->nid, $question->vid);
+  return !empty($qra->answer_timestamp);
+}
+
 // ---------------------
 //  Internal functions
 // ---------------------

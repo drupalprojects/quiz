@@ -157,15 +157,17 @@ class AccessHelper {
     $question_index = $page_number;
     $qinfo_last = $page_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
     $qinfo = $quiz_result->layout[$question_index];
+    $question_node = node_load($qinfo['nid'], $qinfo['vid']);
+    $question_node_last = node_load($qinfo_last['nid'], $qinfo_last['vid']);
 
     // No backwards navigation & Already have an answer for the requested question.
-    if (!$quiz->backwards_navigation && quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
+    if (!$quiz->backwards_navigation && quiz_result_is_question_answered($quiz_result, $question_node)) {
       return FALSE;
     }
 
     // Enforce normal navigation.
-    //  Previous answer was submitted or this is the first question.
-    return ($page_number == 1) || quiz_result_answer_load($result_id, $qinfo_last['nid'], $qinfo_last['vid']);
+    // Previous answer was submitted or this is the first question.
+    return ($page_number == 1) || quiz_result_is_question_answered($quiz_result, $question_node_last);
   }
 
   public function canTakeQuiz($quiz, $account) {
