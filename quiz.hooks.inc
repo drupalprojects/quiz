@@ -392,58 +392,6 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
   return quiz()->getHookImplementation()->getHookQuizScored($quiz, $score, $result_id)->execute();
 }
 
-/**
- * Implements hook_quiz_result_update().
- *
- * @param \Drupal\quiz\Entity\Result $result
- */
-function quiz_quiz_result_update($result) {
-  global $user;
-
-  if ($result->original->is_evaluated && !$result->is_evaluated) {
-    // Quiz is finished!
-    $quiz = quiz_entity_single_load($result->quiz_qid);
-
-    // Delete old results if necessary.
-    quiz()->getQuizHelper()->getResultHelper()->maintainResult($user, $quiz, $result->result_id);
-  }
-}
-
-/**
- * Implements hook_quiz_result_load().
- *
- * Attach the layout which previously used to be stored on the result.
- */
-function quiz_quiz_result_load($results) {
-  foreach ($results as $result) {
-    $layout = entity_load('quiz_result_answer', FALSE, array('result_id' => $result->result_id));
-    foreach ($layout as $question) {
-      // @kludge
-      // This is bulky but now we have to manually find the type and parents of
-      // the question. This is the only information that is not stored in the
-      // quiz attempt. We reference back to the node relationships for this
-      // current version to get the hieararchy.
-      $sql = "SELECT n.type, qnr_id, qnr_pid
-        FROM {quiz_results} qr
-          INNER JOIN {quiz_node_relationship} qnr on (qr.nid = qnr.parent_nid and qr.vid = qnr.parent_vid)
-          INNER JOIN {node} n ON (qnr.child_nid = n.nid and qnr.child_vid = n.vid)
-        WHERE qr.result_id = :result_id AND n.vid = :vid";
-      $result = db_query($sql, array(':result_id' => $result->result_id, ':vid' => $question->question_vid));
-      $extra = $result->fetch();
-
-      $result->layout[$question->number] = array(
-          'display_number' => $question->number,
-          'nid'            => $question->question_nid,
-          'vid'            => $question->question_vid,
-          'number'         => $question->number,
-          'type'           => $extra->type,
-          'qnr_id'         => $extra->qnr_id,
-          'qnr_pid'        => $extra->qnr_pid,
-      );
-    }
-  }
-}
-
 // ---------------------
 // Helper functions
 // ---------------------
