@@ -23,16 +23,16 @@ class TrueFalseQuestion extends QuizQuestion {
     if ($is_new || $this->node->revision == 1) {
       $id = db_insert('quiz_truefalse_node')
         ->fields(array(
-          'nid'            => $this->node->nid,
-          'vid'            => $this->node->vid,
-          'correct_answer' => $this->node->correct_answer,
+            'nid'            => $this->node->nid,
+            'vid'            => $this->node->vid,
+            'correct_answer' => $this->node->correct_answer,
         ))
         ->execute();
     }
     else {
       db_update('quiz_truefalse_node')
         ->fields(array(
-          'correct_answer' => (int) $this->node->correct_answer
+            'correct_answer' => (int) $this->node->correct_answer
         ))
         ->condition('nid', $this->node->nid)
         ->condition('vid', $this->node->vid)
@@ -86,8 +86,8 @@ class TrueFalseQuestion extends QuizQuestion {
     $res_a = db_query('SELECT correct_answer '
       . ' FROM {quiz_truefalse_node} '
       . ' WHERE nid = :nid AND vid = :vid', array(
-      ':nid' => $this->node->nid,
-      ':vid' => $this->node->vid))->fetchAssoc();
+        ':nid' => $this->node->nid,
+        ':vid' => $this->node->vid))->fetchAssoc();
 
     if (is_array($res_a)) {
       $props = array_merge($props, $res_a);
@@ -110,8 +110,8 @@ class TrueFalseQuestion extends QuizQuestion {
     }
     else {
       $content['answers'] = array(
-        '#markup' => '<div class="quiz-answer-hidden">' . t('Answer hidden') . '</div>',
-        '#weight' => 2,
+          '#markup' => '<div class="quiz-answer-hidden">' . t('Answer hidden') . '</div>',
+          '#weight' => 2,
       );
     }
     return $content;
@@ -127,13 +127,13 @@ class TrueFalseQuestion extends QuizQuestion {
     //$form['#theme'] = 'truefalse_answering_form';
     // 'tries' is unfortunately required by quiz.module
     $element += array(
-      '#type'          => 'radios',
-      '#title'         => t('Choose one'),
-      '#options'       => array(
-        1 => t('True'),
-        0 => t('False')
-      ),
-      '#default_value' => NULL, // prevent default value set to NULL
+        '#type'          => 'radios',
+        '#title'         => t('Choose one'),
+        '#options'       => array(
+            1 => t('True'),
+            0 => t('False')
+        ),
+        '#default_value' => NULL, // prevent default value set to NULL
     );
 
     if (isset($result_id)) {
@@ -169,16 +169,16 @@ class TrueFalseQuestion extends QuizQuestion {
    */
   public function getCreationForm(array &$form_state = NULL) {
     $form['correct_answer'] = array(
-      '#type'          => 'radios',
-      '#title'         => t('Correct answer'),
-      '#options'       => array(
-        1 => t('True'),
-        0 => t('False'),
-      ),
-      '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
-      '#required'      => TRUE,
-      '#weight'        => -4,
-      '#description'   => t('Choose if the correct answer for this question is "true" or "false".')
+        '#type'          => 'radios',
+        '#title'         => t('Correct answer'),
+        '#options'       => array(
+            1 => t('True'),
+            0 => t('False'),
+        ),
+        '#default_value' => isset($this->node->correct_answer) ? $this->node->correct_answer : 1,
+        '#required'      => TRUE,
+        '#weight'        => -4,
+        '#description'   => t('Choose if the correct answer for this question is "true" or "false".')
     );
     return $form;
   }
@@ -214,13 +214,15 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
     if (!isset($answer)) {
-      $r = $this->getCorrectAnswer();
+      // Get from DB
+      $r = $this->getUserAnswer();
       if (!empty($r)) {
         $this->answer = $r->answer;
         $this->score = $r->score;
       }
     }
     else {
+      // Load from input
       $this->answer = $answer;
     }
   }
@@ -233,11 +235,11 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function save() {
     db_insert('quiz_truefalse_user_answers')
       ->fields(array(
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
-        'result_id'    => $this->result_id,
-        'answer'       => (int) $this->answer,
-        'score'        => (int) $this->getScore(),
+          'question_nid' => $this->question->nid,
+          'question_vid' => $this->question->vid,
+          'result_id'    => $this->result_id,
+          'answer'       => (int) $this->answer,
+          'score'        => (int) $this->getScore(),
       ))
       ->execute();
   }
@@ -271,17 +273,13 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#getResponse()
    */
   public function getResponse() {
-    if (!isset($this->answer)) {
-      $correct_answer = $this->getCorrectAnswer();
-      $this->answer = isset($correct_answer->answer) ? $correct_answer->answer : NULL;
-    }
     return $this->answer;
   }
 
   /**
    * Implementation of getCorrectAnswer
    */
-  public function getCorrectAnswer() {
+  public function getUserAnswer() {
     return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->vid, ':rid' => $this->result_id))->fetch();
   }
 
@@ -295,22 +293,22 @@ class TrueFalseResponse extends QuizQuestionResponse {
 
     $data = array();
     $data[] = array(
-      'choice'          => 'True',
-      'attempt'         => $answer ? quiz_icon('selected') : '',
-      'correct'         => $answer == 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
-      'score'           => intval($correct_answer == 1 && $answer == 1),
-      'answer_feedback' => '',
-      'solution'        => $correct_answer == 1 ? quiz_icon('should') : '',
-      'quiz_feedback'   => "Quiz feedback",
+        'choice'          => 'True',
+        'attempt'         => $answer ? quiz_icon('selected') : '',
+        'correct'         => $answer == 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
+        'score'           => intval($correct_answer == 1 && $answer == 1),
+        'answer_feedback' => '',
+        'solution'        => $correct_answer == 1 ? quiz_icon('should') : '',
+        'quiz_feedback'   => "Quiz feedback",
     );
 
     $data[] = array(
-      'choice'          => 'False',
-      'attempt'         => !$answer ? quiz_icon('selected') : '',
-      'correct'         => $answer == 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
-      'score'           => intval($correct_answer == 0 && $answer == 0),
-      'answer_feedback' => '',
-      'solution'        => $correct_answer == 0 ? quiz_icon('should') : '',
+        'choice'          => 'False',
+        'attempt'         => !$answer ? quiz_icon('selected') : '',
+        'correct'         => $answer == 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
+        'score'           => intval($correct_answer == 0 && $answer == 0),
+        'answer_feedback' => '',
+        'solution'        => $correct_answer == 0 ? quiz_icon('should') : '',
     );
 
     return $data;

@@ -101,7 +101,6 @@ function quiz_end_scoring($result_id) {
     if (!$qra) {
       $qi_instance = _quiz_question_response_get_instance($result_id, $current_question, NULL);
       $qi_instance->delete();
-      $qi_instance->saveResult();
       $bare_object = $qi_instance->toBareObject();
       quiz()->getQuizHelper()->saveQuestionResult($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
     }

@@ -87,8 +87,8 @@ class QuizTakeQuestionController extends QuestionHelper {
     ));
     $content['progress']['#weight'] = -50;
 
-    if (isset($_SESSION['quiz'][$this->quiz_id]['question_duration'])) {
-      $this->updateQuestionDuration();
+    if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0) && $this->quiz->time_limit) {
+      $this->attachJs($this->result->time_start + $this->quiz->time_limit - REQUEST_TIME);
     }
 
     $form_id = 'Drupal\quiz\Form\QuizAnsweringForm::staticCallback';
@@ -96,33 +96,6 @@ class QuizTakeQuestionController extends QuestionHelper {
     $content['body']['question']['#markup'] = drupal_render($question_form);
 
     return $content;
-  }
-
-  private function updateQuestionDuration() {
-    $time = $_SESSION['quiz'][$this->quiz_id]['question_duration'];
-
-    if ($time < 1) {
-      // The page was probably submitted by the js, we allow the data to be stored
-      $time = 1;
-    }
-
-    db_update('quiz_results')
-      ->fields(array('time_left' => $time))
-      ->condition('result_id', $this->result->result_id)
-      ->execute();
-
-    // Quiz has been timed out, run a loop to mark the remaining questions as skipped.
-    // @todo we just need to run quiz_end_score here, I think
-    if ($time <= 1) {
-      throw new RuntimeException(t('You have run out of time.'));
-    }
-    // There is still time left, so let's go ahead and insert the countdown js.
-    elseif (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 1)) {
-      $this->attachJs($time);
-    }
-
-    // Update start time in session
-    $_SESSION['quiz'][$this->quiz_id]['question_start_time'] = REQUEST_TIME;
   }
 
   /**

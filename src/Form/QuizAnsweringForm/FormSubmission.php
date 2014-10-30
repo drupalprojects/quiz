@@ -60,6 +60,7 @@ class FormSubmission extends QuestionHelper {
         }
       }
 
+      // This is used in quiz_end_scoring when the time limit is reached.
       $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $question, NULL);
       $qi_instance->delete();
       $bare_object = $qi_instance->toBareObject();
@@ -80,13 +81,21 @@ class FormSubmission extends QuestionHelper {
    * correct feedback.
    */
   public function formSubmit(&$form, &$form_state) {
-    if (!empty($form_state['values']['question'])) {
+    if ($time_reached = $this->quiz->time_limit && (REQUEST_TIME > ($this->result->time_start + $this->quiz->time_limit))) {
+      // Too late.
+      // @todo move to quiz_question_answering_form_validate(), and then put all
+      // the "quiz end" logic in a sharable place. We just need to not fire the
+      // logic that saves all the users answers.
+      drupal_set_message(t('The last answer was not submitted, as the time ran out.'), 'error');
+    }
+    elseif (!empty($form_state['values']['question'])) {
       foreach (array_keys($form_state['values']['question']) as $question_id) {
         foreach ($this->result->layout as $item) {
           if ($item['nid'] == $question_id) {
             $question_array = $item;
           }
         }
+
         $_question = node_load($question_id);
         $_answer = $form_state['values']['question'][$question_id];
         $qi_instance = _quiz_question_response_get_instance($this->result->result_id, $_question, $_answer);
@@ -108,7 +117,7 @@ class FormSubmission extends QuestionHelper {
       $form_state['redirect'] = $this->quiz_uri . '/take/' . ($this->getCurrentPageNumber($this->quiz) - 1) . '/feedback';
     }
 
-    if ($this->result->isLastPage($this->page_number)) {
+    if ($time_reached || $this->result->isLastPage($this->page_number)) {
       $this->formSubmitLastPage($form_state);
     }
   }
