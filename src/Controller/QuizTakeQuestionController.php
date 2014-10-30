@@ -113,6 +113,7 @@ class QuizTakeQuestionController extends QuestionHelper {
     // These are the two button op values that are accepted for answering questions.
     $vars = array('quiz_button_1' => t('Finish'), 'quiz_button_2' => t('Next'));
     drupal_add_js($vars, array('type' => 'setting'));
+    drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz_take.count-down.js');
   }
 
 }
