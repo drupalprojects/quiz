@@ -266,21 +266,15 @@ abstract class QuizQuestion {
    *  current nid can be deleted.
    */
   public function delete($only_this_version = FALSE) {
-    // Delete answeres
-    $delete = db_delete('quiz_results_answers')
-      ->condition('question_nid', $this->node->nid);
+    // Delete answeres & properties
+    $remove_answer = db_delete('quiz_results_answers')->condition('question_nid', $this->node->nid);
+    $remove_properties = db_delete('quiz_question_properties')->condition('nid', $this->node->nid);
     if ($only_this_version) {
-      $delete->condition('question_vid', $this->node->vid);
+      $remove_answer->condition('question_vid', $this->node->vid);
+      $remove_properties->condition('vid', $this->node->vid);
     }
-    $delete->execute();
-
-    // Delete properties
-    $delete = db_delete('quiz_question_properties')
-      ->condition('nid', $this->node->nid);
-    if ($only_this_version) {
-      $delete->condition('vid', $this->node->vid);
-    }
-    $delete->execute();
+    $remove_answer->execute();
+    $remove_properties->execute();
   }
 
   /**
