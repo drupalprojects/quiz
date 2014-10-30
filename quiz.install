@@ -851,7 +851,7 @@ function quiz_update_7507() {
  * Make our answer_timestamp field NULLable for storing the attempt layout in
  * the database.
  */
-function quiz_update_7508() {
+function quiz_update_7509() {
   db_change_field('quiz_node_results_answers', 'answer_timestamp', 'answer_timestamp', array(
     'type' => 'int',
     'unsigned' => TRUE,
@@ -860,5 +860,5 @@ function quiz_update_7508() {
     )
   );
 
-  db_drop_field('quiz_result', 'layout');
+  db_drop_field('quiz_node_results', 'layout');
 }
