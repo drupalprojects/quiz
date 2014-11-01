@@ -8,7 +8,7 @@
 /**
  * Test class for matching questions.
  */
-class MatchingUnitTest extends QuizQuestionTestCase {
+class MatchingTestCase extends QuizQuestionTestCase {
 
   // initializing attributes
   var $question_node_type = 'matching';

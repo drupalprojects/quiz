@@ -1,6 +1,6 @@
 <?php
 
-class QuizTimer extends QuizTestCase {
+class QuizTimerTestCase extends QuizTestCase {
 
   public static function getInfo() {
     return array(

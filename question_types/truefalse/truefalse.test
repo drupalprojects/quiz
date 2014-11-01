@@ -8,7 +8,7 @@
 /**
  * Test class for true false questions.
  */
-class TrueFalseUnitTest extends QuizQuestionTestCase {
+class TrueFalseTestCase extends QuizQuestionTestCase {
 
   var $question_node_type = 'truefalse';
 

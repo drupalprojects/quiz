@@ -8,7 +8,7 @@
 /**
  * Test class for short answer.
  */
-class ShortAnswerUnitTest extends QuizQuestionTestCase {
+class ShortAnswerTestCase extends QuizQuestionTestCase {
 
   var $question_node_type = 'short_answer';
 
