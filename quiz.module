@@ -1807,7 +1807,7 @@ function quiz_take_quiz($quiz) {
   else {
     // User doesn't have attempt in session. If we allow resuming we can load it
     // from the database.
-    if ($quiz->allow_resume) {
+    if ($quiz->allow_resume && !user_is_anonymous()) {
       if ($result_id = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
         $_SESSION['quiz'][$quiz->nid]['result_id'] = $result_id;
         $_SESSION['quiz'][$quiz->nid]['current'] = 1;
