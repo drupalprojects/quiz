@@ -98,7 +98,7 @@ abstract class QuizQuestion {
         '#maxlength' => 255,
         '#default_value' => $this->node->title,
         '#required' => FALSE,
-        '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the quiz.'),
+        '#description' => t('Add a title that will help distinguish this question from other questions. This will not be seen during the @quiz.', array('@quiz' => QUIZ_NAME)),
       );
     }
     else {

@@ -431,7 +431,7 @@ function quiz_menu() {
   );
 
   $items['admin/quiz/reports'] = array(
-    'title' => 'Quiz reports and scoring',
+    'title' => '@quiz reports and scoring',
     'title arguments' => array('@quiz' => QUIZ_NAME),
     'description' => 'View reports and score answers.',
     'page callback' => 'system_admin_menu_block_page',
@@ -606,7 +606,7 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
   $node = $form_state['node'];
 
   if (empty($form_state['values']['nid'])) {
-    drupal_set_message(t('You just created a new quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'));
+    drupal_set_message(t('You just created a new @quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'), array('@quiz' => QUIZ_NAME));
     $form_state['redirect'] = "node/$node->nid/quiz/questions";
   }
   // If the quiz don't have any questions jump to the manage questions tab.
@@ -736,45 +736,45 @@ function quiz_field_extra_fields() {
   $extra['node']['quiz'] = array(
     'display' => array(
       'take' => array(
-        'label' => t('Take quiz button'),
+        'label' => t('Take @quiz button', array('@quiz' => QUIZ_NAME)),
         'description' => t('The take button.'),
         'weight' => 10,
       ),
       'stats' => array(
-        'label' => t('Quiz summary'),
-        'description' => t('Quiz summary'),
+        'label' => t('@quiz summary', array('@quiz' => QUIZ_NAME)),
+        'description' => t('@quiz summary', array('@quiz' => QUIZ_NAME)),
         'weight' => 9,
       ),
     ),
     'form' => array(
       'taking' => array(
         'label' => t('Taking options'),
-        'description' => t('Fieldset for customizing how a quiz is taken'),
+        'description' => t('Fieldset for customizing how a @quiz is taken', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
       'quiz_availability' => array(
         'label' => t('Availability options'),
-        'description' => t('Fieldset for customizing when a quiz is available'),
+        'description' => t('Fieldset for customizing when a @quiz is available', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
       'summaryoptions' => array(
         'label' => t('Summary options'),
-        'description' => t('Fieldset for customizing summaries in the quiz reports'),
+        'description' => t('Fieldset for customizing summaries in the @quiz reports', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
       'resultoptions' => array(
         'label' => t('Result options'),
-        'description' => t('Fieldset for customizing result comments in quiz reports'),
+        'description' => t('Fieldset for customizing result comments in @quiz reports', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
       'remember_settings' => array(
         'label' => t('Remember settings'),
-        'description' => t('Checkbox for remembering quiz settings'),
+        'description' => t('Checkbox for remembering @quiz settings', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
       'remember_global' => array(
         'label' => t('Remember as global'),
-        'description' => t('Checkbox for remembering quiz settings'),
+        'description' => t('Checkbox for remembering @quiz settings', array('@quiz' => QUIZ_NAME)),
         'weight' => 0,
       ),
     ),
@@ -968,7 +968,7 @@ function quiz_view($node, $view_mode) {
       // Add a link to the take tab if this is a teaser view.
       else {
         $node->content['take'] = array(
-          '#markup' => l(t('Start quiz'), 'node/' . $node->nid . '/take'),
+          '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take'),
           '#weight' => 2,
         );
       }
@@ -1001,7 +1001,7 @@ function quiz_start_quiz_button_form($form, &$form_state, $node) {
   $form['#action'] = url("node/$node->nid/take");
   $form['button'] = array(
     '#type' => 'submit',
-    '#value' => t('Start quiz'),
+    '#value' => t('Start @quiz', array('@quiz' => QUIZ_NAME)),
   );
   return $form;
 }
@@ -1120,7 +1120,7 @@ function quiz_form(&$node, &$form_state) {
       t('Categorized random questions'),
     ),
     '#description' => t('<strong>Random order</strong> - all questions display in random order')
-    . '<br/>' . t("<strong>Random questions</strong> - specific number of questions are drawn randomly from this Quiz's pool of questions")
+    . '<br/>' . t("<strong>Random questions</strong> - specific number of questions are drawn randomly from this @quiz's pool of questions", array('@quiz' => QUIZ_NAME))
     . '<br/>' . t('<strong>Categorized random questions</strong> - specific number of questions are drawn from each specified taxonomy term'),
     '#default_value' => $node->randomization,
   );
@@ -1135,7 +1135,7 @@ function quiz_form(&$node, &$form_state) {
 
   $review_options = quiz_get_feedback_options();
 
-  foreach (array('question' => 'After the question', 'end' => 'After the quiz') as $key => $when) {
+  foreach (array('question' => 'After the question', 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
     $form['taking']['review_options'][$key] = array(
       '#title' => $when,
       '#type' => 'checkboxes',
@@ -1153,20 +1153,20 @@ function quiz_form(&$node, &$form_state) {
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#attributes' => array('id' => 'multiple-takes-fieldset'),
-    '#description' => t('Allow users to take this quiz multiple times.'),
+    '#description' => t('Allow users to take this @quiz multiple times.', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['multiple_takes']['takes'] = array(
     '#type' => 'select',
     '#title' => t('Allowed number of attempts'),
     '#default_value' => $node->takes,
     '#options' => $options,
-    '#description' => t('The number of times a user is allowed to take this @quiz. <strong>Anonymous users are only allowed to take quizzes that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('The number of times a user is allowed to take this @quiz. <strong>Anonymous users are only allowed to take @quiz that allow an unlimited number of attempts.</strong>', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['multiple_takes']['show_attempt_stats'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display allowed number of attempts'),
     '#default_value' => $node->show_attempt_stats,
-    '#description' => t('Display the allowed number of attempts on the starting page for this quiz.'),
+    '#description' => t('Display the allowed number of attempts on the starting page for this @quiz.', array('@quiz' => QUIZ_NAME)),
   );
 
   if (user_access('delete any quiz results') || user_access('delete results for own quiz')) {
@@ -1357,14 +1357,14 @@ function quiz_form(&$node, &$form_state) {
       $form['resultoptions'][$i]['option_start'] = array(
         '#type' => 'textfield',
         '#title' => t('Percentage low'),
-        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
+        '#description' => t('Show this result for scored @quiz in this range (0-100).', array('@quiz' => QUIZ_NAME)),
         '#default_value' => isset($option['option_start']) ? $option['option_start'] : '',
         '#size' => 5,
       );
       $form['resultoptions'][$i]['option_end'] = array(
         '#type' => 'textfield',
         '#title' => t('Percentage high'),
-        '#description' => t('Show this result for scored quizzes in this range (0-100).'),
+        '#description' => t('Show this result for scored @quiz in this range (0-100).', array('@quiz' => QUIZ_NAME)),
         '#default_value' => isset($option['option_end']) ? $option['option_end'] : '',
         '#size' => 5,
       );
@@ -1388,14 +1388,14 @@ function quiz_form(&$node, &$form_state) {
   $form['remember_settings'] = array(
     '#type' => 'checkbox',
     '#title' => t('Remember my settings'),
-    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be your default settings next time you create a quiz.'),
+    '#description' => t('If this box is checked most of the @quiz specific settings you have made will be remembered and will be your default settings next time you create a @quiz.', array('@quiz' => QUIZ_NAME)),
     '#weight' => 49,
   );
 
   $form['remember_global'] = array(
     '#type' => 'checkbox',
     '#title' => t('Remember as global'),
-    '#description' => t('If this box is checked most of the quiz specific settings you have made will be remembered and will be everyone\'s default settings next time they create a quiz.'),
+    '#description' => t('If this box is checked most of the @quiz specific settings you have made will be remembered and will be everyone\'s default settings next time they create a @quiz.', array('@quiz' => QUIZ_NAME)),
     '#weight' => 49,
     '#access' => user_access('administer quiz configuration'),
   );
@@ -1814,7 +1814,7 @@ function quiz_take_quiz($quiz) {
         $quiz_result = quiz_result_load($result_id);
         $quiz = node_load($quiz_result->nid, $quiz_result->vid);
         // Resume a quiz from the database.
-        drupal_set_message(t('Resuming a previous quiz in-progress.'), 'status');
+        drupal_set_message(t('Resuming a previous @quiz in-progress.', array('@quiz' => QUIZ_NAME)), 'status');
       }
     }
   }
@@ -1831,12 +1831,12 @@ function quiz_take_quiz($quiz) {
       module_invoke_all('quiz_begin', $quiz, $quiz_result->result_id);
     }
     else {
-      return array('body' => array('#markup' => t('This quiz is closed.')));
+      return array('body' => array('#markup' => t('This @quiz is closed.', array('@quiz' => QUIZ_NAME))));
     }
   }
 
   if (!quiz_availability($quiz)) {
-    return array('body' => array('#markup' => t('This quiz is not available.')));
+    return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
   }
 
   drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current']));
@@ -2166,7 +2166,7 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
                 )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
-      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
+      '@quiz' => QUIZ_NAME,
       '@time' => date('l jS \of F Y h:i:s A'),
     );
     $params = array(
@@ -2207,7 +2207,7 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
                 WHERE ti.nid = :nid", array(':nid' => $quiz->nid, ':vid' => userpoints_get_vid()))->fetchField();
     $variables = array(
       '@title' => $quiz->title,
-      '@quiz' => variable_get('quiz_name', QUIZ_NAME),
+      '@quiz' => QUIZ_NAME,
       '@time' => date('l jS \of F Y h:i:s A'),
     );
     $params = array(
@@ -2270,14 +2270,14 @@ function quiz_email_results_format($type, $target) {
   if ($type == 'body') {
     if ($target == 'author') {
       return t('Dear !author') . "\n\n" .
-        t('!taker attended the quiz !title on !date') . "\n" .
+        t('!taker attended the @quiz !title on !date', array('@quiz' => QUIZ_NAME)) . "\n" .
         t('Test Description : !desc') . "\n" .
         t('!taker got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
         t('You can access the result here !url') . "\n";
     }
     if ($target == 'taker') {
       return t('Dear !taker') . "\n\n" .
-        t('You attended the quiz !title on !date') . "\n" .
+        t('You attended the @quiz !title on !date', array('@quiz' => QUIZ_NAME)) . "\n" .
         t('Test Description : !desc') . "\n" .
         t('You got !correct out of !total points in !minutes minutes. Score given in percentage is !percentage') . "\n" .
         t('You can access the result here !url') . "\n";
@@ -2430,7 +2430,7 @@ function quiz_start_check($quiz) {
 
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       if ($user_is_admin) {
-        drupal_set_message(t('You are marked as an administrator or owner for this quiz. While you can take this quiz, the open/close times prohibit other users from taking this quiz.'), 'status');
+        drupal_set_message(t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
       }
       else {
         drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
@@ -2450,17 +2450,17 @@ function quiz_start_check($quiz) {
     if ($taken) {
       if ($user_is_admin) {
 
-        drupal_set_message(t('You have taken this quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.'), 'status');
+        drupal_set_message(t('You have taken this @quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', array('@quiz' => QUIZ_NAME)), 'status');
       }
       // If the user has already taken this quiz too many times, stop the user.
       elseif ($taken >= $quiz->takes) {
-        drupal_set_message(t('You have already taken this quiz @really. You may not take it again.', array('@really' => $taken_times)), 'error');
+        drupal_set_message(t('You have already taken this @quiz @really. You may not take it again.', array('@quiz', QUIZ_NAME, '@really' => $taken_times)), 'error');
         return FALSE;
       }
       // If the user has taken the quiz more than once, see if we should report
       // this.
       elseif ($quiz->show_attempt_stats) {
-        drupal_set_message(t("You can only take this quiz @allowed. You have taken it @really.", array('@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
+        drupal_set_message(t("You can only take this @quiz @allowed. You have taken it @really.", array('@quiz' => QUIZ_NAME, '@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
       }
     }
   }
@@ -2486,7 +2486,7 @@ function quiz_availability($quiz) {
   global $user;
 
   if ($user->uid == 0 && $quiz->takes > 0) {
-    return t('This quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.', array('%num_attempts' => $quiz->takes));
+    return t('This @quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.', array('%num_attempts' => $quiz->takes, '@quiz' => QUIZ_NAME));
   }
 
   $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
@@ -2499,7 +2499,7 @@ function quiz_availability($quiz) {
   $now = REQUEST_TIME;
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-    return t('This quiz is closed.');
+    return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
   }
   return TRUE;
 }
@@ -2571,7 +2571,7 @@ function quiz_calculate_score($quiz, $result_id) {
       $scores[] = $score;
     }
     else {
-      drupal_set_message(t('A quiz question could not be scored: No scoring info is available'), 'error');
+      drupal_set_message(t('A @quiz question could not be scored: No scoring info is available', array('@quiz' => QUIZ_NAME)), 'error');
       $dummy_score = new stdClass();
       $dummy_score->possible = 0;
       $dummy_score->attained = 0;
@@ -3004,7 +3004,7 @@ function _quiz_get_summary_text($quiz, $score) {
   if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
     // If we are coming from the admin view page.
     if ($admin) {
-      $summary['passfail'] = t('The user passed this quiz.');
+      $summary['passfail'] = t('The user passed this @quiz.', array('@quiz' => QUIZ_NAME));
     }
     elseif (variable_get('quiz_use_passfail', 1) == 0) {
       // If there is only a single summary text, use this.
@@ -3023,10 +3023,10 @@ function _quiz_get_summary_text($quiz, $score) {
     // using pass/fail.
     if ($admin) {
       if ($quiz->pass_rate > 0) {
-        $summary['passfail'] = t('The user failed this quiz.');
+        $summary['passfail'] = t('The user failed this @quiz.', array('@quiz' => QUIZ_NAME));
       }
       else {
-        $summary['passfail'] = t('the user completed this quiz.');
+        $summary['passfail'] = t('the user completed this @quiz.', array('@quiz' => QUIZ_NAME));
       }
     }
     elseif (trim($quiz->summary_default) != '') {
@@ -3354,8 +3354,7 @@ function _quiz_get_answers($quiz, $result_id) {
  *   Quiz name variable.
  */
 function _quiz_get_quiz_name() {
-  // @todo: remove all the quiz_name stuff? Isn't there better ways to do this?
-  return variable_get('quiz_name', 'Quiz');
+  return t(variable_get('quiz_name', 'Quiz'));
 }
 
 /**
@@ -4113,7 +4112,7 @@ function quiz_action_info() {
 
   $actions['quiz_add_question_to_quiz'] = array(
     'type' => 'node',
-    'label' => t('Add questions to quiz'),
+    'label' => t('Add questions to @quiz', array('@quiz' => QUIZ_NAME)),
     'configurable' => FALSE,
     'vbo_configurable' => FALSE,
   );
@@ -4164,7 +4163,7 @@ function quiz_get_feedback_options() {
     'answer_feedback' => 'Answer feedback',
     'question_feedback' => 'Question feedback',
     'solution' => "Correct answer",
-    'quiz_feedback' => "Quiz feedback",
+    'quiz_feedback' => t("@quiz feedback", array('@quiz' => QUIZ_NAME)),
   );
 
   drupal_alter('quiz_feedback_options', $feedback_options);

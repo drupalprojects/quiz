@@ -4,12 +4,12 @@
 */
 $plugin = array(
   // the title in the admin
-  'title' => t('Quiz take pane'),
+  'title' => t('@quiz take pane', array('@quiz' => QUIZ_NAME)),
   'single' => TRUE,
   'render callback' => 'quiz_take_pane_content_type_render',
   'category' => array(t('Quiz'), -9),
 //  'edit form' => 'quiz_take_pane_content_type_edit_form',
-  'description' => t('Quiz take pane description.'),
+  'description' => t('@quiz take pane description.', array('@quiz' => QUIZ_NAME)),
   'required context' => new ctools_context_required(t('Node'), 'node'),
 );
 

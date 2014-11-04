@@ -157,7 +157,7 @@ function quiz_report_form_submit($form, &$form_state) {
   }
 
   // Notify the user if results got deleted as a result of him scoring an answer.
-  $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this quiz is set to only keep each users best answer.') : '';
+  $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this @quiz is set to only keep each users best answer.', array('@quiz' => QUIZ_NAME)) : '';
 
   $score_data = quiz_get_score_array($result_id, $quiz->vid, TRUE);
 
@@ -178,7 +178,7 @@ function _quiz_remove_unscored_message() {
   if (!empty($_SESSION['messages']['warning'])) {
     // Search for the message, and remove it if we find it.
     foreach ($_SESSION['messages']['warning'] as $key => $val) {
-      if ($val == t('This quiz has not been scored yet.')) {
+      if ($val == t('This @quiz has not been scored yet.', array('@quiz' => QUIZ_NAME))) {
         unset($_SESSION['messages']['warning'][$key]);
       }
     }
@@ -309,7 +309,7 @@ function theme_quiz_progress($variables) {
  * @ingroup themeable
  */
 function theme_quiz_no_feedback() {
-  return t('Thanks for taking the quiz!');
+  return t('Thanks for taking the @quiz!', array('@quiz' => QUIZ_NAME));
 }
 
 /**

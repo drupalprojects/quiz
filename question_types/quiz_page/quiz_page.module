@@ -21,7 +21,7 @@ function quiz_page_help($path, $args) {
 function quiz_page_quiz_question_info() {
   return array(
     'quiz_page' => array(
-      'name' => t('Quiz page'),
+      'name' => t('@quiz page', array('@quiz' => QUIZ_NAME)),
       'description' => t('Quiz pages allow you display questions across multiple pages.'),
       'question provider' => 'QuizPagesQuestion',
       'response provider' => 'QuizPagesResponse',

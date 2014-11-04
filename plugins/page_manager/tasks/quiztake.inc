@@ -10,8 +10,8 @@ function quiz_quiztake_page_manager_tasks() {
     // This is a 'page' task and will fall under the page admin UI
     'task type' => 'page',
 
-    'title' => t('Take quiz'),
-    'admin title' => t('The take page for quiz.'),
+    'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
+    'admin title' => t('The take page for @quiz.', array('@quiz' => QUIZ_NAME)),
     'admin description' => t('When enabled, this overrides the default view at node/%node/take'),
     'admin path' => 'node/%node/take',
 

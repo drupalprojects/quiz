@@ -216,12 +216,12 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_email_settings']['author']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Configure E-mail Format'),
-    '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
+    '#description' => t('This format will be used when sending @quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')),
   );
 
   $form['def_settings_link'] = array(
-    '#markup' => '<p>' . t('Default values for the quiz creation form can be edited <a href="!url">here</a>', array('!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
+    '#markup' => '<p>' . t('Default values for the @quiz creation form can be edited <a href="!url">here</a>', array('@quiz' => QUIZ_NAME, '!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
   );
 
   $form['#validate'][] = 'quiz_settings_form_validate';
@@ -284,7 +284,7 @@ function quiz_admin_node_form($form, &$form_state) {
   }
   $form = quiz_form($dummy_node, $form_state);
   $form['direction'] = array(
-    '#markup' => t('Here you can change the default quiz settings for new users.'),
+    '#markup' => t('Here you can change the default @quiz settings for new users.', array('@quiz' =>  QUIZ_NAME)),
     '#weight' => -10,
   );
   // unset values we can't or won't let the user edit default values for
@@ -746,7 +746,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
   // Display questions in this quiz.
   $form['question_list'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Questions in this quiz'),
+    '#title' => t('Questions in this @quiz', array('@quiz' => QUIZ_NAME)),
     '#theme' => 'question_selection_table',
     '#collapsible' => TRUE,
     '#attributes' => array('id' => 'mq-fieldset'),
@@ -762,7 +762,7 @@ function quiz_questions_form($form, $form_state, $quiz) {
 
   if (empty($questions)) {
     $form['question_list']['no_questions'] = array(
-      '#markup' => '<div id = "no-questions">' . t('There are currently no questions in this quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.') . '</div>',
+      '#markup' => '<div id = "no-questions">' . t('There are currently no questions in this @quiz. Assign existing questions by using the question browser below. You can also use the links above to create new questions.', array('@quiz' => QUIZ_NAME)) . '</div>',
     );
   }
 
@@ -812,7 +812,9 @@ function _quiz_add_fields_for_creating_questions(&$form, &$types, &$quiz) {
   $url_query['quiz_nid'] = $quiz->nid;
   $url_query['quiz_vid'] = $quiz->vid;
   $create_question = FALSE;
+
   foreach ($types as $type => $info) {
+
     $url_type = str_replace('_', '-', $type);
     $options = array(
       'attributes' => array('title' => t('Create @name', array('@name' => $info['name']))),

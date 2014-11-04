@@ -537,7 +537,7 @@ class MultichoiceQuestion extends QuizQuestion {
     $form['alternatives']['settings']['choice_random'] = array(
       '#type' => 'checkbox',
       '#title' => t('Random order'),
-      '#description' => t('Present alternatives in random order when quiz is being taken.'),
+      '#description' => t('Present alternatives in random order when @quiz is being taken.', array('@quiz' => QUIZ_NAME)),
       '#default_value' => $default_settings['choice_random'],
       '#parents' => array('choice_random'),
     );

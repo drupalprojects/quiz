@@ -22,8 +22,8 @@ function quiz_directions_help($path, $args) {
 function quiz_directions_quiz_question_info() {
   return array(
     'quiz_directions' => array(
-      'name' => t('Quiz directions'),
-      'description' => t('Quiz directions allow you to drop in directions anywhere in a quiz. You can also use them to insert a confirmation step at the end of the quiz.'),
+      'name' => t('@quiz directions', array('@quiz' => QUIZ_NAME)),
+      'description' => t('@quiz directions allow you to drop in directions anywhere in a quiz. You can also use them to insert a confirmation step at the end of the quiz.', array('@quiz' => QUIZ_NAME)),
       'question provider' => 'QuizDirectionsQuestion',
       'response provider' => 'QuizDirectionsResponse',
       'module' => 'quiz_question', // All wrapper functions are in that module.
