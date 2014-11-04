@@ -668,7 +668,7 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->result_id,
     );
-    if ($submit = $this->getReportFormSubmit()) {
+    if (quiz_access_to_score() && $submit = $this->getReportFormSubmit()) {
       $form['submit'] = array(
         '#type' => 'value',
         '#value' => $submit,
@@ -676,7 +676,9 @@ abstract class QuizQuestionResponse {
     }
     $form['question'] = $this->getReportFormQuestion();
 
-    $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
+    if (quiz_access_to_score()) {
+      $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
+    }
 
     $form['max_score'] = array(
       '#type' => 'value',

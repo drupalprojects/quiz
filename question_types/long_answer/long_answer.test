@@ -67,7 +67,7 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
       "1[answer_feedback][value]" => 'Feedback for answer 2.',
       "0[answer_feedback][format]" => 'filtered_html',
       "1[answer_feedback][format]" => 'filtered_html',
-      ), t('Save Score'));
+      ), t('Save score'));
     $this->assertText('The scoring data you provided has been saved.');
 
     // Test the score and feedback are visible to the user.

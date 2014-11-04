@@ -71,7 +71,7 @@ function quiz_report_form($form, $form_state, $questions) {
     $form['submit'] = array(
       '#type' => 'submit',
       '#submit' => array('quiz_report_form_submit'),
-      '#value' => t('Save Score'),
+      '#value' => t('Save score'),
     );
   }
 

@@ -159,6 +159,9 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     $this->assertText('This answer has not yet been scored.');
     $this->assertNoFieldByName('0[score]');
     $this->assertNoFieldByName('1[score]');
+    $this->assertNoFieldByName('0[answer_feedback][value]');
+    $this->assertNoFieldByName('1[answer_feedback][value]');
+    $this->assertNoRaw(t('Save score'));
     $url_of_result = $this->getUrl();
 
     // Test grading the question.
@@ -176,7 +179,7 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
       "1[answer_feedback][value]" => 'Feedback for answer 2.',
       "0[answer_feedback][format]" => 'filtered_html',
       "1[answer_feedback][format]" => 'filtered_html',
-      ), t('Save Score'));
+      ), t('Save score'));
     $this->assertText('The scoring data you provided has been saved.');
 
     // Test the score is visible to the user.
