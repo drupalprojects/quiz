@@ -105,4 +105,81 @@ class QuizResultTestCase extends QuizTestCase {
     $this->assertNoText('This is the summary if passed');
     $this->assertText('This is the default summary text');
   }
+
+  /**
+   * Test result CRUD operations.
+   *
+   * We have (at least) 3 different tables to clean up from on a Quiz result
+   * deletion - the quiz_result, the result answers, and the question type's
+   * answer storage. Let's ensure at least that happens.
+   */
+  function testQuizResultCrud() {
+    $this->drupalLogin($this->admin);
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+
+    // Submit an answer.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Finish'));
+
+    $quiz_result = entity_load('quiz_result', FALSE, array(
+      'nid' => $quiz_node->nid,
+      'vid' => $quiz_node->vid,
+      'uid' => $this->user->uid,
+    ));
+    $this->assertFalse(empty($quiz_result), 'Found quiz result');
+    $quiz_result = reset($quiz_result);
+
+    $quiz_result_answer = entity_load('quiz_result_answer', FALSE, array(
+      'result_id' => $quiz_result->result_id,
+      'question_nid' => $question_node1->nid,
+      'question_vid' => $question_node1->vid,
+    ));
+    $this->assertFalse(empty($quiz_result_answer), 'Found quiz result answer');
+    $quiz_result_answer = reset($quiz_result_answer);
+
+    // This isn't an entity yet.
+    $result = db_select('quiz_truefalse_user_answers', 'qtua')
+      ->fields('qtua')
+      ->condition('result_id', $quiz_result->result_id)
+      ->condition('question_nid', $question_node1->nid)
+      ->condition('question_vid', $question_node1->vid)
+      ->execute();
+    $quiz_truefalse_result_answer = $result->fetch();
+    $this->assertFalse(empty($quiz_truefalse_result_answer), 'Found quiz result question answer');
+
+    // Now check the deletion.
+    entity_delete('quiz_result', $quiz_result->result_id);
+    $quiz_result2 = entity_load('quiz_result', FALSE, array(
+      'nid' => $quiz_node->nid,
+      'vid' => $quiz_node->vid,
+      'uid' => $this->user->uid,
+    ), TRUE);
+    $this->assertTrue(empty($quiz_result2), 'Did not find quiz result');
+
+    $quiz_result_answer = entity_load('quiz_result_answer', FALSE, array(
+      'result_id' => $quiz_result->result_id,
+      'question_nid' => $question_node1->nid,
+      'question_vid' => $question_node1->vid,
+    ), TRUE);
+    $this->assertTrue(empty($quiz_result_answer), 'Did not find quiz result answer');
+
+    // This isn't an entity yet.
+    $result = db_select('quiz_truefalse_user_answers', 'qtua')
+      ->fields('qtua')
+      ->condition('result_id', $quiz_result->result_id)
+      ->condition('question_nid', $question_node1->nid)
+      ->condition('question_vid', $question_node1->vid)
+      ->execute();
+    $quiz_truefalse_result_answer = $result->fetch();
+    $this->assertTrue(empty($quiz_truefalse_result_answer), 'Did not find quiz result question answer');
+  }
+
 }

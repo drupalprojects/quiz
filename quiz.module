@@ -810,7 +810,7 @@ function quiz_delete($node) {
   while ($result_id = $res->fetchField()) {
     $result_ids[] = $result_id;
   }
-  quiz_delete_results($result_ids);
+  entity_delete_multiple('quiz_result', $result_ids);
 
   // Remove quiz node records from table quiz_node_properties
   db_delete('quiz_node_properties')
@@ -1558,7 +1558,7 @@ function _quiz_delete_users_results($uid) {
   while ($result_id = $res->fetchField()) {
     $result_ids[] = $result_id;
   }
-  quiz_delete_results($result_ids);
+  entity_delete_multiple('quiz_result', $result_ids);
 }
 
 /**
@@ -2878,7 +2878,7 @@ function _quiz_delete_old_in_progress($quiz, $uid) {
   while ($result_id = $res->fetchField()) {
     $result_ids[] = $result_id;
   }
-  quiz_delete_results($result_ids);
+  entity_delete_multiple('quiz_result', $result_ids);
 }
 
 /**
@@ -3617,7 +3617,7 @@ function _quiz_maintain_results($quiz, $result_id) {
       while ($result_id2 = $res->fetchField()) {
         $result_ids[] = $result_id2;
       }
-      quiz_delete_results($result_ids);
+      entity_delete_multiple('quiz_result', $result_ids);
       return !empty($result_ids);
     case QUIZ_KEEP_LATEST:
       $res = db_query('SELECT result_id FROM {quiz_node_results}
@@ -3626,34 +3626,36 @@ function _quiz_maintain_results($quiz, $result_id) {
       while ($result_id2 = $res->fetchField()) {
         $result_ids[] = $result_id2;
       }
-      quiz_delete_results($result_ids);
+      entity_delete_multiple('quiz_result', $result_ids);
       return !empty($result_ids);
   }
 }
 
 /**
- * Delete quiz results.
+ * Delete quiz results by ID.
  *
  * @param $result_ids
  *   Result ids for the results to be deleted.
  */
 function quiz_delete_results($result_ids) {
-  if (empty($result_ids)) {
-    return;
-  }
+  entity_delete_multiple('quiz_result', $result_ids);
+}
+
+/**
+ * Implements hook_quiz_result_delete().
+ */
+function quiz_quiz_result_delete($quiz_result) {
+  // Fire the question types' implementations of question attempts deletion.
   $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
-          WHERE result_id IN(:result_id)';
-  $result = db_query($sql, array(':result_id' => $result_ids));
+          WHERE result_id = (:result_id)';
+  $result = db_query($sql, array(':result_id' => $quiz_result->result_id));
   foreach ($result as $record) {
     quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
   }
 
+  // Delete Quiz's records of any attempts at a question.
   db_delete('quiz_node_results_answers')
-    ->condition('result_id', $result_ids, 'IN')
-    ->execute();
-
-  db_delete('quiz_node_results')
-    ->condition('result_id', $result_ids, 'IN')
+    ->condition('result_id', $quiz_result->result_id)
     ->execute();
 }
 
