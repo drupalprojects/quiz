@@ -2420,7 +2420,7 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_check($quiz) {
   global $user;
 
-  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
+  $user_is_admin = node_access('update', $quiz);
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
