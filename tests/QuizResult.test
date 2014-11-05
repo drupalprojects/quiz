@@ -161,14 +161,14 @@ class QuizResultTestCase extends QuizTestCase {
       'nid' => $quiz_node->nid,
       'vid' => $quiz_node->vid,
       'uid' => $this->user->uid,
-    ), TRUE);
+      ), TRUE);
     $this->assertTrue(empty($quiz_result2), 'Did not find quiz result');
 
     $quiz_result_answer = entity_load('quiz_result_answer', FALSE, array(
       'result_id' => $quiz_result->result_id,
       'question_nid' => $question_node1->nid,
       'question_vid' => $question_node1->vid,
-    ), TRUE);
+      ), TRUE);
     $this->assertTrue(empty($quiz_result_answer), 'Did not find quiz result answer');
 
     // This isn't an entity yet.
@@ -182,4 +182,31 @@ class QuizResultTestCase extends QuizTestCase {
     $this->assertTrue(empty($quiz_truefalse_result_answer), 'Did not find quiz result question answer');
   }
 
+  /**
+   * Test access to results.
+   */
+  function testQuizResultAccess() {
+    $this->drupalLogin($this->admin);
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+
+    // Submit an answer.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Finish'));
+
+    $resultsUrl = $this->getUrl();
+
+    $this->drupalGet($resultsUrl);
+    $this->assertResponse(200, t('User can view own result'));
+    $this->drupalLogout();
+    $this->drupalGet($resultsUrl);
+    $this->assertNoResponse(200, t('Anonymous user cannot view result'));
+  }
 }

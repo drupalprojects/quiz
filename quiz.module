@@ -250,9 +250,15 @@ function quiz_access_my_results($quiz) {
  *  True if access, false otherwise
  */
 function quiz_access_my_result($result_id) {
+  global $user;
+
   // Check if the quiz taking has been completed.
-  $time_end = db_query('SELECT time_end FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
-  return $time_end > 0;
+  $quiz_result = quiz_result_load($result_id);
+  $node = node_load($quiz_result->nid, $quiz_result->vid);
+
+  if (quiz_access_to_score($node->uid) || ($quiz_result->time_end > 0 && $quiz_result->uid == $user->uid)) {
+    return TRUE;
+  }
 }
 
 /**
