@@ -16,7 +16,7 @@ function quiz_admin_settings($form, &$form_state) {
 
   $form['quiz_global_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Global Configuration'),
+    '#title' => t('Global configuration'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#description' => t('Control aspects of the Quiz module\'s display'),
@@ -40,7 +40,7 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Index questions'),
     '#default_value' => variable_get('quiz_index_questions', 1),
-    '#description' => t('If you turn this off questions will not show up in search results.'),
+    '#description' => t('If you turn this off, questions will not show up in search results.'),
   );
 
   $form['quiz_global_settings']['quiz_default_close'] = array(
@@ -61,7 +61,7 @@ function quiz_admin_settings($form, &$form_state) {
 
   $form['quiz_global_settings']['quiz_max_result_options'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum Result Options'),
+    '#title' => t('Maximum result options'),
     '#description' => t('Set the maximum number of result options (categorizations for scoring a quiz). Set to 0 to disable result options.'),
     '#default_value' => variable_get('quiz_max_result_options', 5),
     '#size' => 2,
@@ -71,9 +71,9 @@ function quiz_admin_settings($form, &$form_state) {
 
   $form['quiz_global_settings']['quiz_remove_partial_quiz_record'] = array(
     '#type' => 'select',
-    '#title' => t('Remove Incomplete Quiz Records (older than)'),
+    '#title' => t('Remove incomplete quiz records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
-    '#description' => t('Number of days that you like to keep the incomplete quiz records'),
+    '#description' => t('Number of days to keep incomplete quiz attempts.'),
     '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
   );
 
@@ -111,40 +111,37 @@ function quiz_admin_settings($form, &$form_state) {
   );
 
   $links = array(
-    '!views' => l(t('Views'), 'http://drupal.org/project/views', $target),
-    '!cck' => l(t('CCK'), 'http://drupal.org/project/cck', $target),
     '!jquery_countdown' => l(t('JQuery Countdown'), 'http://drupal.org/project/jquery_countdown', $target),
     '!userpoints' => l(t('UserPoints'), 'http://drupal.org/project/userpoints', $target),
-    '@quiz' => QUIZ_NAME,
   );
 
   $form['quiz_addons'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Addons Configuration'),
-    '#description' => t('Quiz can integrate with other d.o modules like !views, !cck, !userpoints and !jquery_countdown. Here you can configure the way Quiz integrates with other modules. Disabled checkboxes indicates that modules are not enabled/installed', $links),
+    '#title' => t('Addons configuration'),
+    '#description' => t('Quiz has built in integration with some other modules. Disabled checkboxes indicates that modules are not enabled.', $links),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
 
   $form['quiz_addons']['quiz_has_userpoints'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Enable UserPoints Module Integration'),
+    '#title' => t('User Points'),
     '#default_value' => variable_get('quiz_has_userpoints', 0),
-    '#description' => t('!userpoints is an <strong>optional</strong> module for Quiz. It provides ways for users to gain or lose points for performing certain actions on your site like attending @quiz. You will need to install the !userpoints module to use this feature.', $links),
+    '#description' => t('!userpoints is an <strong>optional</strong> module for Quiz. It provides ways for users to gain or lose points for performing certain actions on your site like completing a Quiz.', $links),
     '#disabled' => !module_exists('userpoints'),
   );
 
   $form['quiz_addons']['quiz_has_timer'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Display Timer for Timed Quiz'),
+    '#title' => t('Display timer'),
     '#default_value' => variable_get('quiz_has_timer', 0),
-    '#description' => t("!jquery_countdown is an <strong>optional</strong> module for Quiz. It is used to display a timer when taking a quiz. Without this timer, the user will not know how long he or she has left to complete the @quiz", $links),
+    '#description' => t("!jquery_countdown is an <strong>optional</strong> module for Quiz. It is used to display a timer when taking a quiz. Without this timer, the user will not know how much time they have left to complete the Quiz", $links),
     '#disabled' => !function_exists('jquery_countdown_add'),
   );
 
   $form['quiz_look_feel'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Look and Feel Settings'),
+    '#title' => t('Look and feel'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
     '#description' => t('Control aspects of the Quiz module\'s display'),
@@ -154,74 +151,70 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Display name'),
     '#default_value' => QUIZ_NAME,
-    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. Currently, it is called @quiz. By default, it is called <em>Quiz</em>.', array('@quiz' => QUIZ_NAME)),
+    '#description' => t('Change the name of the quiz type. Do you call it <em>test</em> or <em>assessment</em> instead? Change the display name of the module to something else. By default, it is called <em>Quiz</em>.'),
     '#required' => TRUE,
   );
 
   $form['quiz_email_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Email Settings'),
-    '#description' => t('Send results to quiz author/attendee via e-mail. Configure e-mail subject and body.'),
+    '#title' => t('Notifications'),
+    '#description' => t('Send results to quiz author/attendee via email. Configure email subject and body.'),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
 
   $form['quiz_email_settings']['taker'] = array(
     '#type' => 'fieldset',
-    '#title' => t('E-mail for Quiz Takers'),
+    '#title' => t('Email for Quiz takers'),
     '#collapsible' => FALSE,
   );
 
   $form['quiz_email_settings']['taker']['quiz_email_results'] = array(
     '#type' => 'checkbox',
-    '#title' => t('E-mail results to quiz takers'),
+    '#title' => t('Email results to quiz takers'),
     '#default_value' => variable_get('quiz_email_results', 0),
     '#description' => t('Check this to send users their results at the end of a quiz.')
   );
 
   $form['quiz_email_settings']['taker']['quiz_email_results_subject_taker'] = array(
     '#type' => 'textfield',
-    '#title' => t('Configure E-mail Subject'),
+    '#title' => t('Configure email subject'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz.'),
     '#default_value' => variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')),
   );
 
   $form['quiz_email_settings']['taker']['quiz_email_results_body_taker'] = array(
     '#type' => 'textarea',
-    '#title' => t('Configure E-mail Format'),
+    '#title' => t('Configure email format'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
     '#default_value' => variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')),
   );
 
   $form['quiz_email_settings']['author'] = array(
     '#type' => 'fieldset',
-    '#title' => t('E-mail for Quiz Authors'),
+    '#title' => t('Email for Quiz authors'),
     '#collapsible' => FALSE,
   );
 
   $form['quiz_email_settings']['author']['quiz_results_to_quiz_author'] = array(
     '#type' => 'checkbox',
-    '#title' => t('E-mail all results to quiz author.'),
+    '#title' => t('Email all results to quiz author'),
     '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
     '#description' => t('Check this to send quiz results for all users to the quiz author.'),
   );
 
   $form['quiz_email_settings']['author']['quiz_email_results_subject'] = array(
     '#type' => 'textfield',
-    '#title' => t('Configure E-mail Subject'),
+    '#title' => t('Configure email subject'),
     '#description' => t('This format will be used when sending quiz results at the end of a quiz. Authors and quiz takers gets the same format.'),
     '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject', 'author')),
   );
 
   $form['quiz_email_settings']['author']['quiz_email_results_body'] = array(
     '#type' => 'textarea',
-    '#title' => t('Configure E-mail Format'),
+    '#title' => t('Configure email format'),
     '#description' => t('This format will be used when sending @quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
     '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')),
-  );
-
-  $form['def_settings_link'] = array(
-    '#markup' => '<p>' . t('Default values for the @quiz creation form can be edited <a href="!url">here</a>', array('@quiz' => QUIZ_NAME, '!url' => url('admin/quiz/settings/quiz_form'))) . '</p>',
   );
 
   $form['#validate'][] = 'quiz_settings_form_validate';

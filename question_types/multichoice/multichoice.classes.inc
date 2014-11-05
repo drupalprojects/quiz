@@ -646,7 +646,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#size' => 4,
         '#maxlength' => 4,
         '#default_value' => $default_value,
-        '#description' => t('This score is added to the users total score if the user chooses this alternative.'),
+        '#description' => t("This score is added to the user's total score if the user chooses this alternative."),
         '#attributes' => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
           'onkeyup' => 'Multichoice.refreshCorrect(this)',
@@ -665,7 +665,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#size' => 4,
         '#maxlength' => 4,
         '#default_value' => $default_value,
-        '#description' => t('This score is added to the users total score if the user doesn\'t choose this alternative. Only used if multiple answers are allowed.'),
+        '#description' => t("This score is added to the user's total score if the user doesn't choose this alternative. Only used if multiple answers are allowed."),
         '#attributes' => array(
           'onkeypress' => 'Multichoice.refreshCorrect(this)',
           'onkeyup' => 'Multichoice.refreshCorrect(this)',
