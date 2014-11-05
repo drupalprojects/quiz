@@ -446,7 +446,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     if ($this->node->choice_multi) {
       $element['user_answer']['#type'] = 'checkboxes';
-      $element['user_answer']['#title'] = t('Choose');
+      $element['user_answer']['#title'] = t('Choose all that apply');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
           $element['#default_value'] = $response->getResponse();
