@@ -16,16 +16,13 @@
 //
 // Where possible, user pages are located in quiz.pages.inc, and admin pages
 // are in quiz.admin.inc. Most utility functions have been left here, even if they
-// are only used by a function in one of the other files. quiz_datetime.inc holds
-// some additional date/time functions.
+// are only used by a function in one of the other files.
 //
 // Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
 // Then they are in quiz.admin.inc.
 //
 // Views support is included in includes/views/quiz.views.inc
 define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
-
-module_load_include('inc', 'quiz', 'quiz_datetime');
 
 /*
  * Define question statuses...
@@ -839,9 +836,7 @@ function _quiz_get_node_defaults() {
       'pass_rate' => 75,
       'quiz_always' => 1,
       'quiz_close' => 0,
-      'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
       'quiz_open' => 0,
-      'quiz_open' => _quiz_form_prepare_date(),
       'randomization' => 0,
       'repeat_until_correct' => 0,
       'review_options' => array('question' => array(), 'end' => array()),
@@ -1219,26 +1214,33 @@ function quiz_form(&$node, &$form_state) {
     '#attributes' => array('id' => 'availability-fieldset'),
     '#group' => 'additional_settings',
   );
+
   $form['quiz_availability']['quiz_always'] = array(
     '#type' => 'checkbox',
     '#title' => t('Always available'),
     '#default_value' => $node->quiz_always,
     '#description' => t('Ignore the open and close dates.'),
+    '#disabled' => !module_exists('date_popup'),
   );
-  $form['quiz_availability']['quiz_open'] = array(
-    '#type' => 'date',
-    '#title' => t('Open date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_open),
-    '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
-    '#after_build' => array('_quiz_limit_year_options'),
-  );
-  $form['quiz_availability']['quiz_close'] = array(
-    '#type' => 'date',
-    '#title' => t('Close date'),
-    '#default_value' => _quiz_form_prepare_date($node->quiz_close, variable_get('quiz_default_close', 30)),
-    '#description' => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
-    '#after_build' => array('_quiz_limit_year_options'),
-  );
+
+  if (module_exists('date_popup')) {
+    $format = 'Y-m-d H:i';
+    $form['quiz_availability']['quiz_open'] = array(
+      '#type' => 'date_popup',
+      '#title' => t('Open date'),
+      '#default_value' => date($format, $node->quiz_open ? $node->quiz_open : REQUEST_TIME),
+      '#description' => t('The date this @quiz will become available.', array('@quiz' => QUIZ_NAME)),
+    );
+    $form['quiz_availability']['quiz_close'] = array(
+      '#type' => 'date_popup',
+      '#title' => t('Close date'),
+      '#default_value' => date($format, $node->quiz_close ? $node->quiz_close : REQUEST_TIME + variable_get('quiz_default_close', 30) * 86400),
+      '#description' => t('The date this @quiz will become unavailable.', array('@quiz' => QUIZ_NAME)),
+    );
+  }
+  else {
+    $form['quiz_availability']['help']['#markup'] = t('Enable the Date Popup (date_popup) module from the !date project to enable support for open and close dates.', array('!date' => l('Date', 'http://drupal.org/project/date')));
+  }
 
   // Quiz summary options.
   $form['summaryoptions'] = array(
@@ -3341,39 +3343,6 @@ function _quiz_get_quiz_name() {
 }
 
 /**
- * Takes a time element and prepares to send it to form_date().
- *
- * @param $time
- *   The time to be turned into an array. This can be:
- *   - A timestamp when from the database.
- *   - An array (day, month, year) when previewing.
- *   - NULL for new nodes.
- *
- * @return
- *   An array for form_date (day, month, year).
- */
-function _quiz_form_prepare_date($time = '', $offset = 0) {
-  // If this is empty, get the current time.
-  if ($time == '') {
-    $time = REQUEST_TIME + $offset * 86400;
-  }
-  // If we are previewing, $time will be an array so just pass it through.
-  $time_array = array();
-  if (is_array($time)) {
-    $time_array = $time;
-  }
-  // Otherwise build the array from the timestamp.
-  elseif (is_numeric($time)) {
-    $time_array = array(
-      'day' => _quiz_date('j', $time),
-      'month' => _quiz_date('n', $time),
-      'year' => _quiz_date('Y', $time),
-    );
-  }
-  return $time_array;
-}
-
-/**
  * This function was copied from the triggers module as to prevent having to be
  * dependent on that module for the actions to work.  The trigger function is
  * called trigger_options().
@@ -3661,7 +3630,7 @@ function quiz_get_defaults() {
     'uid' => $user->uid,
     'nid' => 0,
     'vid' => 0,
-  ), TRUE);
+    ), TRUE);
 
   if (count($entity)) {
     // We found user defaults.
@@ -3674,7 +3643,7 @@ function quiz_get_defaults() {
     'uid' => 0,
     'nid' => 0,
     'vid' => 0,
-  ), TRUE);
+    ), TRUE);
 
   if (count($entity)) {
     // Found global defaults.
@@ -3726,23 +3695,6 @@ function _quiz_format_mod(&$format) {
       }
     }
   }
-}
-
-/**
- * Limit the year options to the years 1970 - 2030 for form items of type date.
- *
- * Some systems don't support all the dates the forms api lets you choose from.
- * This function limits the options to dates most systems support.
- *
- * @param $form_element
- *   Form element of type date.
- *
- * @return
- *   Form element with a more limited set of years to choose from.
- */
-function _quiz_limit_year_options($form_element) {
-  $form_element['year']['#options'] = drupal_map_assoc(range(1970, 2030));
-  return $form_element;
 }
 
 /**
@@ -4199,4 +4151,18 @@ function quiz_quiz_result_load($quiz_results) {
 function quiz_result_is_question_answered($quiz_result, $question) {
   $qra = quiz_result_answer_load($quiz_result->result_id, $question->nid, $question->vid);
   return !empty($qra->answer_timestamp);
+}
+
+/**
+ * Handles the start and end times in a node form submission.
+ *
+ * @param $node The submitted node with form data.
+ * @param $date The name of the date ('quiz_open' or 'quiz_close') to translate.
+ */
+function quiz_translate_form_date(&$node, $date) {
+  $human = $node->$date;
+  if (strtotime($human) !== FALSE) {
+    $timestamp = strtotime($human);
+    $node->$date = $timestamp;
+  }
 }
