@@ -852,8 +852,14 @@ abstract class QuizQuestionResponse {
    * Can the quiz taker view the requested review?
    */
   public function canReview($option) {
-    $quiz_result = quiz_result_load($this->result_id);
-    return quiz_feedback_can_review($option, $quiz_result);
+    $can_review = &drupal_static(__METHOD__, array());
+
+    if (!isset($can_review[$option])) {
+      $quiz_result = quiz_result_load($this->result_id);
+      $can_review[$option] = quiz_feedback_can_review($option, $quiz_result);
+    }
+
+    return $can_review[$option];
   }
 
   /**
