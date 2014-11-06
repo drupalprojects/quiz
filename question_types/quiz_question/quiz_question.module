@@ -332,7 +332,7 @@ function quiz_question_goto($quiz, $question_number) {
 }
 
 /**
- * Implementation of hook_get_report().
+ * Implements hook_get_report().
  *
  * @return
  *  Node containing all of the items from the question plus the user's answer.

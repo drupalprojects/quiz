@@ -595,7 +595,7 @@ function quiz_update_7101(&$sandbox) {
 }
 
 /**
- * Implements hook_update_N
+ * Implements hook_update_N().
  */
 function quiz_update_7402(&$sandbox) {
   if (!db_field_exists('quiz_node_properties', 'summary_pass_format')) {

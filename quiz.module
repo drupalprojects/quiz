@@ -313,31 +313,8 @@ function quiz_node_info() {
   );
 }
 
-/*
-  function quiz_element_info() {
-  $types['advancedtable'] = array(
-  '#process' => array('form_process_fieldset', 'ajax_process_form'),
-  '#theme_wrappers' => array('quiz_table'),
-  );
-  $types['advancedtable_header'] = array(
-  '#process' => array('form_process_fieldset', 'ajax_process_form'),
-  '#theme_wrappers' => array('quiz_table_header'),
-  );
-  $types['advancedtable_body'] = array(
-  '#process' => array('form_process_fieldset', 'ajax_process_form'),
-  '#theme_wrappers' => array('quiz_table_body'),
-  );
-  return $types;
-  }
- */
-
-/*
- * Implementation of hook_cron().
- */
-
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Implements hook_cron().
  */
 function quiz_cron() {
   // Remove old quiz results that haven't been finished.
@@ -1491,7 +1468,7 @@ function quiz_validate($node) {
 }
 
 /**
- * Implementation of hook_node_presave().
+ * Implements hook_node_presave().
  */
 function quiz_node_presave($node) {
   if ($node->type == 'quiz') {
@@ -1520,7 +1497,7 @@ function quiz_node_presave($node) {
 }
 
 /**
- * Implementation of hook_node_prepare().
+ * Implements hook_node_prepare().
  */
 function quiz_node_prepare($node) {
   if ($node->type == 'quiz' && !isset($node->nid)) {
