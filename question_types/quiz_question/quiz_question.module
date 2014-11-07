@@ -957,10 +957,10 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
     if (!empty($form_state['values']['question'])) {
       foreach ($form_state['values']['question'] as $nid => $answer) {
-        $current_question = node_load($nid);
         foreach ($questions as $question) {
-          if ($question['nid'] == $current_question->nid) {
+          if ($question['nid'] == $nid) {
             $question_array = $question;
+            $current_question = node_load($question['nid'], $question['vid']);
           }
         }
         $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);

@@ -1857,13 +1857,13 @@ function quiz_take_question($quiz, $question_number) {
       foreach ($quiz_result->layout as $pquestion) {
         if ($pquestion['qnr_id'] == $question['qnr_pid']) {
           // Load the page that the requested question belongs to.
-          $question_node = node_load($pquestion['nid']);
+          $question_node = node_load($pquestion['nid'], $pquestion['vid']);
         }
       }
     }
     else {
       // Load the question.
-      $question_node = node_load($question['nid']);
+      $question_node = node_load($question['nid'], $question['vid']);
     }
   }
 
@@ -2639,7 +2639,7 @@ function quiz_build_question_list($quiz) {
   }
   else {
     // Get required questions first.
-    $query = db_query('SELECT n.nid, n.vid, n.type, qnr.qnr_id, qnr.qnr_pid
+    $query = db_query('SELECT qnr.child_nid as nid, qnr.child_vid as vid, n.type, qnr.qnr_id, qnr.qnr_pid
     FROM {quiz_node_relationship} qnr
     JOIN {node} n ON qnr.child_nid = n.nid
     LEFT JOIN {quiz_node_relationship} qnr2 ON (qnr.qnr_pid = qnr2.qnr_id OR (qnr.qnr_pid IS NULL AND qnr.qnr_id = qnr2.qnr_id))
@@ -4110,9 +4110,9 @@ function quiz_quiz_result_load($quiz_results) {
       // current version to get the hieararchy.
       $sql = "SELECT n.type, qnr_id, qnr_pid FROM {quiz_node_results} qr
         INNER JOIN {quiz_node_relationship} qnr on (qr.nid = qnr.parent_nid and qr.vid = qnr.parent_vid)
-        INNER JOIN {node} n ON (qnr.child_nid = n.nid and qnr.child_vid = n.vid)
-        WHERE qr.result_id = :result_id and n.vid = :vid";
-      $result = db_query($sql, array(':result_id' => $quiz_result->result_id, ':vid' => $question->question_vid));
+        INNER JOIN {node} n ON (qnr.child_nid = n.nid)
+        WHERE qr.result_id = :result_id and n.nid = :nid";
+      $result = db_query($sql, array(':result_id' => $quiz_result->result_id, ':nid' => $question->question_nid));
       $extra = $result->fetch();
 
       $quiz_result->layout[$question->number] = array(
