@@ -17,7 +17,7 @@ drupal_add_js(
 "( function($) {
   Drupal.behaviors.multichoiceAlternativeBehavior = {
     attach: function(context, settings) {
-      $('.multichoice_row')
+      $('.multichoice-row')
       .once()
       .filter(':has(:checkbox:checked)')
       .addClass('selected')
@@ -30,7 +30,7 @@ drupal_add_js(
           });
           $(':radio', this).attr('checked', true);
           if ($(':radio', this).html() != null) {
-            $('.multichoice_row').removeClass('selected');
+            $('.multichoice-row').removeClass('selected');
               $(this).addClass('selected');
           }
         }
@@ -55,9 +55,9 @@ print drupal_render_children($form);
 // We use the stored checkboxes and titles to generate a table for the alternatives
 foreach ($titles as $key => $value) {
   $row = array();
-  $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35, 'class' => 'selector-td');
+  $row[] = array('data' => drupal_render($fullOptions[$key]), 'width' => 35,);
   $row[] = $value;
-  $rows[] = array('data' => $row, 'class' => array('multichoice_row'));
+  $rows[] = array('data' => $row, 'class' => array('multichoice-row'));
 }
 print theme('table', array('header' => array(), 'rows' => $rows));
 ?>

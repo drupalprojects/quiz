@@ -33,4 +33,3 @@ print theme('table', array('header' => $header, 'rows' => $rows));
 
 print drupal_render($form['format']);
 print drupal_render($form['advanced']);
-?>
