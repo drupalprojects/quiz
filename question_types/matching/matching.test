@@ -49,7 +49,7 @@ class MatchingTestCase extends QuizQuestionTestCase {
     // generate rand match question, answer and feedback
     for ($i = 1; $i < $form_size; $i++) {
       $settings['match'][$i]['question'] = $this->match[$i]['question'] = $this->randomName();
-      $setting['match'][$i]['answer'] = $this->match[$i]['answer'] = $this->randomName();
+      $settings['match'][$i]['answer'] = $this->match[$i]['answer'] = $this->randomName();
       $settings['match'][$i]['feedback'] = $this->match[$i]['feedback'] = $this->randomName();
     }
 
