@@ -11,7 +11,6 @@
 ?>
 <?php
 $p = drupal_get_path('module', 'multichoice');
-drupal_add_js($p .'/theme/multichoice-alternative-creation.js', 'module');
 
 // Get the title from the checkbox, and then unset it. We will place it as a table header
 $title_correct = check_plain($form['correct']['#title']);

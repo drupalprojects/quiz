@@ -549,11 +549,6 @@ class MultichoiceQuestion extends QuizQuestion {
       '#parents' => array('choice_boolean'),
     );
 
-    // Add helper tag where we will place the input selector for all the textareas.
-    $form['alternatives']['input_format_all'] = array(
-      '#markup' => '<DIV id="input-all-ph"></DIV>',
-    );
-
     $form['alternatives']['#theme'][] = 'multichoice_creation_form';
     $i = 0;
 
