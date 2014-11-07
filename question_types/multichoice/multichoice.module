@@ -99,13 +99,6 @@ function multichoice_theme($existing, $type, $theme, $path) {
       'path' => $path,
       'file' => 'multichoice.theme.inc',
     ),
-    'multichoice_response' => array(
-      'variables' => array(
-        'data' => array(),
-      ),
-      'path' => $path,
-      'file' => 'multichoice.theme.inc',
-    ),
     'multichoice_alternative_creation' => array(
       'render element' => 'form',
       'path' => $path,
