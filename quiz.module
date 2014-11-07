@@ -3673,31 +3673,6 @@ function _quiz_get_num_always_questions($vid) {
 }
 
 /**
- * Modifies the format fieldset.
- *
- * Adds a class to all the format fieldsets and removes unwanted strings.
- * A javascript is added by the forms theme function to make sure all format
- * selectors follows the body field format selector.
- * Used when there are multiple format selectors on one page.
- *
- * Could be a deprecated function in d7
- *
- * @param $format
- *   The format fieldset.
- */
-function _quiz_format_mod(&$format) {
-  $format['#attributes']['class'] = array('quiz-filter');
-  if (isset($format['format'])) {
-    $format['format']['guidelines']['#value'] = ' ';
-    foreach ($format as $key => $value) {
-      if (is_numeric($key)) {
-        $format[$key]['#value'] = ' ';
-      }
-    }
-  }
-}
-
-/**
  * Format a number of seconds to a hh:mm:ss format.
  *
  * @param $time_in_sec

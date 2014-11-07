@@ -32,11 +32,6 @@ $header[] = array('data' => $title_correct);
 $header[] = array('data' => $title_answer);
 print theme('table', array('header' => $header, 'rows' => $rows));
 
-//These lines make things look alot beter if user only has one input format available:
-_quiz_format_mod($form['format']);
-_quiz_format_mod($form['advanced']['format']);
-_quiz_format_mod($form['advanced']['helper']['format']);
-
 print drupal_render($form['format']);
 print drupal_render($form['advanced']);
 ?>
