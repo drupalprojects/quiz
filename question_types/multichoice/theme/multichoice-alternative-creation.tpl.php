@@ -21,7 +21,7 @@ $suf = $form['answer']['#required'] ? '<SPAN CLASS="form-required"> *</SPAN>' : 
 
 // We store the title for the answer section as well
 $title_answer = check_plain($form['answer']['#title']).$suf;
-$form['answer']['#title'] = '';
+$form['answer']['value']['#title_display'] = 'none';
 
 // Now we can render the table
 $row[] = drupal_render($form['correct']);
