@@ -2857,27 +2857,6 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
  */
 
 /**
- * Delete quiz responses for quizzes that haven't been finished.
- *
- * @param $quiz
- *   A quiz node where old in progress results shall be deleted.
- * @param $uid
- *   The userid of the user the old in progress results belong to.
- */
-function _quiz_delete_old_in_progress($quiz, $uid) {
-  $res = db_query('SELECT qnr.result_id FROM {quiz_node_results} qnr
-          WHERE qnr.uid = :uid
-          AND qnr.nid = :nid
-          AND qnr.time_end = :time_end
-          AND qnr.vid < :vid', array(':uid' => $uid, ':nid' => $quiz->nid, ':time_end' => 1, ':vid' => $quiz->vid));
-  $result_ids = array();
-  while ($result_id = $res->fetchField()) {
-    $result_ids[] = $result_id;
-  }
-  entity_delete_multiple('quiz_result', $result_ids);
-}
-
-/**
  * Returns the result ID for any current result set for the given quiz.
  *
  * @param $uid
