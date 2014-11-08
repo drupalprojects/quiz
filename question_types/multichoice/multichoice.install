@@ -8,7 +8,6 @@
  * multichoice Install (a quiz question type)
  */
 
-
 /**
  * Implements hook_install().
  */
@@ -173,7 +172,12 @@ function multichoice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-
+      'weight' => array(
+        'type' => 'int',
+        'unsigned' => FALSE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
     ),
     'primary key' => array(
       'id',
@@ -230,4 +234,19 @@ function multichoice_uninstall() {
     variable_del($v);
   }
   drupal_set_message(t("The multichoice module has been uninstalled. multichoice nodes may still exist, but they will not function properly."));
+}
+
+/**
+ * Add weights for multichoice alternatives.
+ */
+function multichoice_update_7501() {
+  db_add_field('quiz_multichoice_answers', 'weight', array(
+    'type' => 'int',
+    'unsigned' => FALSE,
+    'not null' => TRUE,
+    'default' => 0,
+  ));
+  // Lol.
+  db_query('UPDATE {quiz_multichoice_answers} SET weight = id');
+  return t('Added weights for multichoice alternatives.');
 }

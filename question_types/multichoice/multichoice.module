@@ -99,10 +99,10 @@ function multichoice_theme($existing, $type, $theme, $path) {
       'path' => $path,
       'file' => 'multichoice.theme.inc',
     ),
-    'multichoice_alternative_creation' => array(
+    'multichoice_alternative_creation_table' => array(
       'render element' => 'form',
       'path' => $path,
-      'template' => 'multichoice-alternative-creation',
+      'template' => 'multichoice-alternative-creation-table',
     ),
     'multichoice_answering_form' => array(
       'render element' => 'form',
@@ -121,35 +121,7 @@ function multichoice_theme($existing, $type, $theme, $path) {
  * ajax callback function used when adding alternatives to the node-form
  */
 function multichoice_add_alternative_ajax_callback($form, &$form_state) {
-  $i = 0;
-  while (isset($form['alternatives'][$i])) {
-    $i++;
-  }
-  return $form['alternatives'][$i - 1];
-}
-
-/**
- * Submit handler used when adding more alternatives to the node-form
- */
-function multichoice_more_choices_submit($form, &$form_state) {
-  // Set the form to rebuild and run submit handlers.
-  if (!empty($form['node']->nid)) {
-    node_form_submit_build_node($form, $form_state);
-  }
-
-  // Count the existing alternatives
-  $exists = 0;
-  while (isset($form['alternatives'][$exists])) {
-    $exists++;
-  }
-
-  // Make the changes we want to the form state.
-  if ($form_state['values']['alternatives']['multichoice_add_alternative']) {
-    // We add 3 if js is disabled. 1 if the adding is done using ahah
-    $n = $_GET['q'] == 'system/ajax' ? 1 : 3;
-    $form_state['choice_count'] = $exists + $n;
-  }
-  $form_state['rebuild'] = TRUE;
+  return $form;
 }
 
 /**

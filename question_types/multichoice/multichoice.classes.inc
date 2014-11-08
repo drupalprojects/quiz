@@ -238,7 +238,8 @@ class MultichoiceQuestion extends QuizQuestion {
         'score_if_chosen' => $alternatives['score_if_chosen'],
         'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
         'question_nid' => $this->node->nid,
-        'question_vid' => $this->node->vid
+        'question_vid' => $this->node->vid,
+        'weight' => isset($alternatives['weight']) ? $alternatives['weight'] : $i,
       ))
       ->execute();
   }
@@ -261,6 +262,7 @@ class MultichoiceQuestion extends QuizQuestion {
         'feedback_if_not_chosen_format' => $alternatives['feedback_if_not_chosen_format'],
         'score_if_chosen' => $alternatives['score_if_chosen'],
         'score_if_not_chosen' => $alternatives['score_if_not_chosen'],
+        'weight' => isset($alternatives['weight']) ? $alternatives['weight'] : $i,
       ))
       ->condition('id', $alternatives['id'])
       ->condition('question_nid', $this->node->nid)
@@ -365,10 +367,10 @@ class MultichoiceQuestion extends QuizQuestion {
 
     // Load the answers
     $res = db_query('SELECT id, answer, answer_format, feedback_if_chosen, feedback_if_chosen_format,
-            feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen
+            feedback_if_not_chosen, feedback_if_not_chosen_format, score_if_chosen, score_if_not_chosen, weight
             FROM {quiz_multichoice_answers}
             WHERE question_nid = :question_nid AND question_vid = :question_vid
-            ORDER BY id', array(':question_nid' => $this->node->nid, ':question_vid' => $this->node->vid));
+            ORDER BY weight', array(':question_nid' => $this->node->nid, ':question_vid' => $this->node->vid));
     $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = $res->fetchAssoc()) {
       $props['alternatives'][] = array(
@@ -387,6 +389,7 @@ class MultichoiceQuestion extends QuizQuestion {
         ),
         'score_if_chosen' => $res_arr['score_if_chosen'],
         'score_if_not_chosen' => $res_arr['score_if_not_chosen'],
+        'weight' => $res_arr['weight'],
       );
     }
     $this->nodeProperties = $props;
@@ -500,13 +503,13 @@ class MultichoiceQuestion extends QuizQuestion {
       $options['query'] = $get;
     }
 
-    // TODO The second parameter to this function call should be an array.
     $action = url('node/add/' . $type->type, $options);
     if (isset($this->node->nid)) {
-      // TODO The second parameter to this function call should be an array.
       $action = url('node/' . $this->node->nid . '/edit', $options);
     }
     $form['#action'] = $action;
+
+    drupal_add_tabledrag('multichoice-alternatives-table', 'order', 'sibling', 'multichoice-alternative-weight');
 
     $form['alternatives'] = array(
       '#type' => 'fieldset',
@@ -553,24 +556,25 @@ class MultichoiceQuestion extends QuizQuestion {
     $i = 0;
 
     // choice_count might be stored in the form_state after an ajax callback
-    if (isset($form_state['choice_count'])) {
-      $choice_count = $form_state['choice_count'];
+    if (isset($form_state['values']['op']) && $form_state['values']['op'] == t('Add choice')) {
+      $form_state['choice_count'] ++;
     }
     else {
-      $choice_count = max(variable_get('multichoice_def_num_of_alts', 2), isset($this->node->alternatives) ? count($this->node->alternatives) : 0);
+      $form_state['choice_count'] = max(variable_get('multichoice_def_num_of_alts', 2), isset($this->node->alternatives) ? count($this->node->alternatives) : 0);
     }
 
-    for (; $i < $choice_count; $i++) {
+    $form['alternatives']['#prefix'] = '<div class="clear-block" id="multichoice-alternatives-wrapper">';
+    $form['alternatives']['#suffix'] = '</div>';
+    $form['alternatives']['#theme'] = array('multichoice_alternative_creation_table');
+    for ($i = 0; $i < $form_state['choice_count']; $i++) {
       $short = isset($this->node->alternatives[$i]) ? $this->node->alternatives[$i] : NULL;
       $form['alternatives'][$i] = array(
-        '#type' => 'fieldset',
-        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
+        '#type' => 'container',
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
         // - The two first alternatives won't be collapsed.
         // - Populated alternatives won't be collapsed
       );
-      $form['alternatives'][$i]['#theme'][] = 'multichoice_alternative_creation';
 
       if (is_array($short)) {
         if ($short['score_if_chosen'] == $short['score_if_not_chosen']) {
@@ -585,7 +589,6 @@ class MultichoiceQuestion extends QuizQuestion {
       }
       $form['alternatives'][$i]['correct'] = array(
         '#type' => 'checkbox',
-        '#title' => t('Correct'),
         '#default_value' => $correct_default,
         '#attributes' => array('onchange' => 'Multichoice.refreshScores(this, ' . variable_get('multichoice_def_scoring', 0) . ')'),
       );
@@ -598,8 +601,6 @@ class MultichoiceQuestion extends QuizQuestion {
 
       $form['alternatives'][$i]['answer'] = array(
         '#type' => 'text_format',
-        '#base_type' => 'textarea',
-        '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#default_value' => $short['answer']['value'],
         '#required' => $i < 2,
         '#format' => isset($short['answer']['format']) ? $short['answer']['format'] : NULL,
@@ -614,7 +615,6 @@ class MultichoiceQuestion extends QuizQuestion {
       );
       $form['alternatives'][$i]['advanced']['feedback_if_chosen'] = array(
         '#type' => 'text_format',
-        '#base_type' => 'textarea',
         '#title' => t('Feedback if chosen'),
         '#description' => t('This feedback is given to users who chooses this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
@@ -626,7 +626,6 @@ class MultichoiceQuestion extends QuizQuestion {
       // textareas in the same fieldset
       $form['alternatives'][$i]['advanced']['helper']['feedback_if_not_chosen'] = array(
         '#type' => 'text_format',
-        '#base_type' => 'textarea',
         '#title' => t('Feedback if not chosen'),
         '#description' => t('This feedback is given to users who doesn\'t choose this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
@@ -668,30 +667,25 @@ class MultichoiceQuestion extends QuizQuestion {
         ),
         '#parents' => array('alternatives', $i, 'score_if_not_chosen')
       );
+      $form['alternatives'][$i]['weight'] = array(
+        '#type' => 'textfield',
+        '#size' => 2,
+        '#attributes' => array('class' => array('multichoice-alternative-weight')),
+        '#default_value' => isset($this->node->alternatives[$i]['weight']) ? $this->node->alternatives[$i]['weight'] : '',
+      );
     }
-    // ahah helper tag. New questions will be inserted before this tag
-    $form['alternatives']["placeholder"] = array(
-      '#markup' => '<div id="placeholder"></div>',
-    );
-
-    // We can't send the get values to the ahah callback the normal way, so we do it like this.
-    $form['get'] = array(
-      '#type' => 'value',
-      '#value' => $get,
-    );
 
     $form['alternatives']['multichoice_add_alternative'] = array(
-      '#type' => 'submit',
-      '#value' => t('Add more alternatives'),
-      '#submit' => array('multichoice_more_choices_submit'), // If no javascript action.
-      '#limit_validation_errors' => array(),
+      '#type' => 'button',
+      '#value' => t('Add choice'),
       '#ajax' => array(
+        'method' => 'replace',
+        'wrapper' => 'multichoice-alternatives-wrapper',
         'callback' => 'multichoice_add_alternative_ajax_callback',
-        'wrapper' => 'placeholder',
-        'effect' => 'slide',
-        'method' => 'before',
       ),
+      '#weight' => 20,
     );
+
     $form['#attached']['js'] = array(
       drupal_get_path('module', 'multichoice') . '/multichoice.js',
     );
