@@ -92,7 +92,7 @@ function quiz_question_uninstall() {
  * Make the question body visible by default for the question view mode
  */
 function quiz_question_update_7401() {
-  $question_types = array_keys(_quiz_question_get_implementations());
+  $question_types = array_keys(quiz_question_get_info());
 
   foreach ($question_types as $question_type) {
     $instance = field_read_instance('node', 'body', $question_type);
