@@ -1967,10 +1967,8 @@ function quiz_create_attempt($quiz) {
     return FALSE;
   }
 
-  $quiz_result = quiz_result_load(quiz_create_rid($quiz));
+  $quiz_result = quiz_create_result($quiz);
 
-  // Write the layout for this result.
-  entity_save('quiz_result', $quiz_result);
   $i = 0;
   foreach ($questions as $question) {
     $quiz_result_answer = entity_create('quiz_result_answer', array(
@@ -2508,20 +2506,15 @@ function quiz_availability($quiz) {
  * @return $result_id
  *   The result id.
  */
-function quiz_create_rid($quiz) {
-  $result_id = db_insert('quiz_node_results')
-    ->fields(array(
+function quiz_create_result($quiz) {
+  $quiz_result = entity_create('quiz_result', array(
       'nid' => $quiz->nid,
       'vid' => $quiz->vid,
       'uid' => $GLOBALS['user']->uid,
       'time_start' => REQUEST_TIME,
-    ))
-    ->execute();
-  if (!is_numeric($result_id)) {
-    form_set_error(t('There was a problem starting the @quiz. Please try again later.', array('@quiz' => QUIZ_NAME), array('langcode' => 'error')));
-    return FALSE;
-  }
-  return $result_id;
+    ));
+  entity_save('quiz_result', $quiz_result);
+  return $quiz_result;
 }
 
 /**
@@ -4104,6 +4097,7 @@ function quiz_quiz_result_load($quiz_results) {
         'qnr_pid' => $extra->qnr_pid,
       );
     }
+    ksort($quiz_result->layout, SORT_NUMERIC);
   }
 }
 
