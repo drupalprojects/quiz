@@ -671,7 +671,7 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'textfield',
         '#size' => 2,
         '#attributes' => array('class' => array('multichoice-alternative-weight')),
-        '#default_value' => isset($this->node->alternatives[$i]['weight']) ? $this->node->alternatives[$i]['weight'] : '',
+        '#default_value' => isset($this->node->alternatives[$i]['weight']) ? $this->node->alternatives[$i]['weight'] : $i,
       );
     }
 
