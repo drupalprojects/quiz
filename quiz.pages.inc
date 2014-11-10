@@ -284,7 +284,7 @@ function theme_quiz_progress($variables) {
     }
     else {
       $selectbox = drupal_get_form('quiz_jumper_form', $variables['questions'], $variables['current']);
-      $output = t($text, array('!x' => drupal_render($selectbox), '@y' => count($variables['questions'])));
+      $output .= t($text, array('!x' => drupal_render($selectbox), '@y' => count($variables['questions'])));
     }
   }
   else {

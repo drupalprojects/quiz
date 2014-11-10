@@ -2508,11 +2508,11 @@ function quiz_availability($quiz) {
  */
 function quiz_create_result($quiz) {
   $quiz_result = entity_create('quiz_result', array(
-      'nid' => $quiz->nid,
-      'vid' => $quiz->vid,
-      'uid' => $GLOBALS['user']->uid,
-      'time_start' => REQUEST_TIME,
-    ));
+    'nid' => $quiz->nid,
+    'vid' => $quiz->vid,
+    'uid' => $GLOBALS['user']->uid,
+    'time_start' => REQUEST_TIME,
+  ));
   entity_save('quiz_result', $quiz_result);
   return $quiz_result;
 }
