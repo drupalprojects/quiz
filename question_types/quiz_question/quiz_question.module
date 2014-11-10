@@ -73,7 +73,7 @@ function quiz_question_theme() {
  */
 function quiz_question_node_info() {
   $node_info = array();
-  foreach (_quiz_question_get_implementations(NULL, TRUE) as $type => $definition) {
+  foreach (quiz_question_get_info(NULL, TRUE) as $type => $definition) {
     $node_info[$type] = array(
       'name' => $definition['name'],
       'base' => 'quiz_question',
@@ -418,7 +418,7 @@ function quiz_question_delete_result($result_id, $nid, $vid) {
  * Get the configuration form for all enabled question types.
  */
 function quiz_question_config($form, $context) {
-  $q_types = _quiz_question_get_implementations();
+  $q_types = quiz_question_get_info();
   $form = array();
   $form['#validate'] = array();
   // Go through all question types and merge their config forms
@@ -445,7 +445,7 @@ function quiz_question_config($form, $context) {
  * Implements hook_node_revision_delete().
  */
 function quiz_question_node_revision_delete($node) {
-  $q_types = _quiz_question_get_implementations();
+  $q_types = quiz_question_get_info();
   foreach ($q_types as $q_type => $info) {
     if ($node->type == $q_type) {
       _quiz_delete_question($node, TRUE); // true for only this version
@@ -457,7 +457,7 @@ function quiz_question_node_revision_delete($node) {
  * Implements hook_node_presave().
  */
 function quiz_question_node_presave($node) {
-  $q_types = _quiz_question_get_implementations();
+  $q_types = quiz_question_get_info();
   foreach ($q_types as $q_type => $info) {
     if ($node->type == $q_type) {
       if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
@@ -664,7 +664,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
     }
   }
   // No cached instance of QuizQuestion has been returned. We construct a new instance
-  $info = _quiz_question_get_implementations();
+  $info = quiz_question_get_info();
   $constructor = $info[$name]['question provider'];
   if (empty($constructor)) {
     return FALSE;
@@ -735,7 +735,7 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   if (!$question) {
     return FALSE;
   }
-  $info = _quiz_question_get_implementations();
+  $info = quiz_question_get_info();
   $constructor = $info[$question->type]['response provider'];
   $to_return = new $constructor($result_id, $question, $answer);
   // All responce classes must extend QuizQuestionResponse
@@ -751,13 +751,16 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
 /**
  * Get the information about various implementations of quiz questions.
  *
- * @param $reset
+ * @param string $name
+ *  The question type, e.g. truefalse, for which the info shall be returned, or
+ *  NULL to return an array with info about all types.
+ * @param bool $reset
  *  If this is true, the cache will be reset.
  * @return
  *  An array of information about quiz question implementations.
  * @see quiz_question_quiz_question_info() for an example of a quiz question info hook.
  */
-function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
+function quiz_question_get_info($name = NULL, $reset = FALSE) {
   static $info = array();
   if (empty($info) || $reset) {
     $qtypes = module_invoke_all('quiz_question_info');
@@ -770,7 +773,7 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
     }
     drupal_alter('quiz_question_info', $info);
   }
-  return $info;
+  return NULL === $name ? $info : $info[$info];
 }
 
 /**
@@ -1083,7 +1086,7 @@ function quiz_question_answering_form_validate(&$form, &$form_state) {
 function quiz_question_node_access_records($node) {
   $grants = array();
   // Restricting view access to question nodes outside quizzes.
-  $question_types = _quiz_question_get_implementations();
+  $question_types = quiz_question_get_info();
   $question_types = array_keys($question_types);
   if (in_array($node->type, $question_types)) {
     // This grant is for users having 'view quiz question outside of a quiz'
