@@ -51,29 +51,6 @@ function quiz_question_schema() {
     'primary key' => array('qqp_id'),
     'indexes' => array('question_id' => array('vid', 'nid')),
   );
-  $schema['quiz_question_latest_quizzes'] = array(
-    'description' => 'Stores the latest quizzes each user has been involved in',
-    'fields' => array(
-      'quiz_nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'uid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'id' => array(
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-    ),
-    'primary key' => array(
-      'id',
-    ),
-  );
   return $schema;
 }
 
@@ -140,4 +117,11 @@ function quiz_question_update_7500() {
   db_drop_field('quiz_truefalse_node', 'feedback');
 
   return t('Added global quiz question feedback fields and migrated true/false feedback.');
+}
+
+/**
+ * Drop {quiz_question_latest_quizzes}.
+ */
+function quiz_question_update_7501() {
+  db_drop_table('quiz_question_latest_quizzes');
 }

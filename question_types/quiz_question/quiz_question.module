@@ -474,43 +474,10 @@ function quiz_question_node_presave($node) {
 }
 
 /**
- * Implements hook_node_insert().
- */
-function quiz_question_node_insert($node) {
-  // Make sure the latest quizzes table is maintained when a quiz changes
-  if ($node->type == 'quiz') {
-    quiz_question_refresh_latest_quizzes($node->nid);
-  }
-}
-
-/**
- * Implements hook_node_update().
- */
-function quiz_question_node_update($node) {
-  // Make sure the latest quizzes table is maintained when a quiz changes
-  if ($node->type == 'quiz') {
-    quiz_question_refresh_latest_quizzes($node->nid);
-  }
-}
-
-/**
- * Implements hook_node_delete().
- */
-function quiz_question_node_delete($node) {
-  // Make sure the latest quizzes table is maintained when a quiz changes
-  if ($node->type == 'quiz') {
-    quiz_question_remove_latest_quizzes($node->nid);
-  }
-}
-
-/**
  * Implements hook_insert().
  */
 function quiz_question_insert(stdClass $node) {
   _quiz_question_get_instance($node)->save(TRUE);
-  if (isset($node->quiz_nid) && $node->quiz_nid > 0) {
-    quiz_question_refresh_latest_quizzes($node->quiz_nid);
-  }
 }
 
 /**
@@ -771,60 +738,6 @@ function _quiz_question_get_implementations($name = NULL, $reset = FALSE) {
     drupal_alter('quiz_question_info', $info);
   }
   return $info;
-}
-
-/**
- * Refreshes the quiz_question_latest_quizzes table when a user has modified a new quiz.
- *
- * The latest quizzes table is used to know what quizzes the user has been using lately.
- *
- * @param $nid
- *   nid of the last quiz the current user modified
- */
-function quiz_question_refresh_latest_quizzes($nid) {
-  global $user;
-  // Delete entry if it allready exists
-  db_delete('quiz_question_latest_quizzes')
-    ->condition('uid', $user->uid)
-    ->condition('quiz_nid', $nid)
-    ->execute();
-
-  // Inserts as new entry to get new id. Latest quizzes are ordered by id(descending)
-  $id = db_insert('quiz_question_latest_quizzes')
-    ->fields(array(
-      'uid' => $user->uid,
-      'quiz_nid' => $nid,
-    ))
-    ->execute();
-
-  // If we have to many entries for current user, delete the oldest entries...
-  $min_id = db_select('quiz_question_latest_quizzes', 'lq')
-    ->fields('lq', array('id'))
-    ->condition('uid', $user->uid)
-    ->orderBy('id', 'DESC')
-    ->range(QUIZ_QUESTION_NUM_LATEST - 1, 1)
-    ->execute()
-    ->fetchField();
-
-  // Delete all table entries older than the nth row, if nth row was found.
-  if ($min_id) {
-    db_delete('quiz_question_latest_quizzes')
-      ->condition('id', $min_id, '<')
-      ->condition('uid', $user->uid)
-      ->execute();
-  }
-}
-
-/**
- * Removes a quiz from the quiz_question_latest_quizzes table.
- *
- * @param $nid
- *   the nid of a quiz that shall be removed
- */
-function quiz_question_remove_latest_quizzes($nid) {
-  db_delete('quiz_question_latest_quizzes')
-    ->condition('quiz_nid', $nid)
-    ->execute();
 }
 
 /**
