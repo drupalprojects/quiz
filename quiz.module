@@ -2877,9 +2877,9 @@ function _quiz_active_result_id($uid, $nid, $vid, $now = NULL) {
   $result_id = db_query('SELECT result_id FROM {quiz_node_results} qnr
           INNER JOIN {quiz_node_properties} qnp ON qnr.vid = qnp.vid
           WHERE (qnp.quiz_always = :quiz_always OR (:between BETWEEN qnp.quiz_open AND qnp.quiz_close))
-          AND qnr.vid = :vid
+          AND qnr.nid = :nid
           AND qnr.uid = :uid
-          AND qnr.time_end IS NULL', array(':quiz_always' => 1, ':between' => $now, ':vid' => $vid, ':uid' => $uid))->fetchField();
+          AND qnr.time_end IS NULL', array(':quiz_always' => 1, ':between' => $now, ':nid' => $nid, ':uid' => $uid))->fetchField();
   return (int) $result_id;
 }
 
