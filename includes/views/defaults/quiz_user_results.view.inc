@@ -3,9 +3,9 @@
 $view = new view();
 $view->name = 'quiz_user_results';
 $view->description = '';
-$view->tag = 'default';
+$view->tag = 'quiz';
 $view->base_table = 'quiz_node_results';
-$view->human_name = 'quiz_results';
+$view->human_name = 'Quiz user results';
 $view->core = 7;
 $view->api_version = '3.0';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -81,7 +81,6 @@ $handler->display->display_options['arguments']['nid']['validate_options']['type
   'quiz' => 'quiz',
 );
 $handler->display->display_options['arguments']['nid']['validate_options']['access'] = TRUE;
-$handler->display->display_options['arguments']['nid']['validate_options']['access_op'] = 'update';
 /* Contextual filter: Quiz result: Uid */
 $handler->display->display_options['arguments']['uid']['id'] = 'uid';
 $handler->display->display_options['arguments']['uid']['table'] = 'quiz_node_results';
