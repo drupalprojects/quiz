@@ -529,6 +529,7 @@ class MultichoiceQuestion extends QuizQuestion {
       '#collapsible' => TRUE,
       '#collapsed' => FALSE,
       '#description' => t('Your settings will be remembered.'),
+      '#weight' => 30,
     );
     $form['alternatives']['settings']['choice_multi'] = array(
       '#type' => 'checkbox',
