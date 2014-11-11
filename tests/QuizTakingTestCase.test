@@ -10,7 +10,7 @@ class QuizTakingTestCase extends QuizTestCase {
     );
   }
 
-  public function setUp($modules = array()) {
+  public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
     parent::setUp($modules);
   }

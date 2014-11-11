@@ -20,7 +20,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
 
   var $question_node_type = 'multichoice';
 
-  function setUp() {
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     parent::setUp(array('multichoice'));
   }
 

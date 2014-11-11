@@ -20,7 +20,7 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     );
   }
 
-  function setUp() {
+  function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     parent::setUp(array('short_answer'), array('score any quiz'));
   }
 
