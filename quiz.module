@@ -30,6 +30,7 @@ define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 define('QUESTION_RANDOM', 0);
 define('QUESTION_ALWAYS', 1);
 define('QUESTION_NEVER', 2);
+define('QUESTION_CATEGORIZED_RANDOM', 3);
 
 /**
  * Quiz name.
