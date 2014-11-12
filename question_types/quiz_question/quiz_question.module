@@ -395,17 +395,17 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
 }
 
 /**
- * Implements hook_delete_result().
+ * Delete response by IDs of result and question.
  *
- * @param $result_id
+ * @param int $result_id
  *  Result id
- * @param $nid
+ * @param int $question_nid
  *  Question node id
- * @param $vid
+ * @param int $question_vid
  *  Question node version id
  */
-function quiz_question_delete_result($result_id, $nid, $vid) {
-  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $nid, $vid);
+function quiz_question_delete_result($result_id, $question_nid, $question_vid) {
+  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $question_nid, $question_vid);
   if ($response) {
     $response->delete();
   }
@@ -934,18 +934,6 @@ function quiz_question_answering_form_finalize(&$form, &$form_state) {
   // feedback for the last question, THEN go to the results page.
   $_SESSION['quiz']['temp']['result_id'] = $quiz_result->result_id;
   unset($_SESSION['quiz'][$quiz->nid]);
-}
-
-/**
- * Implements hook_quiz_result_update().
- */
-function quiz_quiz_result_update($quiz_result) {
-  if ($quiz_result->original->is_evaluated && !$quiz_result->is_evaluated) {
-    // Quiz is finished!
-    $quiz = node_load($quiz_result->nid);
-    // Delete old results if necessary.
-    _quiz_maintain_results($quiz, $quiz_result->result_id);
-  }
 }
 
 /**
