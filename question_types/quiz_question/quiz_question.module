@@ -937,18 +937,6 @@ function quiz_question_answering_form_finalize(&$form, &$form_state) {
 }
 
 /**
- * Implements hook_quiz_result_update().
- */
-function quiz_quiz_result_update($quiz_result) {
-  if ($quiz_result->original->is_evaluated && !$quiz_result->is_evaluated) {
-    // Quiz is finished!
-    $quiz = node_load($quiz_result->nid);
-    // Delete old results if necessary.
-    _quiz_maintain_results($quiz, $quiz_result->result_id);
-  }
-}
-
-/**
  * Submit handler for "back".
  */
 function quiz_question_answering_form_submit_back(&$form, &$form_state) {
