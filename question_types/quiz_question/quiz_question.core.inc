@@ -337,16 +337,12 @@ abstract class QuizQuestion {
     }
 
     $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
-    $nid_vid[0] = $quiz_node->nid;
-    $nid_vid[1] = $quiz_node->vid;
 
     if (quiz_has_been_answered($quiz_node)) {
       // We need to revise the quiz node if it has been answered
       $quiz_node->revision = 1;
       $quiz_node->auto_created = TRUE;
       node_save($quiz_node);
-      $nid_vid[0] = $quiz_node->nid;
-      $nid_vid[1] = $quiz_node->vid;
       drupal_set_message(t('New revision has been created for the @quiz %n', array('%n' => $quiz_node->title, '@quiz' => QUIZ_NAME)));
     }
 
@@ -357,8 +353,8 @@ abstract class QuizQuestion {
     $insert_values['child_vid'] = $this->node->vid;
     $insert_values['max_score'] = $this->getMaximumScore();
     $insert_values['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
-    $insert_values['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $nid_vid[1]))->fetchField();
-    $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid_vid[0], ':vid' => $nid_vid[1]))->fetchField();
+    $insert_values['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $quiz_node->vid))->fetchField();
+    $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $quiz_node->nid, ':vid' => $quiz_node->vid))->fetchField();
     $insert_values['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
     entity_create('quiz_question_relationship', $insert_values)->save();
 
