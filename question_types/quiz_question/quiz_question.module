@@ -395,17 +395,17 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
 }
 
 /**
- * Implements hook_delete_result().
+ * Delete response by IDs of result and question.
  *
- * @param $result_id
+ * @param int $result_id
  *  Result id
- * @param $nid
+ * @param int $question_nid
  *  Question node id
- * @param $vid
+ * @param int $question_vid
  *  Question node version id
  */
-function quiz_question_delete_result($result_id, $nid, $vid) {
-  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $nid, $vid);
+function quiz_question_delete_result($result_id, $question_nid, $question_vid) {
+  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $question_nid, $question_vid);
   if ($response) {
     $response->delete();
   }
