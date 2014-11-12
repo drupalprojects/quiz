@@ -3758,6 +3758,7 @@ function quiz_entity_info() {
     ),
     'quiz_question_relationship' => array(
       'label' => t('Quiz question relationship'),
+      'entity class' => 'Entity',
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_relationship',
       'entity keys' => array(
