@@ -30,7 +30,6 @@ define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 define('QUESTION_RANDOM', 0);
 define('QUESTION_ALWAYS', 1);
 define('QUESTION_NEVER', 2);
-define('QUESTION_CATEGORIZED_RANDOM', 3);
 
 /**
  * Quiz name.
@@ -2314,7 +2313,7 @@ function quiz_update_max_score_properties($quiz_vids) {
       WHERE qt.nid = {quiz_node_properties}.nid AND qt.vid = {quiz_node_properties}.vid';
   db_update('quiz_node_properties')
     ->expression('max_score', "($score_categorized)")
-    ->condition('randomization', QUESTION_CATEGORIZED_RANDOM)
+    ->condition('randomization', 3)
     ->condition('vid', $quiz_vids)
     ->execute();
 
