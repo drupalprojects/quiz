@@ -1127,7 +1127,7 @@ function quiz_form(&$node, &$form_state) {
 
   $review_options = quiz_get_feedback_options();
 
-  foreach (array('question' => 'After the question', 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
+  foreach (array('question' => t('After the question'), 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
     $form['taking']['review_options'][$key] = array(
       '#title' => $when,
       '#type' => 'checkboxes',
@@ -1351,7 +1351,7 @@ function quiz_form(&$node, &$form_state) {
         '#default_value' => isset($option['option_name']) ? $option['option_name'] : '',
         '#maxlength' => 40,
         '#size' => 40,
-        '#description' => 'e.g., "A" or "Passed"',
+        '#description' => t('e.g., "A" or "Passed"'),
       );
       $form['resultoptions'][$i]['option_start'] = array(
         '#type' => 'textfield',
@@ -4020,13 +4020,13 @@ function quiz_feedback_can_review($option, $quiz_result) {
  */
 function quiz_get_feedback_options() {
   $feedback_options = array(
-    'attempt' => "Attempt",
-    'correct' => "Whether correct",
-    'score' => "Score",
-    'answer_feedback' => 'Answer feedback',
-    'question_feedback' => 'Question feedback',
-    'solution' => "Correct answer",
-    'quiz_feedback' => t("@quiz feedback", array('@quiz' => QUIZ_NAME)),
+    'attempt' => t('Attempt'),
+    'correct' => t('Whether correct'),
+    'score' => t('Score'),
+    'answer_feedback' => t('Answer feedback'),
+    'question_feedback' => t('Question feedback'),
+    'solution' => t('Correct answer'),
+    'quiz_feedback' => t('@quiz feedback', array('@quiz' => QUIZ_NAME)),
   );
 
   drupal_alter('quiz_feedback_options', $feedback_options);
