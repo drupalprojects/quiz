@@ -12,7 +12,6 @@ class quiz_views_handler_filter_question_status extends views_handler_filter_in_
         QUESTION_RANDOM => t('Random'), // 'Random-ly' better?
         QUESTION_ALWAYS => t('Always'),
         QUESTION_NEVER => t('Never'),
-        QUESTION_CATEGORIZED_RANDOM => t('Categorized random questions'),
       );
     }
   }
