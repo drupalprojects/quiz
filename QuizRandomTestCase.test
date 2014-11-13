@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * Tests for random questions.
+ *
+ * Since this is random by nature, there is a chance that these will fail. We
+ * use 5 layout builds to try and mitigate that chance.
+ */
+class QuizRandomTestCase extends QuizTestCase {
+
+  public static function getInfo() {
+    return array(
+      'name' => t('Quiz random'),
+      'description' => t('Unit test for random quiz question behavior'),
+      'group' => t('Quiz'),
+    );
+  }
+
+  public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
+    $modules[] = 'truefalse';
+    parent::setUp($modules);
+  }
+
+  /**
+   * Test random order of questions.
+   */
+  public function testRandomOrder() {
+    $this->drupalLogin($this->admin);
+
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'randomization' => 1
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+    ));
+    $question_node2 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 2 body text'))),
+    ));
+    $question_node3 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 3 body text'))),
+    ));
+    $question_node4 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 4 body text'))),
+    ));
+    $question_node5 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 5 body text'))),
+    ));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $this->linkQuestionToQuiz($question_node4, $quiz_node);
+    $this->linkQuestionToQuiz($question_node5, $quiz_node);
+
+    for ($i = 1; $i <= 5; $i++) {
+      $questions = quiz_build_question_list($quiz_node);
+      $out[$i] = '';
+      foreach ($questions as $question) {
+        $out[$i] .= $question['nid'];
+      }
+    }
+
+    // Check that at least one of the orders is different.
+    $this->assertNotEqual(count(array_unique($out)), 1, t('At least one set of questions was different.'));
+  }
+
+  /**
+   * Test random plus required questions from a pool.
+   */
+  public function testRandomQuestions() {
+    $this->drupalLogin($this->admin);
+
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'randomization' => 2,
+      'number_of_random_questions' => 2,
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+    ));
+    $question_node2 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 2 body text'))),
+    ));
+    $question_node3 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 3 body text'))),
+    ));
+    $question_node4 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 4 body text'))),
+    ));
+    $question_node5 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 5 body text'))),
+    ));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $this->linkQuestionToQuiz($question_node4, $quiz_node);
+    $this->linkQuestionToQuiz($question_node5, $quiz_node);
+
+    // Set up one required question.
+    $this->drupalGet("node/{$quiz_node->nid}/quiz/questions");
+    $this->drupalPost(NULL, array(
+      "compulsories[{$question_node1->nid}-{$question_node1->vid}]" => TRUE,
+      ), t('Submit'));
+
+    for ($i = 1; $i <= 5; $i++) {
+      $questions = quiz_build_question_list($quiz_node);
+      $this->assertEqual(count($questions), 3, t('Quiz has 2 questions.'));
+      $out[$i] = '';
+      foreach ($questions as $question) {
+        $out[$i] .= $question['nid'];
+      }
+      $this->assert(strpos($out[$i], $question_node1->nid) !== FALSE, t('Quiz always contains required question 1'));
+    }
+
+    // Also check that at least one of the orders is different.
+    $this->assertNotEqual(count(array_unique($out)), 1, t('At least one set of questions were different.'));
+  }
+
+}
