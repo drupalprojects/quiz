@@ -83,6 +83,42 @@ class QuizTakingTestCase extends QuizTestCase {
   }
 
   /**
+   * Test the quiz not resuming from database.
+   */
+  public function testQuizNoResuming() {
+    $this->drupalLogin($this->admin);
+    // Resuming is default behavior.
+    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 0));
+
+    // 2 questions.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Answer a question. Ensure the question navigation restrictions are
+    // maintained.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->assertResponse(403);
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+
+    // Login again.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertNoText('Resuming');
+
+    // Assert 2nd question is not accessible (indicating the answer to #1 was
+    // not saved.)
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->assertResponse(403);
+  }
+
+  /**
    * Test the quiz availability tests.
    *
    * @TODO tests temporarily disabled
