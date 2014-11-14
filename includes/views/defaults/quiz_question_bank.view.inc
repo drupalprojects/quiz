@@ -186,7 +186,7 @@ $handler->display->display_options['fields']['views_bulk_operations']['vbo_opera
 $handler->display->display_options['fields']['title']['id'] = 'title';
 $handler->display->display_options['fields']['title']['table'] = 'node';
 $handler->display->display_options['fields']['title']['field'] = 'title';
-$handler->display->display_options['fields']['title']['link_to_node'] = FALSE;
+$handler->display->display_options['fields']['title']['link_to_node'] = TRUE;
 /* Field: Content: Type */
 $handler->display->display_options['fields']['type']['id'] = 'type';
 $handler->display->display_options['fields']['type']['table'] = 'node';
