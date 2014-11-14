@@ -794,13 +794,13 @@ function quiz_update_7505() {
   while ($row = $result->fetch()) {
     if ($row->feedback_time == 0) {
       $row->review_options['end']['answer_feedback'] = 'answer_feedback';
-      if ($row->show_feedback) {
+      if ($row->display_feedback) {
         $row->review_options['end']['solution'] = 'solution';
       }
     }
     if ($row->feedback_time == 1) {
       $row->review_options['question']['answer_feedback'] = 'answer_feedback';
-      if ($row->show_feedback) {
+      if ($row->display_feedback) {
         $row->review_options['question']['solution'] = 'solution';
       }
     }
