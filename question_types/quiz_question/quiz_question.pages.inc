@@ -228,7 +228,7 @@ function quiz_question_revision_actions_submit($form, &$form_state) {
           "SELECT randomization
           FROM {quiz_node_properties}
           WHERE nid = :nid AND vid = :vid", array(':nid' => $quiz_nid, ':vid' => $quiz_vid))->fetchField();
-        $question_status = $quiz_randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+        $question_status = $quiz_randomization == 2 ? QUIZ_QUESTION_RANDOM : QUIZ_QUESTION_ALWAYS;
       }
       // Insert the newest revision of the question into the quiz
       $entity = (object) array(

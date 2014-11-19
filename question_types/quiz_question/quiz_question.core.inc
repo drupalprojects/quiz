@@ -355,7 +355,7 @@ abstract class QuizQuestion {
     $insert_values['auto_update_max_score'] = $this->autoUpdateMaxScore() ? 1 : 0;
     $insert_values['weight'] = 1 + db_query('SELECT MAX(weight) FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $quiz_node->vid))->fetchField();
     $randomization = db_query('SELECT randomization FROM {quiz_node_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $quiz_node->nid, ':vid' => $quiz_node->vid))->fetchField();
-    $insert_values['question_status'] = $randomization == 2 ? QUESTION_RANDOM : QUESTION_ALWAYS;
+    $insert_values['question_status'] = $randomization == 2 ? QUIZ_QUESTION_RANDOM : QUIZ_QUESTION_ALWAYS;
     entity_create('quiz_question_relationship', $insert_values)->save();
 
     // Update max_score for relationships if auto update max score is enabled

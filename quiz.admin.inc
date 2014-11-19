@@ -963,7 +963,7 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     if ($quiz->randomization == 2) {
       $form[$fieldset]['compulsories'][$id] = array(
         '#type' => 'checkbox',
-        '#default_value' => isset($question->question_status) ? ($question->question_status == QUESTION_ALWAYS) ? 1 : 0 : 0,
+        '#default_value' => isset($question->question_status) ? ($question->question_status == QUIZ_QUESTION_ALWAYS) ? 1 : 0 : 0,
         '#attributes' => array('class' => array('q-compulsory')),
       );
     }
@@ -1154,15 +1154,15 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_sc
     $question->vid = $vid;
     if (isset($compulsories)) {
       if ($compulsories[$id] == 1) {
-        $question->state = QUESTION_ALWAYS;
+        $question->state = QUIZ_QUESTION_ALWAYS;
       }
       else {
-        $question->state = QUESTION_RANDOM;
+        $question->state = QUIZ_QUESTION_RANDOM;
         $max_scores[$id] = $quiz->max_score_for_random;
       }
     }
     else {
-      $question->state = QUESTION_ALWAYS;
+      $question->state = QUIZ_QUESTION_ALWAYS;
     }
     $question->weight = $weight;
     $question->max_score = $max_scores[$id];
@@ -1223,7 +1223,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $assigned_random = 0;
 
     foreach ($questions as $question) {
-      if ($question->state == QUESTION_RANDOM) {
+      if ($question->state == QUIZ_QUESTION_RANDOM) {
         ++$assigned_random;
       }
     }
@@ -1259,7 +1259,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $query = db_select('quiz_node_relationship', 'qnr');
     $query->addExpression('SUM(max_score)', 'sum');
     $query->condition('parent_vid', $quiz->vid);
-    $query->condition('question_status', QUESTION_ALWAYS);
+    $query->condition('question_status', QUIZ_QUESTION_ALWAYS);
     $score = $query->execute()->fetchAssoc();
 
     $success2 = db_update('quiz_node_properties')

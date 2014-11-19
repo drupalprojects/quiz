@@ -555,7 +555,7 @@ function _quiz_delete_question(&$node, $only_this_version) {
 
   //db_query($base_sql . $filter_sql, $node->nid, $node->vid);
   $update = db_update('quiz_node_relationship')
-    ->fields(array('question_status' => QUESTION_NEVER))
+    ->fields(array('question_status' => QUIZ_QUESTION_NEVER))
     ->condition('child_nid', $node->nid);
   if ($only_this_version) {
     $update = $update->condition('child_vid', $node->vid);
