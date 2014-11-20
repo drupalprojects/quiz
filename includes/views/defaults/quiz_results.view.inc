@@ -130,6 +130,7 @@ $handler->display->display_options['fields']['result_id']['id'] = 'result_id';
 $handler->display->display_options['fields']['result_id']['table'] = 'quiz_node_results';
 $handler->display->display_options['fields']['result_id']['field'] = 'result_id';
 $handler->display->display_options['fields']['result_id']['exclude'] = TRUE;
+$handler->display->display_options['fields']['result_id']['separator'] = '';
 /* Field: Global: Custom text */
 $handler->display->display_options['fields']['nothing']['id'] = 'nothing';
 $handler->display->display_options['fields']['nothing']['table'] = 'views';
