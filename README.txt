@@ -1,71 +1,64 @@
+The Quiz module provides tools for authoring quizzes and assessing
+users through Drupal. A Quiz is given as a series of questions. Answers
+are then stored in the database. Scores and results are displayed
+during or after the quiz. See all the features below!
 
-Overview
---------
-The quiz.module is a framework which allows you to create interactive quizzes 
-for your visitors. It allows for the creation of questions of varying types, and
-to collect those questions into quizzes. 
+This module provides tools for
+ * Online courses (Audio and Video enabled)
+ * Self-learning programs
+ * Training programs
+ * Supplementary classroom activities
 
+Features (7.x-5.x)
 
-Requirements
-------------
-Drupal 6.x
-PHP 5.1 (for OOP code introduced in Quiz 3.0)
-MySQL 5
+ * Improved coding standards/style, The Drupal Way!â„¢
+ * Entity API, Views 3, Rules integration
+ * Huge code cleanup from 4.x
+ * Multiple result & feedback options
+ * Views & bulk operations for managing questions/results
+ * Drag and drop ordering of questions/answers/pages
+ * Configurable questions per page
+ * Question randomization, from pool or category
+ * Multiple attempts per user
+ * Stability from new test cases (2000+ assertions)
+ * Adaptive mode and feedback
+ * Build on last attempt mode
+ * Timed quizzes
+ * Question reuse across multiple Quizzes
+ * Robust Quiz/Question versioning
+ * OO API for question types and responses
+ * Smooth upgrade from 7.x-4.x
 
-The module consists of two types of modules: the Quiz module itself 
-(quiz.module), and various question types (example: multichoice.module). The 
-main Quiz module, the Quiz Question module and at least one question type module 
-are required to be both installed and enabled for this module to function properly.
+Question types included
 
+ * Page (of questions)
+ * Multiple choice
+ * Drag and drop (with lines)
+ * Scale
+ * Question directions
+ * True or false
+ * Matching
+ * Short answers
+ * Long answers
 
-Features
---------
-This list isn't complete(not even close)
+Quiz addons
 
- - Administrative features:
-    o Assign feedback to responses to help point out places for further study
-    o Supports multiple answers to quiz questions (on supporting question types)
-    o Limit the number of takes users are allowed
-    o Extensibility allows for additional question types to be added
-    o Permissions (create/edit)
-    o Randomize questions during the quiz
-    o Assign only specific questions from the question bank
+ * Charts - used by Quiz stats to render some useful data
+ * jQuery Countdown - provides jQuery timer for timed quizzes
 
- - User features:
-   o Can create/edit own quizzes if have 'create quizzes' permission
-   o Can take a quiz if have 'view quizzes' permissions, and receive score
-
-
-Installation
-------------
-Please refer to the INSTALL file for installation directions.
-
-
-Support
--------
-- Visit the Quiz group at http://groups.drupal.org/quiz
-
+Check out the Quiz affiliated modules wiki to see the list of
+modules that extend quiz.
 
 Credits
--------
-- Specification:      Robert Douglass
-- Original author:    Károly Négyesi
-- Update to Drupal 5: Wim Mostrey and riverfr0zen
-- Maintainers: Angela Byron, westwesterson, mbutcher, sivaji, turadg, falcon
 
+Many users have contributed lots of feature requests and bug reports.
+Previous maintainers also deserve a lot of credit! Join the Quiz group
+at http://groups.drupal.org/quiz to get involved!
 
-Acknowledgements
-----------------
-I'd like to extend a heart-felt thank you to the folks at Google for their 
-Summer of Code program, without which my working on this module would not have 
-been possible. I'd also like to extend my thanks to Robert Douglass as my mentor 
-on this project, for his tireless patience and faith in my abilities, and the 
-entire Drupal development community for their support while I struggled with
-foreign concepts like 'node' and 'taxonomy.' You guys all provided me with 
-support, encouragement, and fun times and I sincerely hope to remain a part of 
-the Drupal community for a long time to come!
+Quiz is currently being sponsored by:
+djdevin@DLC Solutions/EthosCE for the 7.x-5.x branch
 
-Also huge thanks go to Ejovi Nuwere of http://www.securitylab.net/ for 
-sponsoring further module development after Summer of Code.
-
--Angela Byron/'webchick'
+Previous sponsors
+The e-learning company Amendor
+The Norwegian Centre for ICT in Education
+Norwegian Centre for Integrated Care and Telemedicine
