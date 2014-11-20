@@ -835,12 +835,13 @@ function quiz_delete($node) {
 function _quiz_get_node_defaults() {
   return (object) array(
       'aid' => NULL,
+      'allow_change' => 1,
       'allow_jumping' => 0,
       'allow_resume' => 1,
       'allow_skipping' => 1,
-      'allow_change' => 1,
       'always_available' => TRUE,
       'backwards_navigation' => 1,
+      'build_on_last' => '',
       'has_userpoints' => 0,
       'keep_results' => 2,
       'mark_doubtful' => 0,
@@ -1088,6 +1089,17 @@ function quiz_form(&$node, &$form_state) {
     '#title' => t('Repeat until correct'),
     '#default_value' => $node->repeat_until_correct,
     '#description' => t('Require the user to retry the question until answered correctly.'),
+  );
+  $form['taking']['build_on_last'] = array(
+    '#type' => 'radios',
+    '#options' => array(
+      '' => t('Fresh attempt every time'),
+      'correct' => t('Prepopulate with correct answers from last result'),
+      'all' => t('Prepopulate with all answers from last result'),
+    ),
+    '#title' => t('Each attempt builds on the last'),
+    '#default_value' => $node->build_on_last,
+    '#description' => t('Instead of starting a fresh Quiz, new attempts will be created based on the last attempt, with correct answers prefilled.'),
   );
   $form['taking']['mark_doubtful'] = array(
     '#type' => 'checkbox',
@@ -1922,6 +1934,29 @@ function quiz_take_question($quiz, $question_number) {
  *   The quiz attempt/result.
  */
 function quiz_create_attempt($quiz) {
+  global $user;
+
+  if ($quiz->build_on_last) {
+    // Build on the last attempt the user took. If this quiz has build on last
+    // attempt set, we need to search for a previous attempt with the same
+    // version of the current quiz.
+    $efq = new EntityFieldQuery;
+    $result = $efq->entityCondition('entity_type', 'quiz_result')
+      ->propertyCondition('uid', $user->uid)
+      ->propertyCondition('nid', $quiz->nid)
+      ->propertyCondition('vid', $quiz->vid)
+      ->propertyOrderBy('time_start', 'DESC')
+      ->range(0, 1)
+      ->execute();
+    if (!empty($result['quiz_result'])) {
+      // Found an existing result we need to rebuild from. We also need to
+      // retain the version.
+      $result_id = key($result['quiz_result']);
+      $quiz_result_old = entity_load_single('quiz_result', $result_id);
+      $quiz = node_load($quiz_result_old->nid, $quiz_result_old->vid);
+    }
+  }
+
   // Create question list.
   $questions = quiz_build_question_list($quiz);
   if ($questions === FALSE) {
@@ -1947,6 +1982,14 @@ function quiz_create_attempt($quiz) {
     entity_save('quiz_result_answer', $quiz_result_answer);
   }
 
+  if ($quiz->build_on_last && isset($quiz_result_old)) {
+    // We need to reload to get the layout loaded on.
+    $quiz_result = quiz_result_load($quiz_result->result_id);
+    // Now clone the answers on top of the new result.
+    quiz_clone_quiz_result($quiz_result_old, $quiz_result);
+  }
+
+  // Reload the quiz result.
   return quiz_result_load($quiz_result->result_id);
 }
 
@@ -4092,4 +4135,24 @@ function quiz_translate_form_date(&$node, $date) {
     $timestamp = strtotime($human);
     $node->$date = $timestamp;
   }
+}
+
+/**
+ * Clone a result, and its correct answers. Do not finish.
+ */
+function quiz_clone_quiz_result($result_old, $result_new) {
+  $quiz = node_load($result_old->nid, $result_old->vid);
+
+  // Re-take all the questions.
+  foreach ($result_old->layout as $qinfo) {
+    $question = node_load($qinfo['nid'], $qinfo['vid']);
+    $quizQuestionResponse = _quiz_question_response_get_instance($result_old->result_id, $question);
+    if ($quiz->build_on_last == 'all' || $quizQuestionResponse->isCorrect()) {
+      // Override the existing response.
+      $quizQuestionResponse->setResultId($result_new->result_id);
+      $quizQuestionResponse->saveResult();
+    }
+  }
+
+  return $result_new;
 }

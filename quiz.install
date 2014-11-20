@@ -219,6 +219,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 1,
       ),
+      'build_on_last' => array(
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
       'show_passed' => array(
         'type' => 'int',
         'size' => 'tiny',
@@ -861,4 +867,16 @@ function quiz_update_7509() {
   );
 
   db_drop_field('quiz_node_results', 'layout');
+}
+
+/**
+ * Add build_on_last to optionally rebuild each attempt on the last.
+ */
+function quiz_update_7510() {
+  db_add_field('quiz_node_properties', 'build_on_last', array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => TRUE,
+    'default' => '',
+  ));
 }

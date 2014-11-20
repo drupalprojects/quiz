@@ -332,4 +332,111 @@ class QuizResultTestCase extends QuizTestCase {
     $this->assertEqual($quiz_result->score, 75, 'Quiz score was 75%');
   }
 
+  /**
+   * Test the build on last attempt functionality.
+   */
+  public function testBuildOnLastAttempt() {
+    $this->drupalLogin($this->admin);
+
+    // Prepopulate correct answers.
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'build_on_last' => 'correct',
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $question_node3 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $question_node4 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $this->linkQuestionToQuiz($question_node4, $quiz_node);
+
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid]" => 0,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node3->nid]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node4->nid]" => 0,
+      ), t('Finish'));
+
+    // Take it again, ensure the answers are prefilled.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertFieldChecked("edit-question-{$question_node1->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+    $this->assertNoFieldChecked("edit-question-{$question_node2->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid]" => 0,
+      ), t('Next'));
+    $this->assertFieldChecked("edit-question-{$question_node3->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node3->nid]" => 1,
+      ), t('Next'));
+    $this->assertNoFieldChecked("edit-question-{$question_node4->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node4->nid]" => 0,
+      ), t('Finish'));
+
+    // Switch the build option
+    $quiz_node->build_on_last = 'all';
+    node_save($quiz_node);
+
+    // Take the quiz with this revision.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid]" => 0,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node3->nid]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node4->nid]" => 0,
+      ), t('Finish'));
+
+    // Take it again, ensure all the answers are prefilled.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertFieldChecked("edit-question-{$question_node1->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid]" => 1,
+      ), t('Next'));
+    $this->assertFieldChecked("edit-question-{$question_node2->nid}-0");
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid]" => 0,
+      ), t('Next'));
+    $this->assertFieldChecked("edit-question-{$question_node3->nid}-1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node3->nid]" => 1,
+      ), t('Next'));
+    $this->assertFieldChecked("edit-question-{$question_node4->nid}-0");
+    $this->drupalPost(NULL, array(
+      "question[$question_node4->nid]" => 0,
+      ), t('Finish'));
+  }
+
 }
