@@ -28,38 +28,111 @@ class MatchingTestCase extends QuizQuestionTestCase {
   }
 
   /**
-   * function to create true false type question node for testing.
+   * Test adding and taking a matching question.
    */
-  public function testCreateQuizQuestion() {
-    // matching question node attributes
-    $this->title = $this->randomName();
-    $this->body = $this->randomName();
+  function testCreateQuizQuestion() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
 
-    // array of node attributes to create a test node
-    $settings = array(
-      'type' => $this->question_node_type,
-      'title' => $this->title,
-      'body' => array(LANGUAGE_NONE => array(array('value' => $this->body))),
-      'revisions' => TRUE,
-      'choice_penalty' => 0,
-    );
-
-    $this->match = array();
-    $form_size = variable_get('quiz_matching_form_size', 5);
-    // generate rand match question, answer and feedback
-    for ($i = 1; $i < $form_size; $i++) {
-      $settings['match'][$i]['question'] = $this->match[$i]['question'] = $this->randomName();
-      $setting['match'][$i]['answer'] = $this->match[$i]['answer'] = $this->randomName();
-      $settings['match'][$i]['feedback'] = $this->match[$i]['feedback'] = $this->randomName();
+    $match = array();
+    for ($i = 0; $i <= 2; $i++) {
+      $match[$i]['question'] = "MAQ " . ($i + 1);
+      $match[$i]['answer'] = "MAA " . ($i + 1);
+      $match[$i]['feedback'] = "MAF " . ($i + 1);
     }
 
-    // create drupal node
-    $node = $this->drupalCreateNode($settings);
-    $load = node_load($node->nid);
+    $question_node = $this->drupalCreateNode(array(
+      'type' => $this->question_node_type,
+      'title' => 'MA 1 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'MA 1 body text'))),
+      'match' => $match,
+      'choice_penalty' => 0,
+    ));
 
-    // @todo verify save
+    return $question_node;
+  }
 
-    return $load;
+  function testTakeQuestion() {
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'review_options' => array('end' => drupal_map_assoc(array('answer_feedback', 'score'))),
+    ));
+
+    $question_node = $this->testCreateQuizQuestion();
+
+    // Link the question.
+    $this->linkQuestionToQuiz($question_node, $quiz_node);
+
+    // Test that question appears in lists.
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $this->assertText('MA 1 title');
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertNoText('MA 1 title');
+    $this->assertText('MA 1 body text');
+    $this->assertText('MAQ 1');
+    $this->assertText('MAQ 2');
+    $this->assertText('MAQ 3');
+    $this->assertText('MAA 1');
+    $this->assertText('MAA 2');
+    $this->assertText('MAA 3');
+
+    // Test validation.
+    $this->drupalPost(NULL, array(), t('Finish'));
+    $this->assertText('You need to match at least one of the items.');
+
+    // Test correct question.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[2][1]" => 1,
+      "question[2][2]" => 2,
+      "question[2][3]" => 3,
+      ), t('Finish'));
+    $this->assertText('MAF 1');
+    $this->assertText('MAF 2');
+    $this->assertText('MAF 3');
+    $this->assertText('You got 3 of 3 possible points.');
+
+    // Test incorrect question.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[2][1]" => 1,
+      "question[2][2]" => 2,
+      "question[2][3]" => 2,
+      ), t('Finish'));
+    $this->assertText('MAF 1');
+    $this->assertText('MAF 2');
+    // The behavior right now is that all the feedback shows.
+    $this->assertText('MAF 3');
+    $this->assertText('You got 2 of 3 possible points.');
+  }
+
+  function testChoicePenalty() {
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'review_options' => array('end' => drupal_map_assoc(array('answer_feedback', 'score'))),
+    ));
+
+    $question_node = $this->testCreateQuizQuestion();
+    $question_node->choice_penalty = 1;
+    node_save($question_node);
+
+    // Link the question.
+    $this->linkQuestionToQuiz($question_node, $quiz_node);
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Test penalty
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[{$question_node->nid}][4]" => 4,
+      "question[{$question_node->nid}][5]" => 5,
+      "question[{$question_node->nid}][6]" => 4,
+      ), t('Finish'));
+    $this->assertText('You got 1 of 3 possible points.');
   }
 
 }
