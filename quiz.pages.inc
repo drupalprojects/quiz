@@ -16,6 +16,11 @@ function quiz_user_results($result_id) {
 
   if ($result->nid) {
     $quiz = node_load($result->nid, $result->vid);
+
+    // Preserve "My results" tab.
+    $item = menu_get_item("node/$quiz->nid/quiz-results");
+    menu_set_item(NULL, $item);
+
     $current_quiz = node_load($result->nid);
     $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);

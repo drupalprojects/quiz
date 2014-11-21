@@ -1827,6 +1827,10 @@ function quiz_take_quiz($quiz) {
  *   directions are considered part of the numbering.
  */
 function quiz_take_question($quiz, $question_number) {
+  // Preserve "Take" tab.
+  $item = menu_get_item("node/$quiz->nid/take");
+  menu_set_item(NULL, $item);
+
   if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
     $question = $quiz_result->layout[$question_number];

@@ -354,8 +354,9 @@ function quiz_admin_node_form_submit($form, &$form_state) {
  *   The result id
  */
 function quiz_admin_results($quiz, $result_id) {
-  $breadcrumb = drupal_get_breadcrumb();
-  $breadcrumb[] = l(t('Quiz Results'), 'admin/quiz/reports/results');
+  // Preserve "Results" tab.
+  $item = menu_get_item("node/$quiz->nid/quiz");
+  menu_set_item(NULL, $item);
 
   // Make sure we have the right version of the quiz
   $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
@@ -368,9 +369,6 @@ function quiz_admin_results($quiz, $result_id) {
   $score = quiz_calculate_score($quiz, $result_id);
   $summary = _quiz_get_summary_text($quiz, $score);
 
-  // Lets add the quiz title to the breadcrumb array.
-  $breadcrumb[] = l($quiz->title, 'admin/quiz/reports/results/' . $quiz->nid);
-  //drupal_set_breadcrumb($breadcrumb);
   $data = array(
     'quiz' => $quiz,
     'questions' => $questions,
