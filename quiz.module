@@ -697,7 +697,7 @@ function quiz_save_properties($entity) {
     OR (nid = :nid and uid = :uid and vid = :vid)";
   $result = db_query($sql, array(':nid' => $entity->nid, ':uid' => $entity->uid, ':vid' => $entity->vid));
   $entity->qnp_id = $result->fetchField();
-  entity_save('quiz', $entity);
+  entity_save('quiz_properties', $entity);
 }
 
 /**
@@ -911,7 +911,7 @@ function quiz_load($nodes) {
     $vids[] = $node->vid;
   }
 
-  $quiz_properties = entity_load('quiz', FALSE, array('vid' => $vids));
+  $quiz_properties = entity_load('quiz_properties', FALSE, array('vid' => $vids));
 
   foreach ($quiz_properties as $qnp_id => $props) {
     foreach ($props as $name => $value) {
@@ -3623,7 +3623,7 @@ function quiz_quiz_result_delete($quiz_result) {
 function quiz_get_defaults() {
   global $user;
 
-  $entity = entity_load('quiz', FALSE, array(
+  $entity = entity_load('quiz_properties', FALSE, array(
     'uid' => $user->uid,
     'nid' => 0,
     'vid' => 0,
@@ -3636,7 +3636,7 @@ function quiz_get_defaults() {
     return $defaults;
   }
 
-  $entity = entity_load('quiz', FALSE, array(
+  $entity = entity_load('quiz_properties', FALSE, array(
     'uid' => 0,
     'nid' => 0,
     'vid' => 0,
@@ -3813,7 +3813,7 @@ function quiz_entity_info() {
       ),
       'views controller class' => 'EntityDefaultViewsController',
     ),
-    'quiz' => array(
+    'quiz_properties' => array(
       'label' => t('Quiz properties'),
       'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_properties',
