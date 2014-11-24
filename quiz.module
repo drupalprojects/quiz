@@ -339,7 +339,7 @@ function quiz_menu() {
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
-    'page callback' => 'quiz_take',
+    'page callback' => 'quiz_take_page',
     'page arguments' => array(1),
     'access callback' => 'quiz_take_access',
     'access arguments' => array(1),
@@ -425,6 +425,14 @@ function quiz_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
 
+  $items['admin/quiz/result'] = array(
+    'title' => 'Quiz result',
+    'description' => 'Configure Quiz result behaviors',
+    'page callback' => 'quiz_result_page',
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -493,6 +501,13 @@ function quiz_menu() {
   }
 
   return $items;
+}
+
+/**
+ * Page for Quiz result configuration and fields.
+ */
+function quiz_result_page() {
+  return t('Here, you can configure how Quiz attempts and results behave.');
 }
 
 /**
@@ -934,10 +949,7 @@ function quiz_load($nodes) {
 /**
  * Implements hook_view().
  */
-function quiz_view($node, $view_mode) {
-  drupal_alter('quiz_view', $node, $view_mode);
-  node_invoke($node, 'prepare');
-
+function quiz_view($node) {
   // Number of questions is needed on the statistics page.
   $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
 
@@ -950,21 +962,11 @@ function quiz_view($node, $view_mode) {
   if ($available === TRUE) {
     // Check the permission before displaying start button.
     if (user_access('access quiz')) {
-      // Add a link to the take tab as a button if this isn't a teaser view.
-      if ($view_mode !== 'teaser') {
-        $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
-        $node->content['take'] = array(
-          '#markup' => drupal_render($quiz_form),
-          '#weight' => 2,
-        );
-      }
-      // Add a link to the take tab if this is a teaser view.
-      else {
-        $node->content['take'] = array(
-          '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take'),
-          '#weight' => 2,
-        );
-      }
+      // Add a link to the take tab.
+      $node->content['take'] = array(
+        '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take'),
+        '#weight' => 2,
+      );
     }
   }
   else {
@@ -978,37 +980,45 @@ function quiz_view($node, $view_mode) {
 }
 
 /**
- * Helper function for hook_view().
- *
- * Returns a button to use as a link to start taking the quiz.
- *
- * @param $form_state
- *   Form state array.
- * @param $node
- *   The quiz node.
- * @return
- *   Form with a button linking to the take tab.
+ * Page to either resume a quiz or display a start quiz form.
  */
-function quiz_start_quiz_button_form($form, &$form_state, $node) {
-  $form = array();
-  $form['#action'] = url("node/$node->nid/take");
-  $form['button'] = array(
-    '#type' => 'submit',
-    '#value' => t('Start @quiz', array('@quiz' => QUIZ_NAME)),
-  );
-  return $form;
-}
-
-/**
- * Primary quiz-taking view on 'Take' tab.
- */
-function quiz_take($node) {
-  //drupal_alter('quiz_take', $node);
-  if (isset($node->rendered_content)) {
-    return $node->rendered_content;
+function quiz_take_page($quiz) {
+  if (quiz_start_check($quiz)) {
+    if (!quiz_availability($quiz)) {
+      return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
+    }
   }
-  $to_be_rendered = quiz_take_quiz($node);
-  return drupal_render($to_be_rendered);
+  else {
+    return array('body' => array('#markup' => t('This @quiz is closed.', array('@quiz' => QUIZ_NAME))));
+  }
+
+  if ($quiz_result = quiz_take_quiz($quiz)) {
+    if (!empty($quiz_result->resume)) {
+      // Resuming attempt.
+      $_SESSION['quiz'][$quiz_result->nid]['result_id'] = $quiz_result->result_id;
+      $_SESSION['quiz'][$quiz_result->nid]['current'] = 1;
+      drupal_set_message(t('Resuming a previous @quiz in-progress.', array('@quiz' => QUIZ_NAME)), 'status');
+    }
+    drupal_goto("node/{$quiz_result->nid}/take/" . ($_SESSION['quiz'][$quiz_result->nid]['current']));
+  }
+  else {
+    $quiz_result = entity_create('quiz_result', array(
+      'nid' => $quiz->nid,
+      'vid' => $quiz->vid,
+      'uid' => $GLOBALS['user']->uid,
+    ));
+  }
+  if ($instances = field_info_instances('quiz_result', 'quiz_result')) {
+    return entity_ui_get_form('quiz_result', $quiz_result);
+  }
+  else {
+    // New attempt.
+    $quiz_result->save();
+    $_SESSION['quiz'][$quiz_result->nid]['result_id'] = $quiz_result->result_id;
+    $_SESSION['quiz'][$quiz_result->nid]['current'] = 1;
+    quiz_take_quiz($quiz);
+    drupal_goto("node/{$quiz_result->nid}/take/" . ($_SESSION['quiz'][$quiz_result->nid]['current']));
+  }
 }
 
 /**
@@ -1776,8 +1786,7 @@ function quiz_take_quiz($quiz) {
   // session.
   $result_id = !empty($_SESSION['quiz'][$quiz->nid]['result_id']) ? $_SESSION['quiz'][$quiz->nid]['result_id'] : NULL;
   if ($result_id && $quiz_result = quiz_result_load($result_id)) {
-    // Enforce that we have the same quiz version.
-    $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+    return $quiz_result;
   }
   else {
     // User doesn't have attempt in session. If we allow resuming we can load it
@@ -1787,34 +1796,14 @@ function quiz_take_quiz($quiz) {
         $_SESSION['quiz'][$quiz->nid]['result_id'] = $result_id;
         $_SESSION['quiz'][$quiz->nid]['current'] = 1;
         $quiz_result = quiz_result_load($result_id);
-        $quiz = node_load($quiz_result->nid, $quiz_result->vid);
         // Resume a quiz from the database.
-        drupal_set_message(t('Resuming a previous @quiz in-progress.', array('@quiz' => QUIZ_NAME)), 'status');
+        $quiz_result->resume = 1;
+        return $quiz_result;
       }
     }
   }
 
-  if (!$result_id) {
-    // Can user start quiz?
-    if (quiz_start_check($quiz)) {
-      // Set up a new attempt.
-      $quiz_result = quiz_create_attempt($quiz);
-      $_SESSION['quiz'][$quiz->nid]['result_id'] = $quiz_result->result_id;
-      $_SESSION['quiz'][$quiz->nid]['current'] = 1;
-
-      // Call hook_quiz_begin().
-      module_invoke_all('quiz_begin', $quiz, $quiz_result->result_id);
-    }
-    else {
-      return array('body' => array('#markup' => t('This @quiz is closed.', array('@quiz' => QUIZ_NAME))));
-    }
-  }
-
-  if (!quiz_availability($quiz)) {
-    return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
-  }
-
-  drupal_goto("node/{$quiz->nid}/take/" . ($_SESSION['quiz'][$quiz->nid]['current']));
+  return FALSE;
 }
 
 /**
@@ -1920,81 +1909,6 @@ function quiz_take_question($quiz, $question_number) {
 
 
   return $content;
-}
-
-/**
- * Initialize a new attempt for a Quiz for the current user.
- *
- * This builds a question list from the list of questions or random options,
- * then instantiates the attempt layout in the database.
- *
- * This function does not set the quiz attempt as current, the calling function
- * should then set the current quiz attempt in the session for the user to be
- * able to take it.
- *
- * @todo wrap around entity_create()? We are creating an entity here anyway.
- *
- * @return stdClass
- *   The quiz attempt/result.
- */
-function quiz_create_attempt($quiz) {
-  global $user;
-
-  if ($quiz->build_on_last) {
-    // Build on the last attempt the user took. If this quiz has build on last
-    // attempt set, we need to search for a previous attempt with the same
-    // version of the current quiz.
-    $efq = new EntityFieldQuery;
-    $result = $efq->entityCondition('entity_type', 'quiz_result')
-      ->propertyCondition('uid', $user->uid)
-      ->propertyCondition('nid', $quiz->nid)
-      ->propertyCondition('vid', $quiz->vid)
-      ->propertyOrderBy('time_start', 'DESC')
-      ->range(0, 1)
-      ->execute();
-    if (!empty($result['quiz_result'])) {
-      // Found an existing result we need to rebuild from. We also need to
-      // retain the version.
-      $result_id = key($result['quiz_result']);
-      $quiz_result_old = entity_load_single('quiz_result', $result_id);
-      $quiz = node_load($quiz_result_old->nid, $quiz_result_old->vid);
-    }
-  }
-
-  // Create question list.
-  $questions = quiz_build_question_list($quiz);
-  if ($questions === FALSE) {
-    drupal_set_message(t('Not enough random questions were found. Please add more questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME)), 'error');
-    return FALSE;
-  }
-
-  if (count($questions) == 0) {
-    drupal_set_message(t('No questions were found. Please !assign_questions before trying to take this @quiz.', array('@quiz' => QUIZ_NAME, '!assign_questions' => l(t('assign questions'), 'node/' . $quiz->nid . '/quiz/questions'))), 'error');
-    return FALSE;
-  }
-
-  $quiz_result = quiz_create_result($quiz);
-
-  $i = 0;
-  foreach ($questions as $question) {
-    $quiz_result_answer = entity_create('quiz_result_answer', array(
-      'result_id' => $quiz_result->result_id,
-      'question_nid' => $question['nid'],
-      'question_vid' => $question['vid'],
-      'number' => ++$i,
-    ));
-    entity_save('quiz_result_answer', $quiz_result_answer);
-  }
-
-  if ($quiz->build_on_last && isset($quiz_result_old)) {
-    // We need to reload to get the layout loaded on.
-    $quiz_result = quiz_result_load($quiz_result->result_id);
-    // Now clone the answers on top of the new result.
-    quiz_clone_quiz_result($quiz_result_old, $quiz_result);
-  }
-
-  // Reload the quiz result.
-  return quiz_result_load($quiz_result->result_id);
 }
 
 /**
@@ -2510,25 +2424,6 @@ function quiz_availability($quiz) {
     return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
   }
   return TRUE;
-}
-
-/**
- * Creates a unique id to be used when storing results for a quiz taker.
- *
- * @param $quiz
- *   The quiz node.
- * @return $result_id
- *   The result id.
- */
-function quiz_create_result($quiz) {
-  $quiz_result = entity_create('quiz_result', array(
-    'nid' => $quiz->nid,
-    'vid' => $quiz->vid,
-    'uid' => $GLOBALS['user']->uid,
-    'time_start' => REQUEST_TIME,
-  ));
-  entity_save('quiz_result', $quiz_result);
-  return $quiz_result;
 }
 
 /**
@@ -3789,11 +3684,21 @@ function quiz_entity_info() {
     ),
     'quiz_result' => array(
       'base table' => 'quiz_node_results',
+      'bundles' => array(
+        'quiz_result' => array(
+          'label' => 'Quiz result',
+          'admin' => array(
+            'path' => 'admin/quiz/result',
+            'access arguments' => array('administer quiz'),
+          ),
+        ),
+      ),
       'controller class' => 'QuizResultController',
       'entity class' => 'QuizResult',
       'entity keys' => array(
         'id' => 'result_id',
       ),
+      'fieldable' => TRUE,
       'label' => 'Quiz result',
       'views controller class' => 'EntityDefaultViewsController',
     ),
@@ -4109,4 +4014,29 @@ function quiz_clone_quiz_result($result_old, $result_new) {
   }
 
   return $result_new;
+}
+
+/**
+ * Quiz result edit form.
+ */
+function quiz_result_form($form, &$form_state, $quiz_result) {
+  field_attach_form('quiz_result', $quiz_result, $form, $form_state);
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Start @quiz', array('@quiz' => QUIZ_NAME)),
+  );
+
+  return $form;
+}
+
+/**
+ * Quiz result submit handler.
+ */
+function quiz_result_form_submit($form, &$form_state) {
+  $quiz_result = $form_state['quiz_result'];
+  field_attach_submit('quiz_result', $quiz_result, $form, $form_state);
+  entity_save('quiz_result', $quiz_result);
+  $_SESSION['quiz'][$quiz_result->nid]['current'] = $quiz_result->result_id;
 }

@@ -124,7 +124,6 @@ class QuizTakingTestCase extends QuizTestCase {
    * @TODO tests temporarily disabled
    */
   public function testQuizAvailability() {
-    return;
     $future = REQUEST_TIME + 86400;
     $past = REQUEST_TIME - 86400;
 
