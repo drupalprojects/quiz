@@ -3591,24 +3591,6 @@ function quiz_delete_results($result_ids) {
 }
 
 /**
- * Implements hook_quiz_result_delete().
- */
-function quiz_quiz_result_delete($quiz_result) {
-  // Fire the question types' implementations of question attempts deletion.
-  $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
-          WHERE result_id = (:result_id)';
-  $result = db_query($sql, array(':result_id' => $quiz_result->result_id));
-  foreach ($result as $record) {
-    quiz_question_delete_result($record->result_id, $record->question_nid, $record->question_vid);
-  }
-
-  // Delete Quiz's records of any attempts at a question.
-  db_delete('quiz_node_results_answers')
-    ->condition('result_id', $quiz_result->result_id)
-    ->execute();
-}
-
-/**
  * Returns the users default settings.
  *
  * @param $node
@@ -3785,41 +3767,44 @@ function _quiz_show_finish_button($quiz) {
  */
 function quiz_entity_info() {
   return array(
-    'quiz_result' => array(
-      'label' => t('Quiz result'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_results',
-      'entity keys' => array(
-        'id' => 'result_id',
-      ),
-      'views controller class' => 'EntityDefaultViewsController',
-    ),
-    'quiz_result_answer' => array(
-      'label' => t('Quiz result answer'),
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_results_answers',
-      'entity keys' => array(
-        'id' => 'result_answer_id',
-      ),
-      'views controller class' => 'EntityDefaultViewsController',
-    ),
-    'quiz_question_relationship' => array(
-      'label' => t('Quiz question relationship'),
-      'entity class' => 'Entity',
-      'controller class' => 'EntityAPIController',
-      'base table' => 'quiz_node_relationship',
-      'entity keys' => array(
-        'id' => 'qnr_id',
-      ),
-      'views controller class' => 'EntityDefaultViewsController',
-    ),
     'quiz' => array(
-      'label' => t('Quiz properties'),
-      'controller class' => 'EntityAPIController',
       'base table' => 'quiz_node_properties',
+      'controller class' => 'QuizController',
+      'entity class' => 'Quiz',
       'entity keys' => array(
         'id' => 'qnp_id',
       ),
+      'label' => 'Quiz properties',
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+    'quiz_question_relationship' => array(
+      'base table' => 'quiz_node_relationship',
+      'controller class' => 'QuizQuestionRelationshipController',
+      'entity class' => 'QuizQuestionRelationship',
+      'entity keys' => array(
+        'id' => 'qnr_id',
+      ),
+      'label' => 'Quiz question relationship',
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+    'quiz_result' => array(
+      'base table' => 'quiz_node_results',
+      'controller class' => 'QuizResultController',
+      'entity class' => 'QuizResult',
+      'entity keys' => array(
+        'id' => 'result_id',
+      ),
+      'label' => 'Quiz result',
+      'views controller class' => 'EntityDefaultViewsController',
+    ),
+    'quiz_result_answer' => array(
+      'base table' => 'quiz_node_results_answers',
+      'controller class' => 'QuizResultAnswerController',
+      'entity class' => 'QuizResultAnswer',
+      'entity keys' => array(
+        'id' => 'result_answer_id',
+      ),
+      'label' => 'Quiz result answer',
       'views controller class' => 'EntityDefaultViewsController',
     ),
   );
@@ -4079,41 +4064,6 @@ function quiz_get_feedback_options() {
   drupal_alter('quiz_feedback_options', $feedback_options);
 
   return $feedback_options;
-}
-
-/**
- * Implements hook_quiz_result_load().
- *
- * Attach the layout which previously used to be stored on the result.
- */
-function quiz_quiz_result_load($quiz_results) {
-  foreach ($quiz_results as $quiz_result) {
-    $layout = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
-    foreach ($layout as $question) {
-      // @kludge
-      // This is bulky but now we have to manually find the type and parents of
-      // the question. This is the only information that is not stored in the
-      // quiz attempt. We reference back to the node relationships for this
-      // current version to get the hieararchy.
-      $sql = "SELECT n.type, qnr_id, qnr_pid FROM {quiz_node_results} qr
-        INNER JOIN {quiz_node_relationship} qnr on (qr.nid = qnr.parent_nid and qr.vid = qnr.parent_vid)
-        INNER JOIN {node} n ON (qnr.child_nid = n.nid)
-        WHERE qr.result_id = :result_id and n.nid = :nid";
-      $result = db_query($sql, array(':result_id' => $quiz_result->result_id, ':nid' => $question->question_nid));
-      $extra = $result->fetch();
-
-      $quiz_result->layout[$question->number] = array(
-        'display_number' => $question->number,
-        'nid' => $question->question_nid,
-        'vid' => $question->question_vid,
-        'number' => $question->number,
-        'type' => $extra->type,
-        'qnr_id' => $extra->qnr_id,
-        'qnr_pid' => $extra->qnr_pid,
-      );
-    }
-    ksort($quiz_result->layout, SORT_NUMERIC);
-  }
 }
 
 /**

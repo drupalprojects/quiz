@@ -36,7 +36,7 @@
  * This abstract class also declares several abstract functions forcing question-types to implement required
  * methods.
  */
-abstract class QuizQuestion {
+abstract class QuizQuestion extends Entity {
   /*
    * QUESTION IMPLEMENTATION FUNCTIONS
    *
