@@ -83,6 +83,10 @@ class QuizDirectionsQuestion extends QuizQuestion {
   public function isGraded() {
     return FALSE;
   }
+
+  public function hasFeedback() {
+    return FALSE;
+  }
 }
 
 /**

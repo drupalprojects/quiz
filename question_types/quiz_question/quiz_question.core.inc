@@ -452,6 +452,19 @@ abstract class QuizQuestion extends Entity {
     return TRUE;
   }
 
+  /**
+   * Does this question type give feedback?
+   *
+   * Questions like Quiz Directions and Quiz Pages do not.
+   *
+   * By default, questions give feedback
+   *
+   * @return bool
+   */
+  public function hasFeedback() {
+    return TRUE;
+  }
+
 }
 
 /**

@@ -66,6 +66,10 @@ class QuizPagesQuestion extends QuizQuestion {
     return $element;
   }
 
+  public function hasFeedback() {
+    return FALSE;
+  }
+
 }
 
 /**
