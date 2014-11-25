@@ -107,14 +107,16 @@ function quiz_question_update_7500() {
     'not null' => FALSE,
   ));
 
-  // Migrate the truefalse feedback, since we have generic feedback now.
-  $filter = filter_default_format();
-  db_query("UPDATE {quiz_question_properties} qqp
+  if (module_exists('truefalse')) {
+    // Migrate the truefalse feedback, since we have generic feedback now.
+    $filter = filter_default_format();
+    db_query("UPDATE {quiz_question_properties} qqp
     INNER JOIN {quiz_truefalse_node} qtn ON (qtn.vid = qqp.vid)
     SET qqp.feedback = qtn.feedback, qqp.feedback_format = :format", array(':format' => $filter));
 
-  // Drop old field.
-  db_drop_field('quiz_truefalse_node', 'feedback');
+    // Drop old field.
+    db_drop_field('quiz_truefalse_node', 'feedback');
+  }
 
   return t('Added global quiz question feedback fields and migrated true/false feedback.');
 }
