@@ -54,7 +54,7 @@ class QuizFeedbackTestCase extends QuizTestCase {
     // Answer the first question.
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
 
     // Check feedback after the Question
@@ -75,7 +75,7 @@ class QuizFeedbackTestCase extends QuizTestCase {
     $this->drupalGet("node/{$quiz_node->nid}/take/1/feedback");
     $this->drupalPost(NULL, array(), t('Next question'));
     $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
+      "question[$question_node2->nid][answer]" => 1,
       ), t('Finish'));
 
     // Check feedback after the Quiz
@@ -129,11 +129,11 @@ class QuizFeedbackTestCase extends QuizTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
     $this->assertNoText('Feedback for TF test.');
     $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
+      "question[$question_node2->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('Feedback for TF test.');
   }

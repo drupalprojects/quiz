@@ -44,10 +44,10 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 'the answer is the zero one infinity rule',
+      "question[$question_node1->nid][answer]" => 'the answer is the zero one infinity rule',
       ), t('Next'));
     $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 'the number two really is ridiculous',
+      "question[$question_node2->nid][answer]" => 'the number two really is ridiculous',
       ), t('Finish'));
     $this->assertText('Your score: 0%');
     // Strange behavior - extra spacing in the HTML.

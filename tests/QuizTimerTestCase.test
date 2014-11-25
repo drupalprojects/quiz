@@ -37,11 +37,11 @@ class QuizTimerTestCase extends QuizTestCase {
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
     $this->assertNoText(t('The last answer was not submitted, as the time ran out.'));
     $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 1,
+      "question[$question_node2->nid][answer]" => 1,
       ), t('Next'));
     $this->assertNoText(t('The last answer was not submitted, as the time ran out.'));
 
@@ -50,7 +50,7 @@ class QuizTimerTestCase extends QuizTestCase {
 
     // Submit the last question past the expiration.
     $this->drupalPost(NULL, array(
-      "question[$question_node3->nid]" => 1,
+      "question[$question_node3->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText(t('The last answer was not submitted, as the time ran out.'));
     $this->assertText('You got 2 of 3 possible points.');

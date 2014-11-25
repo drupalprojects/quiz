@@ -87,9 +87,9 @@ class MatchingTestCase extends QuizQuestionTestCase {
     // Test correct question.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[2][1]" => 1,
-      "question[2][2]" => 2,
-      "question[2][3]" => 3,
+      "question[2][answer][1]" => 1,
+      "question[2][answer][2]" => 2,
+      "question[2][answer][3]" => 3,
       ), t('Finish'));
     $this->assertText('MAF 1');
     $this->assertText('MAF 2');
@@ -99,9 +99,9 @@ class MatchingTestCase extends QuizQuestionTestCase {
     // Test incorrect question.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[2][1]" => 1,
-      "question[2][2]" => 2,
-      "question[2][3]" => 2,
+      "question[2][answer][1]" => 1,
+      "question[2][answer][2]" => 2,
+      "question[2][answer][3]" => 2,
       ), t('Finish'));
     $this->assertText('MAF 1');
     $this->assertText('MAF 2');
@@ -128,9 +128,9 @@ class MatchingTestCase extends QuizQuestionTestCase {
     // Test penalty
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[{$question_node->nid}][4]" => 4,
-      "question[{$question_node->nid}][5]" => 5,
-      "question[{$question_node->nid}][6]" => 4,
+      "question[{$question_node->nid}][answer][4]" => 4,
+      "question[{$question_node->nid}][answer][5]" => 5,
+      "question[{$question_node->nid}][answer][6]" => 4,
       ), t('Finish'));
     $this->assertText('You got 1 of 3 possible points.');
   }

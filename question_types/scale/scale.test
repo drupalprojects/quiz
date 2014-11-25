@@ -85,7 +85,7 @@ class ScaleTestCase extends QuizQuestionTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       // Alternative #2 is actually 24 (because of the presets).
-      "question[$question_node->nid]" => 24,
+      "question[$question_node->nid][answer]" => 24,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
   }

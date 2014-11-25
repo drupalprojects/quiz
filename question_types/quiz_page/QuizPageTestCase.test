@@ -80,19 +80,19 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     // Questions 1 and 2 are present. Question 3 is hidden.
-    $this->assertFieldByName("question[{$question_node1->nid}]");
-    $this->assertFieldByName("question[{$question_node2->nid}]");
-    $this->assertNoFieldByName("question[{$question_node3->nid}]");
+    $this->assertFieldByName("question[{$question_node1->nid}][answer]");
+    $this->assertFieldByName("question[{$question_node2->nid}][answer]");
+    $this->assertNoFieldByName("question[{$question_node3->nid}][answer]");
     $this->drupalPost(NULL, array(
-      "question[{$question_node1->nid}]" => 1,
-      "question[{$question_node2->nid}]" => 1,
+      "question[{$question_node1->nid}][answer]" => 1,
+      "question[{$question_node2->nid}][answer]" => 1,
       ), t('Next'));
     // Questions 1 and 2 are gone. Question 3 is present.
-    $this->assertNoFieldByName("question[{$question_node1->nid}]");
-    $this->assertNoFieldByName("question[{$question_node2->nid}]");
-    $this->assertFieldByName("question[{$question_node3->nid}]");
+    $this->assertNoFieldByName("question[{$question_node1->nid}][answer]");
+    $this->assertNoFieldByName("question[{$question_node2->nid}][answer]");
+    $this->assertFieldByName("question[{$question_node3->nid}][answer]");
     $this->drupalPost(NULL, array(
-      "question[{$question_node3->nid}]" => 1,
+      "question[{$question_node3->nid}][answer]" => 1,
       ), t('Finish'));
 
     // Check that the results page contains all the questions.

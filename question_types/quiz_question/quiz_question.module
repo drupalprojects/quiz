@@ -168,6 +168,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   }
 
   $form['#attributes']['class'] = array('answering-form');
+  $form['#tree'] = TRUE;
 
   foreach ($nodes as $node) {
     $question = _quiz_question_get_instance($node);
@@ -175,40 +176,28 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     // Element for a single question
     $element = $question->getAnsweringForm($form_state, $result_id);
 
-    // Hide the label of the body field if this is an informative question.
-    $options = !$question->isGraded() ? array('label' => 'hidden') : array();
-
     node_build_content($node, 'question');
     unset($node->content['answers']);
-    $form['questions'][$node->nid] = array(
+    $form['question'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
       '#type' => 'container',
       'header' => $node->content,
-      'question' => array('#tree' => TRUE, $node->nid => $element),
+      'answer' => $element,
     );
 
     if (!$quiz->allow_change) {
       if (quiz_result_is_question_answered($quiz_result, $node)) {
         // This question was already answered, and not skipped.
-        $form['questions'][$node->nid]['#disabled'] = TRUE;
+        $form['question'][$node->nid]['#disabled'] = TRUE;
       }
     }
 
     if ($quiz->mark_doubtful) {
-      $form['is_doubtful'] = array(
+      $form['question'][$node->nid]['is_doubtful'] = array(
         '#type' => 'checkbox',
-        '#title' => t('doubtful'),
-        '#weight' => 1,
-        '#prefix' => '<div class="mark-doubtful checkbox enabled"><div class="toggle"><div></div></div>',
-        '#suffix' => '</div>',
-        '#default_value' => 0,
-        '#attached' => array(
-          'js' => array(drupal_get_path('module', 'quiz') . '/theme/quiz_take.js'),
-        ),
+        '#title' => t('Doubtful?'),
       );
-      if (isset($node->result_id)) {
-        $form['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $node->result_id, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
-      }
+      $form['question'][$node->nid]['is_doubtful']['#default_value'] = db_query('SELECT is_doubtful FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $quiz_result->result_id, ':question_nid' => $node->nid, ':question_vid' => $node->vid))->fetchField();
     }
   }
 
@@ -868,17 +857,19 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     $questions = $quiz_result->layout;
 
     if (!empty($form_state['values']['question'])) {
-      foreach ($form_state['values']['question'] as $nid => $answer) {
+      foreach ($form_state['values']['question'] as $nid => $response) {
+        $answer = $response['answer'];
         foreach ($questions as $question) {
           if ($question['nid'] == $nid) {
             $question_array = $question;
             $current_question = node_load($question['nid'], $question['vid']);
           }
         }
-        $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]);
+        $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]['answer']);
         $qi_instance->delete();
         $qi_instance->saveResult();
         $result = $qi_instance->toBareObject();
+        $result->is_doubtful = !empty($response['is_doubtful']);
         quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
 
         // Increment the counter.
@@ -979,7 +970,7 @@ function quiz_question_answering_form_validate(&$form, &$form_state) {
     return;
   }
 
-  foreach ($form_state['values']['question'] as $nid => $answer) {
+  foreach (array_keys($form_state['values']['question']) as $nid) {
     $current_question = node_load($nid);
 
     if ($current_question) {
@@ -1034,7 +1025,7 @@ function quiz_question_node_grants($account, $op) {
 function quiz_question_element_validate(&$element, &$form_state) {
   $quiz = node_load(arg(1));
   $question_nid = $element['#array_parents'][1];
-  $answer = $form_state['values']['question'][$question_nid];
+  $answer = $form_state['values']['question'][$question_nid]['answer'];
   $current_question = node_load($question_nid);
 
   // There was an answer submitted.

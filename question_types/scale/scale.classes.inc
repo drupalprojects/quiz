@@ -374,7 +374,7 @@ class ScaleQuestion extends QuizQuestion {
    * Question response validator.
    */
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
-    if ($form_state['values']['question'][$this->node->nid] == '') {
+    if ($form_state['values']['question'][$this->node->nid]['answer'] == '') {
       form_set_error('', t('You must provide an answer.'));
     }
   }

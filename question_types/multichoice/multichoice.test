@@ -95,7 +95,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     // Test incorrect question. Feedback, answer.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer]" => $question_node->alternatives[1]['id'],
+      "question[$question_node->nid][answer][user_answer]" => $question_node->alternatives[1]['id'],
       ), t('Finish'));
     $this->assertPattern('/quiz-score-icon selected/', 'Found selected answer.');
     $this->assertPattern('/quiz-score-icon should/', 'Found should answer.');
@@ -116,8 +116,8 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer][1]" => 1,
-      "question[$question_node->nid][user_answer][3]" => 3,
+      "question[$question_node->nid][answer][user_answer][1]" => 1,
+      "question[$question_node->nid][answer][user_answer][3]" => 3,
       ), t('Finish'));
     // 0 of 1, because user picked a correct answer and an incorrect answer.
     $this->assertText('You got 0 of 1 possible points.');
@@ -125,7 +125,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
 
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer][1]" => 1,
+      "question[$question_node->nid][answer][user_answer][1]" => 1,
       ), t('Finish'));
     // 1 of 1, because user picked a correct answer and not an incorrect answer.
     $this->assertText('You got 1 of 1 possible points.');
@@ -145,7 +145,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
 
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer]" => $question_node->alternatives[0]['id'],
+      "question[$question_node->nid][answer][user_answer]" => $question_node->alternatives[0]['id'],
       ), t('Finish'));
   }
 
@@ -167,15 +167,15 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
 
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer][1]" => 1,
-      "question[$question_node->nid][user_answer][3]" => 3,
+      "question[$question_node->nid][answer][user_answer][1]" => 1,
+      "question[$question_node->nid][answer][user_answer][3]" => 3,
       ), t('Finish'));
     $this->assertText('You got 0 of 1 possible points.');
     $this->assertText('Your score: 0%');
 
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer][1]" => 1,
+      "question[$question_node->nid][answer][user_answer][1]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
     $this->assertText('Your score: 100%');
@@ -208,7 +208,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     $this->assertTrue($b < $c, 'B comes before C');
 
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer]" => 1,
+      "question[$question_node->nid][answer][user_answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
     $this->assertText('Your score: 100%');
@@ -238,7 +238,7 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
     // Check that the correct answer did not change even with the weight
     // adjustment.
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][user_answer]" => 4,
+      "question[$question_node->nid][answer][user_answer]" => 4,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
     $this->assertText('Your score: 100%');

@@ -141,7 +141,7 @@ class QuizCreationTestCase extends QuizTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->assertText("Revision 1");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 1,
+      "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
 
@@ -164,7 +164,7 @@ class QuizCreationTestCase extends QuizTestCase {
     $this->assertText("Revision 1");
     // Finish the attempt.
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 1,
+      "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
 
@@ -174,7 +174,7 @@ class QuizCreationTestCase extends QuizTestCase {
     $this->assertText("Revision 2");
     // Finish the attempt.
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 1,
+      "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 0 of 1 possible points.');
   }

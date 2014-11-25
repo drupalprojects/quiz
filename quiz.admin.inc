@@ -1318,8 +1318,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
  */
 function theme_quiz_node_form($variables) {
   $form = $variables['form'];
-  $path = drupal_get_path('module', 'quiz') . '/theme/quiz_node_form.js';
-  drupal_add_js($path);
   return theme('node_form', array('form' => $form));
 }
 

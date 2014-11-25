@@ -35,13 +35,13 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 0,
+      "question[$question_node->nid][answer]" => 0,
       ), t('Finish'));
     $this->assertText('The answer was incorrect. Please try again.');
     // Check that we are still on the question.
     $this->assertUrl("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 1,
+      "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertNoText('The answer was incorrect. Please try again.');
   }
@@ -68,7 +68,7 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertResponse(403);
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
 
     // Login again.
@@ -104,7 +104,7 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertResponse(403);
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
 
     // Login again.
@@ -206,14 +206,14 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 0,
+      "question[$question_node1->nid][answer]" => 0,
       ), t('Next'));
     $this->assertText('Score: 0 of 1');
 
     // Go back and correct the answer.
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 1,
+      "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
     $this->assertText('Score: 1 of 1');
 
@@ -225,7 +225,7 @@ class QuizTakingTestCase extends QuizTestCase {
 
     // Check that the answer cannot be changed.
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
-    $disabled_field = $this->xpath('//input[@id=:id and @disabled="disabled"]', array(':id' => 'edit-question-2-1'));
+    $disabled_field = $this->xpath('//input[@id=:id and @disabled="disabled"]', array(':id' => 'edit-question-2-answer-1'));
     $this->assertTrue($disabled_field, t('The answer cannot be changed.'));
     $this->drupalPost(NULL, array(
       ), t('Next'));

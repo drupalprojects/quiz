@@ -40,21 +40,21 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     // Test incorrect.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'This is an incorrect answer.',
+      "question[$question_node->nid][answer]" => 'This is an incorrect answer.',
       ), t('Finish'));
     $this->assertText('Your score: 0%');
 
     // Test correct.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'the Zero One Infinity rule',
+      "question[$question_node->nid][answer]" => 'the Zero One Infinity rule',
       ), t('Finish'));
     $this->assertText('Your score: 100%');
 
     // Test correct.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'the zero one Infinity rule',
+      "question[$question_node->nid][answer]" => 'the zero one Infinity rule',
       ), t('Finish'));
     $this->assertText('Your score: 100%');
   }
@@ -79,14 +79,14 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     // Test incorrect.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'the zero one Infinity rule',
+      "question[$question_node->nid][answer]" => 'the zero one Infinity rule',
       ), t('Finish'));
     $this->assertText('Your score: 0%');
 
     // Test correct.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'the Zero One Infinity rule',
+      "question[$question_node->nid][answer]" => 'the Zero One Infinity rule',
       ), t('Finish'));
     $this->assertText('Your score: 100%');
   }
@@ -109,14 +109,14 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'um some rule, I forget',
+      "question[$question_node->nid][answer]" => 'um some rule, I forget',
       ), t('Finish'));
     $this->assertText('Your score: 0%');
 
     // Test correct.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid]" => 'the answer is the zero one infinity rule',
+      "question[$question_node->nid][answer]" => 'the answer is the zero one infinity rule',
       ), t('Finish'));
     $this->assertText('Your score: 100%');
   }
@@ -148,10 +148,10 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node1->nid]" => 'the answer is the zero one infinity rule',
+      "question[$question_node1->nid][answer]" => 'the answer is the zero one infinity rule',
       ), t('Next'));
     $this->drupalPost(NULL, array(
-      "question[$question_node2->nid]" => 'the number two really is ridiculous',
+      "question[$question_node2->nid][answer]" => 'the number two really is ridiculous',
       ), t('Finish'));
     $this->assertText('Your score: 0%');
     // Strange behavior - extra spaces in HTML.
