@@ -1109,7 +1109,7 @@ function quiz_form(&$node, &$form_state) {
     ),
     '#title' => t('Each attempt builds on the last'),
     '#default_value' => $node->build_on_last,
-    '#description' => t('Instead of starting a fresh Quiz, new attempts will be created based on the last attempt, with correct answers prefilled.'),
+    '#description' => t('Instead of starting a fresh @quiz, new attempts will be created based on the last attempt, with correct answers prefilled.', array('@quiz' => QUIZ_NAME)),
   );
   $form['taking']['mark_doubtful'] = array(
     '#type' => 'checkbox',
