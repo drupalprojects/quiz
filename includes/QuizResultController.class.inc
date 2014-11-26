@@ -101,31 +101,44 @@ class QuizResultController extends EntityAPIController {
         entity_save('quiz_result_answer', $quiz_result_answer);
       }
 
-      if ($quiz->build_on_last) {
-        // We need to reload to get the layout loaded on.
+      if (!empty($entity->build_on_last)) {
+        $build_on_last = $entity->build_on_last;
+        // @kludge we need to reload to get the layout loaded on.
         $entity = quiz_result_load($entity->result_id);
+        $entity->build_on_last = $build_on_last;
 
         // Build on the last attempt the user took. If this quiz has build on last
         // attempt set, we need to search for a previous attempt with the same
         // version of the current quiz.
-        $efq = new EntityFieldQuery;
-        $result = $efq->entityCondition('entity_type', 'quiz_result')
-          ->propertyCondition('uid', $entity->uid)
-          ->propertyCondition('nid', $quiz->nid)
-          ->propertyCondition('vid', $quiz->vid)
-          ->propertyCondition('result_id', $entity->result_id, '!=')
-          ->propertyOrderBy('time_start', 'DESC')
-          ->range(0, 1)
-          ->execute();
-        if (!empty($result['quiz_result'])) {
-          // Found an existing result we need to rebuild from.
-          $result_id = key($result['quiz_result']);
-          $quiz_result_old = entity_load_single('quiz_result', $result_id);
-          // Now clone the answers on top of the new result.
-          quiz_clone_quiz_result($quiz_result_old, $entity);
-        }
+        $quiz_result_old = self::findOldResult($entity);
+        // Now clone the answers on top of the new result.
+        quiz_clone_quiz_result($quiz_result_old, $entity);
       }
     }
+  }
+
+  /**
+   * Find a result that is not the same as the passed result.
+   *
+   * Note: the Quiz result does not have an actually exist - in that case, it
+   * will return the first completed result found.
+   */
+  public static function findOldResult($quiz_result) {
+    $efq = new EntityFieldQuery;
+    $result = $efq->entityCondition('entity_type', 'quiz_result')
+      ->propertyCondition('uid', $quiz_result->uid)
+      ->propertyCondition('nid', $quiz_result->nid)
+      ->propertyCondition('vid', $quiz_result->vid)
+      ->propertyCondition('result_id', isset($quiz_result->result_id) ? $quiz_result->result_id : 0, '!=')
+      ->propertyCondition('time_start', 0, '>')
+      ->propertyOrderBy('time_start', 'DESC')
+      ->range(0, 1)
+      ->execute();
+    if (!empty($result['quiz_result'])) {
+      $old_quiz_result = reset($result['quiz_result']);
+      return quiz_result_load($old_quiz_result->result_id);
+    }
+    return FALSE;
   }
 
 }

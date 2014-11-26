@@ -368,6 +368,7 @@ class QuizResultTestCase extends QuizTestCase {
 
     // Take the quiz.
     $this->drupalGet("node/$quiz_node->nid/take");
+    // No build on last form here.
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
@@ -381,8 +382,11 @@ class QuizResultTestCase extends QuizTestCase {
       "question[$question_node4->nid][answer]" => 0,
       ), t('Finish'));
 
-    // Take it again, ensure the answers are prefilled.
+    // Take it again, ensure the correct answers are prefilled.
     $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      'build_on_last' => 'correct',
+      ), t('Start @quiz', array('@quiz' => QUIZ_NAME)));
     $this->assertFieldChecked("edit-question-{$question_node1->nid}-answer-1");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
@@ -421,6 +425,9 @@ class QuizResultTestCase extends QuizTestCase {
 
     // Take it again, ensure all the answers are prefilled.
     $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      'build_on_last' => 'all',
+      ), t('Start @quiz', array('@quiz' => QUIZ_NAME)));
     $this->assertFieldChecked("edit-question-{$question_node1->nid}-answer-1");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,

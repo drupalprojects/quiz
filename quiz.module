@@ -1008,7 +1008,13 @@ function quiz_take_page($quiz) {
       'uid' => $GLOBALS['user']->uid,
     ));
   }
-  if ($instances = field_info_instances('quiz_result', 'quiz_result')) {
+  $build_on_last = !empty($quiz->build_on_last) && QuizResultController::findOldResult($quiz_result);
+  if ($build_on_last || $instances = field_info_instances('quiz_result', 'quiz_result')) {
+    // @kludge above, how are we going to check this form for fields? checking
+    // for field instances is easy, but what about these one-offs? maybe we can
+    // require add-on field items to put something in the $form so that we can
+    // check it. I don't want to have the "start" button show if we don't have
+    // anything to ask the user.
     return entity_ui_get_form('quiz_result', $quiz_result);
   }
   else {
@@ -2392,7 +2398,7 @@ function quiz_start_check($quiz) {
 
   // Check to see if the user is registered, and user alredy passed this quiz.
   if ($quiz->show_passed && $user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
-    drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
+    drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status', FALSE);
   }
 
   return TRUE;
@@ -4003,13 +4009,11 @@ function quiz_translate_form_date(&$node, $date) {
  * Clone a result, and its correct answers. Do not finish.
  */
 function quiz_clone_quiz_result($result_old, $result_new) {
-  $quiz = node_load($result_old->nid, $result_old->vid);
-
   // Re-take all the questions.
   foreach ($result_old->layout as $qinfo) {
     $question = node_load($qinfo['nid'], $qinfo['vid']);
     $quizQuestionResponse = _quiz_question_response_get_instance($result_old->result_id, $question);
-    if ($quiz->build_on_last == 'all' || $quizQuestionResponse->isCorrect()) {
+    if ($result_new->build_on_last == 'all' || $quizQuestionResponse->isCorrect()) {
       // Override the existing response.
       $quizQuestionResponse->setResultId($result_new->result_id);
       $quizQuestionResponse->saveResult();
@@ -4024,6 +4028,23 @@ function quiz_clone_quiz_result($result_old, $result_new) {
  */
 function quiz_result_form($form, &$form_state, $quiz_result) {
   field_attach_form('quiz_result', $quiz_result, $form, $form_state);
+
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+
+  if (!empty($quiz->build_on_last) && QuizResultController::findOldResult($quiz_result)) {
+    $form['build_on_last'] = array(
+      '#title' => t('Keep answers from last attempt?'),
+      '#type' => 'radios',
+      '#options' => array(
+        '' => t('No answers'),
+        'correct' => t('Only correct answers'),
+        'all' => t('All answers'),
+      ),
+      '#default_value' => $quiz->build_on_last,
+      '#description' => t('You can choose to keep previous answers or start a new attempt.'),
+      '#access' => $quiz->build_on_last,
+    );
+  }
 
   $form['actions'] = array('#type' => 'actions');
   $form['actions']['submit'] = array(
@@ -4040,6 +4061,13 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
 function quiz_result_form_submit($form, &$form_state) {
   $quiz_result = $form_state['quiz_result'];
   field_attach_submit('quiz_result', $quiz_result, $form, $form_state);
+  // What is a better way to do this? Maybe a serialized data column with the
+  // 'merge' option enabled? We don't really need to store this selection, but
+  // maybe others do for different types of Quiz initiations.
+  if (!empty($form_state['values']['build_on_last'])) {
+    $quiz_result->build_on_last = $form_state['values']['build_on_last'];
+  }
   entity_save('quiz_result', $quiz_result);
-  $_SESSION['quiz'][$quiz_result->nid]['current'] = $quiz_result->result_id;
+  $_SESSION['quiz'][$quiz_result->nid]['result_id'] = $quiz_result->result_id;
+  $_SESSION['quiz'][$quiz_result->nid]['current'] = 1;
 }
