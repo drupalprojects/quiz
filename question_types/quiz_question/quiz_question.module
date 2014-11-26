@@ -883,6 +883,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   if (!empty($quiz->review_options['question']) && array_filter($quiz->review_options['question']) && $feedback_count) {
     // We have question feedback.
     $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current'] - 1) . '/feedback';
+    $form_state['feedback'] = TRUE;
   }
   else {
     // No question feedback. Go to next question.
@@ -907,7 +908,7 @@ function quiz_question_answering_form_finalize(&$form, &$form_state) {
   // No more questions. Score quiz.
   $score = quiz_end_scoring($_SESSION['quiz'][$quiz->nid]['result_id']);
 
-  if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question'])) {
+  if (empty($quiz->review_options['question']) || !array_filter($quiz->review_options['question']) || empty($form_state['feedback'])) {
     // Only redirect to question results if there is not question feedback.
     $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
   }
