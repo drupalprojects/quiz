@@ -446,4 +446,60 @@ class QuizResultTestCase extends QuizTestCase {
       ), t('Finish'));
   }
 
+  /**
+   * Test fieldable Quiz results.
+   */
+  function testFieldableResults() {
+    // Add a field to quiz result and make it required for starting.
+    $field = array(
+      'field_name' => 'quiz_result_field_a',
+      'type' => 'text',
+    );
+    $instance = array(
+      'field_name' => 'quiz_result_field_a',
+      'entity_type' => 'quiz_result',
+      'bundle' => 'quiz_result',
+      'label' => 'Result field A',
+      'widget' => array(
+        'active' => 1,
+        'module' => 'text',
+        'settings' => array(
+          'size' => 60,
+        ),
+        'type' => 'text_textfield',
+        'weight' => 1,
+      ),
+      'settings' => array(
+        'quiz_result_user_field' => 1,
+      ),
+      'required' => 1,
+    );
+    field_create_field($field);
+    field_create_instance($instance);
+
+    $quizNodeA = $this->drupalCreateQuiz();
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1, 'feedback' => 'Q1Feedback'));
+    $this->linkQuestionToQuiz($question_node1, $quizNodeA);
+    $this->drupalLogin($this->user);
+
+    // Check if field shows up and user is not yet enrolled.
+    $this->drupalGet("node/$quizNodeA->nid/take");
+    $this->assertFieldById('edit-quiz-result-field-a-und-0-value');
+
+    // We haven't submitted the form so we should not have a Quiz result yet.
+    $quiz_result = _quiz_active_result_id($this->user->uid, $quizNodeA->nid, $quizNodeA->vid);
+    $this->assertFalse($quiz_result, 'Quiz result does not yet exist.');
+
+    // Submit the form.
+    $this->drupalPost(NULL, array(), t('Start Quiz'));
+    // Check that we hooked into Form API correctly.
+    $this->assertText('field is required');
+
+    // SUbmit the form with data.
+    $this->drupalPost(NULL, array('quiz_result_field_a[und][0][value]' => 'test 123'), t('Start Quiz'));
+    $quiz_result = _quiz_active_result_id($this->user->uid, $quizNodeA->nid, $quizNodeA->vid);
+    // Check the result exists now.
+    $this->assertTrue($quiz_result, 'Quiz result exists.');
+  }
+
 }
