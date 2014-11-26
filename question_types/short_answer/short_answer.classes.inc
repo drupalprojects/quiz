@@ -438,13 +438,13 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     $data = array();
 
     $data[] = array(
-      'choice' => '',
+      // Hide this column. Does not make sense for short answer as there are no choices.
+      'choice' => NULL,
       'attempt' => $this->answer,
-      'correct' => !$this->evaluated ? t('This answer has not yet been scored.') : '',
-      'score' => $this->getScore(),
+      'correct' => $this->question->answers[0]['is_correct'] ? quiz_icon('correct') : quiz_icon(''),
+      'score' => !$this->evaluated ? t('This answer has not yet been scored.') : $this->getScore(),
       'answer_feedback' => check_markup($this->answer_feedback, $this->answer_feedback_format),
-      'question_feedback' => '',
-      'solution' => '',
+      'solution' => $this->question->correct_answer,
     );
 
     return $data;

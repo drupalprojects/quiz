@@ -703,7 +703,7 @@ abstract class QuizQuestionResponse {
 
     foreach ($this->getReportFormResponse() as $idx => $row) {
       foreach ($labels as $reviewType => $label) {
-        if (in_array($reviewType, array('choice')) || (isset($row[$reviewType]) && $this->canReview($reviewType))) {
+        if ((in_array($reviewType, array('choice')) && $row[$reviewType] != NULL) || (isset($row[$reviewType]) && $this->canReview($reviewType))) {
           $rows[$idx][$reviewType] = $row[$reviewType];
         }
       }
@@ -763,7 +763,11 @@ abstract class QuizQuestionResponse {
    * Get the response part of the report form
 
    * @return
-   *  Array of choices
+   *  Array of response data, with each item being an answer to a response. For
+   *  an example, see MultichoiceResponse::getReportFormResponse(). The sub
+   *  items are keyed by the feedback type. Providing a NULL option means that
+   *  feedback will not be shown. Seen an example at
+   *  LongAnswerResponse::getReportFormResponse().
    */
   public function getReportFormResponse() {
     $data = array();
