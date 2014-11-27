@@ -197,7 +197,7 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
   /**
    * Test adding and taking a truefalse question.
    */
-  function testCreateQuizQuestion($settings = NULL) {
+  function testCreateQuizQuestion($settings = array()) {
     if (!$settings) {
       $settings = array(
         'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_INSENSITIVE_MATCH,

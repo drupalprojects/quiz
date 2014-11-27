@@ -10,7 +10,7 @@
  */
 abstract class QuizQuestionTestCase extends QuizTestCase {
 
-   var $question_node_type = 'quiz_question';
+  var $question_node_type = 'quiz_question';
 
   /**
    * Set up a question test case.
@@ -40,4 +40,9 @@ abstract class QuizQuestionTestCase extends QuizTestCase {
     $this->assertTrue(isset($qq[$this->question_node_type]), t('Check that the question implementation is correct.'));
   }
 
+  /**
+   * Every question test should implement a test for creation of its own
+   * question.
+   */
+  abstract public function testCreateQuizQuestion();
 }

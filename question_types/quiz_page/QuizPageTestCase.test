@@ -102,4 +102,20 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->assertText('TF 3 body text');
   }
 
+  /**
+   * Test adding and taking a quiz page question.
+   */
+  function testCreateQuizQuestion($settings = array()) {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    $question_node = $this->drupalCreateNode(array(
+      'type' => $this->question_node_type,
+      'title' => 'PG 1 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'PG 1 body text.'))),
+      ) + $settings);
+
+    return $question_node;
+  }
+
 }
