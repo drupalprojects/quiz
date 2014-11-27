@@ -1463,7 +1463,7 @@ function _quiz_get_question_row($sub_form, $id) {
 
 /**
  * Helper function returning number of days as values and corresponding
- * number of milliseconds as array keys.
+ * number of seconds as array keys.
  *
  * @return
  *   array of options for when we want to delete partial quiz record values.
