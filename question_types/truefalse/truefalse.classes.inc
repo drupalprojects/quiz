@@ -286,7 +286,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
 
     $data = array();
     $data[] = array(
-      'choice' => 'True',
+      'choice' => t('True'),
       'attempt' => $answer ? quiz_icon('selected') : '',
       'correct' => $answer == 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
       'score' => intval($correct_answer == 1 && $answer == 1),
@@ -295,7 +295,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
     );
 
     $data[] = array(
-      'choice' => 'False',
+      'choice' => t('False'),
       'attempt' => !$answer ? quiz_icon('selected') : '',
       'correct' => $answer == 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
       'score' => intval($correct_answer == 0 && $answer == 0),
