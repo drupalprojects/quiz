@@ -10,6 +10,9 @@ function quiz_generate_form($form, $form_state) {
     '#type' => 'checkboxes',
     '#title' => t('Quiz types'),
     '#options' => $quiz_options,
+    '#default_value' => array('quiz' => 'quiz'),
+    '#required' => TRUE,
+    '#access' => FALSE,
   );
 
   $question_options = array();
@@ -21,33 +24,35 @@ function quiz_generate_form($form, $form_state) {
     '#type' => 'checkboxes',
     '#title' => t('Question types'),
     '#options' => $question_options,
-    '#default_value' => array('quiz'),
+    '#default_value' => array_keys($question_options),
     '#required' => TRUE,
   );
 
   $form['quiz_limit'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum number of quizzes per type'),
-    '#default_value' => 10,
+    '#title' => t('Number of quizzes to generate'),
+    '#default_value' => 50,
     '#size' => 10,
     '#required' => TRUE,
-    '#access' => FALSE, // not yet
+    '#description' => t('Quiz authors will be randomly assigned.'),
   );
 
   $form['quiz_question_limit'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum number of questions per quiz'),
-    '#default_value' => 30,
+    '#title' => t('Number of questions per quiz'),
+    '#default_value' => 10,
     '#size' => 10,
     '#required' => TRUE,
+    '#description' => t('Question authors will be randomly assigned.'),
   );
 
   $form['quiz_results'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum number of results per quiz'),
-    '#default_value' => 30,
+    '#title' => t('Number of results per quiz'),
+    '#default_value' => 50,
     '#size' => 10,
     '#required' => TRUE,
+    '#description' => t('Results will be randomly assigned to users already in the system.'),
   );
 
   $form['submit'] = array(
@@ -71,7 +76,7 @@ function quiz_generate_form_submit($form, &$form_state) {
   $question_limit = $form_state['values']['quiz_question_limit'];
   $quiz_results = $form_state['values']['quiz_results'];
 
-  for ($i = 0; $i < $quiz_limit; ++$i) {
+  for ($i = 1; $i <= $quiz_limit; $i++) {
     quiz_generate($quiz_type = array_rand($quiz_types), $question_types, $question_limit, $quiz_results);
   }
 }
@@ -87,28 +92,42 @@ function quiz_generate_form_submit($form, &$form_state) {
  * @param type $quiz_results
  */
 function quiz_generate($quiz_type, $question_types, $question_limit, $quiz_results) {
-  global $user;
+  $users = array_filter(devel_get_users());
   $quiz = (object) array(
       'type' => $quiz_type,
       'title' => devel_create_greeking(rand(5, 10), TRUE),
-      'uid' => $user->uid,
+      'uid' => $users[array_rand($users)],
       'created' => REQUEST_TIME,
       'changed' => REQUEST_TIME,
   );
+
+  // Populate all core fields on behalf of field.module
+  module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+  devel_generate_fields($quiz, 'node', $quiz->type);
   node_save($quiz);
 
-  $limit = rand(1, $question_limit);
-  for ($i = 0; $i < $limit; ++$i) {
+  for ($i = 1; $i <= $question_limit; $i++) {
     quiz_generate_questions($quiz, array_rand($question_types));
   }
 
-  $limit = rand(1, $quiz_results);
-  for ($i = 0; $i < $limit; ++$i) {
+  for ($i = 1; $i <= $quiz_results; $i++) {
     $quiz_result = entity_create('quiz_result', array(
       'nid' => $quiz->nid,
       'vid' => $quiz->vid,
-      'uid' => $user->uid,
-    ))->save();
+      'uid' => $users[array_rand($users)],
+    ));
+    $quiz_result->save();
+    db_update('quiz_node_results_answers')
+      ->expression('points_awarded', 'result_answer_id % 5')
+      ->expression('is_correct', 'result_answer_id % 2')
+      ->condition('result_id', $quiz_result->result_id)
+      ->execute();
+    db_update('quiz_node_results')
+      ->expression('score', rand(1, 100))
+      ->expression('is_evaluated', 1)
+      ->expression('time_end', rand(REQUEST_TIME - 525600 * 60, REQUEST_TIME))
+      ->condition('result_id', $quiz_result->result_id)
+      ->execute();
   }
 
   drupal_set_message('Generated quiz: ' . l($quiz->title, 'node/' . $quiz->nid));
@@ -120,7 +139,7 @@ function quiz_generate($quiz_type, $question_types, $question_limit, $quiz_resul
  * @param type $question_type
  */
 function quiz_generate_questions($quiz, $question_type) {
-  global $user;
+  $users = array_filter(devel_get_users());
   $question_array = array(
     'type' => $question_type,
     'changed' => REQUEST_TIME,
@@ -132,7 +151,7 @@ function quiz_generate_questions($quiz, $question_type) {
     'language' => LANGUAGE_NONE,
     'title' => devel_create_greeking(rand(5, 20), TRUE),
     'body' => array(LANGUAGE_NONE => array(array('value' => devel_create_para(rand(20, 50), 1)))),
-    'uid' => $user->uid,
+    'uid' => $users[array_rand($users)],
   );
 
   switch ($question_type) {
@@ -161,8 +180,10 @@ function quiz_generate_questions($quiz, $question_type) {
 
   // Create question node
   $question = (object) $question_array;
+  // Populate all core fields on behalf of field.module
+  module_load_include('inc', 'devel_generate', 'devel_generate.fields');
+  devel_generate_fields($question, 'node', $question->type);
   node_save($question);
-  devel_generate_fields($question, 'node', $question_type);
 
   // Stolen from quiz_add_question_to_quiz().
   $question->quiz_nid = $quiz->nid;
