@@ -27,17 +27,27 @@ function quiz_generate_form($form, $form_state) {
 
   $form['quiz_limit'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum number of quizzes per type.'),
+    '#title' => t('Maximum number of quizzes per type'),
     '#default_value' => 10,
     '#size' => 10,
     '#required' => TRUE,
+    '#access' => FALSE, // not yet
   );
 
   $form['quiz_question_limit'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximum number of questions per quiz.'),
+    '#title' => t('Maximum number of questions per quiz'),
     '#default_value' => 30,
     '#size' => 10,
+    '#required' => TRUE,
+  );
+
+  $form['quiz_results'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum number of results per quiz'),
+    '#default_value' => 30,
+    '#size' => 10,
+    '#required' => TRUE,
   );
 
   $form['submit'] = array(
@@ -59,20 +69,24 @@ function quiz_generate_form_submit($form, &$form_state) {
   $quiz_limit = $form_state['values']['quiz_limit'];
   $question_types = array_filter($form_state['values']['quiz_question_types']);
   $question_limit = $form_state['values']['quiz_question_limit'];
+  $quiz_results = $form_state['values']['quiz_results'];
 
   for ($i = 0; $i < $quiz_limit; ++$i) {
-    quiz_generate($quiz_type = array_rand($quiz_types), $question_types, $question_limit);
+    quiz_generate($quiz_type = array_rand($quiz_types), $question_types, $question_limit, $quiz_results);
   }
 }
 
 /**
  * Generate random quiz data.
  *
+ * @todo associate results with random users
+ *
  * @param type $quiz_type
  * @param type $question_types
  * @param type $question_limit
+ * @param type $quiz_results
  */
-function quiz_generate($quiz_type, $question_types, $question_limit) {
+function quiz_generate($quiz_type, $question_types, $question_limit, $quiz_results) {
   global $user;
   $quiz = (object) array(
       'type' => $quiz_type,
@@ -86,6 +100,15 @@ function quiz_generate($quiz_type, $question_types, $question_limit) {
   $limit = rand(1, $question_limit);
   for ($i = 0; $i < $limit; ++$i) {
     quiz_generate_questions($quiz, array_rand($question_types));
+  }
+
+  $limit = rand(1, $quiz_results);
+  for ($i = 0; $i < $limit; ++$i) {
+    $quiz_result = entity_create('quiz_result', array(
+      'nid' => $quiz->nid,
+      'vid' => $quiz->vid,
+      'uid' => $user->uid,
+    ))->save();
   }
 
   drupal_set_message('Generated quiz: ' . l($quiz->title, 'node/' . $quiz->nid));
