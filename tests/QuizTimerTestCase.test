@@ -46,7 +46,7 @@ class QuizTimerTestCase extends QuizTestCase {
     $this->assertNoText(t('The last answer was not submitted, as the time ran out.'));
 
     // Set the quiz result to have started 31 seconds ago.
-    db_query('UPDATE {quiz_node_results} SET time_start = :time', array(':time' => REQUEST_TIME - 31));
+    db_query('UPDATE {quiz_node_results} SET time_start = :time', array(':time' => time() - 31));
 
     // Submit the last question past the expiration.
     $this->drupalPost(NULL, array(
