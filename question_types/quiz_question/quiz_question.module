@@ -1065,12 +1065,14 @@ function quiz_icon($icon) {
 function quiz_question_entity_info() {
   return array(
     'quiz_question' => array(
-      'label' => t('Quiz question properties'),
-      'controller class' => 'EntityAPIController',
       'base table' => 'quiz_question_properties',
+      'controller class' => 'QuizQuestionController',
+      'entity class' => 'QuizQuestion',
       'entity keys' => array(
         'id' => 'qqp_id',
       ),
+      'label' => 'Quiz question properties',
+      'metadata controller class' => 'QuizQuestionMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
     ),
   );
