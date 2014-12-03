@@ -1067,7 +1067,7 @@ function quiz_question_entity_info() {
     'quiz_question' => array(
       'base table' => 'quiz_question_properties',
       'controller class' => 'QuizQuestionController',
-      'entity class' => 'QuizQuestion',
+      'entity class' => 'Entity',
       'entity keys' => array(
         'id' => 'qqp_id',
       ),
