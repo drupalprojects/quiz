@@ -256,3 +256,30 @@ $handler->display->display_options['filters']['quiz_question']['table'] = 'node'
 $handler->display->display_options['filters']['quiz_question']['field'] = 'quiz_question';
 $handler->display->display_options['filters']['quiz_question']['value'] = '1';
 $handler->display->display_options['filters']['quiz_question']['group'] = 1;
+$translatables['quiz_question_bank'] = array(
+  t('Master'),
+  t('Question bank'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('No questions found using the given criteria.'),
+  t('author'),
+  t('Content'),
+  t('- Choose an operation -'),
+  t('Title'),
+  t('Type'),
+  t('Changed'),
+  t('Author'),
+  t('Question title'),
+  t('Question type'),
+);

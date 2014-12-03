@@ -131,3 +131,33 @@ $handler->display->display_options['menu']['title'] = 'My results';
 $handler->display->display_options['menu']['weight'] = '0';
 $handler->display->display_options['menu']['context'] = 0;
 $handler->display->display_options['menu']['context_only_inline'] = 0;
+$translatables['quiz_user_results'] = array(
+  t('Master'),
+  t('My results'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort by'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('« first'),
+  t('‹ previous'),
+  t('next ›'),
+  t('last »'),
+  t('There are no attempts on this Quiz yet.'),
+  t('User'),
+  t('Date started'),
+  t('Date finished'),
+  t('Score'),
+  t('.'),
+  t(','),
+  t('Nid'),
+  t('Quiz result ID'),
+  t('Operations'),
+  t('View'),
+  t('All'),
+  t('Page'),
+);
