@@ -467,6 +467,11 @@ class MultichoiceQuestion extends QuizQuestion {
       }
     }
 
+
+    $element['#attached']['js'] = array(
+      drupal_get_path('module', 'multichoice') . '/multichoice.js',
+    );
+
     return $element;
   }
 

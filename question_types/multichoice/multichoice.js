@@ -102,7 +102,7 @@ var Multichoice = Multichoice || {};
                   });
                   $(':radio', this).attr('checked', true);
                   if ($(':radio', this).html() != null) {
-                    $('.multichoice-row').removeClass('selected');
+                    $(this).parent().find('.multichoice-row').removeClass('selected');
                     $(this).addClass('selected');
                   }
                 }
