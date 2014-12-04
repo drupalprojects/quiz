@@ -15,14 +15,6 @@ function short_answer_install() {
 }
 
 /**
- * Implements hook_uninstall().
- */
-function short_answer_uninstall() {
-  // TODO The drupal_(un)install_schema functions are called automatically in D7.
-  // drupal_uninstall_schema('short_answer')
-}
-
-/**
  * Implements hook_schema().
  */
 function short_answer_schema() {
@@ -66,11 +58,11 @@ function short_answer_schema() {
         'type' => 'text'
       ),
       // Feedback if answer is correct
-      'feedback_correct'  => array(
+      'feedback_correct' => array(
         'type' => 'text'
       ),
       // Feedback if answer is incorrect
-      'feedback_incorrect'  => array(
+      'feedback_incorrect' => array(
         'type' => 'text'
       ),
     ),
@@ -133,7 +125,6 @@ function short_answer_schema() {
   return $schema;
 }
 
-
 /**
  * Adding feedback field to table {quiz_short_answer_user_answers}
  */
@@ -153,8 +144,8 @@ function short_answer_update_7401() {
 function short_answer_update_7402() {
   if (!db_field_exists('quiz_short_answer_user_answers', 'answer_feedback_format')) {
     $spec = array(
-        'type' => 'varchar',
-        'length' => 255,
+      'type' => 'varchar',
+      'length' => 255,
     );
     db_add_field('quiz_short_answer_user_answers', 'answer_feedback_format', $spec);
   }
