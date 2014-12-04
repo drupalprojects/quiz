@@ -3739,7 +3739,7 @@ function quiz_result_load($result_id) {
  * Menu check to see if user has access to take this question.
  */
 function quiz_access_question($quiz, $question_number) {
-  if (!$question_number) {
+  if (!$question_number || empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     return FALSE;
   }
 
