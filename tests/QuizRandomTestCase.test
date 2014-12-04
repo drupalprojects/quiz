@@ -18,6 +18,7 @@ class QuizRandomTestCase extends QuizTestCase {
 
   public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
+    $modules[] = 'taxonomy';
     parent::setUp($modules);
   }
 
@@ -72,6 +73,10 @@ class QuizRandomTestCase extends QuizTestCase {
 
     // Check that at least one of the orders is different.
     $this->assertNotEqual(count(array_unique($out)), 1, t('At least one set of questions was different.'));
+
+    // Start the quiz.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}");
   }
 
   /**
@@ -134,6 +139,139 @@ class QuizRandomTestCase extends QuizTestCase {
 
     // Also check that at least one of the orders is different.
     $this->assertNotEqual(count(array_unique($out)), 1, t('At least one set of questions were different.'));
+
+    // Start the quiz.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}");
+  }
+
+  /**
+   * Test pulling questions from categories.
+   */
+  public function testCategorizedRandomQuestions() {
+    // Vocabs.
+    $v1 = new stdClass;
+    $v1->name = "Vocab 1";
+    $v1->machine_name = "vocab1";
+    taxonomy_vocabulary_save($v1);
+
+    // Terms.
+    $v1t1 = new stdClass;
+    $v1t1->vid = $v1->vid;
+    $v1t1->name = 'Vocab 1 Term 1';
+    taxonomy_term_save($v1t1);
+
+    $v1t2 = new stdClass;
+    $v1t2->vid = $v1->vid;
+    $v1t2->name = 'Vocab 1 Term 2';
+    taxonomy_term_save($v1t2);
+
+    $v1t3 = new stdClass;
+    $v1t3->vid = $v1->vid;
+    $v1t3->name = 'Vocab 1 Term 3';
+    taxonomy_term_save($v1t3);
+
+    $quiz = $this->drupalCreateQuiz(array(
+      'randomization' => 3,
+    ));
+
+    // Add two terms..
+    $quiz_term1 = array(
+      'nid' => $quiz->nid,
+      'vid' => $quiz->vid,
+      'tid' => $v1t1->tid,
+      'max_score' => 1,
+      'number' => 2,
+      'weight' => 0,
+    );
+    drupal_write_record('quiz_terms', $quiz_term1);
+
+    $quiz_term2 = array(
+      'nid' => $quiz->nid,
+      'vid' => $quiz->vid,
+      'tid' => $v1t2->tid,
+      'max_score' => 1,
+      'number' => 2,
+      'weight' => 0,
+    );
+    drupal_write_record('quiz_terms', $quiz_term2);
+
+    // Add a field to quiz result and make it required for starting.
+    $field = array(
+      'field_name' => 'question_category',
+      'type' => 'taxonomy_term_reference',
+    );
+    $instance = array(
+      'field_name' => 'question_category',
+      'entity_type' => 'node',
+      'bundle' => 'truefalse',
+      'label' => 'Question category',
+      'widget' => array(
+        'active' => 1,
+        'module' => 'taxonomy',
+        'settings' => array(
+          'size' => 60,
+        ),
+        'type' => 'options_select',
+      ),
+    );
+    field_create_field($field);
+    field_create_instance($instance);
+
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 1 v1t1',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t1->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 2 v1t1',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t1->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 3 v1t1',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t1->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 4 v1t2',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t2->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 5 v1t2',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t2->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+    $questions[] = $this->drupalCreateNode(array(
+        'title' => 'tf 6 v1t2',
+        'type' => 'truefalse',
+        'correct_answer' => 1,
+        'question_category' => array(LANGUAGE_NONE => array(array('tid' => $v1t2->tid))),
+        'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1 body text'))),
+      ))->nid;
+
+    $list = quiz_build_question_list($quiz);
+    $this->assertEqual(count($list), 4, 'Quiz had 4 questions.');
+    foreach ($list as $qinfo) {
+      $qq_nids[] = $qinfo['nid'];
+    }
+    $this->assertEqual(count(array_intersect($qq_nids, $questions)), 4, 'Questions were from the terms excluding 2.');
+
+    // Start the quiz.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz->nid}");
   }
 
 }

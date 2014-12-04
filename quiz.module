@@ -2615,7 +2615,7 @@ function _quiz_build_categorized_question_list($quiz) {
 
     $query = db_select('node', 'n');
     $query->join('taxonomy_index', 'tn', 'n.nid = tn.nid');
-    $query->fields('n', array('nid', 'vid'));
+    $query->fields('n', array('nid', 'vid', 'type'));
     $query->fields('tn', array('tid'));
     $query->condition('n.status', 1, '=');
     $query->condition('n.type', $question_types, 'IN');

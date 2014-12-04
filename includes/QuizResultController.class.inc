@@ -24,28 +24,33 @@ class QuizResultController extends EntityAPIController {
     $quiz_results = parent::load($ids, $conditions);
 
     foreach ($quiz_results as $quiz_result) {
-      $layout = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
-      foreach ($layout as $question) {
-        // @kludge
-        // This is bulky but now we have to manually find the type and parents of
-        // the question. This is the only information that is not stored in the
-        // quiz attempt. We reference back to the node relationships for this
-        // current version to get the hieararchy.
-        $sql = "SELECT n.type, qnr_id, qnr_pid FROM {quiz_node_results} qr
-        INNER JOIN {quiz_node_relationship} qnr on (qr.nid = qnr.parent_nid and qr.vid = qnr.parent_vid)
-        INNER JOIN {node} n ON (qnr.child_nid = n.nid)
-        WHERE qr.result_id = :result_id and n.nid = :nid";
-        $result = db_query($sql, array(':result_id' => $quiz_result->result_id, ':nid' => $question->question_nid));
-        $extra = $result->fetch();
+      $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
+        'parent_nid' => $quiz_result->nid,
+        'parent_vid' => $quiz_result->vid,
+      ));
+      $relationships = array();
+      foreach ($quiz_node_relationships as $quiz_node_relationship) {
+        $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
+      }
 
-        $quiz_result->layout[$question->number] = array(
-          'display_number' => $question->number,
-          'nid' => $question->question_nid,
-          'vid' => $question->question_vid,
-          'number' => $question->number,
-          'type' => $extra->type,
-          'qnr_id' => $extra->qnr_id,
-          'qnr_pid' => $extra->qnr_pid,
+      $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
+      foreach ($quiz_result_answers as $quiz_result_answer) {
+        $wrap = entity_metadata_wrapper('quiz_result_answer', $quiz_result_answer);
+        $type = $wrap->question_nid->value()->type;
+
+        if (!empty($relationships[$quiz_result_answer->question_nid])) {
+          $relationship = $relationships[$quiz_result_answer->question_nid];
+        }
+
+        $quiz_result->layout[$quiz_result_answer->number] = array(
+          'display_number' => $quiz_result_answer->number,
+          'nid' => $quiz_result_answer->question_nid,
+          'vid' => $quiz_result_answer->question_vid,
+          'tid' => $quiz_result_answer->tid,
+          'number' => $quiz_result_answer->number,
+          'type' => $type,
+          'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
+          'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
         );
       }
       ksort($quiz_result->layout, SORT_NUMERIC);
@@ -96,6 +101,7 @@ class QuizResultController extends EntityAPIController {
           'result_id' => $entity->result_id,
           'question_nid' => $question['nid'],
           'question_vid' => $question['vid'],
+          'tid' => !empty($question['tid']) ? $question['tid'] : NULL,
           'number' => ++$i,
         ));
         entity_save('quiz_result_answer', $quiz_result_answer);
