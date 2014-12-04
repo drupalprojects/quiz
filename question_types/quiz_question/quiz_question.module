@@ -445,7 +445,7 @@ function quiz_question_node_presave($node) {
   foreach ($q_types as $q_type => $info) {
     if ($node->type == $q_type) {
       if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
-        $markup = strip_tags(drupal_render(field_view_field('node', $node, 'body')));
+        $markup = strip_tags(drupal_render(field_view_field('node', $node, 'body', array('label' => 'hidden'))));
         if (drupal_strlen($markup) > variable_get('quiz_autotitle_length', 50)) {
           $node->title = drupal_substr($markup, 0, variable_get('quiz_autotitle_length', 50) - 3) . '...';
         }
