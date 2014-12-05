@@ -69,12 +69,13 @@ function quiz_question_theme() {
 function quiz_question_node_info() {
   $node_info = array();
   foreach (_quiz_question_get_implementations(NULL, TRUE) as $type => $definition) {
-    $node_info[$type] = array(
-      'name' => $definition['name'],
-      'base' => 'quiz_question',
-      'description' => $definition['description']
-    );
-    //$info[$type] = $node_info + $defaults;
+    if (!isset($definition['node']) || $definition['node']) {
+      $node_info[$type] = array(
+        'name' => $definition['name'],
+        'base' => 'quiz_question',
+        'description' => $definition['description']
+      );
+    }
   }
   return $node_info;
 }
