@@ -235,7 +235,7 @@ abstract class QuizQuestion {
 
     // Save what quizzes this question belongs to.
     $quizzes_kept = $this->saveRelationships();
-    if ($this->node->revision) {
+    if (!empty($this->node->revision)) {
       if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
         unset($_GET['destination']);
         unset($_REQUEST['edit']['destination']);
