@@ -534,7 +534,24 @@ function quiz_question_view($node, $view_mode) {
   }
   $content = '';
 
-  if (_quiz_is_taking_context()) {
+  if (!_quiz_is_taking_context() && $view_mode == 'teaser') {
+    $node->content['question_teaser'] = _quiz_question_teaser_content($node);
+  }
+  else {
+    // normal node view
+    //$question = _quiz_question_get_instance($node, TRUE);
+    $content = _quiz_question_get_instance($node, TRUE)->getNodeView();
+  }
+
+  // put it into the node->content
+  if (!empty($content)) {
+    $node->content = (isset($node->content)) ? $node->content + $content : $content;
+  }
+  return $node;
+}
+
+function quiz_question_node_view($node) {
+  if (_quiz_is_taking_context() && array_key_exists($node->type, _quiz_question_get_implementations())) {
     if (empty($node->no_answer_form)) {
       /*
        * @todo: I see no reason why this should be a part of view anymore.
@@ -551,20 +568,6 @@ function quiz_question_view($node, $view_mode) {
       }
     }
   }
-  elseif ($view_mode == 'teaser') {
-    $node->content['question_teaser'] = _quiz_question_teaser_content($node);
-  }
-  else {
-    // normal node view
-    //$question = _quiz_question_get_instance($node, TRUE);
-    $content = _quiz_question_get_instance($node, TRUE)->getNodeView();
-  }
-
-  // put it into the node->content
-  if (!empty($content)) {
-    $node->content = (isset($node->content)) ? $node->content + $content : $content;
-  }
-  return $node;
 }
 
 /**
