@@ -15,12 +15,14 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
   }
 
   public function score() {
-    $quiz_result = quiz_result_load($this->result_id);
+    global $user;
+    // TODO: Replace logged in user with the one who saved this shitt
+    
     // 'answer' from the form is the content_id
     $points = db_select('h5p_points', 'p')
       ->fields('p', array('points'))
       ->condition('content_id', $this->getResponse())
-      ->condition('uid', $quiz_result->uid)
+      ->condition('uid', $user->uid)
       ->execute()->fetchField();
     return $points;
   }
