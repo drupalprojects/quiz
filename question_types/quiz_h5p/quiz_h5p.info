@@ -1,0 +1,4 @@
+name = quiz h5p
+core = 7.x
+files[] = QuizQuestionH5P.class.inc
+files[] = QuizQuestionH5PResponse.class.inc

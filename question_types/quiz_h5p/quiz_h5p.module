@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * @file
+ * The main file for quiz_h5p.
+ */
+
+/**
+ * Implements hook_quiz_question_info().
+ */
+function quiz_h5p_quiz_question_info() {
+  return array(
+    'h5p_content' => array(
+      'name' => t('H5P question'),
+      'description' => t('Quiz questions using H5p'),
+      'question provider' => 'QuizQuestionH5P',
+      'response provider' => 'QuizQuestionH5PResponse',
+      'node' => FALSE,
+      'module' => 'quiz_question',
+    ),
+  );
+}
+
