@@ -746,7 +746,7 @@ abstract class QuizQuestionResponse {
    */
   public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) {
-      $this->question->max_score = $this->question->getMaximumScore();
+      $this->question->max_score = 1;
     }
     if (isset($this->question->score_weight) && $weight_adjusted) {
       return round($this->question->max_score * $this->question->score_weight);
