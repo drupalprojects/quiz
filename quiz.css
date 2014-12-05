@@ -115,6 +115,10 @@ div.quiz-report .dt {
   padding-left: 5px;
 }
 
+div.quiz-report .quiz-report-question-header h3 {
+  float:left;
+}
+
 div.quiz-report .dt div.quiz-report-score-container {
   border-right: solid 1px gray;
   border-left: solid 1px gray;

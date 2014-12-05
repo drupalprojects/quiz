@@ -24,23 +24,26 @@
       continue;
     unset($form[$key]);
     ?>
-    <div class="quiz-report-question dt">
-      <?php print drupal_render($sub_form['score_display']); ?>
-      <h3><strong><?php print t('Question') ?></strong></h3>
-      <?php print drupal_render($sub_form['question']); ?>
+    <div class="quiz-report-row clearfix">
+      <div class="quiz-report-question dt">
+        <div class="quiz-report-question-header clearfix">
+          <h3><?php print t('Question') ?></h3>
+          <?php print drupal_render($sub_form['score_display']); ?>
+        </div>
+        <?php print drupal_render($sub_form['question']); ?>
+      </div>
+      <div class="quiz-report-response dd">
+        <h3 class="quiz-report-response-header"><?php print t('Response') ?></h3>
+        <?php print drupal_render($sub_form['response']); ?>
+      </div>
+      <div class="quiz-report-question-feedback dd">
+        <?php print drupal_render($sub_form['question_feedback']); ?>
+      </div>
+      <div class="quiz-report-score-feedback dd">
+        <?php print drupal_render($sub_form['score']); ?>
+        <?php print drupal_render($sub_form['answer_feedback']); ?>
+      </div>
     </div>
-    <div class="quiz-report-response dd">
-      <h3><strong><?php print t('Response') ?>:</strong></h3>
-      <?php print drupal_render($sub_form['response']); ?>
-    </div>
-    <div class="quiz-report-question-feedback dd">
-      <?php print drupal_render($sub_form['question_feedback']); ?>
-    </div>
-    <div class="quiz-report-score-feedback dd">
-      <?php print drupal_render($sub_form['score']); ?>
-      <?php print drupal_render($sub_form['answer_feedback']); ?>
-    </div>
-    <hr/>
   <?php endforeach; ?>
 </div>
 <div class="quiz-score-submit"><?php print drupal_render_children($form); ?></div>
