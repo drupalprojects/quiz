@@ -17,7 +17,7 @@ class QuizQuestionH5P extends QuizQuestion {
 
   }
 
-  public function getAnsweringForm($form_state = NULL, $result_id) {
+  public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = parent::getAnsweringForm($form_state, $result_id);
     $element += array(
       '#type' => 'textfield',
