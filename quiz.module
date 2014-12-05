@@ -2706,7 +2706,7 @@ function quiz_node_map($node) {
  * @return
  *   Boolean TRUE if update was successful, FALSE otherwise.
  */
-function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
+function quiz_set_questions($quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
@@ -2714,11 +2714,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
     node_save($quiz);
   }
 
-  // When node_save() calls all of the node API hooks, old quiz info is
-  // automatically inserted into quiz_node_relationship. We could get clever and
-  // try to do strategic updates/inserts/deletes, but that method has already
-  // proven error prone as the module has gained complexity (See 5.x-2.0-RC2).
-  // So we go with the brute force method:
+  // Clear the existing relationships for this version.
   db_delete('quiz_node_relationship')
     ->condition('parent_nid', $quiz->nid)
     ->condition('parent_vid', $quiz->vid)
@@ -2728,34 +2724,24 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
     return TRUE; // This is not an error condition.
   }
 
-  foreach ($questions as $question) {
-    if ($question->state != QUIZ_QUESTION_NEVER) {
-      $question_inserts[$question->qnr_id] = array(
-        'parent_nid' => $quiz->nid,
-        'parent_vid' => $quiz->vid,
-        'child_nid' => $question->nid,
-        // Update to latest OR use the version given.
-        'child_vid' => $question->refresh ? db_query('SELECT vid FROM {node} WHERE nid = :nid', array(':nid' => $question->nid))->fetchField() : $question->vid,
-        'question_status' => $question->state,
-        'weight' => $question->weight,
-        'max_score' => (int) $question->max_score,
-        'auto_update_max_score' => (int) $question->auto_update_max_score,
-        'qnr_pid' => $question->qnr_pid,
-        'qnr_id' => !$set_new_revision ? $question->qnr_id : NULL,
-        'old_qnr_id' => $question->qnr_id,
-      );
-      drupal_write_record('quiz_node_relationship', $question_inserts[$question->qnr_id]);
-    }
+  foreach ($questions as $quiz_question_relationship) {
+    $old_qnr_id = $quiz_question_relationship->qnr_id;
+    unset($quiz_question_relationship->qnr_id);
+    $quiz_question_relationship->parent_nid = $quiz->nid;
+    $quiz_question_relationship->parent_vid = $quiz->vid;
+    entity_save('quiz_question_relationship', $quiz_question_relationship);
+    $quiz_question_relationship->old_qnr_id = $old_qnr_id;
+    $quiz_question_relationships[] = $quiz_question_relationship;
   }
 
   // Update the parentage when a new revision is created.
   // @todo this is copy pasta from quiz_update_quiz_question_relationship
-  foreach ($question_inserts as $question_insert) {
+  foreach ($quiz_question_relationships as $quiz_question_relationship) {
     db_update('quiz_node_relationship')
-      ->condition('qnr_pid', $question_insert['old_qnr_id'])
+      ->condition('qnr_pid', $quiz_question_relationship->old_qnr_id)
       ->condition('parent_vid', $quiz->vid)
       ->condition('parent_nid', $quiz->nid)
-      ->fields(array('qnr_pid' => $question_insert['qnr_id']))
+      ->fields(array('qnr_pid' => $quiz_question_relationship->qnr_id))
       ->execute();
   }
 

@@ -277,19 +277,12 @@ function quiz_admin_node_form($form, &$form_state) {
   }
   $form = quiz_form($dummy_node, $form_state);
   $form['direction'] = array(
-    '#markup' => t('Here you can change the default @quiz settings for new users.', array('@quiz' =>  QUIZ_NAME)),
+    '#markup' => t('Here you can change the default @quiz settings for new users.', array('@quiz' => QUIZ_NAME)),
     '#weight' => -10,
   );
   // unset values we can't or won't let the user edit default values for
   unset(
-    $form['#quiz_check_revision_access'],
-    $form['title'], $form['body_field'],
-    $form['taking']['aid'], $form['taking']['addons'],
-    $form['quiz_availability']['quiz_open'],
-    $form['quiz_availability']['quiz_close'],
-    $form['resultoptions'],
-    $form['number_of_random_questions'],
-    $form['remember_global']
+    $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions'], $form['remember_global']
   );
 
   $form['remember_settings']['#type'] = 'value';
@@ -1025,10 +1018,10 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
  *   Quiz node(object)
  */
 function _quiz_add_revision_checkbox(&$form, &$quiz) {
-  // Recomend and preselect to create the quiz as a new revision if it already has been answered
+  // Reccommend and preselect to create the quiz as a new revision if it already has been answered.
   if (quiz_has_been_answered($quiz)) {
     $rev_default = TRUE;
-    $rev_description = t('This quiz has been answered. To maintain correctnes of existing answer reports changes should be saved as a new revision.');
+    $rev_description = t('This quiz has been answered. To maintain correctness of existing answers and reports, changes should be saved as a new revision.');
   }
   else {
     $rev_default = in_array('revision', variable_get('node_options_quiz', array()));
@@ -1148,26 +1141,33 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_sc
     $nid = (int) $nid;
     $vid = (int) $vid;
     $question = new stdClass();
-    $question->nid = $nid;
-    $question->vid = $vid;
+    $question->child_nid = $nid;
+    if (!empty($refreshes[$id])) {
+      // User marked to update question to latest revision.
+      $question_node = node_load($nid);
+      $question->child_vid = $question_node->vid;
+    }
+    else {
+      // Use the provided nid/vid.
+      $question->child_vid = $vid;
+    }
     if (isset($compulsories)) {
       if ($compulsories[$id] == 1) {
-        $question->state = QUIZ_QUESTION_ALWAYS;
+        $question->question_status = QUIZ_QUESTION_ALWAYS;
       }
       else {
-        $question->state = QUIZ_QUESTION_RANDOM;
+        $question->question_status = QUIZ_QUESTION_RANDOM;
         $max_scores[$id] = $quiz->max_score_for_random;
       }
     }
     else {
-      $question->state = QUIZ_QUESTION_ALWAYS;
+      $question->question_status = QUIZ_QUESTION_ALWAYS;
     }
     $question->weight = $weight;
     $question->max_score = $max_scores[$id];
     $question->auto_update_max_score = $auto_update_max_scores[$id];
     $question->qnr_pid = $qnr_pids[$id] > 0 ? $qnr_pids[$id] : NULL;
     $question->qnr_id = $qnr_ids[$id] > 0 ? $qnr_ids[$id] : NULL;
-    $question->refresh = (isset($refreshes[$id]) && $refreshes[$id] == 1);
 
     // Add item as an object in the questions array.
     $questions[] = $question;
@@ -1221,7 +1221,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $assigned_random = 0;
 
     foreach ($questions as $question) {
-      if ($question->state == QUIZ_QUESTION_RANDOM) {
+      if ($question->question_status == QUIZ_QUESTION_RANDOM) {
         ++$assigned_random;
       }
     }
