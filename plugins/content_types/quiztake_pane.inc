@@ -1,7 +1,8 @@
 <?php
+
 /**
-* This plugin array is more or less self documenting
-*/
+ * This plugin array is more or less self documenting
+ */
 $plugin = array(
   // the title in the admin
   'title' => t('@quiz take pane', array('@quiz' => QUIZ_NAME)),
@@ -13,11 +14,10 @@ $plugin = array(
   'required context' => new ctools_context_required(t('Node'), 'node'),
 );
 
-
 /**
-* Run-time rendering of the body of the block (content type)
-* See ctools_plugin_examples for more advanced info
-*/
+ * Run-time rendering of the body of the block (content type)
+ * See ctools_plugin_examples for more advanced info
+ */
 function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $context = NULL) {
   if (!empty($context) && empty($context->data)) {
     return;
@@ -26,7 +26,7 @@ function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $conte
   $block = new stdClass();
 
   if (empty($node)) {
-    $block->delta   = 'placeholder';
+    $block->delta = 'placeholder';
     $block->title = t('Placeholder title.');
     $block->content = t('Placeholder content goes here.');
     return $block;
@@ -42,7 +42,8 @@ function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $conte
   //drupal_alter('quiz_take', $node);
   if (isset($node->rendered_content)) {
     $block->content = $node->rendered_content;
-  } else {
+  }
+  else {
     $block->content = quiz_take_quiz($node);
   }
 

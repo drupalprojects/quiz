@@ -68,7 +68,7 @@ function quiz_report_form($form, $form_state, $questions) {
     if (isset($form_to_add['submit'])) {
       $show_submit = TRUE;
     }
-    if(!isset($form_to_add['#no_report'])){
+    if (!isset($form_to_add['#no_report'])) {
       $form_to_add['#element_validate'][] = 'quiz_report_form_element_validate';
       $form[] = $form_to_add;
     }
@@ -110,8 +110,8 @@ function quiz_report_form($form, $form_state, $questions) {
  */
 function quiz_report_form_element_validate(&$element, &$form_state) {
   $question = node_load($element['nid']['#value'], $element['vid']['#value']);
-  $quizQuestionResponse = _quiz_question_response_get_instance($element['result_id']['#value'], $question);
-  $quizQuestionResponse->getReportFormValidate($element, $form_state);
+  $quiz_question_response = _quiz_question_response_get_instance($element['result_id']['#value'], $question);
+  $quiz_question_response->getReportFormValidate($element, $form_state);
 }
 
 /**
@@ -452,13 +452,13 @@ function theme_quiz_result($variables) {
  * It uses query strings. We have access on each menu argument (quiz question
  * number) so we unfortunately cannot use it.
  */
-function _quiz_pagination_helper($total, $perpage = null, $current = null, $siblings = null) {
+function _quiz_pagination_helper($total, $perpage = NULL, $current = NULL, $siblings = NULL) {
   $result = array();
 
-  if (isset($total, $perpage) === true) {
+  if (isset($total, $perpage) === TRUE) {
     $result = range(1, ceil($total / $perpage));
 
-    if (isset($current, $siblings) === true) {
+    if (isset($current, $siblings) === TRUE) {
       if (($siblings = floor($siblings / 2) * 2 + 1) >= 1) {
         $result = array_slice($result, max(0, min(count($result) - $siblings, intval($current) - ceil($siblings / 2))), $siblings);
       }

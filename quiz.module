@@ -1,28 +1,11 @@
 <?php
 
 /**
- * @file
- * Quiz Module
+ * @file quiz.module
+ * Main file for the Quiz module.
  *
  * This module allows the creation of interactive quizzes for site visitors.
  */
-// This module is structured as follows:
-//
-// The main module file:
-// * Defines and general includes are at the top.
-// * Hook implementations come immediately after.
-// * Public functions come next.
-// * Private functions are at the bottom.
-//
-// Where possible, user pages are located in quiz.pages.inc, and admin pages
-// are in quiz.admin.inc. Most utility functions have been left here, even if they
-// are only used by a function in one of the other files.
-//
-// Themes are in quiz.pages.inc unless they clearly only apply to admin screens.
-// Then they are in quiz.admin.inc.
-//
-// Views support is included in includes/views/quiz.views.inc
-define('QUIZ_VIEWS_DIR', drupal_get_path('module', 'quiz') . '/includes/views');
 
 /*
  * Define question statuses...
@@ -58,7 +41,7 @@ function quiz_help($path, $arg) {
 function quiz_views_api() {
   return array(
     'api' => '3.0',
-    'path' => QUIZ_VIEWS_DIR,
+    'path' => drupal_get_path('module', 'quiz') . '/includes/views',
   );
 }
 
@@ -1369,7 +1352,7 @@ function quiz_form(&$node, &$form_state) {
       $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
       $form['resultoptions'][$i] = array(
         '#type' => 'fieldset',
-        '#title' => t('Result Option ') . ($i + 1),
+        '#title' => t('Result option') . ' ' . ($i + 1),
         '#collapsible' => TRUE,
         '#collapsed' => FALSE,
       );
@@ -3360,7 +3343,7 @@ function quiz_allow_score_access($quiz, $account = NULL) {
   }
 
   if (user_access('score any quiz', $account)) {
-    return true;
+    return TRUE;
   }
 
   return user_access('score own quiz', $account) && ($quiz->uid == $account->uid);
@@ -3642,7 +3625,7 @@ function _quiz_show_finish_button($quiz) {
         $last_page = FALSE;
       }
     }
-    else if (empty($question['qnr_pid'])) {
+    elseif (empty($question['qnr_pid'])) {
       // A question without a parent showed up.
       $in_page = FALSE;
       $last_page = FALSE;
@@ -3962,11 +3945,11 @@ function quiz_clone_quiz_result($result_old, $result_new) {
   // Re-take all the questions.
   foreach ($result_old->layout as $qinfo) {
     $question = node_load($qinfo['nid'], $qinfo['vid']);
-    $quizQuestionResponse = _quiz_question_response_get_instance($result_old->result_id, $question);
-    if ($result_new->build_on_last == 'all' || $quizQuestionResponse->isCorrect()) {
+    $quiz_question_response = _quiz_question_response_get_instance($result_old->result_id, $question);
+    if ($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) {
       // Override the existing response.
-      $quizQuestionResponse->setResultId($result_new->result_id);
-      $quizQuestionResponse->saveResult();
+      $quiz_question_response->setResultId($result_new->result_id);
+      $quiz_question_response->saveResult();
     }
   }
 

@@ -11,8 +11,7 @@
  */
 
 /**
- * @todo Please document this function.
- * @see http://drupal.org/node/1354
+ * Theme the creation form.
  */
 function theme_multichoice_creation_form($variables) {
   $form = $variables['form'];
@@ -51,7 +50,7 @@ function theme_multichoice_answer_node_view($variables) {
   $header = array('', '');
 
   $p = drupal_get_path('module', 'multichoice');
-  drupal_add_css($p .'/theme/multichoice.css');
+  drupal_add_css($p . '/theme/multichoice.css');
 
   foreach ($alternatives as $i => $short) {
     $answer_markup = check_markup($short['answer']['value'], $short['answer']['format']);
@@ -63,27 +62,27 @@ function theme_multichoice_answer_node_view($variables) {
     }
 
     $rows[] = array(
-        array(
-          'data' => array(
-            '#theme' => 'html_tag',
-            '#tag' => 'span',
-            '#attributes' => array(
-              'class' => array(
-                'multichoice-icon',
-                $image,
-              ),
-              'title' => $show_correct ?
-                t('Score if chosen: @sc Score if not chosen: @nc', array(
-                  '@sc' => $short['score_if_chosen'],
-                  '@nc' => $short['score_if_not_chosen'])
-                ) :
-                t('You are not allowed to view the solution for this question'),
+      array(
+        'data' => array(
+          '#theme' => 'html_tag',
+          '#tag' => 'span',
+          '#attributes' => array(
+            'class' => array(
+              'multichoice-icon',
+              $image,
             ),
+            'title' => $show_correct ?
+              t('Score if chosen: @sc Score if not chosen: @nc', array(
+                '@sc' => $short['score_if_chosen'],
+                '@nc' => $short['score_if_not_chosen'])
+              ) :
+              t('You are not allowed to view the solution for this question'),
           ),
-          'class' => array('multichoice-icon-cell'),
         ),
-        $answer_markup
-      );
+        'class' => array('multichoice-icon-cell'),
+      ),
+      $answer_markup
+    );
   }
   return theme('table', array('header' => $header, 'rows' => $rows));
 }

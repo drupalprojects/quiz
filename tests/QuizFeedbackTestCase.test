@@ -33,9 +33,9 @@ class QuizFeedbackTestCase extends QuizTestCase {
     $quiz_node = $this->drupalCreateQuiz();
 
     // 3 questions.
-    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1,));
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node1, $quiz_node);
-    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1,));
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node2, $quiz_node);
 
     // This is a dynamic test that only tests the feedback columns showing up.

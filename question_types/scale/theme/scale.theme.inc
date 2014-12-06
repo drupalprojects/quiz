@@ -45,5 +45,5 @@ function theme_scale_response_form($variables) {
  *  The scale creation form
  */
 function theme_scale_creation_form($form) {
-  drupal_add_js(drupal_get_path('module', 'scale') .'/scale.js');
+  drupal_add_js(drupal_get_path('module', 'scale') . '/scale.js');
 }

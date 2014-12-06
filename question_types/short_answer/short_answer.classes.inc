@@ -9,7 +9,8 @@
  * multichoice.classes.inc. short_answer and long_answer are good for understanding
  * question types that involve textual answers.
  *
- * @file
+ * @file short_answer.classes.inc
+ * Question implementation for short answer.
  */
 
 /**
@@ -296,10 +297,10 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     if (user_access('score own quiz') && user_access('score taken quiz answer')) {
       $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
     }
-    else if (user_access('score own quiz')) {
+    elseif (user_access('score own quiz')) {
       $query->condition('n.uid', $user->uid);
     }
-    else if (user_access('score taken quiz answer')) {
+    elseif (user_access('score taken quiz answer')) {
       $query->condition('qnr.uid', $user->uid);
     }
 

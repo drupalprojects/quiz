@@ -10,11 +10,14 @@
  * Implements hook_views_default_views().
  */
 function quiz_views_default_views() {
-  $files = file_scan_directory(QUIZ_VIEWS_DIR . '/defaults', '/\.view\.inc/');
   $views = array();
-  foreach ($files as $path => $file) {
-    require DRUPAL_ROOT . '/' . $path;
+
+  $path = drupal_get_path('module', 'quiz') . '/includes/views/defaults';
+  $view_files = file_scan_directory($path, '/.*\.view\.inc/');
+  foreach ($view_files as $file) {
+    include DRUPAL_ROOT . '/' . $path . '/' . $file->filename;
     $views[$view->name] = $view;
   }
+
   return $views;
 }

@@ -424,7 +424,7 @@ abstract class QuizQuestion {
    * this question in quizzes.
    */
   protected function autoUpdateMaxScore() {
-    return false;
+    return FALSE;
   }
 
   public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {

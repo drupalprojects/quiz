@@ -210,10 +210,10 @@ class LongAnswerResponse extends QuizQuestionResponse {
     if (user_access('score own quiz') && user_access('score taken quiz answer')) {
       $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
     }
-    else if (user_access('score own quiz')) {
+    elseif (user_access('score own quiz')) {
       $query->condition('n.uid', $user->uid);
     }
-    else if (user_access('score taken quiz answer')) {
+    elseif (user_access('score taken quiz answer')) {
       $query->condition('qnr.uid', $user->uid);
     }
     $results = $query->execute();
