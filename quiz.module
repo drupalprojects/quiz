@@ -6,8 +6,7 @@
  *
  * This module allows the creation of interactive quizzes for site visitors.
  */
-
-/*
+/**
  * Define question statuses...
  */
 define('QUIZ_QUESTION_RANDOM', 0);
@@ -2560,7 +2559,33 @@ function quiz_build_question_list($quiz) {
 
     // Shuffle questions if required.
     if ($quiz->randomization > 0) {
-      shuffle($questions);
+      $question_to_shuffle = array();
+      $mark = NULL;
+      foreach ($questions as $qidx => $question) {
+        if ($mark) {
+          if ($question['type'] == 'quiz_page') {
+            // Found another page.
+            shuffle($question_to_shuffle);
+            array_splice($questions, $mark, $qidx - $mark -1, $question_to_shuffle);
+            $mark = 0;
+            $question_to_shuffle = array();
+          }
+          else {
+            $question_to_shuffle[] = $question;
+          }
+        }
+        if ($question['type'] == 'quiz_page') {
+          $mark = $qidx;
+        }
+      }
+
+      if ($mark) {
+        shuffle($question_to_shuffle);
+        array_splice($questions, $mark, $qidx - $mark, $question_to_shuffle);
+      }
+      else if (is_null($mark)) {
+        shuffle($questions);
+      }
     }
   }
 
