@@ -60,4 +60,29 @@ class QuizUpgradeTestCase extends UpdatePathTestCase {
     }
   }
 
+  /**
+   * Test an upgrade to Quiz from 7.x-5-x
+   */
+  function test7x5xUpgrade() {
+    $this->databaseDumpFiles = array(
+      drupal_get_path('module', 'quiz') . '/tests/upgrade/quiz-7.x-5.x.php.gz',
+    );
+    parent::setUp();
+    registry_rebuild();
+    $this->uninstallModulesExcept(array_merge($this->quiz_modules, $this->other_modules));
+    $this->assertTrue($this->performUpgrade(), 'The upgrade was completed successfully.');
+
+    drupal_get_schema(NULL, TRUE);
+
+    foreach ($this->quiz_modules as $module) {
+      $schema = drupal_get_schema_unprocessed($module);
+      foreach ($schema as $table => $info) {
+        $this->assertTrue(db_table_exists($table), "$table exists");
+        foreach ($info['fields'] as $field_name => $info) {
+          $this->assertTrue(db_field_exists($table, $field_name), "$table has $field_name");
+        }
+      }
+    }
+  }
+
 }
