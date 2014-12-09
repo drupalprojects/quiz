@@ -524,7 +524,7 @@ class MatchingResponse extends QuizQuestionResponse {
   /**
    * Implementation of getReportFormResponse
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
     $data = array();
     $answers = $this->question->answers[0]['answer'];
     $solution = $this->quizQuestion->getSubquestions();

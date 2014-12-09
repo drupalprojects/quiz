@@ -962,7 +962,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
   /**
    * Implementation of getReportFormResponse
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
     $this->orderAlternatives($this->question->alternatives);
     $simple_scoring = $this->question->choice_boolean;
 

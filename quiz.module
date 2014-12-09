@@ -6,8 +6,7 @@
  *
  * This module allows the creation of interactive quizzes for site visitors.
  */
-
-/*
+/**
  * Define question statuses...
  */
 define('QUIZ_QUESTION_RANDOM', 0);
@@ -852,7 +851,7 @@ function _quiz_get_node_defaults() {
       'quiz_open' => 0,
       'randomization' => 0,
       'repeat_until_correct' => 0,
-      'review_options' => array('question' => array(), 'end' => array()),
+      'review_options' => array('question' => array(), 'end' => array('quiz_question_view_full' => 'quiz_question_view_full', 'choice' => 'choice')),
       'show_attempt_stats' => 1,
       'show_passed' => 1,
       'summary_default' => '',
@@ -2560,7 +2559,33 @@ function quiz_build_question_list($quiz) {
 
     // Shuffle questions if required.
     if ($quiz->randomization > 0) {
-      shuffle($questions);
+      $question_to_shuffle = array();
+      $mark = NULL;
+      foreach ($questions as $qidx => $question) {
+        if ($mark) {
+          if ($question['type'] == 'quiz_page') {
+            // Found another page.
+            shuffle($question_to_shuffle);
+            array_splice($questions, $mark, $qidx - $mark - 1, $question_to_shuffle);
+            $mark = 0;
+            $question_to_shuffle = array();
+          }
+          else {
+            $question_to_shuffle[] = $question;
+          }
+        }
+        if ($question['type'] == 'quiz_page') {
+          $mark = $qidx;
+        }
+      }
+
+      if ($mark) {
+        shuffle($question_to_shuffle);
+        array_splice($questions, $mark, $qidx - $mark, $question_to_shuffle);
+      }
+      else if (is_null($mark)) {
+        shuffle($questions);
+      }
     }
   }
 
@@ -3300,36 +3325,45 @@ function quiz_has_been_answered($node) {
 }
 
 /**
- * If a quiz is saved as not randomized we should make sure all random questions
- * are converted to always.
+ * Convert all question statuses back to "always" when the Quiz is no longer
+ * set to random.
  *
  * @param $node
  *   Quiz node.
  */
-function _quiz_check_num_random(&$node) {
-  if ($node->randomization == 2) {
-    return;
+function _quiz_check_num_random($node) {
+  if ($node->randomization != 2) {
+    $efq = new EntityFieldQuery();
+    $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+      ->propertyCondition('question_status', QUIZ_QUESTION_RANDOM)
+      ->propertyCondition('parent_vid', $node->vid)
+      ->execute();
+    if (isset($results['quiz_question_relationship'])) {
+      $questions = entity_load('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
+      foreach ($questions as $question) {
+        $question->question_status = QUIZ_QUESTION_ALWAYS;
+        $question->save();
+      }
+    }
   }
-  db_delete('quiz_node_relationship')
-    ->condition('question_status', QUIZ_QUESTION_RANDOM)
-    ->condition('parent_vid', $node->vid)
-    ->execute();
 }
 
 /**
- * If a quiz is saved with random categories we should make sure all questions
- * are removed from the quiz
+ * Remove all questions when the Quiz contains categorized random questions.
  *
  * @param $node
  *   Quiz node.
  */
-function _quiz_check_num_always(&$node) {
-  if ($node->randomization != 3) {
-    return;
+function _quiz_check_num_always($node) {
+  if ($node->randomization == 3) {
+    $efq = new EntityFieldQuery();
+    $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+      ->propertyCondition('parent_vid', $node->vid)
+      ->execute();
+    if (isset($results['quiz_question_relationship'])) {
+      entity_delete_multiple('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
+    }
   }
-  db_delete('quiz_node_relationship')
-    ->condition('parent_vid', $node->vid)
-    ->execute();
 }
 
 /**
@@ -3898,8 +3932,18 @@ function quiz_feedback_can_review($option, $quiz_result) {
  * Get the feedback options for Quizzes.
  */
 function quiz_get_feedback_options() {
-  $feedback_options = array(
+  $feedback_options = array();
+
+  $entity_info = entity_get_info('node');
+  foreach ($entity_info['view modes'] as $view_mode => $info) {
+    if ($view_mode == 'full' || $info['custom settings']) {
+      $feedback_options["quiz_question_view_" . $view_mode] = t('Question') . ': ' . $info['label'];
+    }
+  }
+
+  $feedback_options += array(
     'attempt' => t('Attempt'),
+    'choice' => t('Choices'),
     'correct' => t('Whether correct'),
     'score' => t('Score'),
     'answer_feedback' => t('Answer feedback'),
@@ -3949,7 +3993,7 @@ function quiz_clone_quiz_result($result_old, $result_new) {
     if ($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) {
       // Override the existing response.
       $quiz_question_response->setResultId($result_new->result_id);
-      $quiz_question_response->saveResult();
+      $quiz_question_response->save();
     }
   }
 

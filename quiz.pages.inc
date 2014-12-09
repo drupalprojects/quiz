@@ -74,8 +74,9 @@ function quiz_report_form($form, $form_state, $questions) {
     }
   }
   $form['#tree'] = TRUE;
+  $form['navigation']['#type'] = 'actions';
   if ($show_submit) {
-    $form['submit'] = array(
+    $form['navigation']['submit'] = array(
       '#type' => 'submit',
       '#submit' => array('quiz_report_form_submit'),
       '#value' => t('Save score'),
@@ -87,14 +88,14 @@ function quiz_report_form($form, $form_state, $questions) {
     $quiz = node_load(arg(1));
     if (empty($_SESSION['quiz'][$quiz->nid])) {
       // Quiz is done.
-      $form['finish'] = array(
+      $form['navigation']['finish'] = array(
         '#type' => 'submit',
         '#submit' => array('quiz_take_question_feedback_end_submit'),
         '#value' => t('Finish'),
       );
     }
     else {
-      $form['next'] = array(
+      $form['navigation']['next'] = array(
         '#type' => 'submit',
         '#submit' => array('quiz_take_question_feedback_submit'),
         '#value' => t('Next question'),
@@ -422,26 +423,28 @@ function theme_quiz_result($variables) {
     '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
   );
 
-  // @todo should use quiz_feedback_can_review but we dont have the quiz result here.
+  $score = '';
   if (quiz_feedback_can_review('score', $quiz_result)) {
     // Show score.
-    $output .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
-    $output .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>' . "\n";
+    $score .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+    $score .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
   }
 
+  $quiz_feedback['#markup'] = '';
   if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
     // Show quiz feedback.
     if (isset($summary['passfail'])) {
-      $output .= '<div id="quiz_summary">' . $summary['passfail'] . '</div>' . "\n";
+      $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>';
     }
     if (isset($summary['result'])) {
-      $output .= '<div id="quiz_summary">' . $summary['result'] . '</div>' . "\n";
+      $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
     }
   }
 
   $report_form = drupal_get_form('quiz_report_form', $questions);
-  $output .= drupal_render($report_form);
-  return $output;
+  $report_form['quiz_feedback'] = $quiz_feedback;
+  $form = drupal_render($report_form);
+  return $score . $form;
 }
 
 /**
