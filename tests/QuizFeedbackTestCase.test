@@ -138,4 +138,63 @@ class QuizFeedbackTestCase extends QuizTestCase {
     $this->assertText('Feedback for TF test.');
   }
 
+  /**
+   * Test Quiz question body feedback.
+   */
+  public function testQuestionBodyFeedback() {
+    $this->drupalLogin($this->admin);
+
+    // Asolutely no feedback.
+    $quiz_node = $this->drupalCreateQuiz(
+      array(
+        'review_options' => array(),
+      )
+    );
+
+    // Set up a Quiz with one question that has a body and a summary.
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'body' => array(LANGUAGE_NONE => array(
+          array(
+            'value' => 'TF 1 body text',
+            'summary' => 'TF 1 summary text',
+          ),
+        ),
+      ),
+      'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+
+    // Test no feedback.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertNoText('TF 1 body text');
+    $this->assertNoText('TF 1 summary text');
+
+    // Test full feedback
+    $quiz_node->review_options = array('end' => drupal_map_assoc(array('quiz_question_view_full')));
+    node_save($quiz_node);
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('TF 1 body text');
+    $this->assertNoText('TF 1 summary text');
+
+    // Test teaser feedback
+    $quiz_node->review_options = array('end' => drupal_map_assoc(array('quiz_question_view_teaser')));
+    node_save($quiz_node);
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+
+    $this->assertNoText('TF 1 body text');
+    $this->assertText('TF 1 summary text');
+  }
+
 }

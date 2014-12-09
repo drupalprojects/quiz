@@ -334,7 +334,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
   /**
    * Implementation of getReportFormResponse
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
     $data = array();
 
     $data[] = array(

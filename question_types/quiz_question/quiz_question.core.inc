@@ -664,22 +664,41 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->result_id,
     );
+
     if (quiz_access_to_score() && $submit = $this->getReportFormSubmit()) {
       $form['submit'] = array(
         '#type' => 'value',
         '#value' => $submit,
       );
     }
-    $form['question'] = $this->getReportFormQuestion();
 
-    if (quiz_access_to_score()) {
+    if (quiz_access_to_score() && $submit) {
+      $form['score'] = $this->getReportFormScore();
+    }
+    if (quiz_access_to_score() && $submit) {
       $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
     }
 
-    $form['max_score'] = array(
-      '#type' => 'value',
-      '#value' => ($this->canReview('score')) ? $this->getMaxScore() : '?',
-    );
+    foreach ($this->getFeedback() as $type => $render) {
+      $form[$type] = $render;
+    }
+
+    return $form;
+  }
+
+  /**
+   * Returns a renderable array of question feedback.
+   */
+  public function getFeedback() {
+    $out = array();
+    $node = node_load($this->question->nid);
+    $entity_info = entity_get_info('node');
+    foreach ($entity_info['view modes'] as $view_mode => $info) {
+      if ($this->canReview("quiz_question_view_" . $view_mode)) {
+        node_build_content($node, $view_mode);
+        $out['question'][] = $node->content;
+      }
+    }
 
     $rows = array();
 
@@ -693,9 +712,9 @@ abstract class QuizQuestionResponse {
     );
     drupal_alter('quiz_feedback_labels', $labels);
 
-    foreach ($this->getReportFormResponse() as $idx => $row) {
+    foreach ($this->getFeedbackValues() as $idx => $row) {
       foreach ($labels as $reviewType => $label) {
-        if ((in_array($reviewType, array('choice')) && $row[$reviewType] != NULL) || (isset($row[$reviewType]) && $this->canReview($reviewType))) {
+        if ((isset($row[$reviewType]) && $this->canReview($reviewType))) {
           $rows[$idx][$reviewType] = $row[$reviewType];
         }
       }
@@ -715,40 +734,31 @@ abstract class QuizQuestionResponse {
       $class = 'q-waiting';
     }
 
-    if (quiz_access_to_score() && $submit) {
-      $form['score'] = $this->getReportFormScore();
-    }
-
     if ($this->canReview('score') || quiz_access_to_score()) {
-      $form['score_display']['#markup'] = theme('quiz_question_score', array('score' => $score, 'max_score' => $this->getMaxScore(), 'class' => $class));
+      $out['score_display']['#markup'] = theme('quiz_question_score', array('score' => $score, 'max_score' => $this->getMaxScore(), 'class' => $class));
     }
 
-    $headers = array_intersect_key($labels, $rows[0]);
-    $type = $this->getQuizQuestion()->node->type;
-    $form['response']['#markup'] = theme('quiz_question_feedback__' . $type, array('labels' => $headers, 'data' => $rows));
+    if ($rows) {
+      $headers = array_intersect_key($labels, $rows[0]);
+      $type = $this->getQuizQuestion()->node->type;
+      $out['response']['#markup'] = theme('quiz_question_feedback__' . $type, array('labels' => $headers, 'data' => $rows));
+    }
 
     if ($this->canReview('question_feedback')) {
       if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->quizQuestion->node->nid, 'vid' => $this->quizQuestion->node->vid))) {
         $quiz_question = reset($properties);
-        $form['question_feedback']['#markup'] = check_markup($quiz_question->feedback, $quiz_question->feedback_format);
+        $out['question_feedback']['#markup'] = check_markup($quiz_question->feedback, $quiz_question->feedback_format);
       }
     }
 
-    $form['#theme'] = $this->getReportFormTheme();
-    return $form;
-  }
+    if ($this->canReview('score')) {
+      $out['max_score'] = array(
+        '#type' => 'value',
+        '#value' => $this->getMaxScore(),
+      );
+    }
 
-  /**
-   * get the question part of the reportForm
-   *
-   * @return
-   *  FAPI form array holding the question
-   */
-  public function getReportFormQuestion() {
-    $node = node_load($this->question->nid);
-    $node->no_answer_form = TRUE;
-    node_build_content($node, 'question');
-    return $node->content;
+    return $out;
   }
 
   /**
@@ -761,7 +771,7 @@ abstract class QuizQuestionResponse {
    *  feedback will not be shown. Seen an example at
    *  LongAnswerResponse::getReportFormResponse().
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
     $data = array();
 
     $data[] = array(
@@ -800,24 +810,6 @@ abstract class QuizQuestionResponse {
    */
   public function getReportFormValidate(&$element, &$form_state) {
     return FALSE;
-  }
-
-  /**
-   * Get the theme key for the reportForm
-   *
-   * @return
-   *  Theme key as a string, or FALSE if no submit function
-   */
-  public function getReportFormTheme() {
-    return FALSE;
-  }
-
-  /**
-   * Saves the quiz result. This should only be called when an answer is
-   * provided.
-   */
-  public function saveResult() {
-    $this->save();
   }
 
   /**

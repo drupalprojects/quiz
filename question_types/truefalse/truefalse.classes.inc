@@ -279,7 +279,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   /**
    * Implementation of getReportFormResponse
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
 
     $answer = $this->question->answers[0]['answer'];
     $correct_answer = $this->question->correct_answer;

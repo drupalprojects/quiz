@@ -624,7 +624,7 @@ class ScaleResponse extends QuizQuestionResponse {
   /**
    * Implmenets QuizQuestionResponse::getReportFormResponse().
    */
-  public function getReportFormResponse() {
+  public function getFeedbackValues() {
     $data = array();
     $data[] = array(
       'choice' => $this->answer,

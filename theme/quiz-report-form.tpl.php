@@ -16,26 +16,35 @@
  * $form[x]['response'] - the users response, usually a FAPI array of type markup.
  */
 ?>
-<h2><?php print t('Question Results'); ?></h2>
+<h2><?php print t('Question results'); ?></h2>
 <div class="quiz-report">
   <?php
-  foreach ($form as $key => $sub_form):
-    if (!is_numeric($key) || isset($sub_form['#no_report']))
+  foreach ($form as $key => &$sub_form):
+    if (is_numeric($key)) {
+      if (isset($sub_form['#no_report'])) {
+        drupal_render($sub_form);
+      }
+    }
+    else {
       continue;
-    unset($form[$key]);
+    }
     ?>
     <div class="quiz-report-row clearfix">
       <div class="quiz-report-question dt">
         <div class="quiz-report-question-header clearfix">
-          <h3><?php print t('Question') ?></h3>
           <?php print drupal_render($sub_form['score_display']); ?>
+          <h3><?php print t('Question') ?></h3>
         </div>
-        <?php print drupal_render($sub_form['question']); ?>
+        <?php if (isset($sub_form['question'])): ?>
+          <?php print drupal_render($sub_form['question']); ?>
+        <?php endif; ?>
       </div>
-      <div class="quiz-report-response dd">
-        <h3 class="quiz-report-response-header"><?php print t('Response') ?></h3>
-        <?php print drupal_render($sub_form['response']); ?>
-      </div>
+      <?php if (isset($sub_form['response'])): ?>
+        <div class="quiz-report-response dd">
+          <h3 class="quiz-report-response-header"><?php print t('Response') ?></h3>
+          <?php print drupal_render($sub_form['response']); ?>
+        </div>
+      <?php endif; ?>
       <div class="quiz-report-question-feedback dd">
         <?php print drupal_render($sub_form['question_feedback']); ?>
       </div>
@@ -45,5 +54,11 @@
       </div>
     </div>
   <?php endforeach; ?>
+  <div class="quiz-report-quiz-feedback dd">
+    <?php if (isset($form['quiz_feedback']) && $form['quiz_feedback']['#markup']): ?>
+      <h2><?php print t('Quiz feedback'); ?></h2>
+      <?php print drupal_render($form['quiz_feedback']); ?>
+    <?php endif; ?>
+  </div>
 </div>
 <div class="quiz-score-submit"><?php print drupal_render_children($form); ?></div>

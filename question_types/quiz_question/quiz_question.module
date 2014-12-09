@@ -822,14 +822,16 @@ function quiz_question_feedback($quiz, $question) {
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   }
 
+  // Following 3 lines aren't referenced, but removing them breaks a lot of
+  // things. Static caching somewhere?
   $types = quiz_get_question_types();
   $module = $types[$question->type]['module'];
-  // Invoke hook_get_report().
   $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
-  $path = drupal_get_path('module', 'quiz');
-  require_once DRUPAL_ROOT . '/' . $path . '/quiz.pages.inc';
-  if ($report) {
-    $report_form = drupal_get_form('quiz_report_form', array($report));
+
+
+  module_load_include('inc', 'quiz', 'quiz.pages');
+  if ($question) {
+    $report_form = drupal_get_form('quiz_report_form', array($question));
     return $report_form;
   }
 }
@@ -867,7 +869,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
         }
         $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]['answer']);
         $qi_instance->delete();
-        $qi_instance->saveResult();
+        $qi_instance->save();
         $result = $qi_instance->toBareObject();
         $result->is_doubtful = !empty($response['is_doubtful']);
         quiz_store_question_result($quiz, $result, array('set_msg' => TRUE, 'question_data' => $question_array));
