@@ -3335,10 +3335,18 @@ function _quiz_check_num_random(&$node) {
   if ($node->randomization == 2) {
     return;
   }
-  db_delete('quiz_node_relationship')
-    ->condition('question_status', QUIZ_QUESTION_RANDOM)
-    ->condition('parent_vid', $node->vid)
+  $efq = new EntityFieldQuery();
+  $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+    ->propertyCondition('question_status', QUIZ_QUESTION_RANDOM)
+    ->propertyCondition('parent_vid', $node->vid)
     ->execute();
+  if ($results['quiz_question_relationship']) {
+    $questions = entity_load('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
+    foreach ($questions as $question) {
+      $question->question_status = QUIZ_QUESTION_ALWAYS;
+      $question->save();
+    }
+  }
 }
 
 /**
