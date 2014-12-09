@@ -3325,44 +3325,45 @@ function quiz_has_been_answered($node) {
 }
 
 /**
- * If a quiz is saved as not randomized we should make sure all random questions
- * are converted to always.
+ * Convert all question statuses back to "always" when the Quiz is no longer
+ * set to random.
  *
  * @param $node
  *   Quiz node.
  */
-function _quiz_check_num_random(&$node) {
-  if ($node->randomization == 2) {
-    return;
-  }
-  $efq = new EntityFieldQuery();
-  $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
-    ->propertyCondition('question_status', QUIZ_QUESTION_RANDOM)
-    ->propertyCondition('parent_vid', $node->vid)
-    ->execute();
-  if ($results['quiz_question_relationship']) {
-    $questions = entity_load('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
-    foreach ($questions as $question) {
-      $question->question_status = QUIZ_QUESTION_ALWAYS;
-      $question->save();
+function _quiz_check_num_random($node) {
+  if ($node->randomization != 2) {
+    $efq = new EntityFieldQuery();
+    $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+      ->propertyCondition('question_status', QUIZ_QUESTION_RANDOM)
+      ->propertyCondition('parent_vid', $node->vid)
+      ->execute();
+    if (isset($results['quiz_question_relationship'])) {
+      $questions = entity_load('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
+      foreach ($questions as $question) {
+        $question->question_status = QUIZ_QUESTION_ALWAYS;
+        $question->save();
+      }
     }
   }
 }
 
 /**
- * If a quiz is saved with random categories we should make sure all questions
- * are removed from the quiz
+ * Remove all questions when the Quiz contains categorized random questions.
  *
  * @param $node
  *   Quiz node.
  */
-function _quiz_check_num_always(&$node) {
-  if ($node->randomization != 3) {
-    return;
+function _quiz_check_num_always($node) {
+  if ($node->randomization == 3) {
+    $efq = new EntityFieldQuery();
+    $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+      ->propertyCondition('parent_vid', $node->vid)
+      ->execute();
+    if (isset($results['quiz_question_relationship'])) {
+      entity_delete_multiple('quiz_question_relationship', array_keys($results['quiz_question_relationship']));
+    }
   }
-  db_delete('quiz_node_relationship')
-    ->condition('parent_vid', $node->vid)
-    ->execute();
 }
 
 /**
