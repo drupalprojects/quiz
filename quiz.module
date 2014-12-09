@@ -591,18 +591,16 @@ function quiz_form_quiz_node_form_alter(&$form, $form_state) {
 /**
  * Quiz node form submit callback.
  *
+ * Redirect the user to the questions form if there are no questions in the
+ * Quiz.
+ *
  * @see quiz_form_quiz_node_form_alter()
  */
 function quiz_form_quiz_node_form_submit($form, &$form_state) {
   $node = $form_state['node'];
 
-  if (empty($form_state['values']['nid'])) {
-    drupal_set_message(t('You just created a new @quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.'), array('@quiz' => QUIZ_NAME));
-    $form_state['redirect'] = "node/$node->nid/quiz/questions";
-  }
-  // If the quiz don't have any questions jump to the manage questions tab.
-  $res = db_query('SELECT child_vid FROM {quiz_node_relationship} WHERE parent_vid = :vid', array(':vid' => $node->vid))->fetchField();
-  if (!is_numeric($res)) {
+  if (!entity_load('quiz_question_relationship', FALSE, array('parent_vid' => $node->vid))) {
+    drupal_set_message(t('You just created a new @quiz. Now you have to add questions to it. This page is for adding and managing questions. Here you can create new questions or add some of your already created questions. If you want to change the quiz settings, you can use the "edit" tab.', array('@quiz' => QUIZ_NAME)));
     $form_state['redirect'] = 'node/' . $node->nid . '/quiz/questions';
   }
 }
@@ -611,8 +609,6 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
  * Implements hook_insert().
  */
 function quiz_insert($node) {
-  global $user;
-
   // Need to set max_score if this is a cloned node
   $max_score = 0;
 
