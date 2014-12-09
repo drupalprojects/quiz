@@ -629,13 +629,6 @@ function quiz_insert($node) {
 
     $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid);
 
-    // Format the current questions for referencing
-    foreach ($questions as $question) {
-      $nid = $questions['nid'];
-      $questions[$nid]->state = $question->question_status;
-      $questions[$nid]->refresh = 0;
-    }
-
     quiz_set_questions($node, $questions);
   }
 
@@ -2670,32 +2663,6 @@ function _quiz_get_terms($vid) {
 }
 
 /**
- * Map node properties to a question object.
- *
- * @param $node
- *  The question node.
- *
- * @return
- *  Question object.
- */
-function quiz_node_map($node) {
-  $new_question = node_load($node->nid, $node->vid);
-  // Append extra fields.
-  $new_question->latest_vid = $node->latest_vid;
-  $new_question->question_status = isset($node->question_status) ? $node->question_status : QUIZ_QUESTION_NEVER;
-  if (isset($node->max_score)) {
-    $new_question->max_score = $node->max_score;
-  }
-  if (isset($node->auto_update_max_score)) {
-    $new_question->auto_update_max_score = $node->auto_update_max_score;
-  }
-  $new_question->weight = $node->weight;
-  $new_question->qnr_id = $node->qnr_id;
-  $new_question->qnr_pid = $node->qnr_pid;
-  return $new_question;
-}
-
-/**
  * Sets the questions that are assigned to a quiz.
  *
  * @param $quiz
@@ -3099,7 +3066,7 @@ function quiz_get_questions($quiz_nid, $quiz_vid = NULL) {
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'type'));
   $query->fields('nr', array('vid', 'title'));
-  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
+  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid', 'child_nid', 'child_vid'));
   $query->addField('n', 'vid', 'latest_vid');
   $query->join('node_revision', 'nr', 'n.nid = nr.nid');
   $query->leftJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
@@ -3115,10 +3082,6 @@ function quiz_get_questions($quiz_nid, $quiz_vid = NULL) {
   foreach ($result as $question) {
     $questions[] = $question;
     quiz_get_sub_questions($question->qnr_id, $questions);
-  }
-
-  foreach ($questions as &$node) {
-    $node = quiz_node_map($node);
   }
 
   return $questions;

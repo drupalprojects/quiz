@@ -179,4 +179,31 @@ class QuizCreationTestCase extends QuizTestCase {
     $this->assertText('You got 0 of 1 possible points.');
   }
 
+  /**
+   * Test cloning quizzes with questions.
+   */
+  public function testCloneQuiz() {
+    $this->drupalLogin($this->admin);
+    $question_node = $this->drupalCreateNode(array(
+      'title' => 'TF 1',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'TF 1'))),
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    $old = $quiz_node->nid;
+    // Simulate the clone module.
+    $quiz_node->clone_from_original_nid = $old;
+    unset($quiz_node->vid);
+    unset($quiz_node->nid);
+    node_save($quiz_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$old/take");
+    $this->assertText('TF 1');
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText('TF 1');
+  }
+
 }
