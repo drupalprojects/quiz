@@ -1,22 +1,27 @@
 <?php
 
 /**
- * @file
+ * @file quiz.api.php
  * Hooks provided by Quiz module.
  *
- * These entity types provided by Quiz also have entity API hooks.
+ * These entity types provided by Quiz also have entity API hooks. There are a
+ * few additional Quiz specific hooks defined in this file.
  *
  * quiz (settings for quiz nodes)
  * quiz_result (quiz attempt/result)
  * quiz_result_answer (answer to a specific question in a quiz result)
- * quiz_node_relationship (relationship from quiz to question)
+ * quiz_question (generic settings for question nodes)
+ * quiz_question_relationship (relationship from quiz to question)
  *
  * So for example
  *
- * hook_quiz_result_presave(&$course_report)
+ * hook_quiz_result_presave($quiz_result)
  *   - Runs before a result is saved to the DB.
- * hook_quiz_node_relationship_insert($course_object_fulfillment)
- *  - Runs when a new question is added to a quiz.
+ * hook_quiz_question_relationship_insert($quiz_question_relationship)
+ *   - Runs when a new question is added to a quiz.
+ *
+ * You can also use Rules to build conditional actions based off of these
+ * events.
  *
  * Enjoy :)
  */
@@ -50,6 +55,10 @@ function hook_quiz_scored($quiz, $score, $result_id) {
 
 /**
  * Implements hook_quiz_question_info().
+ *
+ * Define a new question type. The question provider must extend QuizQuestion,
+ * and the response provider must extend QuizQuestionResponse. See those classes
+ * for additional implementation details.
  */
 function hook_quiz_question_info() {
   return array(
