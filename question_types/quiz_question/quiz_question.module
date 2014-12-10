@@ -516,7 +516,7 @@ function quiz_question_delete(&$node) {
  * @param $node the question node
  * @param $only_this_version whether to delete only the specific revision of the question
  */
-function _quiz_delete_question(&$node, $only_this_version) {
+function _quiz_delete_question($node, $only_this_version) {
   // let each question class delete its own stuff
   _quiz_question_get_instance($node, TRUE)->delete($only_this_version);
 

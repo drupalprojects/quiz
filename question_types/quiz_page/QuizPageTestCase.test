@@ -100,6 +100,44 @@ class QuizPageTestCase extends QuizQuestionTestCase {
     $this->assertText('TF 1 body text');
     $this->assertText('TF 2 body text');
     $this->assertText('TF 3 body text');
+
+    // Check to make sure that saving a new revision of the Quiz does not affect
+    // the parentage.
+    $this->drupalLogin($this->admin);
+    // Go to the manage questions form.
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $post = array(
+      // Make the questions have parents.
+      "qnr_pids[{$question_node1->nid}-{$question_node1->vid}]" => 9,
+      "qnr_pids[{$question_node2->nid}-{$question_node2->vid}]" => 9,
+      "qnr_pids[{$question_node3->nid}-{$question_node3->vid}]" => 10,
+      // Mirror what JS would have done by adjusting the weights.
+      "weights[{$page_node1->nid}-{$page_node1->vid}]" => 2,
+      "weights[{$question_node1->nid}-{$question_node1->vid}]" => 3,
+      "weights[{$question_node2->nid}-{$question_node2->vid}]" => 4,
+      "weights[{$page_node2->nid}-{$page_node2->vid}]" => 3,
+      "weights[{$question_node3->nid}-{$question_node3->vid}]" => 4,
+    );
+    $this->drupalPost(NULL, $post, t('Submit'));
+
+    // Take the quiz. Ensure the pages are correct.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    // Questions 1 and 2 are present. Question 3 is hidden.
+    $this->assertFieldByName("question[{$question_node1->nid}][answer]");
+    $this->assertFieldByName("question[{$question_node2->nid}][answer]");
+    $this->assertNoFieldByName("question[{$question_node3->nid}][answer]");
+    $this->drupalPost(NULL, array(
+      "question[{$question_node1->nid}][answer]" => 1,
+      "question[{$question_node2->nid}][answer]" => 1,
+      ), t('Next'));
+    // Questions 1 and 2 are gone. Question 3 is present.
+    $this->assertNoFieldByName("question[{$question_node1->nid}][answer]");
+    $this->assertNoFieldByName("question[{$question_node2->nid}][answer]");
+    $this->assertFieldByName("question[{$question_node3->nid}][answer]");
+    $this->drupalPost(NULL, array(
+      "question[{$question_node3->nid}][answer]" => 1,
+      ), t('Finish'));
   }
 
   /**
