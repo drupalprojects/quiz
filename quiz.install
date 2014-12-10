@@ -895,3 +895,10 @@ function quiz_update_7511() {
     drupal_write_record('quiz_node_properties', $row, array('qnp_id'));
   }
 }
+
+/**
+ * Rebuild the registry just in case.
+ */
+function quiz_update_7512() {
+  registry_rebuild();
+}
