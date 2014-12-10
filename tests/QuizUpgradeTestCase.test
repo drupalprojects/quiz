@@ -68,7 +68,6 @@ class QuizUpgradeTestCase extends UpdatePathTestCase {
       drupal_get_path('module', 'quiz') . '/tests/upgrade/quiz-7.x-5.x.php.gz',
     );
     parent::setUp();
-    registry_rebuild();
     $this->uninstallModulesExcept(array_merge($this->quiz_modules, $this->other_modules));
     $this->assertTrue($this->performUpgrade(), 'The upgrade was completed successfully.');
 
