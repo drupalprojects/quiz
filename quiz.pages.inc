@@ -54,7 +54,7 @@ function quiz_user_results($result_id) {
  * @return $form
  *   FAPI form array
  */
-function quiz_report_form($form, $form_state, $questions) {
+function quiz_report_form($form, $form_state, $questions, $result_id) {
   $form = array();
   // The submit button is only shown if one or more of the questions has input elements
   $show_submit = FALSE;
@@ -64,7 +64,7 @@ function quiz_report_form($form, $form_state, $questions) {
       return array();
     }
     $function = $module . '_report_form';
-    $form_to_add = $function($question);
+    $form_to_add = $function($question, $result_id);
     if (isset($form_to_add['submit'])) {
       $show_submit = TRUE;
     }
@@ -441,7 +441,7 @@ function theme_quiz_result($variables) {
     }
   }
 
-  $report_form = drupal_get_form('quiz_report_form', $questions);
+  $report_form = drupal_get_form('quiz_report_form', $questions, $quiz_result->result_id);
   $report_form['quiz_feedback'] = $quiz_feedback;
   $form = drupal_render($report_form);
   return $score . $form;

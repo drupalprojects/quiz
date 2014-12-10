@@ -120,6 +120,12 @@ class QuizCreationTestCase extends QuizTestCase {
       'correct_answer' => 1,
     ));
     $quiz_node = $this->linkQuestionToQuiz($question_node);
+    // Set feedback.
+    $entities = entity_load('quiz_question', FALSE, array('nid' => $question_node->nid, 'vid' => $question_node->vid));
+    $quiz_question = reset($entities);
+    $quiz_question->feedback = 'Question feedback for Revision 1';
+    $quiz_question->feedback_format = filter_default_format();
+    entity_save('quiz_question', $quiz_question);
 
     // Check for first revision.
     $this->drupalLogin($this->user);
@@ -134,6 +140,7 @@ class QuizCreationTestCase extends QuizTestCase {
       'title' => 'Revision 2',
       'body[und][0][value]' => 'Revision 2',
       'correct_answer' => 0,
+      'feedback[value]' => 'Question feedback for Revision 2',
       ), t('Save'));
 
     // Finish on same revision.
@@ -144,6 +151,7 @@ class QuizCreationTestCase extends QuizTestCase {
       "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 1');
 
     // Take quiz again. Should be on SAME revision. We have not yet updated the
     // Quiz.
@@ -167,6 +175,7 @@ class QuizCreationTestCase extends QuizTestCase {
       "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 1 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 1');
 
 
     // Take quiz again we should be on the new result, finally.
@@ -177,6 +186,7 @@ class QuizCreationTestCase extends QuizTestCase {
       "question[$question_node->nid][answer]" => 1,
       ), t('Finish'));
     $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 2');
   }
 
   /**

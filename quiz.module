@@ -3160,12 +3160,9 @@ function _quiz_get_answers($quiz, $result_id) {
     if (!$module) {
       continue;
     }
-    // Invoke hook_get_report().
-    $report = module_invoke($module, 'get_report', $line->question_nid, $line->question_vid, $result_id);
-    if (!$report) {
-      continue;
-    }
-    $questions[$line->question_nid] = $report;
+    $question_node = node_load($line->question_nid, $line->question_vid);
+    $response = _quiz_question_response_get_instance($result_id, $question_node);
+    $questions[$line->question_nid] = $response->question;
     // Add max score info to the question.
     if (!isset($questions[$line->question_nid]->score_weight)) {
       if ($questions[$line->question_nid]->max_score == 0) {
@@ -3739,7 +3736,7 @@ function quiz_take_question_feedback($quiz, $question_number) {
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   }
   $quiz_result = quiz_result_load($result_id);
-  $question_node = node_load($quiz_result->layout[$question_number]['nid']);
+  $question_node = node_load($quiz_result->layout[$question_number]['nid'], $quiz_result->layout[$question_number]['vid']);
   $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
   return $feedback;
 }

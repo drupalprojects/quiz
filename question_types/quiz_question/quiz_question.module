@@ -316,24 +316,6 @@ function quiz_question_goto($quiz, $question_number) {
 }
 
 /**
- * Implements hook_get_report().
- *
- * @return
- *  Node containing all of the items from the question plus the user's answer.
- */
-function quiz_question_get_report($nid, $vid, $result_id) {
-  $response_instance = _quiz_question_response_get_instance($result_id, NULL, NULL, $nid, $vid);
-  if (!$response_instance) {
-    drupal_set_message(t('Unable to load question with nid %nid and vid %vid', array('%nid' => $nid, '%vid' => $vid)), 'error');
-    return FALSE;
-  }
-  $result = $response_instance->getReport();
-  $response_instance->question->answers[$result['answer_id']] = $result;
-  $response_instance->question->correct = $result['is_correct'];
-  return $response_instance->question;
-}
-
-/**
  * Check if a question has already been answered by anyone.
  *
  * This is to see if a new revision of a question should be made when saving.
@@ -693,6 +675,11 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   if (!($to_return instanceof QuizQuestionResponse)) {
     drupal_set_message(t('The question-response isn\'t a QuizQuestionResponse. It needs to extend the QuizQuestionResponse interface, or extend the abstractQuizQuestionResponse class.'), 'error', FALSE);
   }
+
+  $result = $to_return->getReport();
+  $to_return->question->answers[$result['answer_id']] = $result;
+  $to_return->question->correct = $result['is_correct'];
+
   // Cache the responce instance
   $quiz_responses[$result_id][$question->vid] = $to_return;
 
@@ -754,9 +741,9 @@ function quiz_question_get_max_score($nid, $vid) {
  * @return
  *  FAPI form array
  */
-function quiz_question_report_form($question) {
-  $answer = $question->answers[0];
-  $response_instance = _quiz_question_response_get_instance($answer['result_id'], $question, $answer);
+function quiz_question_report_form($question, $result_id) {
+  $response_instance = _quiz_question_response_get_instance($result_id, $question);
+  $answer = $response_instance->question->answers[0];
   // If need to specify the score weight if it isn't already specified.
   if (!isset($response_instance->question->score_weight)) {
     $vid = db_query('SELECT vid FROM {quiz_node_results}
@@ -822,16 +809,9 @@ function quiz_question_feedback($quiz, $question) {
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   }
 
-  // Following 3 lines aren't referenced, but removing them breaks a lot of
-  // things. Static caching somewhere?
-  $types = quiz_get_question_types();
-  $module = $types[$question->type]['module'];
-  $report = module_invoke($module, 'get_report', $question->nid, $question->vid, $result_id);
-
-
   module_load_include('inc', 'quiz', 'quiz.pages');
   if ($question) {
-    $report_form = drupal_get_form('quiz_report_form', array($question));
+    $report_form = drupal_get_form('quiz_report_form', array($question), $result_id);
     return $report_form;
   }
 }

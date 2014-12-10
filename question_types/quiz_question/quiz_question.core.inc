@@ -568,7 +568,7 @@ abstract class QuizQuestionResponse {
    */
   public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) {
-      $this->question->max_score = $this->question->getMaximumScore();
+      $this->question->max_score = $this->quizQuestion->getMaximumScore();
     }
     if (isset($this->question->score_weight) && $weight_adjusted) {
       return round($this->question->max_score * $this->question->score_weight);
@@ -691,7 +691,7 @@ abstract class QuizQuestionResponse {
    */
   public function getFeedback() {
     $out = array();
-    $node = node_load($this->question->nid);
+    $node = node_load($this->question->nid, $this->question->vid);
     $entity_info = entity_get_info('node');
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($this->canReview("quiz_question_view_" . $view_mode)) {

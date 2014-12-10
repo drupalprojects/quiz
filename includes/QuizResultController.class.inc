@@ -3,7 +3,6 @@
 class QuizResultController extends EntityAPIController {
 
   function delete($ids, \DatabaseTransaction $transaction = NULL) {
-    parent::delete($ids, $transaction);
     foreach ($ids as $id) {
       // Fire the question types' implementations of question attempts deletion.
       $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
@@ -18,6 +17,7 @@ class QuizResultController extends EntityAPIController {
         ->condition('result_id', $id)
         ->execute();
     }
+    parent::delete($ids, $transaction);
   }
 
   function load($ids = array(), $conditions = array()) {
@@ -34,26 +34,31 @@ class QuizResultController extends EntityAPIController {
       }
 
       $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
-      foreach ($quiz_result_answers as $quiz_result_answer) {
-        $wrap = entity_metadata_wrapper('quiz_result_answer', $quiz_result_answer);
-        $type = $wrap->question_nid->value()->type;
+      if ($quiz_result_answers) {
+        foreach ($quiz_result_answers as $quiz_result_answer) {
+          $wrap = entity_metadata_wrapper('quiz_result_answer', $quiz_result_answer);
+          $type = $wrap->question_nid->value()->type;
 
-        if (!empty($relationships[$quiz_result_answer->question_nid])) {
-          $relationship = $relationships[$quiz_result_answer->question_nid];
+          if (!empty($relationships[$quiz_result_answer->question_nid])) {
+            $relationship = $relationships[$quiz_result_answer->question_nid];
+          }
+
+          $quiz_result->layout[$quiz_result_answer->number] = array(
+            'display_number' => $quiz_result_answer->number,
+            'nid' => $quiz_result_answer->question_nid,
+            'vid' => $quiz_result_answer->question_vid,
+            'tid' => $quiz_result_answer->tid,
+            'number' => $quiz_result_answer->number,
+            'type' => $type,
+            'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
+            'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
+          );
         }
-
-        $quiz_result->layout[$quiz_result_answer->number] = array(
-          'display_number' => $quiz_result_answer->number,
-          'nid' => $quiz_result_answer->question_nid,
-          'vid' => $quiz_result_answer->question_vid,
-          'tid' => $quiz_result_answer->tid,
-          'number' => $quiz_result_answer->number,
-          'type' => $type,
-          'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
-          'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
-        );
+        ksort($quiz_result->layout, SORT_NUMERIC);
       }
-      ksort($quiz_result->layout, SORT_NUMERIC);
+      else {
+        $quiz_result->layout = array();
+      }
     }
     return $quiz_results;
   }
