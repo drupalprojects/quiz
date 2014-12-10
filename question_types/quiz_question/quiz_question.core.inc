@@ -696,6 +696,7 @@ abstract class QuizQuestionResponse {
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($this->canReview("quiz_question_view_" . $view_mode)) {
         node_build_content($node, $view_mode);
+        unset($node->content['answers']);
         $out['question'][] = $node->content;
       }
     }
