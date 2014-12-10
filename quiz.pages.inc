@@ -433,10 +433,10 @@ function theme_quiz_result($variables) {
   $quiz_feedback['#markup'] = '';
   if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
     // Show quiz feedback.
-    if (isset($summary['passfail'])) {
+    if (!empty($summary['passfail'])) {
       $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>';
     }
-    if (isset($summary['result'])) {
+    if (!empty($summary['result'])) {
       $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
     }
   }
