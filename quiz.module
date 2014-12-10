@@ -3384,8 +3384,7 @@ function quiz_copy_questions($node) {
     node_save($original_question);
 
     // Save the relationship between the new question and the quiz.
-    db_insert('quiz_node_relationship')
-      ->fields(array(
+    $quiz_question_relationship = (object) array(
         'parent_nid' => $node->nid,
         'parent_vid' => $node->vid,
         'child_nid' => $original_question->nid,
@@ -3394,8 +3393,8 @@ function quiz_copy_questions($node) {
         'weight' => $res_o->weight,
         'max_score' => $res_o->max_score,
         'auto_update_max_score' => $res_o->auto_update_max_score,
-      ))
-      ->execute();
+    );
+    entity_save('quiz_question_relationship', $quiz_question_relationship);
   }
 }
 
