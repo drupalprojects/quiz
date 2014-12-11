@@ -22,30 +22,36 @@ function quiz_question_schema() {
     'fields' => array(
       'qqp_id' => array(
         'type' => 'serial',
+        'description' => 'The primary identifier for this Question.',
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The node ID of this Question.',
       ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The version ID of this Question.',
       ),
       'max_score' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'default' => 0,
+        'description' => 'The unscaled max score of this Question.',
       ),
       'feedback' => array(
         'type' => 'text',
         'not null' => FALSE,
+        'description' => 'The generic feedback text to show for this Question.',
       ),
       'feedback_format' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
+        'description' => 'Text format for the feedback text.',
       ),
     ),
     'primary key' => array('qqp_id'),

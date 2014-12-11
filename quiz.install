@@ -39,29 +39,34 @@ function quiz_schema() {
     'fields' => array(
       'qnp_id' => array(
         'type' => 'serial',
+        'description' => 'Primary identifier of a Quiz, or Quiz default settings object.',
       ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The current {quiz}.vid version identifier.'
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The primary identifier for the Quiz node.',
       ),
       'uid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'User ID of the Quiz default settings object.',
       ),
       'aid' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'description' => 'Action ID (deprecated).',
       ),
       'number_of_random_questions' => array(
         'type' => 'int',
@@ -69,6 +74,7 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Number of random questions to pull from the pool.',
       ),
       'max_score_for_random' => array(
         'type' => 'int',
@@ -76,34 +82,41 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Maximum score per random question.',
       ),
       'pass_rate' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'Passing rate out of 100.',
       ),
       'summary_pass' => array(
         'type' => 'text',
+        'description' => 'Summary text for a passing grade.',
       ),
       'summary_pass_format' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'description' => 'Input format for the passing summary text.',
       ),
       'summary_default' => array(
         'type' => 'text',
+        'description' => 'Summary text for any grade.',
       ),
       'summary_default_format' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'description' => 'Input format for the default summary text.',
       ),
       'randomization' => array(
         'type' => 'int',
         'size' => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Enumerated field indicating if this Quiz has random questions. 0=none, 1=random order, 2=random questions, 3=random taxonomy',
       ),
       'backwards_navigation' => array(
         'type' => 'int',
@@ -111,6 +124,7 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Boolean indicating whether a quiz taker can navigate backwards.',
       ),
       'keep_results' => array(
         'type' => 'int',
@@ -118,6 +132,7 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 2,
+        'description' => 'Enumerated field indicating if this Quiz should prune old results. 0=only keep best, 1=only keep newest, 2=keep all',
       ),
       'repeat_until_correct' => array(
         'type' => 'int',
@@ -125,18 +140,21 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether a quiz taker must repeat the question until selecting the correct answer.',
       ),
       'quiz_open' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Unix timestamp when the quiz will open.',
       ),
       'quiz_close' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Unix timestamp when the quiz will close.',
       ),
       'takes' => array(
         'type' => 'int',
@@ -144,6 +162,7 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Limit the number of times this Quiz can be taken by a learner. 0 for unlimited.',
       ),
       'show_attempt_stats' => array(
         'type' => 'int',
@@ -151,60 +170,70 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Boolean indicating whether or not to show the allowed attempts on the Quiz node.',
       ),
       'time_limit' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Number of seconds for a user to complete an attempt.',
       ),
       'quiz_always' => array(
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Boolean indicating whether the quiz will ignore the quiz open and close dates.',
       ),
       'tid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Deprecated field? This may have moved to {quiz_terms}',
       ),
       'has_userpoints' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Boolean indicating whether the Quiz should award user points.',
       ),
       'userpoints_tid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Taxonomy ID used for userpoints integration.',
       ),
       'time_left' => array(
         'type' => 'int',
         'size' => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Deprecated field, no longer used.',
       ),
       'max_score' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The max score of this Quiz.',
       ),
       'allow_skipping' => array(
         'type' => 'int',
         'size' => 'small',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether the user can skip a question.',
       ),
       'allow_resume' => array(
         'type' => 'int',
         'size' => 'small',
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Boolean indicating whether a user can resume a Quiz after logging out and in.',
       ),
       'allow_jumping' => array(
         'type' => 'int',
@@ -212,18 +241,21 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether a user can skip to any question.',
       ),
       'allow_change' => array(
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Boolean indicating whether a user can change the answer to an already answered question.',
       ),
       'build_on_last' => array(
         'type' => 'varchar',
         'length' => '255',
         'not null' => TRUE,
         'default' => '',
+        'description' => 'Enumerated field indicating whether a user can build on the last attempt. "" for none, "correct" for correct answers only, "all" for all answers.',
       ),
       'show_passed' => array(
         'type' => 'int',
@@ -231,16 +263,19 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'Boolean indicating whether a message should display when the user has already passed this quiz.',
       ),
       'mark_doubtful' => array(
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether a user can mark a question as doubtful.',
       ),
       'review_options' => array(
         'type' => 'text',
         'serialize' => TRUE,
+        'description' => 'Serialized field containing feedback times and options.',
       ),
     ),
     'primary key' => array('qnp_id'),
@@ -265,6 +300,7 @@ function quiz_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The primary identifier of this relationship.',
       ),
       'qnr_pid' => array(
         'type' => 'int',
@@ -272,26 +308,31 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => FALSE,
         'default' => NULL,
+        'description' => 'The parent relationship of this relationship.',
       ),
       'parent_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The quiz that this question belongs to.',
       ),
       'parent_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The quiz version that this question belongs to.',
       ),
       'child_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The question node ID.',
       ),
       'child_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The question node version ID.',
       ),
       'question_status' => array(
         'type' => 'int',
@@ -299,22 +340,26 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'The status of the question in this quiz. 0=random, 1=always, 2=never',
       ),
       'weight' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The weight of this question in the Quiz.',
       ),
       'max_score' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The max score of the question in this Quiz.',
       ),
       'auto_update_max_score' => array(
         'type' => 'int',
         'size' => 'tiny',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether updates to the question will update the max score of the question in the Quiz.',
       ),
     ),
     'primary key' => array('qnr_id'),
@@ -339,59 +384,70 @@ function quiz_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The primary identifier for this result.',
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The quiz ID associated with this result.',
       ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The quiz version ID associated with this result.',
       ),
       'uid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The user associated with this result.',
       ),
       'time_start' => array(
         'type' => 'int',
         'unsigned' => FALSE,
+        'description' => 'Unix timestamp when this result started.',
       ),
       'time_end' => array(
         'type' => 'int',
         'unsigned' => FALSE,
+        'description' => 'Unix timestamp when this result ended. A NULL value indicates a quiz result not completed.',
       ),
       'released' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'default' => 0,
+        'description' => 'This field is not referenced.',
       ),
       'score' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'The score of this result from 0 to 100.',
       ),
       'is_invalid' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'This field is not referenced.',
       ),
       'is_evaluated' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Boolean indicating if this quiz requires manual grading and if it has been graded.',
       ),
       'time_left' => array(
         'type' => 'int',
         'size' => 'small',
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Deprecated field, no longer used.',
       ),
     ),
     'primary key' => array('result_id'),
@@ -405,32 +461,37 @@ function quiz_schema() {
    * Information about a particular question in a result
    */
   $schema['quiz_node_results_answers'] = array(
-    'description' => 'Table storing information about the results for the questions',
+    'description' => 'Table storing information about each question response in an attempt.',
     'fields' => array(
       'result_answer_id' => array(
         'description' => 'The result answer ID',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The primary identifier for this result answer.',
       ),
       'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The result ID associated with this answer.',
       ),
       'question_nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The question ID of the answer.',
       ),
       'question_vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The question version ID of the answer.',
       ),
       'tid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
+        'description' => 'The taxonomy ID this question response was answered within, if this Quiz contained categorized random questions.',
       ),
       'is_correct' => array(
         'type' => 'int',
@@ -438,13 +499,15 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Boolean indicating whether this answer was correct.',
       ),
       'is_skipped' => array(
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
-        'default' => 0
+        'default' => 0,
+        'description' => 'Boolean indicating whether this question was skipped.',
       ),
       'points_awarded' => array(
         'type' => 'int',
@@ -452,12 +515,14 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 0,
+        'description' => 'Points awarded for this response.',
       ),
       'answer_timestamp' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => FALSE,
         'default' => NULL,
+        'description' => 'Unix timestamp when this question was answered.',
       ),
       'number' => array(
         'type' => 'int',
@@ -465,12 +530,14 @@ function quiz_schema() {
         'unsigned' => FALSE,
         'not null' => TRUE,
         'default' => 1,
+        'description' => 'The number of the question in the result.',
       ),
       'is_doubtful' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-        'size' => 'tiny'
+        'size' => 'tiny',
+        'description' => 'Boolean indicating whether the user marked this answer as doubtful.',
       ),
     ),
     'primary key' => array('result_answer_id'),
@@ -494,39 +561,47 @@ function quiz_schema() {
         'size' => 'normal',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The primary identifier for the range.',
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'Quiz ID associated with this range.',
       ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'Quiz version ID associated with this range.',
       ),
       'option_name' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'description' => 'The name of this range.',
       ),
       'option_summary' => array(
         'type' => 'text',
+        'description' => 'The text to show when this range is met.',
       ),
       'option_summary_format' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => TRUE,
+        'description' => 'Text format of the range text.',
       ),
       'option_start' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'default' => 0,
+        'description' => 'Score range low value.',
       ),
       'option_end' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'default' => 0,
+        'description' => 'Score range high value.',
       ),
     ),
     'primary key' => array('option_id'),
@@ -539,13 +614,13 @@ function quiz_schema() {
     'description' => 'Table storing what terms belongs to what quiz for categorized random quizzes',
     'fields' => array(
       'nid' => array(
-        'description' => 'Node id',
+        'description' => 'The quiz ID of this quiz term.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'vid' => array(
-        'description' => 'Version id',
+        'description' => 'The quiz version ID of this quiz term.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -557,20 +632,20 @@ function quiz_schema() {
         'not null' => TRUE,
       ),
       'tid' => array(
-        'description' => 'Term id',
+        'description' => 'Taxonomy term ID from which to pull questions.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'max_score' => array(
-        'description' => 'Max score for each question marked with this term',
+        'description' => 'Max score for each question marked with this term.',
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'number' => array(
-        'description' => 'Number of questions to be drawn from this term',
+        'description' => 'Number of questions to be drawn from this term.',
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
