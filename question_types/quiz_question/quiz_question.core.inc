@@ -234,7 +234,10 @@ abstract class QuizQuestion {
 
 
     // Save what quizzes this question belongs to.
-    $quizzes_kept = $this->saveRelationships();
+    // @kludge the quiz nid/vid are still on the node
+    if (!empty($this->node->quiz_nid)) {
+      $this->saveRelationships($this->node->quiz_nid, $this->node->quiz_vid);
+    }
     if (!empty($this->node->revision)) {
       if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
         unset($_GET['destination']);
@@ -323,12 +326,8 @@ abstract class QuizQuestion {
   /**
    * Save this Question to the specified Quiz.
    */
-  function saveRelationships() {
-    if (empty($this->node->quiz_nid) || empty($this->node->quiz_vid)) {
-      return;
-    }
-
-    $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
+  function saveRelationships($nid, $vid) {
+    $quiz_node = node_load($nid, $vid);
 
     if (quiz_has_been_answered($quiz_node)) {
       // We need to revise the quiz node if it has been answered
