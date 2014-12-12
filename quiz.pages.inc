@@ -33,13 +33,13 @@ function quiz_user_results($result_id) {
       'result_id' => $result_id,
       'account' => user_load($result->uid),
     );
-    if (user_access('view own quiz results') || (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
-      // User can view own quiz results OR the current quiz has "display solution".
+    if (user_access('view own quiz results') && (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
       return theme('quiz_result', $data);
     }
     else {
-      // User cannot view own results or show solution. Show summary.
-      return theme('quiz_result', $data);
+      // User cannot view own results or there is no feedback enabled. Show
+      // generic text.
+      return t('You have finished this @quiz.', array('@quiz' => QUIZ_NAME));
     }
   }
 }

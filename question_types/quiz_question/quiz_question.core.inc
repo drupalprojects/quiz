@@ -696,6 +696,7 @@ abstract class QuizQuestionResponse {
       if ($this->canReview("quiz_question_view_" . $view_mode)) {
         node_build_content($node, $view_mode);
         unset($node->content['answers']);
+        unset($node->content['links']);
         $out['question'][] = $node->content;
       }
     }

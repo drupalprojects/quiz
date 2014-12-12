@@ -23,6 +23,10 @@ function quiz_install() {
   variable_set('comment_quiz', '0');
 
   drupal_set_message(t('Quiz module has been enabled. To !create_a_quiz go to Create Content -> Quiz.', array('!create_a_quiz' => l(t('create a quiz'), 'node/add/quiz'))));
+
+  // Grant default permissions.
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('view own quiz results'));
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access quiz'));
 }
 
 /**
@@ -976,4 +980,13 @@ function quiz_update_7511() {
  */
 function quiz_update_7512() {
   registry_rebuild();
+}
+
+/**
+ * Grant the "view own quiz results" to the authenticated user. This permission
+ * was not checked before so we are adding it for a clean upgrade path.
+ */
+function quiz_update_7513() {
+  drupal_set_message('The "view own quiz results" permission has been added to the authenticated user role because it was not checked in previous 5.x releases of Quiz.', 'warning');
+  user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('view own quiz results'));
 }
