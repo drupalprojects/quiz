@@ -1291,19 +1291,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
 // THEME FUNCTIONS
 
 /**
- * Theme the quiz node form
- *
- * Adds js to enhance the ux.
- *
- * @param $form
- *   FAPI form array
- */
-function theme_quiz_node_form($variables) {
-  $form = $variables['form'];
-  return theme('node_form', array('form' => $form));
-}
-
-/**
  * Theme a question selection table, adding drag and drop support.
  */
 function theme_question_selection_table($variables) {
