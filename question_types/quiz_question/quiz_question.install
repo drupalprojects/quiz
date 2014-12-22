@@ -134,3 +134,12 @@ function quiz_question_update_7501() {
   db_drop_table('quiz_question_latest_quizzes');
   return t('Dropped table {quiz_question_latest_quizzes}');
 }
+
+/**
+ * Add missing question_id index.
+ */
+function quiz_question_update_7502() {
+  if (!db_index_exists('quiz_question_properties', 'question_id')) {
+    db_add_index('quiz_question_properties', 'question_id', array('vid', 'nid'));
+  }
+}
