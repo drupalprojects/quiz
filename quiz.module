@@ -1117,7 +1117,7 @@ function quiz_form(&$node, &$form_state) {
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE,
-    '#description' => t('Control what feedback appears and when.'),
+    '#description' => t('Control what feedback appears and when. To display any per-question feedback, one of the "Question" review options must be enabled.'),
   );
 
   $review_options = quiz_get_feedback_options();

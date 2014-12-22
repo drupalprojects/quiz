@@ -423,12 +423,14 @@ function theme_quiz_result($variables) {
     '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
   );
 
-  $score = '';
+  $score_out = '';
   if (quiz_feedback_can_review('score', $quiz_result)) {
     // Show score.
-    $score .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
-    $score .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
+    $score_out .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+    $score_out .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
   }
+
+  $report_form = drupal_get_form('quiz_report_form', $questions, $quiz_result->result_id);
 
   $quiz_feedback['#markup'] = '';
   if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
@@ -440,11 +442,10 @@ function theme_quiz_result($variables) {
       $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
     }
   }
-
-  $report_form = drupal_get_form('quiz_report_form', $questions, $quiz_result->result_id);
   $report_form['quiz_feedback'] = $quiz_feedback;
+
   $form = drupal_render($report_form);
-  return $score . $form;
+  return $score_out . $form;
 }
 
 /**
