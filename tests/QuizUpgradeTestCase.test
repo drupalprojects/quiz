@@ -15,7 +15,6 @@ class QuizUpgradeTestCase extends UpdatePathTestCase {
     'ajax_quiz',
     'quiz_stats',
   );
-
   public $other_modules = array(
     'entity',
     'field',
@@ -53,8 +52,18 @@ class QuizUpgradeTestCase extends UpdatePathTestCase {
       $schema = drupal_get_schema_unprocessed($module);
       foreach ($schema as $table => $info) {
         $this->assertTrue(db_table_exists($table), "$table exists");
-        foreach ($info['fields'] as $field_name => $info) {
+        foreach ($info['fields'] as $field_name => $field_info) {
           $this->assertTrue(db_field_exists($table, $field_name), "$table has $field_name");
+        }
+        if (isset($info['indexes'])) {
+          foreach ($info['indexes'] as $index_name => $columns) {
+            $this->assertTrue(db_index_exists($table, $index_name), "$table has index $index_name");
+          }
+        }
+        if (isset($info['unique keys'])) {
+          foreach ($info['unique keys'] as $index_name => $columns) {
+            $this->assertTrue(db_index_exists($table, $index_name), "$table has unique key $index_name");
+          }
         }
       }
     }
