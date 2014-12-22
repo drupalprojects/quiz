@@ -931,7 +931,7 @@ function quiz_view($node) {
     if (user_access('access quiz')) {
       // Add a link to the take tab.
       $node->content['take'] = array(
-        '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take'),
+        '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take', array('attributes' => array('class' => array('quiz-start-link')))),
         '#weight' => 2,
       );
     }
