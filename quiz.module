@@ -1275,7 +1275,7 @@ function quiz_form(&$node, &$form_state) {
       '#title' => t('Summary text if passed'),
       '#default_value' => $node->summary_pass,
       '#cols' => 60,
-      '#description' => t("Summary text for when the user passes the @quiz. Leave blank to not give different summary text if passed, or if not using the \"percent to pass\" option above. If not using the \"percentage needed to pass\" field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
+      '#description' => t("Summary text for when the user passes the @quiz. Leave blank to not give summary text if passed, or if not using the \"passing rate\" field above. If not using the \"passing rate\" field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
       '#format' => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
     );
   }
@@ -1292,10 +1292,10 @@ function quiz_form(&$node, &$form_state) {
   $form['summaryoptions']['helper']['summary_default'] = array(
     '#type' => 'text_format',
     '#base_type' => 'textarea',
-    '#title' => t('Default summary text'),
+    '#title' => t('Summary text if failed'),
     '#default_value' => $node->summary_default,
     '#cols' => 60,
-    '#description' => t("Default summary. Leave blank if you don't want to give a summary."),
+    '#description' => t("Summary text for when the user fails the @quiz. Leave blank to not give summary text if failed, or if not using the \"passing rate\" field above. If not using the \"passing rate\" field above, this text will not be used.", array('@quiz' => QUIZ_NAME)),
     '#format' => isset($node->summary_default_format) && !empty($node->summary_default_format) ? $node->summary_default_format : NULL,
   );
 
