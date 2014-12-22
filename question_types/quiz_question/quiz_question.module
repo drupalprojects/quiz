@@ -69,12 +69,13 @@ function quiz_question_theme() {
 function quiz_question_node_info() {
   $node_info = array();
   foreach (quiz_question_get_info(NULL, TRUE) as $type => $definition) {
-    $node_info[$type] = array(
-      'name' => $definition['name'],
-      'base' => 'quiz_question',
-      'description' => $definition['description']
-    );
-    //$info[$type] = $node_info + $defaults;
+    if (!isset($definition['node']) || $definition['node']) {
+      $node_info[$type] = array(
+        'name' => $definition['name'],
+        'base' => 'quiz_question',
+        'description' => $definition['description']
+      );
+    }
   }
   return $node_info;
 }
@@ -441,10 +442,10 @@ function quiz_question_node_presave($node) {
 }
 
 /**
- * Implements hook_insert().
+ * Implements hook_nodeinsert().
  */
-function quiz_question_insert(stdClass $node) {
-  _quiz_question_get_instance($node)->save(TRUE);
+function quiz_question_node_insert(stdClass $node) {
+  quiz_question_node_update($node);
 }
 
 /**
@@ -478,10 +479,12 @@ function quiz_question_view($node, $view_mode) {
 }
 
 /**
- * Implements hook_update().
+ * Implements hook_node_update().
  */
-function quiz_question_update($node) {
-  _quiz_question_get_instance($node)->save();
+function quiz_question_node_update($node) {
+  if (array_key_exists($node->type, quiz_get_question_types())) {
+    _quiz_question_get_instance($node)->save();
+  }
 }
 
 /**
