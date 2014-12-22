@@ -215,7 +215,7 @@ abstract class QuizQuestion {
    */
   public function save($is_new = FALSE) {
     // We call the abstract function saveNodeProperties to save type specific data
-    $this->saveNodeProperties($is_new);
+    $this->saveNodeProperties($this->node->is_new);
 
     db_merge('quiz_question_properties')
       ->key(array(
