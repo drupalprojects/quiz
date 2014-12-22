@@ -228,9 +228,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function save() {
     db_insert('quiz_truefalse_user_answers')
       ->fields(array(
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
-        'result_id' => $this->result_id,
+        'result_answer_id' => $this->result_answer_id,
         'answer' => (int) $this->answer,
         'score' => (int) $this->getScore(),
       ))
@@ -244,9 +242,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_truefalse_user_answers')
-      ->condition('question_nid', $this->question->nid)
-      ->condition('question_vid', $this->question->vid)
-      ->condition('result_id', $this->result_id)
+      ->condition('result_answer_id', $this->result_answer_id)
       ->execute();
   }
 
@@ -273,7 +269,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * Implementation of getCorrectAnswer
    */
   public function getUserAnswer() {
-    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE question_vid = :qvid AND result_id = :rid', array(':qvid' => $this->question->vid, ':rid' => $this->result_id))->fetch();
+    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
   }
 
   /**

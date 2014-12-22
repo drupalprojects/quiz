@@ -264,9 +264,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
     if (!isset($answer)) {
       // Question has been answered allready. We fetch the answer data from the database.
-      $r = db_query('SELECT answer_id, answer, is_evaluated, score, question_vid, question_nid, result_id, answer_feedback, answer_feedback_format
+      $r = db_query('SELECT *
         FROM {quiz_long_answer_user_answers}
-        WHERE question_nid = :qnid AND question_vid = :qvid AND result_id = :rid', array(':qnid' => $question_node->nid, ':qvid' => $question_node->vid, ':rid' => $result_id))->fetch();
+        WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
 
       if (!empty($r)) {
         $this->answer = $r->answer;
@@ -292,9 +292,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $this->answer_id = db_insert('quiz_long_answer_user_answers')
       ->fields(array(
         'answer' => $this->answer,
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
-        'result_id' => $this->result_id,
+        'result_answer_id' => $this->result_answer_id,
       ))
       ->execute();
   }
@@ -306,9 +304,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_long_answer_user_answers')
-      ->condition('question_nid', $this->question->nid)
-      ->condition('question_vid', $this->question->vid)
-      ->condition('result_id', $this->result_id)
+      ->condition('result_answer_id', $this->result_answer_id)
       ->execute();
   }
 
@@ -319,7 +315,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
    */
   public function score() {
     return (int) db_query('SELECT score FROM {quiz_long_answer_user_answers}
-      WHERE result_id = :result_id AND question_vid = :question_vid', array(':result_id' => $this->result_id, ':question_vid' => $this->question->vid))->fetchField();
+      WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetchField();
   }
 
   /**
