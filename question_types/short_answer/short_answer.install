@@ -77,7 +77,17 @@ function short_answer_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_answer_id' => array(
+      'question_nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'question_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -109,7 +119,7 @@ function short_answer_schema() {
     ),
     'primary key' => array('answer_id'),
     'unique keys' => array(
-      'result_answer_id' => array('result_answer_id'),
+      'ids' => array('result_id', 'question_nid', 'question_vid'),
     ),
   );
   return $schema;
@@ -139,24 +149,4 @@ function short_answer_update_7402() {
     );
     db_add_field('quiz_short_answer_user_answers', 'answer_feedback_format', $spec);
   }
-}
-
-/**
- * Normalize data storage.
- */
-function short_answer_update_7500() {
-  db_add_field('quiz_short_answer_user_answers', 'result_answer_id', array(
-    'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'default' => 0,
-  ));
-  db_query("UPDATE {quiz_short_answer_user_answers} qtua
-    INNER JOIN {quiz_node_results_answers} qnra ON (qtua.question_nid = qnra.question_nid
-    AND qtua.question_vid = qnra.question_vid
-    AND qtua.result_id = qnra.result_id)
-    SET qtua.result_answer_id = qnra.result_answer_id");
-  db_drop_field('quiz_short_answer_user_answers', 'result_id');
-  db_drop_field('quiz_short_answer_user_answers', 'question_nid');
-  db_drop_field('quiz_short_answer_user_answers', 'question_vid');
 }

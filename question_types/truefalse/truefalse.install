@@ -49,12 +49,17 @@ function truefalse_schema() {
   // Place to store user answers for T/F questions
   $schema['quiz_truefalse_user_answers'] = array(
     'fields' => array(
-      'answer_id' => array(
-        'type' => 'serial',
+      'question_nid' => array(
+        'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_answer_id' => array(
+      'question_vid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'result_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -72,35 +77,10 @@ function truefalse_schema() {
         'default' => 0,
       ),
     ),
-    'primary key' => array('answer_id'),
-    'unique keys' => array(
-      'result_answer_id' => array('result_answer_id'),
+    'primary key' => array(
+      'result_id', 'question_nid', 'question_vid',
     ),
   );
 
   return $schema;
-}
-
-/**
- * Normalize data storage.
- */
-function truefalse_update_7500() {
-  db_drop_primary_key('quiz_truefalse_user_answers');
-  db_add_field('quiz_truefalse_user_answers', 'answer_id', array(
-    'type' => 'serial',
-    ), array('primary key' => array('answer_id')));
-  db_add_field('quiz_truefalse_user_answers', 'result_answer_id', array(
-    'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE,
-    'default' => 0,
-  ));
-  db_query("UPDATE {quiz_truefalse_user_answers} qtua
-    INNER JOIN {quiz_node_results_answers} qnra ON (qtua.question_nid = qnra.question_nid
-    AND qtua.question_vid = qnra.question_vid
-    AND qtua.result_id = qnra.result_id)
-    SET qtua.result_answer_id = qnra.result_answer_id");
-  db_drop_field('quiz_truefalse_user_answers', 'result_id');
-  db_drop_field('quiz_truefalse_user_answers', 'question_nid');
-  db_drop_field('quiz_truefalse_user_answers', 'question_vid');
 }

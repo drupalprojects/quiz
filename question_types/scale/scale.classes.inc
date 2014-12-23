@@ -336,7 +336,7 @@ class ScaleQuestion extends QuizQuestion {
         $alternatives[] = check_plain($this->node->{$i}->answer);
       }
     }
-    $content['answers'] = array(
+    $content['answer'] = array(
       '#markup' => theme('scale_answer_node_view', array('alternatives' => $alternatives)),
       '#weight' => 2,
     );
@@ -568,7 +568,7 @@ class ScaleResponse extends QuizQuestionResponse {
       $this->answer_id = intval($answer);
     }
     else {
-      $this->answer_id = db_query('SELECT answer_id FROM {quiz_scale_user_answers} WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetchField();
+      $this->answer_id = db_query('SELECT answer_id FROM {quiz_scale_user_answers} WHERE result_id = :rid AND question_nid = :qnid AND question_vid = :qvid', array(':rid' => $result_id, ':qnid' => $this->question->nid, ':qvid' => $this->question->vid))->fetchField();
     }
     $answer = db_query('SELECT answer FROM {quiz_scale_answer} WHERE id = :id', array(':id' => $this->answer_id))->fetchField();
     $this->answer = check_plain($answer);
@@ -583,7 +583,9 @@ class ScaleResponse extends QuizQuestionResponse {
     $id = db_insert('quiz_scale_user_answers')
       ->fields(array(
         'answer_id' => $this->answer_id,
-        'result_answer_id' => $this->result_answer_id,
+        'result_id' => $this->result_id,
+        'question_vid' => $this->question->vid,
+        'question_nid' => $this->question->nid,
       ))
       ->execute();
   }
@@ -595,7 +597,9 @@ class ScaleResponse extends QuizQuestionResponse {
    */
   public function delete() {
     db_delete('quiz_scale_user_answers')
-      ->condition('result_answer_id', $this->result_answer_id)
+      ->condition('result_id', $this->result_id)
+      ->condition('question_nid', $this->question->nid)
+      ->condition('question_vid', $this->question->vid)
       ->execute();
   }
 
@@ -605,7 +609,7 @@ class ScaleResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#score()
    */
   public function score() {
-    return (bool) $this->getResponse();
+    return $this->isValid() ? 1 : 0;
   }
 
   /**

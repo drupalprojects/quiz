@@ -3934,10 +3934,9 @@ function quiz_clone_quiz_result($result_old, $result_new) {
   foreach ($result_old->layout as $qinfo) {
     $question = node_load($qinfo['nid'], $qinfo['vid']);
     $quiz_question_response = _quiz_question_response_get_instance($result_old->result_id, $question);
-    $quiz_question_response_new = _quiz_question_response_get_instance($result_new->result_id, $question);
     if ($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) {
       // Override the existing response.
-      $quiz_question_response->setResultAnswerId($quiz_question_response_new->result_answer_id);
+      $quiz_question_response->setResultId($result_new->result_id);
       $quiz_question_response->save();
     }
   }

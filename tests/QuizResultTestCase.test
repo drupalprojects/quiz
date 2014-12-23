@@ -148,7 +148,9 @@ class QuizResultTestCase extends QuizTestCase {
     // This isn't an entity yet.
     $result = db_select('quiz_truefalse_user_answers', 'qtua')
       ->fields('qtua')
-      ->condition('result_answer_id', $quiz_result_answer->result_answer_id)
+      ->condition('result_id', $quiz_result->result_id)
+      ->condition('question_nid', $question_node1->nid)
+      ->condition('question_vid', $question_node1->vid)
       ->execute();
     $quiz_truefalse_result_answer = $result->fetch();
     $this->assertFalse(empty($quiz_truefalse_result_answer), 'Found quiz result question answer');
@@ -163,14 +165,18 @@ class QuizResultTestCase extends QuizTestCase {
     $this->assertTrue(empty($quiz_result2), 'Did not find quiz result');
 
     $quiz_result_answer = entity_load('quiz_result_answer', FALSE, array(
-      'result_answer_id' => $quiz_truefalse_result_answer->result_answer_id,
+      'result_id' => $quiz_result->result_id,
+      'question_nid' => $question_node1->nid,
+      'question_vid' => $question_node1->vid,
       ), TRUE);
     $this->assertTrue(empty($quiz_result_answer), 'Did not find quiz result answer');
 
     // This isn't an entity yet.
     $result = db_select('quiz_truefalse_user_answers', 'qtua')
       ->fields('qtua')
-      ->condition('result_answer_id', $quiz_truefalse_result_answer->result_answer_id)
+      ->condition('result_id', $quiz_result->result_id)
+      ->condition('question_nid', $question_node1->nid)
+      ->condition('question_vid', $question_node1->vid)
       ->execute();
     $quiz_truefalse_result_answer = $result->fetch();
     $this->assertTrue(empty($quiz_truefalse_result_answer), 'Did not find quiz result question answer');
