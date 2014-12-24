@@ -30,20 +30,10 @@ function multichoice_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_id' => array(
+      'result_answer_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'question_nid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      ),
-      'question_vid' => array(
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
       ),
       'choice_order' => array(
         'type' => 'text',
@@ -52,8 +42,8 @@ function multichoice_schema() {
     'primary key' => array(
       'id'
     ),
-    'indexes' => array(
-      'answer_id' => array('result_id', 'question_nid', 'question_vid'),
+    'unique keys' => array(
+      'result_answer_id' => array('result_answer_id'),
     ),
   );
 
@@ -244,4 +234,25 @@ function multichoice_update_7501() {
   // Lol.
   db_query('UPDATE {quiz_multichoice_answers} SET weight = id');
   return t('Added weights for multichoice alternatives.');
+}
+
+/**
+ * Normalize data storage.
+ */
+function multichoice_update_7502() {
+  db_add_field('quiz_multichoice_user_answers', 'result_answer_id', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+  ));
+  db_query("UPDATE {quiz_multichoice_user_answers} qtua
+    INNER JOIN {quiz_node_results_answers} qnra ON (qtua.question_nid = qnra.question_nid
+    AND qtua.question_vid = qnra.question_vid
+    AND qtua.result_id = qnra.result_id)
+    SET qtua.result_answer_id = qnra.result_answer_id");
+  db_drop_field('quiz_multichoice_user_answers', 'result_id');
+  db_drop_field('quiz_multichoice_user_answers', 'question_nid');
+  db_drop_field('quiz_multichoice_user_answers', 'question_vid');
+
+  db_add_unique_key('quiz_multichoice_user_answers', 'result_answer_id', array('result_answer_id'));
 }

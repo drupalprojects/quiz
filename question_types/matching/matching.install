@@ -88,7 +88,6 @@ function matching_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-
       'match_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
@@ -157,11 +156,11 @@ function matching_update_7400() {
 
   foreach ($result as $question) {
     db_insert('quiz_matching_properties')
-          ->fields(array(
-            'nid' => $question->nid,
-            'vid' => $question->vid,
-            'choice_penalty' => 0,
-          ))
-          ->execute();
+      ->fields(array(
+        'nid' => $question->nid,
+        'vid' => $question->vid,
+        'choice_penalty' => 0,
+      ))
+      ->execute();
   }
 }

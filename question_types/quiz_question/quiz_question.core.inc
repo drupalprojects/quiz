@@ -492,11 +492,12 @@ abstract class QuizQuestionResponse {
     $this->question = $question_node;
     $this->quizQuestion = _quiz_question_get_instance($question_node);
     $this->answer = $answer;
-    $result = db_query('SELECT is_skipped, is_doubtful FROM {quiz_node_results_answers}
+    $result = db_query('SELECT * FROM {quiz_node_results_answers}
             WHERE result_id = :result_id AND question_nid = :question_nid AND question_vid = :question_vid', array(':result_id' => $result_id, ':question_nid' => $question_node->nid, ':question_vid' => $question_node->vid))->fetch();
     if (is_object($result)) {
-      $this->is_doubtful = $result->is_doubtful;
-      $this->is_skipped = $result->is_skipped;
+      foreach ($result as $key => $value) {
+        $this->$key = $value;
+      }
     }
   }
 
@@ -530,14 +531,17 @@ abstract class QuizQuestionResponse {
   /**
    * Check to see if the answer is marked as correct.
    *
-   * This default version returns TRUE iff the score is equal to the maximum possible score.
+   * This default version returns TRUE iff the score is equal to the maximum
+   * possible score. Each question type can determine on its own if the question
+   * response is "correct".
    */
   function isCorrect() {
     return ($this->getMaxScore() == $this->getScore());
   }
 
   /**
-   * Returns stored score if it exists, if not the score is calculated and returned.
+   * Returns stored score if it exists, if not the score is calculated and
+   * returned.
    *
    * @param $weight_adjusted
    *  If the returned score shall be adjusted according to the max_score the question has in a quiz
@@ -595,19 +599,7 @@ abstract class QuizQuestionResponse {
     $obj->is_evaluated = $this->isEvaluated();
     $obj->is_skipped = 0;
     $obj->is_doubtful = isset($_POST['is_doubtful']) ? $_POST['is_doubtful'] : 0;
-    $obj->is_valid = $this->isValid();
     return $obj;
-  }
-
-  /**
-   * Validates response from a quiz taker. If the response isn't valid the quiz taker won't be allowed to proceed.
-   *
-   * @return
-   *  True if the response is valid.
-   *  False otherwise
-   */
-  public function isValid() {
-    return TRUE;
   }
 
   /**
@@ -822,17 +814,17 @@ abstract class QuizQuestionResponse {
   }
 
   /**
-   * Save the current response.
+   * Save the response for this question response.
    */
   abstract public function save();
 
   /**
-   * Delete the response.
+   * Delete the response for this question response.
    */
   abstract public function delete();
 
   /**
-   * Calculate the score for the response.
+   * Calculate the unscaled score in points for this question response.
    */
   abstract public function score();
 
@@ -876,12 +868,12 @@ abstract class QuizQuestionResponse {
   }
 
   /**
-   * Set the target result ID for this Question response.
+   * Set the target result answer ID for this Question response.
    *
    * Useful for cloning entire result sets.
    */
-  public function setResultId($result_id) {
-    $this->result_id = $result_id;
+  public function setResultAnswerId($result_answer_id) {
+    $this->result_answer_id = $result_answer_id;
   }
 
 }
