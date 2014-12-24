@@ -22,30 +22,36 @@ function quiz_question_schema() {
     'fields' => array(
       'qqp_id' => array(
         'type' => 'serial',
+        'description' => 'The primary identifier for this Question.',
       ),
       'nid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The node ID of this Question.',
       ),
       'vid' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
+        'description' => 'The version ID of this Question.',
       ),
       'max_score' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'default' => 0,
+        'description' => 'The unscaled max score of this Question.',
       ),
       'feedback' => array(
         'type' => 'text',
         'not null' => FALSE,
+        'description' => 'The generic feedback text to show for this Question.',
       ),
       'feedback_format' => array(
         'type' => 'varchar',
         'length' => 255,
         'not null' => FALSE,
+        'description' => 'Text format for the feedback text.',
       ),
     ),
     'primary key' => array('qqp_id'),
@@ -127,4 +133,13 @@ function quiz_question_update_7500() {
 function quiz_question_update_7501() {
   db_drop_table('quiz_question_latest_quizzes');
   return t('Dropped table {quiz_question_latest_quizzes}');
+}
+
+/**
+ * Add missing question_id index.
+ */
+function quiz_question_update_7502() {
+  if (!db_index_exists('quiz_question_properties', 'question_id')) {
+    db_add_index('quiz_question_properties', 'question_id', array('vid', 'nid'));
+  }
 }

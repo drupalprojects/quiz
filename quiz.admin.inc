@@ -351,26 +351,8 @@ function quiz_admin_results($quiz, $result_id) {
   $item = menu_get_item("node/$quiz->nid/quiz");
   menu_set_item(NULL, $item);
 
-  // Make sure we have the right version of the quiz
-  $result = db_query('SELECT vid, uid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchObject();
-  if ($quiz->vid != $result->vid) {
-    $quiz = node_load($quiz->nid, $result->vid);
-  }
-
-  // Get all the data we need.
-  $questions = _quiz_get_answers($quiz, $result_id);
-  $score = quiz_calculate_score($quiz, $result_id);
-  $summary = _quiz_get_summary_text($quiz, $score);
-
-  $data = array(
-    'quiz' => $quiz,
-    'questions' => $questions,
-    'score' => $score,
-    'summary' => $summary,
-    'result_id' => $result_id,
-    'account' => user_load($result->uid),
-  );
-  return theme('quiz_result', $data);
+  module_load_include('inc', 'quiz', 'quiz.pages');
+  return quiz_user_results($result_id);
 }
 
 // MANAGE QUESTIONS
@@ -1307,19 +1289,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
 }
 
 // THEME FUNCTIONS
-
-/**
- * Theme the quiz node form
- *
- * Adds js to enhance the ux.
- *
- * @param $form
- *   FAPI form array
- */
-function theme_quiz_node_form($variables) {
-  $form = $variables['form'];
-  return theme('node_form', array('form' => $form));
-}
 
 /**
  * Theme a question selection table, adding drag and drop support.

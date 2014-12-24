@@ -109,10 +109,7 @@ abstract class QuizTestCase extends DrupalWebTestCase {
       $quiz_node = $this->drupalCreateQuiz();
     }
 
-    $question_node->quiz_nid = $quiz_node->nid;
-    $question_node->quiz_vid = $quiz_node->vid;
-    $qq = _quiz_question_get_instance($question_node);
-    $qq->saveRelationships();
+    _quiz_question_get_instance($question_node)->saveRelationships($quiz_node->nid, $quiz_node->vid);
     return $quiz_node;
   }
 

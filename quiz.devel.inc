@@ -185,10 +185,7 @@ function quiz_generate_questions($quiz, $question_type) {
   devel_generate_fields($question, 'node', $question->type);
   node_save($question);
 
-  // Stolen from quiz_add_question_to_quiz().
-  $question->quiz_nid = $quiz->nid;
-  $question->quiz_vid = $quiz->vid;
-  _quiz_question_get_instance($question)->saveRelationships();
+  _quiz_question_get_instance($question)->saveRelationships($quiz->nid, $quiz->vid);
   quiz_update_max_score_properties(array($quiz->vid));
 }
 

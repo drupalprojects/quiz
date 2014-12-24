@@ -215,7 +215,7 @@ abstract class QuizQuestion {
    */
   public function save($is_new = FALSE) {
     // We call the abstract function saveNodeProperties to save type specific data
-    $this->saveNodeProperties($is_new);
+    $this->saveNodeProperties($this->node->is_new);
 
     db_merge('quiz_question_properties')
       ->key(array(
@@ -234,7 +234,10 @@ abstract class QuizQuestion {
 
 
     // Save what quizzes this question belongs to.
-    $quizzes_kept = $this->saveRelationships();
+    // @kludge the quiz nid/vid are still on the node
+    if (!empty($this->node->quiz_nid)) {
+      $this->saveRelationships($this->node->quiz_nid, $this->node->quiz_vid);
+    }
     if (!empty($this->node->revision)) {
       if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
         unset($_GET['destination']);
@@ -323,12 +326,8 @@ abstract class QuizQuestion {
   /**
    * Save this Question to the specified Quiz.
    */
-  function saveRelationships() {
-    if (empty($this->node->quiz_nid) || empty($this->node->quiz_vid)) {
-      return;
-    }
-
-    $quiz_node = node_load($this->node->quiz_nid, $this->node->quiz_vid);
+  function saveRelationships($nid, $vid) {
+    $quiz_node = node_load($nid, $vid);
 
     if (quiz_has_been_answered($quiz_node)) {
       // We need to revise the quiz node if it has been answered
@@ -568,7 +567,7 @@ abstract class QuizQuestionResponse {
    */
   public function getMaxScore($weight_adjusted = TRUE) {
     if (!isset($this->question->max_score)) {
-      $this->question->max_score = $this->question->getMaximumScore();
+      $this->question->max_score = $this->quizQuestion->getMaximumScore();
     }
     if (isset($this->question->score_weight) && $weight_adjusted) {
       return round($this->question->max_score * $this->question->score_weight);
@@ -691,11 +690,13 @@ abstract class QuizQuestionResponse {
    */
   public function getFeedback() {
     $out = array();
-    $node = node_load($this->question->nid);
+    $node = node_load($this->question->nid, $this->question->vid);
     $entity_info = entity_get_info('node');
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($this->canReview("quiz_question_view_" . $view_mode)) {
         node_build_content($node, $view_mode);
+        unset($node->content['answers']);
+        unset($node->content['links']);
         $out['question'][] = $node->content;
       }
     }

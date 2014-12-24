@@ -16,11 +16,13 @@
  * $form[x]['response'] - the users response, usually a FAPI array of type markup.
  */
 ?>
-<h2><?php print t('Question results'); ?></h2>
+<?php if (isset($form[0]['question'])): ?>
+  <h2><?php print t('Question results'); ?></h2>
+<?php endif; ?>
 <div class="quiz-report">
   <?php
   foreach ($form as $key => &$sub_form):
-    if (is_numeric($key)) {
+    if (is_numeric($key) && isset($sub_form['question'])) {
       if (isset($sub_form['#no_report'])) {
         drupal_render($sub_form);
       }
@@ -35,9 +37,7 @@
           <?php print drupal_render($sub_form['score_display']); ?>
           <h3><?php print t('Question') ?></h3>
         </div>
-        <?php if (isset($sub_form['question'])): ?>
-          <?php print drupal_render($sub_form['question']); ?>
-        <?php endif; ?>
+        <?php print drupal_render($sub_form['question']); ?>
       </div>
       <?php if (isset($sub_form['response'])): ?>
         <div class="quiz-report-response dd">

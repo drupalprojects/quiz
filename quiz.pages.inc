@@ -33,13 +33,13 @@ function quiz_user_results($result_id) {
       'result_id' => $result_id,
       'account' => user_load($result->uid),
     );
-    if (user_access('view own quiz results') || (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
-      // User can view own quiz results OR the current quiz has "display solution".
+    if (user_access('view own quiz results') && (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
       return theme('quiz_result', $data);
     }
     else {
-      // User cannot view own results or show solution. Show summary.
-      return theme('quiz_result', $data);
+      // User cannot view own results or there is no feedback enabled. Show
+      // generic text.
+      return t('You have finished this @quiz.', array('@quiz' => QUIZ_NAME));
     }
   }
 }
@@ -54,7 +54,7 @@ function quiz_user_results($result_id) {
  * @return $form
  *   FAPI form array
  */
-function quiz_report_form($form, $form_state, $questions) {
+function quiz_report_form($form, $form_state, $questions, $result_id) {
   $form = array();
   // The submit button is only shown if one or more of the questions has input elements
   $show_submit = FALSE;
@@ -64,7 +64,7 @@ function quiz_report_form($form, $form_state, $questions) {
       return array();
     }
     $function = $module . '_report_form';
-    $form_to_add = $function($question);
+    $form_to_add = $function($question, $result_id);
     if (isset($form_to_add['submit'])) {
       $show_submit = TRUE;
     }
@@ -423,28 +423,29 @@ function theme_quiz_result($variables) {
     '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
   );
 
-  $score = '';
+  $score_out = '';
   if (quiz_feedback_can_review('score', $quiz_result)) {
     // Show score.
-    $score .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
-    $score .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
+    $score_out .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+    $score_out .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
   }
+
+  $report_form = drupal_get_form('quiz_report_form', $questions, $quiz_result->result_id);
 
   $quiz_feedback['#markup'] = '';
   if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
     // Show quiz feedback.
-    if (isset($summary['passfail'])) {
+    if (!empty($summary['passfail'])) {
       $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>';
     }
-    if (isset($summary['result'])) {
+    if (!empty($summary['result'])) {
       $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
     }
   }
-
-  $report_form = drupal_get_form('quiz_report_form', $questions);
   $report_form['quiz_feedback'] = $quiz_feedback;
+
   $form = drupal_render($report_form);
-  return $score . $form;
+  return $score_out . $form;
 }
 
 /**
