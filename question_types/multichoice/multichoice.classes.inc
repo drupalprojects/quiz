@@ -690,6 +690,7 @@ class MultichoiceQuestion extends QuizQuestion {
         'callback' => 'multichoice_add_alternative_ajax_callback',
       ),
       '#weight' => 20,
+      '#limit_validation_errors' => array(),
     );
 
     $form['#attached']['js'] = array(
