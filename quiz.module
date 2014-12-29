@@ -3920,7 +3920,7 @@ function quiz_result_is_question_answered($quiz_result, $question) {
  */
 function quiz_translate_form_date(&$node, $date) {
   $human = $node->$date;
-  if (strtotime($human) !== FALSE) {
+  if (!is_numeric($human)) {
     $timestamp = strtotime($human);
     $node->$date = $timestamp;
   }
