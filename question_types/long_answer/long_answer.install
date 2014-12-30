@@ -113,6 +113,7 @@ function long_answer_update_7402() {
  * Normalize data storage.
  */
 function long_answer_update_7500() {
+  db_drop_unique_key('quiz_long_answer_user_answers', 'ids');
   db_add_field('quiz_long_answer_user_answers', 'result_answer_id', array(
     'type' => 'int',
     'unsigned' => TRUE,
