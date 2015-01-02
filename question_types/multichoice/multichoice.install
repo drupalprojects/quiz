@@ -222,6 +222,20 @@ function multichoice_uninstall() {
 }
 
 /**
+ * Change answer_format to a varchar.
+ */
+function multichoice_update_7500() {
+  foreach (array('answer_format', 'feedback_if_chosen_format', 'feedback_if_not_chosen_format') as $field) {
+    db_change_field('quiz_multichoice_answers', $field, $field, array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => TRUE,
+      )
+    );
+  }
+}
+
+/**
  * Add weights for multichoice alternatives.
  */
 function multichoice_update_7501() {
