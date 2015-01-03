@@ -97,10 +97,18 @@ var Multichoice = Multichoice || {};
               .click(function (event) {
                 $(this).toggleClass('selected');
                 if (event.target.type !== 'checkbox') {
-                  $(':checkbox', this).attr('checked', function () {
-                    return !this.checked;
-                  });
-                  $(':radio', this).attr('checked', true);
+                  if (typeof $.fn.prop === 'function') {
+                    $(':checkbox', this).prop('checked', function (i, val) {
+                      return !val;
+                    });
+                    $(':radio', this).prop('checked', 'checked');
+                  }
+                  else {
+                    $(':checkbox', this).attr('checked', function () {
+                      return !this.checked;
+                    });
+                    $(':radio', this).attr('checked', true);
+                  }
                   if ($(':radio', this).html() != null) {
                     $(this).parent().find('.multichoice-row').removeClass('selected');
                     $(this).addClass('selected');
