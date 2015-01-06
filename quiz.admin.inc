@@ -104,6 +104,16 @@ function quiz_admin_settings($form, &$form_state) {
     '#default_value' => variable_get('quiz_pager_siblings', 5),
   );
 
+  $form['quiz_global_settings']['quiz_time_limit_buffer'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time limit buffer'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('How many seconds after the time limit runs out to allow answers.'),
+    '#default_value' => variable_get('quiz_time_limit_buffer', 5),
+    '#element_validate' => array('element_validate_integer'),
+  );
+
   $target = array(
     'attributes' => array(
       'target' => '_blank'

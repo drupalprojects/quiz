@@ -830,7 +830,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
   $feedback_count = 0;
   $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
-  $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit));
+  $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit + variable_get('quiz_time_limit_buffer', 5)));
 
   if ($time_reached) {
     // Too late.
@@ -949,7 +949,7 @@ function quiz_question_answering_form_submit_back(&$form, &$form_state) {
 function quiz_question_answering_form_validate(&$form, &$form_state) {
   $quiz = node_load(arg(1));
   $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
-  $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit));
+  $time_reached = $quiz->time_limit && (REQUEST_TIME > ($quiz_result->time_start + $quiz->time_limit + variable_get('quiz_time_limit_buffer', 5)));
 
   if ($time_reached) {
     // Let's not validate anything, because the input won't get saved in submit
