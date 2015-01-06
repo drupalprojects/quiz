@@ -67,9 +67,9 @@ function quiz_report_form($form, $form_state, $questions, $result_id) {
     $form_to_add = $function($question, $result_id);
     if (isset($form_to_add['submit'])) {
       $show_submit = TRUE;
+      $form_to_add['#element_validate'][] = 'quiz_report_form_element_validate';
     }
     if (!isset($form_to_add['#no_report'])) {
-      $form_to_add['#element_validate'][] = 'quiz_report_form_element_validate';
       $form[] = $form_to_add;
     }
   }
