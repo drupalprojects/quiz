@@ -433,12 +433,6 @@ abstract class QuizQuestion {
       '#type' => 'hidden',
       '#value' => $this->node->nid,
     );
-    $body = field_get_items('node', $this->node, 'body');
-    $form['question'] = array(
-      '#markup' => check_markup($body[0]['value'], $body[0]['format']),
-      '#prefix' => '<div class="quiz-question-body">',
-      '#suffix' => '</div>',
-    );
     return $form;
   }
 
@@ -890,8 +884,9 @@ abstract class QuizQuestionResponse {
    */
   public function getReportFormQuestion($showpoints = TRUE, $showfeedback = TRUE) {
     $node = node_load($this->question->nid);
-    $items = field_get_items('node', $node, 'body');
-    return field_view_value('node', $node, 'body', $items[0]);
+    $node->no_answer_form = TRUE;
+    node_build_content($node, 'question');
+    return $node->content;
   }
 
   /**

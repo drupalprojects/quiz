@@ -75,6 +75,42 @@ function quiz_views_api() {
 }
 
 /**
+ * Implements hook_ctools_plugin_directory() to let the system know
+ * where our task and task_handler plugins are.
+ */
+function quiz_ctools_plugin_directory($owner, $plugin_type) {
+  if ($owner == 'page_manager') {
+    return 'plugins/page_manager/' . $plugin_type;
+  }
+  if ($owner == 'ctools' && $plugin_type == 'content_types') {
+    return 'plugins/content_types';
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function quiz_ctools_plugin_api($module, $api) {
+
+  if ($module == 'page_manager' && $api == 'pages_default') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function quiz_entity_info_alter(&$info) {
+  // Add a new view mode for displaying the question when taking a quiz
+  $info['node']['view modes'] += array(
+    'question' => array(
+      'label' => t('Question'),
+      'custom settings' => FALSE,
+    ),
+  );
+}
+
+/**
  * Implements hook_permission().
  */
 function quiz_permission() {
@@ -682,6 +718,9 @@ function quiz_form_quiz_node_form_submit($form, &$form_state) {
  * Implements hook_insert().
  */
 function quiz_insert($node) {
+  // Need to set max_score if this is a cloned node
+  $max_score = 0;
+
   // Apply defaults.
   $defaults = _quiz_load_user_settings(variable_get('quiz_def_uid', 1)) + _quiz_get_node_defaults();
   foreach ($defaults as $key => $value) {
@@ -695,6 +734,23 @@ function quiz_insert($node) {
   // Copy all the questions belonging to the quiz if this is a new translation.
   if ($node->is_new && isset($node->translation_source)) {
     quiz_copy_questions($node);
+  }
+
+  // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
+  if ($node->is_new && isset($node->clone_from_original_nid)) {
+    $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
+    
+    $max_score = $old_quiz->max_score;
+    
+    $questions = quiz_get_questions($old_quiz->nid, $old_quiz->vid, TRUE, TRUE, FALSE, TRUE);
+  
+    // Format the current questions for referencing
+    foreach ($questions as $nid => $q) {
+      $questions[$nid]->state = $q->question_status;
+      $questions[$nid]->refresh = 0;
+    }
+    
+    quiz_set_questions($node, $questions);
   }
 
   _quiz_common_presave_actions($node);
@@ -711,6 +767,7 @@ function quiz_insert($node) {
       'nid'                         => $node->nid,
       'aid'                         => !empty($node->aid) ? $node->aid : 0,
       'number_of_random_questions'  => $node->number_of_random_questions,
+      'max_score_for_random'        => $node->max_score_for_random,
       'randomization'               => $node->randomization,
       'backwards_navigation'        => $node->backwards_navigation,
       'repeat_until_correct'        => $node->repeat_until_correct,
@@ -735,7 +792,8 @@ function quiz_insert($node) {
       'allow_resume'                => $node->allow_resume,
       'allow_jumping'               => $node->allow_jumping,
       'show_passed'                 => $node->show_passed,
-      'mark_doubtful'               => $node->mark_doubtful
+      'mark_doubtful'               => $node->mark_doubtful,
+      'max_score'                   => $max_score,
     ))
     ->execute();
 
@@ -942,6 +1000,7 @@ function _quiz_get_node_defaults() {
     'quiz_open' => _quiz_form_prepare_date(),
     'quiz_close' => _quiz_form_prepare_date(NULL, variable_get('quiz_default_close', 30)),
     'mark_doubtful' => 0,
+    'max_score' => 0,
   );
 }
 
@@ -998,7 +1057,7 @@ function quiz_load($nodes) {
  */
 //function quiz_view($node, $teaser = FALSE, $page = FALSE) {
 function quiz_view($node, $view_mode) {
-  drupal_alter('quiz_view', $node, $teaser, $page);
+  drupal_alter('quiz_view', $node, $view_mode);
   node_invoke($node, 'prepare');
 
   // Number of questions is needed on the statistics page.
@@ -1014,7 +1073,7 @@ function quiz_view($node, $view_mode) {
     // Check the permission before displaying start button.
     if (user_access('access quiz')) {
       // Add a link to the take tab as a button if this isn't a teaser view.
-      if (!$teaser) {
+      if ($view_mode !== 'teaser') {
         $quiz_form = drupal_get_form('quiz_start_quiz_button_form', $node);
         $node->content['take'] = array(
           '#markup' => drupal_render($quiz_form),
@@ -1951,6 +2010,12 @@ function quiz_take_quiz($quiz) {
     $_SESSION['quiz_' . $quiz->nid]['question_duration'] -= REQUEST_TIME - $_SESSION['quiz_' . $quiz->nid]['question_start_time'];
   }
 
+  // Check to see if the question navigation form was submitted using the enter key
+  // in a browser that doesn't pass a default submit operation value when this happens.
+  if (!isset($_POST['op']) && isset($_POST['default_submit'])) {
+    $_POST['op'] = $_POST['default_submit'];
+  }
+
   // For quiz progress block
   // To be able to jump from one question to another
   if (isset($_GET['jump_to_question'])) {
@@ -2303,7 +2368,7 @@ function _quiz_take_quiz_init($quiz) {
  */
 function quiz_take_question_view($question_node, $quiz_node) {
   $question_node->allow_skipping = $quiz_node->allow_skipping;
-  node_build_content($question_node, 'teaser');
+  node_build_content($question_node, 'question');
   module_invoke_all('node_build_alter', $question_node, FALSE);
   //$question_node->body = drupal_render($question_node->content);
   return theme('quiz_single_question_node', array('question_node' => $question_node));
@@ -2764,13 +2829,13 @@ function quiz_is_passed($uid, $nid, $vid) {
 function quiz_start_check($quiz, $rid) {
   global $user;
 
-  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
+  $user_is_admin = node_access('update', $quiz);
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
     // Compare current GMT time to the open and close dates (which should still
     // be in GMT time).
-    $now = gmmktime();
+    $now = time();
 
     if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
       if ($user_is_admin) {
@@ -2844,7 +2909,7 @@ function quiz_availability($quiz) {
 
   // Compare current GMT time to the open and close dates (which should still be
   // in GMT time).
-  $now = gmmktime();
+  $now = time();
 
   if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
     return t('This quiz is closed');
@@ -3140,8 +3205,9 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
+    
+    node_save($quiz);
   }
-  node_save($quiz);
 
   // When node_save() calls all of the node API hooks, old quiz info is
   // automatically inserted into quiz_node_relationship. We could get clever and

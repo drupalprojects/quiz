@@ -71,6 +71,7 @@ function quiz_views_data() {
 
     // Table Definition
     'table' => array(
+      'entity type' => 'node',
       'group' => t('Quiz'),
       // Base tables:
       'base' => array(
@@ -310,8 +311,15 @@ function quiz_views_data() {
     'table' => array(
       'group' => t('Quiz Questions'),
       'join' => array(
-        // This is vid because vid is always more specific. We never work with
-        // nid.
+        // This is vid because vid is always more specific.
+        'node' => array(
+          'left_field' => 'vid',
+          'field' => 'parent_vid',
+        ),
+        'node_revisions' => array(
+          'left_field' => 'vid',
+          'field' => 'parent_vid',
+        ),
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'parent_vid',
@@ -479,14 +487,14 @@ function quiz_views_data() {
       'group' => 'Quiz Results',
       'join' => array(
         // This is vid because vid is always more specific.
-		'node' => array(
-      		'left_field' => 'vid',
-      		'field' => 'vid',
-    	),
-    	'node_revisions' => array(
-      		'left_field' => 'vid',
-      		'field' => 'vid',
-    	),
+        'node' => array(
+          'left_field' => 'vid',
+          'field' => 'vid',
+        ),
+        'node_revisions' => array(
+          'left_field' => 'vid',
+          'field' => 'vid',
+        ),
         'quiz_node_properties' => array(
           'left_field' => 'vid',
           'field' => 'vid',
@@ -660,6 +668,17 @@ function quiz_views_data() {
         'float' => TRUE,
         'group field' => 'nid',
       ),
+    ),
+    'is_evaluated' => array(
+      'title' => t('Is Evaluated'),
+      'help' => t('Indicates whether or not a quiz result is evaluated. This is a simple database boolean; this "evaluated" flag indicates if the quiz result has been graded.'),
+      'field' => array(
+        'handler' => 'views_handler_field_boolean',
+       ),
+       'filter' => array(
+         'handler' => 'views_handler_filter_boolean_operator',
+       ),
+       'sort' => array('handler' => 'views_handler_sort'),
     ),
     'quiz_state' => array(
       'title' => t('Quiz State'),

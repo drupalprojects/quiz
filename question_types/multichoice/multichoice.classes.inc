@@ -378,7 +378,23 @@ class MultichoiceQuestion extends QuizQuestion {
             ORDER BY id', array(':question_nid' => $this->node->nid, ':question_vid' => $this->node->vid));
     $props['alternatives'] = array(); // init array so it can be iterated even if empty
     while ($res_arr = $res->fetchAssoc()) {
-      $props['alternatives'][] = $res_arr;
+      $props['alternatives'][] = array(
+        'id' => $res_arr['id'],
+        'answer' => array(
+          'value' => $res_arr['answer'],
+          'format' => $res_arr['answer_format'],
+        ),
+        'feedback_if_chosen' => array(
+          'value' => $res_arr['feedback_if_chosen'],
+          'format' => $res_arr['feedback_if_chosen_format'],
+        ),
+        'feedback_if_not_chosen' => array(
+          'value' => $res_arr['feedback_if_not_chosen'],
+          'format' => $res_arr['feedback_if_not_chosen_format'],
+        ),
+        'score_if_chosen' => $res_arr['score_if_chosen'],
+        'score_if_not_chosen' => $res_arr['score_if_not_chosen'],
+      );
     }
     $this->nodeProperties = $props;
     return $props;
@@ -426,7 +442,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     for ($i = 0; isset($this->node->alternatives[$i]); $i++) {
       $short = $this->node->alternatives[$i];
-      $answer_markup = check_markup($short['answer'], $short['answer_format']);
+      $answer_markup = check_markup($short['answer']['value'], $short['answer']['format']);
       if (drupal_strlen($answer_markup) > 0) {
         $form['tries[answer]']['#options'][$short['id']] = $answer_markup;
       }
@@ -440,7 +456,7 @@ class MultichoiceQuestion extends QuizQuestion {
     }
     if ($this->node->choice_multi) {
       $form['tries[answer]']['#type'] = 'checkboxes';
-      $form['tries[answer]']['#title'] = t('Choose');
+      $form['tries[answer]']['#title'] = t('Choose all that apply');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
           $form['tries[answer]']['#default_value'] = $response->getResponse();
@@ -599,9 +615,9 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'text_format',
         '#base_type' => 'textarea',
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
-        '#default_value' => $short['answer'],
+        '#default_value' => $short['answer']['value'],
         '#required' => $i < 2,
-        '#format' => isset($short['answer_format']) ? $short['answer_format'] : NULL,
+        '#format' => isset($short['answer']['format']) ? $short['answer']['format'] : NULL,
         '#rows' => 3,
       );
 
@@ -617,8 +633,8 @@ class MultichoiceQuestion extends QuizQuestion {
         '#title' => t('Feedback if chosen'),
         '#description' => t('This feedback is given to users who chooses this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_chosen'),
-        '#default_value' => $short['feedback_if_chosen'],
-        '#format' => isset($short['feedback_if_chosen_format']) ? $short['feedback_if_chosen_format'] : NULL,
+        '#default_value' => $short['feedback_if_chosen']['value'],
+        '#format' => isset($short['feedback_if_chosen']['format']) ? $short['feedback_if_chosen']['format'] : NULL,
         '#rows' => 3,
       );
       // We add 'helper' to trick the current version of the wysiwyg module to add an editor to several
@@ -629,8 +645,8 @@ class MultichoiceQuestion extends QuizQuestion {
         '#title' => t('Feedback if not chosen'),
         '#description' => t('This feedback is given to users who doesn\'t choose this alternative.'),
         '#parents' => array('alternatives', $i, 'feedback_if_not_chosen'),
-        '#default_value' => $short['feedback_if_not_chosen'],
-        '#format' => isset($short['feedback_if_not_chosen_format']) ? $short['feedback_if_not_chosen_format'] : NULL,
+        '#default_value' => $short['feedback_if_not_chosen']['value'],
+        '#format' => isset($short['feedback_if_not_chosen']['format']) ? $short['feedback_if_not_chosen']['format'] : NULL,
         '#rows' => 3,
       );
       $default_value = isset($this->node->alternatives[$i]['score_if_chosen']) ? $this->node->alternatives[$i]['score_if_chosen'] : 0;
@@ -979,7 +995,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $data = array();
     while (isset($this->question->alternatives[$i])) {
       $short = $this->question->alternatives[$i];
-      if (drupal_strlen($this->checkMarkup($short['answer'], $short['answer_format'])) > 0) {
+      if (drupal_strlen($this->checkMarkup($short['answer']['value'], $short['answer']['format'])) > 0) {
         $alternative = array();
 
         // Did the user choose the alternative?
@@ -1007,10 +1023,10 @@ class MultichoiceResponse extends QuizQuestionResponse {
           $alternative['is_correct'] = $short['score_if_chosen'] > $short['score_if_not_chosen'] ? 2 : 0;
         }
 
-        $alternative['answer'] = $this->checkMarkup($short['answer'], $short['answer_format'], FALSE);
+        $alternative['answer'] = $this->checkMarkup($short['answer']['value'], $short['answer']['format'], FALSE);
 
         $not = $alternative['is_chosen'] ? '' : '_not';
-        $alternative['feedback'] = $this->checkMarkup($short['feedback_if' . $not . '_chosen'], $short['feedback_if' . $not . '_chosen_format'], FALSE);
+        $alternative['feedback'] = $this->checkMarkup($short['feedback_if' . $not . '_chosen']['value'], $short['feedback_if' . $not . '_chosen']['format'], FALSE);
         $data[] = $alternative;
       }
       $i++;
