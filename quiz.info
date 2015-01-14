@@ -9,7 +9,7 @@ stylesheets[all][] = quiz.css
 
 ; This is (or should be) recommended, but not required.
 ;dependencies[] = jquery_countdown
-dependencies[] = ctools
+;dependencies[] = ctools
 
 files[] = includes/views/quiz.views.inc
 files[] = includes/views/quiz.views_default.inc
