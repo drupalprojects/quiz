@@ -1,4 +1,7 @@
-name = quiz h5p
+name = Quiz H5P Integration
+package = Quiz Question
+description = Allows H5P content to behave as quiz questions
 core = 7.x
+
 files[] = QuizQuestionH5P.class.inc
 files[] = QuizQuestionH5PResponse.class.inc

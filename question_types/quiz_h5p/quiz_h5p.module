@@ -20,4 +20,3 @@ function quiz_h5p_quiz_question_info() {
     ),
   );
 }
-

@@ -117,10 +117,13 @@ function quiz_question_access_to_score($vid, $rid) {
 /**
  * Implements hook_form().
  */
-function quiz_question_form(&$node, &$form_state) {
-  $question = _quiz_question_get_instance($node);
-  $form = $question->getNodeForm($form_state);
-  return $form;
+function quiz_question_form_node_form_alter(&$form, &$form_state) {
+  $type = $form['#node']->type;
+  if (array_key_exists($type, _quiz_question_get_implementations())) {
+    $question = _quiz_question_get_instance($form['#node']);
+    $quiz_question_form = $question->getNodeForm($form_state);
+    $form = array_merge($quiz_question_form, $form);
+  }
 }
 
 /**
@@ -485,6 +488,12 @@ function quiz_question_node_insert($node) {
   if ($node->type == 'quiz') {
     quiz_question_refresh_latest_quizzes($node->nid);
   }
+  if (array_key_exists($node->type, _quiz_question_get_implementations())) {
+    _quiz_question_get_instance($node)->save(TRUE);
+    if (isset($node->quiz_nid) && $node->quiz_nid > 0) {
+      quiz_question_refresh_latest_quizzes($node->quiz_nid);
+    }
+  }
 }
 
 /**
@@ -508,15 +517,8 @@ function quiz_question_node_delete($node) {
   if ($node->type == 'quiz') {
     quiz_question_remove_latest_quizzes($node->nid);
   }
-}
-
-/**
- * Implements hook_insert().
- */
-function quiz_question_insert(stdClass $node) {
-  _quiz_question_get_instance($node)->save(TRUE);
-  if (isset($node->quiz_nid) && $node->quiz_nid > 0) {
-    quiz_question_refresh_latest_quizzes($node->quiz_nid);
+  if (array_key_exists($node->type, _quiz_question_get_implementations())) {
+    _quiz_delete_question($node, FALSE);
   }
 }
 
@@ -568,20 +570,6 @@ function quiz_question_node_view($node) {
       }
     }
   }
-}
-
-/**
- * Implements hook_update().
- */
-function quiz_question_update($node) {
-  _quiz_question_get_instance($node)->save();
-}
-
-/**
- * Implements hook_delete().
- */
-function quiz_question_delete(&$node) {
-  _quiz_delete_question($node, FALSE);
 }
 
 /**
