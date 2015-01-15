@@ -2,11 +2,11 @@
 class QuizQuestionH5P extends QuizQuestion {
 
   public function getCreationForm(array &$form_state = NULL) {
-
+    return array();
   }
 
   public function getMaximumScore() {
-    return 1;
+    return variable_get('h5p_quiz_question_max_score', 10);
   }
 
   public function saveNodeProperties($is_new = FALSE) {
@@ -18,12 +18,11 @@ class QuizQuestionH5P extends QuizQuestion {
   }
 
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
-    $element = parent::getAnsweringForm($form_state, $result_id);
-    $element += array(
-      '#type' => 'textfield',
-      '#title' => t('Content ID'),
-      '#default_value' => h5p_get_content_id($this->node),
+     return array(
+      'tries' => array(
+        '#type' => 'hidden',
+        '#default_value' => 1,
+      ),
     );
-    return $element;
   }
 }
