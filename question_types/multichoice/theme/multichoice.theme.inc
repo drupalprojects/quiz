@@ -49,9 +49,6 @@ function theme_multichoice_answer_node_view($variables) {
   $show_correct = $variables['show_correct'];
   $header = array('', '');
 
-  $p = drupal_get_path('module', 'multichoice');
-  drupal_add_css($p . '/theme/multichoice.css');
-
   foreach ($alternatives as $i => $short) {
     $answer_markup = check_markup($short['answer']['value'], $short['answer']['format']);
     // Find the is_correct status
