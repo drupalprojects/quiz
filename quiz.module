@@ -111,6 +111,25 @@ function quiz_entity_info_alter(&$info) {
 }
 
 /**
+ * Implements hook_h5p_filtered_params_alter
+ * 
+ * @param type $filtered
+ */
+function quiz_h5p_filtered_params_alter(&$filtered) {
+  if (_quiz_is_taking_context()) {
+    if (isset($filtered->behaviour)) {
+      $quiz = quiz_get_quiz_from_menu();
+      if (isset($filtered->behaviour->enableRetry)) {
+        $filtered->behaviour->enableRetry = FALSE;
+      }
+      if (isset($filtered->behaviour->enableSolutionsButton)) {
+        $filtered->behaviour->enableSolutionsButton = $quiz->display_feedback && $quiz->feedback_time == QUIZ_FEEDBACK_QUESTION;
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_permission().
  */
 function quiz_permission() {
