@@ -970,6 +970,7 @@ function quiz_update_7511() {
     $d = unserialize($row->review_options);
     $d['end']['quiz_question_view_full'] = 'quiz_question_view_full';
     $d['end']['choice'] = 'choice';
+    $d['end']['attempt'] = 'attempt';
     $row->review_options = $d;
     drupal_write_record('quiz_node_properties', $row, array('qnp_id'));
   }
