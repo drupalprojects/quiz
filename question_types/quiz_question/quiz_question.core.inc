@@ -186,9 +186,13 @@ abstract class QuizQuestion {
     if (isset($this->nodeProperties)) {
       return $this->nodeProperties;
     }
-    $props['max_score'] = db_query('SELECT max_score
-            FROM {quiz_question_properties}
-            WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchField();
+    $result = db_query('SELECT *
+      FROM {quiz_question_properties}
+      WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
+    $row = $result->fetch();
+    $props['max_score'] = $row->max_score;
+    $props['feedback']['value'] = $row->feedback;
+    $props['feedback']['format'] = $row->feedback_format;
     $props['is_quiz_question'] = TRUE;
     $this->nodeProperties = $props;
     return $props;
