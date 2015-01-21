@@ -430,7 +430,16 @@ abstract class QuizQuestion {
     return FALSE;
   }
 
-  public function getAnsweringFormValidate(array &$form, array &$form_state = NULL) {
+  /**
+   * Validate a user's answer.
+   *
+   * @param array $element
+   *   The form element of this question.
+   * @param mixed $value
+   *   The value submitted by the user. Depending on the question type's form,
+   *   the data type will vary.
+   */
+  public function getAnsweringFormValidate(array &$element, &$value) {
 
   }
 

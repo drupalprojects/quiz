@@ -964,7 +964,7 @@ function quiz_question_answering_form_validate(&$form, &$form_state) {
     if ($current_question) {
       // There was an answer submitted.
       $quiz_question = _quiz_question_get_instance($current_question);
-      $quiz_question->getAnsweringFormValidate($form, $form_state);
+      $quiz_question->getAnsweringFormValidate($form['question'][$nid]['answer'], $form_state['values']['question'][$nid]['answer']);
     }
   }
 }
