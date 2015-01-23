@@ -1,7 +1,11 @@
 name = Quiz H5P Integration
 package = Quiz Question
-description = Allows H5P content to behave as quiz questions
+description = Can create drag and drop, fill in the blanks and a lot more. (Allows H5P content to behave as quiz questions.)
 core = 7.x
+dependencies[] = quiz
+dependencies[] = quiz_question
+dependencies[] = h5p
+dependencies[] = h5peditor
 
 files[] = QuizQuestionH5P.class.inc
 files[] = QuizQuestionH5PResponse.class.inc
