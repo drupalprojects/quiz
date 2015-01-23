@@ -968,13 +968,8 @@ function quiz_view($node) {
  * Page to either resume a quiz or display a start quiz form.
  */
 function quiz_take_page($quiz) {
-  if (quiz_start_check($quiz)) {
-    if (!quiz_availability($quiz)) {
-      return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
-    }
-  }
-  else {
-    return array('body' => array('#markup' => t('This @quiz is closed.', array('@quiz' => QUIZ_NAME))));
+  if (!quiz_availability($quiz)) {
+    return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
   }
 
   if ($quiz_result = quiz_take_quiz($quiz)) {
@@ -987,12 +982,18 @@ function quiz_take_page($quiz) {
     drupal_goto("node/{$quiz_result->nid}/take/" . ($_SESSION['quiz'][$quiz_result->nid]['current']));
   }
   else {
-    $quiz_result = entity_create('quiz_result', array(
-      'nid' => $quiz->nid,
-      'vid' => $quiz->vid,
-      'uid' => $GLOBALS['user']->uid,
-    ));
+    if (quiz_start_check($quiz)) {
+      $quiz_result = entity_create('quiz_result', array(
+        'nid' => $quiz->nid,
+        'vid' => $quiz->vid,
+        'uid' => $GLOBALS['user']->uid,
+      ));
+    }
+    else {
+      return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
+    }
   }
+
   $build_on_last = !empty($quiz->build_on_last) && QuizResultController::findOldResult($quiz_result);
   if ($build_on_last || $instances = field_info_instances('quiz_result', 'quiz_result')) {
     // @kludge above, how are we going to check this form for fields? checking
@@ -2318,37 +2319,19 @@ function quiz_is_passed($uid, $nid, $vid) {
 /**
  * Actions to take place at the start of a quiz.
  *
- * This is called when the quiz node is viewed for the first time. It ensures
- * that the quiz can be taken at this time.
+ * This should only be checked when the user does not yet have an active
+ * attempt.
  *
  * @param $quiz
  *   The quiz node.
  *
- * @return
- *   Return quiz_node_results result_id, or FALSE if there is an error.
+ * @return bool
+ *   FALSE if there is an error.
  */
 function quiz_start_check($quiz) {
   global $user;
 
   $user_is_admin = node_access('update', $quiz);
-
-  // Make sure this is available.
-  if ($quiz->quiz_always != 1) {
-    // Compare current GMT time to the open and close dates (which should still
-    // be in GMT time).
-    $now = REQUEST_TIME;
-
-    if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-      if ($user_is_admin) {
-        drupal_set_message(t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME)), 'status');
-      }
-      else {
-        drupal_set_message(t('This @quiz is not currently available.', array('@quiz' => QUIZ_NAME)), 'status');
-        // Can't take quiz.
-        return FALSE;
-      }
-    }
-  }
 
   // Check to see if this user is allowed to take the quiz again:
   if ($quiz->takes > 0) {
@@ -2395,22 +2378,28 @@ function quiz_start_check($quiz) {
 function quiz_availability($quiz) {
   global $user;
 
-  if ($user->uid == 0 && $quiz->takes > 0) {
-    return t('This @quiz only allows %num_attempts attempts. Anonymous users can only access quizzes that allows an unlimited number of attempts.', array('%num_attempts' => $quiz->takes, '@quiz' => QUIZ_NAME));
-  }
-
   $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
   if ($user_is_admin || $quiz->quiz_always == 1) {
     return TRUE;
   }
 
-  // Compare current GMT time to the open and close dates (which should still be
-  // in GMT time).
-  $now = REQUEST_TIME;
+  // Make sure this is available.
+  if ($quiz->quiz_always != 1) {
+    // Compare current GMT time to the open and close dates (which should still
+    // be in GMT time).
 
-  if ($now >= $quiz->quiz_close || $now < $quiz->quiz_open) {
-    return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
+    if (REQUEST_TIME >= $quiz->quiz_close || REQUEST_TIME < $quiz->quiz_open) {
+      if ($user_is_admin) {
+        return t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME));
+      }
+      else {
+        return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
+        // Can't take quiz.
+        return FALSE;
+      }
+    }
   }
+
   return TRUE;
 }
 

@@ -232,4 +232,44 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertText('Score: 1 of 1');
   }
 
+  function testQuizMaxAttempts() {
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'takes' => 2,
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 0,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid][answer]" => 0,
+      ), t('Finish'));
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertText('You can only take this Quiz 2 times. You have taken it 1 time.');
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 0,
+      ), t('Next'));
+
+    // Make sure we can get back.
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertNoText('You can only take this Quiz 2 times. You have taken it 1 time.');
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid][answer]" => 0,
+      ), t('Finish'));
+
+    // No more attempts.
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertText('You have already taken this Quiz 2 times. You may not take it again.');
+  }
+
 }
