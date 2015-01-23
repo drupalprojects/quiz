@@ -786,7 +786,7 @@ class MultichoiceQuestion extends QuizQuestion {
   /**
    * Question response validator.
    */
-  public function getAnsweringFormValidate(array &$element, array &$values) {
+  public function getAnsweringFormValidate(array &$element, &$values) {
     if (!$this->node->choice_multi && is_null($values['user_answer'])) {
       form_error($element['user_answer'], t('You must provide an answer.'));
     }

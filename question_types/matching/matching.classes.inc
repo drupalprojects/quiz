@@ -246,7 +246,7 @@ class MatchingQuestion extends QuizQuestion {
   /**
    * Question response validator.
    */
-  public function getAnsweringFormValidate(array &$element, array &$values) {
+  public function getAnsweringFormValidate(array &$element, &$values) {
     foreach ($values as $value) {
       if ($value != 'def') {
         return TRUE;
