@@ -2364,7 +2364,7 @@ function quiz_start_check($quiz) {
       }
       // If the user has already taken this quiz too many times, stop the user.
       elseif ($taken >= $quiz->takes) {
-        drupal_set_message(t('You have already taken this @quiz @really. You may not take it again.', array('@quiz', QUIZ_NAME, '@really' => $taken_times)), 'error');
+        drupal_set_message(t('You have already taken this @quiz @really. You may not take it again.', array('@quiz' => QUIZ_NAME, '@really' => $taken_times)), 'error');
         return FALSE;
       }
       // If the user has taken the quiz more than once, see if we should report
