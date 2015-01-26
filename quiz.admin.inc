@@ -898,21 +898,18 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     $form[$fieldset]['weights'][$id] = array(
       '#type' => 'textfield',
       '#size' => 3,
-      '#maxlength' => 4,
       '#default_value' => isset($question->weight) ? $question->weight : 0,
     );
 
     $form[$fieldset]['qnr_pids'][$id] = array(
       '#type' => 'textfield',
       '#size' => 3,
-      '#maxlength' => 4,
       '#default_value' => $question->qnr_pid,
     );
 
     $form[$fieldset]['qnr_ids'][$id] = array(
       '#type' => 'textfield',
       '#size' => 3,
-      '#maxlength' => 4,
       '#default_value' => $question->qnr_id,
     );
 
