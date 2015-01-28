@@ -1181,7 +1181,7 @@ function quiz_questions_form_submit($form, &$form_state) {
     $is_new_revision = quiz_has_been_answered($quiz);
   }
   else {
-    $is_new_revision = (bool) $form_state['values']['new_revision'];
+    $is_new_revision = !empty($form_state['values']['new_revision']);
   }
 
   _quiz_question_browser_submit($form, $form_state);
