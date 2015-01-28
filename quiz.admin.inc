@@ -1071,10 +1071,9 @@ function quiz_questions_form_validate($form, $form_state) {
     list($nid, $vid) = explode('-', $id, 2);
 
     // If a node isn't one of the questionstypes we remove it from the question list
-    $has_questions = (Boolean) db_select('node', 'n')
+    $has_questions = (bool) db_select('node', 'n')
         ->fields('n', array('nid'))
         ->condition('type', $question_types, 'IN')
-        ->addTag('node_access')
         ->condition('n.nid', $nid)
         ->execute()
         ->fetchField();
