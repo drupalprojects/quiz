@@ -22,14 +22,18 @@
 <div class="quiz-report">
   <?php
   foreach ($form as $key => &$sub_form):
-    if (is_numeric($key) && isset($sub_form['question'])) {
-      if (isset($sub_form['#no_report'])) {
+    if (is_numeric($key)) {
+      if (!empty($sub_form['#no_report'])) {
         drupal_render($sub_form);
+      }
+      elseif (empty($sub_form['question'])) {
+        print drupal_render($sub_form);
       }
     }
     else {
       continue;
     }
+    if (!empty($sub_form['question']) && empty($sub_form['#no_report'])):
     ?>
     <div class="quiz-report-row clearfix">
       <div class="quiz-report-question dt">
@@ -53,6 +57,7 @@
         <?php print drupal_render($sub_form['answer_feedback']); ?>
       </div>
     </div>
+    <?php endif; ?>
   <?php endforeach; ?>
   <div class="quiz-report-quiz-feedback dd">
     <?php if (isset($form['quiz_feedback']) && $form['quiz_feedback']['#markup']): ?>
