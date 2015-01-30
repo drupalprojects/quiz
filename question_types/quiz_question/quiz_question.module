@@ -1018,7 +1018,7 @@ function quiz_question_element_validate(&$element, &$form_state) {
 
   // There was an answer submitted.
   $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $answer);
-  if ($quiz->repeat_until_correct && !$result->isCorrect()) {
+  if ($quiz->repeat_until_correct && !$result->isCorrect() && $result->isEvaluated()) {
     form_set_error('', t('The answer was incorrect. Please try again.'));
 
     $feedback = quiz_question_feedback($quiz, $current_question);

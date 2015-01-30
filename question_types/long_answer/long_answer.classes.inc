@@ -255,6 +255,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * ID of the answer.
    */
   protected $answer_id = 0;
+  private $answer_feedback;
+  private $answer_feedback_format;
 
   /**
    * Constructor

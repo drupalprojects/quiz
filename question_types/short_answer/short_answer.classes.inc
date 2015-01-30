@@ -133,10 +133,10 @@ class ShortAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
-    $form = parent::getAnsweringForm($form_state, $result_id);
+    $element = parent::getAnsweringForm($form_state, $result_id);
     //$form['#theme'] = 'short_answer_answering_form';
 
-    $form = array(
+    $element += array(
       '#type' => 'textfield',
       '#title' => t('Answer'),
       '#description' => t('Enter your answer here'),
@@ -149,10 +149,10 @@ class ShortAnswerQuestion extends QuizQuestion {
 
     if (isset($result_id)) {
       $response = new ShortAnswerResponse($result_id, $this->node);
-      $form['#default_value'] = $response->getResponse();
+      $element['#default_value'] = $response->getResponse();
     }
 
-    return $form;
+    return $element;
   }
 
   /**
@@ -337,6 +337,8 @@ class ShortAnswerResponse extends QuizQuestionResponse {
    * ID of the answer.
    */
   protected $answer_id = 0;
+  private $answer_feedback;
+  private $answer_feedback_format;
 
   /**
    * Constructor
