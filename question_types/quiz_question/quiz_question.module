@@ -428,7 +428,7 @@ function quiz_question_node_presave($node) {
   $q_types = quiz_question_get_info();
   foreach ($q_types as $q_type => $info) {
     if ($node->type == $q_type) {
-      if (drupal_strlen($node->title) == 0 || !user_access('edit question titles')) {
+      if (drupal_strlen($node->title) == 0) {
         $body = field_view_field('node', $node, 'body', array('label' => 'hidden'));
         $markup = strip_tags(drupal_render($body));
         if (drupal_strlen($markup) > variable_get('quiz_autotitle_length', 50)) {
