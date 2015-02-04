@@ -114,6 +114,20 @@ function quiz_admin_settings($form, &$form_state) {
     '#element_validate' => array('element_validate_integer'),
   );
 
+  // Review options.
+  $review_options = quiz_get_feedback_options();
+  $form['quiz_global_settings']['quiz_admin_review_options']['#title'] = t('Administrator review options');
+  $form['quiz_global_settings']['quiz_admin_review_options']['#type'] = 'fieldset';
+  $form['quiz_global_settings']['quiz_admin_review_options']['#description'] = t('Control what feedback types quiz administrators will see when viewing results for other users.');
+  foreach (array('question' => t('After the question'), 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
+    $form['quiz_global_settings']['quiz_admin_review_options']["quiz_admin_review_options_$key"][] = array(
+      '#title' => $when,
+      '#type' => 'checkboxes',
+      '#options' => $review_options,
+      '#default_value' => variable_get("quiz_admin_review_options_$key", array()),
+    );
+  }
+
   $target = array(
     'attributes' => array(
       'target' => '_blank'

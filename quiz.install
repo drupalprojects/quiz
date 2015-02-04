@@ -27,6 +27,9 @@ function quiz_install() {
   // Grant default permissions.
   user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('view own quiz results'));
   user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('access quiz'));
+
+  // Set up default admin feedback review options.
+  quiz_update_7514();
 }
 
 /**
@@ -990,4 +993,34 @@ function quiz_update_7512() {
 function quiz_update_7513() {
   drupal_set_message('The "view own quiz results" permission has been added to the authenticated user role because it was not checked in previous 5.x releases of Quiz.', 'warning');
   user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('view own quiz results'));
+}
+
+/**
+ * Adding default admin review options.
+ */
+function quiz_update_7514() {
+  variable_set('quiz_admin_review_options_question', array(
+    'quiz_question_view_full' => 'quiz_question_view_full',
+    'quiz_question_view_teaser' => 0,
+    'attempt' => 'attempt',
+    'choice' => 'choice',
+    'correct' => 'correct',
+    'score' => 'score',
+    'answer_feedback' => 'answer_feedback',
+    'question_feedback' => 'question_feedback',
+    'solution' => 'solution',
+    'quiz_feedback' => 'quiz_feedback',
+  ));
+  variable_set('quiz_admin_review_options_end', array(
+    'quiz_question_view_full' => 'quiz_question_view_full',
+    'quiz_question_view_teaser' => 0,
+    'attempt' => 'attempt',
+    'choice' => 'choice',
+    'correct' => 'correct',
+    'score' => 'score',
+    'answer_feedback' => 'answer_feedback',
+    'question_feedback' => 'question_feedback',
+    'solution' => 'solution',
+    'quiz_feedback' => 'quiz_feedback',
+  ));
 }

@@ -12,16 +12,15 @@
  *  Result id
  */
 function quiz_user_results($result_id) {
-  $result = quiz_result_load($result_id);
+  $quiz_result = quiz_result_load($result_id);
 
-  if ($result->nid) {
-    $quiz = node_load($result->nid, $result->vid);
+  if ($quiz_result->nid) {
+    $quiz = node_load($quiz_result->nid, $quiz_result->vid);
 
     // Preserve "My results" tab.
     $item = menu_get_item("node/$quiz->nid/quiz-results");
     menu_set_item(NULL, $item);
 
-    $current_quiz = node_load($result->nid);
     $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
     $summary = _quiz_get_summary_text($quiz, $score);
@@ -31,9 +30,9 @@ function quiz_user_results($result_id) {
       'score' => $score,
       'summary' => $summary,
       'result_id' => $result_id,
-      'account' => user_load($result->uid),
+      'account' => user_load($quiz_result->uid),
     );
-    if (user_access('view own quiz results') && (!empty($current_quiz->review_options['end']) && array_filter($current_quiz->review_options['end']))) {
+    if (user_access('view own quiz results') && quiz_check_feedback($quiz_result)) {
       return theme('quiz_result', $data);
     }
     else {
@@ -42,6 +41,24 @@ function quiz_user_results($result_id) {
       return t('You have finished this @quiz.', array('@quiz' => QUIZ_NAME));
     }
   }
+}
+
+/**
+ * Check if any feedback should be displayed for this result.
+ *
+ * @param $quiz_result
+ *   A quiz result.
+ * @return bool
+ *   TRUE if feedback needs to be displayed. FALSE otherwise.
+ */
+function quiz_check_feedback(QuizResult $quiz_result) {
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+  foreach (quiz_get_feedback_options() as $key => $option) {
+    if (quiz_feedback_can_review($key, $quiz_result)) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 /**
