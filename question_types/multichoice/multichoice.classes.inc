@@ -837,10 +837,10 @@ class MultichoiceResponse extends QuizQuestionResponse {
       }
     }
     // We load the answer from the database
-    else {
+    else if (isset($this->result_answer_id)) {
       $res = db_query('SELECT answer_id FROM {quiz_multichoice_user_answers} ua
-              LEFT OUTER JOIN {quiz_multichoice_user_answer_multi} uam ON(uam.user_answer_id = ua.id)
-              WHERE ua.result_answer_id = :raid', array(':raid' => $this->result_answer_id));
+        LEFT OUTER JOIN {quiz_multichoice_user_answer_multi} uam ON (uam.user_answer_id = ua.id)
+        WHERE ua.result_answer_id = :raid', array(':raid' => $this->result_answer_id));
       while ($res_o = $res->fetch()) {
         $this->user_answer_ids[] = $res_o->answer_id;
       }
