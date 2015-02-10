@@ -19,10 +19,10 @@
  * @return
  *  FAPI form array
  */
-function quiz_question_revision_actions_form($form, $form_state, $nid) {
-  $efq = new EntityFieldQuery;
+function quiz_question_revision_actions_form($form, $form_state, $node) {
+  $efq = new EntityFieldQuery();
   $result = $efq->entityCondition('entity_type', 'quiz_question_relationship')
-    ->propertyCondition('child_nid', $nid)
+    ->propertyCondition('child_nid', $node->nid)
     ->execute();
   $relationships = entity_load('quiz_question_relationship', array_keys($result['quiz_question_relationship']));
 
@@ -30,8 +30,12 @@ function quiz_question_revision_actions_form($form, $form_state, $nid) {
   $form['intro'] = array(
     '#markup' => $text,
   );
+  $form['question_node'] = array(
+    '#type' => 'value',
+    '#value' => $node,
+  );
   $form['quizzes'] = array();
-  // Create a form element for each quiz
+  // Create a form element for each quiz.
   foreach ($relationships as $relationship) {
     $quiz = node_load($relationship->parent_nid);
     $answered = quiz_has_been_answered($quiz);
@@ -59,7 +63,7 @@ function quiz_question_revision_actions_form($form, $form_state, $nid) {
     '#value' => t('Submit'),
   );
 
-  // Help texts
+  // Help texts.
   $form['update_expl'] = array(
     '#type' => 'item',
     '#title' => t('Update'),
@@ -83,6 +87,7 @@ function quiz_question_revision_actions_form($form, $form_state, $nid) {
  * Submit callback for the revision actions page
  */
 function quiz_question_revision_actions_form_submit($form, &$form_state) {
+  $form_state['redirect'] = 'node/' . $form_state['values']['question_node']->nid;
   foreach ($form_state['values']['quizzes'] as $nid => $actions) {
     // Get the current version of the questions.
     $quiz_node = node_load($nid);
@@ -101,10 +106,19 @@ function quiz_question_revision_actions_form_submit($form, &$form_state) {
     }
 
     if ($actions['revise'] == 'revise') {
-      quiz_set_questions($quiz_node, $questions, TRUE);
+      $result = quiz_set_questions($quiz_node, $questions, TRUE);
+      if ($result) {
+        drupal_set_message(t('Quiz %title succesfully revised.', array('%title' => $quiz_node->title)), 'status');
+      }
     }
-    if ($actions['revise'] == 'update') {
-      quiz_set_questions($quiz_node, $questions, FALSE);
+    elseif ($actions['revise'] == 'update') {
+      $result = quiz_set_questions($quiz_node, $questions, FALSE);
+      if ($result) {
+        drupal_set_message(t('Quiz %title succesfully updated.', array('%title' => $quiz_node->title)), 'status');
+      }
+    }
+    else {
+      drupal_set_message(t('Quiz not updated, please use the Quiz question listing to if you decide to update the quiz manually.', array('%title' => $quiz_node->title)), 'status');
     }
   }
 }
