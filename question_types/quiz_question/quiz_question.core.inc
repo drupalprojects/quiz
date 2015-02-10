@@ -148,6 +148,7 @@ abstract class QuizQuestion {
       $this->node->revision = 1;
       $this->node->log = $log;
     }
+
     return $form;
   }
 
@@ -241,13 +242,6 @@ abstract class QuizQuestion {
     // @kludge the quiz nid/vid are still on the node
     if (!empty($this->node->quiz_nid)) {
       $this->saveRelationships($this->node->quiz_nid, $this->node->quiz_vid);
-    }
-    if (!empty($this->node->revision)) {
-      if (user_access('manual quiz revisioning') && !variable_get('quiz_auto_revisioning', 1)) {
-        unset($_GET['destination']);
-        unset($_REQUEST['edit']['destination']);
-        drupal_goto("node/{$this->node->nid}/question-revision-actions");
-      }
     }
   }
 
