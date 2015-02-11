@@ -425,7 +425,7 @@ function theme_quiz_result($variables) {
   $quiz_result = quiz_result_load($variables['result_id']);
   $account = $variables['account'];
 
-  if (!$score['is_evaluated']) {
+  if (!$score['is_evaluated'] && empty($_POST)) {
     $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
     drupal_set_message($msg, 'warning');
   }
