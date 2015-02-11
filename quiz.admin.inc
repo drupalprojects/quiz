@@ -120,7 +120,7 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_global_settings']['quiz_admin_review_options']['#type'] = 'fieldset';
   $form['quiz_global_settings']['quiz_admin_review_options']['#description'] = t('Control what feedback types quiz administrators will see when viewing results for other users.');
   foreach (array('question' => t('After the question'), 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
-    $form['quiz_global_settings']['quiz_admin_review_options']["quiz_admin_review_options_$key"][] = array(
+    $form['quiz_global_settings']['quiz_admin_review_options']["quiz_admin_review_options_$key"] = array(
       '#title' => $when,
       '#type' => 'checkboxes',
       '#options' => $review_options,
