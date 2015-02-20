@@ -32,34 +32,29 @@ class QuizResultController extends EntityAPIController {
       foreach ($quiz_node_relationships as $quiz_node_relationship) {
         $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
       }
-
-      $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id));
-      if ($quiz_result_answers) {
-        foreach ($quiz_result_answers as $quiz_result_answer) {
-          $wrap = entity_metadata_wrapper('quiz_result_answer', $quiz_result_answer);
-          $type = $wrap->question_nid->value()->type;
-
-          if (!empty($relationships[$quiz_result_answer->question_nid])) {
-            $relationship = $relationships[$quiz_result_answer->question_nid];
-          }
-
-          $quiz_result->layout[$quiz_result_answer->number] = array(
-            'display_number' => $quiz_result_answer->number,
-            'nid' => $quiz_result_answer->question_nid,
-            'vid' => $quiz_result_answer->question_vid,
-            'tid' => $quiz_result_answer->tid,
-            'number' => $quiz_result_answer->number,
-            'type' => $type,
-            'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
-            'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
-          );
-        }
-        ksort($quiz_result->layout, SORT_NUMERIC);
-      }
-      else {
-        $quiz_result->layout = array();
-      }
+      $quiz_result->layout = array();
     }
+
+    $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $ids));
+    if ($quiz_result_answers) {
+      foreach ($quiz_result_answers as $raid => $quiz_result_answer) {
+        if (!empty($relationships[$quiz_result_answer->question_nid])) {
+          $relationship = $relationships[$quiz_result_answer->question_nid];
+        }
+
+        $quiz_results[$quiz_result_answer->result_id]->layout[$quiz_result_answer->number] = array(
+          'display_number' => $quiz_result_answer->number,
+          'nid' => $quiz_result_answer->question_nid,
+          'vid' => $quiz_result_answer->question_vid,
+          'tid' => $quiz_result_answer->tid,
+          'number' => $quiz_result_answer->number,
+          'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
+          'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
+        );
+      }
+      ksort($quiz_results[$quiz_result_answer->result_id]->layout, SORT_NUMERIC);
+    }
+
     return $quiz_results;
   }
 

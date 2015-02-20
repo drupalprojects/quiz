@@ -3592,7 +3592,8 @@ function _quiz_show_finish_button($quiz) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $current = $_SESSION['quiz'][$quiz->nid]['current'];
   foreach ($quiz_result->layout as $idx => $question) {
-    if ($question['type'] == 'quiz_page') {
+    $question_node = node_load($question['nid'], $question['vid']);
+    if ($question_node->type == 'quiz_page') {
       if ($current == $idx) {
         // Found a page that we are on
         $in_page = TRUE;
