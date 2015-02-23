@@ -2120,9 +2120,10 @@ function quiz_take_quiz($quiz) {
       if ($report && $report->type != 'quiz_directions') {
         $allow_scoring = quiz_allow_score_access($quiz);
         $report_form = drupal_get_form('quiz_report_form', array($report), TRUE, TRUE, $allow_scoring);
+        $label = (_quiz_get_num_questions_left() < 1) ? t('See results') : t('Next question');
         $report_form['op'] = array(
           '#type' => 'submit',
-          '#value' => t('Next question'),
+          '#value' => $label,
         );
         return $report_form;
       }
@@ -3224,7 +3225,7 @@ function quiz_set_questions(&$quiz, $questions, $set_new_revision = FALSE) {
   if ($set_new_revision) {
     // Create a new Quiz VID, even if nothing changed.
     $quiz->revision = 1;
-    
+
     node_save($quiz);
   }
 
@@ -4516,8 +4517,8 @@ function _quiz_is_empty_html($html) {
 }
 
 /**
- * Check if this is the last question of the quiz
+ * Return the number of questions that are left to answer
  */
-function _quiz_is_last_question() {
-  return count($_SESSION['quiz_' . intval(arg(1))]['quiz_questions']) < 2;
+function _quiz_get_num_questions_left() {
+  return count($_SESSION['quiz_' . intval(arg(1))]['quiz_questions']);
 }

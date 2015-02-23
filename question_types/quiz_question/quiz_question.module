@@ -147,7 +147,7 @@ function quiz_question_answering_form($form, $form_state, $node, $include_nid_in
 
   $form['#attributes']['class'] = array('answering-form');
 
-  $is_last = _quiz_is_last_question();
+  $is_last = _quiz_get_num_questions_left() < 2;
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
   if ($quiz->mark_doubtful) {
     $form['is_doubtful'] = array(
