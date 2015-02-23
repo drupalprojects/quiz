@@ -34,26 +34,19 @@ class MatchingQuestion extends QuizQuestion {
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
-    // Update or insert the question properties
-    if ($is_new) {
-      db_insert('quiz_matching_properties')
-        ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
-          'choice_penalty' => $this->node->choice_penalty,
-        ))
-        ->execute();
-    }
-    else {
-      db_update('quiz_matching_properties')
-        ->fields(array(
-          'choice_penalty' => $this->node->choice_penalty,
-        ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
-    }
-    
+    // Insert node properties for the new version of the node.
+    db_merge('quiz_matching_properties')
+      ->key(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+      ))
+      ->fields(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+        'choice_penalty' => $this->node->choice_penalty,
+      ))
+      ->execute();
+
     // Loop through each question-answer combination
     foreach ($this->node->match as $match) {
       $match['feedback'] = (isset($match['feedback'])) ? $match['feedback'] : '';
