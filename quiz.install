@@ -807,6 +807,19 @@ function quiz_update_7409(&$sandbox) {
   return t('Adding userpoints tid column to quiz_node_properties');
 }
 
+/**
+ * Notify users about the H5P integration
+ */
+function quiz_update_7410(&$sandbox) {
+  
+  return t('An integration with the H5P project have now been added to quiz. '
+          . 'This allows users to create many new content types like '
+          . 'Mark the Words, Fill in the Blanks, Adaptive Interactive Videos '
+          . 'and 18 other interactive content types. Enable the Quiz H5P Integration '
+          . 'module and download H5P content types from '
+          . 'http://h5p.org/content-types-and-applications to get started.');
+}
+
 
 /**
  * Implements hook_uninstall().
