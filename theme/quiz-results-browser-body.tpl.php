@@ -35,6 +35,7 @@ foreach ($form['name']['#options'] as $key => $value): ?>
           $post_score = $form['score'][$key]['#value'] >= $form['pass_rate'][$key]['#value'] ?' %<br><em>'. t('Passed') .'</em></span>' : ' %<br><em>'. t('Failed') .'</em></span>';
         }
         else {
+          $pre_score = '';
           $post_score = ' %';
         } 
         print $pre_score . $form['score'][$key]['#value'] . $post_score ?>

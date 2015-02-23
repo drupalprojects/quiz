@@ -333,6 +333,7 @@ function theme_quiz_get_user_results($variables) {
         $post_score = ' %<br><em>' . $grade . '</em></span>';
       }
       else {
+        $pre_score = '';
         $post_score = ' %';
       }
       $score = $pre_score . $result['score'] . $post_score;
