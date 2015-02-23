@@ -12,25 +12,17 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
 
   public function save() {
     global $user;
-    $content_id = h5p_get_content_id($this->question);
-    $results = db_query(
-      "SELECT points, max_points
-      FROM {h5p_points}
-      WHERE content_id = :content_id
-      AND uid = :uid",
-      array(
-        ':content_id' => $content_id,
-        ':uid' => $user->uid))->fetchAssoc();
 
-    $percentScore = 1;
-    if ($results['max_points'] > 0) {
-      $percentScore = $results['points'] / $results['max_points'];
-      if ($percentScore < 0) {
-        $percentScore = 0;
-      }
-      elseif ($percentScore > 1) {
-        $percentScore = 1;
-      }
+    $percentScore = 0;
+    if ($this->answer !== 1 && is_numeric($this->answer)) {
+      // Answer is the "encrypted" percentScore. Let's "decrypt" it...
+      $percentScore = $this->answer / 1.234 - 32.17;
+    }    
+    if ($percentScore < 0) {
+      $percentScore = 0;
+    }
+    elseif ($percentScore > 1) {
+      $percentScore = 0;
     }
 
     db_insert('quiz_h5p_user_results')

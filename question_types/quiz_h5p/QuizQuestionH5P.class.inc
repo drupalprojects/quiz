@@ -18,11 +18,16 @@ class QuizQuestionH5P extends QuizQuestion {
   }
 
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
-     return array(
+    drupal_add_js(drupal_get_path('module', 'quiz_h5p') . '/quiz_h5p.js');
+    return array(
       'tries' => array(
         '#type' => 'hidden',
         '#default_value' => 1,
+        '#attributes' => array(
+          'id' => 'quiz-h5p-result-key',
+        )
       ),
     );
+    
   }
 }
