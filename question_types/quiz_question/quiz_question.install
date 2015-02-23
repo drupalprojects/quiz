@@ -80,10 +80,10 @@ function quiz_question_uninstall() {
  */
 function quiz_question_update_7401() {
   $question_types = array_keys(_quiz_question_get_implementations());
-  
+
   foreach ($question_types as $question_type) {
     $instance = field_read_instance('node', 'body', $question_type);
-    
+
     $instance['display']['question'] = array(
       'label' => 'hidden',
       'type' => 'text_default',
@@ -94,4 +94,12 @@ function quiz_question_update_7401() {
 
     field_update_instance($instance);
   }
+}
+
+
+/**
+ * Rebuild the node_access table.
+ */
+function quiz_question_update_7402() {
+  node_access_rebuild();
 }
