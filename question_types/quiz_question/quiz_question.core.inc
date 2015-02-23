@@ -111,6 +111,11 @@ abstract class QuizQuestion {
       );
     }
 
+    if ($_GET['q'] == 'system/ajax' && !empty($form_state['complete form']['get']['#value'])) {
+      // If this is ajax request, add stored $_GET values if possible.
+      $_GET = array_merge($form_state['complete form']['get']['#value'], $_GET);
+    }
+
     // Quiz id used here to tie creation of a question to a specific quiz
     if (isset($_GET['quiz_nid']) && is_numeric($_GET['quiz_nid'])) {
       $vid = (_quiz_is_int($_GET['quiz_vid'], 0)) ? $_GET['quiz_vid'] : NULL;
