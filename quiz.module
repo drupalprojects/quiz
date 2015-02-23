@@ -3684,6 +3684,9 @@ function _quiz_get_question_types() {
     drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
     return array();
   }
+  else {
+    drupal_alter('quiz_question_info', $quiz_questions);
+  }
 
   return $quiz_questions;
 }
