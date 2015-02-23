@@ -495,10 +495,13 @@ class MatchingResponse extends QuizQuestionResponse {
     $MatchingQuestion = new MatchingQuestion($this->question);
     $correct_answers = $MatchingQuestion->getCorrectAnswer();
     foreach ((array) $user_answers as $key => $value) {
+      // Unanswered questions do not affect the total amount of scores to they can be skipped
+      if ($value == 0 || $value == 'def') {
+        continue;
+      }
+
       if ($correct_answers[$key]['answer'] == $correct_answers[$value]['answer']) {
         $correct_answer++;
-      }
-      elseif ($value == 0 || $value == 'def') {
       }
       else {
         $wrong_answer++;
