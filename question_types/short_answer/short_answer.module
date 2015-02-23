@@ -156,13 +156,18 @@ function short_answer_score_an_answer($values, $update_total = TRUE) {
 
   $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
 
+  $db_update_fields = array(
+    'score' => $score * $question_max_score / $quiz_max_score,
+    'is_evaluated' => 1,
+  );
+
+  if (isset($answer_feedback)) {
+    $db_update_fields['answer_feedback'] = empty($answer_feedback['value']) ? '' : $answer_feedback['value'];
+    $db_update_fields['answer_feedback_format'] = $answer_feedback['format'];
+  }
+
   $changed = db_update('quiz_short_answer_user_answers')
-    ->fields(array(
-      'score' => $score * $question_max_score / $quiz_max_score,
-      'is_evaluated' => 1,
-      'answer_feedback' => empty($answer_feedback['value']) ? '' : $answer_feedback['value'],
-      'answer_feedback_format' => $answer_feedback['format'],
-    ))
+    ->fields($db_update_fields)
     ->condition('question_nid', $nid)
     ->condition('question_vid', $vid)
     ->condition('result_id', $rid)
