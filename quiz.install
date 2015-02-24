@@ -808,16 +808,18 @@ function quiz_update_7409(&$sandbox) {
 }
 
 /**
- * Notify users about the H5P integration
+ * H5P has been added to Quiz!
  */
 function quiz_update_7410(&$sandbox) {
-  
-  return t('An integration with the H5P project have now been added to quiz. '
-          . 'This allows users to create many new content types like '
-          . 'Mark the Words, Fill in the Blanks, Adaptive Interactive Videos '
-          . 'and 18 other interactive content types. Enable the Quiz H5P Integration '
-          . 'module and download H5P content types from '
-          . 'http://h5p.org/content-types-and-applications to get started.');
+  $message = t('<a href="http://h5p.org/fill-in-the-blanks">Fill in the Blanks</a>, '
+          . '<a href="http://h5p.org/drag-the-words">Drag the words</a>, '
+          . '<a href="http://h5p.org/mark-the-words">Mark the Words</a>, '
+          . '<a href="http://h5p.org/interactive-video">Adaptive Interactive Video</a> '
+          . 'and 17 other interactive content types may now be added to quizzes! '
+          . 'Enable the Quiz H5P Integration module and download H5P content types '
+          . 'from <a href="http://h5p.org/content-types-and-applications">H5P.org</a> to get started.');
+  drupal_set_message($message);
+  return $message;
 }
 
 
