@@ -2827,6 +2827,7 @@ function quiz_is_passed($uid, $nid, $vid) {
     WHERE qnrs.vid = :vid
       AND qnrs.nid = :nid
       AND qnrs.uid = :uid
+      AND qnrs.is_evaluated = 1
       AND score >= pass_rate', array(':vid' => $vid, ':nid' => $nid, ':uid' => $uid))->fetchField();
   // Force into boolean context.
   return ($passed !== FALSE && $passed > 0);
