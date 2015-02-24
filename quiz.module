@@ -3031,7 +3031,7 @@ function quiz_calculate_score($quiz, $rid) {
     'question_count' => $count,
     'possible_score' => $possible_score,
     'numeric_score' => $total_score,
-    'percentage_score' => ($possible_score == 0) ? 0 : round(($total_score * 100) / $possible_score),
+    'percentage_score' => ($possible_score == 0) ? 100 : round(($total_score * 100) / $possible_score),
     'is_evaluated' => $is_evaluated,
   );
 }
