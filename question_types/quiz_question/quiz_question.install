@@ -83,6 +83,9 @@ function quiz_question_update_7401() {
 
   foreach ($question_types as $question_type) {
     $instance = field_read_instance('node', 'body', $question_type);
+    if ($instance === FALSE) {
+      continue;
+    }
 
     $instance['display']['question'] = array(
       'label' => 'hidden',
