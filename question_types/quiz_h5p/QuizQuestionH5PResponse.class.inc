@@ -25,7 +25,12 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
       $percentScore = 0;
     }
 
-    db_insert('quiz_h5p_user_results')
+    db_merge('quiz_h5p_user_results')
+      ->key(array(
+        'question_nid' => $this->question->nid,
+        'question_vid' => $this->question->vid,
+        'result_id' => $this->rid,
+      ))
       ->fields(array(
         'question_nid' => $this->question->nid,
         'question_vid' => $this->question->vid,
