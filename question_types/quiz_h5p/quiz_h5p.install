@@ -37,3 +37,23 @@ function quiz_h5p_schema() {
   );
   return $schema;
 }
+
+function quiz_h5p_install() {
+  db_query(
+    "INSERT INTO {quiz_question_properties}
+    (nid, vid, max_score)
+    SELECT nid, vid, 10
+    FROM {node} n
+    WHERE n.type='h5p_content'");
+}
+
+function quiz_h5p_uninstall() {
+  db_query(
+    "DELETE FROM {quiz_question_properties}
+    WHERE nid IN (
+      SELECT n.nid
+      FROM {node} n
+      WHERE n.type = 'h5p_content'
+    )"
+  );
+}
