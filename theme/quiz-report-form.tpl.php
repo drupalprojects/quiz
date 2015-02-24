@@ -49,10 +49,12 @@ foreach ($form as $key => $sub_form):
 	  <p class="quiz-report-question"><strong><?php print t('Question')?>: </strong></p>
 	  <?php print drupal_render($sub_form['question']);?>
 	</div>
+  <?php if (!isset($sub_form['response']['#no-response'])): ?>
   <div class="dd">
     <p><strong><?php print t('Response')?>: </strong></p>
     <?php print drupal_render($sub_form['response']); ?>
   </div>
+  <?php endif; ?>
   <div class="dd">
     <?php print drupal_render($sub_form['answer_feedback']); ?>
   </div>

@@ -68,7 +68,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
   }
   
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    return array('#markup' => t("This question type doesn't provide a response for the results report"));
+    return array('#no-response' => TRUE);
   }
 	
 
