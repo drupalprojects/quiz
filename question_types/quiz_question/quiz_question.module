@@ -253,6 +253,9 @@ function quiz_question_evaluate_question($question, $result_id, $answer = NULL) 
     // FIXME this use of POST array is hacky. We will try to use FAPI mor accurately in Quiz 5.x
     $answer = $_POST['tries'];
   }
+  if (empty($answer) && isset($_FILES['files']['type']['tries']) && !empty($_FILES['files']['type']['tries'])) {
+    $answer = $_FILES;
+  }
   unset($_POST['tries']);
   $response = _quiz_question_response_get_instance($result_id, $question, $answer);
 
