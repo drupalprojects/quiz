@@ -105,7 +105,7 @@ function quiz_entity_info_alter(&$info) {
   $info['node']['view modes'] += array(
     'question' => array(
       'label' => t('Question'),
-      'custom settings' => FALSE,
+      'custom settings' => TRUE,
     ),
   );
 }
