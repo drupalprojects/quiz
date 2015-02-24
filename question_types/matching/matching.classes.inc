@@ -236,6 +236,7 @@ class MatchingQuestion extends QuizQuestion {
         $form['subquestions'][$match['match_id']]['tries[' . $match['match_id'] . ']']['#default_value'] = $responses[$match['match_id']];
       }
     }
+    $this->remove_repeated($form['subquestions']);
     $form['scoring_info'] = array(
       '#markup' => '<p><em>' . t('You lose points by selecting incorrect options. You may leave an option blank to avoid losing points.') . '</em></p>',
     );
@@ -243,6 +244,15 @@ class MatchingQuestion extends QuizQuestion {
       $form['subquestions'] = $this->customShuffle($form['subquestions']);
     }
     return $form;
+  }
+
+  private function remove_repeated(&$form)
+  {
+    foreach($form as $index => &$question)
+    {
+      if (isset($question['tries[' . $index . ']']['#options'])){
+      $question['tries[' . $index . ']']['#options']=array_unique($question['tries[' . $index . ']']['#options']);}
+    }
   }
 
   /**
