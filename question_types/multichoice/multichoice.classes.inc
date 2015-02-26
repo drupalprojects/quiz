@@ -320,30 +320,14 @@ class MultichoiceQuestion extends QuizQuestion {
   public function delete($only_this_version = FALSE) {
     $delete_properties = db_delete('quiz_multichoice_properties')->condition('nid', $this->node->nid);
     $delete_answers = db_delete('quiz_multichoice_answers')->condition('question_nid', $this->node->nid);
-    $delete_results = db_delete('quiz_multichoice_user_answers')->condition('question_nid', $this->node->nid);
 
     if ($only_this_version) {
       $delete_properties->condition('vid', $this->node->vid);
       $delete_answers->condition('question_vid', $this->node->vid);
-      $delete_results->condition('question_vid', $this->node->vid);
     }
 
-    // Delete from table quiz_multichoice_user_answer_multi
-    if ($only_this_version) {
-      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid AND question_vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
-    }
-    else {
-      $user_answer_id = db_query('SELECT id FROM {quiz_multichoice_user_answers} WHERE question_nid = :nid', array(':nid' => $this->node->nid))->fetchCol();
-    }
-
-    if (!empty($user_answer_id)) {
-      db_delete('quiz_multichoice_user_answer_multi')
-        ->condition('user_answer_id', $user_answer_id, 'IN')
-        ->execute();
-    }
     $delete_properties->execute();
     $delete_answers->execute();
-    $delete_results->execute();
     parent::delete($only_this_version);
   }
 

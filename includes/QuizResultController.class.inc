@@ -3,18 +3,18 @@
 class QuizResultController extends EntityAPIController {
 
   function delete($ids, \DatabaseTransaction $transaction = NULL) {
-    foreach ($ids as $id) {
+    foreach ($ids as $result_id) {
       // Fire the question types' implementations of question attempts deletion.
       $sql = 'SELECT result_id, question_nid, question_vid FROM {quiz_node_results_answers}
           WHERE result_id = (:result_id)';
-      $result = db_query($sql, array(':result_id' => $id));
+      $result = db_query($sql, array(':result_id' => $result_id));
       foreach ($result as $record) {
-        quiz_question_delete_result($id, $record->question_nid, $record->question_vid);
+        quiz_question_delete_result($result_id, $record->question_nid, $record->question_vid);
       }
 
       // Delete Quiz's records of any attempts at a question.
       db_delete('quiz_node_results_answers')
-        ->condition('result_id', $id)
+        ->condition('result_id', $result_id)
         ->execute();
     }
     parent::delete($ids, $transaction);

@@ -278,10 +278,6 @@ class ScaleQuestion extends QuizQuestion {
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
     if ($only_this_version) {
-      db_delete('quiz_scale_user_answers')
-        ->condition('question_nid', $this->node->nid)
-        ->condition('question_vid', $this->node->vid)
-        ->execute();
 
       db_delete('quiz_scale_node_properties')
         ->condition('nid', $this->node->nid)
@@ -289,9 +285,6 @@ class ScaleQuestion extends QuizQuestion {
         ->execute();
     }
     else {
-      db_delete('quiz_scale_user_answers')
-        ->condition('question_nid', $this->node->nid)
-        ->execute();
 
       db_delete('quiz_scale_node_properties')
         ->condition('nid', $this->node->nid)

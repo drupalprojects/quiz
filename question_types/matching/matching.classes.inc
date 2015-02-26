@@ -109,11 +109,6 @@ class MatchingQuestion extends QuizQuestion {
     if ($only_this_version) {
       $delete_properties->condition('vid', $this->node->vid);
 
-      $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchCol();
-      db_delete('quiz_matching_user_answers')
-        ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
-        ->execute();
-
       db_delete('quiz_matching_node')
         ->condition('nid', $this->node->nid)
         ->condition('vid', $this->node->vid)
@@ -121,12 +116,6 @@ class MatchingQuestion extends QuizQuestion {
     }
     // Delete all versions of this question.
     else {
-      $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid', array(':nid' => $this->node->nid))->fetchCol();
-      if (!empty($match_id)) {
-        db_delete('quiz_matching_user_answers')
-          ->condition('match_id', $match_id, 'IN')
-          ->execute();
-      }
 
       db_delete('quiz_matching_node')
         ->condition('nid', $this->node->nid)

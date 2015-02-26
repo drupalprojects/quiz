@@ -74,18 +74,14 @@ class ShortAnswerQuestion extends QuizQuestion {
    */
   public function delete($only_this_version = FALSE) {
     parent::delete($only_this_version);
-    $delete_ans = db_delete('quiz_short_answer_user_answers');
-    $delete_ans->condition('question_nid', $this->node->nid);
 
     $delete_node = db_delete('quiz_short_answer_node_properties');
     $delete_node->condition('nid', $this->node->nid);
 
     if ($only_this_version) {
-      $delete_ans->condition('question_vid', $this->node->vid);
       $delete_node->condition('vid', $this->node->vid);
     }
 
-    $delete_ans->execute();
     $delete_node->execute();
   }
 
