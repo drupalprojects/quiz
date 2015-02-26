@@ -321,8 +321,6 @@ function quiz_menu() {
   // Take quiz.
   $items['node/%quiz_menu/take'] = array(
     'title' => 'Take',
-    'title callback' => 'quiz_title',
-    'title arguments' => array(1),
     'page callback' => 'quiz_take_page',
     'page arguments' => array(1),
     'access callback' => 'quiz_take_access',
