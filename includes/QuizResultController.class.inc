@@ -23,36 +23,38 @@ class QuizResultController extends EntityAPIController {
   function load($ids = array(), $conditions = array()) {
     $quiz_results = parent::load($ids, $conditions);
 
-    foreach ($quiz_results as $quiz_result) {
-      $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
-        'parent_nid' => $quiz_result->nid,
-        'parent_vid' => $quiz_result->vid,
-      ));
-      $relationships = array();
-      foreach ($quiz_node_relationships as $quiz_node_relationship) {
-        $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
-      }
-      $quiz_result->layout = array();
-    }
-
-    $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $ids));
-    if ($quiz_result_answers) {
-      foreach ($quiz_result_answers as $raid => $quiz_result_answer) {
-        if (!empty($relationships[$quiz_result_answer->question_nid])) {
-          $relationship = $relationships[$quiz_result_answer->question_nid];
+    if ($quiz_results) {
+      foreach ($quiz_results as $quiz_result) {
+        $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
+          'parent_nid' => $quiz_result->nid,
+          'parent_vid' => $quiz_result->vid,
+        ));
+        $relationships = array();
+        foreach ($quiz_node_relationships as $quiz_node_relationship) {
+          $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
         }
-
-        $quiz_results[$quiz_result_answer->result_id]->layout[$quiz_result_answer->number] = array(
-          'display_number' => $quiz_result_answer->number,
-          'nid' => $quiz_result_answer->question_nid,
-          'vid' => $quiz_result_answer->question_vid,
-          'tid' => $quiz_result_answer->tid,
-          'number' => $quiz_result_answer->number,
-          'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
-          'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
-        );
+        $quiz_result->layout = array();
       }
-      ksort($quiz_results[$quiz_result_answer->result_id]->layout, SORT_NUMERIC);
+
+      $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => array_keys($quiz_results)));
+      if ($quiz_result_answers) {
+        foreach ($quiz_result_answers as $raid => $quiz_result_answer) {
+          if (!empty($relationships[$quiz_result_answer->question_nid])) {
+            $relationship = $relationships[$quiz_result_answer->question_nid];
+          }
+
+          $quiz_results[$quiz_result_answer->result_id]->layout[$quiz_result_answer->number] = array(
+            'display_number' => $quiz_result_answer->number,
+            'nid' => $quiz_result_answer->question_nid,
+            'vid' => $quiz_result_answer->question_vid,
+            'tid' => $quiz_result_answer->tid,
+            'number' => $quiz_result_answer->number,
+            'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
+            'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
+          );
+        }
+        ksort($quiz_results[$quiz_result_answer->result_id]->layout, SORT_NUMERIC);
+      }
     }
 
     return $quiz_results;
