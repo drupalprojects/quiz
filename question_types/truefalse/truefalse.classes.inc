@@ -12,33 +12,26 @@
 class TrueFalseQuestion extends QuizQuestion {
 
   /**
-   * Implementation of saveNodeProperties
+   * Implementation of saveNodeProperties().
    *
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
-    if ($is_new || $this->node->revision == 1) {
-      $id = db_insert('quiz_truefalse_node')
-        ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
-          'correct_answer' => $this->node->correct_answer,
-        ))
-        ->execute();
-    }
-    else {
-      db_update('quiz_truefalse_node')
-        ->fields(array(
-          'correct_answer' => (int) $this->node->correct_answer,
-        ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
-    }
+    db_merge('quiz_truefalse_node')->
+      key(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+      ))
+      ->fields(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+        'correct_answer' => $this->node->correct_answer,
+      ))
+      ->execute();
   }
 
   /**
-   * Implementation of validateNode
+   * Implementation of validateNode().
    *
    * @see QuizQuestion#validateNode($form)
    */
@@ -52,17 +45,14 @@ class TrueFalseQuestion extends QuizQuestion {
    * @see QuizQuestion#delete($only_this_version)
    */
   public function delete($only_this_version = FALSE) {
-    parent::delete($only_this_version);
-
-
     $delete_node = db_delete('quiz_truefalse_node');
     $delete_node->condition('nid', $this->node->nid);
-
     if ($only_this_version) {
       $delete_node->condition('vid', $this->node->vid);
     }
-
     $delete_node->execute();
+
+    parent::delete($only_this_version);
   }
 
   /**
@@ -113,8 +103,6 @@ class TrueFalseQuestion extends QuizQuestion {
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = parent::getAnsweringForm($form_state, $result_id);
-    //$form['#theme'] = 'truefalse_answering_form';
-    // 'tries' is unfortunately required by quiz.module
     $element += array(
       '#type' => 'radios',
       '#title' => t('Choose one'),
@@ -122,7 +110,6 @@ class TrueFalseQuestion extends QuizQuestion {
         1 => t('True'),
         0 => t('False')
       ),
-      '#default_value' => NULL, // prevent default value set to NULL
     );
 
     if (isset($result_id)) {
@@ -130,11 +117,12 @@ class TrueFalseQuestion extends QuizQuestion {
       $default = $response->getResponse();
       $element['#default_value'] = is_null($default) ? NULL : $default;
     }
+
     return $element;
   }
 
   /**
-   * Question response validator.
+   * Implementation of getAnsweringFormValidate().
    */
   public function getAnsweringFormValidate(array &$element, &$value) {
     if (is_null($value)) {
@@ -143,7 +131,7 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getBodyFieldTitle
+   * Implementation of getBodyFieldTitle().
    *
    * @see QuizQuestion#getBodyFieldTitle()
    */
@@ -152,7 +140,7 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getCreationForm
+   * Implementation of getCreationForm().
    *
    * @see QuizQuestion#getCreationForm($form_state)
    */
@@ -173,7 +161,7 @@ class TrueFalseQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getMaximumScore
+   * Implementation of getMaximumScore().
    *
    * @see QuizQuestion#getMaximumScore()
    */
@@ -217,12 +205,13 @@ class TrueFalseResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of save
+   * Implementation of save().
    *
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    db_insert('quiz_truefalse_user_answers')
+    db_merge('quiz_truefalse_user_answers')
+      ->key(array('result_answer_id' => $this->result_answer_id))
       ->fields(array(
         'result_answer_id' => $this->result_answer_id,
         'answer' => (int) $this->answer,
@@ -232,7 +221,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of delete
+   * Implementation of delete().
    *
    * @see QuizQuestionResponse#delete()
    */
@@ -243,7 +232,7 @@ class TrueFalseResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of score
+   * Implementation of score().
    *
    * @see QuizQuestionResponse#score()
    */
@@ -262,14 +251,14 @@ class TrueFalseResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of getCorrectAnswer
+   * Get the user's answer from the database.
    */
   public function getUserAnswer() {
     return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
   }
 
   /**
-   * Implementation of getReportFormResponse
+   * Implementation of getFeedbackValues().
    */
   public function getFeedbackValues() {
 
