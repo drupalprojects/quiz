@@ -257,14 +257,6 @@ abstract class QuizQuestion {
    *  current nid can be deleted.
    */
   public function delete($only_this_version = FALSE) {
-    // Delete answeres
-    $delete = db_delete('quiz_node_results_answers')
-      ->condition('question_nid', $this->node->nid);
-    if ($only_this_version) {
-      $delete->condition('question_vid', $this->node->vid);
-    }
-    $delete->execute();
-
     // Delete properties
     $delete = db_delete('quiz_question_properties')
       ->condition('nid', $this->node->nid);
