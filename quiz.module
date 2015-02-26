@@ -1300,13 +1300,9 @@ function quiz_form(&$node, &$form_state) {
       '#format' => isset($node->summary_pass_format) && !empty($node->summary_pass_format) ? $node->summary_pass_format : NULL,
     );
   }
-  // If the pass/fail option is unchecked, use the default and hide it.
   else {
-    $form['summaryoptions']['pass_rate'] = array(
-      '#type' => 'hidden',
-      '#value' => $node->pass_rate,
-      '#required' => FALSE,
-    );
+    // If the pass/fail option is unchecked, use the default and hide it.
+    $form['summaryoptions']['#access'] = FALSE;
   }
   // We use a helper to enable the wysiwyg module to add an editor to the
   // textarea.
