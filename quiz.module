@@ -1432,7 +1432,7 @@ function quiz_validate($node) {
   // Don't check dates if the quiz is always available.
   if (!$node->quiz_always) {
     if ($node->quiz_open > $node->quiz_close) {
-      form_set_error('quiz_close', t('The End date must be greater than the Open date.'));
+      form_set_error('quiz_close', t('The Close date must be greater than the Open date.'));
     }
   }
 
