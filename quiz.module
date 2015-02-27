@@ -1431,8 +1431,8 @@ function _quiz_userpoints_type() {
 function quiz_validate($node) {
   // Don't check dates if the quiz is always available.
   if (!$node->quiz_always) {
-    if (mktime(0, 0, 0, $node->quiz_open['month'], $node->quiz_open['day'], $node->quiz_open['year']) > mktime(0, 0, 0, $node->quiz_close['month'], $node->quiz_close['day'], $node->quiz_close['year'])) {
-      form_set_error('quiz_close', t('"Close date" must be later than the "open date".'));
+    if ($node->quiz_open > $node->quiz_close) {
+      form_set_error('quiz_close', t('The End date must be greater than the Open date.'));
     }
   }
 
