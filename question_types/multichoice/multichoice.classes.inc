@@ -837,6 +837,8 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
+    $this->delete();
+    
     $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
         'result_answer_id' => $this->result_answer_id,

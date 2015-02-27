@@ -135,4 +135,34 @@ class MatchingTestCase extends QuizQuestionTestCase {
     $this->assertText('You got 1 of 3 possible points.');
   }
 
+  /**
+   * Test that the question response can be edited.
+   */
+  function testEditQuestionResponse() {
+    // Create & link a question.
+    $question_node = $this->testCreateQuizQuestion();
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    $question_node2 = $this->testCreateQuizQuestion();
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Login as non-admin.
+    $this->drupalLogin($this->user);
+
+    // Take the quiz.
+    $this->drupalGet("node/$quiz_node->nid/take");
+
+    // Test editing a question.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer][1]" => 1,
+      ), t('Next'));
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer][1]" => 0,
+      "question[$question_node->nid][answer][2]" => 2,
+      ), t('Next'));
+  }
+
 }

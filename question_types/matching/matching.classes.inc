@@ -441,9 +441,8 @@ class MatchingResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    if (!isset($this->answer) || !is_array($this->answer)) {
-      return;
-    }
+    $this->delete();
+    
     $insert = db_insert('quiz_matching_user_answers')->fields(array('match_id', 'result_id', 'answer', 'score'));
     foreach ($this->answer as $key => $value) {
       $insert->values(array(

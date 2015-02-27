@@ -573,7 +573,7 @@ class ScaleResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    $id = db_insert('quiz_scale_user_answers')
+    db_merge('quiz_scale_user_answers')->key(array('result_answer_id' => $this->result_answer_id))
       ->fields(array(
         'answer_id' => $this->answer_id,
         'result_answer_id' => $this->result_answer_id,

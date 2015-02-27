@@ -291,7 +291,8 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
-    $this->answer_id = db_insert('quiz_long_answer_user_answers')
+    db_merge('quiz_long_answer_user_answers')
+      ->key(array('result_answer_id' => $this->result_answer_id))
       ->fields(array(
         'answer' => $this->answer,
         'result_answer_id' => $this->result_answer_id,

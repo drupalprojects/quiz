@@ -375,7 +375,8 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public function save() {
     // We need to set is_evaluated depending on whether the type requires evaluation.
     $this->is_evaluated = (int) ($this->question->correct_answer_evaluation != ShortAnswerQuestion::ANSWER_MANUAL);
-    $this->answer_id = db_insert('quiz_short_answer_user_answers')
+    db_merge('quiz_short_answer_user_answers')
+      ->key(array('result_answer_id' => $this->result_answer_id))
       ->fields(array(
         'answer' => $this->answer,
         'result_answer_id' => $this->result_answer_id,

@@ -877,7 +877,6 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
           }
         }
         $qi_instance = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $form_state['values']['question'][$current_question->nid]['answer']);
-        $qi_instance->delete();
         $qi_instance->save();
         $result = $qi_instance->toBareObject();
         $result->is_doubtful = !empty($response['is_doubtful']);
