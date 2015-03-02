@@ -10,6 +10,7 @@
         if (score === undefined || score === null) {
           var contentId = event.getVerifiedStatementValue(['object', 'extensions', 'http://h5p.org/x-api/h5p-local-content-id']);
           console.log(contentId);
+          console.log(H5P.instances);
           for (var i = 0; i < H5P.instances.length; i++) {
             if (H5P.instances[i].contentId === contentId) {
               if (typeof H5P.instances[i].getScore === 'function') {
