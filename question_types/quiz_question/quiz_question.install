@@ -106,3 +106,16 @@ function quiz_question_update_7401() {
 function quiz_question_update_7402() {
   node_access_rebuild();
 }
+
+/**
+ * Make sure the matching question has finished its update before starting this one
+ */
+function quiz_question_update_dependencies() {
+  $dependencies = array();
+  if (module_exists("matching")) {
+    $dependencies['quiz_question'][7402] = array(
+      'matching' => 7400,
+    );
+  }
+  return $dependencies;
+}
