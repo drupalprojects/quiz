@@ -2,11 +2,8 @@
   $(document).ready(function() {
     if (H5P && H5P.externalDispatcher) {
       H5P.externalDispatcher.on('xAPI', function(event) {
-        var score, maxScore;
-        if (event.getVerb() === 'completed') {
-          score = event.getScore();
-          maxScore = event.getMaxScore();
-        }
+        var score = event.getScore();
+        var maxScore = event.getMaxScore();
         if (score === undefined || score === null) {
           var contentId = event.getVerifiedStatementValue(['object', 'extensions', 'http://h5p.org/x-api/h5p-local-content-id']);
           for (var i = 0; i < H5P.instances.length; i++) {
