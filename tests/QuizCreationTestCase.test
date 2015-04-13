@@ -190,6 +190,81 @@ class QuizCreationTestCase extends QuizTestCase {
   }
 
   /**
+   * Test quiz with revisioning off.
+   */
+  function testQuizNoRevisioning() {
+    // No revisions. Ever!
+    variable_set('quiz_auto_revisioning', 0);
+
+    $this->drupalLogin($this->admin);
+    $question_node = $this->drupalCreateNode(array(
+      'title' => 'Revision 1',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Revision 1'))),
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+    // Set feedback.
+    $entities = entity_load('quiz_question', FALSE, array('nid' => $question_node->nid, 'vid' => $question_node->vid));
+    $quiz_question = reset($entities);
+    $quiz_question->feedback = 'Question feedback for Revision 1';
+    $quiz_question->feedback_format = filter_default_format();
+    entity_save('quiz_question', $quiz_question);
+
+    // Check for first revision.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 1");
+
+    // Update question.
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("node/{$question_node->nid}/edit");
+    $this->drupalPost(NULL, array(
+      'title' => 'Revision 2',
+      'body[und][0][value]' => 'Revision 2',
+      'correct_answer' => 0,
+      'feedback[value]' => 'Question feedback for Revision 2',
+      ), t('Save'));
+
+    // We have revisioning turned off. So, the new question text should be
+    // present. Finish on same revision.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 2");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 2');
+
+    // Take quiz again. Should be on SAME revision.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 2");
+
+    // Take quiz again. We have not yet finished this attempt.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 2");
+    // Finish the attempt.
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 2');
+
+
+    // Take quiz again we should be on the new result.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 2");
+    // Finish the attempt.
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('You got 0 of 1 possible points.');
+    $this->assertText('Question feedback for Revision 2');
+  }
+
+  /**
    * Test cloning quizzes with questions.
    */
   public function testCloneQuiz() {
