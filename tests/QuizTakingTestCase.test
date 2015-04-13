@@ -143,7 +143,7 @@ class QuizTakingTestCase extends QuizTestCase {
       'quiz_close' => $future + 1,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
-    $this->assertText(t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)));
+    $this->assertText(t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME)));
 
     // Ends in the past.
     $quiz_node = $this->drupalCreateQuiz(array(

@@ -2374,15 +2374,22 @@ function quiz_availability($quiz) {
     // Compare current GMT time to the open and close dates (which should still
     // be in GMT time).
 
-    if (REQUEST_TIME >= $quiz->quiz_close || REQUEST_TIME < $quiz->quiz_open) {
+    $quiz_open = REQUEST_TIME >= $quiz->quiz_open;
+    $quiz_closed = REQUEST_TIME >= $quiz->quiz_close;
+    if (!$quiz_open || $quiz_closed) {
       if ($user_is_admin) {
         return t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME));
       }
-      else {
+
+      if ($quiz_closed) {
         return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
-        // Can't take quiz.
-        return FALSE;
       }
+      if (!$quiz_open) {
+        return t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME));
+      }
+
+      // Can't take quiz.
+      return FALSE;
     }
   }
 
