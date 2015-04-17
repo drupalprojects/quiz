@@ -263,25 +263,28 @@ class TrueFalseResponse extends QuizQuestionResponse {
   public function getFeedbackValues() {
 
     $answer = $this->question->answers[0]['answer'];
-    $correct_answer = $this->question->correct_answer;
+    if (!is_null($answer)) {
+      $answer = intval($answer);
+    }
+    $correct_answer = intval($this->question->correct_answer);
 
     $data = array();
     $data[] = array(
       'choice' => t('True'),
-      'attempt' => $answer ? quiz_icon('selected') : '',
-      'correct' => $answer == 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
-      'score' => intval($correct_answer == 1 && $answer == 1),
+      'attempt' => $answer === 1 ? quiz_icon('selected') : '',
+      'correct' => $answer === 1 ? quiz_icon($correct_answer ? 'correct' : 'incorrect') : '',
+      'score' => intval($correct_answer === 1 && $answer === 1),
       'answer_feedback' => '',
-      'solution' => $correct_answer == 1 ? quiz_icon('should') : '',
+      'solution' => $correct_answer === 1 ? quiz_icon('should') : '',
     );
 
     $data[] = array(
       'choice' => t('False'),
-      'attempt' => !$answer ? quiz_icon('selected') : '',
-      'correct' => $answer == 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
-      'score' => intval($correct_answer == 0 && $answer == 0),
+      'attempt' => $answer === 0 ? quiz_icon('selected') : '',
+      'correct' => $answer === 0 ? (quiz_icon(!$correct_answer ? 'correct' : 'incorrect')) : '',
+      'score' => intval($correct_answer === 0 && $answer === 0),
       'answer_feedback' => '',
-      'solution' => $correct_answer == 0 ? quiz_icon('should') : '',
+      'solution' => $correct_answer === 0 ? quiz_icon('should') : '',
     );
 
     return $data;
