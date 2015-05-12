@@ -164,7 +164,6 @@ class LongAnswerQuestion extends QuizQuestion {
       '#description' => t('Specify the criteria for grading the response.'),
       '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
       '#size' => 60,
-      '#maxlength' => 2048,
       '#required' => FALSE,
     );
     return $form;

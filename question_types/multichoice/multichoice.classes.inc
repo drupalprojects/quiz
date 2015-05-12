@@ -628,7 +628,6 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'textfield',
         '#title' => t('Score if chosen'),
         '#size' => 4,
-        '#maxlength' => 4,
         '#default_value' => $default_value,
         '#description' => t("This score is added to the user's total score if the user chooses this alternative."),
         '#attributes' => array(
@@ -647,7 +646,6 @@ class MultichoiceQuestion extends QuizQuestion {
         '#type' => 'textfield',
         '#title' => t('Score if not chosen'),
         '#size' => 4,
-        '#maxlength' => 4,
         '#default_value' => $default_value,
         '#description' => t("This score is added to the user's total score if the user doesn't choose this alternative. Only used if multiple answers are allowed."),
         '#attributes' => array(
@@ -838,7 +836,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function save() {
     $this->delete();
-    
+
     $user_answer_id = db_insert('quiz_multichoice_user_answers')
       ->fields(array(
         'result_answer_id' => $this->result_answer_id,

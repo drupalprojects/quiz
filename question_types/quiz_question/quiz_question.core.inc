@@ -865,7 +865,6 @@ abstract class QuizQuestionResponse {
       '#type' => 'textfield',
       '#default_value' => $score,
       '#size' => 3,
-      '#maxlength' => 3,
       '#attributes' => array('class' => array('quiz-report-score')),
       '#element_validate' => array('element_validate_integer'),
       '#required' => TRUE,

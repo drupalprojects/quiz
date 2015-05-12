@@ -103,7 +103,6 @@ function long_answer_score_form($form, $form_state, $node, $answer) {
     '#title' => t('Score'),
     '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)),
     '#size' => 3,
-    '#maxlength' => 3,
     '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * short_answer.admin
  *
@@ -95,7 +96,6 @@ function short_answer_score_form($form, $context, $node, $answer) {
     '#title' => t('Score'),
     '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)),
     '#size' => 3,
-    '#maxlength' => 3,
     '#default_value' => (int) $answer->rel_score,
     '#required' => TRUE,
   );
@@ -104,7 +104,7 @@ function short_answer_score_form($form, $context, $node, $answer) {
     '#type' => 'text_format',
     '#description' => t('The text entered here would be shown to attendees'),
     '#default_value' => $answer->answer_feedback,
-    '#format' => isset($answer->answer_feedback_format) ? $answer->answer_feedback_format : NULL 
+    '#format' => isset($answer->answer_feedback_format) ? $answer->answer_feedback_format : NULL
   );
   $form['submit'] = array(
     '#type' => 'submit',

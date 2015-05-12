@@ -931,7 +931,6 @@ function _quiz_add_questions_to_form(&$form, &$questions, &$quiz, &$question_typ
     $form[$fieldset]['max_scores'][$id] = array(
       '#type' => $instance->isGraded() ? 'textfield' : 'hidden',
       '#size' => 2,
-      '#maxlength' => 2,
       '#disabled' => isset($question->auto_update_max_score) ? $question->auto_update_max_score : FALSE,
       '#default_value' => isset($question->max_score) ? $question->max_score : 0,
       '#states' => array(
