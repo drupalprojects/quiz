@@ -825,6 +825,7 @@ function _quiz_get_node_defaults() {
   return (object) array(
       'aid' => NULL,
       'allow_change' => 1,
+      'allow_change_blank' => 0,
       'allow_jumping' => 0,
       'allow_resume' => 1,
       'allow_skipping' => 1,
@@ -1075,6 +1076,17 @@ function quiz_form(&$node, &$form_state) {
     '#title' => t('Allow changing answers'),
     '#default_value' => $node->allow_change,
     '#description' => t('If the user is able to visit a previous question, allow them to change the answer.'),
+  );
+  $form['taking']['allow_change_blank'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow changing blank answers'),
+    '#default_value' => $node->allow_change_blank,
+    '#description' => t('If the user is able to visit a previous skipped question, allow them to enter an answer.'),
+    '#states' => array(
+      'visible' => array(
+        '#edit-allow-change' => array('checked' => FALSE),
+      ),
+    ),
   );
   $form['taking']['backwards_navigation'] = array(
     '#type' => 'checkbox',

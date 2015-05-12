@@ -143,7 +143,7 @@ function quiz_question_node_form_submit($form, &$form_state) {
     // Forced redirect to question-revision-actions, overriding any '?destination' that's set
     unset($_GET['destination']);
     unset($_REQUEST['edit']['destination']);
-    $form_state['redirect'] = 'node/'  . $node->nid . '/question-revision-actions';
+    $form_state['redirect'] = 'node/' . $node->nid . '/question-revision-actions';
   }
 }
 
@@ -211,9 +211,15 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       'answer' => $element,
     );
 
-    if (!$quiz->allow_change) {
-      if (quiz_result_is_question_answered($quiz_result, $node)) {
-        // This question was already answered, and not skipped.
+    $qra = quiz_result_answer_load($quiz_result->result_id, $node->nid, $node->vid);
+    $blank_and_change = $qra->is_skipped && $quiz->allow_change_blank;
+    if (!$quiz->allow_change && $qra->answer_timestamp) {
+      if ($blank_and_change) {
+        // Allow it.
+      }
+      else {
+        // This question was already answered, or answering blank question is
+        // disabled.
         $form['question'][$node->nid]['#disabled'] = TRUE;
       }
     }
@@ -287,21 +293,23 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][arg(1)]['result_id']);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
 
-  foreach (array_keys($form_state['input']['question']) as $nid) {
-    // Loop over all question inputs provided, and record them as skipped.
-    $question = node_load($nid);
+  if (!empty($form_state['input']['question'])) {
+    foreach (array_keys($form_state['input']['question']) as $nid) {
+      // Loop over all question inputs provided, and record them as skipped.
+      $question = node_load($nid);
 
-    // Delete the user's answer.
-    _quiz_question_response_get_instance($quiz_result->result_id, $question)->delete();
+      // Delete the user's answer.
+      _quiz_question_response_get_instance($quiz_result->result_id, $question)->delete();
 
-    // Mark our question attempt as skipped, reset the correct and points flag.
-    $qra = quiz_result_answer_load($quiz_result->result_id, $question->nid, $question->vid);
-    $qra->is_skipped = 1;
-    $qra->is_correct = 0;
-    $qra->points_awarded = 0;
-    $qra->answer_timestamp = REQUEST_TIME;
-    entity_save('quiz_result_answer', $qra);
-    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+      // Mark our question attempt as skipped, reset the correct and points flag.
+      $qra = quiz_result_answer_load($quiz_result->result_id, $question->nid, $question->vid);
+      $qra->is_skipped = 1;
+      $qra->is_correct = 0;
+      $qra->points_awarded = 0;
+      $qra->answer_timestamp = REQUEST_TIME;
+      entity_save('quiz_result_answer', $qra);
+      quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+    }
   }
 
   // Advance to next question.

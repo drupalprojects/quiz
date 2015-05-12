@@ -257,6 +257,13 @@ function quiz_schema() {
         'default' => 1,
         'description' => 'Boolean indicating whether a user can change the answer to an already answered question.',
       ),
+      'allow_change_blank' => array(
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Boolean indicating whether a user can change the answer to a skipped question.',
+      ),
       'build_on_last' => array(
         'type' => 'varchar',
         'length' => '255',
@@ -1022,5 +1029,18 @@ function quiz_update_7514() {
     'question_feedback' => 'question_feedback',
     'solution' => 'solution',
     'quiz_feedback' => 'quiz_feedback',
+  ));
+}
+
+/**
+ * Add allow_change_blank property.
+ */
+function quiz_update_7515() {
+  db_add_field('quiz_node_properties', 'allow_change_blank', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'not null' => TRUE,
+    'default' => 0,
+    'description' => 'Boolean indicating whether a user can change the answer to a skipped question.',
   ));
 }

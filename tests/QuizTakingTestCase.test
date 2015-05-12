@@ -230,6 +230,19 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalPost(NULL, array(
       ), t('Next'));
     $this->assertText('Score: 1 of 1');
+
+    // Check allow change/blank behavior.
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->drupalPost(NULL, array(
+      ), t('Leave blank'));
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $disabled_field = $this->xpath('//input[@id=:id and @disabled="disabled"]', array(':id' => 'edit-question-3-answer-1'));
+    $this->assertTrue($disabled_field, t('The blank answer cannot be changed.'));
+    $quiz_node->allow_change_blank = 1;
+    node_save($quiz_node);
+    $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $disabled_field = $this->xpath('//input[@id=:id and @disabled="disabled"]', array(':id' => 'edit-question-3-answer-1'));
+    $this->assertFalse($disabled_field, t('The blank answer can be changed.'));
   }
 
   function testQuizMaxAttempts() {
