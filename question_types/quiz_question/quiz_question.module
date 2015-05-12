@@ -20,11 +20,12 @@ function quiz_question_help($path, $args) {
  */
 function quiz_question_menu() {
   $items = array();
-  $items['node/%/question-revision-actions'] = array(
+  $items['node/%node/question-revision-actions'] = array(
     'title' => 'Revision actions',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('quiz_question_revision_actions_form', 1),
-    'access arguments' => array('manual quiz revisioning'),
+    'access callback' => 'node_access',
+    'access arguments' => array('update', 1),
     'file' => 'quiz_question.pages.inc',
     'type' => MENU_NORMAL_ITEM,
   );

@@ -19,43 +19,55 @@
  * @return
  *  FAPI form array
  */
-function quiz_question_revision_actions_form($form, $form_state, $node) {
-  $efq = new EntityFieldQuery();
-  $result = $efq->entityCondition('entity_type', 'quiz_question_relationship')
-    ->propertyCondition('child_nid', $node->nid)
-    ->execute();
-  $relationships = entity_load('quiz_question_relationship', array_keys($result['quiz_question_relationship']));
+function quiz_question_revision_actions_form($form, $form_state, $question_node) {
+  $efq = new EntityFieldQuery;
 
-  $text = t('You have created a new revision of a question that belongs to %num quizzes. Choose what you want to do with the different quizzes.', array('%num' => count($relationships)));
+  // Find relationships that contain not the current version of this question.
+  $result = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+    ->propertyCondition('child_nid', $question_node->nid)
+    ->execute();
+
+  $relationships = entity_load('quiz_question_relationship', array_keys($result['quiz_question_relationship']));
+  $affected = array();
+  foreach ($relationships as $relationship) {
+    $affected[$relationship->parent_nid] = $relationship->parent_nid;
+  }
+
+  $text = t('You have created a new revision of a question that belongs to %num quizzes. Choose what you want to do with the different quizzes.', array('%num' => count($affected)));
   $form['intro'] = array(
     '#markup' => $text,
   );
   $form['question_node'] = array(
     '#type' => 'value',
-    '#value' => $node,
+    '#value' => $question_node,
   );
   $form['quizzes'] = array();
   // Create a form element for each quiz.
   foreach ($relationships as $relationship) {
     $quiz = node_load($relationship->parent_nid);
-    $answered = quiz_has_been_answered($quiz);
+    if (node_access('update', $quiz)) {
+      $answered = quiz_has_been_answered($quiz);
 
-    $form['quizzes']['#tree'] = TRUE;
-    $form['quizzes'][$quiz->nid]['revise'] = array(
-      '#type' => 'radios',
-      '#title' => check_plain($quiz->title) . ' - ' . ($answered ? t('answered') : t('unanswered')) . ', ' . ($quiz->status ? t('published') : t('unpublished')),
-      '#options' => array(
-        'update' => t('Update'),
-        'revise' => t('Create new revision'),
-        'nothing' => t('Do nothing'),
-      ),
-      '#default_value' => ($answered ? 'revise' : 'update'),
-    );
-    $form['quizzes'][$quiz->nid]['status'] = array(
-      '#type' => 'checkbox',
-      '#title' => $quiz->status ? t('Leave published') : t('Publish'),
-      '#default_value' => $quiz->status,
-    );
+      $options = array();
+      if (user_access('manual quiz revisioning')) {
+        $options['update'] = t('Update (no revision)');
+      }
+      $options['revise'] = t('Create new revision');
+      $options['nothing'] = t('Do nothing');
+
+      $form['quizzes']['#tree'] = TRUE;
+      $form['quizzes'][$quiz->nid]['revise'] = array(
+        '#type' => 'radios',
+        '#title' => check_plain($quiz->title) . ' - ' . ($answered ? t('answered') : t('unanswered')) . ', ' . ($quiz->status ? t('published') : t('unpublished')),
+        '#options' => $options,
+        '#default_value' => ($answered ? 'nothing' : 'update'),
+      );
+      $form['quizzes'][$quiz->nid]['status'] = array(
+        '#type' => 'checkbox',
+        '#title' => $quiz->status ? t('Leave published') : t('Publish'),
+        '#default_value' => $quiz->status,
+      );
+    }
   }
 
   $form['submit'] = array(

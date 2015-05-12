@@ -291,4 +291,64 @@ class QuizCreationTestCase extends QuizTestCase {
     $this->assertText('TF 1');
   }
 
+  /**
+   * Test quiz revisioning.
+   */
+  function testQuestionRevisionActions() {
+    $this->drupalLogin($this->admin);
+    $question_node = $this->drupalCreateNode(array(
+      'title' => 'Revision 1',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Revision 1'))),
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    // Check for first revision.
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->assertText("Revision 1");
+
+    // Save the question
+    $this->drupalGet("node/$question_node->nid/edit");
+    $this->drupalPost(NULL, array(), t('Save'));
+    $this->assertText(t('Revision actions'));
+    // Basic quiz admins won't be able to select this one.
+    $this->assertNoText(t('Update (no revision)'));
+    $this->assertText(t('Create new revision'));
+    $this->assertText(t('Do nothing'));
+    $this->assertText(t('Leave published'));
+
+    // Check that we have the opportunity to revise the quiz.
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $this->assertField("edit-revision-{$question_node->nid}-{$question_node->vid}");
+
+    $this->drupalGet("node/$question_node->nid/question-revision-actions");
+    $this->drupalPost(NULL, array(
+      "quizzes[$quiz_node->nid][revise]" => 'revise',
+      ), t('Submit')
+    );
+    $this->assertText('succesfully revised');
+
+    $this->drupalGet("node/$question_node->nid/question-revision-actions");
+    $this->drupalPost(NULL, array(
+      "quizzes[$quiz_node->nid][revise]" => 'nothing',
+      ), t('Submit')
+    );
+    $this->assertText('Quiz not updated, please use the Quiz question listing to if you decide to update the quiz manually.');
+
+    // Check that we no longer have the opportunity to revise the quiz.
+    $this->drupalGet("node/$quiz_node->nid/quiz/questions");
+    $this->assertNoField("edit-revision-{$question_node->nid}-{$question_node->vid}");
+
+    // Check that a better admin can manually update the quiz (no revisioning).
+    $better_admin = $this->drupalCreateUser(array('edit any truefalse content', 'edit any quiz content', 'manual quiz revisioning'));
+    $this->drupalLogin($better_admin);
+    $this->drupalGet("node/$question_node->nid/question-revision-actions");
+    $this->drupalPost(NULL, array(
+      "quizzes[$quiz_node->nid][revise]" => 'update',
+      ), t('Submit')
+    );
+    $this->assertText('succesfully updated');
+  }
+
 }

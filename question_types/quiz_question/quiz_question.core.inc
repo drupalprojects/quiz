@@ -236,12 +236,18 @@ abstract class QuizQuestion {
       ))
       ->execute();
 
-
-
     // Save what quizzes this question belongs to.
     // @kludge the quiz nid/vid are still on the node
     if (!empty($this->node->quiz_nid)) {
       $this->saveRelationships($this->node->quiz_nid, $this->node->quiz_vid);
+    }
+
+    if (!empty($this->node->revision)) {
+      // @kludge strange way of redirecting, since we do not have access to
+      // $form(_state) here
+      unset($_GET['destination']);
+      unset($_REQUEST['edit']['destination']);
+      $_REQUEST['edit']['destination'] = "node/{$this->node->nid}/question-revision-actions";
     }
   }
 
