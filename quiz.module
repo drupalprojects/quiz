@@ -807,10 +807,6 @@ function quiz_delete($node) {
   db_delete('quiz_node_relationship')
     ->condition('parent_nid', $node->nid)
     ->execute();
-  // Remove quiz node records from table quiz_node_results
-  db_delete('quiz_node_results')
-    ->condition('nid', $node->nid)
-    ->execute();
   // Remove quiz node records from table quiz_node_result_options
   db_delete('quiz_node_result_options')
     ->condition('nid', $node->nid)
