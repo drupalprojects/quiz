@@ -177,11 +177,11 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       foreach ($quiz_result->layout as $question) {
         if ($question['nid'] == $nodes->nid) {
           // Found a page
-          $nodes = array(node_load($nodes->nid));
+          $nodes = array(node_load($nodes->nid, $nodes->vid));
           foreach ($quiz_result->layout as $question2) {
             if ($question2['qnr_pid'] == $question['qnr_id']) {
               // This question belongs in the requested page.
-              $nodes[] = node_load($question2['nid']);
+              $nodes[] = node_load($question2['nid'], $question2['vid']);
             }
           }
           break;
@@ -201,6 +201,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $class = drupal_html_class('quiz-question-' . $node->type);
     // Element for a single question
     $element = $question->getAnsweringForm($form_state, $result_id);
+    $qra = quiz_result_answer_load($quiz_result->result_id, $node->nid, $node->vid);
 
     node_build_content($node, 'question');
     unset($node->content['answers']);
@@ -208,11 +209,11 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $form['question'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
       '#type' => 'container',
-      'header' => $node->content,
+      'header' => $qra->display_number ? array('#markup' => "<h2>" . t("Question @question", array('@question' => $qra->display_number)) . "</h2>") : NULL,
+      'question' => $node->content,
       'answer' => $element,
     );
 
-    $qra = quiz_result_answer_load($quiz_result->result_id, $node->nid, $node->vid);
     $blank_and_change = $qra->is_skipped && $quiz->allow_change_blank;
     if (!$quiz->allow_change && $qra->answer_timestamp) {
       if ($blank_and_change) {
@@ -600,7 +601,7 @@ function quiz_question_load($nodes) {
  * @return
  *  The appropriate QuizQuestion extension instance
  */
-function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
+function _quiz_question_get_instance($node, $use_cached = FALSE) {
   // We use static caching to improve performance
   static $question_instances = array();
 

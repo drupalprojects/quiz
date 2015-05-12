@@ -546,6 +546,13 @@ function quiz_schema() {
         'default' => 1,
         'description' => 'The number of the question in the result.',
       ),
+      'display_number' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+        'default' => NULL,
+        'description' => 'The display number of the question in the result.',
+      ),
       'is_doubtful' => array(
         'type' => 'int',
         'not null' => TRUE,
@@ -1042,5 +1049,18 @@ function quiz_update_7515() {
     'not null' => TRUE,
     'default' => 0,
     'description' => 'Boolean indicating whether a user can change the answer to a skipped question.',
+  ));
+}
+
+/**
+ * Adding a display_number field to the question layout.
+ */
+function quiz_update_7516() {
+  db_add_field('quiz_node_results_answers', 'display_number', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'default' => NULL,
+    'description' => 'The display number of the question in the result.',
   ));
 }

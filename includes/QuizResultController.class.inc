@@ -98,13 +98,16 @@ class QuizResultController extends EntityAPIController {
       }
 
       $i = 0;
+      $j = 0;
       foreach ($questions as $question) {
+        $quizQuestion = _quiz_question_get_instance((object) $question);
         $quiz_result_answer = entity_create('quiz_result_answer', array(
           'result_id' => $entity->result_id,
           'question_nid' => $question['nid'],
           'question_vid' => $question['vid'],
           'tid' => !empty($question['tid']) ? $question['tid'] : NULL,
           'number' => ++$i,
+          'display_number' => $quizQuestion->isQuestion() ? ++$j : NULL,
         ));
         entity_save('quiz_result_answer', $quiz_result_answer);
       }

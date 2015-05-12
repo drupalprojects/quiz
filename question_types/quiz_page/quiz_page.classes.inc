@@ -70,6 +70,10 @@ class QuizPagesQuestion extends QuizQuestion {
     return FALSE;
   }
 
+  public function isQuestion() {
+    return FALSE;
+  }
+
 }
 
 /**

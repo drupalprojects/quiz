@@ -25,14 +25,18 @@ class QuizDirectionsQuestion extends QuizQuestion {
    *
    * @see QuizQuestion#validateNode($form)
    */
-  public function validateNode(array &$form) { }
+  public function validateNode(array &$form) {
+
+  }
 
   /**
    * Implementation of saveNodeProperties
    *
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
-  public function saveNodeProperties($is_new = FALSE) { }
+  public function saveNodeProperties($is_new = FALSE) {
+
+  }
 
   /**
    * Implementation of getAnsweringForm
@@ -87,6 +91,11 @@ class QuizDirectionsQuestion extends QuizQuestion {
   public function hasFeedback() {
     return FALSE;
   }
+
+  public function isQuestion() {
+    return FALSE;
+  }
+
 }
 
 /**
@@ -99,14 +108,18 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
    *
    * @see QuizQuestionResponse#save()
    */
-  public function save() { }
+  public function save() {
+
+  }
 
   /**
    * Implementation of delete
    *
    * @see QuizQuestionResponse#delete()
    */
-  public function delete() { }
+  public function delete() {
+
+  }
 
   /**
    * Implementation of score
@@ -124,11 +137,11 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
       // TODO Please review the conversion of this statement to the D7 database API syntax.
       /* db_query($sql, REQUEST_TIME, $this->result_id) */
       db_update('quiz_node_results')
-  ->fields(array(
-    'time_start' => REQUEST_TIME,
-  ))
-  ->condition('result_id', $this->result_id)
-  ->execute();
+        ->fields(array(
+          'time_start' => REQUEST_TIME,
+        ))
+        ->condition('result_id', $this->result_id)
+        ->execute();
     }
 
     // Set the score
@@ -164,8 +177,5 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
       '#no_report' => TRUE,
     );
   }
+
 }
-
-
-
-

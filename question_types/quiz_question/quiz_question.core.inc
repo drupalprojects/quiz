@@ -462,6 +462,20 @@ abstract class QuizQuestion {
     return TRUE;
   }
 
+
+  /**
+   * Is this "question" an actual question? For example, a Quiz Page is not a
+   * question, neither is a "quiz directions".
+   *
+   * Returning FALSE here means that the question will not be numbered, and
+   * possibly other things.
+   *
+   * @return bool
+   */
+  public function isQuestion() {
+    return TRUE;
+  }
+
 }
 
 /**
