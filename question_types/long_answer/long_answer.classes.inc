@@ -53,24 +53,14 @@ class LongAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#delete($only_this_version)
    */
   public function delete($only_this_version = FALSE) {
+    $delete_node = db_delete('quiz_long_answer_node_properties');
+    $delete_node->condition('nid', $this->node->nid);
+
     if ($only_this_version) {
-      db_delete('quiz_long_answer_user_answers')
-        ->condition('question_nid', $this->node->nid)
-        ->condition('question_vid', $this->node->vid)
-        ->execute();
-      db_delete('quiz_long_answer_node_properties')
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
+      $delete_node->condition('vid', $this->node->vid);
     }
-    else {
-      db_delete('quiz_long_answer_node_properties')
-        ->condition('nid', $this->node->nid)
-        ->execute();
-      db_delete('quiz_long_answer_user_answers')
-        ->condition('question_nid', $this->node->nid)
-        ->execute();
-    }
+
+    $delete_node->execute();
     parent::delete($only_this_version);
   }
 
