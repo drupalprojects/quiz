@@ -43,6 +43,7 @@ files[] = includes/views/handlers/quiz_views_handler_relationship_quiz_nid.inc
 files[] = tests/QuizCreationTestCase.test
 files[] = tests/QuizFeedbackTestCase.test
 files[] = tests/QuizNavigationTestCase.test
+files[] = tests/QuizQuestionNumberingTestCase.test
 files[] = tests/QuizRandomTestCase.test
 files[] = tests/QuizResultTestCase.test
 files[] = tests/QuizTakingTestCase.test
