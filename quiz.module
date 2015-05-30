@@ -3235,16 +3235,6 @@ function quiz_get_quiz_options() {
 }
 
 /**
- * Tells whether a question node is being viewed inside/outside of quiz.
- *
- * @return
- *   Boolean.
- */
-function _quiz_is_taking_context() {
-  return arg(2) == 'take';
-}
-
-/**
  * Retrieves the quiz node from the menu router.
  *
  * @return

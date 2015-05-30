@@ -530,14 +530,8 @@ function _quiz_categorized_new_term_form(&$form, $form_state, $quiz) {
  * Validate the categorized form
  */
 function quiz_categorized_form_validate($form, &$form_state) {
-  if (_quiz_is_int(arg(1))) {
-    if (node_last_changed(arg(1)) > $form_state['values']['timestamp']) {
-      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
-    }
-  }
-  else {
-    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
-    return;
+  if ($form_state['build_info']['args'][0]->changed > $form_state['values']['timestamp']) {
+    form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
   }
   if (!empty($form_state['values']['term'])) {
     $tid = _quiz_get_id_from_string($form_state['values']['term']);
@@ -1049,14 +1043,8 @@ function _quiz_add_revision_checkbox(&$form, &$quiz) {
  * Validate that the supplied questions are real.
  */
 function quiz_questions_form_validate($form, $form_state) {
-  if (_quiz_is_int(arg(1))) {
-    if (node_last_changed(intval(arg(1))) > $form_state['values']['timestamp']) {
-      form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
-    }
-  }
-  else {
-    form_set_error('changed', t('A critical error has occured. Please report error code 28 on the quiz project page.'));
-    return;
+  if ($form_state['build_info']['args'][0]->changed > $form_state['values']['timestamp']) {
+    form_set_error('changed', t('This content has been modified by another user, changes cannot be saved.'));
   }
 
   $already_checked = array();
@@ -1187,7 +1175,7 @@ function _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_sc
  */
 function quiz_questions_form_submit($form, &$form_state) {
   // Load the quiz node
-  $quiz = node_load(intval(arg(1)));
+  $quiz = $form_state['build_info']['args'][0];
   // Update the refresh latest quizzes table so that we know what the users latest quizzes are
   if (variable_get('quiz_auto_revisioning', 1)) {
     $is_new_revision = quiz_has_been_answered($quiz);
