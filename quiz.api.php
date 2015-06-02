@@ -30,6 +30,10 @@
  * Implements hook_quiz_begin().
  *
  * Fired when a new quiz result is created.
+ *
+ * @deprecated
+ *
+ * Use hook_quiz_result_insert().
  */
 function hook_quiz_begin($quiz, $result_id) {
 
@@ -39,6 +43,10 @@ function hook_quiz_begin($quiz, $result_id) {
  * Implements hook_quiz_finished().
  *
  * Fired after the last question is submitted.
+ *
+ * @deprecated
+ *
+ * Use hook_quiz_result_update().
  */
 function hook_quiz_finished($quiz, $score, $data) {
 
@@ -48,6 +56,10 @@ function hook_quiz_finished($quiz, $score, $data) {
  * Implements hook_quiz_scored().
  *
  * Fired when a quiz is evaluated.
+ *
+ * @deprecated
+ *
+ * Use hook_quiz_result_update().
  */
 function hook_quiz_scored($quiz, $score, $result_id) {
 
