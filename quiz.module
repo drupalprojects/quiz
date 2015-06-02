@@ -2054,7 +2054,6 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
   // @TODO convert to entity/rules
   $result_id = $session_data['result_id'];
   // Load data about the quiz taker
-  $sql = 'SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = %d';
   $taker = db_query('SELECT u.uid, u.mail FROM {users} u JOIN {quiz_node_results} qnr ON u.uid = qnr.uid WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
 
   if (variable_get('quiz_results_to_quiz_author', 0)) {
