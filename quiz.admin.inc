@@ -306,7 +306,7 @@ function quiz_admin_node_form($form, &$form_state) {
   );
   // unset values we can't or won't let the user edit default values for
   unset(
-    $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['aid'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions'], $form['remember_global']
+    $form['#quiz_check_revision_access'], $form['title'], $form['body_field'], $form['taking']['addons'], $form['quiz_availability']['quiz_open'], $form['quiz_availability']['quiz_close'], $form['resultoptions'], $form['number_of_random_questions'], $form['remember_global']
   );
 
   $form['remember_settings']['#type'] = 'value';

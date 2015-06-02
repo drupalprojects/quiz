@@ -823,7 +823,6 @@ function quiz_delete($node) {
  */
 function _quiz_get_node_defaults() {
   return (object) array(
-      'aid' => NULL,
       'allow_change' => 1,
       'allow_change_blank' => 0,
       'allow_jumping' => 0,
@@ -3189,34 +3188,6 @@ function _quiz_get_answers($quiz, $result_id) {
  */
 function _quiz_get_quiz_name() {
   return t(variable_get('quiz_name', 'Quiz'));
-}
-
-/**
- * This function was copied from the triggers module as to prevent having to be
- * dependent on that module for the actions to work.  The trigger function is
- * called trigger_options().
- *
- * @param $type
- *   One of 'node', 'user', 'comment'.
- *
- * @return
- *   Array keyed by action ID.
- */
-function quiz_action_options($type = 'all') {
-  $options = array(t('Choose an action'));
-  foreach (actions_actions_map(actions_get_all_actions()) as $aid => $action) {
-    $options[$action['type']][$aid] = $action['label'];
-  }
-
-  if ($type == 'all') {
-    return $options;
-  }
-  else {
-    $options[$type][0] = t('Choose an action');
-    // Lets sort it to get the choose an action back first.
-    ksort($options[$type]);
-    return $options[$type];
-  }
 }
 
 /**

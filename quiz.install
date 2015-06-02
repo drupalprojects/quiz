@@ -69,12 +69,6 @@ function quiz_schema() {
         'default' => 0,
         'description' => 'User ID of the Quiz default settings object.',
       ),
-      'aid' => array(
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'description' => 'Action ID (deprecated).',
-      ),
       'number_of_random_questions' => array(
         'type' => 'int',
         'size' => 'small',
