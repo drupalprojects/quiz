@@ -3423,16 +3423,6 @@ function _quiz_maintain_results($quiz, $result_id) {
 }
 
 /**
- * Delete quiz results by ID.
- *
- * @param $result_ids
- *   Result ids for the results to be deleted.
- */
-function quiz_delete_results($result_ids) {
-  entity_delete_multiple('quiz_result', $result_ids);
-}
-
-/**
  * Returns the users default settings.
  *
  * @param $node
