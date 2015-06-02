@@ -401,26 +401,6 @@ function quiz_question_quiz_question_score($quiz, $question_nid, $question_vid =
 }
 
 /**
- * Delete a question response by result and question.
- *
- * @param int $result_id
- *   Result ID
- * @param int $question_nid
- *   Question node ID
- * @param int $question_vid
- *   Question version ID
- */
-function quiz_question_delete_result($result_id, $question_nid, $question_vid) {
-  $response = _quiz_question_response_get_instance($result_id, NULL, NULL, $question_nid, $question_vid);
-  if ($response) {
-    $response->delete();
-  }
-  else {
-    drupal_set_message(t('Unable to delete result. A constructor could not be found for the question-type'), 'error');
-  }
-}
-
-/**
  * Get the configuration form for all enabled question types.
  */
 function quiz_question_config($form, $context) {
