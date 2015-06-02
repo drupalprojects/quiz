@@ -90,6 +90,7 @@ function quiz_report_form($form, $form_state, $questions, $result_id) {
       $form[] = $form_to_add;
     }
   }
+
   $form['#tree'] = TRUE;
   $form['navigation']['#type'] = 'actions';
   if ($show_submit) {
@@ -100,10 +101,12 @@ function quiz_report_form($form, $form_state, $questions, $result_id) {
     );
   }
 
-  if (arg(4) == 'feedback') {
-    // @todo figure something better than args.
-    $quiz = node_load(arg(1));
-    if (empty($_SESSION['quiz'][$quiz->nid])) {
+
+  $quiz_result = quiz_result_load($result_id);
+
+  if (count($questions) != count($quiz_result->layout)) {
+    $form['#quiz_result'] = $quiz_result;
+    if (empty($_SESSION['quiz'][$quiz_result->nid])) {
       // Quiz is done.
       $form['navigation']['finish'] = array(
         '#type' => 'submit',
