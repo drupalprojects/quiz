@@ -1862,14 +1862,6 @@ function quiz_take_question($quiz, $question_number) {
   ));
   $content['progress']['#weight'] = -50;
 
-  /**
-   * @todo: wat do?
-    if (count($_SESSION['quiz'][$quiz->nid]['quiz_questions']) + count($_SESSION['quiz'][$quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
-    drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
-    unset($_SESSION['quiz'][$quiz->nid]);
-    drupal_goto('node/' . $quiz->nid . '/take');
-    }
-   */
   if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0) && $quiz->time_limit) {
     jquery_countdown_add('.countdown', array('until' => ($quiz_result->time_start + $quiz->time_limit - REQUEST_TIME), 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
     // These are the two button op values that are accepted for answering

@@ -127,23 +127,6 @@ class QuizDirectionsResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#score()
    */
   public function score() {
-    // First, due to popular demand, if the directions are at the beginning of
-    // the quiz, we restart the timer after the user has read the question.
-    $quiz_nid = arg(1);
-    $quiz_key = 'quiz_' . $quiz_nid;
-    if (isset($_SESSION[$quiz_key]['previous_quiz_questions']) && count($_SESSION[$quiz_key]['previous_quiz_questions']) === 1) {
-      // reset the timer.
-      $sql = 'UPDATE {quiz_node_results} SET time_start=%d WHERE result_id = %d';
-      // TODO Please review the conversion of this statement to the D7 database API syntax.
-      /* db_query($sql, REQUEST_TIME, $this->result_id) */
-      db_update('quiz_node_results')
-        ->fields(array(
-          'time_start' => REQUEST_TIME,
-        ))
-        ->condition('result_id', $this->result_id)
-        ->execute();
-    }
-
     // Set the score
     $this->score = 0;
     return 0;
