@@ -285,4 +285,39 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertText('You have already taken this Quiz 2 times. You may not take it again.');
   }
 
+  /**
+   * Test that a user can answer a skipped question.
+   */
+  function testAnswerSkipped() {
+    $this->drupalLogin($this->admin);
+    $quiz_node = $this->drupalCreateQuiz(array('allow_skipping' => 1, 'allow_jumping' => 1));
+
+    // 2 questions.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    $this->drupalLogin($this->user);
+
+    // Leave a question blank.
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      ), t('Leave blank'));
+
+    // Fill out the blank question.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid][answer]" => 1,
+      ), t('Finish'));
+
+    $this->clickLink(t('My results'));
+
+    $this->assertText("100");
+  }
+
 }
