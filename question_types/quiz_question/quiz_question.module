@@ -433,7 +433,7 @@ function quiz_question_config($form, $context) {
   // Go through all question types and merge their config forms
   foreach ($q_types as $type => $values) {
     $function = $type . '_config';
-    if ($admin_form = $function()) {
+    if (function_exists($function) && $admin_form = $function()) {
       $form[$type] = $admin_form;
       $form[$type]['#type'] = 'fieldset';
       $form[$type]['#title'] = $values['name'];
