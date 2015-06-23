@@ -1048,7 +1048,7 @@ function quiz_questions_form_validate($form, $form_state) {
   }
 
   $already_checked = array();
-  $weight_map = $form_state['values']['weights'];
+  $weight_map = isset($form_state['values']['weights']) ? $form_state['values']['weights'] : array();
 
   // Make sure the number of random questions is a positive number
   if (isset($form_state['values']['num_random_questions']) && !_quiz_is_int($form_state['values']['num_random_questions'], 0)) {
