@@ -995,4 +995,30 @@ class MultichoiceResponse extends QuizQuestionResponse {
     $alternatives = $newAlternatives;
   }
 
+  /**
+   * Get answers for a question in a result.
+   *
+   * This static method assists in building views for the mass export of
+   * question answers.
+   *
+   * @see views_handler_field_prerender_list for the expected return value.
+   * @todo in the future, we should be able to do an
+   * entity_load('quiz_result_answer', $result_answer_ids)
+   */
+  public static function viewsGetAnswers(array $result_answer_ids = array()) {
+    $items = array();
+
+    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
+      INNER JOIN {quiz_multichoice_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
+      INNER JOIN {quiz_multichoice_user_answer_multi} uam ON (uam.user_answer_id = qmua.id)
+      INNER JOIN {quiz_multichoice_answers} ma ON (ma.id = uam.answer_id)
+      WHERE qnra.result_answer_id IN (:result_answer_id)";
+    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+
+    while ($row = $result->fetch()) {
+      $items[$row->result_id][] = array('answer' => $row->answer);
+    }
+    return $items;
+  }
+
 }

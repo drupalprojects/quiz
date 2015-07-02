@@ -290,4 +290,27 @@ class TrueFalseResponse extends QuizQuestionResponse {
     return $data;
   }
 
+
+  /**
+   * Get answers for a question in a result.
+   *
+   * This static method assists in building views for the mass export of
+   * question answers.
+   *
+   * @see views_handler_field_prerender_list for the expected return value.
+   */
+  public static function viewsGetAnswers(array $result_answer_ids = array()) {
+    $items = array();
+
+    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
+      INNER JOIN {quiz_truefalse_user_answers} tfua on (qnra.result_answer_id = tfua.result_answer_id)
+      WHERE qnra.result_answer_id in (:result_answer_id)";
+    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+
+    while ($row = $result->fetch()) {
+      $items[$row->result_id][] = array('answer' => $row->answer ? t('True') : t('False'));
+    }
+    return $items;
+  }
+
 }

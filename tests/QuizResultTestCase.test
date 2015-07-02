@@ -12,6 +12,7 @@ class QuizResultTestCase extends QuizTestCase {
 
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
+    $modules[] = 'multichoice';
     parent::setUp($modules);
   }
 
@@ -494,6 +495,63 @@ class QuizResultTestCase extends QuizTestCase {
     $quiz_result = _quiz_active_result_id($this->user->uid, $quizNodeA->nid, $quizNodeA->vid);
     // Check the result exists now.
     $this->assertTrue($quiz_result, 'Quiz result exists.');
+  }
+
+  /**
+   * Test our wildcard answer exporter.
+   */
+  function testQuizResultAnswerExport() {
+    $settings = array(
+      'title' => 'MCQ 1 Title',
+      'type' => 'multichoice',
+      'choice_multi' => 0,
+      'choice_random' => 0,
+      'choice_boolean' => 0,
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'MCQ 1 body text'))),
+    );
+
+    $settings['alternatives'][0]['answer']['value'] = 'This is the A answer';
+    $settings['alternatives'][0]['answer']['format'] = 'filtered_html';
+    $settings['alternatives'][0]['score_if_chosen'] = 1;
+    $settings['alternatives'][0]['feedback_if_chosen']['format'] = 'filtered_html';
+    $settings['alternatives'][0]['feedback_if_not_chosen']['format'] = 'filtered_html';
+
+    $settings['alternatives'][1]['answer']['value'] = 'This is the B answer';
+    $settings['alternatives'][1]['answer']['format'] = 'filtered_html';
+    $settings['alternatives'][1]['score_if_chosen'] = 0;
+    $settings['alternatives'][1]['feedback_if_chosen']['format'] = 'filtered_html';
+    $settings['alternatives'][1]['feedback_if_not_chosen']['format'] = 'filtered_html';
+
+
+    $question_node = $this->drupalCreateNode($settings);
+    // Reload to get the answer IDs.
+    $question_node = node_load($question_node->nid);
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer][user_answer]" => $question_node->alternatives[0]['id'],
+      ), t('Finish'));
+
+    // Make a modification to the default view.
+    $view = views_get_view('quiz_results');
+    $view->set_arguments(array($quiz_node->nid));
+    $view->set_display('page_1');
+    $fields = $view->display_handler->get_option('fields');
+    $newfield = array();
+    $newfield['id'] = 'answers';
+    $newfield['table'] = 'quiz_node_results';
+    $newfield['field'] = 'answers';
+    $fields['answers'] = $newfield;
+    $view->display_handler->set_option('fields', $fields);
+    $view->save();
+
+    // Verify the user's answer appears on our modified report.
+    $this->drupalGet("node/$quiz_node->nid/quiz/results");
+    $this->assertText('1. MCQ 1 Title');
+    $this->assertText('This is the A answer');
+    $this->assertNoText('This is the B answer');
   }
 
 }

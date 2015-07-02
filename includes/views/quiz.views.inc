@@ -87,4 +87,60 @@ function quiz_views_data_alter(&$data) {
       'handler' => 'quiz_views_handler_filter_quiz_question',
     ),
   );
+
+  $data['quiz_node_results']['answers'] = array(
+    'title' => t('Answers'),
+    'help' => t('When rendered, this field will be replaced by all the answers.'),
+    'field' => array(
+      'title' => 'Answers',
+      'handler' => 'views_handler_field_custom',
+    ),
+  );
+
+  $data['quiz_node_results']['answer'] = array(
+    'title' => t('Answer'),
+    'help' => t('When rendered, this field will be replaced by a requested answer.'),
+    'field' => array(
+      'title' => 'Answer',
+      'handler' => 'quiz_views_handler_field_quiz_question_result_answer',
+    ),
+  );
+}
+
+/**
+ * Implements hook_views_pre_view().
+ *
+ * Replace the static field with dynamic fields.
+ */
+function quiz_views_pre_view(&$view) {
+  if ($view->name == 'quiz_results') {
+    if ($view->display_handler->options['fields']) {
+      $fields = & $view->display_handler->options['fields'];
+    }
+    else {
+      $fields = & $view->display_handler->default_display->options['fields'];
+    }
+
+    $quiz = node_load($view->args[0]);
+    foreach ($fields as $field_name => &$field) {
+      if ($field['id'] == 'answers') {
+        $i = 0;
+        foreach (quiz_get_questions($quiz->nid, $quiz->vid) as $question) {
+          $quizQuestion = _quiz_question_get_instance($question);
+          if ($quizQuestion->isGraded()) {
+            $i++;
+            $newfield = array();
+            $newfield['id'] = 'answer';
+            $newfield['table'] = 'quiz_node_results';
+            $newfield['field'] = 'answer';
+            $newfield['label'] = t('@num. @question', array('@num' => $i, '@question' => $question->title));
+            $newfield['question_nid'] = $question->nid;
+            $newfield['question_vid'] = $question->vid;
+            $fields['answer_' . $question->nid] = $newfield;
+          }
+        }
+        unset($fields['answers']);
+      }
+    }
+  }
 }

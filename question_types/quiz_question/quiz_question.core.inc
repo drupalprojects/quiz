@@ -462,7 +462,6 @@ abstract class QuizQuestion {
     return TRUE;
   }
 
-
   /**
    * Is this "question" an actual question? For example, a Quiz Page is not a
    * question, neither is a "quiz directions".
@@ -476,6 +475,20 @@ abstract class QuizQuestion {
     return TRUE;
   }
 
+  /**
+   * If this question type has answers to report on, this is necessary to do it
+   * from within Views.
+   *
+   * Question types should return an array expected by
+   * views_handler_field_prerender_list().
+   *
+   * @param type $result_ids
+   *   An array of result IDs.
+   * @param type $nid
+   *   The question node ID.
+   * @param type $vid
+   *   The question node revision ID.
+   */
 }
 
 /**
@@ -893,6 +906,37 @@ abstract class QuizQuestionResponse {
    */
   public function setResultAnswerId($result_answer_id) {
     $this->result_answer_id = $result_answer_id;
+  }
+
+  /**
+   * Get answers for a question in a result.
+   *
+   * This static method assists in building views for the mass export of
+   * question answers.
+   *
+   * It is not as easy as instantiating all the question responses and returning
+   * the answer. To do this in views scalably we have to gather the data
+   * carefully.
+   *
+   * This base method provides a very poor way of gathering the data.
+   *
+   * @see views_handler_field_prerender_list for the expected return value.
+   *
+   * @see MultichoiceResponse::viewsGetAnswers for a correct approach
+   * @see TrueFalseResponse::viewsGetAnswers for a correct approach
+   * @todo in the future, we should be able to do an
+   * entity_load('quiz_result_answer', $result_answer_ids)
+   */
+  public static function viewsGetAnswers(array $result_answer_ids = array()) {
+    $items = array();
+    foreach ($result_answer_ids as $result_answer_id) {
+      $ra = entity_load_single('quiz_result_answer', $result_answer_id);
+      $question = node_load($ra->question_nid, $ra->question_vid);
+      /** var $ra_i QuizQuestionResponse */
+      $ra_i = _quiz_question_response_get_instance($ra->result_id, $question);
+      $items[$ra->result_id][] = array('answer' => $ra_i->getResponse());
+    }
+    return $items;
   }
 
 }

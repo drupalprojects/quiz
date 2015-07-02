@@ -167,6 +167,63 @@ $handler->display->display_options['menu']['context_only_inline'] = 0;
 $handler->display->display_options['tab_options']['type'] = 'tab';
 $handler->display->display_options['tab_options']['title'] = 'Quiz';
 $handler->display->display_options['tab_options']['weight'] = '0';
+
+/* Display: Data export */
+$handler = $view->new_display('views_data_export', 'Data export', 'views_data_export_1');
+$handler->display->display_options['pager']['type'] = 'none';
+$handler->display->display_options['pager']['options']['offset'] = '0';
+$handler->display->display_options['style_plugin'] = 'views_data_export_csv';
+$handler->display->display_options['defaults']['fields'] = FALSE;
+/* Field: User: Name */
+$handler->display->display_options['fields']['name']['id'] = 'name';
+$handler->display->display_options['fields']['name']['table'] = 'users';
+$handler->display->display_options['fields']['name']['field'] = 'name';
+$handler->display->display_options['fields']['name']['relationship'] = 'uid';
+$handler->display->display_options['fields']['name']['label'] = 'Username';
+$handler->display->display_options['fields']['name']['link_to_user'] = FALSE;
+/* Field: Quiz result: Date started */
+$handler->display->display_options['fields']['time_start']['id'] = 'time_start';
+$handler->display->display_options['fields']['time_start']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_start']['field'] = 'time_start';
+$handler->display->display_options['fields']['time_start']['date_format'] = 'short';
+/* Field: Quiz result: Date finished */
+$handler->display->display_options['fields']['time_end']['id'] = 'time_end';
+$handler->display->display_options['fields']['time_end']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['time_end']['field'] = 'time_end';
+$handler->display->display_options['fields']['time_end']['date_format'] = 'short';
+/* Field: Quiz result: Score */
+$handler->display->display_options['fields']['score']['id'] = 'score';
+$handler->display->display_options['fields']['score']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['score']['field'] = 'score';
+/* Field: Quiz result: Evaluated */
+$handler->display->display_options['fields']['is_evaluated']['id'] = 'is_evaluated';
+$handler->display->display_options['fields']['is_evaluated']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['is_evaluated']['field'] = 'is_evaluated';
+$handler->display->display_options['fields']['is_evaluated']['not'] = 0;
+/* Field: Quiz result: Nid */
+$handler->display->display_options['fields']['nid']['id'] = 'nid';
+$handler->display->display_options['fields']['nid']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['nid']['field'] = 'nid';
+$handler->display->display_options['fields']['nid']['exclude'] = TRUE;
+$handler->display->display_options['fields']['nid']['separator'] = '';
+/* Field: Quiz result: Quiz result ID */
+$handler->display->display_options['fields']['result_id']['id'] = 'result_id';
+$handler->display->display_options['fields']['result_id']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['result_id']['field'] = 'result_id';
+$handler->display->display_options['fields']['result_id']['exclude'] = TRUE;
+$handler->display->display_options['fields']['result_id']['separator'] = '';
+/* Field: Quiz result: Answers */
+$handler->display->display_options['fields']['answers']['id'] = 'answers';
+$handler->display->display_options['fields']['answers']['table'] = 'quiz_node_results';
+$handler->display->display_options['fields']['answers']['field'] = 'answers';
+$handler->display->display_options['path'] = 'node/%/quiz/results/export';
+$handler->display->display_options['displays'] = array(
+  'page' => 'page',
+  'default' => 0,
+);
+$handler->display->display_options['use_batch'] = 'batch';
+$handler->display->display_options['segment_size'] = '100';
+
 $translatables['quiz_results'] = array(
   t('Master'),
   t('Quiz results'),
