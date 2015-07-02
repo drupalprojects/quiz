@@ -13,7 +13,7 @@ function quiz_quiztake_page_manager_tasks() {
     'title' => t('Take @quiz', array('@quiz' => QUIZ_NAME)),
     'admin title' => t('The take page for @quiz.', array('@quiz' => QUIZ_NAME)),
     'admin description' => t('When enabled, this overrides the default view at node/%node/take'),
-    'admin path' => 'node/%node/take',
+    'admin path' => 'node/%quiz_menu/take/%question_number',
 
     // Menu hooks so that we can alter the node/%node menu entry to point to us.
     'hook menu alter' => 'quiz_quiztake_menu_alter',
@@ -41,17 +41,17 @@ function quiz_quiztake_menu_alter(&$items, $task) {
     return;
   }
 
-  $callback = $items['node/%node/take']['page callback'];
+  $callback = $items['node/%quiz_menu/take/%question_number']['page callback'];
   // Override the node edit handler for our purpose.
-  if ($callback == 'quiz_take' || variable_get('page_manager_override_anyway', FALSE)) {
-    $items['node/%node/take']['page callback'] = 'quiz_quiztake';
-    $items['node/%node/take']['file path'] = $task['path'];
-    $items['node/%node/take']['file'] = $task['file'];
+  if ($callback == 'quiz_take_question' || variable_get('page_manager_override_anyway', FALSE)) {
+    $items['node/%quiz_menu/take/%question_number']['page callback'] = 'quiz_quiztake';
+    $items['node/%quiz_menu/take/%question_number']['file path'] = $task['path'];
+    $items['node/%quiz_menu/take/%question_number']['file'] = $task['file'];
   }
   else {
     //variable_set('quiz_quiztake_disabled', TRUE);
     if (!empty($GLOBALS['page_manager_enabling_quiz'])) {
-      drupal_set_message(t('Page manager module is unable to enable Qui take Node because some other module already has overridden with %callback.', array('%callback' => $callback)), 'warning');
+      drupal_set_message(t('Page manager module is unable to enable Quiz take Node because some other module already has overridden with %callback.', array('%callback' => $callback)), 'warning');
     }
     return;
   }

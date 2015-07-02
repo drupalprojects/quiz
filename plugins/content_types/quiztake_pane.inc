@@ -3,14 +3,14 @@
 /**
  * This plugin array is more or less self documenting
  */
+
 $plugin = array(
   // the title in the admin
-  'title' => t('@quiz take pane', array('@quiz' => QUIZ_NAME)),
+  'title' => t('@quiz Pane: Take', array('@quiz' => QUIZ_NAME)),
   'single' => TRUE,
-  'render callback' => 'quiz_take_pane_content_type_render',
+  'render callback' => 'quiz_quiztake_pane_content_type_render',
   'category' => array(t('Quiz'), -9),
-//  'edit form' => 'quiz_take_pane_content_type_edit_form',
-  'description' => t('@quiz take pane description.', array('@quiz' => QUIZ_NAME)),
+  'description' => t('The quiz on the referenced node'),
   'required context' => new ctools_context_required(t('Node'), 'node'),
 );
 
@@ -18,7 +18,7 @@ $plugin = array(
  * Run-time rendering of the body of the block (content type)
  * See ctools_plugin_examples for more advanced info
  */
-function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $context = NULL) {
+function quiz_quiztake_pane_content_type_render($subtype, $conf, $panel_args, $context = NULL) {
   if (!empty($context) && empty($context->data)) {
     return;
   }
@@ -39,13 +39,21 @@ function quiz_take_pane_content_type_render($subtype, $conf, $panel_args, $conte
   $block->module = 'node';
   $block->delta = $node->nid;
 
-  //drupal_alter('quiz_take', $node);
   if (isset($node->rendered_content)) {
     $block->content = $node->rendered_content;
   }
   else {
-    $block->content = quiz_take_quiz($node);
-  }
+    $quiz = quiz_take_quiz($node);
+    $number = $_SESSION['quiz'][$node->nid]['current'];
+    $block->content = quiz_take_question($quiz, $number);
 
+  }
   return $block;
+}
+/**
+ * Returns the administrative title for a type.
+ */
+function quiz_quiztake_pane_content_type_admin_title($subtype, $conf, $contexts) {
+  $identifier = $contexts->identifier;
+  return t('@quiz Pane: Take - ' . $identifier, array('@quiz' => QUIZ_NAME));
 }
