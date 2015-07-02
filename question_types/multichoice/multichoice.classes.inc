@@ -436,7 +436,7 @@ class MultichoiceQuestion extends QuizQuestion {
       $element['user_answer']['#title'] = t('Choose all that apply');
       if (isset($response)) {
         if (is_array($response->getResponse())) {
-          $element['#default_value'] = $response->getResponse();
+          $element['user_answer']['#default_value'] = $response->getResponse();
         }
       }
     }

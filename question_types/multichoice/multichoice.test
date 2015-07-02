@@ -133,6 +133,46 @@ class MultichoiceTestCase extends QuizQuestionTestCase {
   }
 
   /**
+   * Test restoring a multiple choice answer.
+   */
+  function testAnswerMultiRestore() {
+    // Checkboxes.
+    $this->drupalLogin($this->admin);
+    $question_node = $this->testCreateQuizQuestion(array('choice_multi' => 1));
+    $question_node2 = $this->testCreateQuizQuestion(array('choice_multi' => 1));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer][user_answer][1]" => 1,
+      ), t('Next'));
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->assertFieldChecked('edit-question-1-answer-user-answer-1');
+  }
+
+  /**
+   * Test restoring a single choice answer.
+   */
+  function testAnswerSingleRestore() {
+    // Radio buttons.
+    $this->drupalLogin($this->admin);
+    $question_node = $this->testCreateQuizQuestion(array('choice_multi' => 0));
+    $question_node2 = $this->testCreateQuizQuestion(array('choice_multi' => 0));
+    $quiz_node = $this->linkQuestionToQuiz($question_node);
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node->nid][answer][user_answer]" => 1,
+      ), t('Next'));
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->assertFieldChecked('edit-question-1-answer-user-answer-1');
+  }
+
+  /**
    * Test random order of choices.
    * @todo I don't know how we would test random questions.
    */
