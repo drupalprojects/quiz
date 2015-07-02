@@ -1058,3 +1058,19 @@ function quiz_update_7516() {
     'description' => 'The display number of the question in the result.',
   ));
 }
+
+/**
+ * We removed the 'aid' field from schema definition, but left the data for
+ * possible migration. Adding a new Quiz after this results in an issue because
+ * we also removed it from defaults. If the field exists, set the default to
+ * NULL.
+ */
+function quiz_update_7517() {
+  if (db_field_exists('quiz_node_properties', 'aid')) {
+    db_change_field('quiz_node_properties', 'aid', 'aid', array(
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+    ));
+  }
+}
