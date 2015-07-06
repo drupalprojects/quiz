@@ -457,6 +457,12 @@ function quiz_schema() {
         'default' => 0,
         'description' => 'Deprecated field, no longer used.',
       ),
+      'attempt' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 1,
+        'description' => 'The number of this attempt.',
+      ),
     ),
     'primary key' => array('result_id'),
     'indexes' => array(
@@ -1072,5 +1078,30 @@ function quiz_update_7517() {
       'length' => 255,
       'not null' => FALSE,
     ));
+  }
+}
+
+/**
+ * Number all the existing attempts.
+ */
+function quiz_update_7518() {
+  db_add_field('quiz_node_results', 'attempt', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'default' => 1,
+    'description' => 'The number of this attempt.',
+  ));
+
+  $sql = "SELECT * FROM {quiz_node_results} qnr ORDER BY nid,uid,time_start";
+  $result = db_query($sql);
+  $cur = '';
+  while ($row = $result->fetch()) {
+    $key = "{$row->nid}_{$row->uid}";
+    if ($cur != $key) {
+      $attempt = 1;
+      $cur = $key;
+    }
+    db_query('UPDATE {quiz_node_results} SET attempt = :attempt WHERE result_id = :result_id', array(':attempt' => $attempt, ':result_id' => $row->result_id));
+    $attempt++;
   }
 }
