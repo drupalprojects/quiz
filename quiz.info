@@ -5,6 +5,7 @@ core = 7.x
 dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = filter
+dependencies[] = rules
 dependencies[] = views
 dependencies[] = views_bulk_operations
 test_dependencies[] = taxonomy
