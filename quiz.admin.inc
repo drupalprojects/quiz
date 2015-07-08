@@ -119,9 +119,9 @@ function quiz_admin_settings($form, &$form_state) {
   $form['quiz_global_settings']['quiz_admin_review_options']['#title'] = t('Administrator review options');
   $form['quiz_global_settings']['quiz_admin_review_options']['#type'] = 'fieldset';
   $form['quiz_global_settings']['quiz_admin_review_options']['#description'] = t('Control what feedback types quiz administrators will see when viewing results for other users.');
-  foreach (array('question' => t('After the question'), 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
+  foreach (quiz_get_feedback_times() as $key => $when) {
     $form['quiz_global_settings']['quiz_admin_review_options']["quiz_admin_review_options_$key"] = array(
-      '#title' => $when,
+      '#title' => $when['name'],
       '#type' => 'checkboxes',
       '#options' => $review_options,
       '#default_value' => variable_get("quiz_admin_review_options_$key", array()),
@@ -1524,4 +1524,17 @@ function theme_quiz_categorized_form($variables) {
     }};}(jQuery));"
     , array('type' => 'inline', 'group' => JS_DEFAULT));
   return $output;
+}
+
+/**
+ * Admin page for feedback settings.
+ */
+function quiz_feedback_page() {
+  $rows = array();
+  $header = array(t('Time'), t('Description'), t('Conditions'));
+  foreach (quiz_get_feedback_times() as $key => $time) {
+    $conditions = l('Conditions', 'admin/quiz/feedback/manage/quiz_feedback_' . $key);
+    $rows[] = array($time['name'], $time['description'], $conditions);
+  }
+  return theme('table', array('caption' => t('Quiz feedback conditions'), 'rows' => $rows, 'header' => $header));
 }

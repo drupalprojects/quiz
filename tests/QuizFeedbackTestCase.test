@@ -12,6 +12,7 @@ class QuizFeedbackTestCase extends QuizTestCase {
 
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
+    $modules[] = 'quiz_test';
     parent::setUp($modules);
   }
 
@@ -195,6 +196,39 @@ class QuizFeedbackTestCase extends QuizTestCase {
 
     $this->assertNoText('TF 1 body text');
     $this->assertText('TF 1 summary text');
+  }
+
+  /**
+   * Test Quiz question body feedback.
+   */
+  public function testFeedbackTimes() {
+    $this->drupalLogin($this->admin);
+
+    // Feedback but, only after second attempt (rule).
+    $quiz_node = $this->drupalCreateQuiz(
+      array(
+        'review_options' => array('after2attempts' => array('solution' => 'solution')),
+      )
+    );
+
+    // Set up a Quiz with one question that has a body and a summary.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+
+    // Test no feedback.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertNoText('Correct answer');
+
+    // Take again
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('Correct answer');
   }
 
 }

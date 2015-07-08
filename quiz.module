@@ -486,6 +486,20 @@ function quiz_menu() {
     );
   }
 
+  $items['admin/quiz/feedback'] = array(
+    'title' => 'Quiz feedback',
+    'description' => 'Configure Quiz feedback behaviors',
+    'page callback' => 'quiz_feedback_page',
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'quiz.admin.inc',
+  );
+
+  if (module_exists('rules')) {
+    $items += rules_ui()->config_menu('admin/quiz/feedback');
+  }
+
+
   return $items;
 }
 
@@ -1137,6 +1151,7 @@ function quiz_form(&$node, &$form_state) {
     . '<br/>' . t('<strong>Categorized random questions</strong> - specific number of questions are drawn from each specified taxonomy term'),
     '#default_value' => $node->randomization,
   );
+
   $form['taking']['review_options'] = array(
     '#type' => 'fieldset',
     '#title' => t('Review options'),
@@ -1148,14 +1163,15 @@ function quiz_form(&$node, &$form_state) {
 
   $review_options = quiz_get_feedback_options();
 
-  foreach (array('question' => t('After the question'), 'end' => t('After the @quiz', array('@quiz' => QUIZ_NAME))) as $key => $when) {
+  foreach (quiz_get_feedback_times() as $key => $when) {
     $form['taking']['review_options'][$key] = array(
-      '#title' => $when,
+      '#title' => $when['name'],
       '#type' => 'checkboxes',
       '#options' => $review_options,
       '#default_value' => isset($node->review_options[$key]) ? $node->review_options[$key] : array(),
     );
   }
+
   $options = array(t('Unlimited'));
   for ($i = 1; $i < 10; $i++) {
     $options[$i] = $i;
@@ -1343,17 +1359,17 @@ function quiz_form(&$node, &$form_state) {
   $options = !empty($node->resultoptions) ? $node->resultoptions : array();
   $num_options = max(count($options), variable_get('quiz_max_result_options', 5));
 
-  if ($num_options > 0) {
-    $form['resultoptions'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Result feedback'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-      '#tree' => TRUE,
-      '#attributes' => array('id' => 'resultoptions-fieldset'),
-      '#group' => 'additional_settings',
-    );
+  $form['resultoptions'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Result feedback'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#tree' => TRUE,
+    '#attributes' => array('id' => 'resultoptions-fieldset'),
+    '#group' => 'additional_settings',
+  );
 
+  if ($num_options > 0) {
     for ($i = 0; $i < $num_options; $i++) {
       $option = (count($options) > 0) ? array_shift($options) : NULL; // grab each option in the array
       $form['resultoptions'][$i] = array(
@@ -3797,37 +3813,65 @@ function question_number_to_arg() {
  * technically it is the end of the quiz, and the "end of quiz" review settings
  * apply. So we check to make sure that we are in question taking and the
  * feedback is viewed within 5 seconds of completing the question/quiz.
+ *
+ * @param string $option
+ *   An option key
+ * @param QuizResult $quiz_result
+ *   A Quiz result.
+ *
+ * @return bool
+ *   TRUE if the quiz taker can view this quiz option at this time, FALSE
+ *   otherwise.
  */
-function quiz_feedback_can_review($option, $quiz_result) {
+function quiz_feedback_can_review($option, QuizResult $quiz_result) {
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
 
   $admin = node_access('update', $quiz);
 
   if ($admin) {
+    // Admin user uses the global feedback options.
     $review_options['end'] = variable_get('quiz_admin_review_options_end');
     $review_options['question'] = variable_get('quiz_admin_review_options_question');
   }
   else {
+    // Use this Quiz's feedback options.
     $review_options = $quiz->review_options;
   }
 
-  // Check what context the result is in.
-  if ($quiz_result->time_end && arg(2) != 'take') {
-    // Quiz is over. Pull from the "at quiz end" settings.
-    return !empty($review_options['end'][$option]);
+  $all_shows = array();
+  foreach ($review_options as $time_key => $shows) {
+    // Loop through all the feedback times and check conditions.
+    if ($set = rules_config_load("quiz_feedback_{$time_key}")) {
+      if (!$set->execute($quiz_result)) {
+        // The rule did not pass. Remove the quiz feedback time from eligbility.
+        unset($review_options[$time_key]);
+      }
+      else {
+        // Rules pass so now do something.
+        if ($time_key == 'end') {
+          if ($quiz_result->time_end && arg(2) != 'take') {
+            $all_shows += array_filter($shows);
+          }
+        }
+        else if ($time_key == 'question') {
+          if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
+            $all_shows += array_filter($shows);
+          }
+        }
+        else {
+          $all_shows += array_filter($shows);
+        }
+      }
+    }
   }
-
-  if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
-    // Quiz ongoing. Pull from the "after question" settings.
-    return !empty($review_options['question'][$option]);
-  }
+  return !empty($all_shows[$option]);
 }
 
 /**
  * Get the feedback options for Quizzes.
  */
 function quiz_get_feedback_options() {
-  $feedback_options = array();
+  $feedback_options = module_invoke_all('quiz_feedback_options');
 
   $entity_info = entity_get_info('node');
   foreach ($entity_info['view modes'] as $view_mode => $info) {
@@ -3850,6 +3894,28 @@ function quiz_get_feedback_options() {
   drupal_alter('quiz_feedback_options', $feedback_options);
 
   return $feedback_options;
+}
+
+/**
+ * Get the feedback options for Quizzes.
+ */
+function quiz_get_feedback_times() {
+  $feedback_times = array(
+    'question' => array(
+      'name' => t('After the question'),
+      'description' => t('Show feedback after the question'),
+    ),
+    'end' => array(
+      'name' => t('After the quiz'),
+      'description' => t('Show feedback after the quiz'),
+    ),
+  );
+
+  $feedback_times += module_invoke_all('quiz_feedback_times');
+
+  drupal_alter('quiz_feedback_times', $feedback_times);
+
+  return $feedback_times;
 }
 
 /**
