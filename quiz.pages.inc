@@ -23,7 +23,7 @@ function quiz_user_results($result_id) {
 
     $questions = _quiz_get_answers($quiz, $result_id);
     $score = quiz_calculate_score($quiz, $result_id);
-    $summary = _quiz_get_summary_text($quiz, $score);
+    $summary = _quiz_get_summary_text($quiz_result, $score);
     $data = array(
       'quiz' => $quiz,
       'questions' => $questions,

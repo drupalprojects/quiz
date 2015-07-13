@@ -1337,6 +1337,14 @@ function quiz_form(&$node, &$form_state) {
     '#format' => isset($node->summary_default_format) && !empty($node->summary_default_format) ? $node->summary_default_format : NULL,
   );
 
+  if (module_exists('token')) {
+    // Embed token help.
+    $form['summaryoptions']['tokens'] = array(
+      '#title' => 'Tokens',
+      '#markup' => theme('token_tree', array('token_types' => array('global', 'node', 'user', 'quiz_result'))),
+    );
+  }
+
   // Number of random questions, max score and tid for random questions are set on
   // the manage questions tab. We repeat them here so that they're not removed
   // if the quiz is being updated.
@@ -1414,6 +1422,13 @@ function quiz_form(&$node, &$form_state) {
           '#value' => isset($option['option_id']) ? $option['option_id'] : '',
         );
       }
+    }
+    if (module_exists('token')) {
+      // Embed token help.
+      $form['resultoptions']['tokens'] = array(
+        '#title' => 'Tokens',
+        '#markup' => theme('token_tree', array('token_types' => array('global', 'node', 'user', 'quiz_result'))),
+      );
     }
   }
 
@@ -2832,54 +2847,37 @@ function _quiz_update_resultoptions($node) {
  * @return
  *   Filtered summary text or null if we are not displaying any summary.
  */
-function _quiz_get_summary_text($quiz, $score) {
+function _quiz_get_summary_text($quiz_result, $score) {
+  $quiz = node_load($quiz_result->nid);
+  $account = user_load($quiz_result->uid);
+  $token_types = array(
+    'global' => NULL,
+    'node' => $quiz,
+    'user' => $account,
+    'quiz_result' => $quiz_result,
+  );
   $summary = array();
-  $admin = (arg(0) == 'admin');
-  $quiz_format = (isset($quiz->body[LANGUAGE_NONE][0]['format'])) ? $quiz->body[LANGUAGE_NONE][0]['format'] : NULL;
-  if (!$admin) {
-    if (!empty($score['result_option'])) {
-      // Unscored quiz, return the proper result option.
-      $summary['result'] = check_markup($score['result_option'], $quiz_format);
-    }
-    else {
-      $result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score']);
-      $summary['result'] = is_object($result_option) ? check_markup($result_option->option_summary, $result_option->option_summary_format) : '';
-    }
+
+  if ($result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score'])) {
+    // Range option.
+    $summary['result'] = check_markup(token_replace($result_option->option_summary, $token_types), $result_option->option_summary_format);
   }
 
-  // If we are using pass/fail, and they passed.
-  if ($quiz->pass_rate > 0 && $score['percentage_score'] >= $quiz->pass_rate) {
-    // If we are coming from the admin view page.
-    if ($admin) {
-      $summary['passfail'] = t('The user passed this @quiz.', array('@quiz' => QUIZ_NAME));
+  if (variable_get('quiz_use_passfail', 1) && $quiz->pass_rate > 0) {
+    if ($score['percentage_score'] >= $quiz->pass_rate) {
+      // Pass/fail is enabled and user passed.
+      $summary['passfail'] = check_markup(token_replace($quiz->summary_pass, $token_types), $quiz->summary_pass_format);
     }
-    elseif (variable_get('quiz_use_passfail', 1) == 0) {
-      // If there is only a single summary text, use this.
-      if (trim($quiz->summary_default) != '') {
-        $summary['passfail'] = check_markup($quiz->summary_default, $quiz_format);
-      }
-    }
-    elseif (trim($quiz->summary_pass) != '') {
-      // If there is a pass summary text, use this.
-      $summary['passfail'] = check_markup($quiz->summary_pass, $quiz->summary_pass_format);
+    else {
+      // User failed.
+      $summary['passfail'] = check_markup(token_replace($quiz->summary_default, $token_types), $quiz->summary_default_format);
     }
   }
-  // If the user did not pass or we are not using pass/fail.
   else {
-    // If we are coming from the admin view page, only show a summary if we are
-    // using pass/fail.
-    if ($admin) {
-      if ($quiz->pass_rate > 0) {
-        $summary['passfail'] = t('The user failed this @quiz.', array('@quiz' => QUIZ_NAME));
-      }
-      else {
-        $summary['passfail'] = t('the user completed this @quiz.', array('@quiz' => QUIZ_NAME));
-      }
-    }
-    elseif (trim($quiz->summary_default) != '') {
-      $summary['passfail'] = check_markup($quiz->summary_default, $quiz->summary_default_format);
-    }
+    // Pass/fail is not being used so display the default.
+    $summary['passfail'] = check_markup(token_replace($quiz->summary_default, $token_types), $quiz->summary_default_format);
   }
+
   return $summary;
 }
 

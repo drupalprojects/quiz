@@ -773,6 +773,14 @@ abstract class QuizQuestionResponse {
     if ($this->canReview('question_feedback')) {
       if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->quizQuestion->node->nid, 'vid' => $this->quizQuestion->node->vid))) {
         $quiz_question = reset($properties);
+        $quiz_result = quiz_result_load($this->result_id);
+        $account = user_load($quiz_result->uid);
+        $token_types = array(
+          'global' => NULL,
+          'node' => $this->quizQuestion->node,
+          'user' => $account,
+        );
+        $quiz_question->feedback = token_replace($quiz_question->feedback, $token_types);
         $out['question_feedback']['#markup'] = check_markup($quiz_question->feedback, $quiz_question->feedback_format);
       }
     }

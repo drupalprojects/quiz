@@ -82,7 +82,8 @@ class QuizResultController extends EntityAPIController {
         ->propertyOrderBy('attempt', 'DESC')
         ->execute();
       if (!empty($result['quiz_result'])) {
-        $existing = quiz_result_load(reset(array_keys($result['quiz_result'])));
+        $keys = array_keys($result['quiz_result']);
+        $existing = quiz_result_load(reset($keys));
         $entity->attempt = $existing->attempt + 1;
       }
     }
