@@ -3951,9 +3951,19 @@ function quiz_clone_quiz_result($result_old, $result_new) {
     $quiz_question_response = _quiz_question_response_get_instance($result_old->result_id, $question);
     $quiz_question_response_new = _quiz_question_response_get_instance($result_new->result_id, $question);
     if ($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) {
+      // Load the old quiz_result_answer.
+      $qra = entity_load_single('quiz_result_answer', $quiz_question_response->result_answer_id);
+
       // Override the existing response.
       $quiz_question_response->setResultAnswerId($quiz_question_response_new->result_answer_id);
       $quiz_question_response->save();
+
+      // Set the new quiz_result_answer with points and correctness.
+      $qra->result_answer_id = $quiz_question_response_new->result_answer_id;
+      $qra->result_id = $result_new->result_id;
+      $qra->question_nid = $qinfo['nid'];
+      $qra->question_vid = $qinfo['vid'];
+      $qra->save();
     }
   }
 
