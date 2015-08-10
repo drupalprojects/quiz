@@ -64,7 +64,7 @@ class QuizRandomTestCase extends QuizTestCase {
     $this->linkQuestionToQuiz($question_node4, $quiz_node);
     $this->linkQuestionToQuiz($question_node5, $quiz_node);
 
-    for ($i = 1; $i <= 5; $i++) {
+    for ($i = 1; $i <= 10; $i++) {
       $questions = quiz_build_question_list($quiz_node);
       $out[$i] = '';
       foreach ($questions as $question) {
@@ -128,7 +128,7 @@ class QuizRandomTestCase extends QuizTestCase {
       "compulsories[{$question_node1->nid}-{$question_node1->vid}]" => TRUE,
       ), t('Submit'));
 
-    for ($i = 1; $i <= 5; $i++) {
+    for ($i = 1; $i <= 10; $i++) {
       $questions = quiz_build_question_list($quiz_node);
       $this->assertEqual(count($questions), 3, t('Quiz has 2 questions.'));
       $out[$i] = '';
@@ -313,7 +313,7 @@ class QuizRandomTestCase extends QuizTestCase {
     );
     $this->drupalPost(NULL, $post, t('Submit'));
 
-    for ($i = 1; $i <= 5; $i++) {
+    for ($i = 1; $i <= 10; $i++) {
       $questions = quiz_build_question_list($quiz_node);
       $out[$i] = '';
       foreach ($questions as $question) {
