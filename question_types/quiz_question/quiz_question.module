@@ -210,6 +210,10 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     node_build_content($node, 'question');
     unset($node->content['answers']);
     unset($node->content['links']);
+
+    $type = 'node';
+    drupal_alter(array('node_view', 'entity_view'), $node, $type);
+
     $form['question'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
       '#type' => 'container',
