@@ -1886,7 +1886,7 @@ function quiz_take_question($quiz, $question_number) {
 
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'questions' => $questions,
-    'current' => arg(3),
+    'current' => $question_number,
     'allow_jumping' => $quiz->allow_jumping,
     'pager' => count($questions) >= variable_get('quiz_pager_start', 100),
     'time_limit' => $quiz->time_limit,
@@ -1920,7 +1920,7 @@ function quiz_take_question($quiz, $question_number) {
     drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
   }
 
-  $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][arg(1)]['result_id']);
+  $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][$quiz->nid]['result_id']);
   $content['body']['question']['#markup'] = drupal_render($question_form);
 
   return $content;
