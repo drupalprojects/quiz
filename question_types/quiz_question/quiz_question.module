@@ -140,7 +140,7 @@ function quiz_question_form_node_form_alter(&$form, $form_state, $form_id) {
  */
 function quiz_question_node_form_submit($form, &$form_state) {
   $node = $form_state['node'];
-  if ($form_state['values']['revision']) {
+  if (!empty($form_state['values']['revision'])) {
     // Forced redirect to question-revision-actions, overriding any '?destination' that's set
     unset($_GET['destination']);
     unset($_REQUEST['edit']['destination']);
