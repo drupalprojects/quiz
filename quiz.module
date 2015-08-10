@@ -803,20 +803,28 @@ function _quiz_common_presave_actions(&$node) {
 
 /**
  * Implements hook_delete().
+ *
+ * Delete Quiz data after its node is deleted.
  */
 function quiz_delete($node) {
+  // Delete quiz results.
   $res = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid', array(':nid' => $node->nid));
+    WHERE nid = :nid', array(':nid' => $node->nid));
   $result_ids = array();
   while ($result_id = $res->fetchField()) {
     $result_ids[] = $result_id;
   }
   entity_delete_multiple('quiz_result', $result_ids);
 
-  // Remove quiz node records from table quiz_node_properties
-  db_delete('quiz_node_properties')
-    ->condition('nid', $node->nid)
-    ->execute();
+  // Delete quiz entities.
+  $res = db_query('SELECT qnp_id FROM {quiz_node_properties}
+    WHERE nid = :nid', array(':nid' => $node->nid));
+  $qnp_ids = array();
+  while ($qnp_id = $res->fetchField()) {
+    $qnp_ids[] = $qnp_id;
+  }
+  entity_delete_multiple('quiz', $qnp_ids);
+
   // Remove quiz node records from table quiz_node_relationship
   db_delete('quiz_node_relationship')
     ->condition('parent_nid', $node->nid)
