@@ -282,11 +282,13 @@ class ShortAnswerResponse extends QuizQuestionResponse {
   public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
     global $user;
     $query = db_select('quiz_short_answer_user_answers', 'a');
-    $query->fields('a', array('result_id', 'question_nid', 'question_vid', 'answer_feedback', 'answer_feedback_format'));
+    $query->fields('a', array('answer_feedback', 'answer_feedback_format'));
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
-    $query->join('node_revision', 'r', 'a.question_vid = r.vid');
-    $query->join('quiz_node_results', 'qnr', 'a.result_id = qnr.result_id');
+    $query->fields('qnra', array('result_id', 'question_nid', 'question_vid'));
+    $query->join('quiz_node_results_answers','qnra', 'a.result_answer_id = qnra.result_answer_id');
+    $query->join('node_revision', 'r', 'qnra.question_vid = r.vid');
+    $query->join('quiz_node_results', 'qnr', 'qnra.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');
     $query->condition('a.is_evaluated', 0);
 
