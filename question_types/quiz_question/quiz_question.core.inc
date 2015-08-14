@@ -724,7 +724,7 @@ abstract class QuizQuestionResponse {
         unset($node->content['links']);
 
         $type = 'node';
-        drupal_alter(array('node_view', 'entity_view'), $node, $type);
+        drupal_alter(array('node_view', 'entity_view'), $node->content, $type);
 
         $out['question'][] = $node->content;
       }
