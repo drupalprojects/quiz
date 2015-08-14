@@ -9,7 +9,9 @@ class QuizResultController extends EntityAPIController {
           WHERE result_id = (:result_id)';
       $result = db_query($sql, array(':result_id' => $result_id));
       foreach ($result as $record) {
-        _quiz_question_response_get_instance($result_id, NULL, NULL, $record->question_nid, $record->question_vid)->delete();
+        if ($response = _quiz_question_response_get_instance($result_id, NULL, NULL, $record->question_nid, $record->question_vid)) {
+          $response->delete();
+        }
       }
 
       // Delete Quiz's records of any attempts at a question.

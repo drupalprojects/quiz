@@ -426,7 +426,7 @@ class MatchingResponse extends QuizQuestionResponse {
     if (!isset($answer)) {
       $res = db_query('SELECT ua.answer, score, ua.match_id FROM {quiz_matching_user_answers} ua
               JOIN {quiz_matching_node} n ON n.match_id = ua.match_id
-              WHERE n.nid = :nid AND n.vid = :vid AND ua.result_id = :result_id', array(':nid' => $question_node->nid, ':vid' => $question_node->vid, ':result_id' => $result_id));
+              WHERE n.nid = :nid AND n.vid = :vid AND ua.result_answer_id = :result_answer_id', array(':nid' => $question_node->nid, ':vid' => $question_node->vid, ':result_answer_id' => $this->result_answer_id));
       $this->answer = array();
       while ($obj = $res->fetch()) {
         $this->answer[$obj->match_id] = $obj->answer;
@@ -442,12 +442,12 @@ class MatchingResponse extends QuizQuestionResponse {
    */
   public function save() {
     $this->delete();
-    
-    $insert = db_insert('quiz_matching_user_answers')->fields(array('match_id', 'result_id', 'answer', 'score'));
+
+    $insert = db_insert('quiz_matching_user_answers')->fields(array('match_id', 'result_answer_id', 'answer', 'score'));
     foreach ($this->answer as $key => $value) {
       $insert->values(array(
         'match_id' => $key,
-        'result_id' => $this->result_id,
+        'result_answer_id' => $this->result_answer_id,
         'answer' => (int) $value,
         'score' => ($key == $value) ? 1 : 0,
       ));
@@ -461,10 +461,8 @@ class MatchingResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#delete()
    */
   public function delete() {
-    $match_id = db_query('SELECT match_id FROM {quiz_matching_node} WHERE nid = :nid AND vid = :vid', array(':nid' => $this->question->nid, ':vid' => $this->question->vid))->fetchCol();
     db_delete('quiz_matching_user_answers')
-      ->condition('match_id', is_array($match_id) ? $match_id : array(0), 'IN')
-      ->condition('result_id', $this->result_id)
+      ->condition('result_answer_id', $this->result_answer_id)
       ->execute();
   }
 
@@ -530,6 +528,31 @@ class MatchingResponse extends QuizQuestionResponse {
     }
 
     return $data;
+  }
+
+  /**
+   * Get answers for a question in a result.
+   *
+   * This static method assists in building views for the mass export of
+   * question answers.
+   *
+   * @see views_handler_field_prerender_list for the expected return value.
+   * @todo in the future, we should be able to do an
+   * entity_load('quiz_result_answer', $result_answer_ids)
+   */
+  public static function viewsGetAnswers(array $result_answer_ids = array()) {
+    $items = array();
+
+    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
+      INNER JOIN {quiz_matching_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
+      INNER JOIN {quiz_matching_node} mn ON (mn.match_id = qmua.match_id)
+      WHERE qnra.result_answer_id IN (:result_answer_id)";
+    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+
+    while ($row = $result->fetch()) {
+      $items[$row->result_id][] = array('answer' => "$row->question: $row->answer");
+    }
+    return $items;
   }
 
 }

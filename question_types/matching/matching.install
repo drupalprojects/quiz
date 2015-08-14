@@ -93,7 +93,7 @@ function matching_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'result_id' => array(
+      'result_answer_id' => array(
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -163,4 +163,23 @@ function matching_update_7400() {
       ))
       ->execute();
   }
+}
+
+/**
+ * Make the matching schema look more like the rest of the questions.
+ */
+function matching_update_7501() {
+  db_add_field('quiz_matching_user_answers', 'result_answer_id', array(
+    'type' => 'int',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+  ));
+
+  $sql = "UPDATE {quiz_node_results_answers} ra
+    INNER JOIN {quiz_matching_user_answers} mua ON mua.result_id = ra.result_id
+    INNER JOIN {quiz_matching_node} mn ON mn.match_id = mua.match_id
+    SET mua.result_answer_id = ra.result_answer_id";
+  db_query($sql);
+
+  db_drop_field('quiz_matching_user_answers', 'result_id');
 }
