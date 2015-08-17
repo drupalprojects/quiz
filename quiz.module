@@ -932,9 +932,12 @@ function quiz_load($nodes) {
   $quiz_properties = entity_load('quiz', FALSE, array('vid' => $vids));
 
   foreach ($quiz_properties as $qnp_id => $props) {
+    $nodes[$props->nid]->quiz = new stdClass;
     foreach ($props as $name => $value) {
       if (!in_array($name, array('uid', 'nid', 'vid'))) {
         $nodes[$props->nid]->$name = $value;
+        // Workaround to expose Quiz to Entity API.
+        $nodes[$props->nid]->quiz->$name = $value;
       }
     }
   }
@@ -946,6 +949,7 @@ function quiz_load($nodes) {
   $options = $query->execute();
   foreach ($options as $option) {
     $nodes[$option->nid]->resultoptions[$option->option_id] = (array) $option;
+    $nodes[$option->nid]->quiz->resultoptions[$option->option_id] = (array) $option;
   }
 }
 

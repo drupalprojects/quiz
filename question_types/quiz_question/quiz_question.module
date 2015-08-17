@@ -368,7 +368,7 @@ function quiz_question_goto($quiz, $question_number) {
  *  TRUE if a user has submitted an answer for this question.
  */
 function quiz_question_has_been_answered($node) {
-  $question_instance = _quiz_question_get_instance($node, true);
+  $question_instance = _quiz_question_get_instance($node);
   return $question_instance->hasBeenAnswered();
 }
 
