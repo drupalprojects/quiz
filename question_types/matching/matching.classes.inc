@@ -543,10 +543,12 @@ class MatchingResponse extends QuizQuestionResponse {
   public static function viewsGetAnswers(array $result_answer_ids = array()) {
     $items = array();
 
-    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
+    $sql = "SELECT qnra.result_id,mn1.question,mn2.answer FROM {quiz_node_results_answers} qnra
       INNER JOIN {quiz_matching_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
-      INNER JOIN {quiz_matching_node} mn ON (mn.match_id = qmua.match_id)
-      WHERE qnra.result_answer_id IN (:result_answer_id)";
+      INNER JOIN {quiz_matching_node} mn1 ON (mn1.match_id = qmua.match_id)
+      INNER JOIN {quiz_matching_node} mn2 ON (mn2.match_id = qmua.answer)
+      WHERE qnra.result_answer_id IN (:result_answer_id)
+      ORDER BY mn1.match_id";
     $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
 
     while ($row = $result->fetch()) {
