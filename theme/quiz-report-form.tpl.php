@@ -39,7 +39,7 @@
       <div class="quiz-report-question dt">
         <div class="quiz-report-question-header clearfix">
           <?php print drupal_render($sub_form['score_display']); ?>
-          <h3><?php print t('Question') ?></h3>
+          <h3><?php print t('Question') ?> <?php print drupal_render($sub_form['display_number']); ?></h3>
         </div>
         <?php print drupal_render($sub_form['question']); ?>
       </div>

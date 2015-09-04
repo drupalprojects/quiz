@@ -688,7 +688,10 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->result_id,
     );
-
+    $form['display_number'] = array(
+      '#type' => 'markup',
+      '#markup' => $this->display_number,
+    );
     if (quiz_access_to_score() && $submit = $this->getReportFormSubmit()) {
       $form['submit'] = array(
         '#type' => 'value',
