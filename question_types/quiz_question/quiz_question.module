@@ -556,8 +556,8 @@ function _quiz_delete_question($node, $only_this_version) {
   $update->execute();
 
   $quizzes_to_update = array();
-  while ($quizzes_to_update[] = $res->fetchField()) {
-
+  while ($quiz_to_update = $res->fetchField()) {
+    $quizzes_to_update[] = $quiz_to_update;
   }
   quiz_update_max_score_properties($quizzes_to_update);
 }
