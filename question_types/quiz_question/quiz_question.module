@@ -321,6 +321,10 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
       quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
     }
   }
+  else {
+    // Advance to next question, no input here.
+    quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] + 1);
+  }
 
   // Advance to next question.
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
@@ -983,7 +987,7 @@ function quiz_question_answering_form_validate(&$form, &$form_state) {
   foreach (array_keys($form_state['values']['question']) as $nid) {
     $current_question = node_load($nid);
 
-    if ($current_question) {
+    if ($current_question && empty($form['question'][$nid]['#disabled'])) {
       // There was an answer submitted.
       $quiz_question = _quiz_question_get_instance($current_question);
       $quiz_question->getAnsweringFormValidate($form['question'][$nid]['answer'], $form_state['values']['question'][$nid]['answer']);

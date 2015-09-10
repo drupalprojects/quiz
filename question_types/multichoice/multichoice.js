@@ -95,8 +95,8 @@ var Multichoice = Multichoice || {};
               .addClass('selected')
               .end()
               .click(function (event) {
+                if (event.target.type !== 'checkbox' && !$(':radio').attr('disabled')) {
                 $(this).toggleClass('selected');
-                if (event.target.type !== 'checkbox') {
                   if (typeof $.fn.prop === 'function') {
                     $(':checkbox', this).prop('checked', function (i, val) {
                       return !val;
