@@ -103,7 +103,7 @@ function quiz_question_revision_actions_form_submit($form, &$form_state) {
   foreach ($form_state['values']['quizzes'] as $nid => $actions) {
     // Get the current version of the questions.
     $quiz_node = node_load($nid);
-    $question_node = node_load(arg(1));
+    $question_node = node_load($form_state['values']['question_node']->nid);
     $efq = new EntityFieldQuery();
     $results = $efq->entityCondition('entity_type', 'quiz_question_relationship')
       ->propertyCondition('parent_nid', $quiz_node->nid)
