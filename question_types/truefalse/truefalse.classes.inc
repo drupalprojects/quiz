@@ -254,7 +254,9 @@ class TrueFalseResponse extends QuizQuestionResponse {
    * Get the user's answer from the database.
    */
   public function getUserAnswer() {
-    return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
+    if (isset($this->result_answer_id)) {
+      return db_query('SELECT answer, score FROM {quiz_truefalse_user_answers} WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
+    }
   }
 
   /**
@@ -289,7 +291,6 @@ class TrueFalseResponse extends QuizQuestionResponse {
 
     return $data;
   }
-
 
   /**
    * Get answers for a question in a result.

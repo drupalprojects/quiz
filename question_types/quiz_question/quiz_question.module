@@ -302,11 +302,19 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
 function quiz_question_answering_form_submit_blank($form, &$form_state) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$form['#quiz']['nid']]['result_id']);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+  $questions = $quiz_result->layout;
 
   if (!empty($form_state['input']['question'])) {
+    // Loop over all question inputs provided, and record them as skipped.
     foreach (array_keys($form_state['input']['question']) as $nid) {
-      // Loop over all question inputs provided, and record them as skipped.
-      $question = node_load($nid);
+
+      // Find the correct revision.
+      foreach ($questions as $question_array) {
+        if ($question_array['nid'] == $nid) {
+          $question = node_load($question_array['nid'], $question_array['vid']);
+          break;
+        }
+      }
 
       // Delete the user's answer.
       _quiz_question_response_get_instance($quiz_result->result_id, $question)->delete();

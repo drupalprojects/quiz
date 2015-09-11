@@ -320,4 +320,44 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertText("100");
   }
 
+  /**
+   * Make sure a user can answer or skip an old question's revision.
+   */
+  function testAnswerOnOldQuizRevisioning() {
+    $this->drupalLogin($this->admin);
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'title' => 'Q 1',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Q 1'))),
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+
+    $question_node2 = $this->drupalCreateNode(array(
+      'title' => 'Q 2',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Q 2'))),
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    $question_node1->revision = TRUE;
+    node_save($question_node1);
+
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+
+    // Leave a question blank.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      ), t('Leave blank'));
+
+    // Submit the question.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Next'));
+  }
+
 }
