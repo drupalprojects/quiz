@@ -1889,16 +1889,22 @@ function quiz_take_question($quiz, $question_number) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $questions = array();
   $i = 0;
+  $found_pages = 0;
   foreach ($quiz_result->layout as $idx => $question) {
     if (empty($question['qnr_pid'])) {
       // Question has no parent. Show it in the jumper.
       $questions[$idx] = ++$i;
+      $found_pages++;
+    }
+    if ($question_node->nid == $question['nid']) {
+      // Found our question
+      $current_page = $found_pages;
     }
   }
 
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'questions' => $questions,
-    'current' => $question_number,
+    'current' => $current_page,
     'allow_jumping' => $quiz->allow_jumping,
     'pager' => count($questions) >= variable_get('quiz_pager_start', 100),
     'time_limit' => $quiz->time_limit,

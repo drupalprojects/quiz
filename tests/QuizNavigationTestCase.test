@@ -42,6 +42,7 @@ class QuizNavigationTestCase extends QuizTestCase {
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->assertText("Page 1 of 3");
     $this->assertResponse(200);
     $this->drupalGet("node/{$quiz_node->nid}/take/2");
     $this->assertResponse(403);
@@ -54,6 +55,7 @@ class QuizNavigationTestCase extends QuizTestCase {
       "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
     $this->drupalGet("node/{$quiz_node->nid}/take/2");
+    $this->assertText("Page 2 of 3");
     $this->assertResponse(200);
     $this->drupalGet("node/{$quiz_node->nid}/take/3");
     $this->assertResponse(403);
