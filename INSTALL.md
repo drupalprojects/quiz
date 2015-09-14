@@ -1,6 +1,4 @@
-
-Installation
-------------
+## Installation
 
 1. Copy the entire quiz/ folder into your modules directory.
 
@@ -9,8 +7,7 @@ Installation
    (for example, Multichoice).
 
 
-Configuration
--------------
+## Configuration
 
 1. Create a user role with the appropriate permissions.
    The role can be created under Administer >> User management >> Roles and the rights can be assigned to the role under Administer >> User management >> Access control.
@@ -20,8 +17,7 @@ Configuration
 2. Add the "access quiz" permission to roles under Administer >> User management >> Access control that should be allowed to take the quizzes.
 
 
-How to create a quiz
---------------------
+## How to create a quiz
 
 1. Begin by creating a series of questions that you would like to include in
    the quiz. Go to Create content >> <question type> (for example, Multichoice).
