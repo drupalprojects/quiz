@@ -42,7 +42,7 @@ class MatchingQuestion extends QuizQuestion {
         'vid' => $this->node->vid,
       ))
       ->fields(array(
-        'choice_penalty' => $this->node->choice_penalty,
+        'choice_penalty' => intval($this->node->choice_penalty),
       ))
       ->execute();
 
