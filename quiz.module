@@ -716,6 +716,7 @@ function quiz_update($node) {
     // Create new quiz-question relation entries in the quiz_node_relationship
     // table.
     quiz_update_quiz_question_relationship($node->old_vid, $node->vid, $node->nid);
+    drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
   }
 
   // Update an existing row in the quiz_node_properties table.
@@ -727,7 +728,6 @@ function quiz_update($node) {
   _quiz_check_num_random($node);
   _quiz_check_num_always($node);
   quiz_update_max_score_properties(array($node->vid));
-  drupal_set_message(t('Some of the updated settings may not apply to quiz being taken already. To see all changes in action you need to start again.'), 'warning');
 }
 
 /**
@@ -1459,7 +1459,7 @@ function quiz_form(&$node, &$form_state) {
     '#access' => user_access('administer quiz configuration'),
   );
 
-  if (quiz_has_been_answered($node) && (!user_access('manual quiz revisioning') || variable_get('quiz_auto_revisioning', 1))) {
+  if (quiz_has_been_answered($node) && variable_get('quiz_auto_revisioning', 1)) {
     $node->revision = 1;
     $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
   }
