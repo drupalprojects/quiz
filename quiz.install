@@ -89,7 +89,7 @@ function quiz_schema() {
         'type' => 'int',
         'size' => 'tiny',
         'unsigned' => TRUE,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => 'Passing rate out of 100.',
       ),
       'summary_pass' => array(
@@ -1104,4 +1104,17 @@ function quiz_update_7518() {
     db_query('UPDATE {quiz_node_results} SET attempt = :attempt WHERE result_id = :result_id', array(':attempt' => $attempt, ':result_id' => $row->result_id));
     $attempt++;
   }
+}
+
+/**
+ * Change pass_rate to NULL.
+ */
+function quiz_update_7519() {
+  db_change_field('quiz_node_properties', 'pass_rate', 'pass_rate', array(
+    'type' => 'int',
+    'size' => 'tiny',
+    'unsigned' => TRUE,
+    'not null' => FALSE,
+    'description' => 'Passing rate out of 100.',
+  ));
 }
