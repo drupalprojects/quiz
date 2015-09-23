@@ -101,25 +101,30 @@ function quiz_report_form($form, $form_state, $questions, $result_id) {
     );
   }
 
+  if (arg(4) == 'feedback') {
+    // @todo Ugh, there is no way to determine if we are showing feedback as
+    // part of a try-until-correct or actual quiz after-question feedback, so we
+    // have to check arg() here to fix the "Next question" button showing up
+    // during adaptive mode.
+    $quiz_result = quiz_result_load($result_id);
 
-  $quiz_result = quiz_result_load($result_id);
-
-  if (count($questions) != count($quiz_result->layout)) {
-    $form['#quiz_result'] = $quiz_result;
-    if (empty($_SESSION['quiz'][$quiz_result->nid])) {
-      // Quiz is done.
-      $form['navigation']['finish'] = array(
-        '#type' => 'submit',
-        '#submit' => array('quiz_take_question_feedback_end_submit'),
-        '#value' => t('Finish'),
-      );
-    }
-    else {
-      $form['navigation']['next'] = array(
-        '#type' => 'submit',
-        '#submit' => array('quiz_take_question_feedback_submit'),
-        '#value' => t('Next question'),
-      );
+    if (count($questions) != count($quiz_result->layout)) {
+      $form['#quiz_result'] = $quiz_result;
+      if (empty($_SESSION['quiz'][$quiz_result->nid])) {
+        // Quiz is done.
+        $form['navigation']['finish'] = array(
+          '#type' => 'submit',
+          '#submit' => array('quiz_take_question_feedback_end_submit'),
+          '#value' => t('Finish'),
+        );
+      }
+      else {
+        $form['navigation']['next'] = array(
+          '#type' => 'submit',
+          '#submit' => array('quiz_take_question_feedback_submit'),
+          '#value' => t('Next question'),
+        );
+      }
     }
   }
 
