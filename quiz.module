@@ -960,7 +960,7 @@ function quiz_load($nodes) {
  */
 function quiz_view($node) {
   // Number of questions is needed on the statistics page.
-  $node->number_of_questions = $node->number_of_random_questions + _quiz_get_num_always_questions($node->vid);
+  $node->number_of_questions = $node->number_of_random_questions + quiz_get_number_of_questions($node->vid, $node->nid);
 
   $node->content['stats'] = array(
     '#markup' => theme('quiz_view_stats', array('node' => $node)),
@@ -1734,10 +1734,17 @@ function quiz_get_score_data($nids, $uid, $include_num_questions = FALSE) {
  * @return
  *   Returns the number of quiz questions.
  */
-function quiz_get_number_of_questions($vid) {
-  $always_count = _quiz_get_num_always_questions($vid);
-  $rand_count = db_query('SELECT number_of_random_questions FROM {quiz_node_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-  return $always_count + (int) $rand_count;
+function quiz_get_number_of_questions($vid, $nid = NULL) {
+  $count = 0;
+  $questions = quiz_get_questions($nid, $vid);
+  foreach ($questions as $question) {
+    if ($quizQuestion = _quiz_question_get_instance($question)) {
+      if ($quizQuestion->isGraded()) {
+        $count++;
+      }
+    }
+  }
+  return $count;
 }
 
 /**

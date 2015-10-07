@@ -12,6 +12,7 @@ class QuizTakingTestCase extends QuizTestCase {
 
   public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     $modules[] = 'truefalse';
+    $modules[] = 'quiz_directions';
     parent::setUp($modules);
   }
 
@@ -358,6 +359,30 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
+  }
+
+  /**
+   * Verify non gradable questions are excluded from counts
+   */
+  function testQuestionCount(){
+    $quiz_node = $this->drupalCreateQuiz(array(
+      'review_options' => array('question' => array('score' => 'score')),
+    ));
+
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'quiz_directions'));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+    $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node3, $quiz_node);
+    $question_node4 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node4, $quiz_node);
+    $question_node5 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node5, $quiz_node);
+
+    $this->drupalGet("node/{$quiz_node->nid}");
+
+    $this->assertText("4");
   }
 
 }

@@ -268,7 +268,7 @@ function quiz_get_score_array($result_id, $quiz_vid, $is_evaluated) {
           WHERE result_id = :result_id', array(':result_id' => $result_id))->fetchField();
 
   return array(
-    'question_count' => $properties->number_of_random_questions + _quiz_get_num_always_questions($quiz_vid),
+    'question_count' => $properties->number_of_random_questions + quiz_get_number_of_questions($quiz_vid, $result_id),
     'possible_score' => $properties->max_score,
     'numeric_score' => $total_score,
     'percentage_score' => ($properties->max_score == 0) ? 0 : round(($total_score * 100) / $properties->max_score),
