@@ -43,9 +43,9 @@ function quiz_quiztake_pane_content_type_render($subtype, $conf, $panel_args, $c
     $block->content = $node->rendered_content;
   }
   else {
-    $quiz = quiz_take_quiz($node);
+    quiz_take_quiz($node);
     $number = $_SESSION['quiz'][$node->nid]['current'];
-    $block->content = quiz_take_question($quiz, $number);
+    $block->content = quiz_take_question($node, $number);
 
   }
   return $block;
