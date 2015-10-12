@@ -99,7 +99,7 @@ function quiz_schema() {
       'summary_pass_format' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE,
+        'not null' => FALSE,
         'description' => 'Input format for the passing summary text.',
       ),
       'summary_default' => array(
@@ -1116,5 +1116,17 @@ function quiz_update_7519() {
     'unsigned' => TRUE,
     'not null' => FALSE,
     'description' => 'Passing rate out of 100.',
+  ));
+}
+
+/**
+ * Change summary_pass_format to NULLable.
+ */
+function quiz_update_7520() {
+  db_change_field('quiz_node_properties', 'summary_pass_format', 'summary_pass_format', array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'description' => 'Input format for the passing summary text.',
   ));
 }
