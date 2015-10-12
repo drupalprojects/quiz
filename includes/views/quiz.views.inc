@@ -131,8 +131,8 @@ function quiz_views_pre_view(view $view) {
               $newfield['label'] = t('@num. @question', array('@num' => $i, '@question' => $question->title));
               $newfield['question_nid'] = $question->nid;
               $newfield['question_vid'] = $question->vid;
+              $view->set_item($view->current_display, 'field', 'answer_' . $question->nid, $newfield);
             }
-            $view->set_item($view->current_display, 'field', 'answer_' . $question->nid, $newfield);
           }
         }
         $view->set_item($view->current_display, 'field', $field_name, NULL);
