@@ -366,7 +366,7 @@ class ScaleQuestion extends QuizQuestion {
   /**
    * Question response validator.
    */
-  public function getAnsweringFormValidate(array &$element, $value) {
+  public function getAnsweringFormValidate(array &$element, &$value) {
     if ($value == '') {
       form_error($element, t('You must provide an answer.'));
     }
