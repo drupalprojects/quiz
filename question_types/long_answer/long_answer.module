@@ -136,58 +136,37 @@ function long_answer_theme() {
  *  Number of scores adjusted. If a change was made, this should be 1.
  */
 function long_answer_score_an_answer($values, $update_total = TRUE) {
-  extract($values);
-  // Quiz scoring information is spread out across three tables:
-  // 1. The module should retain its own scoring information in any case where scoring is non-trivial.
-  // 2. The Quiz moduleretains a limited amount of scoring information.
-  // 3. The Quiz module retains an overall score for a quiz. This is the percentage score for the combination of all
-  //    questions on the quiz.
-  //
-  // We update all three.
-  // First, we update the long answer table
-  $question_max_score = db_query('SELECT max_score FROM {quiz_question_properties} WHERE nid = :nid AND vid = :vid', array(':nid' => $nid, ':vid' => $vid))->FetchField();
+  $nid = $values['nid'];
+  $vid = $values['vid'];
+  $result_id = $values['result_id'];
+  $score = $values['score'];
+  $answer_feedback = $values['answer_feedback'];
+  $quiz = $values['quiz'];
 
-  $quiz_max_score = db_query('SELECT max_score FROM {quiz_node_relationship} WHERE parent_vid = :pvid AND child_vid = :cvid', array(':pvid' => $quiz->vid, ':cvid' => $vid))->fetchField();
   $question_node = node_load($nid, $vid);
-  $long_answer_response = new LongAnswerResponse($result_id, $question_node);
-  $changed = db_update('quiz_long_answer_user_answers')
+  $quiz_question_response = _quiz_question_response_get_instance($result_id, $question_node);
+  $ratio = $quiz_question_response->getWeightedRatio();
+
+  db_update('quiz_long_answer_user_answers')
     ->fields(array(
-      'score' => $score * $question_max_score / $quiz_max_score,
+      'score' => $score / $ratio,
       'is_evaluated' => 1,
-      'answer_feedback' => isset($answer_feedback['value']) ? $answer_feedback['value'] : '',
+      'answer_feedback' => empty($answer_feedback['value']) ? '' : $answer_feedback['value'],
       'answer_feedback_format' => empty($answer_feedback['format']) ? '' : $answer_feedback['format'],
     ))
-    ->condition('result_answer_id', $long_answer_response->result_answer_id)
+    ->condition('result_answer_id', $quiz_question_response->result_answer_id)
     ->execute();
-  if ($changed > 0) {
-    // Second, we update the main quiz answers table
-    // What do we do about the quiz_node_results_answers table? It assumes strict
-    // bivalence (is_correct). I guess we consider any essay with over 50% to be correct?
-    $max = db_query('SELECT max_score FROM {quiz_question_properties} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-    if ($max <= 0) {
-      $is_correct = 0;
-      $points_awarded = 0;
-    }
-    else {
-      $is_correct = $score == $max ? 1 : 0;
-      $points_awarded = $score;
-    }
 
-    db_update('quiz_node_results_answers')
-      ->fields(array(
-        'points_awarded' => $points_awarded,
-        'is_correct' => $is_correct,
-      ))
-      ->condition('result_answer_id', $long_answer_response->result_answer_id)
-      ->execute();
+  // Now the user data has been updated. We also need to update the data in the quiz tables.
+  $quiz_result_answer = entity_load_single('quiz_result_answer', $quiz_question_response->result_answer_id);
+  $quiz_result_answer->points_awarded = $score;
+  $quiz_result_answer->is_correct = $quiz_question_response->isCorrect();
+  $quiz_result_answer->save();
 
-    // Third, we update the main quiz results table
-    if ($update_total) {
-      quiz_update_total_score($quiz, $result_id);
-    }
+  // Third, we update the main quiz results table
+  if ($update_total) {
+    quiz_update_total_score($quiz, $result_id);
   }
-
-  return $changed;
 }
 
 /**

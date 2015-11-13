@@ -467,14 +467,4 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     return 'short_answer_report_submit';
   }
 
-  /**
-   * Implements QuizQuestionResponse::getReportFormValidate().
-   */
-  public function getReportFormValidate(&$element, &$form_state) {
-    // Check to make sure that entered score is not higher than max allowed score.
-    if ($element['score']['#value'] > $this->question->max_score) {
-      form_error($element['score'], t('The score needs to be a number between 0 and @max', array('@max' => $this->question->max_score)));
-    }
-  }
-
 }

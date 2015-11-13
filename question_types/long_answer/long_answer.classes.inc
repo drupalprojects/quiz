@@ -359,15 +359,4 @@ class LongAnswerResponse extends QuizQuestionResponse {
     return 'long_answer_report_submit';
   }
 
-  /**
-   * Implements QuizQuestionResponse::getReportFormValidate().
-   */
-  public function getReportFormValidate(&$element, &$form_state) {
-    $max = $this->question->max_score;
-    // Check to make sure that entered score is not higher than max allowed score.
-    if ($element['score']['#value'] > $max) {
-      form_error($element['score'], t('The score needs to be a number between @min and @max', array('@min' => 0, '@max' => $max)));
-    }
-  }
-
 }

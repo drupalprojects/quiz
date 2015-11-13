@@ -22,7 +22,7 @@ function quiz_user_results($result_id) {
     menu_set_item(NULL, $item);
 
     $questions = _quiz_get_answers($quiz, $result_id);
-    $score = quiz_calculate_score($quiz, $result_id);
+    $score = quiz_calculate_score($result_id);
     $summary = _quiz_get_summary_text($quiz_result, $score);
     $data = array(
       'quiz' => $quiz,
@@ -52,7 +52,6 @@ function quiz_user_results($result_id) {
  *   TRUE if feedback needs to be displayed. FALSE otherwise.
  */
 function quiz_check_feedback(QuizResult $quiz_result) {
-  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   foreach (quiz_get_feedback_options() as $key => $option) {
     if (quiz_feedback_can_review($key, $quiz_result)) {
       return TRUE;
@@ -175,19 +174,8 @@ function quiz_report_form_submit($form, &$form_state) {
     call_user_func($q_values['submit'], $q_values);
   }
   // Scores may have been changed. We take the necessary actions
-  quiz_update_total_score_fast($result_id, $quiz->vid);
-  $changed = db_update('quiz_node_results')
-    ->fields(array(
-      'is_evaluated' => 1,
-    ))
-    ->condition('result_id', $result_id)
-    ->execute();
+  quiz_end_scoring($result_id);
   $results_got_deleted = _quiz_maintain_results($quiz, $result_id);
-
-  // A message saying the quiz is unscored has already been set. We unset it here...
-  if ($changed > 0) {
-    _quiz_remove_unscored_message();
-  }
 
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this @quiz is set to only keep each users best answer.', array('@quiz' => QUIZ_NAME)) : '';

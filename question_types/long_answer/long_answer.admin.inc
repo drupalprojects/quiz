@@ -28,34 +28,7 @@ function long_answer_view_unscored() {
  *  Text to display.
  */
 function long_answer_edit_score($vid, $result_id) {
-
-  // We have to do the vid -> nid lookup ourselves because node_load uses only node.vid,
-  // and we need to be able to access old nodes in node_revision.vid.
-  $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
-  if (!$nid) {
-    drupal_not_found();
-    return;
-  }
-
-  $node = node_load($nid, $vid);
-  if (!$node || $node->type != 'long_answer') {
-    drupal_not_found();
-    return;
-  }
-
-  $answer = (object) long_answer_get_answer($node->nid, $node->vid, $result_id);
-  if (!$answer) {
-    drupal_not_found();
-    return;
-  }
-  if ($node->max_score > 0) {
-    $answer->rel_score = round($answer->score * $answer->rel_max_score / $node->max_score);
-  }
-  else {
-    $answer->rel_score = 0;
-  }
-  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)), PASS_THROUGH);
-  return drupal_get_form('long_answer_score_form', $node, $answer);
+  return drupal_get_form('long_answer_score_form', $vid, $result_id);
 }
 
 /**
@@ -68,116 +41,35 @@ function long_answer_edit_score($vid, $result_id) {
  * @return
  *  The form (as a FAPI array).
  */
-function long_answer_score_form($form, $form_state, $node, $answer) {
-  if (!$node || $node->type != 'long_answer' || !$answer) {
-    drupal_not_found();
-    return;
-  }
-  // Set up the form
-  $form['question'] = array(
-    '#type' => 'item',
-    '#title' => t('Question'),
-    '#markup' => check_markup($node->body[LANGUAGE_NONE][0]['value'], $node->body[LANGUAGE_NONE][0]['format']),
-  );
-  $form['rubric'] = array(
-    '#type' => 'item',
-    '#title' => t('Rubric'),
-    '#markup' => check_markup($node->rubric),
-  );
-  $form['show_max_score'] = array(
-    '#type' => 'item',
-    '#title' => t('Maximum Score'),
-    '#markup' => (int) $answer->rel_max_score,
-  );
-  $form['score_answer'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Score answer'),
-  );
-  $form['score_answer']['answer'] = array(
-    '#type' => 'item',
-    '#title' => t('Answer'),
-    '#markup' => check_markup($answer->answer),
-  );
-  $form['score_answer']['score'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Score'),
-    '#description' => t('The score for this essay, between 0 and @max', array('@max' => $answer->rel_max_score)),
-    '#size' => 3,
-    '#default_value' => (int) $answer->rel_score,
-    '#required' => TRUE,
-  );
-  $form['score_answer']['answer_feedback'] = array(
-    '#title' => t('Feedback'),
-    '#type' => 'text_format',
-    '#description' => t('The text entered here would be shown to attendees'),
-    '#default_value' => $answer->answer_feedback,
-    '#format' => isset($answer->answer_feedback_format) ? $answer->answer_feedback_format : NULL
-  );
-
-  $form['score_answer']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save this score'),
-  );
-
-  // Save some work by keeping these.
-  $form['max_score'] = array(
-    '#type' => 'value',
-    '#value' => $node->max_score,
-  );
-  $form['rel_max_score'] = array(
-    '#type' => 'value',
-    '#value' => $answer->rel_max_score,
-  );
-  $form['question_nid'] = array(
-    '#type' => 'value',
-    '#value' => $answer->question_nid,
-  );
-  $form['question_vid'] = array(
-    '#type' => 'value',
-    '#value' => $answer->question_vid,
-  );
-  $form['result_id'] = array(
-    '#type' => 'value',
-    '#value' => $answer->result_id,
-  );
-
+function long_answer_score_form($form, $form_state, $vid, $result_id) {
+  $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
+  $node = node_load($nid, $vid);
+  drupal_set_title(t('Score answer to "@title"', array('@title' => $node->title)), PASS_THROUGH);
+  $quizQuestionResponse = _quiz_question_response_get_instance($result_id, $node);
+  $form += $quizQuestionResponse->getReportForm();
+  $form['actions']['submit']['#type'] = 'submit';
+  $form['actions']['submit']['#value'] = t('Save score');
+  $form['#validate'][] = 'quiz_report_form_element_validate';
   return $form;
-}
-
-/**
- * Validates the long answer score form
- */
-function long_answer_score_form_validate($form, $form_state) {
-  // Check to make sure that entered score is not higher than max allowed score.
-  $max = (int) $form_state['values']['rel_max_score'];
-  $given = $form_state['values']['score'];
-  if (!_quiz_is_int($given, 0, $max)) {
-    $args = array('@score' => $given, '@max' => $max);
-    form_set_error('score', t('The given score (@score) must be an integer between 0 and @max', $args));
-  }
 }
 
 /**
  * Submit handler for the long answer score form
  */
 function long_answer_score_form_submit($form, &$form_state) {
-  $result = db_query('SELECT nid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $form_state['values']['result_id']))->fetch();
+  $vid = $form_state['build_info']['args'][0];
+  $nid = db_query('SELECT nid FROM {node_revision} WHERE vid = :vid', array(':vid' => $vid))->fetchField();
+  $result_id = $form_state['build_info']['args'][1];
+  $quiz_result = quiz_result_load($result_id);
 
-  $result = long_answer_score_an_answer(array(
-    'quiz' => node_load($result->nid, $result->vid),
-    'nid' => $form_state['values']['question_nid'],
-    'vid' => $form_state['values']['question_vid'],
-    'result_id' => $form_state['values']['result_id'],
+  long_answer_score_an_answer(array(
+    'quiz' => node_load($quiz_result->nid, $quiz_result->vid),
+    'nid' => $nid,
+    'vid' => $vid,
+    'result_id' => $result_id,
     'score' => $form_state['values']['score'],
-    'max_score' => $form_state['values']['rel_max_score'],
     'answer_feedback' => $form_state['values']['answer_feedback']
   ));
 
-  if ($result == 1) {
-    drupal_set_message(t('The score has been saved.'));
-    $form_state['redirect'] = 'admin/quiz/reports/score-long-answer';
-  }
-  else {
-    drupal_set_message(t('Error saving the score. The selected answer was not scored.'), 'error');
-  }
+  drupal_set_message(t('The score has been saved.'));
 }

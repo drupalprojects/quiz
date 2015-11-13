@@ -27,7 +27,7 @@ function theme_long_answer_view_unscored($variables) {
       $rows[] = array(
         check_plain($item->title),
         date('Y-m-d H:i', $item->time_end),
-        l(t('Score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('Score this response'), 'admin/quiz/reports/score-long-answer/' . $item->question_vid . '/' . $item->result_id, array('query' => drupal_get_destination())),
       );
     }
   }

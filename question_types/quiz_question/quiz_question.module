@@ -684,34 +684,17 @@ function _quiz_question_get_instance($node, $use_cached = FALSE) {
  *  The appropriate QuizQuestionResponce extension instance
  */
 function _quiz_question_response_get_instance($result_id, $question, $answer = NULL, $nid = NULL, $vid = NULL) {
-  // We cache responses to improve performance
-  static $quiz_responses = array();
-  if (is_object($question) && isset($quiz_responses[$result_id][$question->vid])) {
-    // We refresh the question node in case it has been changed since we cached the response
-    $quiz_responses[$result_id][$question->vid]->refreshQuestionNode($question);
-    if ($quiz_responses[$result_id][$question->vid]->is_skipped !== FALSE) {
-      return $quiz_responses[$result_id][$question->vid];
-    }
-  }
-  elseif (isset($quiz_responses[$result_id][$vid])) {
-    if ($quiz_responses[$result_id][$vid]->is_skipped !== FALSE) {
-      return $quiz_responses[$result_id][$vid];
-    }
-  }
-  if (!isset($quiz_responses[$result_id])) {
-    // Prepare to cache responses for this result id
-    $quiz_responses[$result_id] = array();
-  }
+  $info = quiz_question_get_info();
+
   // If the question node isn't set we fetch it from the QuizQuestion instance this responce belongs to
   if (!isset($question)) {
-    $question_node = node_load($nid, $vid);
-    $question = _quiz_question_get_instance($question_node, TRUE)->node;
+    $question = node_load($nid, $vid);
   }
-  if (!$question) {
-    return FALSE;
-  }
-  $info = quiz_question_get_info();
+  
   $constructor = $info[$question->type]['response provider'];
+  if (empty($constructor)) {
+    xdebug_break();
+  }
   $to_return = new $constructor($result_id, $question, $answer);
   // All responce classes must extend QuizQuestionResponse
   if (!($to_return instanceof QuizQuestionResponse)) {
@@ -721,9 +704,6 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   $result = $to_return->getReport();
   $to_return->question->answers[$result['answer_id']] = $result;
   $to_return->question->correct = $result['is_correct'];
-
-  // Cache the responce instance
-  $quiz_responses[$result_id][$question->vid] = $to_return;
 
   return $to_return;
 }
@@ -785,27 +765,6 @@ function quiz_question_get_max_score($nid, $vid) {
  */
 function quiz_question_report_form($question, $result_id) {
   $response_instance = _quiz_question_response_get_instance($result_id, $question);
-  $answer = $response_instance->question->answers[0];
-  // If need to specify the score weight if it isn't already specified.
-  if (!isset($response_instance->question->score_weight)) {
-    $vid = db_query('SELECT vid FROM {quiz_node_results}
-      WHERE result_id = :rid', array(':rid' => $answer['result_id']))
-      ->fetchField();
-
-    $qnr_max_score = db_query('SELECT qnr.max_score FROM {quiz_node_relationship} qnr
-      WHERE qnr.child_vid = :child_vid AND qnr.parent_vid = :parent_vid', array(':child_vid' => $question->vid, ':parent_vid' => $vid))
-      ->fetchField();
-
-    if ($qnr_max_score === FALSE) {
-      $qnr_max_score = db_query('SELECT qt.max_score FROM {quiz_node_results} qnr
-         JOIN {quiz_node_results_answers} qnra ON (qnr.result_id = qnra.result_id)
-         JOIN {quiz_terms} qt ON (qt.vid = qnr.vid AND qt.tid = qnra.tid)
-         WHERE qnr.result_id = :rid AND qnra.question_nid = :qnid AND qnra.question_vid = :qvid', array(':rid' => $answer['result_id'], ':qnid' => $question->nid, ':qvid' => $question->vid))
-        ->fetchField();
-    }
-
-    $response_instance->question->score_weight = ($qnr_max_score == 0 || $response_instance->question->max_score == 0) ? 0 : ($qnr_max_score / $response_instance->question->max_score);
-  }
 
   return $response_instance->getReportForm();
 }

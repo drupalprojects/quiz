@@ -82,6 +82,8 @@ class QuizRandomTestCase extends QuizTestCase {
 
   /**
    * Test random plus required questions from a pool.
+   *
+   * @todo add test for weighted questions
    */
   public function testRandomQuestions() {
     $this->drupalLogin($this->admin);
@@ -148,6 +150,8 @@ class QuizRandomTestCase extends QuizTestCase {
 
   /**
    * Test pulling questions from categories.
+   *
+   * @todo add test for weighted questions
    */
   public function testCategorizedRandomQuestions() {
     // Vocabs.

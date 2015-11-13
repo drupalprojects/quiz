@@ -30,6 +30,7 @@ files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question_type.i
 files[] = includes/views/handlers/quiz_views_handler_field_quiz_question_result_answer.inc
 files[] = tests/QuizCreationTestCase.test
 files[] = tests/QuizFeedbackTestCase.test
+files[] = tests/QuizGradingTestCase.test
 files[] = tests/QuizNavigationTestCase.test
 files[] = tests/QuizQuestionNumberingTestCase.test
 files[] = tests/QuizRandomTestCase.test

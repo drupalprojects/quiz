@@ -8,8 +8,7 @@
 /**
  * Theme the list of unscored short answer questions.
  *
- * @param $unscored
- *  An array of objects with information about the unscored questions
+ * @todo replace with view
  */
 function theme_short_answer_view_unscored($variables) {
   $unscored = $variables['unscored'];
@@ -26,7 +25,7 @@ function theme_short_answer_view_unscored($variables) {
       $rows[] = array(
         $item->title,
         date('Y-m-d H:i', $item->time_end),
-        l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id),
+        l(t('score this response'), 'admin/quiz/reports/score-short-answer/' . $item->question_vid . '/' . $item->result_id, array('query' => drupal_get_destination())),
       );
     }
   }
@@ -35,7 +34,7 @@ function theme_short_answer_view_unscored($variables) {
     $output .= theme('table', array('header' => $header, 'rows' => $rows));
   }
   else {
-    $output .= t('There are no unscored essays.');
+    $output .= t('There are no unscored short answers.');
   }
   return $output;
 }

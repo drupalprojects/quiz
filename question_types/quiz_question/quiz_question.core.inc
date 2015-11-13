@@ -569,47 +569,75 @@ abstract class QuizQuestionResponse {
    * response is "correct".
    */
   function isCorrect() {
-    return ($this->getMaxScore() == $this->getScore());
+    return ($this->getMaxScore(FALSE) == $this->getScore(FALSE));
   }
 
   /**
-   * Returns stored score if it exists, if not the score is calculated and
-   * returned.
+   * Get the score of this question response.
    *
-   * @param $weight_adjusted
-   *  If the returned score shall be adjusted according to the max_score the question has in a quiz
-   * @return
-   *  Score(int)
+   * @param bool $weighted
+   *   If the score should be scaled based on the Quiz question max score.
+   *
+   * @return int
+   *   The max score of this question response.
    */
   function getScore($weight_adjusted = TRUE) {
-    if ($this->is_skipped) {
-      return 0;
+    if ($weight_adjusted) {
+      if (!empty($this->points_awarded)) {
+        // This is already weighted.
+        return $this->points_awarded;
+      }
+      else {
+        // No stored score yet.
+        $ratio = $this->getWeightedRatio();
+        return $this->score() * $ratio;
+      }
     }
-    if (!isset($this->score)) {
-      $this->score = $this->score();
-    }
-    if (isset($this->question->score_weight) && $weight_adjusted) {
-      return round($this->score * $this->question->score_weight);
-    }
-    return $this->score;
+
+    return $this->score();
   }
 
   /**
-   * Returns stored max score if it exists, if not the max score is calculated and returned.
+   * Get the max score of this question response.
    *
-   * @param $weight_adjusted
-   *  If the returned max score shall be adjusted according to the max_score the question has in a quiz
-   * @return
-   *  Max score(int)
+   * @param bool $weighted
+   *   If the max score should be scaled based on the Quiz question max score.
+   *
+   * @return int
+   *   The max score of this question response.
    */
   public function getMaxScore($weight_adjusted = TRUE) {
-    if (!isset($this->question->max_score)) {
-      $this->question->max_score = $this->quizQuestion->getMaximumScore();
+    if ($weight_adjusted) {
+      $quiz_result = quiz_result_load($this->result_id);
+      $relationships = entity_load('quiz_question_relationship', NULL, array(
+        'parent_nid' => $quiz_result->nid,
+        'parent_vid' => $quiz_result->vid,
+        'child_nid' => $this->question->nid,
+        'child_vid' => $this->question->vid,
+      ));
+      if ($relationships) {
+        // This is the weighted max score of the question.
+        return reset($relationships)->max_score;
+      }
+
+      $quiz = node_load($quiz_result->nid);
+      if ($quiz->randomization == 2) {
+        // This isn't necessary, since setting a max score for random questions
+        // updates them all.
+      }
+      if ($quiz->randomization == 3) {
+        $max_score = db_select('quiz_terms', 'qt')
+          ->fields('qt', array('max_score'))
+          ->condition('tid', $this->tid)
+          ->condition('nid', $quiz_result->nid)
+          ->condition('vid', $quiz_result->vid)
+          ->execute()
+          ->fetchField();
+        return $max_score;
+      }
     }
-    if (isset($this->question->score_weight) && $weight_adjusted) {
-      return round($this->question->max_score * $this->question->score_weight);
-    }
-    return $this->question->max_score;
+
+    return $this->quizQuestion->getMaximumScore();
   }
 
   /**
@@ -632,6 +660,7 @@ abstract class QuizQuestionResponse {
     $obj->is_evaluated = $this->isEvaluated();
     $obj->is_skipped = 0;
     $obj->is_doubtful = isset($_POST['is_doubtful']) ? $_POST['is_doubtful'] : 0;
+    $obj->tid = $this->tid;
     return $obj;
   }
 
@@ -850,7 +879,10 @@ abstract class QuizQuestionResponse {
    *  Validate function as a string, or FALSE if no validate function
    */
   public function getReportFormValidate(&$element, &$form_state) {
-    return FALSE;
+    // Check to make sure that entered score is not higher than max allowed score.
+    if ($element['score']['#value'] && $element['score']['#value'] > $this->getMaxScore(TRUE)) {
+      form_error($element['score'], t('The score needs to be a number between 0 and @max', array('@max' => $this->getMaxScore(TRUE))));
+    }
   }
 
   /**
@@ -952,6 +984,23 @@ abstract class QuizQuestionResponse {
       $items[$ra->result_id][] = array('answer' => $ra_i->getResponse());
     }
     return $items;
+  }
+
+  /**
+   * This returns the ratio of the weighted score of this question versus the
+   * question score. For example, if the question is worth 10 points in the
+   * associated quiz, but it is a 3 point multichoice question, the weighted
+   * ratio is 3.33.
+   *
+   * @return float
+   *   The weight of the question/
+   */
+  public function getWeightedRatio() {
+    if ($this->getMaxScore(FALSE) == 0) {
+      return 0;
+    }
+
+    return $this->getMaxScore(TRUE) / $this->getMaxScore(FALSE);
   }
 
 }
