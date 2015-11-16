@@ -751,14 +751,11 @@ abstract class QuizQuestionResponse {
     $entity_info = entity_get_info('node');
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($this->canReview("quiz_question_view_" . $view_mode)) {
-        node_build_content($node, $view_mode);
-        unset($node->content['answers']);
-        unset($node->content['links']);
+        $build = node_view($node, $view_mode);
+        unset($build['#theme']);
+        unset($build['answers']);
 
-        $type = 'node';
-        drupal_alter(array('node_view', 'entity_view'), $node->content, $type);
-
-        $out['question'][] = $node->content;
+        $out['question'][$node->nid] = $build;
       }
     }
 

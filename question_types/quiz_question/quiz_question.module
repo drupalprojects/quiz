@@ -170,6 +170,7 @@ function quiz_question_validate($node, &$form) {
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $quiz_result = quiz_result_load($result_id);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+  $view_mode = 'question';
 
   // Trake quiz and result in the form.
   $form['#quiz'] = array('nid' => $quiz->nid, 'vid' => $quiz->vid);
@@ -207,18 +208,15 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
     $element = $question->getAnsweringForm($form_state, $result_id);
     $qra = quiz_result_answer_load($quiz_result->result_id, $node->nid, $node->vid);
 
-    node_build_content($node, 'question');
-    unset($node->content['answers']);
-    unset($node->content['links']);
-
-    $type = 'node';
-    drupal_alter(array('node_view', 'entity_view'), $node->content, $type);
+    $build = node_view($node, $view_mode);
+    unset($build['#theme']);
+    unset($build['answers']);
 
     $form['question'][$node->nid] = array(
       '#attributes' => array('class' => array($class)),
       '#type' => 'container',
       'header' => $qra->display_number ? array('#markup' => "<h2>" . t("Question @question", array('@question' => $qra->display_number)) . "</h2>") : NULL,
-      'question' => $node->content,
+      'question' => $build,
       'answer' => $element,
     );
 
@@ -690,7 +688,7 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   if (!isset($question)) {
     $question = node_load($nid, $vid);
   }
-  
+
   $constructor = $info[$question->type]['response provider'];
   if (empty($constructor)) {
     xdebug_break();
