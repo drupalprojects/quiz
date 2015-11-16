@@ -690,9 +690,6 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
   }
 
   $constructor = $info[$question->type]['response provider'];
-  if (empty($constructor)) {
-    xdebug_break();
-  }
   $to_return = new $constructor($result_id, $question, $answer);
   // All responce classes must extend QuizQuestionResponse
   if (!($to_return instanceof QuizQuestionResponse)) {
