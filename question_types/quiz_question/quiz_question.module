@@ -661,7 +661,7 @@ function _quiz_question_get_instance(&$node, $use_cached = FALSE) {
     // If $node don't have a type it is a dummy node
     if (!isset($node->type)) {
       // To substanitally improve performance(especially on the result page) we avoid node_load()...
-      $sql = 'SELECT n.type, r.nid, r.vid, r.title, r.uid, p.max_score
+      $sql = 'SELECT n.type, r.nid, r.vid, r.title, n.uid, p.max_score
               FROM {node_revision} r
               JOIN {node} n ON r.nid = n.nid
               JOIN {quiz_question_properties} p ON r.vid = p.vid
