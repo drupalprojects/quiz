@@ -602,62 +602,15 @@ function quiz_question_load($nodes) {
  * @return
  *  The appropriate QuizQuestion extension instance
  */
-function _quiz_question_get_instance($node, $use_cached = FALSE) {
-  // We use static caching to improve performance
-  static $question_instances = array();
-
-  $using_dummy_node = FALSE;
-  if (is_object($node)) {
-    $vid = isset($node->vid) ? $node->vid : 0;
-    if ($use_cached && isset($question_instances[$vid])) {
-      // We just return a cached instance of the QuizQuestion
-      return $question_instances[$vid];
-    }
-    // If $node don't have a type it is a dummy node
-    if (!isset($node->type)) {
-      // To substanitally improve performance(especially on the result page) we avoid node_load()...
-      // @todo why is this? consider getting rid of this as nodes are better
-      // cached/retrieved in d7. adding the UID here to get rid of a notice.
-      $sql = 'SELECT n.type, r.nid, r.vid, r.title, p.max_score, n.uid
-              FROM {node_revision} r
-              JOIN {node} n ON r.nid = n.nid
-              JOIN {quiz_question_properties} p ON r.vid = p.vid
-              WHERE r.vid = :vid';
-      $node = db_query($sql, array(':vid' => $node->vid))->fetch();
-      $using_dummy_node = TRUE;
-    }
-    $name = $node->type;
-  }
-  elseif (is_array($node)) {
-    $name = $node['type'];
-    $vid = $node['vid'];
-    if ($use_cached && isset($question_instances[$vid])) {
-      // We return a cached instance of the appropriate QuizQuestion
-      return $question_instances[$vid];
-    }
-  }
-  // No cached instance of QuizQuestion has been returned. We construct a new instance
+function _quiz_question_get_instance($node) {
   $info = quiz_question_get_info();
-  $constructor = $info[$name]['question provider'];
+  $constructor = $info[$node->type]['question provider'];
   if (empty($constructor)) {
     return FALSE;
   }
 
   // We create a new instance of QuizQuestion
   $to_return = new $constructor($node);
-  if (!($to_return instanceof QuizQuestion)) {
-    // Make sure the constructor is creating an extension of QuizQuestion
-    drupal_set_message(t('The question-type %name isn\'t a QuizQuestion. It needs to extend the QuizQuestion class.', array('%name' => $name)), 'error', FALSE);
-  }
-  // If we're using a dummy node we have to run getNodeProperties, and populate the node with those properties
-  if ($using_dummy_node) {
-    $props = $to_return->getNodeProperties();
-    foreach ($props as $key => $value) {
-      $to_return->node->{$key} = $value;
-    }
-  }
-  // Cache the node
-  $question_instances[$vid] = $to_return;
 
   return $to_return;
 }
