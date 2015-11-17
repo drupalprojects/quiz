@@ -1,4 +1,3 @@
-
 Overview
 --------
 The quiz.module is a framework which allows you to create interactive quizzes 
@@ -8,7 +7,7 @@ to collect those questions into quizzes.
 
 Requirements
 ------------
-Drupal 6.x
+Drupal 7.x
 PHP 5.1 (for OOP code introduced in Quiz 3.0)
 MySQL 5
 
