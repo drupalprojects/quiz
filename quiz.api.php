@@ -137,3 +137,17 @@ function hook_quiz_feedback_times_alter(&$feedback_times) {
   // Do not allow question feedback.
   unset($feedback_times['question']);
 }
+
+/**
+ * Allow modules to alter the feedback labels.
+ *
+ * These are the labels that are displayed to the user, so instead of
+ * "Answer feedback" you may want to display something more learner-friendly.
+ *
+ * @param $feedback_labels
+ *   An array keyed by the feedback option. Default keys are the keys from
+ *   quiz_get_feedback_options().
+ */
+function hook_quiz_feedback_labels_alter(&$feedback_labels) {
+  $feedback_labels['solution'] = t('The answer you should have chosen.');
+}
