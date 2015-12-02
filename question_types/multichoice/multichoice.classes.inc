@@ -886,7 +886,7 @@ class MultichoiceResponse extends QuizQuestionResponse {
    */
   public function score() {
     if ($this->question->choice_boolean || $this->isAllWrong()) {
-      $score = $this->getMaxScore();
+      $score = $this->getQuizQuestion()->getMaximumScore();
       foreach ($this->question->alternatives as $key => $alt) {
         if (in_array($alt['id'], $this->user_answer_ids)) {
           if ($alt['score_if_chosen'] <= $alt['score_if_not_chosen']) {
