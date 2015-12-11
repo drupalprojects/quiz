@@ -22,7 +22,7 @@ function quiz_quiztake_pane_content_type_render($subtype, $conf, $panel_args, $c
   if (!empty($context) && empty($context->data)) {
     return;
   }
-  $node = isset($context->data) ? clone($context->data) : NULL;
+  $node = isset($context->data) ? clone $context->data : NULL;
   $block = new stdClass();
 
   if (empty($node)) {
