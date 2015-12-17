@@ -761,6 +761,7 @@ abstract class QuizQuestionResponse {
         $build = node_view($node, $view_mode);
         unset($build['#theme']);
         unset($build['answers']);
+        unset($build['links']);
 
         $out['question'][$node->nid] = $build;
       }
