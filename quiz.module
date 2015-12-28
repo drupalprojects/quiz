@@ -3050,7 +3050,7 @@ function quiz_get_sub_questions($qnr_pid, &$questions) {
   $query = db_select('node', 'n');
   $query->fields('n', array('nid', 'type'));
   $query->fields('nr', array('vid', 'title'));
-  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid'));
+  $query->fields('qnr', array('question_status', 'weight', 'max_score', 'auto_update_max_score', 'qnr_id', 'qnr_pid', 'child_nid', 'child_vid'));
   $query->addField('n', 'vid', 'latest_vid');
   $query->innerJoin('node_revision', 'nr', 'n.nid = nr.nid');
   $query->innerJoin('quiz_node_relationship', 'qnr', 'nr.vid = qnr.child_vid');
