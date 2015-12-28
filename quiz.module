@@ -174,8 +174,9 @@ function quiz_admin_paths() {
  * @return boolean
  *   TRUE if user has permission.
  */
-function quiz_access_results($quiz, $result_id = NULL) {
+function quiz_access_results($quiz, $quiz_result) {
   global $user;
+  $result_id = $quiz_result->result_id;
 
   if ($quiz->type !== 'quiz') {
     return FALSE;
@@ -187,6 +188,9 @@ function quiz_access_results($quiz, $result_id = NULL) {
     if ($res && $res->nid != $quiz->nid) {
       return FALSE;
     }
+  }
+  if (user_access('score any quiz')) {
+    return TRUE;
   }
   if (user_access('view any quiz results')) {
     return TRUE;
@@ -346,8 +350,8 @@ function quiz_menu() {
     'title' => 'Feedback',
     'title callback' => 'quiz_title',
     'title arguments' => array(1),
-    'page callback' => 'quiz_take_question_feedback',
-    'page arguments' => array(1, 3),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('quiz_take_question_feedback_form', 1, 3),
     'access callback' => 'quiz_question_feedback_access',
     'access arguments' => array(1, 3),
   );
@@ -419,6 +423,14 @@ function quiz_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 
+  $items['admin/quiz/result_answer'] = array(
+    'title' => 'Quiz result answer',
+    'description' => 'Configure Quiz result answer behaviors',
+    'page callback' => 'quiz_result_answer_page',
+    'access arguments' => array('administer quiz'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
   $items['node/%quiz_menu/quiz-results/%quiz_rid/view'] = array(
     'title' => 'View',
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -432,9 +444,10 @@ function quiz_menu() {
     'access callback' => 'quiz_access_my_result',
     'access arguments' => array(3),
     'file' => 'quiz.pages.inc',
+    'type' => MENU_LOCAL_TASK,
   );
 
-  $items['node/%quiz_menu/quiz/results/%quiz_rid/view'] = array(
+  $items['node/%quiz_menu/quiz/results/%quiz_result/view'] = array(
     'title' => 'Results',
     'page callback' => 'quiz_admin_results',
     'page arguments' => array(1, 4),
@@ -515,6 +528,13 @@ function quiz_title($node) {
  */
 function quiz_result_page() {
   return t('Here, you can configure how Quiz attempts and results behave.');
+}
+
+/**
+ * Page for Quiz result answer configuration and fields.
+ */
+function quiz_result_answer_page() {
+  return t('Here, you can configure how Quiz result answers behave.');
 }
 
 /**
@@ -736,6 +756,8 @@ function quiz_update($node) {
  * Implements hook_field_extra_fields().
  */
 function quiz_field_extra_fields() {
+  $extra = array();
+
   $extra['node']['quiz'] = array(
     'display' => array(
       'take' => array(
@@ -782,6 +804,39 @@ function quiz_field_extra_fields() {
       ),
     ),
   );
+
+  $extra['quiz_result_answer']['quiz_result_answer']['display']['table'] = array(
+    'label' => t('Feedback table'),
+    'description' => t('A table of feedback.'),
+    'weight' => 0,
+  );
+  $options = quiz_get_feedback_options();
+  foreach ($options as $option => $label) {
+    $extra['quiz_result_answer']['quiz_result_answer']['display'][$option] = array(
+      'label' => $label,
+      'description' => t('Feedback for @label.', array('@label' => $label)),
+      'weight' => 0,
+    );
+  }
+
+  $extra['quiz_result']['quiz_result']['display'] = array(
+    'score' => array(
+      'label' => t('Score'),
+      'description' => t('The score of the result.'),
+      'weight' => 1,
+    ),
+    'questions' => array(
+      'label' => t('Questions'),
+      'description' => t('The questions in this result.'),
+      'weight' => 2,
+    ),
+    'summary' => array(
+      'label' => t('Summary'),
+      'description' => t('The summary and pass/fail text.'),
+      'weight' => 3,
+    ),
+  );
+
   return $extra;
 }
 
@@ -2805,7 +2860,7 @@ function _quiz_update_resultoptions($node) {
  * @return
  *   Filtered summary text or null if we are not displaying any summary.
  */
-function _quiz_get_summary_text($quiz_result, $score) {
+function _quiz_get_summary_text($quiz_result) {
   $quiz = node_load($quiz_result->nid);
   $account = user_load($quiz_result->uid);
   $token_types = array(
@@ -2816,13 +2871,13 @@ function _quiz_get_summary_text($quiz_result, $score) {
   );
   $summary = array();
 
-  if ($result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $score['percentage_score'])) {
+  if ($result_option = _quiz_pick_result_option($quiz->nid, $quiz->vid, $quiz_result->score)) {
     // Range option.
     $summary['result'] = check_markup(token_replace($result_option->option_summary, $token_types), $result_option->option_summary_format);
   }
 
   if (variable_get('quiz_use_passfail', 1) && $quiz->pass_rate > 0) {
-    if ($score['percentage_score'] >= $quiz->pass_rate) {
+    if ($quiz_result->score >= $quiz->pass_rate) {
       // Pass/fail is enabled and user passed.
       $summary['passfail'] = check_markup(token_replace($quiz->summary_pass, $token_types), $quiz->summary_pass_format);
     }
@@ -3579,11 +3634,21 @@ function quiz_entity_info() {
     ),
     'quiz_result_answer' => array(
       'base table' => 'quiz_node_results_answers',
+      'bundles' => array(
+        'quiz_result_answer' => array(
+          'label' => 'Quiz result answer',
+          'admin' => array(
+            'path' => 'admin/quiz/result_answer',
+            'access arguments' => array('administer quiz'),
+          ),
+        ),
+      ),
       'controller class' => 'QuizResultAnswerController',
       'entity class' => 'QuizResultAnswer',
       'entity keys' => array(
         'id' => 'result_answer_id',
       ),
+      'fieldable' => TRUE,
       'label' => 'Quiz result answer',
       'metadata controller class' => 'QuizResultAnswerMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
@@ -3637,7 +3702,9 @@ function quiz_access_question($quiz, $question_number) {
 /**
  * Show feedback for a question response.
  */
-function quiz_take_question_feedback($quiz, $question_number) {
+function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_number) {
+  $form = array();
+
   if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $result_id = $_SESSION['quiz']['temp']['result_id'];
   }
@@ -3645,9 +3712,48 @@ function quiz_take_question_feedback($quiz, $question_number) {
     $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   }
   $quiz_result = quiz_result_load($result_id);
-  $question_node = node_load($quiz_result->layout[$question_number]['nid'], $quiz_result->layout[$question_number]['vid']);
-  $feedback = quiz_question_feedback(node_load(arg(1)), $question_node);
-  return $feedback;
+
+  $form['actions']['#type'] = 'actions';
+
+  if ($quiz_result->time_end) {
+    // Quiz is done.
+    $form['actions']['finish'] = array(
+      '#type' => 'submit',
+      '#submit' => array('quiz_take_question_feedback_end_submit'),
+      '#value' => t('Finish'),
+    );
+  }
+  else {
+    $form['actions']['next'] = array(
+      '#type' => 'submit',
+      '#submit' => array('quiz_take_question_feedback_submit'),
+      '#value' => t('Next question'),
+    );
+  }
+
+  // Add feedback.
+  $out = array();
+  foreach ($quiz_result->layout as $question) {
+    if ($question['number'] == $question_number && $question['qnr_pid']) {
+      // Question is in a page.
+      foreach ($quiz_result->layout as $question2) {
+        if ($question2['qnr_pid'] == $question['qnr_pid']) {
+          $qra = entity_load_single('quiz_result_answer', $question2['result_answer_id']);
+          $out[] = $qra->view();
+        }
+      }
+    }
+  }
+
+  // Single question.
+  if (empty($out)) {
+    $qra = entity_load_single('quiz_result_answer', $quiz_result->layout[$question_number]['result_answer_id']);
+    $out[] = $qra->view();
+  }
+
+  $form['feedback'] = $out;
+
+  return $form;
 }
 
 /**
@@ -3952,10 +4058,39 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
   }
 
   $form['actions'] = array('#type' => 'actions');
-  $form['actions']['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Start @quiz', array('@quiz' => QUIZ_NAME)),
-  );
+
+  if (!empty($quiz_result->result_id)) {
+    $idx = 0;
+    foreach ($quiz_result->layout as $question) {
+      // Loop through all the questions and get their scoring form.
+      $question_node = node_load($question['nid'], $question['vid']);
+      $instance = _quiz_question_response_get_instance($quiz_result->result_id, $question_node);
+      $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
+      $qra = reset($qras);
+      // Get the feedback elements.
+      $form['questions'][$idx] = $instance->getReportForm();
+      $form['questions'][$idx]['#tree'] = TRUE;
+      $form['questions'][$idx]['#type'] = 'fieldset';
+      $form['questions'][$idx]['#title'] = t('Question @num', array('@num' => $question['display_number']));
+      // The display of the question.
+      $form['questions'][$idx]['response'] = $qra->view();
+      $form['questions'][$idx]['response']['#weight'] = -1;
+      $idx++;
+    }
+  }
+
+  if (empty($quiz_result->result_id)) {
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Start @quiz', array('@quiz' => QUIZ_NAME)),
+    );
+  }
+  else {
+    $form['actions']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save score'),
+    );
+  }
 
   return $form;
 }
@@ -3975,4 +4110,8 @@ function quiz_result_form_submit($form, &$form_state) {
   entity_save('quiz_result', $quiz_result);
   $_SESSION['quiz'][$quiz_result->nid]['result_id'] = $quiz_result->result_id;
   $_SESSION['quiz'][$quiz_result->nid]['current'] = 1;
+
+  // Call the grading handler.
+  module_load_include('inc', 'quiz', 'quiz.pages');
+  quiz_report_form_submit($form, $form_state);
 }

@@ -53,13 +53,14 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     // Strange behavior - extra spacing in the HTML.
     //$this->assertText('Score ? of 10');
     $this->assertText('This answer has not yet been scored.');
-    $this->assertNoFieldByName('0[score]');
     $this->assertNoFieldByName('1[score]');
+    $this->assertNoFieldByName('2[score]');
     $url_of_result = $this->getUrl();
+    $admin_url_of_result = preg_replace('#quiz-results/(\d+)#', 'quiz/results/$1', $this->getUrl());
 
     // Test grading the question.
     $this->drupalLogin($this->admin);
-    $this->drupalGet($url_of_result);
+    $this->drupalGet($admin_url_of_result);
     $this->drupalPost(NULL, array(
       "0[score]" => 3,
       "1[score]" => 7,

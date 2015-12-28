@@ -46,7 +46,8 @@ class QuizResultController extends EntityAPIController {
           }
 
           $quiz_results[$quiz_result_answer->result_id]->layout[$quiz_result_answer->number] = array(
-            'display_number' => $quiz_result_answer->number,
+            'result_answer_id' => $quiz_result_answer->result_answer_id,
+            'display_number' => $quiz_result_answer->display_number,
             'nid' => $quiz_result_answer->question_nid,
             'vid' => $quiz_result_answer->question_vid,
             'tid' => $quiz_result_answer->tid,
@@ -168,6 +169,67 @@ class QuizResultController extends EntityAPIController {
       return quiz_result_load($old_quiz_result->result_id);
     }
     return FALSE;
+  }
+
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL) {
+    $out = parent::buildContent($entity, $view_mode, $langcode);
+
+    if (!$entity->is_evaluated && empty($_POST)) {
+      $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
+      drupal_set_message($msg, 'warning');
+    }
+
+    $score = quiz_calculate_score($entity->result_id);
+    $account = user_load($entity->uid);
+
+    $params = array(
+      '%num_correct' => $score['numeric_score'],
+      '%question_count' => $score['possible_score'],
+      '!username' => ($account->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
+      '@score' => $score['percentage_score'],
+      '!yourtotal' => ($account->uid == $account->uid) ? t('Your') : t('Total'),
+    );
+
+    $out['questions'] = array();
+
+    foreach ($entity->layout as $question) {
+      // Loop through all the questions and get their feedback.
+      $question_node = node_load($question['nid'], $question['vid']);
+
+
+      $instance = _quiz_question_response_get_instance($entity->result_id, $question_node);
+      if ($instance->getQuizQuestion()->hasFeedback()) {
+        $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $entity->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
+        $qra = reset($qras);
+
+        $out[$question_node->nid] = array(
+          '#title' => t('Question @num', array('@num' => $question['display_number'])),
+          '#type' => 'fieldset',
+          'feedback' => $qra->view(),
+          '#weight' => $question['number'],
+        );
+      }
+
+      $quiz_feedback['#markup'] = '';
+      if (quiz_feedback_can_review('quiz_feedback', $entity)) {
+        $summary = _quiz_get_summary_text($entity);
+        // Show quiz feedback.
+        if (!empty($summary['passfail'])) {
+          $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>';
+        }
+        if (!empty($summary['result'])) {
+          $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
+        }
+      }
+      $out['summary'] = $quiz_feedback;
+
+      if (quiz_feedback_can_review('score', $entity)) {
+        // Show score.
+        $out['score']['#markup'] = '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
+        $out['score']['#markup'] .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
+      }
+    }
+    return array('content' => $out);
   }
 
 }

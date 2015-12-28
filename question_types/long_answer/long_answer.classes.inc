@@ -14,28 +14,20 @@ class LongAnswerQuestion extends QuizQuestion {
 
   /**
    * Implementation of saveNodeProperties
-   * @see QuizQuestion#saveNodeProperties($is_new)
+   * @see QuizQuestion#saveNodeProperties()
    */
   public function saveNodeProperties($is_new = FALSE) {
-    if (!isset($this->node->feedback)) {
-      $this->node->feedback = '';
-    }
-    if ($is_new || $this->node->revision == 1) {
-      $id = db_insert('quiz_long_answer_node_properties')
-        ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
-          'rubric' => $this->node->rubric,
-        ))
-        ->execute();
-    }
-    else {
-      db_update('quiz_long_answer_node_properties')
-        ->fields(array('rubric' => $this->node->rubric))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
-    }
+    db_merge('quiz_long_answer_node_properties')
+      ->key(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+      ))
+      ->fields(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+        'rubric' => $this->node->rubric,
+      ))
+      ->execute();
   }
 
   /**
@@ -193,7 +185,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
     $query->fields('qnra', array('result_id', 'question_nid', 'question_vid'));
-    $query->join('quiz_node_results_answers','qnra', 'a.result_answer_id = qnra.result_answer_id');
+    $query->join('quiz_node_results_answers', 'qnra', 'a.result_answer_id = qnra.result_answer_id');
     $query->join('node_revision', 'r', 'qnra.question_vid = r.vid');
     $query->join('quiz_node_results', 'qnr', 'qnra.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');

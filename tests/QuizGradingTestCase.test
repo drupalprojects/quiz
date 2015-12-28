@@ -104,10 +104,11 @@ class QuizGradingTestCase extends QuizTestCase {
       ), t('Finish'));
     $this->assertText('You got 3 of 10 possible points.');
     $url_of_result = $this->getUrl();
+    $admin_url_of_result = preg_replace('#quiz-results/(\d+)#', 'quiz/results/$1', $this->getUrl());
 
     // Test grading the question.
     $this->drupalLogin($this->admin);
-    $this->drupalGet($url_of_result);
+    $this->drupalGet($admin_url_of_result);
 
     $this->drupalPost(NULL, array(
       "0[score]" => 3,

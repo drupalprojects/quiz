@@ -985,12 +985,10 @@ function quiz_question_element_validate(&$element, &$form_state) {
   $result = _quiz_question_response_get_instance($_SESSION['quiz'][$quiz->nid]['result_id'], $current_question, $answer);
   if ($quiz->repeat_until_correct && !$result->isCorrect() && $result->isEvaluated()) {
     form_set_error('', t('The answer was incorrect. Please try again.'));
-
-    $feedback = quiz_question_feedback($quiz, $current_question);
-    $element['feedback'] = array(
-      '#weight' => 100,
-      '#markup' => drupal_render($feedback),
-    );
+    // Show feedback after incorrect answer.
+    $qra = entity_load_single('quiz_result_answer', $result->result_answer_id);
+    $element['feedback'] = $qra->view();
+    $element['feedback']['#weight'] = 100;
   }
 }
 

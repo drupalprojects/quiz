@@ -33,27 +33,18 @@ class ShortAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#saveNodeProperties($is_new)
    */
   public function saveNodeProperties($is_new = FALSE) {
-    if ($is_new || $this->node->revision == 1) {
-      $id = db_insert('quiz_short_answer_node_properties')
-        ->fields(array(
-          'nid' => $this->node->nid,
-          'vid' => $this->node->vid,
-          'correct_answer' => $this->node->correct_answer,
-          'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
-        ))
-        ->execute();
-    }
-    else {
-
-      db_update('quiz_short_answer_node_properties')
-        ->fields(array(
-          'correct_answer' => $this->node->correct_answer,
-          'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
-        ))
-        ->condition('nid', $this->node->nid)
-        ->condition('vid', $this->node->vid)
-        ->execute();
-    }
+    db_merge('quiz_short_answer_node_properties')
+      ->key(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+      ))
+      ->fields(array(
+        'nid' => $this->node->nid,
+        'vid' => $this->node->vid,
+        'correct_answer' => $this->node->correct_answer,
+        'correct_answer_evaluation' => $this->node->correct_answer_evaluation,
+      ))
+      ->execute();
   }
 
   /**
@@ -286,7 +277,7 @@ class ShortAnswerResponse extends QuizQuestionResponse {
     $query->fields('r', array('title'));
     $query->fields('qnr', array('time_end', 'time_start', 'uid'));
     $query->fields('qnra', array('result_id', 'question_nid', 'question_vid'));
-    $query->join('quiz_node_results_answers','qnra', 'a.result_answer_id = qnra.result_answer_id');
+    $query->join('quiz_node_results_answers', 'qnra', 'a.result_answer_id = qnra.result_answer_id');
     $query->join('node_revision', 'r', 'qnra.question_vid = r.vid');
     $query->join('quiz_node_results', 'qnr', 'qnra.result_id = qnr.result_id');
     $query->join('node', 'n', 'qnr.nid = n.nid');

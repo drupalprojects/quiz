@@ -324,7 +324,7 @@ abstract class QuizQuestion {
   /**
    * Save question type specific node properties
    */
-  abstract public function saveNodeProperties($is_new = FALSE);
+  abstract public function saveNodeProperties();
 
   /**
    * Save this Question to the specified Quiz.
@@ -712,6 +712,7 @@ abstract class QuizQuestionResponse {
      * Add general data, and data from the question type implementation
      */
     $form = array();
+
     $form['nid'] = array(
       '#type' => 'value',
       '#value' => $this->question->nid,
@@ -728,112 +729,19 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->display_number,
     );
-    if (quiz_access_to_score() && $submit = $this->getReportFormSubmit()) {
-      $form['submit'] = array(
-        '#type' => 'value',
-        '#value' => $submit,
-      );
-    }
+    if (quiz_access_to_score()) {
 
-    if (quiz_access_to_score() && $submit) {
-      $form['score'] = $this->getReportFormScore();
-    }
-    if (quiz_access_to_score() && $submit) {
-      $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
-    }
-
-    foreach ($this->getFeedback() as $type => $render) {
-      $form[$type] = $render;
-    }
-
-    return $form;
-  }
-
-  /**
-   * Returns a renderable array of question feedback.
-   */
-  public function getFeedback() {
-    $out = array();
-    $node = node_load($this->question->nid, $this->question->vid);
-    $entity_info = entity_get_info('node');
-    foreach ($entity_info['view modes'] as $view_mode => $info) {
-      if ($this->canReview("quiz_question_view_" . $view_mode)) {
-        $build = node_view($node, $view_mode);
-        unset($build['#theme']);
-        unset($build['answers']);
-        unset($build['links']);
-
-        $out['question'][$node->nid] = $build;
-      }
-    }
-
-    $rows = array();
-
-    $labels = array(
-      'attempt' => t('Your answer'),
-      'choice' => t('Choice'),
-      'correct' => t('Correct?'),
-      'score' => t('Score'),
-      'answer_feedback' => t('Feedback'),
-      'solution' => t('Correct answer'),
-    );
-    drupal_alter('quiz_feedback_labels', $labels);
-
-    foreach ($this->getFeedbackValues() as $idx => $row) {
-      foreach ($labels as $reviewType => $label) {
-        if ((isset($row[$reviewType]) && $this->canReview($reviewType))) {
-          $rows[$idx][$reviewType] = $row[$reviewType];
-        }
-      }
-    }
-
-    if ($this->isEvaluated()) {
-      $score = $this->getScore();
-      if ($this->isCorrect()) {
-        $class = 'q-correct';
-      }
-      else {
-        $class = 'q-wrong';
-      }
-    }
-    else {
-      $score = t('?');
-      $class = 'q-waiting';
-    }
-
-    if ($this->canReview('score') || quiz_access_to_score()) {
-      $out['score_display']['#markup'] = theme('quiz_question_score', array('score' => $score, 'max_score' => $this->getMaxScore(), 'class' => $class));
-    }
-
-    if ($rows) {
-      $headers = array_intersect_key($labels, $rows[0]);
-      $type = $this->getQuizQuestion()->node->type;
-      $out['response']['#markup'] = theme('quiz_question_feedback__' . $type, array('labels' => $headers, 'data' => $rows));
-    }
-
-    if ($this->canReview('question_feedback')) {
-      if ($properties = entity_load('quiz_question', FALSE, array('nid' => $this->quizQuestion->node->nid, 'vid' => $this->quizQuestion->node->vid))) {
-        $quiz_question = reset($properties);
-        $quiz_result = quiz_result_load($this->result_id);
-        $account = user_load($quiz_result->uid);
-        $token_types = array(
-          'global' => NULL,
-          'node' => $this->quizQuestion->node,
-          'user' => $account,
+      if ($submit = $this->getReportFormSubmit()) {
+        $form['score'] = $this->getReportFormScore();
+        $form['answer_feedback'] = $this->getReportFormAnswerFeedback();
+        $form['submit'] = array(
+          '#type' => 'value',
+          '#value' => $submit,
         );
-        $quiz_question->feedback = token_replace($quiz_question->feedback, $token_types);
-        $out['question_feedback']['#markup'] = check_markup($quiz_question->feedback, $quiz_question->feedback_format);
       }
-    }
 
-    if ($this->canReview('score')) {
-      $out['max_score'] = array(
-        '#type' => 'value',
-        '#value' => $this->getMaxScore(),
-      );
+      return $form;
     }
-
-    return $out;
   }
 
   /**

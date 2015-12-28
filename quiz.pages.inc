@@ -13,6 +13,7 @@
  */
 function quiz_user_results($result_id) {
   $quiz_result = quiz_result_load($result_id);
+  return entity_view('quiz_result', array($quiz_result));
 
   if ($quiz_result->nid) {
     $quiz = node_load($quiz_result->nid, $quiz_result->vid);
@@ -61,76 +62,6 @@ function quiz_check_feedback(QuizResult $quiz_result) {
 }
 
 /**
- * Form for showing feedback, and for editing the feedback if necessary...
- *
- * @param $form_state
- *   FAPI form state(array)
- * @param $questions
- *   array of questions to inclide in the report
- * @return $form
- *   FAPI form array
- */
-function quiz_report_form($form, $form_state, $questions, $result_id) {
-  $form = array();
-  // The submit button is only shown if one or more of the questions has input elements
-  $show_submit = FALSE;
-  foreach ($questions as $question) {
-    $module = quiz_question_module_for_type($question->type);
-    if (!$module) {
-      return array();
-    }
-    $function = $module . '_report_form';
-    $form_to_add = $function($question, $result_id);
-    if (isset($form_to_add['submit'])) {
-      $show_submit = TRUE;
-      $form_to_add['#element_validate'][] = 'quiz_report_form_element_validate';
-    }
-    if (!isset($form_to_add['#no_report'])) {
-      $form[] = $form_to_add;
-    }
-  }
-
-  $form['#tree'] = TRUE;
-  $form['navigation']['#type'] = 'actions';
-  if ($show_submit) {
-    $form['navigation']['submit'] = array(
-      '#type' => 'submit',
-      '#submit' => array('quiz_report_form_submit'),
-      '#value' => t('Save score'),
-    );
-  }
-
-  if (arg(4) == 'feedback') {
-    // @todo Ugh, there is no way to determine if we are showing feedback as
-    // part of a try-until-correct or actual quiz after-question feedback, so we
-    // have to check arg() here to fix the "Next question" button showing up
-    // during adaptive mode.
-    $quiz_result = quiz_result_load($result_id);
-
-    if (count($questions) != count($quiz_result->layout)) {
-      $form['#quiz_result'] = $quiz_result;
-      if (empty($_SESSION['quiz'][$quiz_result->nid])) {
-        // Quiz is done.
-        $form['navigation']['finish'] = array(
-          '#type' => 'submit',
-          '#submit' => array('quiz_take_question_feedback_end_submit'),
-          '#value' => t('Finish'),
-        );
-      }
-      else {
-        $form['navigation']['next'] = array(
-          '#type' => 'submit',
-          '#submit' => array('quiz_take_question_feedback_submit'),
-          '#value' => t('Next question'),
-        );
-      }
-    }
-  }
-
-  return $form;
-}
-
-/**
  * Validate a single question sub-form.
  */
 function quiz_report_form_element_validate(&$element, &$form_state) {
@@ -143,51 +74,37 @@ function quiz_report_form_element_validate(&$element, &$form_state) {
  * Submit the report form
  */
 function quiz_report_form_submit($form, &$form_state) {
-  /* We go through the form state values and submit all
-   * questiontypes with validation functions declared.
-   */
   global $user;
+  $quiz_result = $form_state['quiz_result'];
+  $quiz = node_load($quiz_result->nid, $quiz_result->vid);
+
   foreach ($form_state['values'] as $key => $q_values) {
     // Questions has numeric keys in the report form
-    if (!is_numeric($key)) {
-      continue;
+    if (is_numeric($key)) {
+      $question_node = node_load($q_values['nid'], $q_values['vid']);
+      $instance = _quiz_question_response_get_instance($quiz_result->result_id, $question_node);
+      if ($instance->getReportFormSubmit()) {
+        $q_values['quiz'] = node_load($quiz_result->nid, $quiz_result->vid);
+        call_user_func($instance->getReportFormSubmit(), $q_values);
+      }
     }
-    // Questions store the name of the validation function with the key 'submit'
-    if (!isset($q_values['submit'])) {
-      continue;
-    }
-    // The submit function must exist
-    if (!function_exists($q_values['submit'])) {
-      continue;
-    }
-
-    // Load the quiz
-    if (!isset($quiz)) {
-      $result = db_query('SELECT nid, uid, vid FROM {quiz_node_results} WHERE result_id = :result_id', array(':result_id' => $q_values['result_id']))->fetchObject();
-      $quiz = node_load($result->nid, $result->vid);
-      $result_id = $q_values['result_id'];
-    }
-
-    $q_values['quiz'] = $quiz;
-
-    // We call the submit function provided by the question
-    call_user_func($q_values['submit'], $q_values);
   }
+
   // Scores may have been changed. We take the necessary actions
-  quiz_end_scoring($result_id);
-  $results_got_deleted = _quiz_maintain_results($quiz, $result_id);
+  quiz_end_scoring($quiz_result->result_id);
+  $results_got_deleted = _quiz_maintain_results($quiz, $quiz_result->result_id);
 
   // Notify the user if results got deleted as a result of him scoring an answer.
   $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this @quiz is set to only keep each users best answer.', array('@quiz' => QUIZ_NAME)) : '';
 
-  $score_data = quiz_get_score_array($result_id, $quiz->vid, TRUE);
+  $score_data = quiz_get_score_array($quiz_result->result_id, $quiz->vid, TRUE);
 
-  module_invoke_all('quiz_scored', $quiz, $score_data, $result_id);
+  module_invoke_all('quiz_scored', $quiz, $score_data, $quiz_result->result_id);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
-    if ($result && $result->uid == $user->uid) {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/results/' . $result_id;
+    if ($quiz_result && $quiz_result->uid == $user->uid) {
+      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/results/' . $quiz_result->result_id;
     }
   }
 }
@@ -394,71 +311,6 @@ function theme_quiz_view_stats($variables) {
   }
   $out .= '</table>' . "\n";
   return $out;
-}
-
-/**
- * Theme the result page.
- *
- * @param $quiz
- *  The quiz node object.
- * @param $questions
- *  The questions array as defined by _quiz_get_answers.
- * @param $score
- *  Array of score information as returned by quiz_calculate_score().
- * @param $summary
- *  Filtered text of the summary.
- * @return
- *  Themed html.
- *
- * @ingroup themeable
- */
-function theme_quiz_result($variables) {
-  global $user;
-  $quiz = $variables['quiz'];
-  $questions = $variables['questions'];
-  $score = $variables['score'];
-  $summary = $variables['summary'];
-  $quiz_result = quiz_result_load($variables['result_id']);
-  $account = $variables['account'];
-
-  if (!$score['is_evaluated'] && empty($_POST)) {
-    $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
-    drupal_set_message($msg, 'warning');
-  }
-
-  // Display overall result.
-  $output = '';
-  $params = array(
-    '%num_correct' => $score['numeric_score'],
-    '%question_count' => $score['possible_score'],
-    '!username' => ($user->uid == $account->uid) ? t('You') : theme('username', array('account' => $account)),
-    '@score' => $score['percentage_score'],
-    '!yourtotal' => ($user->uid == $account->uid) ? t('Your') : t('Total'),
-  );
-
-  $score_out = '';
-  if (quiz_feedback_can_review('score', $quiz_result)) {
-    // Show score.
-    $score_out .= '<div id="quiz_score_possible">' . t('!username got %num_correct of %question_count possible points.', $params) . '</div>' . "\n";
-    $score_out .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
-  }
-
-  $report_form = drupal_get_form('quiz_report_form', $questions, $quiz_result->result_id);
-
-  $quiz_feedback['#markup'] = '';
-  if (quiz_feedback_can_review('quiz_feedback', $quiz_result)) {
-    // Show quiz feedback.
-    if (!empty($summary['passfail'])) {
-      $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['passfail'] . '</div>';
-    }
-    if (!empty($summary['result'])) {
-      $quiz_feedback['#markup'] .= '<div id="quiz-summary">' . $summary['result'] . '</div>';
-    }
-  }
-  $report_form['quiz_feedback'] = $quiz_feedback;
-
-  $form = drupal_render($report_form);
-  return $score_out . $form;
 }
 
 /**

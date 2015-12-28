@@ -119,15 +119,16 @@ div.quiz-report .quiz-report-question-header h3 {
   float:left;
 }
 
-div.quiz-report .dt div.quiz-report-score-container {
+div.quiz-report-score-container {
   border-right: solid 1px gray;
   border-left: solid 1px gray;
   border-bottom: solid 1px gray;
+  border-top: solid 1px gray;
   float: right;
   padding: 4px 6px;
 }
 
-div.quiz-report .dt div.quiz-report-score-container span div.form-item {
+div.quiz-report-score-container span div.form-item {
   display: inline;
 }
 

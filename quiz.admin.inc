@@ -370,13 +370,12 @@ function quiz_admin_node_form_submit($form, &$form_state) {
  * @param $result_id
  *   The result id
  */
-function quiz_admin_results($quiz, $result_id) {
+function quiz_admin_results($quiz, $quiz_result) {
   // Preserve "Results" tab.
   $item = menu_get_item("node/$quiz->nid/quiz");
   menu_set_item(NULL, $item);
 
-  module_load_include('inc', 'quiz', 'quiz.pages');
-  return quiz_user_results($result_id);
+  return entity_ui_get_form('quiz_result', $quiz_result);
 }
 
 // MANAGE QUESTIONS

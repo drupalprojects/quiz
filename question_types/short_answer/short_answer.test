@@ -163,15 +163,13 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     $this->assertNoFieldByName('1[answer_feedback][value]');
     $this->assertNoRaw(t('Save score'));
     $url_of_result = $this->getUrl();
+    $admin_url_of_result = preg_replace('#quiz-results/(\d+)#', 'quiz/results/$1', $this->getUrl());
 
     // Test grading the question.
     $this->drupalLogin($this->admin);
-    $this->drupalGet($url_of_result);
+    $this->drupalGet($admin_url_of_result);
     $this->assertFieldByName('0[score]');
     $this->assertFieldByName('1[score]');
-    // Admin has to provide feedback.
-    $this->drupalLogin($this->admin);
-    $this->drupalGet($url_of_result);
     $this->drupalPost(NULL, array(
       "0[score]" => 2,
       "1[score]" => 3,

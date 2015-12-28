@@ -494,7 +494,7 @@ class QuizResultTestCase extends QuizTestCase {
     $this->drupalPost(NULL, array('quiz_result_field_a[und][0][value]' => 'test 123'), t('Start Quiz'));
     $quiz_result = _quiz_active_result_id($this->user->uid, $quizNodeA->nid, $quizNodeA->vid);
     // Check the result exists now.
-    $this->assertTrue($quiz_result, 'Quiz result exists.');
+    $this->assertText('Question 1');
   }
 
   /**
