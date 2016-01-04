@@ -3445,7 +3445,7 @@ function quiz_get_defaults() {
 
   if (count($entity)) {
     // We found user defaults.
-    $defaults = reset($entity);
+    $defaults = clone (reset($entity));
     unset($defaults->nid, $defaults->uid, $defaults->vid);
     return $defaults;
   }
@@ -3458,7 +3458,7 @@ function quiz_get_defaults() {
 
   if (count($entity)) {
     // Found global defaults.
-    $defaults = reset($entity);
+    $defaults = clone (reset($entity));
     unset($defaults->nid, $defaults->uid, $defaults->vid);
     return $defaults;
   }
