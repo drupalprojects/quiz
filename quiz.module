@@ -1658,8 +1658,19 @@ function quiz_node_prepare($node) {
 
 /**
  * Implements hook_user_cancel().
+ *
+ * Reassign Quiz results to the anonymous user, if requested.
  */
 function quiz_user_cancel($edit, $account, $method) {
+  if ($method == 'user_cancel_reassign') {
+    db_query("UPDATE {quiz_node_results} SET uid = 0 WHERE uid = :uid", array(':uid' => $account->uid));
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function quiz_user_delete($account) {
   if (variable_get('quiz_durod', 0)) {
     _quiz_delete_users_results($account->uid);
   }
