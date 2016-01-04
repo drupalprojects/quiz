@@ -2491,7 +2491,7 @@ function quiz_availability($quiz) {
  *     - is_evaluated
  */
 function quiz_calculate_score($result_id) {
-  $quiz_result_answers = entity_load('quiz_result_answer', NULL, array('result_id' => $result_id));
+  $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => $result_id));
 
   $numeric_score = $possible_score = 0;
   $is_evaluated = 1;
