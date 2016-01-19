@@ -57,7 +57,7 @@ function quiz_question_theme() {
   );
 
   $hooks['quiz_question_feedback'] = array(
-    'variables' => NULL,
+    'variables' => array(),
     'pattern' => 'quiz_question_feedback__',
   );
 
