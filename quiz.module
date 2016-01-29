@@ -910,7 +910,6 @@ function _quiz_get_node_defaults() {
       'always_available' => TRUE,
       'backwards_navigation' => 1,
       'build_on_last' => '',
-      'has_userpoints' => 0,
       'keep_results' => 2,
       'mark_doubtful' => 0,
       'max_score' => 0,
@@ -939,7 +938,6 @@ function _quiz_get_node_defaults() {
       'takes' => 0,
       'tid' => 0,
       'time_limit' => 0,
-      'userpoints_tid' => 0,
   );
 }
 
@@ -1297,34 +1295,6 @@ function quiz_form(&$node, &$form_state) {
       '!countdown' => l('jquery_countdown', 'http://drupal.org/project/jquery_countdown'),
   )));
 
-  if (function_exists('userpoints_userpointsapi') && variable_get('quiz_has_userpoints', 1)) {
-    $form['userpoints'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Userpoints'),
-      '#collapsible' => TRUE,
-      '#collapsed' => FALSE,
-      '#group' => 'additional_settings',
-    );
-    $form['userpoints']['has_userpoints'] = array(
-      '#type' => 'checkbox',
-      '#default_value' => (isset($node->has_userpoints) ? $node->has_userpoints : 1),
-      '#title' => t('Enable UserPoints Module Integration'),
-      '#description' => t('If checked, marks scored in this @quiz will be credited to userpoints. For each correct answer 1 point will be added to user\'s point.', array('@quiz' => QUIZ_NAME)),
-    );
-    $form['userpoints']['userpoints_tid'] = array(
-      '#type' => 'select',
-      '#options' => _quiz_userpoints_type(),
-      '#title' => t('Userpoints Category'),
-      '#states' => array(
-        'visible' => array(
-          ':input[name=has_userpoints]' => array('checked' => TRUE),
-        ),
-      ),
-      '#default_value' => isset($node->userpoints_tid) ? $node->userpoints_tid : 0,
-      '#description' => t('Select the category to which user points to be added. To add new category see <a href="!url">admin/structure/taxonomy/userpoints</a>', array('!url' => url('admin/structure/taxonomy/userpoints'))),
-    );
-  }
-
   // Set up the availability options.
   $form['quiz_availability'] = array(
     '#type' => 'fieldset',
@@ -1521,15 +1491,6 @@ function quiz_form(&$node, &$form_state) {
     $node->log = t('The current revision has been answered. We create a new revision so that the reports from the existing answers stays correct.');
   }
   return $form;
-}
-
-function _quiz_userpoints_type() {
-  $userpoints_terms = taxonomy_get_tree(userpoints_get_vid());
-  $userpoints_tids = array(0 => t('Select'));
-  foreach ($userpoints_terms as $userpoints_term) {
-    $userpoints_tids[$userpoints_term->tid] = str_repeat('-', $userpoints_term->depth) . $userpoints_term->name;
-  }
-  return $userpoints_tids;
 }
 
 /**
@@ -2137,34 +2098,6 @@ function quiz_quiz_finished($quiz, $score, $session_data) {
     drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t('Your results have been sent to your email address.'));
   }
-
-  // Calls userpoints functions to credit user point based on number of correct
-  // answers.
-  if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
-
-    //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT tid FROM {taxonomy_index}
-                WHERE nid = :nid AND tid IN (
-                  SELECT tid
-                  FROM {taxonomy_term_data} t_t_d JOIN {taxonomy_vocabulary} t_v ON t_v.vid = t_t_d.vid
-                  WHERE t_t_d.vid = :vid
-                )", array(':nid' => $quiz->nid, ':vid' => $quiz->vid, ':vid' => userpoints_get_vid()))->fetchField();
-    $variables = array(
-      '@title' => $quiz->title,
-      '@quiz' => QUIZ_NAME,
-      '@time' => date('l jS \of F Y h:i:s A'),
-    );
-    $params = array(
-      'points' => $score['numeric_score'],
-      'description' => t('Attended @title @quiz on @time', $variables),
-      'tid' => $selected_tid,
-      'uid' => $taker->uid,
-    );
-    if ($quiz->userpoints_tid != 0) {
-      $params['tid'] = $quiz->userpoints_tid;
-    }
-    userpoints_userpointsapi($params);
-  }
 }
 
 /**
@@ -2178,32 +2111,6 @@ function quiz_quiz_scored($quiz, $score, $result_id) {
   if (variable_get('quiz_email_results', 0) && $taker->uid != 0 && $score['is_evaluated']) {
     drupal_mail('quiz', 'notice', $taker->mail, NULL, array($quiz, $score, $result_id, 'taker'));
     drupal_set_message(t("The results has been sent to the user's email address."));
-  }
-
-  // Calls userpoints functions to credit user point based on number of correct
-  // answers.
-  if ($quiz->has_userpoints && $taker->uid != 0 && $score['is_evaluated']) {
-
-    //Looking up the tid of the selected Userpoint vocabulary
-    $selected_tid = db_query("SELECT ti.tid
-                FROM {taxonomy_index} ti
-                JOIN {taxonomy_term_data} td
-                  ON td.tid = ti.tid AND td.vid = :vid
-                WHERE ti.nid = :nid", array(':nid' => $quiz->nid, ':vid' => userpoints_get_vid()))->fetchField();
-    $variables = array(
-      '@title' => $quiz->title,
-      '@quiz' => QUIZ_NAME,
-      '@time' => date('l jS \of F Y h:i:s A'),
-    );
-    $params = array(
-      'points' => $score['numeric_score'],
-      'description' => t('Attended @title @quiz on @time', $variables),
-      'tid' => $selected_tid,
-    );
-    if ($quiz->userpoints_tid != 0) {
-      $params['tid'] = $quiz->userpoints_tid;
-    }
-    userpoints_userpointsapi($params);
   }
 }
 

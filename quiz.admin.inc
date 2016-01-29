@@ -136,7 +136,6 @@ function quiz_admin_settings($form, &$form_state) {
 
   $links = array(
     '!jquery_countdown' => l(t('JQuery Countdown'), 'http://drupal.org/project/jquery_countdown', $target),
-    '!userpoints' => l(t('UserPoints'), 'http://drupal.org/project/userpoints', $target),
   );
 
   $form['quiz_addons'] = array(
@@ -145,14 +144,6 @@ function quiz_admin_settings($form, &$form_state) {
     '#description' => t('Quiz has built in integration with some other modules. Disabled checkboxes indicates that modules are not enabled.', $links),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-  );
-
-  $form['quiz_addons']['quiz_has_userpoints'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('User Points'),
-    '#default_value' => variable_get('quiz_has_userpoints', 0),
-    '#description' => t('!userpoints is an <strong>optional</strong> module for Quiz. It provides ways for users to gain or lose points for performing certain actions on your site like completing a Quiz.', $links),
-    '#disabled' => !module_exists('userpoints'),
   );
 
   $form['quiz_addons']['quiz_has_timer'] = array(
