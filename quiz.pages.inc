@@ -14,34 +14,6 @@
 function quiz_user_results($result_id) {
   $quiz_result = quiz_result_load($result_id);
   return entity_view('quiz_result', array($quiz_result));
-
-  if ($quiz_result->nid) {
-    $quiz = node_load($quiz_result->nid, $quiz_result->vid);
-
-    // Preserve "My results" tab.
-    $item = menu_get_item("node/$quiz->nid/quiz-results");
-    menu_set_item(NULL, $item);
-
-    $questions = _quiz_get_answers($quiz, $result_id);
-    $score = quiz_calculate_score($result_id);
-    $summary = _quiz_get_summary_text($quiz_result, $score);
-    $data = array(
-      'quiz' => $quiz,
-      'questions' => $questions,
-      'score' => $score,
-      'summary' => $summary,
-      'result_id' => $result_id,
-      'account' => user_load($quiz_result->uid),
-    );
-    if (user_access('view own quiz results') && quiz_check_feedback($quiz_result)) {
-      return theme('quiz_result', $data);
-    }
-    else {
-      // User cannot view own results or there is no feedback enabled. Show
-      // generic text.
-      return t('You have finished this @quiz.', array('@quiz' => QUIZ_NAME));
-    }
-  }
 }
 
 /**
