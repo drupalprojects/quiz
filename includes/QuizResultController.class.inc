@@ -78,16 +78,22 @@ class QuizResultController extends EntityAPIController {
     $new = !empty($entity->is_new);
 
     if (!isset($entity->attempt)) {
-      $efq = new EntityFieldQuery();
-      $result = $efq->entityCondition('entity_type', 'quiz_result')
-        ->propertyCondition('nid', $entity->nid)
-        ->propertyCondition('uid', $entity->uid)
-        ->propertyOrderBy('attempt', 'DESC')
-        ->execute();
-      if (!empty($result['quiz_result'])) {
-        $keys = array_keys($result['quiz_result']);
-        $existing = quiz_result_load(reset($keys));
-        $entity->attempt = $existing->attempt + 1;
+      if ($entity->uid == 0) {
+        $entity->attempt = 1;
+      }
+      else {
+        $efq = new EntityFieldQuery();
+        $result = $efq->entityCondition('entity_type', 'quiz_result')
+          ->propertyCondition('nid', $entity->nid)
+          ->propertyCondition('uid', $entity->uid)
+          ->propertyOrderBy('attempt', 'DESC')
+          ->range(0, 1)
+          ->execute();
+        if (!empty($result['quiz_result'])) {
+          $keys = array_keys($result['quiz_result']);
+          $existing = quiz_result_load(reset($keys));
+          $entity->attempt = $existing->attempt + 1;
+        }
       }
     }
 
