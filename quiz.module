@@ -1052,8 +1052,6 @@ function quiz_take_page($quiz) {
   if ($quiz_result = quiz_take_quiz($quiz)) {
     if (!empty($quiz_result->resume)) {
       // Resuming attempt.
-      $_SESSION['quiz'][$quiz_result->nid]['result_id'] = $quiz_result->result_id;
-      $_SESSION['quiz'][$quiz_result->nid]['current'] = 1;
       drupal_set_message(t('Resuming a previous @quiz in-progress.', array('@quiz' => QUIZ_NAME)), 'status');
     }
     drupal_goto("node/{$quiz_result->nid}/take/" . ($_SESSION['quiz'][$quiz_result->nid]['current']));
@@ -1866,9 +1864,27 @@ function quiz_take_quiz($quiz) {
     // from the database.
     if ($quiz->allow_resume && !user_is_anonymous()) {
       if ($result_id = _quiz_active_result_id($user->uid, $quiz->nid, $quiz->vid)) {
+        // Put the result in the user's session.
         $_SESSION['quiz'][$quiz->nid]['result_id'] = $result_id;
         $_SESSION['quiz'][$quiz->nid]['current'] = 1;
+
+        // Now advance the user to after the last answered question.
         $quiz_result = quiz_result_load($result_id);
+        // Layout has already been ordered.
+        $prev = NULL;
+        foreach($quiz_result->layout as $question) {
+          $qra = entity_load_single('quiz_result_answer', $question['result_answer_id']);
+          if ($prev) {
+            if (!$qra->answer_timestamp && $prev->answer_timestamp) {
+              // This question has not been answered, but the previous
+              // question has.
+              $_SESSION['quiz'][$quiz->nid]['current'] = $question['number'];
+            }
+          }
+
+          $prev = clone $qra;
+        }
+
         // Resume a quiz from the database.
         $quiz_result->resume = 1;
         return $quiz_result;

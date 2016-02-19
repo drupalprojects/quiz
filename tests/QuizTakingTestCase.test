@@ -77,6 +77,9 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->assertText('Resuming');
 
+    // We should have been advanced to the next question.
+    $this->assertUrl("node/{$quiz_node->nid}/take/2");
+
     // Assert 2nd question is accessible (indicating the answer to #1 was
     // saved.)
     $this->drupalGet("node/{$quiz_node->nid}/take/2");
