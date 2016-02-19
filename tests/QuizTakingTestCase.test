@@ -367,7 +367,7 @@ class QuizTakingTestCase extends QuizTestCase {
   /**
    * Verify non gradable questions are excluded from counts
    */
-  function testQuestionCount(){
+  function testQuestionCount() {
     $quiz_node = $this->drupalCreateQuiz(array(
       'review_options' => array('question' => array('score' => 'score')),
     ));
@@ -386,6 +386,40 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->drupalGet("node/{$quiz_node->nid}");
 
     $this->assertText("4");
+  }
+
+  /**
+   * Test the mark doubtful functionality.
+   */
+  function testMarkDoubtful() {
+    $this->drupalLogin($this->admin);
+    $quiz_node = $this->drupalCreateQuiz(array('allow_skipping' => 1, 'allow_jumping' => 1, 'mark_doubtful' => 1));
+
+    // 2 questions.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'quiz_directions'));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Take the quiz.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+
+    // Ensure it is on truefalse.
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->assertField("edit-question-$question_node1->nid-is-doubtful");
+
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      "question[$question_node1->nid][is_doubtful]" => 1,
+      ), t('Next'));
+    // Go back and verify it was saved.
+    $this->drupalGet("node/$quiz_node->nid/take/1");
+    $this->assertFieldChecked("edit-question-$question_node1->nid-is-doubtful");
+
+    // Ensure it is not on quiz directions.
+    $this->drupalGet("node/$quiz_node->nid/take/2");
+    $this->assertNoField("edit-question-$question_node2->nid-is-doubtful");
   }
 
 }

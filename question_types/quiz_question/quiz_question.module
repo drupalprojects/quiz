@@ -236,7 +236,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
       }
     }
 
-    if ($quiz->mark_doubtful) {
+    if ($quiz->mark_doubtful && $question->isQuestion()) {
       $form['question'][$node->nid]['is_doubtful'] = array(
         '#type' => 'checkbox',
         '#title' => t('Doubtful?'),
@@ -600,7 +600,7 @@ function quiz_question_load($nodes) {
  *  Question node
  * @param $use_cached
  *  Can we use a cached version of the node?
- * @return
+ * @return QuizQuestion
  *  The appropriate QuizQuestion extension instance
  */
 function _quiz_question_get_instance($node) {
@@ -632,8 +632,8 @@ function _quiz_question_get_instance($node) {
  *  Question node id
  * @param $vid
  *  Question node version id
- * @return
- *  The appropriate QuizQuestionResponce extension instance
+ * @return QuizQuestionResponse
+ *  The appropriate QuizQuestionResponse extension instance
  */
 function _quiz_question_response_get_instance($result_id, $question, $answer = NULL, $nid = NULL, $vid = NULL) {
   $info = quiz_question_get_info();
