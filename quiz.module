@@ -174,17 +174,16 @@ function quiz_admin_paths() {
  * @return boolean
  *   TRUE if user has permission.
  */
-function quiz_access_results($quiz, $quiz_result) {
+function quiz_access_results($quiz, $quiz_result = NULL) {
   global $user;
-  $result_id = $quiz_result->result_id;
 
   if ($quiz->type !== 'quiz') {
     return FALSE;
   }
   // If rid is set we must make sure the result belongs to the quiz we are
   // viewing results for.
-  if (isset($result_id)) {
-    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $result_id))->fetch();
+  if (!empty($quiz_result)) {
+    $res = db_query('SELECT qnr.nid, qnr.uid FROM {quiz_node_results} qnr WHERE result_id = :result_id', array(':result_id' => $quiz_result->result_id))->fetch();
     if ($res && $res->nid != $quiz->nid) {
       return FALSE;
     }
@@ -200,7 +199,7 @@ function quiz_access_results($quiz, $quiz_result) {
   }
   if (user_access('score taken quiz answer')) {
     //check if the taken user is seeing his result
-    if (isset($result_id) && $res && $res->uid == $user->uid) {
+    if (!empty($quiz_result) && $res && $res->uid == $user->uid) {
       return TRUE;
     }
   }
