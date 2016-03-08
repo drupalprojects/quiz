@@ -208,7 +208,7 @@ class QuizResultController extends EntityAPIController {
         $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $entity->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
         $qra = reset($qras);
 
-        $out[$question_node->nid] = array(
+        $out['questions'][$question_node->nid] = array(
           '#title' => t('Question @num', array('@num' => $question['display_number'])),
           '#type' => 'fieldset',
           'feedback' => $qra->view(),
@@ -235,7 +235,7 @@ class QuizResultController extends EntityAPIController {
         $out['score']['#markup'] .= '<div id="quiz_score_percent">' . t('!yourtotal score: @score%', $params) . '</div>';
       }
     }
-    return array('content' => $out);
+    return $out;
   }
 
 }
