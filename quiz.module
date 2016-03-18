@@ -2949,11 +2949,11 @@ function quiz_get_question_types() {
   }
 
   // Get question types from the modules that defines them.
-  if ($quiz_questions = module_invoke_all('quiz_question_info')) {
+  if ($quiz_questions = quiz_question_get_info()) {
     return $quiz_questions;
   }
 
-  drupal_set_message(t('You need to install and enable at least one question type(multichoice for instance) to use quiz.'), 'warning', FALSE);
+  drupal_set_message(t('You need to install and enable at least one question type to use Quiz.'), 'warning', FALSE);
   return array();
 }
 
