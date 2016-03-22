@@ -22,47 +22,6 @@ class QuizResultController extends EntityAPIController {
     parent::delete($ids, $transaction);
   }
 
-  function load($ids = array(), $conditions = array()) {
-    $quiz_results = parent::load($ids, $conditions);
-
-    if ($quiz_results) {
-      foreach ($quiz_results as $quiz_result) {
-        $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
-          'parent_nid' => $quiz_result->nid,
-          'parent_vid' => $quiz_result->vid,
-        ));
-        $relationships = array();
-        foreach ($quiz_node_relationships as $quiz_node_relationship) {
-          $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
-        }
-        $quiz_result->layout = array();
-      }
-
-      $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => array_keys($quiz_results)));
-      if ($quiz_result_answers) {
-        foreach ($quiz_result_answers as $raid => $quiz_result_answer) {
-          if (!empty($relationships[$quiz_result_answer->question_nid])) {
-            $relationship = $relationships[$quiz_result_answer->question_nid];
-          }
-
-          $quiz_results[$quiz_result_answer->result_id]->layout[$quiz_result_answer->number] = array(
-            'result_answer_id' => $quiz_result_answer->result_answer_id,
-            'display_number' => $quiz_result_answer->display_number,
-            'nid' => $quiz_result_answer->question_nid,
-            'vid' => $quiz_result_answer->question_vid,
-            'tid' => $quiz_result_answer->tid,
-            'number' => $quiz_result_answer->number,
-            'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
-            'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
-          );
-        }
-        ksort($quiz_results[$quiz_result_answer->result_id]->layout, SORT_NUMERIC);
-      }
-    }
-
-    return $quiz_results;
-  }
-
   /**
    * Save the Quiz result and do any post-processing to the result.
    *
@@ -198,7 +157,7 @@ class QuizResultController extends EntityAPIController {
 
     $out['questions'] = array();
 
-    foreach ($entity->layout as $question) {
+    foreach ($entity->getLayout() as $question) {
       // Loop through all the questions and get their feedback.
       $question_node = node_load($question['nid'], $question['vid']);
 

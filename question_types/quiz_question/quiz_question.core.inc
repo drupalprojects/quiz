@@ -616,7 +616,7 @@ abstract class QuizQuestionResponse {
   public function getMaxScore($weight_adjusted = TRUE) {
     if ($weight_adjusted) {
       $quiz_result = quiz_result_load($this->result_id);
-      $relationships = entity_load('quiz_question_relationship', NULL, array(
+        $relationships = entity_load('quiz_question_relationship', FALSE, array(
         'parent_nid' => $quiz_result->nid,
         'parent_vid' => $quiz_result->vid,
         'child_nid' => $this->question->nid,

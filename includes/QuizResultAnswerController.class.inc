@@ -6,7 +6,7 @@ class QuizResultAnswerController extends EntityAPIController {
     $out = parent::buildContent($entity, $view_mode, $langcode);
     $node = node_load($entity->question_nid, $entity->question_vid);
     $entity_info = entity_get_info('node');
-    $instance = _quiz_question_response_get_instance($entity->result_id, $node);
+    $instance = $entity->instance;
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($instance->canReview("quiz_question_view_" . $view_mode)) {
         $build = node_view($node, $view_mode);
@@ -93,6 +93,16 @@ class QuizResultAnswerController extends EntityAPIController {
     }
 
     return $out;
+  }
+
+  public function load($ids = array(), $conditions = array()) {
+    $entities = parent::load($ids, $conditions);
+    foreach ($entities as $entity) {
+      $node = node_load($entity->question_nid, $entity->question_vid);
+      $instance = _quiz_question_response_get_instance($entity->result_id, $node);
+      $entity->instance = $instance;
+    }
+    return $entities;
   }
 
 }

@@ -179,11 +179,11 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   if (!is_array($nodes)) {
     // One single question (or page?)
     if ($nodes->type == 'quiz_page') {
-      foreach ($quiz_result->layout as $question) {
+      foreach ($quiz_result->getLayout() as $question) {
         if ($question['nid'] == $nodes->nid) {
           // Found a page
           $nodes = array(node_load($nodes->nid, $nodes->vid));
-          foreach ($quiz_result->layout as $question2) {
+          foreach ($quiz_result->getLayout() as $question2) {
             if ($question2['qnr_pid'] == $question['qnr_id']) {
               // This question belongs in the requested page.
               $nodes[] = node_load($question2['nid'], $question2['vid']);
@@ -304,7 +304,7 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
 function quiz_question_answering_form_submit_blank($form, &$form_state) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$form['#quiz']['nid']]['result_id']);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
-  $questions = $quiz_result->layout;
+  $questions = $quiz_result->getLayout();
 
   if (!empty($form_state['input']['question'])) {
     // Loop over all question inputs provided, and record them as skipped.
@@ -339,7 +339,8 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
   // Advance to next question.
   $form_state['redirect'] = "node/{$quiz->nid}/take/" . $_SESSION['quiz'][$quiz->nid]['current'];
 
-  if (!isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
+  $layout = $quiz_result->getLayout();
+  if (!isset($layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // If this is the last question, finalize the quiz.
     quiz_question_answering_form_finalize($form, $form_state);
   }
@@ -761,13 +762,13 @@ function quiz_question_feedback($quiz, $question) {
 
   $quiz_result = quiz_result_load($result_id);
   $questions = array($question);
-  foreach ($quiz_result->layout as $question_array) {
+  foreach ($quiz_result->getLayout() as $question_array) {
     if ($question_array['nid'] == $question->nid) {
       // Found this question.
       if ($question_array['qnr_pid']) {
         // Belongs to a page. Find other questions.
         $questions = array();
-        foreach ($quiz_result->layout as $question2) {
+        foreach ($quiz_result->getLayout() as $question2) {
           if ($question2['qnr_pid'] == $question_array['qnr_pid']) {
             // This question belongs in the requested page.
             $questions[] = node_load($question2['nid'], $question2['vid']);
@@ -806,7 +807,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     drupal_set_message(t('The last answer was not submitted, as the time ran out.'), 'error');
   }
   else {
-    $questions = $quiz_result->layout;
+    $questions = $quiz_result->getLayout();
 
     if (!empty($form_state['values']['question'])) {
       foreach ($form_state['values']['question'] as $nid => $response) {
@@ -842,7 +843,8 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
     $form_state['redirect'] = "node/$quiz->nid/take/" . ($_SESSION['quiz'][$quiz->nid]['current']);
   }
 
-  if ($time_reached || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
+  $layout = $quiz_result->getLayout();
+  if ($time_reached || !isset($layout[$_SESSION['quiz'][$quiz->nid]['current']])) {
     // If this is the last question, finalize the quiz.
     quiz_question_answering_form_finalize($form, $form_state);
   }
@@ -897,9 +899,10 @@ function quiz_question_answering_form_submit_back(&$form, &$form_state) {
   $quiz = node_load($form['#quiz']['nid'], $form['#quiz']['vid']);
   quiz_question_goto($quiz, $_SESSION['quiz'][$quiz->nid]['current'] - 1);
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-  $question = $quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current']];
+  $layout = $quiz_result->getLayout();
+  $question = $layout[$_SESSION['quiz'][$quiz->nid]['current']];
   if (!empty($question['qnr_pid'])) {
-    foreach ($quiz_result->layout as $question2) {
+    foreach ($layout as $question2) {
       if ($question2['qnr_id'] == $question['qnr_pid']) {
         quiz_question_goto($quiz, $question2['number']);
       }
@@ -987,6 +990,8 @@ function quiz_question_element_validate(&$element, &$form_state) {
     form_set_error('', t('The answer was incorrect. Please try again.'));
     // Show feedback after incorrect answer.
     $qra = entity_load_single('quiz_result_answer', $result->result_answer_id);
+    // Load the temporary answer to the result answer entity.
+    $qra->instance = $result;
     $element['feedback'] = $qra->view();
     $element['feedback']['#weight'] = 100;
   }

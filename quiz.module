@@ -1871,7 +1871,7 @@ function quiz_take_quiz($quiz) {
         $quiz_result = quiz_result_load($result_id);
         // Layout has already been ordered.
         $prev = NULL;
-        foreach($quiz_result->layout as $question) {
+        foreach($quiz_result->getLayout() as $question) {
           $qra = entity_load_single('quiz_result_answer', $question['result_answer_id']);
           if ($prev) {
             if (!$qra->answer_timestamp && $prev->answer_timestamp) {
@@ -1910,11 +1910,12 @@ function quiz_take_question($quiz, $question_number) {
 
   if (!empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
     $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
-    $question = $quiz_result->layout[$question_number];
+    $layout = $quiz_result->getLayout();
+    $question = $layout[$question_number];
 
     if (!empty($question['qnr_pid'])) {
       // Find the parent.
-      foreach ($quiz_result->layout as $pquestion) {
+      foreach ($layout as $pquestion) {
         if ($pquestion['qnr_id'] == $question['qnr_pid']) {
           // Load the page that the requested question belongs to.
           $question_node = node_load($pquestion['nid'], $pquestion['vid']);
@@ -1941,7 +1942,7 @@ function quiz_take_question($quiz, $question_number) {
   $questions = array();
   $i = 0;
   $found_pages = 0;
-  foreach ($quiz_result->layout as $idx => $question) {
+  foreach ($quiz_result->getLayout() as $idx => $question) {
     if (empty($question['qnr_pid'])) {
       // Question has no parent. Show it in the jumper.
       $questions[$idx] = ++$i;
@@ -2036,12 +2037,12 @@ function quiz_end_scoring($result_id) {
   global $user;
   $quiz_result = quiz_result_load($result_id);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
-  $questions = $quiz_result->layout;
+  $questions = $quiz_result->getLayout();
 
   // Mark all missing answers as blank. This is essential here for when we may
   // have pages of unanswered questions. Also kills a lot of the skip code that
   // was necessary before.
-  foreach ($quiz_result->layout as $qinfo) {
+  foreach ($quiz_result->getLayout() as $qinfo) {
     // Load the Quiz answer submission from the database.
     $qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid']);
     $current_question = node_load($qinfo['nid'], $qinfo['vid']);
@@ -3494,7 +3495,7 @@ function _quiz_is_empty_html($html) {
 function _quiz_show_finish_button($quiz) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $current = $_SESSION['quiz'][$quiz->nid]['current'];
-  foreach ($quiz_result->layout as $idx => $question) {
+  foreach ($quiz_result->getLayout() as $idx => $question) {
     $question_node = node_load($question['nid'], $question['vid']);
     if ($question_node->type == 'quiz_page') {
       if ($current == $idx) {
@@ -3514,7 +3515,8 @@ function _quiz_show_finish_button($quiz) {
     }
   }
 
-  return $last_page || !isset($quiz_result->layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
+  $layout = $quiz_result->getLayout();
+  return $last_page || !isset($layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 
 /**
@@ -3612,8 +3614,10 @@ function quiz_access_question($quiz, $question_number) {
   $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
   $quiz_result = quiz_result_load($result_id);
   $question_index = $question_number;
-  $qinfo_last = $question_number == 1 ? NULL : $quiz_result->layout[$question_index - 1];
-  $qinfo = $quiz_result->layout[$question_index];
+  $layout = $quiz_result->getLayout();
+  $qinfo_last = $question_number == 1 ? NULL : $layout[$question_index - 1];
+
+  $qinfo = $layout[$question_index];
   $question_node = node_load($qinfo['nid'], $qinfo['vid']);
   $question_node_last = node_load($qinfo_last['nid'], $qinfo_last['vid']);
 
@@ -3666,10 +3670,10 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
 
   // Add feedback.
   $out = array();
-  foreach ($quiz_result->layout as $question) {
+  foreach ($quiz_result->getLayout() as $question) {
     if ($question['number'] == $question_number && $question['qnr_pid']) {
       // Question is in a page.
-      foreach ($quiz_result->layout as $question2) {
+      foreach ($quiz_result->getLayout() as $question2) {
         if ($question2['qnr_pid'] == $question['qnr_pid']) {
           $qra = entity_load_single('quiz_result_answer', $question2['result_answer_id']);
           $out[] = $qra->view();
@@ -3680,7 +3684,8 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
 
   // Single question.
   if (empty($out)) {
-    $qra = entity_load_single('quiz_result_answer', $quiz_result->layout[$question_number]['result_answer_id']);
+    $layout = $quiz_result->getLayout();
+    $qra = entity_load_single('quiz_result_answer', $layout[$question_number]['result_answer_id']);
     $out[] = $qra->view();
   }
 
@@ -3740,7 +3745,8 @@ function quiz_question_feedback_access($quiz, $question_number) {
         $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
       }
       $quiz_result = quiz_result_load($result_id);
-      $qinfo = $quiz_result->layout[$question_index];
+      $layout = $quiz_result->getLayout();
+      $qinfo = $layout[$question_index];
 
       if ($qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid'])) {
         return TRUE;
@@ -3943,7 +3949,7 @@ function quiz_translate_form_date(&$node, $date) {
  */
 function quiz_clone_quiz_result($result_old, $result_new) {
   // Re-take all the questions.
-  foreach ($result_old->layout as $qinfo) {
+  foreach ($result_old->getLayout() as $qinfo) {
     $question = node_load($qinfo['nid'], $qinfo['vid']);
     $quiz_question_response = _quiz_question_response_get_instance($result_old->result_id, $question);
     $quiz_question_response_new = _quiz_question_response_get_instance($result_new->result_id, $question);
@@ -3994,7 +4000,7 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
 
   if (!empty($quiz_result->result_id)) {
     $idx = 0;
-    foreach ($quiz_result->layout as $question) {
+    foreach ($quiz_result->getLayout() as $question) {
       // Loop through all the questions and get their scoring form.
       $question_node = node_load($question['nid'], $question['vid']);
       $instance = _quiz_question_response_get_instance($quiz_result->result_id, $question_node);

@@ -11,14 +11,16 @@ class QuizTakingTestCase extends QuizTestCase {
   }
 
   public function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
-    $modules[] = 'truefalse';
+    $modules[] = 'multichoice';
     $modules[] = 'quiz_directions';
+    $modules[] = 'truefalse';
     parent::setUp($modules);
   }
 
   /**
-   * Test the repeat until correct behavior. We do not have to test what type
-   * of feedback shows here, that is tested elsewhere.
+   * Test the repeat until correct behavior.
+   *
+   * We also test that the answer is passed to feedback before being discarded.
    */
   public function testQuestionRepeatUntilCorrect() {
     $this->drupalLogin($this->admin);
@@ -27,22 +29,45 @@ class QuizTakingTestCase extends QuizTestCase {
       'review_options' => array('question' => array('answer_feedback' => 'answer_feedback')),
     ));
 
-    $question_node = $this->drupalCreateNode(array(
-      'type' => 'truefalse',
-      'correct_answer' => 1,
-    ));
+    $settings = array();
+
+    $settings['alternatives'][0]['answer']['value'] = 'A';
+    $settings['alternatives'][0]['answer']['format'] = 'filtered_html';
+    $settings['alternatives'][0]['feedback_if_chosen']['value'] = 'You chose A';
+    $settings['alternatives'][0]['feedback_if_chosen']['format'] = 'filtered_html';
+    $settings['alternatives'][0]['feedback_if_not_chosen']['value'] = '';
+    $settings['alternatives'][0]['feedback_if_not_chosen']['format'] = '';
+    $settings['alternatives'][0]['score_if_chosen'] = 1;
+    $settings['alternatives'][0]['score_if_not_chosen'] = 0;
+
+
+    $settings['alternatives'][1]['answer']['value'] = 'B';
+    $settings['alternatives'][1]['answer']['format'] = 'filtered_html';
+    $settings['alternatives'][1]['feedback_if_chosen']['value'] = 'You chose B';
+    $settings['alternatives'][1]['feedback_if_chosen']['format'] = 'filtered_html';
+    $settings['alternatives'][1]['feedback_if_not_chosen']['value'] = '';
+    $settings['alternatives'][1]['feedback_if_not_chosen']['format'] = '';
+    $settings['alternatives'][1]['score_if_chosen'] = 0;
+    $settings['alternatives'][1]['score_if_not_chosen'] = 0;
+
+    $settings['type'] = 'multichoice';
+    $question_node = $this->drupalCreateNode($settings + array(
+      'choice_multi' => 0,
+      'choice_random' => 0,
+      'choice_boolean' => 0));
     $this->linkQuestionToQuiz($question_node, $quiz_node);
 
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][answer]" => 0,
+      "question[$question_node->nid][answer][user_answer]" => 2,
       ), t('Finish'));
     $this->assertText('The answer was incorrect. Please try again.');
+    $this->assertText('You chose B');
     // Check that we are still on the question.
     $this->assertUrl("node/{$quiz_node->nid}/take/1");
     $this->drupalPost(NULL, array(
-      "question[$question_node->nid][answer]" => 1,
+      "question[$question_node->nid][answer][user_answer]" => 1,
       ), t('Finish'));
     $this->assertNoText('The answer was incorrect. Please try again.');
   }
