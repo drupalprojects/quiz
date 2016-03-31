@@ -418,7 +418,7 @@ function quiz_menu() {
     'title' => 'Quiz result',
     'description' => 'Configure Quiz result behaviors',
     'page callback' => 'quiz_result_page',
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -426,7 +426,7 @@ function quiz_menu() {
     'title' => 'Quiz result answer',
     'description' => 'Configure Quiz result answer behaviors',
     'page callback' => 'quiz_result_answer_page',
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM,
   );
 
@@ -502,7 +502,7 @@ function quiz_menu() {
     'title' => 'Quiz feedback',
     'description' => 'Configure Quiz feedback behaviors',
     'page callback' => 'quiz_feedback_page',
-    'access arguments' => array('administer quiz'),
+    'access arguments' => array('administer quiz configuration'),
     'type' => MENU_NORMAL_ITEM,
     'file' => 'quiz.admin.inc',
   );
@@ -3553,7 +3553,7 @@ function quiz_entity_info() {
           'label' => 'Quiz result',
           'admin' => array(
             'path' => 'admin/quiz/result',
-            'access arguments' => array('administer quiz'),
+            'access arguments' => array('administer quiz configuration'),
           ),
         ),
       ),
@@ -3574,7 +3574,7 @@ function quiz_entity_info() {
           'label' => 'Quiz result answer',
           'admin' => array(
             'path' => 'admin/quiz/result_answer',
-            'access arguments' => array('administer quiz'),
+            'access arguments' => array('administer quiz configuration'),
           ),
         ),
       ),
