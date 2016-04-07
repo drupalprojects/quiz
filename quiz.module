@@ -4000,6 +4000,7 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
 
   if (!empty($quiz_result->result_id)) {
     $idx = 0;
+    $form['question']['#tree'] = TRUE;
     foreach ($quiz_result->getLayout() as $question) {
       // Loop through all the questions and get their scoring form.
       $question_node = node_load($question['nid'], $question['vid']);
@@ -4007,13 +4008,13 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
       $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
       $qra = reset($qras);
       // Get the feedback elements.
-      $form['questions'][$idx] = $instance->getReportForm();
-      $form['questions'][$idx]['#tree'] = TRUE;
-      $form['questions'][$idx]['#type'] = 'fieldset';
-      $form['questions'][$idx]['#title'] = t('Question @num', array('@num' => $question['display_number']));
+      $form['question'][$idx] = $instance->getReportForm();
+      $form['question'][$idx]['#tree'] = TRUE;
+      $form['question'][$idx]['#type'] = 'fieldset';
+      $form['question'][$idx]['#title'] = t('Question @num', array('@num' => $question['display_number']));
       // The display of the question.
-      $form['questions'][$idx]['response'] = $qra->view();
-      $form['questions'][$idx]['response']['#weight'] = -1;
+      $form['question'][$idx]['response'] = $qra->view();
+      $form['question'][$idx]['response']['#weight'] = -1;
       $idx++;
     }
   }

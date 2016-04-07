@@ -50,9 +50,8 @@ function quiz_report_form_submit($form, &$form_state) {
   $quiz_result = $form_state['quiz_result'];
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
 
-  foreach ($form_state['values'] as $key => $q_values) {
-    // Questions has numeric keys in the report form
-    if (is_numeric($key)) {
+  if (!empty($form_state['values']['question'])) {
+    foreach ($form_state['values']['question'] as $key => $q_values) {
       $question_node = node_load($q_values['nid'], $q_values['vid']);
       $instance = _quiz_question_response_get_instance($quiz_result->result_id, $question_node);
       if ($instance->getReportFormSubmit()) {

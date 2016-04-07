@@ -53,8 +53,8 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     // Strange behavior - extra spacing in the HTML.
     //$this->assertText('Score ? of 10');
     $this->assertText('This answer has not yet been scored.');
-    $this->assertNoFieldByName('1[score]');
-    $this->assertNoFieldByName('2[score]');
+    $this->assertNoFieldByName('question[0][score]');
+    $this->assertNoFieldByName('question[1][score]');
     $url_of_result = $this->getUrl();
     $admin_url_of_result = preg_replace('#quiz-results/(\d+)#', 'quiz/results/$1', $this->getUrl());
 
@@ -62,12 +62,12 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     $this->drupalLogin($this->admin);
     $this->drupalGet($admin_url_of_result);
     $this->drupalPost(NULL, array(
-      "0[score]" => 3,
-      "1[score]" => 7,
-      "0[answer_feedback][value]" => 'Feedback for answer 1.',
-      "1[answer_feedback][value]" => 'Feedback for answer 2.',
-      "0[answer_feedback][format]" => 'filtered_html',
-      "1[answer_feedback][format]" => 'filtered_html',
+      "question[0][score]" => 3,
+      "question[1][score]" => 7,
+      "question[0][answer_feedback][value]" => 'Feedback for answer 1.',
+      "question[1][answer_feedback][value]" => 'Feedback for answer 2.',
+      "question[0][answer_feedback][format]" => 'filtered_html',
+      "question[1][answer_feedback][format]" => 'filtered_html',
       ), t('Save score'));
     $this->assertText('The scoring data you provided has been saved.');
 

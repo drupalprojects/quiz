@@ -111,7 +111,7 @@ class QuizGradingTestCase extends QuizTestCase {
     $this->drupalGet($admin_url_of_result);
 
     $this->drupalPost(NULL, array(
-      "0[score]" => 3,
+      "question[0][score]" => 3,
       ), t('Save score'));
 
 

@@ -157,10 +157,10 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     // Strange behavior - extra spaces in HTML.
     //$this->assertText('Score ? of 10');
     $this->assertText('This answer has not yet been scored.');
-    $this->assertNoFieldByName('0[score]');
-    $this->assertNoFieldByName('1[score]');
-    $this->assertNoFieldByName('0[answer_feedback][value]');
-    $this->assertNoFieldByName('1[answer_feedback][value]');
+    $this->assertNoFieldByName('question[0][score]');
+    $this->assertNoFieldByName('question[1][score]');
+    $this->assertNoFieldByName('question[0][answer_feedback][value]');
+    $this->assertNoFieldByName('question[1][answer_feedback][value]');
     $this->assertNoRaw(t('Save score'));
     $url_of_result = $this->getUrl();
     $admin_url_of_result = preg_replace('#quiz-results/(\d+)#', 'quiz/results/$1', $this->getUrl());
@@ -168,15 +168,15 @@ class ShortAnswerTestCase extends QuizQuestionTestCase {
     // Test grading the question.
     $this->drupalLogin($this->admin);
     $this->drupalGet($admin_url_of_result);
-    $this->assertFieldByName('0[score]');
-    $this->assertFieldByName('1[score]');
+    $this->assertFieldByName('question[0][score]');
+    $this->assertFieldByName('question[1][score]');
     $this->drupalPost(NULL, array(
-      "0[score]" => 2,
-      "1[score]" => 3,
-      "0[answer_feedback][value]" => 'Feedback for answer 1.',
-      "1[answer_feedback][value]" => 'Feedback for answer 2.',
-      "0[answer_feedback][format]" => 'filtered_html',
-      "1[answer_feedback][format]" => 'filtered_html',
+      "question[0][score]" => 2,
+      "question[1][score]" => 3,
+      "question[0][answer_feedback][value]" => 'Feedback for answer 1.',
+      "question[1][answer_feedback][value]" => 'Feedback for answer 2.',
+      "question[0][answer_feedback][format]" => 'filtered_html',
+      "question[1][answer_feedback][format]" => 'filtered_html',
       ), t('Save score'));
     $this->assertText('The scoring data you provided has been saved.');
 
