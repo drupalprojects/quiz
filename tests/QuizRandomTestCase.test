@@ -132,7 +132,7 @@ class QuizRandomTestCase extends QuizTestCase {
 
     for ($i = 1; $i <= 10; $i++) {
       $questions = quiz_build_question_list($quiz_node);
-      $this->assertEqual(count($questions), 3, t('Quiz has 2 questions.'));
+      $this->assertEqual(count($questions), 3, t('Quiz has 3 questions.'));
       $out[$i] = '';
       foreach ($questions as $question) {
         $out[$i] .= $question['nid'];
@@ -142,6 +142,10 @@ class QuizRandomTestCase extends QuizTestCase {
 
     // Also check that at least one of the orders is different.
     $this->assertNotEqual(count(array_unique($out)), 1, t('At least one set of questions were different.'));
+
+    // Test number of questions.
+    $num_questions = quiz_get_number_of_questions($quiz_node->vid, $quiz_node->nid);
+    $this->assertEqual($num_questions, 3);
 
     // Start the quiz.
     $this->drupalLogin($this->user);
@@ -200,6 +204,11 @@ class QuizRandomTestCase extends QuizTestCase {
       'weight' => 0,
     );
     drupal_write_record('quiz_terms', $quiz_term2);
+
+    // We have to resave the node to process the above.
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("node/$quiz->nid/quiz/questions");
+    $this->drupalPost(NULL, array(), t('Submit'));
 
     // Add a field to quiz result and make it required for starting.
     $field = array(
@@ -273,6 +282,10 @@ class QuizRandomTestCase extends QuizTestCase {
       $qq_nids[] = $qinfo['nid'];
     }
     $this->assertEqual(count(array_intersect($qq_nids, $questions)), 4, 'Questions were from the terms excluding 2.');
+
+    // Test number of questions.
+    $num_questions = quiz_get_number_of_questions($quiz->vid, $quiz->nid);
+    $this->assertEqual($num_questions, 4);
 
     // Start the quiz.
     $this->drupalLogin($this->user);
