@@ -1008,15 +1008,17 @@ class MultichoiceResponse extends QuizQuestionResponse {
   public static function viewsGetAnswers(array $result_answer_ids = array()) {
     $items = array();
 
-    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
-      INNER JOIN {quiz_multichoice_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
-      INNER JOIN {quiz_multichoice_user_answer_multi} uam ON (uam.user_answer_id = qmua.id)
-      INNER JOIN {quiz_multichoice_answers} ma ON (ma.id = uam.answer_id)
-      WHERE qnra.result_answer_id IN (:result_answer_id)";
-    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+    if ($result_answer_ids) {
+      $sql = "SELECT * FROM {quiz_node_results_answers} qnra
+        INNER JOIN {quiz_multichoice_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
+        INNER JOIN {quiz_multichoice_user_answer_multi} uam ON (uam.user_answer_id = qmua.id)
+        INNER JOIN {quiz_multichoice_answers} ma ON (ma.id = uam.answer_id)
+        WHERE qnra.result_answer_id IN (:result_answer_id)";
+      $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
 
-    while ($row = $result->fetch()) {
-      $items[$row->result_id][] = array('answer' => $row->answer);
+      while ($row = $result->fetch()) {
+        $items[$row->result_id][] = array('answer' => $row->answer);
+      }
     }
     return $items;
   }
