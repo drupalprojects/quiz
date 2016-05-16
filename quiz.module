@@ -3726,7 +3726,7 @@ function quiz_jumper_form($form, $form_state, $questions, $current) {
   $form['question_number'] = array(
     '#type' => 'select',
     '#options' => $questions,
-    '#default_value' => $current,
+    '#default_value' => array_search($current, $questions),
   );
   $form['submit'] = array(
     '#type' => 'submit',
