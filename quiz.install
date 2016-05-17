@@ -366,6 +366,8 @@ function quiz_schema() {
     'indexes' => array(
       'parent_id' => array('parent_vid'),
       'child_id' => array('child_vid'),
+      'parent_nid' => array('parent_nid'),
+      'child_nid' => array('child_nid'),
     ),
   );
 
@@ -1199,4 +1201,18 @@ function quiz_update_7521() {
       ),
     ),
   ));
+}
+
+/**
+ * Add more indexes for really large question banks.
+ */
+function quiz_update_7522() {
+  if (!db_index_exists('quiz_node_relationship', 'parent_nid')) {
+    db_add_index('quiz_node_relationship', 'parent_nid', array('parent_nid'));
+  }
+
+  if (!db_index_exists('quiz_node_relationship', 'child_nid')) {
+    db_add_index('quiz_node_relationship', 'child_nid', array('child_nid'));
+  }
+  return t('Added indexes to {quiz_node_relationship} table.');
 }
