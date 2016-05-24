@@ -3575,6 +3575,7 @@ function quiz_entity_info() {
       ),
       'fieldable' => TRUE,
       'label' => 'Quiz result',
+      'label callback' => 'entity_class_label',
       'metadata controller class' => 'QuizResultMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
     ),

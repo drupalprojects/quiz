@@ -44,4 +44,15 @@ class QuizResult extends Entity {
     return $layout;
   }
 
+  /**
+   * Get the label for this quiz result.
+   *
+   * @return string
+   */
+  protected function defaultLabel() {
+    $quiz = node_load($this->nid, $this->vid);
+    $user = user_load($this->uid);
+
+    return t('%user\'s result in the @quiz %title', array('%user' => format_username($user), '@quiz' => QUIZ_NAME, '%title' => $quiz->title));
+  }
 }
