@@ -2224,20 +2224,15 @@ function quiz_email_results_format($type, $target) {
  */
 function quiz_update_total_score($quiz, $result_id) {
   $score = quiz_calculate_score($result_id);
-  db_update('quiz_node_results')
-    ->fields(array(
-      'score' => $score['percentage_score'],
-    ))
-    ->condition('result_id', $result_id)
-    ->execute();
+  $result = quiz_result_load($result_id);
+  $result->score = $score['percentage_score'];
+  $result->save();
   if ($score['is_evaluated']) {
     // Call hook_quiz_scored().
     module_invoke_all('quiz_scored', $quiz, $score, $result_id);
     _quiz_maintain_results($quiz, $result_id);
-    db_update('quiz_node_results')
-      ->fields(array('is_evaluated' => 1))
-      ->condition('result_id', $result_id)
-      ->execute();
+    $result->is_evaluated = 1;
+    $result->save();
   }
   return $score['percentage_score'];
 }
