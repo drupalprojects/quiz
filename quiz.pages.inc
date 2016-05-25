@@ -102,33 +102,6 @@ function _quiz_remove_unscored_message() {
 }
 
 /**
- * Updates the total score using only one mySql query.
- *
- * @param $result_id
- *  Result id
- * @param $quiz_vid
- *  Quiz node version id
- */
-function quiz_update_total_score_fast($result_id, $quiz_vid) {
-  $subq1 = db_select('quiz_node_results_answers', 'a');
-  $subq1
-    ->condition('a.result_id', $result_id)
-    ->addExpression('SUM(a.points_awarded)');
-  $res1 = $subq1->execute()->fetchField();
-
-  $subq2 = db_select('quiz_node_properties', 'qnp');
-  $subq2
-    ->condition('qnp.vid', $quiz_vid)
-    ->addField('qnp', 'max_score');
-  $res2 = $subq2->execute()->fetchField();
-
-  db_update('quiz_node_results')
-    ->expression('score', 'ROUND(100*(:res1/:res2))', array(':res1' => $res1, ':res2' => $res2))
-    ->condition('result_id', $result_id)
-    ->execute();
-}
-
-/**
  * Returns an array of score information for a quiz
  *
  * @param unknown_type $result_id
