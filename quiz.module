@@ -1376,8 +1376,8 @@ function quiz_form(&$node, &$form_state) {
   if (module_exists('token')) {
     // Embed token help.
     $form['summaryoptions']['tokens'] = array(
-      '#title' => 'Tokens',
-      '#markup' => theme('token_tree', array('token_types' => array('global', 'node', 'user', 'quiz_result'))),
+      '#theme' => 'token_tree_link',
+      '#token_types' => array('global', 'node', 'user', 'quiz_result'),
     );
   }
 
@@ -1462,8 +1462,8 @@ function quiz_form(&$node, &$form_state) {
     if (module_exists('token')) {
       // Embed token help.
       $form['resultoptions']['tokens'] = array(
-        '#title' => 'Tokens',
-        '#markup' => theme('token_tree', array('token_types' => array('global', 'node', 'user', 'quiz_result'))),
+        '#theme' => 'token_tree_link',
+        '#token_types' => array('global', 'node', 'user', 'quiz_result'),
       );
     }
   }
