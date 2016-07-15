@@ -6,6 +6,7 @@ dependencies[] = ctools
 dependencies[] = entity
 dependencies[] = filter
 dependencies[] = rules
+dependencies[] = token
 dependencies[] = views
 dependencies[] = views_bulk_operations
 test_dependencies[] = taxonomy
