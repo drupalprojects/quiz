@@ -1223,54 +1223,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
   }
 }
 
-// THEME FUNCTIONS
-
-/**
- * Theme a question selection table, adding drag and drop support.
- */
-function theme_question_selection_table($variables) {
-  $form = $variables['form'];
-  drupal_add_tabledrag('question-list', 'match', 'parent', 'qnr-pid', 'qnr-pid', 'qnr-id', TRUE, 1);
-  drupal_add_tabledrag('question-list', 'order', 'sibling', 'question-list-weight');
-
-  // Building headers
-  $headers = array(t('Question'), t('Type'), t('Actions'), t('Update'), t('Max score'), t('Auto update max score'), t('Delete'));
-  if (isset($form['compulsories'])) {
-    $headers[] = t('Compulsory');
-  }
-  $headers[] = t('Weight');
-  $headers[] = t('Parent ID');
-  $headers[] = array(
-    'data' => t('ID'),
-    'class' => array('tabledrag-hide'),
-  );
-
-  // Building table body
-  $rows = array();
-  if (!empty($form['titles'])) {
-    foreach (element_children($form['titles']) as $id) {
-      $form['weights'][$id]['#attributes']['class'] = array('question-list-weight');
-      $form['qnr_ids'][$id]['#attributes']['class'] = array('qnr-id');
-      $form['qnr_pids'][$id]['#attributes']['class'] = array('qnr-pid');
-      $rows[] = _quiz_get_question_row($form, $id);
-    }
-    // Make sure the same fields aren't rendered twice
-    unset($form['types'], $form['view_links'], $form['remove_links'], $form['stayers']);
-    unset($form['max_scores'], $form['auto_update_max_scores'], $form['revision'], $form['weights'], $form['titles'], $form['compulsories'], $form['qnr_ids'], $form['qnr_pids']);
-  }
-  $html_attr = array('id' => 'question-list');
-
-  // We hide the table if no questions have been added so that jQuery can show it the moment the first question is beeing added.
-  if (isset($form['no_questions'])) {
-    $html_attr['style'] = "display:none;";
-  }
-
-  $table = theme('table', array('header' => $headers, 'rows' => $rows, 'attributes' => $html_attr));
-
-  return drupal_render($form['random_settings'])
-    . $table
-    . drupal_render_children($form);
-}
 
 // HELPER FUNCTIONS
 
@@ -1400,58 +1352,6 @@ function quiz_set_auto_title() {
   $max_length = variable_get('quiz_autotitle_length', 50);
   drupal_add_js(array('quiz_max_length' => $max_length), array('type' => 'setting'));
   drupal_add_js(drupal_get_path('module', 'quiz') . '/js/quiz.auto-title.js');
-}
-
-/**
- * Themes a categorized quiz form
- */
-function theme_quiz_categorized_form($variables) {
-  $form = $variables['form'];
-  $output = '';
-  $rows = array();
-  foreach ($form as $key => &$existing) {
-    if (!is_numeric($key)) {
-      continue;
-    }
-    $cols = array();
-    $cols[] = drupal_render($existing['name']);
-    $cols[] = drupal_render($existing['number']);
-    $cols[] = drupal_render($existing['max_score']);
-    $cols[] = drupal_render($existing['remove']);
-    $cols[] = drupal_render($existing['weight']);
-    $rows[] = array(
-      'data' => $cols,
-      'class' => array('draggable'),
-    );
-  }
-  if (!empty($rows)) {
-    $header = array(
-      t('Category'),
-      t('Number of questions'),
-      t('Max score per question'),
-      t('Remove'),
-      t('Weight'),
-    );
-    drupal_add_tabledrag('existing-terms', 'order', 'sibling', 'term-weight', NULL, NULL, TRUE);
-    $output .= theme('table', array('header' => $header, 'rows' => $rows, 'attributes' => array('id' => 'existing-terms')));
-  }
-  $output .= drupal_render_children($form);
-  drupal_add_js(
-    "(function ($) {
-     Drupal.behaviors.quiz_categorized = {
-     attach: function(context) {
-      $('#browse-for-term:not(.quiz-processed)').click(function(event) {
-        event.preventDefault();
-        $('#edit-term').focus().val('*').trigger('keyup');
-      }).addClass('quiz-processed');
-      $('#edit-term').click(function(){
-        if ($(this).val() == '*') {
-          $(this).val('');
-        }
-      });
-    }};}(jQuery));"
-    , array('type' => 'inline', 'group' => JS_DEFAULT));
-  return $output;
 }
 
 /**

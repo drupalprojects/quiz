@@ -543,40 +543,32 @@ function quiz_theme($existing, $type, $theme, $path) {
   return array(
     'quiz_view_stats' => array(
       'variables' => array('node' => NULL),
-      'file' => 'quiz.pages.inc',
+      'file' => 'quiz.theme.inc',
     ),
     'quiz_categorized_form' => array(
       'render element' => 'form',
-      'file' => 'quiz.admin.inc'
+      'file' => 'quiz.theme.inc'
     ),
     'quiz_result' => array(
       'variables' => array('quiz' => NULL, 'questions' => NULL, 'score' => NULL, 'summary' => NULL, 'result_id' => NULL),
-      'file' => 'quiz.pages.inc',
+      'file' => 'quiz.theme.inc',
     ),
     'quiz_progress' => array(
       'variables' => array('question_number' => NULL, 'num_questions' => NULL, 'allow_jumping' => NULL, 'time_limit' => NULL),
-      'file' => 'quiz.pages.inc',
-    ),
-    'quiz_no_feedback' => array(
-      'file' => 'quiz.pages.inc',
-      'variables' => array(),
+      'file' => 'quiz.theme.inc',
     ),
     'question_selection_table' => array(
-      'file' => 'quiz.admin.inc',
+      'file' => 'quiz.theme.inc',
       'render element' => 'form',
     ),
     'quiz_answer_result' => array(
-      'file' => 'quiz.pages.inc',
+      'file' => 'quiz.theme.inc',
       'variables' => array(),
     ),
     'quiz_report_form' => array(
       'render element' => 'form',
       'path' => $path . '/theme',
       'template' => 'quiz-report-form',
-    ),
-    'quiz_browser' => array(
-      'render element' => 'form',
-      'file' => 'quiz.admin.inc',
     ),
     'quiz_question_score' => array(
       'variables' => array('score' => NULL, 'max_score' => NULL),
