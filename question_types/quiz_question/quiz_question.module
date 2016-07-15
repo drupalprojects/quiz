@@ -867,7 +867,8 @@ function quiz_question_answering_form_finalize(&$form, &$form_state) {
     $form_state['redirect'] = "node/{$quiz->nid}/quiz-results/{$quiz_result->result_id}/view";
   }
 
-  quiz_end_actions($quiz, $score, $_SESSION['quiz'][$quiz->nid]);
+  // Call hook_quiz_finished().
+  module_invoke_all('quiz_finished', $quiz, $score, $_SESSION['quiz'][$quiz->nid]);
 
   // Remove all information about this quiz from the session.
   // @todo but for anon, we might have to keep some so they could access

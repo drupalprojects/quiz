@@ -178,60 +178,6 @@ function quiz_admin_settings($form, &$form_state) {
     '#collapsed' => TRUE,
   );
 
-  $form['quiz_email_settings']['taker'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Email for Quiz takers'),
-    '#collapsible' => FALSE,
-  );
-
-  $form['quiz_email_settings']['taker']['quiz_email_results'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Email results to quiz takers'),
-    '#default_value' => variable_get('quiz_email_results', 0),
-    '#description' => t('Check this to send users their results at the end of a quiz.')
-  );
-
-  $form['quiz_email_settings']['taker']['quiz_email_results_subject_taker'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Configure email subject'),
-    '#description' => t('This format will be used when sending quiz results at the end of a quiz.'),
-    '#default_value' => variable_get('quiz_email_results_subject_taker', quiz_email_results_format('subject', 'taker')),
-  );
-
-  $form['quiz_email_settings']['taker']['quiz_email_results_body_taker'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Configure email format'),
-    '#description' => t('This format will be used when sending quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
-    '#default_value' => variable_get('quiz_email_results_body_taker', quiz_email_results_format('body', 'taker')),
-  );
-
-  $form['quiz_email_settings']['author'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Email for Quiz authors'),
-    '#collapsible' => FALSE,
-  );
-
-  $form['quiz_email_settings']['author']['quiz_results_to_quiz_author'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Email all results to quiz author'),
-    '#default_value' => variable_get('quiz_results_to_quiz_author', 0),
-    '#description' => t('Check this to send quiz results for all users to the quiz author.'),
-  );
-
-  $form['quiz_email_settings']['author']['quiz_email_results_subject'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Configure email subject'),
-    '#description' => t('This format will be used when sending quiz results at the end of a quiz. Authors and quiz takers gets the same format.'),
-    '#default_value' => variable_get('quiz_email_results_subject', quiz_email_results_format('subject', 'author')),
-  );
-
-  $form['quiz_email_settings']['author']['quiz_email_results_body'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Configure email format'),
-    '#description' => t('This format will be used when sending @quiz results at the end of a quiz. !title(quiz title), !sitename, !taker(quiz takers username), !date(time when quiz was finished), !minutes(How many minutes the quiz taker spent taking the quiz), !desc(description of the quiz), !correct(points attained), !total(max score for the quiz), !percentage(percentage score), !url(url to the result page) and !author are placeholders.'),
-    '#default_value' => variable_get('quiz_email_results_body', quiz_email_results_format('body', 'author')),
-  );
-
   $form['#validate'][] = 'quiz_settings_form_validate';
   $form['#submit'][] = 'quiz_settings_form_submit';
 
