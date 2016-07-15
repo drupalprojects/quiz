@@ -170,14 +170,6 @@ function quiz_admin_settings($form, &$form_state) {
     '#required' => TRUE,
   );
 
-  $form['quiz_email_settings'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Notifications'),
-    '#description' => t('Send results to quiz author/attendee via email. Configure email subject and body.'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
-
   $form['#validate'][] = 'quiz_settings_form_validate';
   $form['#submit'][] = 'quiz_settings_form_submit';
 
