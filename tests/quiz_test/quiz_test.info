@@ -1,3 +1,4 @@
 name = Quiz test fixtures
+package = Quiz core
 core = 7.x
 hidden = TRUE

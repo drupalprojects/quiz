@@ -1,6 +1,6 @@
-name = Quiz Statistics
-description = "Creates a report to compare and analyse the results of quiz attendees."
+name = Quiz statistics
+description = Creates a report to compare and analyse the results of quiz attendees.
 core = 7.x
-package = Quiz Addon
+package = Quiz addon
 dependencies[] = quiz
 dependencies[] = charts

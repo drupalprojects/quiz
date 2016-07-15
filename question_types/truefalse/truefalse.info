@@ -1,5 +1,5 @@
-name = True False
-package = Quiz Question
+name = Quiz - True false
+package = Quiz question
 description = Module to create True or False Kind of Questions
 core = 7.x
 dependencies[] = quiz
