@@ -178,4 +178,6 @@ function long_answer_update_7501() {
   db_update('quiz_long_answer_node_properties')
     ->fields(array('rubric_format' => 'plain_text', 'answer_text_processing' => 0))
     ->execute();
+
+  return t('Added text format selection for long answer rubrics and answers.');
 }
