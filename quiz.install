@@ -33,6 +33,11 @@ function quiz_install() {
 
   // Set up default quiz result answer display.
   quiz_update_7521();
+
+  // Install a default bundle.
+  db_insert('quiz_result_type')
+    ->fields(array('label' => 'Quiz result', 'type' => 'quiz_result'))
+    ->execute();
 }
 
 /**
@@ -274,6 +279,12 @@ function quiz_schema() {
         'serialize' => TRUE,
         'description' => 'Serialized field containing feedback times and options.',
       ),
+      'result_type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The result bundle to use.',
+      ),
     ),
     'primary key' => array('qnp_id'),
     'indexes' => array('quiz_id' => array('vid', 'nid')),
@@ -453,6 +464,12 @@ function quiz_schema() {
         'not null' => TRUE,
         'default' => 1,
         'description' => 'The number of this attempt.',
+      ),
+      'type' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'The result bundle.',
       ),
     ),
     'primary key' => array('result_id'),
@@ -669,6 +686,51 @@ function quiz_schema() {
       'version' => array('vid'),
     ),
   );
+
+
+  $schema['quiz_result_type'] = array(
+    'description' => 'Stores information about all defined quiz result types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Unique result type ID.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this result type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this result type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  );
+
   return $schema;
 }
 
@@ -1215,4 +1277,76 @@ function quiz_update_7522() {
     db_add_index('quiz_node_relationship', 'child_nid', array('child_nid'));
   }
   return t('Added indexes to {quiz_node_relationship} table.');
+}
+
+/**
+ * Add type for quiz results.
+ */
+function quiz_update_7523() {
+  db_create_table('quiz_result_type', array(
+    'description' => 'Stores information about all defined quiz result types.',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Unique result type ID.',
+      ),
+      'type' => array(
+        'description' => 'The machine-readable name of this result type.',
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+      ),
+      'label' => array(
+        'description' => 'The human-readable name of this result type.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'status' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        // Set the default to ENTITY_CUSTOM without using the constant as it is
+        // not safe to use it at this point.
+        'default' => 0x01,
+        'size' => 'tiny',
+        'description' => 'The exportable status of the entity.',
+      ),
+      'module' => array(
+        'description' => 'The name of the providing module if the entity has been defined in code.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'unique keys' => array(
+      'type' => array('type'),
+    ),
+  ));
+
+  db_add_field('quiz_node_properties', 'result_type', array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'description' => 'The result bundle.',
+  ));
+  db_add_field('quiz_node_results', 'type', array(
+    'type' => 'varchar',
+    'length' => 255,
+    'not null' => FALSE,
+    'description' => 'The result bundle.',
+  ));
+  db_update('quiz_node_properties')
+    ->fields(array('result_type' => 'quiz_result'))
+    ->execute();
+  db_update('quiz_node_results')
+    ->fields(array('type' => 'quiz_result'))
+    ->execute();
+
+  db_insert('quiz_result_type')
+    ->fields(array('label' => 'Quiz result', 'type' => 'quiz_result'))
+    ->execute();
+  return t('Added quiz result bundle table and column.');
 }

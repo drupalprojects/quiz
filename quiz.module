@@ -78,6 +78,8 @@ function quiz_entity_info_alter(&$info) {
       'custom settings' => FALSE,
     ),
   );
+
+  $info['quiz']['type']['result_type'] = 'quiz_result_type';
 }
 
 /**
@@ -414,14 +416,6 @@ function quiz_menu() {
     'file path' => drupal_get_path('module', 'system'),
   );
 
-  $items['admin/quiz/result'] = array(
-    'title' => 'Quiz result',
-    'description' => 'Configure Quiz result behaviors',
-    'page callback' => 'quiz_result_page',
-    'access arguments' => array('administer quiz configuration'),
-    'type' => MENU_NORMAL_ITEM,
-  );
-
   $items['admin/quiz/result_answer'] = array(
     'title' => 'Quiz result answer',
     'description' => 'Configure Quiz result answer behaviors',
@@ -520,13 +514,6 @@ function quiz_menu() {
  */
 function quiz_title($node) {
   return $node->title;
-}
-
-/**
- * Page for Quiz result configuration and fields.
- */
-function quiz_result_page() {
-  return t('Here, you can configure how Quiz attempts and results behave.');
 }
 
 /**
@@ -929,6 +916,7 @@ function _quiz_get_node_defaults() {
       'takes' => 0,
       'tid' => 0,
       'time_limit' => 0,
+      'result_type' => 'quiz_result',
   );
 }
 
@@ -1053,6 +1041,7 @@ function quiz_take_page($quiz) {
         'nid' => $quiz->nid,
         'vid' => $quiz->vid,
         'uid' => $GLOBALS['user']->uid,
+        'type' => $quiz->quiz->result_type,
       ));
     }
     else {
@@ -1061,7 +1050,7 @@ function quiz_take_page($quiz) {
   }
 
   $build_on_last = !empty($quiz->build_on_last) && QuizResultController::findOldResult($quiz_result);
-  if ($build_on_last || $instances = field_info_instances('quiz_result', 'quiz_result')) {
+  if ($build_on_last || $instances = field_info_instances('quiz_result', $quiz->quiz->result_type)) {
     // @kludge above, how are we going to check this form for fields? checking
     // for field instances is easy, but what about these one-offs? maybe we can
     // require add-on field items to put something in the $form so that we can
@@ -1111,6 +1100,18 @@ function quiz_form(&$node, &$form_state) {
     '#default_value' => isset($node->title) ? $node->title : '',
     '#description' => t('The name of this @quiz.', array('@quiz' => QUIZ_NAME)),
     '#required' => TRUE,
+  );
+
+  $quiz_result_types = quiz_result_types();
+  foreach ($quiz_result_types as $quiz_result_type => $type_info) {
+    $quiz_result_type_options[$quiz_result_type] = $type_info->label;
+  }
+  $form['result_type'] = array(
+    '#title' => t('Result type'),
+    '#type' => 'select',
+    '#options' => $quiz_result_type_options,
+    '#default_value' => isset($node->quiz->result_type) ? $node->quiz->result_type : NULL,
+    '#description' => t("Before starting the quiz, the fields on this result type will be displayed to the user."),
   );
 
   $form['taking'] = array(
@@ -3407,7 +3408,7 @@ function _quiz_show_finish_button($quiz) {
  * Implements hook_entity_info().
  */
 function quiz_entity_info() {
-  return array(
+  $entity_info = array(
     'quiz' => array(
       'base table' => 'quiz_node_properties',
       'controller class' => 'QuizController',
@@ -3432,19 +3433,15 @@ function quiz_entity_info() {
     ),
     'quiz_result' => array(
       'base table' => 'quiz_node_results',
-      'bundles' => array(
-        'quiz_result' => array(
-          'label' => 'Quiz result',
-          'admin' => array(
-            'path' => 'admin/quiz/result',
-            'access arguments' => array('administer quiz configuration'),
-          ),
-        ),
-      ),
+      'bundles' => array(),
       'controller class' => 'QuizResultController',
       'entity class' => 'QuizResult',
       'entity keys' => array(
         'id' => 'result_id',
+        'bundle' => 'type',
+      ),
+      'bundle keys' => array(
+        'bundle' => 'type',
       ),
       'fieldable' => TRUE,
       'label' => 'Quiz result',
@@ -3473,7 +3470,53 @@ function quiz_entity_info() {
       'metadata controller class' => 'QuizResultAnswerMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
     ),
+    'quiz_result_type' => array(
+      'label' => t('Quiz result type'),
+      'entity class' => 'Entity',
+      'plural label' => t('Quiz result types'),
+      'description' => t('Quiz result types.'),
+      'controller class' => 'EntityAPIControllerExportable',
+      'base table' => 'quiz_result_type',
+      'fieldable' => FALSE,
+      'entity class' => 'Entity',
+      'bundle of' => 'quiz_result',
+      'exportable' => TRUE,
+      'entity keys' => array(
+        'id' => 'id',
+        'name' => 'type',
+        'label' => 'label',
+      ),
+      'access callback' => 'quiz_result_type_access',
+      'module' => 'quiz',
+      // Enable the entity API's admin UI.
+      'admin ui' => array(
+        'path' => 'admin/quiz/result',
+        'controller class' => 'EntityDefaultUIController',
+      ),
+    ),
   );
+
+  if (db_table_exists('quiz_result_type')) {
+    // Populate our bundles.
+    $types = db_select('quiz_result_type', 'qrt')
+      ->fields('qrt')
+      ->execute()
+      ->fetchAllAssoc('type');
+
+    foreach ($types as $type => $info) {
+      $entity_info['quiz_result']['bundles'][$type] = array(
+        'label' => $info->label,
+        'admin' => array(
+          'path' => 'admin/quiz/result/manage/%quiz_result_type',
+          'real path' => 'admin/quiz/result/manage/' . $type,
+          'bundle argument' => 4,
+          'access arguments' => array('administer quiz result types'),
+        ),
+      );
+    }
+  }
+
+  return $entity_info;
 }
 
 /**
@@ -3941,4 +3984,119 @@ function quiz_result_form_submit($form, &$form_state) {
   // Call the grading handler.
   module_load_include('inc', 'quiz', 'quiz.pages');
   quiz_report_form_submit($form, $form_state);
+}
+
+/**
+ * Entity access for quiz result types.
+ */
+function quiz_result_type_access() {
+  return user_access('administer quiz configuration');
+}
+
+function quiz_result_type_form($form, &$form_state, $quiz_result_type, $op = 'edit') {
+  if ($op == 'clone') {
+    $quiz_result_type->label .= ' (cloned)';
+    $quiz_result_type->type = '';
+  }
+
+  $form['label'] = array(
+    '#title' => t('Label'),
+    '#type' => 'textfield',
+    '#default_value' => isset($quiz_result_type->label) ? $quiz_result_type->label : '',
+    '#description' => t('The human-readable name of this quiz result type.'),
+    '#required' => TRUE,
+    '#size' => 30,
+  );
+  // Machine-readable type name.
+  $form['type'] = array(
+    '#type' => 'machine_name',
+    '#default_value' => isset($quiz_result_type->type) ? $quiz_result_type->type : '',
+    '#maxlength' => 32,
+    '#disabled' => !isset($quiz_result_type->is_new) && $op != 'clone',
+    '#machine_name' => array(
+      'exists' => 'quiz_result_types',
+      'source' => array('label'),
+    ),
+    '#description' => t('A unique machine-readable name for this quiz result type. It must only contain lowercase letters, numbers, and underscores.'),
+  );
+
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save quiz result type'),
+    '#weight' => 40,
+  );
+
+  return $form;
+}
+
+/**
+ * Form API submit callback for the type form.
+ */
+function quiz_result_type_form_submit(&$form, &$form_state) {
+  $quiz_result_type = entity_ui_form_submit_build_entity($form, $form_state);
+  // Save and go back.
+  $quiz_result_type->save();
+  $form_state['redirect'] = 'admin/quiz/result';
+}
+
+function quiz_result_type_load($type) {
+  return quiz_result_types($type);
+}
+
+function quiz_result_types($type_name = NULL) {
+  $types = entity_load_multiple_by_name('quiz_result_type', isset($type_name) ? array($type_name) : FALSE);
+  return isset($type_name) ? reset($types) : $types;
+}
+
+/**
+ * Implements hook_forms().
+ */
+function quiz_forms($form_id, $args) {
+  $info = entity_get_info('quiz_result');
+  $forms = array();
+  // Translate bundle form ids to the base form id 'quiz_result_form'.
+  foreach ($info['bundles'] as $bundle => $bundle_info) {
+    $forms['quiz_result_edit_' . $bundle . '_form']['callback'] = 'quiz_result_form';
+    $forms['quiz_result_edit_' . $bundle . '_form']['wrapper callback'] = 'entity_ui_form_defaults';
+  }
+  return $forms;
+}
+
+/**
+ * Implements hook_form_FORMID_alter().
+ *
+ * Adds a checkbox for controlling field view access to fields added to
+ * profiles.
+ */
+function quiz_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  if ($form['instance']['entity_type']['#value'] == 'quiz_result') {
+    $form['instance']['settings']['quiz_result_show_field'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Show this field on @quiz start.', array('@quiz' => QUIZ_NAME)),
+      '#default_value' => !empty($form['#instance']['settings']['quiz_result_show_field']),
+      '#description' => t('If checked, this field will be presented when starting a course.'),
+    );
+  }
+  else {
+    // Add the value to the form so it isn't lost.
+    $form['instance']['settings']['quiz_result'] = array(
+      '#type' => 'value',
+      '#value' => !empty($form['#instance']['settings']['quiz_result']),
+    );
+  }
+}
+
+/**
+ * Implements hook_field_access().
+ *
+ * Don't show the user fields that weren't marked as quiz result fields.
+ */
+function quiz_field_access($op, $field, $entity_type, $entity, $account) {
+  if ($entity && $entity_type == 'quiz_result' && $op == 'edit') {
+    $instance = field_info_instance($entity_type, $field['field_name'], $entity->type);
+    if (empty($instance['settings']['quiz_result_show_field'])) {
+      return FALSE;
+    }
+  }
 }
