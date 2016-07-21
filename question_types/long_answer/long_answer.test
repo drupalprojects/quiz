@@ -84,12 +84,16 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
   }
 
   /**
-   * Test adding and taking a truefalse question.
+   * Test adding and taking a long answer question.
    */
   function testCreateQuizQuestion($settings = array()) {
     if (!$settings) {
       $settings = array(
-        'rubric' => 'LA 1 rubric.',
+        'rubric' => array(
+          'value' => 'LA 1 rubric.',
+          'format' => 'plain_text',
+        ),
+        'answer_text_processing' => 0,
       );
     }
 
@@ -103,6 +107,62 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
       ) + $settings);
 
     return $question_node;
+  }
+
+  /**
+   * Test that rubric and answer filter settings are respected.
+   */
+  function testFilterFormats() {
+    // Login as our privileged user.
+    $this->drupalLogin($this->admin);
+
+    // Question that has no filtering, for rubric or answer
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => $this->question_node_type,
+      'title' => 'LA 1 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'LA 1 body text.'))),
+      'rubric' => array(
+        'value' => 'Rubric for LA 1, you will see the next tag <img src="http://httpbin.org/image/png?findmeRubricPlaintext"/>',
+        'format' => 'plain_text',
+      ),
+      'answer_text_processing' => 0,
+    ));
+
+    // Question that has filtering, for rubric and answer
+    $question_node2 = $this->drupalCreateNode(array(
+      'type' => $this->question_node_type,
+      'title' => 'LA 2 title',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'LA 2 body text.'))),
+      'rubric' => array(
+        'value' => 'Rubric for LA 2, you will not see the next tag <img src="http://httpbin.org/image/png?findmeRubricFiltered"/>',
+        'format' => 'full_html',
+      ),
+      'answer_text_processing' => 1,
+    ));
+
+    $quiz = $this->linkQuestionToQuiz($question_node1);
+    $this->linkQuestionToQuiz($question_node2, $quiz);
+
+    // Login as a user and take the quiz.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz->nid/take");
+    // Post plaintext answer.
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 'plaintext answer, you will see the next tag: <img src="http://httpbin.org/image/png?findmeAnswerPlaintext"/>',
+      ), t('Next'));
+    // Post rich text answer.
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid][answer][value]" => 'filtered answer, you will see not see the next tag: <img src="http://httpbin.org/image/png?findmeAnswerFiltered"/>',
+      "question[$question_node2->nid][answer][format]" => 'filtered_html',
+      ), t('Finish'));
+
+    // Login as a user and check the result.
+    $this->drupalLogin($this->admin);
+    $this->drupalGet("node/$quiz->nid/quiz/results/1/view");
+    $this->assertText('findmeRubricPlaintext', 'Plain text rubric image tag did not get rendered on page');
+    $this->assertNoText('findmeRubricFiltered', 'Filtered text rubric image tag got stripped');
+    $this->assertText('findmeAnswerPlaintext', 'Plain text answer image tag did not get rendered on page');
+    $this->assertNoText('findmeAnswerFiltered', 'Filtered text answer image tag got stripped');
   }
 
   /**

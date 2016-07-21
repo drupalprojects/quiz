@@ -25,7 +25,9 @@ class LongAnswerQuestion extends QuizQuestion {
       ->fields(array(
         'nid' => $this->node->nid,
         'vid' => $this->node->vid,
-        'rubric' => $this->node->rubric,
+        'rubric' => $this->node->rubric['value'],
+        'rubric_format' => $this->node->rubric['format'],
+        'answer_text_processing' => $this->node->answer_text_processing,
       ))
       ->execute();
   }
@@ -67,11 +69,17 @@ class LongAnswerQuestion extends QuizQuestion {
     }
     $props = parent::getNodeProperties();
 
-    $res_a = db_query('SELECT rubric FROM {quiz_long_answer_node_properties}
+    $res_a = db_query('SELECT rubric as value, rubric_format as format, answer_text_processing FROM {quiz_long_answer_node_properties}
       WHERE nid = :nid AND vid = :vid', array(':nid' => $this->node->nid, ':vid' => $this->node->vid))->fetchAssoc();
 
     if (is_array($res_a)) {
-      $props = array_merge($props, $res_a);
+      $props = array(
+        'rubric' => array(
+          'value' => $res_a['value'],
+          'format' => $res_a['format'],
+        ),
+        'answer_text_processing' => $res_a['answer_text_processing'],
+      );
     }
 
     $this->nodeProperties = $props;
@@ -89,7 +97,7 @@ class LongAnswerQuestion extends QuizQuestion {
       $content['answers'] = array(
         '#type' => 'item',
         '#title' => t('Rubric'),
-        '#markup' => '<div class="quiz-solution">' . check_markup($this->node->rubric, $this->getFormat()) . '</div>',
+        '#markup' => '<div class="quiz-solution">' . check_markup($this->node->rubric['value'], $this->node->rubric['format']) . '</div>',
         '#weight' => 1,
       );
     }
@@ -111,16 +119,26 @@ class LongAnswerQuestion extends QuizQuestion {
     $element = parent::getAnsweringForm($form_state, $result_id);
 
     $element += array(
-      '#type' => 'textarea',
       '#title' => t('Answer'),
       '#description' => t('Enter your answer here. If you need more space, click on the grey bar at the bottom of this area and drag it down.'),
       '#rows' => 15,
       '#cols' => 60,
-      //'#theme' =>'long_answer_answering_form',
     );
+
+    if ($this->node->answer_text_processing) {
+      $element['#type'] = 'text_format';
+    }
+    else {
+      $element['#type'] = 'textarea';
+    }
+
     if (isset($result_id)) {
-      $response = new LongAnswerResponse($result_id, $this->node);
-      $element['#default_value'] = $response->getResponse();
+      if ($response = _quiz_question_response_get_instance($result_id, $this->node)) {
+        if ($user_response = $response->getResponse()) {
+          $element['#default_value'] = $user_response;
+          $element['#format'] = $response->answer_format;
+        }
+      }
     }
     return $element;
   }
@@ -140,14 +158,29 @@ class LongAnswerQuestion extends QuizQuestion {
    * @see QuizQuestion#getCreationForm($form_state)
    */
   public function getCreationForm(array &$form_state = NULL) {
+    $form = array();
+
     $form['rubric'] = array(
-      '#type' => 'textarea',
+      '#type' => 'text_format',
       '#title' => t('Rubric'),
       '#description' => t('Specify the criteria for grading the response.'),
-      '#default_value' => isset($this->node->rubric) ? $this->node->rubric : '',
+      '#default_value' => isset($this->node->rubric['value']) ? $this->node->rubric['value'] : '',
+      '#format' => isset($this->node->rubric['format']) ? $this->node->rubric['format'] : filter_default_format(),
       '#size' => 60,
       '#required' => FALSE,
     );
+
+    $form['answer_text_processing'] = array(
+      '#title' => t('Answer text processing'),
+      '#description' => t('Allowing filtered text may enable the user to input HTML tags in their answer.'),
+      '#type' => 'radios',
+      '#options' => array(
+        0 => t('Plain text'),
+        1 => t('Filtered text (user selects text format)'),
+      ),
+      '#default_value' => isset($this->node->answer_text_processing) ? $this->node->answer_text_processing : 0,
+    );
+
     return $form;
   }
 
@@ -255,6 +288,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
 
       if (!empty($r)) {
         $this->answer = $r->answer;
+        $this->answer_format = $r->answer_format;
         $this->score = $r->score;
         $this->evaluated = $r->is_evaluated;
         $this->answer_id = $r->answer_id;
@@ -274,10 +308,17 @@ class LongAnswerResponse extends QuizQuestionResponse {
    * @see QuizQuestionResponse#save()
    */
   public function save() {
+    if (!$this->quizQuestion->node->answer_text_processing) {
+      $answer = $this->answer;
+      $this->answer = array();
+      $this->answer['value'] = $answer;
+      $this->answer['format'] = 'plain_text';
+    }
     db_merge('quiz_long_answer_user_answers')
       ->key(array('result_answer_id' => $this->result_answer_id))
       ->fields(array(
-        'answer' => $this->answer,
+        'answer' => $this->answer['value'],
+        'answer_format' => $this->answer['format'],
         'result_answer_id' => $this->result_answer_id,
       ))
       ->execute();
@@ -322,11 +363,11 @@ class LongAnswerResponse extends QuizQuestionResponse {
     $data[] = array(
       // Hide this column. Does not make sense for long answer as there are no choices.
       'choice' => NULL,
-      'attempt' => $this->answer,
+      'attempt' => check_markup($this->answer, $this->answer_format),
       'correct' => $this->question->answers[0]['is_correct'] ? quiz_icon('correct') : quiz_icon(''),
       'score' => !$this->evaluated ? t('This answer has not yet been scored.') : $this->getScore(),
       'answer_feedback' => check_markup($this->answer_feedback, $this->answer_feedback_format),
-      'solution' => $this->question->rubric,
+      'solution' => check_markup($this->question->rubric['value'], $this->question->rubric['format']),
     );
 
     return $data;
