@@ -302,31 +302,6 @@ input#edit-submit-hidden {
   transition: left 0.2s;
 }
 
-
-.mark-doubtful .toggle div:after,
-.mark-doubtful .toggle div:before {
-  color: white;
-  text-shadow: none;
-  width: 50px;
-  position: absolute;
-  top: 0;
-  font-size: 9px;
-  font-weight: bold;
-}
-
-.mark-doubtful .toggle div:before {
-  content: "Doubtful";
-  left: -48px;
-}
-
-.mark-doubtful .toggle div:after {
-  content: "Clear";
-  right: -48px;
-}
-.mark-doubtful .toggle.off div {
-  left: 48px;
-}
-
 /*
   Icons
 */
