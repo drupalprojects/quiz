@@ -2473,6 +2473,7 @@ function _quiz_build_categorized_question_list($quiz) {
     }
     $query->range(0, $term->number);
     $query->orderBy('RAND()');
+    $query->addTag('quiz_build_categorized_questions');
 
     $result = $query->execute();
     $count = 0;
