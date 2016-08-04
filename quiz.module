@@ -3934,7 +3934,7 @@ function quiz_result_form($form, &$form_state, $quiz_result) {
       // Loop through all the questions and get their scoring form.
       $question_node = node_load($question['nid'], $question['vid']);
       $instance = _quiz_question_response_get_instance($quiz_result->result_id, $question_node);
-      $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
+      $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $quiz_result->result_id, 'question_nid' => $question['nid'], 'question_vid' => $question['vid']));
       $qra = reset($qras);
       // Get the feedback elements.
       if ($instance->getQuizQuestion()->hasFeedback()) {

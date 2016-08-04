@@ -606,9 +606,15 @@ function quiz_question_load($nodes) {
  */
 function _quiz_question_get_instance($node) {
   $info = quiz_question_get_info();
-  $constructor = $info[$node->type]['question provider'];
+  if (!empty($node->type)) {
+    $constructor = $info[$node->type]['question provider'];
+  }
+  else {
+    $node = new stdClass;
+  }
+
   if (empty($constructor)) {
-    return FALSE;
+    $constructor = 'QuizQuestionBroken';
   }
 
   // We create a new instance of QuizQuestion
@@ -644,7 +650,14 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
     $question = node_load($nid, $vid);
   }
 
-  $constructor = $info[$question->type]['response provider'];
+  if (!empty($question->type)) {
+    $constructor = $info[$question->type]['response provider'];
+  }
+
+  if (empty($constructor)) {
+    $constructor = 'QuizQuestionResponseBroken';
+    $question = new stdClass;
+  }
   $to_return = new $constructor($result_id, $question, $answer);
   // All responce classes must extend QuizQuestionResponse
   if (!($to_return instanceof QuizQuestionResponse)) {

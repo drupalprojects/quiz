@@ -58,7 +58,7 @@ abstract class QuizQuestion {
    * @param $node
    *   The node object
    */
-  public function __construct(stdClass &$node) {
+  public function __construct(stdClass $node) {
     $this->node = $node;
   }
 
@@ -613,10 +613,10 @@ abstract class QuizQuestionResponse {
    * @return int
    *   The max score of this question response.
    */
-  public function getMaxScore($weight_adjusted = TRUE) {
+  function getMaxScore($weight_adjusted = TRUE) {
     if ($weight_adjusted) {
       $quiz_result = quiz_result_load($this->result_id);
-        $relationships = entity_load('quiz_question_relationship', FALSE, array(
+      $relationships = entity_load('quiz_question_relationship', FALSE, array(
         'parent_nid' => $quiz_result->nid,
         'parent_vid' => $quiz_result->vid,
         'child_nid' => $this->question->nid,
@@ -914,6 +914,65 @@ abstract class QuizQuestionResponse {
     }
 
     return $this->getMaxScore(TRUE) / $this->getMaxScore(FALSE);
+  }
+
+}
+
+class QuizQuestionBroken extends QuizQuestion {
+
+  public function getCreationForm(array &$form_state = NULL) {
+
+  }
+
+  public function getMaximumScore() {
+
+  }
+
+  public function saveNodeProperties() {
+
+  }
+
+  public function validateNode(array &$form) {
+
+  }
+
+  public function hasFeedback() {
+    return FALSE;
+  }
+
+}
+
+class QuizQuestionResponseBroken extends QuizQuestionResponse {
+
+  public function getReport() {
+    return array(
+      'answer_id' => 0,
+      'is_correct' => NULL,
+    );
+  }
+
+  public function __construct($result_id, stdClass $question_node, $answer = NULL) {
+    $this->quizQuestion = _quiz_question_get_instance($question_node);
+  }
+
+  public function delete() {
+
+  }
+
+  public function getResponse() {
+
+  }
+
+  public function save() {
+
+  }
+
+  public function score() {
+
+  }
+
+  public function getMaxScore($weight_adjusted = TRUE) {
+    return 0;
   }
 
 }

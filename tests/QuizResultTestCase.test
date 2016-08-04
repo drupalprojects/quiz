@@ -663,4 +663,31 @@ class QuizResultTestCase extends QuizTestCase {
     $this->assertNoFieldById('edit-result-field-b-und-0-value');
   }
 
+  /**
+   * Test that deleting a question from a Quiz doesn't result in a fatal error.
+   */
+  public function testBrokenResults() {
+    $this->drupalLogin($this->admin);
+
+    $question_node1 = $this->drupalCreateNode(array(
+      'type' => 'truefalse',
+      'correct_answer' => 1,
+    ));
+    $quiz_node = $this->linkQuestionToQuiz($question_node1);
+
+    // Submit an answer.
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Finish'));
+
+    // Delete the question.
+    node_delete($question_node1->nid);
+
+    // And there should not be a fatal error.
+    $this->drupalGet("node/$quiz_node->nid/quiz-results/1");
+    $this->assertResponse(200, 'Saw the results page.');
+  }
+
 }
