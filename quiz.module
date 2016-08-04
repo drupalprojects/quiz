@@ -638,7 +638,7 @@ function quiz_insert($node) {
 
   // Add references to all the questions belonging to the quiz if this is a cloned quiz (node_clone compatibility)
   if ($node->is_new && isset($node->clone_from_original_nid)) {
-    $old_quiz = node_load($node->clone_from_original_nid, NULL, TRUE);
+    $old_quiz = node_load($node->clone_from_original_nid);
 
     $max_score = $old_quiz->max_score;
 
