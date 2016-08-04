@@ -1184,6 +1184,7 @@ function quiz_questions_form_submit($form, &$form_state) {
   }
 
   if (isset($success) && isset($success2)) {
+    entity_get_controller('node')->resetCache(array($quiz->nid));
     drupal_set_message(t('Questions updated successfully.'));
   }
   else {
