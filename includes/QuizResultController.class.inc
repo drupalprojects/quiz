@@ -167,11 +167,13 @@ class QuizResultController extends EntityAPIController {
         $qras = entity_load('quiz_result_answer', FALSE, array('result_id' => $entity->result_id, 'question_nid' => $question_node->nid, 'question_vid' => $question_node->vid));
         $qra = reset($qras);
 
+        $feedback = $qra->view();
         $out['questions'][$question_node->nid] = array(
           '#title' => t('Question @num', array('@num' => $question['display_number'])),
           '#type' => 'fieldset',
-          'feedback' => $qra->view(),
+          'feedback' => $feedback,
           '#weight' => $question['number'],
+          '#access' => (bool) element_children($feedback['quiz_result_answer'][$instance->result_answer_id]),
         );
       }
 

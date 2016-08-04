@@ -1,7 +1,13 @@
 <?php
 
+/**
+ * Controller for a single quiz question response.
+ */
 class QuizResultAnswerController extends EntityAPIController {
 
+  /**
+   * Build the response content with feedback.
+   */
   public function buildContent($entity, $view_mode = 'full', $langcode = NULL) {
     $out = parent::buildContent($entity, $view_mode, $langcode);
     $node = node_load($entity->question_nid, $entity->question_vid);
@@ -95,6 +101,11 @@ class QuizResultAnswerController extends EntityAPIController {
     return $out;
   }
 
+  /**
+   * We load the QuizQuestion instance to the response.
+   *
+   * @todo may be deprecated in the future.
+   */
   public function load($ids = array(), $conditions = array()) {
     $entities = parent::load($ids, $conditions);
     foreach ($entities as $entity) {
