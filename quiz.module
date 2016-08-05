@@ -3029,21 +3029,6 @@ function _quiz_get_quiz_name() {
 }
 
 /**
- * Returns an array with quiz titles keyed with quiz node ids.
- *
- * @return array
- *   Options suitable for a form, in which the value is nid.
- */
-function quiz_get_quiz_options() {
-  $options = array();
-  $results = db_query('SELECT n.nid, n.title, n.type FROM {node} n WHERE n.type = :type', array(':type' => 'quiz'));
-  foreach ($results as $result) {
-    $options[$result->nid] = drupal_substr(check_plain($result->title), 0, 30);
-  }
-  return $options;
-}
-
-/**
  * Retrieves the quiz node from the menu router.
  *
  * @return
