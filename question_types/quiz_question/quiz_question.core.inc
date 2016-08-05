@@ -161,18 +161,7 @@ abstract class QuizQuestion {
    *  Content array
    */
   public function getNodeView() {
-    $type = node_type_get_type($this->node);
-    $content['question_type'] = array(
-      '#markup' => '<div class="question_type_name">' . $type->name . '</div>',
-      '#weight' => -2,
-    );
-    /*
-      $question_body = field_get_items('node', $this->node, 'body');
-      $content['question'] = array(
-      '#markup' => '<div class="question-body">' . $question_body[0]['safe_value'] . '</div>',
-      '#weight' => -1,
-      );
-     */
+    $content = array();
     return $content;
   }
 
