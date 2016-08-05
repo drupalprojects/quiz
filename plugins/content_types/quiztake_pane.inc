@@ -12,6 +12,7 @@ $plugin = array(
   'category' => array(t('Quiz'), -9),
   'description' => t('The quiz on the referenced node'),
   'required context' => new ctools_context_required(t('Node'), 'node'),
+  'edit form' => 'ctools_content_configure_form_defaults',
 );
 
 /**
