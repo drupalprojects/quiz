@@ -17,23 +17,6 @@ function quiz_user_results($result_id) {
 }
 
 /**
- * Check if any feedback should be displayed for this result.
- *
- * @param $quiz_result
- *   A quiz result.
- * @return bool
- *   TRUE if feedback needs to be displayed. FALSE otherwise.
- */
-function quiz_check_feedback(QuizResult $quiz_result) {
-  foreach (quiz_get_feedback_options() as $key => $option) {
-    if (quiz_feedback_can_review($key, $quiz_result)) {
-      return TRUE;
-    }
-  }
-  return FALSE;
-}
-
-/**
  * Submit the report form
  */
 function quiz_report_form_submit($form, &$form_state) {
