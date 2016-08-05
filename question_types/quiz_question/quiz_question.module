@@ -1046,3 +1046,22 @@ function quiz_question_entity_info() {
     ),
   );
 }
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function quiz_question_field_extra_fields() {
+  $extra = array();
+  foreach (quiz_question_get_info() as $type => $question) {
+    $extra['node'][$type] = array(
+      'form' => array(
+        'feedback' => array(
+          'label' => t('Feedback'),
+          'description' => t('Question feedback'),
+          'weight' => 5,
+        ),
+      ),
+    );
+  }
+  return $extra;
+}
