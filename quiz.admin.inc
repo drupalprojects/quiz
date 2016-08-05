@@ -40,7 +40,7 @@ function quiz_admin_settings($form, &$form_state) {
     '#type' => 'checkbox',
     '#title' => t('Index questions'),
     '#default_value' => variable_get('quiz_index_questions', 1),
-    '#description' => t('If you turn this off, questions will not show up in search results.'),
+    '#description' => t('If you turn this off, questions will not show up in search results. Note that you will need to enable the "View quiz question outside of a quiz" permission for anonymous users, as search needs this to index the question.'),
   );
 
   $form['quiz_global_settings']['quiz_default_close'] = array(
