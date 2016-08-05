@@ -3769,27 +3769,29 @@ function quiz_feedback_can_review($option, QuizResult $quiz_result) {
   }
 
   $all_shows = array();
-  foreach ($review_options as $time_key => $shows) {
-    // Loop through all the feedback times and check conditions.
-    if ($set = rules_config_load("quiz_feedback_{$time_key}")) {
-      if (!$set->execute($quiz_result)) {
-        // The rule did not pass. Remove the quiz feedback time from eligbility.
-        unset($review_options[$time_key]);
-      }
-      else {
-        // Rules pass so now do something.
-        if ($time_key == 'end') {
-          if ($quiz_result->time_end && arg(2) != 'take') {
-            $all_shows += array_filter($shows);
-          }
-        }
-        else if ($time_key == 'question') {
-          if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
-            $all_shows += array_filter($shows);
-          }
+  if (module_exists('rules')) {
+    foreach ($review_options as $time_key => $shows) {
+      // Loop through all the feedback times and check conditions.
+      if ($set = rules_config_load("quiz_feedback_{$time_key}")) {
+        if (!$set->execute($quiz_result)) {
+          // The rule did not pass. Remove the quiz feedback time from eligbility.
+          unset($review_options[$time_key]);
         }
         else {
-          $all_shows += array_filter($shows);
+          // Rules pass so now do something.
+          if ($time_key == 'end') {
+            if ($quiz_result->time_end && arg(2) != 'take') {
+              $all_shows += array_filter($shows);
+            }
+          }
+          else if ($time_key == 'question') {
+            if (!$quiz_result->time_end || $quiz_result->time_end >= REQUEST_TIME - 5) {
+              $all_shows += array_filter($shows);
+            }
+          }
+          else {
+            $all_shows += array_filter($shows);
+          }
         }
       }
     }
