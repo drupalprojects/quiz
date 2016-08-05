@@ -34,15 +34,6 @@ function quiz_check_feedback(QuizResult $quiz_result) {
 }
 
 /**
- * Validate a single question sub-form.
- */
-function quiz_report_form_element_validate(&$element, &$form_state) {
-  $question = node_load($element['nid']['#value'], $element['vid']['#value']);
-  $quiz_question_response = _quiz_question_response_get_instance($element['result_id']['#value'], $question);
-  $quiz_question_response->getReportFormValidate($element, $form_state);
-}
-
-/**
  * Submit the report form
  */
 function quiz_report_form_submit($form, &$form_state) {
@@ -73,11 +64,6 @@ function quiz_report_form_submit($form, &$form_state) {
   module_invoke_all('quiz_scored', $quiz, $score_data, $quiz_result->result_id);
 
   drupal_set_message(t('The scoring data you provided has been saved.') . $add);
-  if (user_access('score taken quiz answer') && !user_access('view any quiz results')) {
-    if ($quiz_result && $quiz_result->uid == $user->uid) {
-      $form_state['redirect'] = 'node/' . $quiz->nid . '/quiz/results/' . $quiz_result->result_id;
-    }
-  }
 }
 
 /**

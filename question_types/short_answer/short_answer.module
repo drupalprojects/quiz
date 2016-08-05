@@ -32,34 +32,6 @@ function short_answer_permission() {
 }
 
 /**
- * Implements hook_menu().
- */
-function short_answer_menu() {
-  $items['admin/quiz/reports/score-short-answer'] = array(
-    'title' => 'Score short answer questions',
-    'description' => 'Score the answers from quizzes that use short answer questions.',
-    'page callback' => 'short_answer_view_unscored',
-    'access arguments' => array('score any quiz', 'score own quiz', 'score taken quiz answer'),
-    'access callback' => 'quiz_access_multi_or',
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'short_answer.admin.inc',
-  );
-  // Pass vid and rid to this path.
-  $items['admin/quiz/reports/score-short-answer/%/%'] = array(
-    'title' => 'Score short answer response',
-    'description' => 'Score a response to a short answer question.',
-    'page callback' => 'short_answer_edit_score',
-    'page arguments' => array(4, 5),
-    'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array(4, 5),
-    'access callback' => 'quiz_question_access_to_score',
-    'file' => 'short_answer.admin.inc'
-  );
-
-  return $items;
-}
-
-/**
  * Implements hook_quiz_question_info().
  */
 function short_answer_quiz_question_info() {
@@ -103,11 +75,6 @@ function short_answer_config_validate($form, $form_state) {
 function short_answer_theme($existing, $type, $theme, $path) {
   $module_path = drupal_get_path('module', 'short_answer');
   return array(
-    'short_answer_view_unscored' => array(
-      'variables' => array('unscored' => array()),
-      'path' => $module_path . '/theme',
-      'file' => 'short_answer.theme.inc',
-    ),
     'short_answer_response_form' => array(
       'render element' => 'form',
       'path' => $module_path . '/theme',

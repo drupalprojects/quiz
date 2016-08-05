@@ -82,40 +82,6 @@ function quiz_question_node_info() {
 }
 
 /**
- * Figure out if a user has access to score a certain result
- *
- * @param $vid
- *  Question version id
- * @param $result_id
- *  Result id
- * @return
- *  True if the user has access to score the result
- */
-function quiz_question_access_to_score($vid, $result_id) {
-  global $user;
-  $sql = 'SELECT * FROM {quiz_node_results_answers} WHERE result_id = :result_id AND question_vid = :question_vid';
-  $answer = db_query($sql, array(':result_id' => $result_id, ':question_vid' => $vid))->fetch();
-  if (!$answer) {
-    return FALSE;
-  }
-  if (user_access('score any quiz')) {
-    return TRUE;
-  }
-  if (user_access('score taken quiz answer')) {
-    $uid = db_query('SELECT uid from {quiz_node_results} qnr WHERE qnr.result_id = :result_id', array(':result_id' => $result_id))->fetchField();
-    if ($uid == $user->uid) {
-      return TRUE;
-    }
-  }
-  if (user_access('score own quiz')) {
-    return db_query('SELECT r.uid FROM {node_revision} r
-            JOIN {quiz_node_results} qnr ON (r.nid = qnr.nid)
-            WHERE qnr.result_id = :result_id
-            ', array(':result_id' => $result_id))->fetchField() == $user->uid;
-  }
-}
-
-/**
  * Implements hook_form().
  */
 function quiz_question_form(&$node, &$form_state) {
@@ -743,45 +709,6 @@ function quiz_question_add_body_field($type) {
   );
 
   field_update_instance($instance);
-}
-
-/**
- * Return a form with question feedback.
- */
-function quiz_question_feedback($quiz, $question) {
-
-  if (empty($_SESSION['quiz'][$quiz->nid]['result_id'])) {
-    $result_id = $_SESSION['quiz']['temp']['result_id'];
-  }
-  else {
-    $result_id = $_SESSION['quiz'][$quiz->nid]['result_id'];
-  }
-
-  $quiz_result = quiz_result_load($result_id);
-  $questions = array($question);
-  foreach ($quiz_result->getLayout() as $question_array) {
-    if ($question_array['nid'] == $question->nid) {
-      // Found this question.
-      if ($question_array['qnr_pid']) {
-        // Belongs to a page. Find other questions.
-        $questions = array();
-        foreach ($quiz_result->getLayout() as $question2) {
-          if ($question2['qnr_pid'] == $question_array['qnr_pid']) {
-            // This question belongs in the requested page.
-            $questions[] = node_load($question2['nid'], $question2['vid']);
-          }
-        }
-        break;
-      }
-    }
-  }
-
-
-  module_load_include('inc', 'quiz', 'quiz.pages');
-  if ($questions) {
-    $report_form = drupal_get_form('quiz_report_form', $questions, $result_id);
-    return $report_form;
-  }
 }
 
 /**

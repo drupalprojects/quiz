@@ -201,73 +201,6 @@ class LongAnswerQuestion extends QuizQuestion {
 class LongAnswerResponse extends QuizQuestionResponse {
 
   /**
-   * Get all scores that have not yet been evaluated.
-   *
-   * @param $count
-   *  Number of items to return (default: 50).
-   * @param $offset
-   *  Where in the results we should start (default: 0).
-   *
-   * @return
-   *  Array of objects describing unanswered questions. Each object will have result_id, question_nid, and question_vid.
-   */
-  public static function fetchAllUnscoredAnswers($count = 50, $offset = 0) {
-    global $user;
-    $query = db_select('quiz_long_answer_user_answers', 'a');
-    $query->fields('a', array('answer_feedback', 'answer_feedback_format'));
-    $query->fields('r', array('title'));
-    $query->fields('qnr', array('time_end', 'time_start', 'uid'));
-    $query->fields('qnra', array('result_id', 'question_nid', 'question_vid'));
-    $query->join('quiz_node_results_answers', 'qnra', 'a.result_answer_id = qnra.result_answer_id');
-    $query->join('node_revision', 'r', 'qnra.question_vid = r.vid');
-    $query->join('quiz_node_results', 'qnr', 'qnra.result_id = qnr.result_id');
-    $query->join('node', 'n', 'qnr.nid = n.nid');
-    $query->condition('a.is_evaluated', 0);
-    if (user_access('score own quiz') && user_access('score taken quiz answer')) {
-      $query->condition(db_or()->condition('n.uid', $user->uid)->condition('qnr.uid', $user->uid));
-    }
-    elseif (user_access('score own quiz')) {
-      $query->condition('n.uid', $user->uid);
-    }
-    elseif (user_access('score taken quiz answer')) {
-      $query->condition('qnr.uid', $user->uid);
-    }
-    $results = $query->execute();
-    $unscored = array();
-    foreach ($results as $row) {
-      $unscored[] = $row;
-    }
-    return $unscored;
-  }
-
-  /**
-   * Given a quiz, return a list of all of the unscored answers.
-   *
-   * @param $nid
-   *  Node ID for the quiz to check.
-   * @param $vid
-   *  Version ID for the quiz to check.
-   * @param $count
-   *  Number of items to return (default: 50).
-   * @param $offset
-   *  Where in the results we should start (default: 0).
-   *
-   * @return
-   *  Indexed array of result IDs that need to be scored.
-   */
-  public static function fetchUnscoredAnswersByQuestion($nid, $vid, $count = 50, $offset = 0) {
-    $results = db_query('SELECT result_id FROM {quiz_long_answer_user_answers}
-      WHERE is_evaluated = :is_evaluated
-      AND question_nid = :question_nid
-      AND question_vid = :question_vid', array(':is_evaluated' => 0, ':question_nid' => $nid, ':question_vid' => $vid));
-    $unscored = array();
-    foreach ($results as $row) {
-      $unscored[] = $row->result_id;
-    }
-    return $unscored;
-  }
-
-  /**
    * ID of the answer.
    */
   protected $answer_id = 0;
@@ -281,7 +214,7 @@ class LongAnswerResponse extends QuizQuestionResponse {
     parent::__construct($result_id, $question_node, $answer);
 
     if (!isset($answer)) {
-      // Question has been answered allready. We fetch the answer data from the database.
+      // Question has been answered already. We fetch the answer data from the database.
       $r = db_query('SELECT *
         FROM {quiz_long_answer_user_answers}
         WHERE result_answer_id = :raid', array(':raid' => $this->result_answer_id))->fetch();
