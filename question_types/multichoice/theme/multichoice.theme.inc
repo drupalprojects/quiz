@@ -60,12 +60,13 @@ function theme_multichoice_answer_node_view($variables) {
 
     $rows[] = array(
       array(
+        'width' => 64,
         'data' => array(
           '#theme' => 'html_tag',
           '#tag' => 'span',
           '#attributes' => array(
             'class' => array(
-              'multichoice-icon',
+              'quiz-score-icon',
               $image,
             ),
             'title' => $show_correct ?
@@ -76,7 +77,6 @@ function theme_multichoice_answer_node_view($variables) {
               t('You are not allowed to view the solution for this question'),
           ),
         ),
-        'class' => array('multichoice-icon-cell'),
       ),
       $answer_markup
     );
