@@ -191,41 +191,10 @@ function short_answer_report_submit($values) {
 }
 
 /**
- * Get the answer for a question.
- *
- * This stores a score for a short answer question and marks that question as having been evaluated.
- * @param $question_nid
- *  Node ID of question.
- * @param $question_vid
- *  Version ID of question.
- * @param $result_id
- *  Result ID for the quiz results.
- *
- * @return Assoc array
- *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
- *  <code>
- *  answer_id; // The answer ID
- *  answer; // The full text of the answer
- *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
- *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
- *  question_vid
- *  question_nid
- *  result_id
- *  </code>
- */
-function short_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $results = db_query('SELECT sa.answer_id, sa.answer, sa.is_evaluated, sa.score, sa.question_vid, sa.question_nid, sa.result_id, sa.answer_feedback, sa.answer_feedback_format, rel.max_score AS rel_max_score
-    FROM {quiz_short_answer_user_answers} sa
-    JOIN {quiz_node_results} qnr ON (sa.result_id = qnr.result_id)
-    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = sa.question_vid)
-    WHERE sa.question_nid = :qnid AND sa.question_vid = :qvid AND sa.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
-  return $results ? $results : FALSE;
-}
-
-/**
  * Implements hook_field_extra_fields().
  */
 function short_answer_field_extra_fields() {
+  $extra = array();
   $extra['node']['short_answer'] = array(
     'form' => array(
       'answer' => array(

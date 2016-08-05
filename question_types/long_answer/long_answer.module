@@ -170,37 +170,6 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
 }
 
 /**
- * Get the answer for a question.
- *
- * This stores a score for a long answer question and marks that question as having been evaluated.
- * @param $nid
- *  Node ID of question.
- * @param $vid
- *  Version ID of question.
- * @param $result_id
- *  Result ID for the quiz results.
- *
- * @return Assoc array
- *  An array if successful, or FALSE if no result could be found. The array contains the following properties:
- *  <code>
- *  answer_id; // The answer ID
- *  answer; // The full text of the answer
- *  is_evaluated; // 0 if the question has not been evaluated, 1 if it has
- *  score; // The score the evaluator gave the user; this should be 0 if is_evaluated is 0.
- *  question_vid
- *  question_nid
- *  result_id
- *  </code>
- */
-function long_answer_get_answer($question_nid, $question_vid, $result_id) {
-  $result = db_query('SELECT answer_id, answer, la.is_evaluated, la.score, question_vid, question_nid, la.result_id, la.answer_feedback, la.answer_feedback_format, rel.max_score AS rel_max_score FROM {quiz_long_answer_user_answers} la
-    JOIN {quiz_node_results} qnr ON (la.result_id = qnr.result_id)
-    JOIN {quiz_node_relationship} rel ON (qnr.vid = rel.parent_vid AND rel.child_vid = la.question_vid)
-    WHERE question_nid = :qnid AND question_vid = :qvid AND la.result_id = :rid', array(':qnid' => $question_nid, ':qvid' => $question_vid, ':rid' => $result_id))->fetchAssoc();
-  return $result ? $result : FALSE;
-}
-
-/**
  * Given a quiz, return a list of all the unscored answers.
  *
  * @param $nid
@@ -271,6 +240,7 @@ function long_answer_report_submit($values) {
  * Implements hook_field_extra_fields().
  */
 function long_answer_field_extra_fields() {
+  $extra = array();
   $extra['node']['long_answer'] = array(
     'form' => array(
       'rubric' => array(
