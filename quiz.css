@@ -171,14 +171,6 @@ input#edit-submit-hidden {
 #no-questions {
   font-style: italic;
 }
-#quiz-view-table {
-  width: auto;
-  border-collapse: separate;
-  border: thin solid #555555;
-  padding: 0px;
-  margin: 0px;
-  margin-bottom: 20px;
-}
 #quiz-start-quiz-button-form div {
   padding: 0px;
   margin: 0px;
