@@ -29,6 +29,7 @@ files[] = includes/QuizResultMetadataController.class.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question.inc
 files[] = includes/views/handlers/quiz_views_handler_filter_quiz_question_type.inc
 files[] = includes/views/handlers/quiz_views_handler_field_quiz_question_result_answer.inc
+files[] = tests/QuizAccessTestCase.test
 files[] = tests/QuizCreationTestCase.test
 files[] = tests/QuizFeedbackTestCase.test
 files[] = tests/QuizGradingTestCase.test

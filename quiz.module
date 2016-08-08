@@ -240,7 +240,7 @@ function quiz_access_my_result($result_id) {
   if ($quiz_result = quiz_result_load($result_id)) {
     $node = node_load($quiz_result->nid, $quiz_result->vid);
 
-    if (quiz_access_to_score($node->uid) || ($quiz_result->time_end > 0 && $quiz_result->uid == $user->uid)) {
+    if (quiz_access_to_score($quiz_result) || ($quiz_result->time_end > 0 && $quiz_result->uid == $user->uid)) {
       return TRUE;
     }
   }
@@ -254,18 +254,17 @@ function quiz_access_my_result($result_id) {
  * @param $quiz_creator
  *   uid of the quiz creator.
  */
-function quiz_access_to_score($quiz_creator = NULL) {
+function quiz_access_to_score(QuizResult $quiz_result) {
   global $user;
-  if ($quiz_creator == NULL && ($quiz = quiz_get_quiz_from_menu())) {
-    $quiz_creator = $quiz->uid;
+  $quiz = node_load($quiz_result->nid);
+
+  if (user_access('score own quiz') && $quiz->uid == $user->uid) {
+    return TRUE;
   }
   if (user_access('score any quiz')) {
     return TRUE;
   }
-  if (user_access('score own quiz') && $user->uid == $quiz_creator) {
-    return TRUE;
-  }
-  if (user_access('score taken quiz answer')) {
+  if (user_access('score taken quiz answer') && $quiz_result->uid == $user->uid) {
     return TRUE;
   }
 }
@@ -3065,22 +3064,6 @@ function _quiz_get_answers($quiz, $result_id) {
  */
 function _quiz_get_quiz_name() {
   return t(variable_get('quiz_name', 'Quiz'));
-}
-
-/**
- * Retrieves the quiz node from the menu router.
- *
- * @return
- *   Quiz node, if found, or FALSE if quiz node can't be retrieved from the menu
- *   router.
- */
-function quiz_get_quiz_from_menu() {
-  if ($to_return = menu_get_object('quiz_type_access', 4)) {
-    return $to_return;
-  }
-  //TODO: FIX it. This seems to return NULL in feedback page.
-  $node = menu_get_object();
-  return (is_object($node) && $node->type == 'quiz') ? $node : FALSE;
 }
 
 /**

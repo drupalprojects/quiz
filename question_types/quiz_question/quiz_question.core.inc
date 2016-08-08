@@ -718,7 +718,10 @@ abstract class QuizQuestionResponse {
       '#type' => 'value',
       '#value' => $this->display_number,
     );
-    if (quiz_access_to_score()) {
+
+    $quiz_result = quiz_result_load($this->result_id);
+
+    if (quiz_access_to_score($quiz_result)) {
 
       if ($submit = $this->getReportFormSubmit()) {
         $form['score'] = $this->getReportFormScore();

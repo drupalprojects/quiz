@@ -65,7 +65,9 @@ class QuizResultAnswerController extends EntityAPIController {
       $class = 'q-waiting';
     }
 
-    if ($instance->canReview('score') || quiz_access_to_score()) {
+    $quiz_result = quiz_result_load($entity->result_id);
+
+    if ($instance->canReview('score') || quiz_access_to_score($quiz_result)) {
       $out['score']['#title'] = '';
       $out['score']['#markup'] = theme('quiz_question_score', array('score' => $score, 'max_score' => $instance->getMaxScore(), 'class' => $class));
     }
@@ -79,7 +81,6 @@ class QuizResultAnswerController extends EntityAPIController {
     if ($instance->canReview('question_feedback')) {
       if ($properties = entity_load('quiz_question', FALSE, array('nid' => $instance->quizQuestion->node->nid, 'vid' => $instance->quizQuestion->node->vid))) {
         $quiz_question = reset($properties);
-        $quiz_result = quiz_result_load($entity->result_id);
         $account = user_load($quiz_result->uid);
         $token_types = array(
           'global' => NULL,
