@@ -999,20 +999,22 @@ function quiz_view($node) {
     '#weight' => -1,
   );
 
-  $available = quiz_availability($node);
-  if ($available === TRUE) {
-    // Check the permission before displaying start button.
-    if (user_access('access quiz')) {
-      // Add a link to the take tab.
-      $node->content['take'] = array(
-        '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take', array('attributes' => array('class' => array('quiz-start-link')))),
-        '#weight' => 2,
-      );
+  $available = quiz_access('take', $node);
+  // Check the permission before displaying start button.
+  if ($available['success']) {
+    if (!empty($available['message'])) {
+      // There's a friendly message available.
+      drupal_set_message($available['message']);
     }
+    // Add a link to the take tab.
+    $node->content['take'] = array(
+      '#markup' => l(t('Start @quiz', array('@quiz' => QUIZ_NAME)), 'node/' . $node->nid . '/take', array('attributes' => array('class' => array('quiz-start-link')))),
+      '#weight' => 2,
+    );
   }
   else {
     $node->content['take'] = array(
-      '#markup' => '<div class="quiz-not-available">' . $available . '</div>',
+      '#markup' => '<div class="quiz-not-available">' . $available['message'] . '</div>',
       '#weight' => 2,
     );
   }
@@ -1024,8 +1026,13 @@ function quiz_view($node) {
  * Page to either resume a quiz or display a start quiz form.
  */
 function quiz_take_page($quiz) {
-  if (!quiz_availability($quiz)) {
-    return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
+  $result = quiz_take_access($quiz);
+  if (!$result['success']) {
+    return array('body' => array('#markup' => $result['message']));
+  }
+  else if (!empty($result['message'])) {
+    // There's a friendly message available.
+    drupal_set_message($result['message']);
   }
 
   if ($quiz_result = quiz_take_quiz($quiz)) {
@@ -1036,7 +1043,7 @@ function quiz_take_page($quiz) {
     drupal_goto("node/{$quiz_result->nid}/take/" . ($_SESSION['quiz'][$quiz_result->nid]['current']));
   }
   else {
-    if (quiz_start_check($quiz)) {
+    if ($result['success']) {
       $quiz_result = entity_create('quiz_result', array(
         'nid' => $quiz->nid,
         'vid' => $quiz->vid,
@@ -1045,7 +1052,7 @@ function quiz_take_page($quiz) {
       ));
     }
     else {
-      return array('body' => array('#markup' => t('This @quiz is not available.', array('@quiz' => QUIZ_NAME))));
+      return array('body' => array('#markup' => $result['message']));
     }
   }
 
@@ -1071,14 +1078,10 @@ function quiz_take_page($quiz) {
 /**
  * Does the current user have access to take the quiz?
  *
- * @param $node
- *  The quiz node
+ * Wrapper for quiz_access().
  */
 function quiz_take_access($node) {
-  if ($node->type != 'quiz') {
-    return FALSE;
-  }
-  return node_access('view', $node) && user_access('access quiz') && quiz_availability($node) === TRUE;
+  return quiz_access('take', $node);
 }
 
 /**
@@ -2189,71 +2192,12 @@ function quiz_is_passed($uid, $nid, $vid) {
 }
 
 /**
- * Actions to take place at the start of a quiz.
- *
- * This should only be checked when the user does not yet have an active
- * attempt.
- *
- * @param $quiz
- *   The quiz node.
- *
- * @return bool
- *   FALSE if there is an error.
+ * Can a user take this quiz?
  */
-function quiz_start_check($quiz) {
-  global $user;
+function quiz_quiz_access($op = 'take', $quiz, $account) {
+  $hooks = array();
 
   $user_is_admin = node_access('update', $quiz);
-
-  // Check to see if this user is allowed to take the quiz again:
-  if ($quiz->takes > 0) {
-    $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $user->uid, ':nid' => $quiz->nid))->fetchField();
-    $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
-    $taken_times = format_plural($taken, '1 time', '@count times');
-
-    // The user has already taken this quiz.
-    if ($taken) {
-      if ($user_is_admin) {
-
-        drupal_set_message(t('You have taken this @quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', array('@quiz' => QUIZ_NAME)), 'status');
-      }
-      // If the user has already taken this quiz too many times, stop the user.
-      elseif ($taken >= $quiz->takes) {
-        drupal_set_message(t('You have already taken this @quiz @really. You may not take it again.', array('@quiz' => QUIZ_NAME, '@really' => $taken_times)), 'error');
-        return FALSE;
-      }
-      // If the user has taken the quiz more than once, see if we should report
-      // this.
-      elseif ($quiz->show_attempt_stats) {
-        drupal_set_message(t("You can only take this @quiz @allowed. You have taken it @really.", array('@quiz' => QUIZ_NAME, '@allowed' => $allowed_times, '@really' => $taken_times)), 'status');
-      }
-    }
-  }
-
-  // Check to see if the user is registered, and user alredy passed this quiz.
-  if ($quiz->show_passed && $user->uid && quiz_is_passed($user->uid, $quiz->nid, $quiz->vid)) {
-    drupal_set_message(t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)), 'status', FALSE);
-  }
-
-  return TRUE;
-}
-
-/**
- * Find out if a quiz is available for taking or not
- *
- * @param $quiz
- *  The quiz node
- * @return
- *  TRUE if available
- *  Error message(String) if not available
- */
-function quiz_availability($quiz) {
-  global $user;
-
-  $user_is_admin = user_access('edit any quiz content') || (user_access('edit own quiz content') && $quiz->uid == $user->uid);
-  if ($user_is_admin || $quiz->quiz_always == 1) {
-    return TRUE;
-  }
 
   // Make sure this is available.
   if ($quiz->quiz_always != 1) {
@@ -2264,22 +2208,126 @@ function quiz_availability($quiz) {
     $quiz_closed = REQUEST_TIME >= $quiz->quiz_close;
     if (!$quiz_open || $quiz_closed) {
       if ($user_is_admin) {
-        return t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME));
+        $hooks['admin_ignore_date'] = array(
+          'success' => TRUE,
+          'message' => t('You are marked as an administrator or owner for this @quiz. While you can take this @quiz, the open/close times prohibit other users from taking this @quiz.', array('@quiz' => QUIZ_NAME)),
+        );
       }
+      else {
 
-      if ($quiz_closed) {
-        return t('This @quiz is closed.', array('@quiz' => QUIZ_NAME));
+        if ($quiz_closed) {
+          $hooks['closed'] = array(
+            'success' => FALSE,
+            'message' => t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)),
+          );
+        }
+        if (!$quiz_open) {
+          $hooks['not_open'] = array(
+            'success' => FALSE,
+            'message' => t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME)),
+          );
+        }
       }
-      if (!$quiz_open) {
-        return t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME));
-      }
-
-      // Can't take quiz.
-      return FALSE;
     }
   }
 
-  return TRUE;
+  // Check to see if this user is allowed to take the quiz again:
+  if ($quiz->takes > 0) {
+    $taken = db_query("SELECT COUNT(*) AS takes FROM {quiz_node_results} WHERE uid = :uid AND nid = :nid", array(':uid' => $account->uid, ':nid' => $quiz->nid))->fetchField();
+    $allowed_times = format_plural($quiz->takes, '1 time', '@count times');
+    $taken_times = format_plural($taken, '1 time', '@count times');
+
+    // The user has already taken this quiz.
+    if ($taken) {
+      if ($user_is_admin) {
+        $hooks['owner_limit'] = array(
+          'success' => TRUE,
+          'message' => t('You have taken this @quiz already. You are marked as an owner or administrator for this quiz, so you can take this quiz as many times as you would like.', array('@quiz' => QUIZ_NAME)),
+        );
+      }
+      // If the user has already taken this quiz too many times, stop the user.
+      elseif ($taken >= $quiz->takes) {
+        if (!isset($_SESSION['quiz'][$quiz->nid])) {
+          // If result is in session, don't check the attempt limit. @todo would
+          // be to split up "take" into something like "start" and "continue" an
+          // attempt.
+          $hooks['attempt_limit'] = array(
+            'success' => FALSE,
+            'message' => t('You have already taken this @quiz @really. You may not take it again.', array('@quiz' => QUIZ_NAME, '@really' => $taken_times)),
+          );
+        }
+      }
+      // If the user has taken the quiz more than once, see if we should report
+      // this.
+      elseif ($quiz->show_attempt_stats) {
+        $hooks['attempt_limit'] = array(
+          'success' => TRUE,
+          'message' => t("You can only take this @quiz @allowed. You have taken it @really.", array('@quiz' => QUIZ_NAME, '@allowed' => $allowed_times, '@really' => $taken_times)),
+          'weight' => -10,
+        );
+      }
+    }
+  }
+
+  // Check to see if the user is registered, and user alredy passed this quiz.
+  if ($quiz->show_passed && $account->uid && quiz_is_passed($account->uid, $quiz->nid, $quiz->vid)) {
+    $hooks['already_passed'] = array(
+      'success' => TRUE,
+      'message' => t('You have already passed this @quiz.', array('@quiz' => QUIZ_NAME)),
+      'weight' => 10,
+    );
+  }
+
+  // Check permission and node access.
+  if (!user_access('access quiz') || !node_access('view', $quiz)) {
+    $hooks['node_perm_access'] = array(
+      'success' => TRUE,
+      'message' => t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)),
+    );
+  }
+
+  return $hooks;
+}
+
+/**
+ * Find out if a quiz is available for taking or not.
+ *
+ * @param stdClass $quiz
+ *  The quiz node.
+ * @param stdClass $account
+ *  The user to check.
+ *
+ * @return array
+ *   An array keyed with: 'success' and 'message'.
+ */
+function quiz_access($op = 'take', stdClass $quiz, stdClass $account = NULL) {
+  if (!$account) {
+    global $user;
+    $account = $user;
+  }
+
+  $hooks = module_invoke_all('quiz_access', $op, $quiz, $account);
+  drupal_alter('quiz_access', $hooks, $op, $quiz, $account);
+  uasort($hooks, 'drupal_sort_weight');
+  $success = NULL;
+
+  foreach ($hooks as $hook) {
+    if (empty($hook['success'])) {
+      return $hook;
+    }
+    if ($hook['success'] && !$success) {
+      $success = $hook;
+    }
+  }
+
+  if (!empty($success)) {
+    return $success;
+  }
+
+  // No blockers.
+  return array(
+    'success' => TRUE,
+  );
 }
 
 /**
