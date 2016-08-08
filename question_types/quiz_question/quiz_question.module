@@ -212,6 +212,13 @@ function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $form['navigation']['#type'] = 'actions';
   $form['navigation']['#theme'] = 'quiz_question_navigation_form';
 
+  $form['navigation']['submit_hidden'] = array(
+    '#weight' => -9999,
+    '#type' => 'submit',
+    '#value' => $is_last ? t('Finish') : t('Next'),
+    '#attributes' => array('style' => 'display: none'),
+  );
+
   if (!empty($quiz->backwards_navigation) && ($_SESSION['quiz'][$quiz->nid]['current'] != 1)) {
     // Backwards navigation enabled, and we are looking at not the first
     // question. @todo detect when on the first page.
