@@ -1003,7 +1003,10 @@ function quiz_view($node) {
   if ($available['success']) {
     if (!empty($available['message'])) {
       // There's a friendly message available.
-      drupal_set_message($available['message']);
+      if (node_is_page($node)) {
+        // Only display if we are viewing the quiz.
+        drupal_set_message($available['message']);
+      }
     }
     // Add a link to the take tab.
     $node->content['take'] = array(
