@@ -942,8 +942,8 @@ function theme_quiz_question_feedback($variables) {
 /**
  * Helper function to faciliate icon display, like "correct" or "selected".
  */
-function quiz_icon($icon) {
-  return theme('quiz_answer_result', array('type' => $icon));
+function quiz_icon($type, $variables = array()) {
+  return theme('quiz_answer_result', array('type' => $type, $variables));
 }
 
 /**

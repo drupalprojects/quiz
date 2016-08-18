@@ -11,8 +11,56 @@
  * @ingroup themeable
  */
 function theme_quiz_answer_result($variables) {
+  $options = array();
   $type = $variables['type'];
-  return '<div class="quiz-score-icon ' . $type . '"></div>';
+
+  switch($type) {
+    case 'correct':
+      $options['path'] = 'check_008000_64.png';
+      $options['alt'] = t('Correct');
+      break;
+    case 'incorrect':
+      $options['path'] = 'times_ff0000_64.png';
+      $options['alt'] = t('Incorrect');
+      break;
+    case 'unknown':
+      $options['path'] = 'question_808080_64.png';
+      $options['alt'] = t('Unknown');
+      break;
+    case 'should':
+      $options['path'] = 'check_808080_64.png';
+      $options['alt'] = t('Should have chosen');
+      break;
+    case 'should-not':
+      $options['path'] = 'times_808080_64.png';
+      $options['alt'] = t('Should not have chosen');
+      break;
+    case 'almost':
+      $options['path'] = 'check_ffff00_64.png';
+      $options['alt'] = t('Almost');
+      break;
+    case 'selected':
+      $options['path'] = 'arrow-right_808080_64.png';
+      $options['alt'] = t('Selected');
+      break;
+    case 'unselected':
+      $options['path'] = 'circle-o_808080_64.png';
+      $options['alt'] = t('Unselected');
+      break;
+    default:
+      $options['path'] = '';
+      $options['alt'] = '';
+  }
+
+  if (!empty($options['path'])) {
+    $options['path'] = drupal_get_path('module', 'quiz') . '/images/' . $options['path'];
+  }
+  if (!empty($options['alt'])) {
+    $options['title'] = $options['alt'];
+  }
+
+  $image = theme('image', $options);
+  return '<div class="quiz-score-icon ' . $type . '">' . $image . '</div>';
 }
 
 /**

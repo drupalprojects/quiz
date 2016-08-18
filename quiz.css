@@ -295,40 +295,6 @@ input#edit-submit-hidden {
 }
 
 /*
-  Icons
-*/
-.quiz-score-icon {
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-size: cover
-}
-.quiz-score-icon.correct {
-  background-image: url('images/check_008000_64.png');
-}
-.quiz-score-icon.incorrect {
-  background-image: url('images/times_ff0000_64.png');
-}
-.quiz-score-icon.unknown {
-  background-image: url('images/question_808080_64.png');
-}
-.quiz-score-icon.should {
-  background-image: url('images/check_808080_64.png');
-}
-.quiz-score-icon.should-not {
-  background-image: url('images/times_808080_64.png');
-}
-.quiz-score-icon.almost {
-  background-image: url('images/check_ffff00_64.png');
-}
-.quiz-score-icon.selected {
-  background-image: url('images/arrow-right_808080_64.png');
-}
-.quiz-score-icon.unselected {
-  background-image: url('images/circle-o_808080_64.png');
-}
-
-/*
 Fun
 
 #quiz-question-answering-form {
