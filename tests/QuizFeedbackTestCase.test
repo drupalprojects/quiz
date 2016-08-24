@@ -64,6 +64,7 @@ class QuizFeedbackTestCase extends QuizTestCase {
       node_save($quiz_node);
 
       $this->drupalGet("node/{$quiz_node->nid}/take/1/feedback");
+      $this->assertText('Question 1');
       $this->assertRaw('<th>' . $text . '</th>');
       foreach ($review_options as $option2 => $text2) {
         if ($option != $option2) {

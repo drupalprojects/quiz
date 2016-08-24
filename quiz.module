@@ -3620,7 +3620,11 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
       foreach ($quiz_result->getLayout() as $question2) {
         if ($question2['qnr_pid'] == $question['qnr_pid']) {
           $qra = entity_load_single('quiz_result_answer', $question2['result_answer_id']);
-          $out[] = $qra->view();
+          $out[] = array(
+            '#title' => t('Question @num', array('@num' => $question2['display_number'])),
+            '#type' => 'fieldset',
+            'feedback' => $qra->view(),
+          );
         }
       }
     }
@@ -3630,7 +3634,11 @@ function quiz_take_question_feedback_form($form, &$form_state, $quiz, $question_
   if (empty($out)) {
     $layout = $quiz_result->getLayout();
     $qra = entity_load_single('quiz_result_answer', $layout[$question_number]['result_answer_id']);
-    $out[] = $qra->view();
+    $out[] = array(
+      '#title' => t('Question @num', array('@num' => $layout[$question_number]['display_number'])),
+      '#type' => 'fieldset',
+      'feedback' => $qra->view(),
+    );
   }
 
   $form['feedback'] = $out;
