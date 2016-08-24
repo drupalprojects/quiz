@@ -3907,7 +3907,7 @@ function quiz_clone_quiz_result($result_old, $result_new) {
     $question = node_load($qinfo['nid'], $qinfo['vid']);
     $quiz_question_response = _quiz_question_response_get_instance($result_old->result_id, $question);
     $quiz_question_response_new = _quiz_question_response_get_instance($result_new->result_id, $question);
-    if ($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) {
+    if (($result_new->build_on_last == 'all' || $quiz_question_response->isCorrect()) && !$quiz_question_response->is_skipped) {
       // Load the old quiz_result_answer.
       $qra = entity_load_single('quiz_result_answer', $quiz_question_response->result_answer_id);
 

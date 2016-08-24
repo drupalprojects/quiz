@@ -407,7 +407,7 @@ class QuizResultTestCase extends QuizTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
-      ), t('Next'));
+      ), t('Leave blank'));
     $this->drupalPost(NULL, array(
       "question[$question_node2->nid][answer]" => 0,
       ), t('Next'));
@@ -423,7 +423,8 @@ class QuizResultTestCase extends QuizTestCase {
     $this->drupalPost(NULL, array(
       'build_on_last' => 'all',
       ), t('Start @quiz', array('@quiz' => QUIZ_NAME)));
-    $this->assertFieldChecked("edit-question-{$question_node1->nid}-answer-1");
+    $this->assertNoFieldChecked("edit-question-{$question_node1->nid}-answer-1");
+    $this->assertNoFieldChecked("edit-question-{$question_node1->nid}-answer-0");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
       ), t('Next'));
