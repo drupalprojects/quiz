@@ -152,6 +152,10 @@ function quiz_permission() {
       'title' => t('Manual quiz revisioning'),
       'description' => t('Quizzes are revisioned automatically each time they are changed. This allows you to do revisions manually.'),
     ),
+    'administer quiz result types' => array(
+      'title' => t('Administer quiz result types'),
+      'description' => t('Allow users to manage quiz result types and fields.'),
+    ),
   );
 }
 
@@ -3459,6 +3463,7 @@ function quiz_entity_info() {
       'label callback' => 'entity_class_label',
       'metadata controller class' => 'QuizResultMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
+      'access callback' => 'quiz_result_type_access',
     ),
     'quiz_result_answer' => array(
       'base table' => 'quiz_node_results_answers',
@@ -4003,7 +4008,7 @@ function quiz_result_form_submit($form, &$form_state) {
  * Entity access for quiz result types.
  */
 function quiz_result_type_access() {
-  return user_access('administer quiz configuration');
+  return user_access('administer quiz result types');
 }
 
 function quiz_result_type_form($form, &$form_state, $quiz_result_type, $op = 'edit') {
