@@ -3399,7 +3399,8 @@ function _quiz_is_empty_html($html) {
 function _quiz_show_finish_button($quiz) {
   $quiz_result = quiz_result_load($_SESSION['quiz'][$quiz->nid]['result_id']);
   $current = $_SESSION['quiz'][$quiz->nid]['current'];
-  foreach ($quiz_result->getLayout() as $idx => $question) {
+  $layout = $quiz_result->getLayout();
+  foreach ($layout as $idx => $question) {
     $question_node = node_load($question['nid'], $question['vid']);
     if ($question_node->type == 'quiz_page') {
       if ($current == $idx) {
@@ -3419,7 +3420,6 @@ function _quiz_show_finish_button($quiz) {
     }
   }
 
-  $layout = $quiz_result->getLayout();
   return $last_page || !isset($layout[$_SESSION['quiz'][$quiz->nid]['current'] + 1]);
 }
 

@@ -10,38 +10,43 @@ class QuizResult extends Entity {
    * @return QuizResultAnswer[]
    */
   function getLayout() {
-    $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
-      'parent_nid' => $this->nid,
-      'parent_vid' => $this->vid,
-    ));
-    $relationships = array();
-    foreach ($quiz_node_relationships as $quiz_node_relationship) {
-      $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
-    }
-    $layout = array();
+    $layouts = drupal_static('quiz_result_layout', array());
 
-    $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => array($this->identifier())));
-    if ($quiz_result_answers) {
-      foreach ($quiz_result_answers as $quiz_result_answer) {
-        if (!empty($relationships[$quiz_result_answer->question_nid])) {
-          $relationship = $relationships[$quiz_result_answer->question_nid];
-        }
-
-        $layout[$quiz_result_answer->number] = array(
-          'result_answer_id' => $quiz_result_answer->result_answer_id,
-          'display_number' => $quiz_result_answer->display_number,
-          'nid' => $quiz_result_answer->question_nid,
-          'vid' => $quiz_result_answer->question_vid,
-          'tid' => $quiz_result_answer->tid,
-          'number' => $quiz_result_answer->number,
-          'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
-          'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
-        );
+    if (!isset($layouts[$this->identifier()])) {
+      $quiz_node_relationships = entity_load('quiz_question_relationship', FALSE, array(
+        'parent_nid' => $this->nid,
+        'parent_vid' => $this->vid,
+      ));
+      $relationships = array();
+      foreach ($quiz_node_relationships as $quiz_node_relationship) {
+        $relationships[$quiz_node_relationship->child_nid] = $quiz_node_relationship;
       }
-      ksort($layout, SORT_NUMERIC);
+      $layout = array();
+
+      $quiz_result_answers = entity_load('quiz_result_answer', FALSE, array('result_id' => array($this->identifier())));
+      if ($quiz_result_answers) {
+        foreach ($quiz_result_answers as $quiz_result_answer) {
+          if (!empty($relationships[$quiz_result_answer->question_nid])) {
+            $relationship = $relationships[$quiz_result_answer->question_nid];
+          }
+
+          $layout[$quiz_result_answer->number] = array(
+            'result_answer_id' => $quiz_result_answer->result_answer_id,
+            'display_number' => $quiz_result_answer->display_number,
+            'nid' => $quiz_result_answer->question_nid,
+            'vid' => $quiz_result_answer->question_vid,
+            'tid' => $quiz_result_answer->tid,
+            'number' => $quiz_result_answer->number,
+            'qnr_id' => isset($relationship) ? $relationship->qnr_id : NULL,
+            'qnr_pid' => isset($relationship) ? $relationship->qnr_pid : NULL,
+          );
+        }
+        ksort($layout, SORT_NUMERIC);
+        $layouts[$this->identifier()] = $layout;
+      }
     }
 
-    return $layout;
+    return $layouts[$this->identifier()];
   }
 
   /**

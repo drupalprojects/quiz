@@ -12,7 +12,16 @@ class QuizResultAnswerController extends EntityAPIController {
     $out = parent::buildContent($entity, $view_mode, $langcode);
     $node = node_load($entity->question_nid, $entity->question_vid);
     $entity_info = entity_get_info('node');
-    $instance = $entity->instance;
+    // @kludge
+    // We check for an instance first. This is probably not the best way to do
+    // this but we need to sometimes show feedback for an answer not stored.
+    // For example when taking quizzes with "repeat until correct".
+    if (!isset($entity->instance)) {
+      $instance = _quiz_question_response_get_instance($entity->result_id, $node);
+    }
+    else {
+      $instance = $entity->instance;
+    }
     foreach ($entity_info['view modes'] as $view_mode => $info) {
       if ($instance->canReview("quiz_question_view_" . $view_mode)) {
         $build = node_view($node, $view_mode);
@@ -100,21 +109,6 @@ class QuizResultAnswerController extends EntityAPIController {
     }
 
     return $out;
-  }
-
-  /**
-   * We load the QuizQuestion instance to the response.
-   *
-   * @todo may be deprecated in the future.
-   */
-  public function load($ids = array(), $conditions = array()) {
-    $entities = parent::load($ids, $conditions);
-    foreach ($entities as $entity) {
-      $node = node_load($entity->question_nid, $entity->question_vid);
-      $instance = _quiz_question_response_get_instance($entity->result_id, $node);
-      $entity->instance = $instance;
-    }
-    return $entities;
   }
 
 }
