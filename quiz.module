@@ -3014,6 +3014,10 @@ function _quiz_get_quizzes($uid = 0) {
 /**
  * Get answer data for a specific result.
  *
+ * @deprecated
+ *   This function is no longer called in Quiz core and most likely will be
+ *   removed.
+ *
  * @param $result_id
  *   Result id.
  *
@@ -3022,7 +3026,7 @@ function _quiz_get_quizzes($uid = 0) {
  */
 function _quiz_get_answers($quiz, $result_id) {
   $questions = array();
-  $ids = db_query("SELECT question_nid, question_vid, type, rs.max_score, qt.max_score as term_max_score
+  $ids = db_query("SELECT question_nid, question_vid, n.type, rs.max_score, qt.max_score as term_max_score
                    FROM {quiz_node_results_answers} ra
                    LEFT JOIN {node} n ON (ra.question_nid = n.nid)
                    LEFT JOIN {quiz_node_results} r ON (ra.result_id = r.result_id)
