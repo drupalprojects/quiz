@@ -2873,16 +2873,11 @@ function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
  *  Array of question types.
  */
 function quiz_get_question_types() {
-  $quiz_questions = &drupal_static(__FUNCTION__);
-
-  // We vastly improves performance by statically caching the question types.
-  if (!empty($quiz_questions)) {
-    return $quiz_questions;
-  }
-
-  // Get question types from the modules that defines them.
-  if ($quiz_questions = quiz_question_get_info()) {
-    return $quiz_questions;
+  if (module_exists('quiz_question')) {
+    // Get question types from the modules that defines them.
+    if ($quiz_questions = quiz_question_get_info()) {
+      return $quiz_questions;
+    }
   }
 
   drupal_set_message(t('You need to install and enable at least one question type to use Quiz.'), 'warning', FALSE);
