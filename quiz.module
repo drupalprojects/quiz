@@ -3922,8 +3922,6 @@ function quiz_clone_quiz_result($result_old, $result_new) {
       $qra->save();
     }
   }
-
-  return $result_new;
 }
 
 /**

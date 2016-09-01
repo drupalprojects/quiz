@@ -97,11 +97,6 @@ class QuizResultController extends EntityAPIController {
       }
 
       if (!empty($entity->build_on_last)) {
-        $build_on_last = $entity->build_on_last;
-        // @kludge we need to reload to get the layout loaded on.
-        $entity = quiz_result_load($entity->result_id);
-        $entity->build_on_last = $build_on_last;
-
         // Build on the last attempt the user took. If this quiz has build on last
         // attempt set, we need to search for a previous attempt with the same
         // version of the current quiz.

@@ -33,20 +33,20 @@ function quiz_report_form_submit($form, &$form_state) {
         call_user_func($instance->getReportFormSubmit(), $q_values);
       }
     }
+
+    // Scores may have been changed. We take the necessary actions
+    quiz_end_scoring($quiz_result->result_id);
+    $results_got_deleted = _quiz_maintain_results($quiz, $quiz_result->result_id);
+
+    // Notify the user if results got deleted as a result of him scoring an answer.
+    $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this @quiz is set to only keep each users best answer.', array('@quiz' => QUIZ_NAME)) : '';
+
+    $score_data = quiz_get_score_array($quiz_result->result_id, $quiz->vid, TRUE);
+
+    module_invoke_all('quiz_scored', $quiz, $score_data, $quiz_result->result_id);
+
+    drupal_set_message(t('The scoring data you provided has been saved.') . $add);
   }
-
-  // Scores may have been changed. We take the necessary actions
-  quiz_end_scoring($quiz_result->result_id);
-  $results_got_deleted = _quiz_maintain_results($quiz, $quiz_result->result_id);
-
-  // Notify the user if results got deleted as a result of him scoring an answer.
-  $add = $quiz->keep_results == QUIZ_KEEP_BEST && $results_got_deleted ? ' ' . t('Note that this @quiz is set to only keep each users best answer.', array('@quiz' => QUIZ_NAME)) : '';
-
-  $score_data = quiz_get_score_array($quiz_result->result_id, $quiz->vid, TRUE);
-
-  module_invoke_all('quiz_scored', $quiz, $score_data, $quiz_result->result_id);
-
-  drupal_set_message(t('The scoring data you provided has been saved.') . $add);
 }
 
 /**
