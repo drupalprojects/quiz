@@ -2,6 +2,11 @@
   $(document).ready(function() {
     if (H5P && H5P.externalDispatcher) {
       H5P.externalDispatcher.on('xAPI', function(event) {
+        // If this isn't an event from the root H5P we return
+        var parent = event.getVerifiedStatementValue(['context', 'contextActivities', 'parent']);
+        if (parent) {
+          return;
+        }
         // First try to get the score from the statement
         var score = event.getScore();
         var maxScore = event.getMaxScore();
@@ -18,7 +23,7 @@
           // Find the instance and get the score from it if possible
           for (var i = 0; i < instances.length; i++) {
             if (instances[i].contentId === contentId) {
-              if (typeof instances[i].getScore === 'function') {
+              if (typeof instances[i].getScore === 'function' && typeof instances[i].getMaxScore === 'function') {
                 score = instances[i].getScore();
                 maxScore = instances[i].getMaxScore();
               }
