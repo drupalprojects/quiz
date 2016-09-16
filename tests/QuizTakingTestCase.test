@@ -149,10 +149,11 @@ class QuizTakingTestCase extends QuizTestCase {
 
   /**
    * Test the quiz availability tests.
-   *
-   * @TODO tests temporarily disabled
    */
   public function testQuizAvailability() {
+    // Anonymous doesn't have 'access quiz' permissions, so login a user that
+    // has that permission.
+    $this->drupalLogin($this->user);
     $future = REQUEST_TIME + 86400;
     $past = REQUEST_TIME - 86400;
 
@@ -164,6 +165,7 @@ class QuizTakingTestCase extends QuizTestCase {
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertNoText(t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)));
+    $this->assertNoText(t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)));
 
     // Starts in the future.
     $quiz_node = $this->drupalCreateQuiz(array(
@@ -172,6 +174,9 @@ class QuizTakingTestCase extends QuizTestCase {
       'quiz_close' => $future + 1,
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
+    $this->assertText(t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME)));
+    $this->assertNoText(t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)));
+    $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->assertText(t('This @quiz is not yet open.', array('@quiz' => QUIZ_NAME)));
 
     // Ends in the past.
@@ -182,6 +187,9 @@ class QuizTakingTestCase extends QuizTestCase {
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertText(t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)));
+    $this->assertNoText(t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)));
+    $this->drupalGet("node/{$quiz_node->nid}/take");
+    $this->assertText(t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)));
 
     // Always available.
     $quiz_node = $this->drupalCreateQuiz(array(
@@ -191,6 +199,7 @@ class QuizTakingTestCase extends QuizTestCase {
     ));
     $this->drupalGet("node/{$quiz_node->nid}");
     $this->assertNoText(t('This @quiz is closed.', array('@quiz' => QUIZ_NAME)));
+    $this->assertNoText(t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)));
   }
 
   /**

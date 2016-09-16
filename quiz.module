@@ -1032,7 +1032,7 @@ function quiz_view($node) {
  * Page to either resume a quiz or display a start quiz form.
  */
 function quiz_take_page($quiz) {
-  $result = quiz_take_access($quiz);
+  $result = quiz_access('take', $quiz);
   if (!$result['success']) {
     return array('body' => array('#markup' => $result['message']));
   }
@@ -1084,7 +1084,12 @@ function quiz_take_page($quiz) {
 /**
  * Does the current user have access to take the quiz?
  *
- * Wrapper for quiz_access().
+ * Wrapper for quiz_access() and menu access callback.
+ *
+ * @param $node
+ *   The quiz node.
+ *
+ * @return bool
  */
 function quiz_take_access($node) {
   return quiz_access('take', $node);
@@ -2278,7 +2283,7 @@ function quiz_quiz_access($op = 'take', $quiz, $account) {
   // Check permission and node access.
   if (!user_access('access quiz') || !node_access('view', $quiz)) {
     $hooks['node_perm_access'] = array(
-      'success' => TRUE,
+      'success' => FALSE,
       'message' => t('You are not allowed to take this @quiz.', array('@quiz' => QUIZ_NAME)),
     );
   }
