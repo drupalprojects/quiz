@@ -2207,8 +2207,8 @@ function quiz_take_quiz($quiz) {
       'allow_jumping' => $quiz->allow_jumping,
       'time_limit' => $quiz->time_limit));
     $content['progress']['#weight'] = -50;
-    if (count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']) > $number_of_questions) {
-      drupal_set_message(t('At least one question have been deleted from the quiz after you started taking it. You will have to start over.'), 'warning', FALSE);
+    if (count($_SESSION['quiz_' . $quiz->nid]['quiz_questions']) + count($_SESSION['quiz_' . $quiz->nid]['previous_quiz_questions']) != $number_of_questions) {
+      drupal_set_message(t('The number of questions for this quiz have changed. You will have to start over.'), 'warning', FALSE);
       unset($_SESSION['quiz_' . $quiz->nid]);
       drupal_goto('node/' . $quiz->nid . '/take');
     }
