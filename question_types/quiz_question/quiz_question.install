@@ -101,6 +101,7 @@ function quiz_question_update_7500() {
 
   db_add_field('quiz_question_properties', 'qqp_id', array(
     'type' => 'serial',
+    'not null' => TRUE,
     ), array('primary key' => array('qqp_id')));
 
   db_add_field('quiz_question_properties', 'feedback', array(
