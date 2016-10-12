@@ -3467,7 +3467,7 @@ function quiz_entity_info() {
       'label callback' => 'entity_class_label',
       'metadata controller class' => 'QuizResultMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
-      'access callback' => 'quiz_result_type_access',
+      'access callback' => 'quiz_result_access',
     ),
     'quiz_result_answer' => array(
       'base table' => 'quiz_node_results_answers',
@@ -4012,6 +4012,14 @@ function quiz_result_form_submit($form, &$form_state) {
   // Call the grading handler.
   module_load_include('inc', 'quiz', 'quiz.pages');
   quiz_report_form_submit($form, $form_state);
+}
+
+/**
+ * Entity access for quiz results.
+ */
+function quiz_result_access($op, $quiz_result) {
+  $quiz = node_load($quiz_result->nid);
+  return quiz_access_results($quiz, $quiz_result);
 }
 
 /**
