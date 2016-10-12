@@ -140,6 +140,50 @@ class QuizFeedbackTestCase extends QuizTestCase {
     $this->assertText('Feedback for TF test.');
   }
 
+   /**
+   * Test no feedback.
+   */
+  public function testNoFeedback() {
+    $this->drupalLogin($this->admin);
+
+    // Turn on question feedback at the end.
+    $quiz_node = $this->drupalCreateQuiz(
+      array(
+        'review_options' => array(),
+      )
+    );
+
+    // Add 2 questions.
+    $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node1, $quiz_node);
+    $question_node2 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
+    $this->linkQuestionToQuiz($question_node2, $quiz_node);
+
+    // Set feedback.
+    $entities = entity_load('quiz_question', FALSE, array('nid' => $question_node1->nid, 'vid' => $question_node1->vid));
+    $quiz_question = reset($entities);
+    $quiz_question->feedback = 'Feedback for TF test.';
+    $quiz_question->feedback_format = filter_default_format();
+    entity_save('quiz_question', $quiz_question);
+
+    $entities = entity_load('quiz_question', FALSE, array('nid' => $question_node2->nid, 'vid' => $question_node2->vid));
+    $quiz_question = reset($entities);
+    $quiz_question->feedback = 'Feedback for TF test.';
+    $quiz_question->feedback_format = filter_default_format();
+    entity_save('quiz_question', $quiz_question);
+
+    // Test
+    $this->drupalLogin($this->user);
+    $this->drupalGet("node/$quiz_node->nid/take");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 1,
+      ), t('Next'));
+    $this->drupalPost(NULL, array(
+      "question[$question_node2->nid][answer]" => 1,
+      ), t('Finish'));
+    $this->assertText('You have finished this Quiz');
+  }
+
   /**
    * Test Quiz question body feedback.
    */
