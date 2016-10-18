@@ -112,7 +112,12 @@ class ScaleQuestion extends QuizQuestion {
     $alternatives = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
       if (isset($alt_input['alternative' . $i]) && drupal_strlen($alt_input['alternative' . $i]) > 0) {
+        // Handle the form.
         $alternatives[] = $alt_input['alternative' . $i];
+      }
+      elseif (isset($alt_input['scale'][$i]->answer) && drupal_strlen($alt_input['scale'][$i]->answer) > 0) {
+        // Handle programmatic save.
+        $alternatives[] = $alt_input['scale'][$i]->answer;
       }
     }
 
@@ -122,7 +127,7 @@ class ScaleQuestion extends QuizQuestion {
         $this->setPreset($answer_collection_id);
       }
       if (!$is_new_node || $this->util) {
-        $col_to_delete = $this->util ? $this->col_id : $this->node->{0}->answer_collection_id;
+        $col_to_delete = $this->util ? $this->col_id : $this->node->scale[0]->answer_collection_id;
         if ($col_to_delete != $answer_collection_id) {
           // We try to delete the old answer collection
           $this->deleteCollectionIfNotUsed($col_to_delete, 1);
@@ -290,7 +295,7 @@ class ScaleQuestion extends QuizQuestion {
         ->condition('nid', $this->node->nid)
         ->execute();
     }
-    $this->deleteCollectionIfNotUsed($this->node->{0}->answer_collection_id, 0);
+    $this->deleteCollectionIfNotUsed($this->node->scale[0]->answer_collection_id, 0);
   }
 
   /**
@@ -310,7 +315,7 @@ class ScaleQuestion extends QuizQuestion {
             WHERE nid = :nid AND vid = :vid
             ORDER BY a.id', array(':nid' => $this->node->nid, ':vid' => $this->node->vid));
     foreach ($res as $res_o) {
-      $props[] = $res_o;
+      $props['scale'][] = $res_o;
     }
     $this->nodeProperties = $props;
     return $props;
@@ -325,8 +330,8 @@ class ScaleQuestion extends QuizQuestion {
     $content = parent::getNodeView();
     $alternatives = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (isset($this->node->{$i}->answer) && drupal_strlen($this->node->{$i}->answer) > 0) {
-        $alternatives[] = check_plain($this->node->{$i}->answer);
+      if (isset($this->node->scale[$i]->answer) && drupal_strlen($this->node->scale[$i]->answer) > 0) {
+        $alternatives[] = check_plain($this->node->scale[$i]->answer);
       }
     }
     $content['answers'] = array(
@@ -346,8 +351,8 @@ class ScaleQuestion extends QuizQuestion {
     //$form['#theme'] = 'scale_answering_form';
     $options = array();
     for ($i = 0; $i < variable_get('scale_max_num_of_alts', 10); $i++) {
-      if (isset($this->node->{$i}) && drupal_strlen($this->node->{$i}->answer) > 0) {
-        $options[$this->node->{$i}->id] = check_plain($this->node->{$i}->answer);
+      if (isset($this->node->scale[$i]) && drupal_strlen($this->node->scale[$i]->answer) > 0) {
+        $options[$this->node->scale[$i]->id] = check_plain($this->node->scale[$i]->answer);
       }
     }
 
@@ -421,7 +426,7 @@ class ScaleQuestion extends QuizQuestion {
         '#title' => t('Alternative !i', array('!i' => ($i + 1))),
         '#size' => 60,
         '#maxlength' => 256,
-        '#default_value' => isset($this->node->{$i}->answer) ? $this->node->{$i}->answer : '',
+        '#default_value' => isset($this->node->scale[$i]->answer) ? $this->node->scale[$i]->answer : '',
         '#required' => $i < 2,
       );
     }

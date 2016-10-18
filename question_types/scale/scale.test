@@ -119,4 +119,24 @@ class ScaleTestCase extends QuizQuestionTestCase {
       ), t('Next'));
   }
 
+  function testProgrammaticSave() {
+    $settings = array();
+    $settings['type'] = 'scale';
+
+    $question_node = $this->drupalCreateNode(array(
+      'type' => 'scale',
+      'title' => 'Scale 1 title',
+      'alternative0' => 'This is alternative 1',
+      'alternative1' => 'This is alternative 2',
+      'alternative2' => 'This is alternative 3',
+      'alternative3' => 'This is alternative 4',
+      'alternative4' => 'This is alternative 5',
+      'body' => array(LANGUAGE_NONE => array(array('value' => 'Scale 1 body text'))),
+    ));
+
+    node_save($question_node);
+
+    $question_node = node_load($question_node->nid);
+    $this->assertTrue(!empty($question_node->scale[0]), 'Alternatives persist after programmatic save.');
+  }
 }
