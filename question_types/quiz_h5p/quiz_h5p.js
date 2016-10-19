@@ -1,5 +1,5 @@
 (function ($) {
-  $(document).ready(function() {
+  $(document).ready(function () {
     if (H5P && H5P.externalDispatcher) {
       H5P.externalDispatcher.on('xAPI', function(event) {
         // try top level first
@@ -17,22 +17,20 @@
     }
   });
 
-  function hasScoreData(obj){
+  function hasScoreData (obj){
     return (
       (typeof obj !== typeof undefined) &&
       (typeof obj.getScore === 'function') &&
-      (typeof obj.getMaxScore === 'function') &&
-      (typeof obj.getScore() === 'number') &&
-      (typeof obj.getMaxScore() === 'number')
+      (typeof obj.getMaxScore === 'function')
     );
   }
 
-  function getContentId(event){
+  function getContentId (event){
     // Get the H5P content id for the question
     return event.getVerifiedStatementValue(['object', 'definition', 'extensions', 'http://h5p.org/x-api/h5p-local-content-id']);
   }
 
-  function findGlobalInstance(contentId){
+  function findGlobalInstance (contentId){
     var $iframes = $('.h5p-iframe');
     var instances = $iframes.length > 0 ? $iframes[0].contentWindow.H5P.instances : H5P.instances;
 
@@ -41,7 +39,7 @@
     });
   }
 
-  function updateScore(obj){
+  function updateScore (obj){
     var score = obj.getScore(),
       maxScore = obj.getMaxScore(),
       key = (maxScore > 0) ? (score / maxScore) : 0;
