@@ -6,6 +6,7 @@ dependencies[] = quiz
 dependencies[] = quiz_question
 dependencies[] = h5p
 dependencies[] = h5peditor
+dependencies[] = h5preport
 
 files[] = QuizQuestionH5P.class.inc
 files[] = QuizQuestionH5PResponse.class.inc

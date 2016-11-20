@@ -1,0 +1,23 @@
+<?php
+/**
+ * @file
+ * Renders xAPI statements into human readable reports.
+ */
+
+/**
+ * Generate report from xAPI data.
+ *
+ * @param $xapiData
+ *
+ * @return string Readable report
+ */
+function h5preport_generateReport($xapiData) {
+  static $H5PReport;
+
+  // Initialize H5PReport if not defined
+  if (!$H5PReport) {
+    $H5PReport = new H5PReport();
+  }
+
+  return $H5PReport->generateReport($xapiData);
+}

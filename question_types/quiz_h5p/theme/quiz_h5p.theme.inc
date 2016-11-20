@@ -14,10 +14,8 @@ function theme_quiz_h5p_response($variables) {
     $css_added = TRUE;
   }
 
-  if (isset($variables['description'])) {
-    $description = json_decode($variables['description']);
-    $description = (array) $description;
-    return $description['en-US'];
+  if (module_exists('h5preport')) {
+    return h5preport_generateReport($variables);
   }
   else {
     return FALSE;
