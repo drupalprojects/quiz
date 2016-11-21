@@ -13,8 +13,21 @@ abstract class TypeProcessor {
    * @return string HTML as string
    */
   public function generateReport($xapiData) {
-    return $this->generateHTML($this->getDescription($xapiData),
-      $this->getCRP($xapiData),
+
+    // Grab description
+    $description = $this->getDescription($xapiData);
+
+    // Grab correct response pattern
+    $crp = $this->getCRP($xapiData);
+
+    // No correct reponse patterns, use description
+    if (empty($crp)) {
+      return $description;
+    }
+
+    return $this->generateHTML(
+      $description,
+      $crp,
       $this->getResponse($xapiData)
     );
   }

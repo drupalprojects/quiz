@@ -30,11 +30,6 @@ class FillInProcessor extends TypeProcessor {
    */
   public function generateHTML($description, $crp, $response) {
 
-    // No correct answer patterns
-    if (!sizeof($crp)) {
-      return $description;
-    }
-
     // Generate interaction options
     $caseMatters = $this->determineCaseMatters($crp[0]);
     $options     = '<p class="options">' . $caseMatters['html'] . '</p>';
