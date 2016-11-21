@@ -47,6 +47,10 @@ function quiz_h5p_schema() {
       'response' => array(
         'type' => 'text',
         'size' => 'medium'
+      ),
+      'extras' => array(
+        'type' => 'text',
+        'size' => 'medium'
       )
     ),
     'primary key' => array('question_nid', 'question_vid', 'result_id'),
@@ -56,11 +60,6 @@ function quiz_h5p_schema() {
 
 /**
  * Store user responses in addition to scores.
- * Implements hook_update_N drupal hook.
- *
- * @param $sandbox
- *
- * @return null|string Descriptive text of what was done in the update.
  */
 function quiz_h5p_update_7400(&$sandbox) {
   $interactionType = array(
@@ -86,6 +85,12 @@ function quiz_h5p_update_7400(&$sandbox) {
     'size' => 'medium'
   );
   db_add_field('quiz_h5p_user_results','response', $response);
+
+  $extras = array(
+    'type' => 'text',
+    'size' => 'medium'
+  );
+  db_add_field('quiz_h5p_user_results','extras', $extras);
 
   return t('Store user responses in addition to scores.');
 }
