@@ -6,3 +6,4 @@ files[] = h5preport.class.inc
 files[] = type_processors/type-processor.interface.php
 files[] = type_processors/fill-in-processor.class.php
 files[] = type_processors/true-false-processor.class.php
+files[] = type_processors/choice-processor.class.php
