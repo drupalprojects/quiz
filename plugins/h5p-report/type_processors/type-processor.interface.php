@@ -40,9 +40,7 @@ abstract class TypeProcessor {
    * @return string Description as a string
    */
   protected function getDescription($xapiData) {
-    $decoded      = json_decode($xapiData['description']);
-    $descriptions = (array) $decoded;
-    return $descriptions['en-US'];
+    return json_decode($xapiData['description']);
   }
 
   /**
