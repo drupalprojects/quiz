@@ -6,7 +6,7 @@
  */
 class H5PReport {
 
-  private $fillInProcessor;
+  private $fillInProcessor, $trueFalseProcessor;
 
   /**
    * Generate the proper report depending on xAPI data.
@@ -30,6 +30,16 @@ class H5PReport {
         // Return generated report
         return $this->fillInProcessor->generateReport($xapiData);
         break;
+
+      case 'true-false':
+
+        // Initialize processor
+        if (!$this->fillInProcessor) {
+          $this->trueFalseProcessor = new TrueFalseProcessor();
+        }
+
+        // Return generated report
+        return $this->trueFalseProcessor->generateReport($xapiData);
 
       default:
         return '';
