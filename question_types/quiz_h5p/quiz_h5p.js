@@ -15,7 +15,12 @@
    * @returns {Object} XAPI data
    */
   function getInstanceXAPIData(instance) {
-    return (instance && instance.getxAPIData) ? instance.getxAPIData() : {};
+    if (!instance || !instance.getXAPIData) {
+      return {}; // No data avilable
+    }
+
+    // Get data from the H5P Content Type
+    return instance.getXAPIData();
   }
 
   function hasScoreData (obj){
