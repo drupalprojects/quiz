@@ -33,7 +33,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     $interactionType = isset($data->interactionType) ?
       json_encode($data->interactionType) : null;
     $description = isset($data->description) ?
-      json_encode($data->description) : null;
+      json_encode($data->description['en-US']) : null;
     $correctResponsesPattern = isset($data->correctResponsesPattern) ?
       json_encode($data->correctResponsesPattern) : null;
     $response = isset($data->response) ? json_encode($data->response) : null;
