@@ -20,6 +20,9 @@ abstract class TypeProcessor {
     // Grab correct response pattern
     $crp = $this->getCRP($xapiData);
 
+    // Grab extras
+    $extras = $this->getExtras($xapiData);
+
     // No correct reponse patterns, use description
     if (empty($crp)) {
       return $description;
@@ -28,8 +31,24 @@ abstract class TypeProcessor {
     return $this->generateHTML(
       $description,
       $crp,
-      $this->getResponse($xapiData)
+      $this->getResponse($xapiData),
+      $extras
     );
+  }
+
+  /**
+   * Decode extras from xAPI data.
+   *
+   * @param $xapiData
+   *
+   * @return mixed
+   */
+  protected function getExtras($xapiData) {
+    if (!isset($xapiData['extras'])) {
+      return null;
+    }
+
+    return json_decode($xapiData['extras']);
   }
 
   /**
@@ -73,8 +92,9 @@ abstract class TypeProcessor {
    * @param string $description Description
    * @param array $crp Correct responses pattern
    * @param string $response User given answer
+   * @param object $extras Additional data
    *
    * @return string HTML for the report
    */
-  abstract function generateHTML($description, $crp, $response);
+  abstract function generateHTML($description, $crp, $response, $extras);
 }
