@@ -19,7 +19,7 @@ function quiz_h5p_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'parent' => array(
+      'parent_id' => array(
         'type' => 'int',
         'unsiged' => TRUE,
         'not null' => FALSE
@@ -79,7 +79,7 @@ function quiz_h5p_schema() {
         'not null' => TRUE,
         'default' => ''
       ),
-      'extras' => array(
+      'additionals' => array(
         'type' => 'text',
         'size' => 'medium',
         'not null' => TRUE,
@@ -117,7 +117,7 @@ function quiz_h5p_update_7400(&$sandbox) {
   db_add_index('quiz_h5p_user_results', 'question_result', array('result_id', 'question_nid', 'question_vid'));
 
   // Add optional parent field
-  db_add_field('quiz_h5p_user_results', 'parent', array(
+  db_add_field('quiz_h5p_user_results', 'parent_id', array(
     'type' => 'int',
     'unsiged' => TRUE,
     'not null' => FALSE
@@ -172,7 +172,7 @@ function quiz_h5p_update_7400(&$sandbox) {
   ));
 
   // Add optional field for additional fields, e.g. choices for type='choice'
-  db_add_field('quiz_h5p_user_results', 'extras', array(
+  db_add_field('quiz_h5p_user_results', 'additionals', array(
     'type' => 'text',
     'size' => 'medium',
     'not null' => TRUE,

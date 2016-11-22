@@ -10,3 +10,4 @@ dependencies[] = h5preport
 
 files[] = QuizQuestionH5P.class.inc
 files[] = QuizQuestionH5PResponse.class.inc
+files[] = H5PXAPIData.class.inc
