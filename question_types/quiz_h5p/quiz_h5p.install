@@ -58,23 +58,32 @@ function quiz_h5p_schema() {
       'interaction_type' => array(
         'type' => 'varchar',
         'length' => 255,
-        'not null' => TRUE
+        'not null' => TRUE,
+        'default' => ''
       ),
       'description' => array(
         'type' => 'text',
-        'size' => 'medium'
+        'size' => 'medium',
+        'not null' => TRUE,
+        'default' => ''
       ),
       'correct_responses_pattern' => array(
         'type' => 'text',
-        'size' => 'medium'
+        'size' => 'medium',
+        'not null' => TRUE,
+        'default' => ''
       ),
       'response' => array(
         'type' => 'text',
-        'size' => 'medium'
+        'size' => 'medium',
+        'not null' => TRUE,
+        'default' => ''
       ),
       'extras' => array(
         'type' => 'text',
-        'size' => 'medium'
+        'size' => 'medium',
+        'not null' => TRUE,
+        'default' => ''
       )
     ),
     'primary key' => array('id'),
@@ -96,8 +105,7 @@ function quiz_h5p_update_7400(&$sandbox) {
   // Add required incremental identifier as primary key
   db_add_field('quiz_h5p_user_results', 'id', array(
     'type' => 'int',
-    'unsigned' => TRUE,
-    'not null' => TRUE
+    'unsigned' => TRUE
   ));
   db_change_field('quiz_h5p_user_results', 'id', 'id', array(
     'type' => 'serial',
@@ -150,19 +158,25 @@ function quiz_h5p_update_7400(&$sandbox) {
   // Add optional field for description
   db_add_field('quiz_h5p_user_results', 'description', array(
     'type' => 'text',
-    'size' => 'medium'
+    'size' => 'medium',
+    'not null' => TRUE,
+    'default' => ''
   ));
 
   // Add optional field for correct responses pattern
   db_add_field('quiz_h5p_user_results', 'correct_responses_pattern', array(
     'type' => 'text',
-    'size' => 'medium'
+    'size' => 'medium',
+    'not null' => TRUE,
+    'default' => ''
   ));
 
   // Add optional field for additional fields, e.g. choices for type='choice'
   db_add_field('quiz_h5p_user_results', 'extras', array(
     'type' => 'text',
-    'size' => 'medium'
+    'size' => 'medium',
+    'not null' => TRUE,
+    'default' => ''
   ));
 
 
