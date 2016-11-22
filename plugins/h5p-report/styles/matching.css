@@ -1,0 +1,63 @@
+.h5p-matching-table {
+  width: 100%;
+}
+
+.h5p-header-dropzone {
+  width: 40%;
+}
+
+.h5p-header-correct,
+.h5p-header-user {
+  width: 30%;
+}
+
+.h5p-dropzone {
+  vertical-align: top;
+}
+
+.h5p-matching-table td,
+.h5p-matching-table th {
+  border-bottom: 1px solid #ddd;
+  padding:5px;
+  line-height:40px;
+}
+
+.h5p-matching-table .h5p-last-cell-in-row {
+  border-bottom: solid 1px #575757;
+}
+
+.h5p-table-heading {
+  background-color: #233448;
+  color: #FFFFFF;	height:60px;
+  line-height:10px;
+}
+
+.h5p-matching-table tr:nth-child(even) {
+  background-color: #FFFFFF;
+}
+
+.h5p-draggable-correct {
+  background-color: #fff;
+  color:#8AC062;
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;border-radius:5px;
+}
+
+.h5p-draggable-wrong {
+  color:#DF465A;
+  background-color: #fff;
+  padding: 5px;
+  margin-left: 5px;
+  margin-right: 5px;border-radius:5px;
+}
+
+/*.dnd-user-incorrect-2::before {*/
+  /*font-family: 'h5p-core-16';*/
+  /*content: "\e894";*/
+/*}*/
+
+/*.dnd-user-correct-2::before {*/
+  /*font-family: 'h5p-core-16';*/
+  /*content: "\e90c";*/
+/*}*/

@@ -38,85 +38,153 @@ class MatchingProcessor extends TypeProcessor  {
    * @return string HTML for the report
    */
   function generateHTML($description, $crp, $response, $extras) {
+    static $css_added;
+    if (!$css_added) {
+      drupal_add_css(drupal_get_path('module', 'h5preport') . '/styles/matching.css');
+      $css_added = true;
+    }
+
     $dropzones = $this->getDropzones($extras);
     $draggables = $this->getDraggables($extras);
 
-    $tableData = $this->formatDataIntoTable($crp,
-      $response,
-      sizeof($dropzones) + 1,
-      sizeof($draggables) + 1
-    );
+    $mappedCRP = $this->mapPatternIDsToIndexes($crp[0],
+      $dropzones,
+      $draggables);
 
-    $tableHTML = $this->generateTable($dropzones, $draggables, $tableData);
+    $mappedResponse = $this->mapPatternIDsToIndexes($response,
+      $draggables,
+      $draggables);
+
+    $tableHTML = $this->generateTable($mappedCRP,
+      $mappedResponse,
+      $dropzones,
+      $draggables
+    );
 
     return $tableHTML;
   }
 
-  function generateTable($dropzones, $draggables, $tableData) {
-    $header = $this->generateTableHeader($dropzones);
-    $rows = $this->generateRows($draggables, $tableData);
+  function mapPatternIDsToIndexes($pattern, $dropzoneIds, $draggableIds) {
+    $mappedMatches = array();
+    $singlePatterns = explode(self::SEPARATORS['EXPRESSION'], $pattern);
+    foreach($singlePatterns as $singlePattern) {
+      $matches = explode(self::SEPARATORS['MATCHES'], $singlePattern);
 
-    return '<table>' . $header . $rows . '</table>';
-  }
+      // ID does not necessarily map to index, so we must remap it
+      $dropzoneId = $this->findIndexOfItemWithId($dropzoneIds, $matches[0]);
+      $draggableId = $this->findIndexOfItemWithId($draggableIds, $matches[1]);
 
-  function generateRows($draggables, $tableData) {
-    $html = '';
-
-    foreach($tableData as $index => $value) {
-      // Add draggable
-      $row = '<th>' . $draggables[$index] . '</th>';
-
-      foreach($value as $matchState) {
-        $row .=
-          '<td class="' . self::CLASSES[$matchState] . '"></td>';
+      if (!isset($mappedMatches[$dropzoneId])) {
+        $mappedMatches[$dropzoneId] = array();
       }
 
-      $html .= '<tr>' . $row . '</tr>';
+      $mappedMatches[$dropzoneId][] = $draggableId;
     }
 
+    return $mappedMatches;
+  }
+
+  function findIndexOfItemWithId($haystack, $id) {
+    $index = null;
+    foreach($haystack as $key => $value) {
+      if ($value->id == $id) {
+        $index = $key;
+        break;
+      }
+    }
+    return $index;
+  }
+
+  function generateTable($mappedCRP, $mappedResponse, $dropzones, $draggables) {
+    $header = $this->generateTableHeader();
+    $rows = $this->generateRows($mappedCRP, $mappedResponse, $dropzones,
+      $draggables);
+
+    return '<table class="h5p-matching-table">' . $header . $rows . '</table>';
+  }
+
+  function generateRows($mappedCRP, $mappedResponse, $dropzones, $draggables) {
+    $html = '';
+    foreach($dropzones as $index => $value) {
+      $html .= $this->generateDropzoneRows($value,
+        $draggables,
+        isset($mappedCRP[$index]) ? $mappedCRP[$index] : array(),
+        isset($mappedResponse[$index]) ? $mappedResponse[$index] : array()
+      );
+    }
     return $html;
   }
 
-  function generateTableHeader($dropzones) {
+  function generateDropzoneRows($dropzone, $draggables, $crp, $response) {
+    $dzRows = sizeof($crp) > sizeof($response) ? sizeof($crp) : sizeof($response);
 
+    // Skip row if no correct or user answers
+    if ($dzRows <= 0) {
+      return '';
+    }
+
+    $rows = '';
+    $lastCellInRow = 'h5p-last-cell-in-row';
+
+    for ($i = 0; $i < $dzRows; $i++) {
+      $row = '';
+      $tdClass = $i >= $dzRows - 1 ? $lastCellInRow : '';
+
+      if ($i === 0) {
+        // Add dropzone
+        $row .=
+          '<th 
+            class="' . 'h5p-dropzone ' . $lastCellInRow . '" 
+            rowspan="' . $dzRows . '"' .
+          '>' .
+            $dropzone->value .
+          '</th>';
+      }
+
+      // Add correct response pattern
+      $crpCellContent = isset($crp[$i]) ? $draggables[$crp[$i]]->value : '';
+      $row .= '<td class="' . $tdClass . '">' .
+                $crpCellContent .
+              '</td>';
+
+
+      // Add user response
+      $isCorrectClass = '';
+      $responseCellContent = '';
+      if (isset($response[$i])) {
+        $isCorrectClass = isset($crp[$i]) && in_array($response[$i], $crp) ?
+          'h5p-draggable-correct' : 'h5p-draggable-wrong';
+        $responseCellContent = $draggables[$response[$i]]->value;
+      }
+
+      $classes = $tdClass . (sizeof($isCorrectClass) ? ' ' : '') . $isCorrectClass;
+      $row .= '<td class="' . $classes . '">' .
+                $responseCellContent .
+              '</td>';
+
+      $rows .= '<tr>' . $row . '</tr>';
+    }
+
+    return $rows;
+  }
+
+  function generateTableHeader() {
     // Empty first item
-    $html = '<th></th>';
+    $html = '<th class="h5p-header-dropzone">Dropzone</th>' .
+            '<th class="h5p-header-correct">Correct Answers</th>' .
+            '<th class="h5p-header-user">Your answers</th>';
 
-    foreach($dropzones as $value) {
-      $html .= '<th>' . $value . '</th>';
-    }
-
-    return '<tr>' . $html . '</tr>';
-  }
-
-  function formatDataIntoTable($crp, $response, $xSize, $ySize) {
-    $crpMatches = explode(self::SEPARATORS['EXPRESSION'], $crp[0]);
-    $responseMatches = explode(self::SEPARATORS['EXPRESSION'], $response);
-
-    $tableData = array_fill(0, $ySize, array_fill(0, $xSize - 1, 0));
-
-    $tableData = $this->incrementTable($tableData, $crpMatches,
-      self::INCREMENT['CORRECT_ANSWER']);
-    $tableData = $this->incrementTable($tableData, $responseMatches,
-      self::INCREMENT['USER_ANSWER']);
-
-    return $tableData;
-  }
-
-  function incrementTable($table, $patterns, $incrementValue) {
-    foreach($patterns as $value) {
-      $tableIndexes = explode(self::SEPARATORS['MATCHES'], $value);
-      $table[$tableIndexes[1]][$tableIndexes[0]] += $incrementValue;
-    }
-
-    return $table;
+    return '<tr class="h5p-table-heading">' . $html . '</tr>';
   }
 
   function getDropzones($extras) {
     $dropzones = array();
 
     foreach($extras->target as $value) {
-      $dropzones[] = $value->description->{'en-US'};
+      $dropzones[] = (object) array(
+        'id' => $value->id,
+        'value' => $value->description->{'en-US'}
+      );
     }
 
     return $dropzones;
@@ -126,7 +194,10 @@ class MatchingProcessor extends TypeProcessor  {
     $draggables = array();
 
     foreach($extras->source as $value) {
-      $draggables[] = $value->description->{'en-US'};
+      $draggables[] = (object) array(
+        'id' => $value->id,
+        'value' => $value->description->{'en-US'}
+      );
     }
 
     return $draggables;
