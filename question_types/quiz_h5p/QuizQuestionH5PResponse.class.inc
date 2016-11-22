@@ -91,7 +91,8 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $questionResponse = db_query(
-      "SELECT interaction_type, description, correct_responses_pattern, response
+      "SELECT interaction_type, description, correct_responses_pattern, 
+      response, extras
       FROM {quiz_h5p_user_results}
       WHERE question_nid = :question_nid
       AND question_vid = :question_vid
