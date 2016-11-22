@@ -25,6 +25,10 @@ class H5PReport {
   public function generateReport($xapiData) {
     $interactionType = json_decode($xapiData['interaction_type']);
 
+    if ($interactionType === 'compound') {
+      // Go nuts!
+    }
+
     if (!isset(self::$processorMap[$interactionType])) {
       return ''; // No processor found
     }

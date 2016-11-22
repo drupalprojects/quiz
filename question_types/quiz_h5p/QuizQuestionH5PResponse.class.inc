@@ -16,47 +16,45 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
   public function save() {
     global $user;
 
-    $percentScore = 0;
-    $data = json_decode($this->answer);
+    // Decode xAPI answer data
+    $data = new \H5P\XAPIData(json_decode($this->answer));
 
-    if ($data->answer !== 1 && is_numeric($data->answer)) {
-      // Answer is the "encrypted" percentScore. Let's "decrypt" it...
-      $percentScore = $data->answer / 1.234 - 32.17;
-    }
-    if ($percentScore < 0) {
-      $percentScore = 0;
-    }
-    elseif ($percentScore > 1) {
-      $percentScore = 0;
-    }
+    // Parse data
+    $this->saveXAPIData($data);
+  }
 
-    $interactionType = isset($data->interactionType) ?
-      json_encode($data->interactionType) : null;
-    $description = isset($data->description) ?
-      json_encode($data->description->{'en-US'}) : null;
-    $correctResponsesPattern = isset($data->correctResponsesPattern) ?
-      json_encode($data->correctResponsesPattern) : null;
-    $response = isset($data->response) ? json_encode($data->response) : null;
-    $extras = isset($data->extras) ? json_encode($data->extras) : null;
+  /**
+   * Recusive save of xAPI data
+   *
+   * @param \H5P\XAPIData $data
+   */
+  public function saveXAPIData($data) {
 
-    db_merge('quiz_h5p_user_results')
-      ->key(array(
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
-        'result_id' => $this->rid,
-      ))
+    // Save statement data
+    $dataID = db_insert('quiz_h5p_user_results')
       ->fields(array(
+        'parent_id' => $data->getParentID(),
         'question_nid' => $this->question->nid,
         'question_vid' => $this->question->vid,
         'result_id' => $this->rid,
-        'percent_score' => $percentScore,
-        'interaction_type' => $interactionType,
-        'description' => $description,
-        'correct_responses_pattern' => $correctResponsesPattern,
-        'response' => $response,
-        'extras' => $extras
+        'score_scaled' => $data->getScoreScaled(),
+        'score_raw' => $data->getScoreRaw(),
+        'score_min' => $data->getScoreMin(),
+        'score_max' => $data->getScoreMax(),
+        'interaction_type' => $data->getInteractionType(),
+        'description' => $data->getDescription(),
+        'correct_responses_pattern' => $data->getCorrectResponsesPattern(),
+        'response' => $data->getResponse(),
+        'additionals' => $data->getAdditionals(),
       ))
       ->execute();
+
+    // Save sub content statements data
+    if ($statement->isCompound()) {
+      foreach ($statement->getChildren($dataID) as $subData) {
+        $this->saveXAPIData($subData);
+      }
+    }
   }
 
   public function score() {
@@ -91,7 +89,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     $questionResponse = db_query(
-      "SELECT interaction_type, description, correct_responses_pattern, 
+      "SELECT interaction_type, description, correct_responses_pattern,
       response, extras
       FROM {quiz_h5p_user_results}
       WHERE question_nid = :question_nid
