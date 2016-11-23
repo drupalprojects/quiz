@@ -13,8 +13,11 @@ namespace H5P {
     public function __construct($data, $parentID = NULL) {
       // Keep track of statement and children
       $this->statement = $data->statement;
-      $this->children = $data->children;
       $this->parentID = $parentID;
+
+      if (!empty($data->children)) {
+        $this->children = $data->children;
+      }
     }
 
     /**
@@ -36,8 +39,10 @@ namespace H5P {
       $children = array();
 
       // Parse children data
-      foreach ($data->children as $child) {
-        $children[] = new XAPIData($child, $parentID);
+      if (!empty($this->children)) {
+        foreach ($data->children as $child) {
+          $children[] = new XAPIData($child, $parentID);
+        }
       }
 
       return $children;
@@ -54,13 +59,34 @@ namespace H5P {
     }
 
     /**
-     * Get the optionl scaled score.
+     * Get score of given type from statement result
+     *
+     * @param string $type
+     * @return float
+     */
+    private function getScore($type) {
+      return (isset($this->statement->result->score->{$type}) ? (float) $this->statement->result->score->{$type} : NULL);
+    }
+
+    /**
+     * Get the optional scaled score.
      * Must be between -1 and 1.
      *
      * @return float
      */
     public function getScoreScaled() {
-      return $this->result->score->scaled;
+      $score = $this->getScore('scaled');
+
+      if ($score !== NULL) {
+        if ($score < -1) {
+          $score = -1.;
+        }
+        elseif ($score > 1) {
+          $score = 1.;
+        }
+      }
+
+      return $score;
     }
 
     /**
@@ -70,7 +96,7 @@ namespace H5P {
      * @return float
      */
     public function getScoreRaw() {
-      return $this->result->score->raw;
+      return $this->getScore('raw');
     }
 
     /**
@@ -79,7 +105,7 @@ namespace H5P {
      * @return float
      */
     public function getScoreMin() {
-      return $this->result->score->min;
+      return $this->getScore('min');
     }
 
     /**
@@ -88,7 +114,18 @@ namespace H5P {
      * @return float
      */
     public function getScoreMax() {
-      return $this->result->score->max;
+      return $this->getScore('max');
+    }
+
+    /**
+     * Get object definition property or default value if not set.
+     *
+     * @param string $property
+     * @param mixed $default If not set. Default default is blank string.
+     * @return mixed
+     */
+    private function getObjectDefinition($property, $default = '') {
+      return (isset($this->statement->object->definition->{$property}) ? $this->statement->object->definition->{$property} : $default);
     }
 
     /**
@@ -98,7 +135,7 @@ namespace H5P {
      */
     public function getInteractionType() {
       // Can be any string
-      return $this->statement->interactionType;
+      return $this->getObjectDefinition('interactionType');
     }
 
     /**
@@ -107,7 +144,12 @@ namespace H5P {
      * @return string
      */
     public function getDescription() {
-      return $this->statement->description->{'en-US'};
+      $description = $this->getObjectDefinition('description');
+      if ($description !== '') {
+        $description = (isset($description->{'en-US'}) ? $description->{'en-US'} : '');
+      }
+
+      return $description;
     }
 
     /**
@@ -116,7 +158,7 @@ namespace H5P {
      * @return string
      */
     public function getCorrectResponsesPattern() {
-      return $this->statement->correctResponsesPattern;
+      return $this->getObjectDefinition('correctResponsesPattern');
     }
 
     /**
@@ -125,7 +167,7 @@ namespace H5P {
      * @return string
      */
     public function getResponse() {
-      return $this->statement->response;
+      return (isset($this->statement->result->response) ? $this->statement->result->response : '');
     }
 
     /**
@@ -138,12 +180,12 @@ namespace H5P {
 
       switch ($this->getInteractionType()) {
         case 'choice':
-          $additionals['choices'] = $this->statement->object->definition->choices;
+          $additionals['choices'] = $this->getObjectDefinition('choices'. array());
           break;
 
         case 'matching':
-          $additionals['choice'] = $this->statement->object->definition->source;
-          $additionals['target'] = $this->statement->object->definition->target;
+          $additionals['source'] = $this->getObjectDefinition('source'. array());
+          $additionals['target'] = $this->getObjectDefinition('target'. array());
           break;
       }
 
