@@ -2,13 +2,21 @@
 
 class QuizQuestionH5PResponse extends QuizQuestionResponse {
 
+  /**
+   * Delete result row for this question.
+   */
   public function delete() {
-
+    db_delete('quiz_h5p_user_results')
+      ->condition('question_nid', $this->question->nid)
+      ->condition('question_vid', $this->question->vid)
+      ->condition('result_id', $this->rid)
+      ->execute();
   }
 
-  public function getResponse() {
-    return 'In H5P';
-  }
+  /**
+   * Needs to be implemented, not used.
+   */
+  public function getResponse() {}
 
   /**
    * Save current score and xAPI response in db.
@@ -28,7 +36,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
    *
    * @param \H5P\XAPIData $data
    */
-  public function saveXAPIData($data) {
+  private function saveXAPIData($data) {
 
     // Save statement data
     $dataID = db_insert('quiz_h5p_user_results')
@@ -58,7 +66,9 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
   }
 
   /**
+   * Get scaled score for question
    *
+   * @return int
    */
   public function score() {
     global $user;
@@ -77,6 +87,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
 
     return round($percentScore * $this->getMaxScore());
   }
+
   /**
    * Implementation of getReportFormQuestion
    *
@@ -133,7 +144,9 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     return array('#no-response' => TRUE);
   }
 
-
+  /**
+   * Needs to be implemented. Is not used.
+   */
   public function getReportFormAnswerFeedback($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
     return FALSE;
   }
