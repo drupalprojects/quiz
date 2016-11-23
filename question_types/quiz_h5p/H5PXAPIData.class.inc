@@ -159,7 +159,12 @@ class H5PXAPIData {
    * @return string
    */
   public function getCorrectResponsesPattern() {
-    return json_encode($this->getObjectDefinition('correctResponsesPattern', array()));
+    $correctResponsesPattern = $this->getObjectDefinition('correctResponsesPattern');
+    if (is_array($correctResponsesPattern)) {
+      return json_encode($correctResponsesPattern);
+    }
+
+    return '';
   }
 
   /**
