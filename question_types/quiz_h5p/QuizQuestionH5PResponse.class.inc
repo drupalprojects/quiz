@@ -103,7 +103,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     // Make it easy to map questions by id
     $questionsById = array();
     foreach ($result as $record) {
-      $questions[$record->id] = $record;
+      $questionsById[$record->id] = $record;
     }
 
     // Assemble our question tree
@@ -119,16 +119,18 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     }
 
     // Process question tree and create markup for report
-    $report = theme('quiz_h5p_response', array(
-      'question' => $baseQuestion
-    ));
-    
-    if (empty($report)) {
-      return array('#no-response' => TRUE);
+    if (isset($baseQuestion)) {
+      $report = theme('quiz_h5p_response', array(
+        'question' => $baseQuestion
+      ));
+
+      if (!empty($report)) {
+        return array('#markup' => $report);
+      }
     }
-    else {
-      return array('#markup' => $report);
-    }
+
+    // No report available
+    return array('#no-response' => TRUE);
   }
 
 
