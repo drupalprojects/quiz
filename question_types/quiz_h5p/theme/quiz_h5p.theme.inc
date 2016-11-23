@@ -15,7 +15,7 @@ function theme_quiz_h5p_response($variables) {
   }
 
   if (module_exists('h5preport')) {
-    return h5preport_generateReport($variables);
+    return h5preport_generateReport($variables['question']);
   }
   else {
     return FALSE;

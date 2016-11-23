@@ -57,15 +57,18 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     }
   }
 
+  /**
+   *
+   */
   public function score() {
     global $user;
 
     $percentScore = db_query(
-      "SELECT percent_score
-      FROM {quiz_h5p_user_results}
-      WHERE question_nid = :question_nid
-      AND question_vid = :question_vid
-      AND result_id = :result_id",
+      "SELECT score_scaled
+         FROM {quiz_h5p_user_results}
+        WHERE question_nid = :question_nid
+          AND question_vid = :question_vid
+          AND result_id = :result_id",
       array(
         'question_nid' => $this->question->nid,
         'question_vid' => $this->question->vid,
@@ -88,29 +91,43 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
    * Implements getReportFormResponse of QuizQuestionResponse interface
    */
   public function getReportFormResponse($showpoints = TRUE, $showfeedback = TRUE, $allow_scoring = FALSE) {
-    $questionResponse = db_query(
-      "SELECT interaction_type, description, correct_responses_pattern,
-      response, extras
-      FROM {quiz_h5p_user_results}
-      WHERE question_nid = :question_nid
-      AND question_vid = :question_vid
-      AND result_id = :result_id",
-      array(
-        'question_nid' => $this->question->nid,
-        'question_vid' => $this->question->vid,
-        'result_id' => $this->rid
-      ))->fetchObject();
 
-    // Return themed report
-    if (isset($questionResponse->interaction_type) &&
-        isset($questionResponse->description) &&
-        isset($questionResponse->correct_responses_pattern) &&
-        isset($questionResponse->response)
-    ) {
-      return array('#markup' => theme('quiz_h5p_response', (array)$questionResponse));
+    $result = db_select('quiz_h5p_user_results', 'qhur')
+        ->fields('qhur')
+        ->condition('question_nid', $this->question->nid)
+        ->condition('question_vid', $this->question->vid)
+        ->condition('result_id', $this->rid)
+        ->orderBy('id', 'ASC')
+        ->execute();
+
+    // Make it easy to map questions by id
+    $questionsById = array();
+    foreach ($result as $record) {
+      $questions[$record->id] = $record;
+    }
+
+    // Assemble our question tree
+    foreach ($questionsById as $question) {
+      if ($question->parent_id === NULL) {
+        // This is the root of our tree
+        $baseQuestion = $question;
+      }
+      elseif (isset($questionsById[$question->parent_id])) {
+        // Add to parent
+        $questionsById[$question->parent_id]->children[] = $question;
+      }
+    }
+
+    // Process question tree and create markup for report
+    $report = theme('quiz_h5p_response', array(
+      'question' => $baseQuestion
+    ));
+    
+    if (empty($report)) {
+      return array('#no-response' => TRUE);
     }
     else {
-      return array('#no-response' => TRUE);
+      return array('#markup' => $report);
     }
   }
 

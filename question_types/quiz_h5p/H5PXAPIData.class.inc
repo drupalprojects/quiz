@@ -10,7 +10,10 @@ class H5PXAPIData {
    */
   public function __construct($data, $parentID = NULL) {
     // Keep track of statement and children
-    $this->statement = $data->statement;
+    if (isset($data->statement)) {
+      $this->statement = $data->statement;
+    }
+    
     $this->parentID = $parentID;
 
     if (!empty($data->children)) {
