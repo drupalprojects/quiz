@@ -7,7 +7,7 @@ namespace H5P {
     private $statement, $children, $parentID;
 
     /**
-     * @param stdClass $data Containing 'statement' and 'children'
+     * @param object $data Containing 'statement' and 'children'
      * @param int $parentID Optional parent identifier
      */
     public function __construct($data, $parentID = NULL) {
@@ -36,7 +36,7 @@ namespace H5P {
       $children = array();
 
       // Parse children data
-      foreach ($data->children as $child) {
+      foreach ($this->children as $child) {
         $children[] = new XAPIData($child, $parentID);
       }
 
@@ -147,7 +147,7 @@ namespace H5P {
           break;
       }
 
-      return (empty($additionals) ? NULL : json_enode($additionals));
+      return (empty($additionals) ? NULL : json_encode($additionals));
     }
 
   }

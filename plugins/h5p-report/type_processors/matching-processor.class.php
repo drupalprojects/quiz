@@ -1,31 +1,20 @@
 <?php
 
-
+/**
+ * Class MatchingProcessor
+ */
 class MatchingProcessor extends TypeProcessor  {
 
-  const INCREMENT = array(
-    'CORRECT_ANSWER' => 1,
-    'USER_ANSWER' => 2
-  );
+  /**
+   * Pattern for separating between expressions.
+   */
+  const EXPRESSION_SEPARATOR = '[,]';
 
-  const MATRIX_CODES = array(
-    'EMPTY' => 0,
-    'MISSED' => 1,
-    'WRONG' => 2,
-    'CORRECT' => 3
-  );
+  /**
+   * Pattern for separating between matching elements
+   */
+  const MATCH_SEPARATOR = '[.]';
 
-  const CLASSES = array(
-    0 => 'h5p-emtpy',
-    1 => 'h5p-missed',
-    2 => 'h5p-wrong',
-    3 => 'h5p-correct'
-  );
-
-  const SEPARATORS = array(
-    'EXPRESSION' => '[,]',
-    'MATCHES' => '[.]'
-  );
 
   /**
    * Processes xAPI data and returns a human readable HTML report
@@ -60,15 +49,16 @@ class MatchingProcessor extends TypeProcessor  {
       $dropzones,
       $draggables
     );
+    $container = '<div class="h5p-matching-container">' . $tableHTML . '</div>';
 
-    return $tableHTML;
+    return $container;
   }
 
   function mapPatternIDsToIndexes($pattern, $dropzoneIds, $draggableIds) {
     $mappedMatches = array();
-    $singlePatterns = explode(self::SEPARATORS['EXPRESSION'], $pattern);
+    $singlePatterns = explode(self::EXPRESSION_SEPARATOR, $pattern);
     foreach($singlePatterns as $singlePattern) {
-      $matches = explode(self::SEPARATORS['MATCHES'], $singlePattern);
+      $matches = explode(self::MATCH_SEPARATOR, $singlePattern);
 
       // ID does not necessarily map to index, so we must remap it
       $dropzoneId = $this->findIndexOfItemWithId($dropzoneIds, $matches[0]);
@@ -124,7 +114,7 @@ class MatchingProcessor extends TypeProcessor  {
     }
 
     $rows = '';
-    $lastCellInRow = 'h5p-last-cell-in-row';
+    $lastCellInRow = 'h5p-matching-last-cell-in-row';
 
     for ($i = 0; $i < $dzRows; $i++) {
       $row = '';
@@ -134,7 +124,7 @@ class MatchingProcessor extends TypeProcessor  {
         // Add dropzone
         $row .=
           '<th 
-            class="' . 'h5p-dropzone ' . $lastCellInRow . '" 
+            class="' . 'h5p-matching-dropzone ' . $lastCellInRow . '" 
             rowspan="' . $dzRows . '"' .
           '>' .
             $dropzone->value .
@@ -153,7 +143,7 @@ class MatchingProcessor extends TypeProcessor  {
       $responseCellContent = '';
       if (isset($response[$i])) {
         $isCorrectClass = isset($crp[$i]) && in_array($response[$i], $crp) ?
-          'h5p-draggable-correct' : 'h5p-draggable-wrong';
+          'h5p-matching-draggable-correct' : 'h5p-matching-draggable-wrong';
         $responseCellContent = $draggables[$response[$i]]->value;
       }
 
@@ -170,11 +160,11 @@ class MatchingProcessor extends TypeProcessor  {
 
   function generateTableHeader() {
     // Empty first item
-    $html = '<th class="h5p-header-dropzone">Dropzone</th>' .
-            '<th class="h5p-header-correct">Correct Answers</th>' .
-            '<th class="h5p-header-user">Your answers</th>';
+    $html = '<th class="h5p-matching-header-dropzone">Dropzone</th>' .
+            '<th class="h5p-matching-header-correct">Correct Answers</th>' .
+            '<th class="h5p-matching-header-user">Your answers</th>';
 
-    return '<tr class="h5p-table-heading">' . $html . '</tr>';
+    return '<tr class="h5p-matching-table-heading">' . $html . '</tr>';
   }
 
   function getDropzones($extras) {
