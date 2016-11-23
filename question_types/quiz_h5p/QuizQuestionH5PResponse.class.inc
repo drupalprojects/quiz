@@ -50,8 +50,8 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
       ->execute();
 
     // Save sub content statements data
-    if ($statement->isCompound()) {
-      foreach ($statement->getChildren($dataID) as $subData) {
+    if ($data->isCompound()) {
+      foreach ($data->getChildren($dataID) as $subData) {
         $this->saveXAPIData($subData);
       }
     }
