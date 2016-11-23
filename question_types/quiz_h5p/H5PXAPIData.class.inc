@@ -187,7 +187,7 @@ class H5PXAPIData {
         break;
     }
 
-    return (empty($additionals) ? NULL : json_encode($additionals));
+    return (empty($additionals) ? '' : json_encode($additionals));
   }
 
 }
