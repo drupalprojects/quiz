@@ -51,10 +51,9 @@ class TrueFalseProcessor extends TypeProcessor {
   function generateFooter() {
     return
       '<div class="h5p-true-false-footer">' .
-      '<span class="h5p-true-false-correct-responses-pattern"> Correct Answer</span>' .
-      '<span class="h5p-true-false-user-response-correct"> Your correct 
-      answer</span>' .
-      '<span class="h5p-true-false-user-response-wrong"> Your incorrect answer</span>' .
+      '<span class="h5p-true-false-correct-responses-pattern">Correct Answer</span>' .
+      '<span class="h5p-true-false-user-response-correct">Your correct answer</span>' .
+      '<span class="h5p-true-false-user-response-wrong">Your incorrect answer</span>' .
       '</div>';
   }
 }
