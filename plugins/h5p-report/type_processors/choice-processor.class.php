@@ -17,44 +17,68 @@ class ChoiceProcessor extends TypeProcessor {
    * @return string HTML for report
    */
   public function generateHTML($description, $crp, $response, $extras = NULL) {
-
-    // Get correct answers
-    $correctAnswers = self::getChoiceList($crp, $extras);
-
-    // Get user answers
-    $userAnswers = self::getChoiceList($response, $extras);
-
-    return "Correct Answer: {$correctAnswers}<br/>User Answer: {$userAnswers}";
-  }
-
-  /**
-   * Generate comma separated list from xAPI choice list
-   *
-   * @param string $xAPIchoices Special format
-   * @param stdClass $extras Contains choice descriptions
-   * @param string HTML
-   */
-  private static function getChoiceList($xAPIchoices, $extras) {
-    $choices = explode('[,]', $xAPIchoices);
-    $HTML = '';
-
-    foreach ($choices as $choice) {
-      $HTML .= (empty($HTML) ? '' : ',') . self::getChoiceDescription($choice, $extras);
+    static $css_added;
+    if (!$css_added) {
+      drupal_add_css(drupal_get_path('module', 'h5preport') . '/styles/choice.css');
+      $css_added = true;
     }
+
+    $correctAnswers = explode('[,]', $crp[0]);
+    $responses = explode('[,]', $response);
+
+    $descriptionHTML = $this->generateDescription($description);
+    $tableHTML = $this->generateTable($extras, $correctAnswers, $responses);
+
+    return
+      '<div class="h5p-choices-container">' .
+        $descriptionHTML . $tableHTML .
+      '</div>';
   }
 
-  /**
-   * Fetch the description for the given choice identifier.
-   *
-   * @param int $id Choice identifier
-   * @param stdClass $extras Contains choice descriptions
-   * @return string Descripton
-   */
-  private static function getChoiceDescription($id, $extras) {
-    foreach ($extras->choices as $choice) {
-      if ($choice->id == $id) {
-        return $choice->description->{'en-US'};
+  private function generateDescription($description) {
+    return'<p class="h5p-choices-task-description">' . $description . '</p>';
+  }
+
+  private function generateTable($extras, $correctAnswers, $responses) {
+
+    $choices = $extras->choices;
+    $tableHeader =
+      '<tr class="h5p-choices-table-heading">' .
+        '<td class="h5p-choices-choice">Answers</td>' .
+        '<td class="h5p-choices-user-answer">Your Answer</td>' .
+        '<td class="h5p-choices-crp-answer">Correct</td>' .
+      '</tr>';
+
+    $rows = '';
+    foreach($choices as $choice) {
+      $choiceID = $choice->id;
+      $isCRP = in_array($choiceID, $correctAnswers);
+      $isAnswered = in_array($choiceID, $responses);
+
+      $userClasses = 'h5p-choices-user';
+      $crpClasses = 'h5p-choices-crp';
+      if ($isAnswered) {
+        $userClasses .= ' h5p-choices-answered';
       }
+      if ($isCRP) {
+        $userClasses .= ' h5p-choices-user-correct';
+        $crpClasses .= ' h5p-choices-crp-correct';
+      }
+
+      $row =
+        '<td>' . $choice->description->{'en-US'} . '</td>' .
+        '<td class="h5p-choices-icon-cell">' .
+          '<span class="' . $userClasses . '"></span>' .
+        '</td>' .
+        '<td class="h5p-choices-icon-cell">' .
+          '<span class="' . $crpClasses . '"></span>' .
+        '</td>';
+
+      $rows .= '<tr>' . $row . '</tr>';
     }
+
+    $tableContent = '<tbody>' . $tableHeader . $rows . '</tbody>';
+    return '<table class="h5p-choices-table">' . $tableContent . '</table>';
+
   }
 }
