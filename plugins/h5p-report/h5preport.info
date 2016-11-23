@@ -8,4 +8,5 @@ files[] = type_processors/compound-processor.class.php
 files[] = type_processors/fill-in-processor.class.php
 files[] = type_processors/true-false-processor.class.php
 files[] = type_processors/choice-processor.class.php
+files[] = type_processors/long-choice-processor.class.php
 files[] = type_processors/matching-processor.class.php

@@ -184,6 +184,10 @@ class H5PXAPIData {
         $additionals['choices'] = $this->getObjectDefinition('choices', array());
         break;
 
+      case 'long-choice':
+        $additionals['choices'] = $this->getObjectDefinition('choices', array());
+        break;
+
       case 'matching':
         $additionals['source'] = $this->getObjectDefinition('source', array());
         $additionals['target'] = $this->getObjectDefinition('target', array());
