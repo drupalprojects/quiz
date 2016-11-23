@@ -181,12 +181,12 @@ class H5PXAPIData {
 
     switch ($this->getInteractionType()) {
       case 'choice':
-        $additionals['choices'] = $this->getObjectDefinition('choices'. array());
+        $additionals['choices'] = $this->getObjectDefinition('choices', array());
         break;
 
       case 'matching':
-        $additionals['source'] = $this->getObjectDefinition('source'. array());
-        $additionals['target'] = $this->getObjectDefinition('target'. array());
+        $additionals['source'] = $this->getObjectDefinition('source', array());
+        $additionals['target'] = $this->getObjectDefinition('target', array());
         break;
     }
 
