@@ -16,7 +16,7 @@ class TrueFalseProcessor extends TypeProcessor {
    *
    * @return string HTML for report
    */
-  public function generateHTML($description, $crp, $response) {
+  public function generateHTML($description, $crp, $response, $extras) {
     return "Correct Answer: {$crp[0]}<br/>User Answer: {$response}";
   }
 }

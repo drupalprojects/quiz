@@ -13,7 +13,7 @@ class H5PXAPIData {
     if (isset($data->statement)) {
       $this->statement = $data->statement;
     }
-    
+
     $this->parentID = $parentID;
 
     if (!empty($data->children)) {
@@ -159,7 +159,7 @@ class H5PXAPIData {
    * @return string
    */
   public function getCorrectResponsesPattern() {
-    return $this->getObjectDefinition('correctResponsesPattern');
+    return json_encode($this->getObjectDefinition('correctResponsesPattern', array()));
   }
 
   /**

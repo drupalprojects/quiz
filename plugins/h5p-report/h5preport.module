@@ -12,12 +12,6 @@
  * @return string Readable report
  */
 function h5preport_generateReport($xapiData) {
-  static $H5PReport;
-
-  // Initialize H5PReport if not defined
-  if (!$H5PReport) {
-    $H5PReport = new H5PReport();
-  }
-
+  $H5PReport = H5PReport::getInstance();
   return $H5PReport->generateReport($xapiData);
 }

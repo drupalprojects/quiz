@@ -7,6 +7,7 @@
 class H5PReport {
 
   private static $processorMap = array(
+    'compound' => 'CompoundProcessor',
     'fill-in' => 'FillInProcessor',
     'true-false' => 'TrueFalseProcessor',
     'matching' => 'MatchingProcessor',
@@ -23,11 +24,7 @@ class H5PReport {
    * @return string A report
    */
   public function generateReport($xapiData) {
-    $interactionType = json_decode($xapiData['interaction_type']);
-
-    if ($interactionType === 'compound') {
-      // Go nuts!
-    }
+    $interactionType = $xapiData->interaction_type;
 
     if (!isset(self::$processorMap[$interactionType])) {
       return ''; // No processor found
@@ -40,5 +37,19 @@ class H5PReport {
 
     // Generate and return report from xAPI data
     return $this->processors[$interactionType]->generateReport($xapiData);
+  }
+
+  /**
+   * Caches instance of report generator.
+   * @return \H5PReport
+   */
+  public static function getInstance() {
+    static $instance;
+
+    if (!$instance) {
+      $instance = new H5PReport();
+    }
+
+    return $instance;
   }
 }
