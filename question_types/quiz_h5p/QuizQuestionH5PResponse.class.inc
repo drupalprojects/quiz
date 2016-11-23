@@ -17,7 +17,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     global $user;
 
     // Decode xAPI answer data
-    $data = new \H5P\XAPIData(json_decode($this->answer));
+    $data = new H5PXAPIData(json_decode($this->answer));
 
     // Parse data
     $this->saveXAPIData($data);
