@@ -22,7 +22,7 @@ class CompoundProcessor extends TypeProcessor {
     $reports = '';
     if (isset($extras->children)) {
       foreach ($extras->children as $childData) {
-        $reports .= $H5PReport->generateReport($childData);
+        $reports .= '<div class="h5p-result">' . $H5PReport->generateReport($childData) . '</div>';
       }
     }
 

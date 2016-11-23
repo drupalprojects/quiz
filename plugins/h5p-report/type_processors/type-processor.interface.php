@@ -23,11 +23,6 @@ abstract class TypeProcessor {
     // Grab extras
     $extras = $this->getExtras($xapiData);
 
-    // No correct reponse patterns, use description
-    if (empty($crp)) {
-      return $description;
-    }
-
     return $this->generateHTML(
       $description,
       $crp,
@@ -44,7 +39,7 @@ abstract class TypeProcessor {
    * @return stdClass
    */
   protected function getExtras($xapiData) {
-    $extras = json_decode($xapiData->additionals);
+    $extras = ($xapiData->additionals === '' ? new stdClass() : json_decode($xapiData->additionals));
     if (isset($xapiData->children)) {
       $extras->children = $xapiData->children;
     }
