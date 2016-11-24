@@ -3,15 +3,49 @@
     if (H5P && H5P.externalDispatcher) {
       // Get xAPI data initially
       H5P.externalDispatcher.once('domChanged', function () {
-        storeXAPIData(this);
+        storeXAPIData(getH5PInstance(this.contentId));
       });
 
       // Get xAPI data every time it changes
       H5P.externalDispatcher.on('xAPI', function() {
-        storeXAPIData(this);
+        storeXAPIData(getH5PInstance(this.contentId));
       });
     }
   });
+
+  /**
+   * Finds the global instance from content id by looking through the DOM
+   *
+   * @param {number} contentId Content identifier
+   * @returns {Object} Content instance
+   */
+  function getH5PInstance(contentId) {
+    /**
+     * Help search for instance with the defined contentId
+     * @private
+     */
+    var withContentId = function (instance) {
+      return (instance.contentId === contentId);
+    };
+
+    // Try this documents instances
+    var instance = H5P.instances.find(withContentId);
+    if (instance) {
+      return instance;
+    }
+
+    // Locate iframes
+    var iframes = document.getElementsByClassName('h5p-iframe');
+    for (var i = 0; i < iframes.length; i++) {
+      // Search through each iframe for content
+      instance = iframes[i].contentWindow.H5P.instances.find(withContentId);
+      if (instance) {
+        return instance;
+      }
+    }
+
+    return null; // No instance found
+  }
 
   /**
    * Retrieves xAPI data from content types instance if possible.
@@ -32,7 +66,7 @@
    *
    * @param {Object} instance Content type instance
    */
-  function storeXAPIData(instance){
+  function storeXAPIData(instance) {
     $('#quiz-h5p-result-key').val(JSON.stringify(getInstanceXAPIData(instance)));
   }
 
