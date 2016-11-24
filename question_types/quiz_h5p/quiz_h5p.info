@@ -10,4 +10,12 @@ dependencies[] = h5preport
 
 files[] = QuizQuestionH5P.class.inc
 files[] = QuizQuestionH5PResponse.class.inc
-files[] = H5PXAPIData.class.inc
+
+files[] = report/h5p-report.class.php
+files[] = report/h5p-report-xapi-data.class.php
+files[] = report/type-processors/type-processor.class.php
+files[] = report/type-processors/compound-processor.class.php
+files[] = report/type-processors/fill-in-processor.class.php
+files[] = report/type-processors/true-false-processor.class.php
+files[] = report/type-processors/choice-processor.class.php
+files[] = report/type-processors/matching-processor.class.php
