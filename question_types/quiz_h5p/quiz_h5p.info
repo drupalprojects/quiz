@@ -18,4 +18,5 @@ files[] = report/type-processors/compound-processor.class.php
 files[] = report/type-processors/fill-in-processor.class.php
 files[] = report/type-processors/true-false-processor.class.php
 files[] = report/type-processors/choice-processor.class.php
+files[] = report/type-processors/long-choice-processor.class.php
 files[] = report/type-processors/matching-processor.class.php
