@@ -35,7 +35,7 @@ class LongChoiceProcessor extends TypeProcessor {
   }
 
   private function generateDescription($description) {
-    return'<p class="h5p-long-choice-task-description">' . $description . '</p>';
+    return'<div class="h5p-long-choice-task-description">' . $description . '</div>';
   }
 
   private function generateBody($extras, $correctAnswers, $responses) {
