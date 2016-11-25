@@ -30,7 +30,6 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
     // Parse data
     $this->saveXAPIData($data);
   }
-
   /**
    * Recusive save of xAPI data
    *
