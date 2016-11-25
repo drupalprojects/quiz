@@ -41,7 +41,6 @@ class FillInProcessor extends TypeProcessor {
 
     // Generate interaction options
     $caseMatters = $this->determineCaseMatters($crp[0]);
-    $options     = (empty($caseMatters['html']) ? '' : '<p class="h5p-fill-in-options">' . $caseMatters['html'] . '</p>');
 
     // Process correct responses and user responses patterns
     $processedCRPs     = $this->processCRPs($crp, $caseMatters['nextIndex']);
@@ -54,7 +53,7 @@ class FillInProcessor extends TypeProcessor {
       $caseMatters['caseSensitive']
     );
 
-    $container = '<div class="h5p-fill-in-container">' . $options . $report .
+    $container = '<div class="h5p-fill-in-container">' . $report .
                  '</div>';
     $footer = $this->generateFooter();
 
