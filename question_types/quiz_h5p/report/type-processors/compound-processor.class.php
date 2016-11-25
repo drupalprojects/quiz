@@ -21,7 +21,6 @@ class CompoundProcessor extends TypeProcessor {
     $this->setStyle('styles/compound.css');
 
     $H5PReport = H5PReport::getInstance();
-
     $reports = (!empty($description) ? '<p class="h5p-compound-task-description">' . $description . '</p>' : '');
 
     if (isset($extras->children)) {
@@ -30,6 +29,6 @@ class CompoundProcessor extends TypeProcessor {
       }
     }
 
-    return $reports;
+    return '<div class="h5p-compound-container">' . $reports . '</div>';
   }
 }
