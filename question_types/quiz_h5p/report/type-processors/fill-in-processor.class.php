@@ -231,7 +231,7 @@ class FillInProcessor extends TypeProcessor {
    * @return string
    */
   private function getCRPHtml($singleCRP, $response, $caseSensitive) {
-    $html = '';
+    $html = array ();
 
     foreach ($singleCRP as $index => $value) {
 
@@ -248,15 +248,10 @@ class FillInProcessor extends TypeProcessor {
         continue;
       }
 
-      $html .= $value;
-
-      // Add separator between responses
-      if ($index < sizeof($singleCRP) - 1) {
-        $html .= self::CRP_REPORT_SEPARATOR;
-      }
+      $html[] = $value;
     }
 
-    return $html;
+    return join(self::CRP_REPORT_SEPARATOR, $html);
   }
 
   /**
