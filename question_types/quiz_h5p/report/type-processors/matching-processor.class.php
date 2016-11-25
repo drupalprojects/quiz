@@ -41,6 +41,10 @@ class MatchingProcessor extends TypeProcessor  {
       $dropzones,
       $draggables);
 
+    if (empty($mappedCRP) && empty($mappedResponse)) {
+      return '';
+    }
+    
     $tableHTML = $this->generateTable($mappedCRP,
       $mappedResponse,
       $dropzones,
@@ -53,6 +57,10 @@ class MatchingProcessor extends TypeProcessor  {
 
   function mapPatternIDsToIndexes($pattern, $dropzoneIds, $draggableIds) {
     $mappedMatches = array();
+    if (empty($pattern)) {
+      return $mappedMatches;
+    }
+
     $singlePatterns = explode(self::EXPRESSION_SEPARATOR, $pattern);
     foreach($singlePatterns as $singlePattern) {
       $matches = explode(self::MATCH_SEPARATOR, $singlePattern);
@@ -72,14 +80,7 @@ class MatchingProcessor extends TypeProcessor  {
   }
 
   function findIndexOfItemWithId($haystack, $id) {
-    $index = null;
-    foreach($haystack as $key => $value) {
-      if ($value->id == $id) {
-        $index = $key;
-        break;
-      }
-    }
-    return $index;
+    return (isset($haystack[$id]) ? (int)$haystack[$id]->id : NULL);
   }
 
   function generateTable($mappedCRP, $mappedResponse, $dropzones, $draggables) {
@@ -141,7 +142,7 @@ class MatchingProcessor extends TypeProcessor  {
       if (isset($response[$i])) {
         $isCorrectClass = isset($crp[$i]) && in_array($response[$i], $crp) ?
           'h5p-matching-draggable-correct' : 'h5p-matching-draggable-wrong';
-        $responseCellContent = $draggables[$response[$i]]->value;
+        $responseCellContent = $draggables[$i]->value;
       }
 
       $classes = $tdClass . (sizeof($isCorrectClass) ? ' ' : '') . $isCorrectClass;
