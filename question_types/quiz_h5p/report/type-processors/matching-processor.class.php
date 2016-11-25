@@ -44,7 +44,7 @@ class MatchingProcessor extends TypeProcessor  {
     if (empty($mappedCRP) && empty($mappedResponse)) {
       return '';
     }
-    
+
     $tableHTML = $this->generateTable($mappedCRP,
       $mappedResponse,
       $dropzones,
@@ -80,7 +80,7 @@ class MatchingProcessor extends TypeProcessor  {
   }
 
   function findIndexOfItemWithId($haystack, $id) {
-    return (isset($haystack[$id]) ? (int)$haystack[$id]->id : NULL);
+    return (isset($haystack[$id]) ? $haystack[$id]->id : NULL);
   }
 
   function generateTable($mappedCRP, $mappedResponse, $dropzones, $draggables) {
@@ -142,7 +142,12 @@ class MatchingProcessor extends TypeProcessor  {
       if (isset($response[$i])) {
         $isCorrectClass = isset($crp[$i]) && in_array($response[$i], $crp) ?
           'h5p-matching-draggable-correct' : 'h5p-matching-draggable-wrong';
-        $responseCellContent = $draggables[$i]->value;
+        foreach ($draggables as $draggable) {
+          if ($draggable->id === $response[$i]) {
+            $responseCellContent = $draggable->value;
+            break;
+          }
+        }
       }
 
       $classes = $tdClass . (sizeof($isCorrectClass) ? ' ' : '') . $isCorrectClass;
