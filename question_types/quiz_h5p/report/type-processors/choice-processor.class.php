@@ -32,10 +32,26 @@ class ChoiceProcessor extends TypeProcessor {
       '</div>';
   }
 
+  /**
+   * Generate description element
+   *
+   * @param string $description
+   *
+   * @return string Description element as a string
+   */
   private function generateDescription($description) {
     return'<p class="h5p-choices-task-description">' . $description . '</p>';
   }
 
+  /**
+   * Generate HTML table of choices
+   *
+   * @param object $extras
+   * @param array $correctAnswers
+   * @param array $responses
+   *
+   * @return string Table element
+   */
   private function generateTable($extras, $correctAnswers, $responses) {
 
     $choices = $extras->choices;
@@ -76,6 +92,5 @@ class ChoiceProcessor extends TypeProcessor {
 
     $tableContent = '<tbody>' . $tableHeader . $rows . '</tbody>';
     return '<table class="h5p-choices-table">' . $tableContent . '</table>';
-
   }
 }
