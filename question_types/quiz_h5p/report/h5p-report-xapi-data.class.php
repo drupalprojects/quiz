@@ -191,7 +191,7 @@ class H5PReportXAPIData {
 
       case 'long-choice':
         $additionals['choices'] = $this->getObjectDefinition('choices', array());
-        $additionals['extensions'] = $this->getObjectDefinition('extension', (object)array());
+        $additionals['extensions'] = $this->getObjectDefinition('extensions', (object)array());
         break;
 
       case 'matching':
