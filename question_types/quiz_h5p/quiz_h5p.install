@@ -176,6 +176,17 @@ function quiz_h5p_update_7400(&$sandbox) {
 }
 
 /**
+ * Changes long-choice interaction types to choice
+ */
+function quiz_h5p_update_7401(&$sandbox) {
+  // Update all long-choice fields to be choice to adhere to xAPI spec
+  db_update('quiz_h5p_user_results')
+    ->fields(array('interaction_type' => 'choice'))
+    ->condition('interaction_type', 'long-choice')
+    ->execute();
+}
+
+/**
  * Implements hook_install().
  */
 function quiz_h5p_install() {

@@ -21,11 +21,13 @@ class H5PReport {
    * Generate the proper report depending on xAPI data.
    *
    * @param $xapiData
+   * @param $forcedProcessor Force a processor type
    *
    * @return string A report
    */
-  public function generateReport($xapiData) {
-    $interactionType = $xapiData->interaction_type;
+  public function generateReport($xapiData, $forcedProcessor = null) {
+    $interactionType = isset($forcedProcessor) ? $forcedProcessor :
+      $xapiData->interaction_type;
 
     if (!isset(self::$processorMap[$interactionType])) {
       return ''; // No processor found
