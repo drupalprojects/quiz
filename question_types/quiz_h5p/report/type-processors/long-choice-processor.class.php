@@ -21,7 +21,7 @@ class LongChoiceProcessor extends TypeProcessor {
     $this->setStyle('styles/long-choice.css');
 
     $correctAnswers = explode('[,]', $crp[0]);
-    $responses = explode('[,]', $response);
+    $responses = !empty($response) ? explode('[,]', $response) : array();
 
     $descriptionHTML = $this->generateDescription($description);
     $bodyHTML = $this->generateBody($extras, $correctAnswers, $responses);
