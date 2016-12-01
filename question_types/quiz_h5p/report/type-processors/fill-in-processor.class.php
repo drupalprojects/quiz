@@ -189,8 +189,10 @@ class FillInProcessor extends TypeProcessor {
 
     foreach ($crp as $index => $value) {
 
+      $currentResponse = isset($response[$index]) ? $response[$index] : '';
+
       // Determine user response styling
-      $isCorrect     = $this->isResponseCorrect($response[$index],
+      $isCorrect = $this->isResponseCorrect($currentResponse,
         $value,
         $caseSensitive
       );
@@ -201,10 +203,10 @@ class FillInProcessor extends TypeProcessor {
       // Format the placeholder replacements
       $userResponse =
         '<span class="h5p-fill-in-user-response ' . $responseClass . '">' .
-        $response[$index] .
+        $currentResponse .
         '</span>';
 
-      $CRPhtml = $this->getCRPHtml($value, $response[$index], $caseSensitive);
+      $CRPhtml = $this->getCRPHtml($value, $currentResponse, $caseSensitive);
 
       $correctResponsePattern = '';
       if (strlen($CRPhtml) > 0) {
