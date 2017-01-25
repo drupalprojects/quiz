@@ -2249,7 +2249,13 @@ function quiz_quiz_access($op = 'take', $quiz, $account) {
       }
       // If the user has already taken this quiz too many times, stop the user.
       elseif ($taken >= $quiz->takes) {
-        if (!isset($_SESSION['quiz'][$quiz->nid])) {
+        if ($quiz->allow_resume && _quiz_active_result_id($account->uid, $quiz->nid, $quiz->vid)) {
+          // Quiz is resumable and there is an active attempt, so we should
+          // allow them to finish it as it won't be creating a new attempt. This
+          // is the blocker, so we do nothing here. The resume handles in the
+          // take function.
+        }
+        elseif (!isset($_SESSION['quiz'][$quiz->nid])) {
           // If result is in session, don't check the attempt limit. @todo would
           // be to split up "take" into something like "start" and "continue" an
           // attempt.

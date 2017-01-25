@@ -78,7 +78,7 @@ class QuizTakingTestCase extends QuizTestCase {
   public function testQuizResuming() {
     $this->drupalLogin($this->admin);
     // Resuming is default behavior.
-    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 1));
+    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 1, 'takes' => 1));
 
     // 2 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
@@ -117,7 +117,7 @@ class QuizTakingTestCase extends QuizTestCase {
   public function testQuizNoResuming() {
     $this->drupalLogin($this->admin);
     // Resuming is default behavior.
-    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 0));
+    $quiz_node = $this->drupalCreateQuiz(array('allow_resume' => 0, 'takes' => 1));
 
     // 2 questions.
     $question_node1 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
