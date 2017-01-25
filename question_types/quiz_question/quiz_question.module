@@ -91,7 +91,9 @@ function quiz_question_form(&$node, &$form_state) {
 }
 
 /**
- * Implements hook_form_BASE_FORM_ID_alter() for node forms.
+ * Implements hook_form_BASE_FORM_ID_alter().
+ *
+ * In this function we alter node forms.
  */
 function quiz_question_form_node_form_alter(&$form, $form_state, $form_id) {
   $types = quiz_get_question_types();
@@ -124,17 +126,21 @@ function quiz_question_validate($node, &$form) {
 /**
  * Get the form to show to the quiz taker.
  *
- * @param $nodes
+ * @param array $form
+ * @param array $form_state
+ * @param array $nodes
  *   A list of question nodes to get answers from.
- * @param $result_id
+ * @param int $result_id
  *   The result ID for this attempt.
+ * @return array
+ *   An renderable FAPI array
  */
 function quiz_question_answering_form($form, $form_state, $nodes, $result_id) {
   $quiz_result = quiz_result_load($result_id);
   $quiz = node_load($quiz_result->nid, $quiz_result->vid);
   $view_mode = 'question';
 
-  // Trake quiz and result in the form.
+  // Take quiz and result in the form.
   $form['#quiz'] = array('nid' => $quiz->nid, 'vid' => $quiz->vid);
   $form['#quiz_result'] = $quiz_result;
 
@@ -318,9 +324,9 @@ function quiz_question_answering_form_submit_blank($form, &$form_state) {
 /**
  * Update the session for this quiz to the active question.
  *
- * @param type $quiz
+ * @param stdClass $quiz
  *   A Quiz node.
- * @param type $question_number
+ * @param int $question_number
  *   Question number starting at 1.
  */
 function quiz_question_goto($quiz, $question_number) {
@@ -332,7 +338,7 @@ function quiz_question_goto($quiz, $question_number) {
  *
  * This is to see if a new revision of a question should be made when saving.
  *
- * @return boolean
+ * @return bool
  *  TRUE if a user has submitted an answer for this question.
  */
 function quiz_question_has_been_answered($node) {
@@ -433,7 +439,7 @@ function quiz_question_node_presave($node) {
 }
 
 /**
- * Implements hook_nodeinsert().
+ * Implements hook_node_insert().
  */
 function quiz_question_node_insert(stdClass $node) {
   quiz_question_node_update($node);
@@ -492,11 +498,13 @@ function quiz_question_delete(&$node) {
 
 /**
  * Delete the question node from the db, and mark its identifiers in the quiz
- * linking table as "NEVER".  This is safer than deleting them
- * and allows for same tracing of what's happened if a question was deleted unintentionally.
+ * linking table as "NEVER". This is safer than deleting them and allows for
+ * same tracing of what's happened if a question was deleted unintentionally.
  *
- * @param $node the question node
- * @param $only_this_version whether to delete only the specific revision of the question
+ * @param stdClass $node
+ *   The question node
+ * @param bool $only_this_version
+ *   Whether to delete only the specific revision of the question
  */
 function _quiz_delete_question($node, $only_this_version) {
   // let each question class delete its own stuff
@@ -555,10 +563,8 @@ function quiz_question_load($nodes) {
  * Get information about the class and use it to construct a new
  * object of the appropriate type.
  *
- * @param $node
+ * @param stdClass $node
  *  Question node
- * @param $use_cached
- *  Can we use a cached version of the node?
  * @return QuizQuestion
  *  The appropriate QuizQuestion extension instance
  */
@@ -582,28 +588,28 @@ function _quiz_question_get_instance($node) {
 }
 
 /**
- * Get an instance of a quiz question responce.
+ * Get an instance of a quiz question response.
  *
  * Get information about the class and use it to construct a new
  * object of the appropriate type.
  *
- * @param $result_id
- *  Result id
- * @param $question
- *  The question node(not a QuizQuestion instance)
- * @param $answer
- *  Resonce to the answering form.
+ * @param int $result_id
+ *   Result id
+ * @param stdClass $question
+ *   The question node (not a QuizQuestion instance)
+ * @param mixed $answer
+ *   Response to the answering form.
  * @param $nid
- *  Question node id
+ *   The Question node ID.
  * @param $vid
- *  Question node version id
+ *   The Question revision ID.
  * @return QuizQuestionResponse
- *  The appropriate QuizQuestionResponse extension instance
+ *   The appropriate QuizQuestionResponse extension instance
  */
 function _quiz_question_response_get_instance($result_id, $question, $answer = NULL, $nid = NULL, $vid = NULL) {
   $info = quiz_question_get_info();
 
-  // If the question node isn't set we fetch it from the QuizQuestion instance this responce belongs to
+  // If the question node isn't set we fetch it from the QuizQuestion instance this response belongs to
   if (!isset($question)) {
     $question = node_load($nid, $vid);
   }
@@ -617,7 +623,7 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
     $question = new stdClass;
   }
   $to_return = new $constructor($result_id, $question, $answer);
-  // All responce classes must extend QuizQuestionResponse
+  // All response classes must extend QuizQuestionResponse
   if (!($to_return instanceof QuizQuestionResponse)) {
     drupal_set_message(t('The question-response isn\'t a QuizQuestionResponse. It needs to extend the QuizQuestionResponse interface, or extend the abstractQuizQuestionResponse class.'), 'error', FALSE);
   }
@@ -632,13 +638,13 @@ function _quiz_question_response_get_instance($result_id, $question, $answer = N
 /**
  * Get the information about various implementations of quiz questions.
  *
- * @param string $name
- *  The question type, e.g. truefalse, for which the info shall be returned, or
- *  NULL to return an array with info about all types.
+ * @param string|NULL $name
+ *   The question type, e.g. truefalse, for which the info shall be returned, or
+ *   NULL to return an array with info about all types.
  * @param bool $reset
- *  If this is true, the cache will be reset.
- * @return
- *  An array of information about quiz question implementations.
+ *   If this is true, the cache will be reset.
+ * @return array
+ *   An array of information about quiz question implementations.
  * @see quiz_question_quiz_question_info() for an example of a quiz question info hook.
  */
 function quiz_question_get_info($name = NULL, $reset = FALSE) {
@@ -661,11 +667,11 @@ function quiz_question_get_info($name = NULL, $reset = FALSE) {
  * Get the max score for a question
  *
  * @param $nid
- *  Question node id
+ *   The Question node ID.
  * @param $vid
- *  Question node version id
- * @return
- *  Max score(int)
+ *   The Question revision ID.
+ * @return int
+ *   The max score
  */
 function quiz_question_get_max_score($nid, $vid) {
   return db_query('SELECT max_score
@@ -676,13 +682,13 @@ function quiz_question_get_max_score($nid, $vid) {
 /**
  * Returns a result report for a question response.
  *
- * The retaurned value is a form array because in some contexts the scores in the form
+ * The returned value is a form array because in some contexts the scores in the form
  * is editable
  *
- * @param $question
- *  The question node
- * @return
- *  FAPI form array
+ * @param stdClass $question
+ *   The question node
+ * @return array
+ *   An renderable FAPI array
  */
 function quiz_question_report_form($question, $result_id) {
   $response_instance = _quiz_question_response_get_instance($result_id, $question);
@@ -692,6 +698,9 @@ function quiz_question_report_form($question, $result_id) {
 
 /**
  * Add body field to quiz_question nodes.
+ *
+ * @param string $type
+ *   The question content type machine name
  */
 function quiz_question_add_body_field($type) {
   node_types_rebuild();
@@ -784,6 +793,7 @@ function quiz_question_answering_form_submit(&$form, &$form_state) {
 
 /**
  * Helper function to finalize a quiz attempt.
+ *
  * @see quiz_question_answering_form_submit()
  * @see quiz_question_answering_form_submit_blank()
  */
@@ -941,7 +951,13 @@ function theme_quiz_question_feedback($variables) {
 }
 
 /**
- * Helper function to faciliate icon display, like "correct" or "selected".
+ * Helper function to facilitate icon display, like "correct" or "selected".
+ *
+ * @param string $type
+ *   The question content type machine name
+ * @param array $variables
+ * @return string
+ *   An HTML string representing the themed output.
  */
 function quiz_icon($type, $variables = array()) {
   return theme('quiz_answer_result', array('type' => $type, $variables));

@@ -8,8 +8,7 @@
 /**
  * Theme the question creation form
  *
- * @param $form
- *  Question creation form
+ * @param array $variables
  */
 function theme_quiz_question_creation_form($variables) {
   $form = $variables['form'];
@@ -19,6 +18,8 @@ function theme_quiz_question_creation_form($variables) {
 
 /**
  * Theme the question navigation area.
+ *
+ * @param array $variables
  */
 function theme_quiz_question_navigation_form($variables) {
 
