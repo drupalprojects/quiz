@@ -61,7 +61,6 @@ class QuizAccessTestCase extends QuizTestCase {
       'type' => 'short_answer',
       'title' => 'SA 1 title',
       'correct_answer_evaluation' => ShortAnswerQuestion::ANSWER_MANUAL,
-      'correct_answer' => 'blue',
       'correct_answer' => 1,
       'body' => array(LANGUAGE_NONE => array(array('value' => 'SA 1 body text'))),
     ));

@@ -3498,7 +3498,6 @@ function quiz_entity_info() {
       'controller class' => 'EntityAPIControllerExportable',
       'base table' => 'quiz_result_type',
       'fieldable' => FALSE,
-      'entity class' => 'Entity',
       'bundle of' => 'quiz_result',
       'exportable' => TRUE,
       'entity keys' => array(

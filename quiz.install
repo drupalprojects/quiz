@@ -486,7 +486,6 @@ function quiz_schema() {
     'description' => 'Table storing information about each question response in an attempt.',
     'fields' => array(
       'result_answer_id' => array(
-        'description' => 'The result answer ID',
         'type' => 'serial',
         'unsigned' => TRUE,
         'not null' => TRUE,
