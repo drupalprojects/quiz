@@ -20,6 +20,17 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     );
   }
 
+  /**
+   * Set up a question test case.
+   *
+   * @param array $modules
+   *   Array of modules to enable.
+   * @param array $admin_permissions
+   *   Array of admin permissions to add.
+   * @param array $user_permissions
+   *   Array of user permissions to add.
+   * @return void|FALSE
+   */
   function setUp($modules = array(), $admin_permissions = array(), $user_permissions = array()) {
     parent::setUp(array('long_answer'), array('score any quiz'));
   }
@@ -45,10 +56,10 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 'the answer is the zero one infinity rule',
-      ), t('Next'));
+    ), t('Next'));
     $this->drupalPost(NULL, array(
       "question[$question_node2->nid][answer]" => 'the number two really is ridiculous',
-      ), t('Finish'));
+    ), t('Finish'));
     $this->assertText('Your score: 0%');
     // Strange behavior - extra spacing in the HTML.
     //$this->assertText('Score ? of 10');
@@ -68,7 +79,7 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
       "question[1][answer_feedback][value]" => 'Feedback for answer 2.',
       "question[0][answer_feedback][format]" => 'filtered_html',
       "question[1][answer_feedback][format]" => 'filtered_html',
-      ), t('Save score'));
+    ), t('Save score'));
     $this->assertText('The scoring data you provided has been saved.');
 
     // Test the score and feedback are visible to the user.
@@ -104,7 +115,7 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
       'type' => $this->question_node_type,
       'title' => 'LA 1 title',
       'body' => array(LANGUAGE_NONE => array(array('value' => 'LA 1 body text.'))),
-      ) + $settings);
+    ) + $settings);
 
     return $question_node;
   }
@@ -116,7 +127,7 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     // Login as our privileged user.
     $this->drupalLogin($this->admin);
 
-    // Question that has no filtering, for rubric or answer
+    // Question that has no filtering, for rubric or answer.
     $question_node1 = $this->drupalCreateNode(array(
       'type' => $this->question_node_type,
       'title' => 'LA 1 title',
@@ -128,7 +139,7 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
       'answer_text_processing' => 0,
     ));
 
-    // Question that has filtering, for rubric and answer
+    // Question that has filtering, for rubric and answer.
     $question_node2 = $this->drupalCreateNode(array(
       'type' => $this->question_node_type,
       'title' => 'LA 2 title',
@@ -149,12 +160,12 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     // Post plaintext answer.
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 'plaintext answer, you will see the next tag: <img src="http://httpbin.org/image/png?findmeAnswerPlaintext"/>',
-      ), t('Next'));
+    ), t('Next'));
     // Post rich text answer.
     $this->drupalPost(NULL, array(
       "question[$question_node2->nid][answer][value]" => 'filtered answer, you will see not see the next tag: <img src="http://httpbin.org/image/png?findmeAnswerFiltered"/>',
       "question[$question_node2->nid][answer][format]" => 'filtered_html',
-      ), t('Finish'));
+    ), t('Finish'));
 
     // Login as a user and check the result.
     $this->drupalLogin($this->admin);
@@ -180,16 +191,15 @@ class LongAnswerTestCase extends QuizQuestionTestCase {
     // Login as non-admin.
     $this->drupalLogin($this->user);
 
-
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalGet("node/$quiz_node->nid/take/1");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid][answer]" => 'um some rule, I forget',
-      ), t('Next'));
+    ), t('Next'));
     $this->drupalGet("node/$quiz_node->nid/take/1");
     $this->drupalPost(NULL, array(
       "question[$question_node->nid][answer]" => 'um some rule, I forget',
-      ), t('Next'));
+    ), t('Next'));
   }
 
 }

@@ -1,13 +1,12 @@
 <?php
 
 /**
+ * @file
  * This module defines a long answer question type for quizzes.
  *
  * Long answer questions make use of the quiz question framework (quiz_question.module).
  * The functions in this file are largely used for grading long answer questions. Most
  * of the real logic is in long_answer.classes.inc.
- *
- * @file
  */
 
 /**
@@ -33,7 +32,8 @@ function long_answer_quiz_question_info() {
       'description' => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
       'question provider' => 'LongAnswerQuestion',
       'response provider' => 'LongAnswerResponse',
-      'module' => 'quiz_question', // All wrapper functions are in that module.
+      // All wrapper functions are in this module.
+      'module' => 'quiz_question',
     ),
   );
 }
@@ -53,7 +53,7 @@ function long_answer_quiz_question_config() {
 }
 
 /**
- * Validate the long_answer config form values
+ * Validate the long_answer config form values.
  */
 function long_answer_config_validate($form, $form_state) {
   if ($form_state['values']['long_answer_default_max_score'] <= 0) {
@@ -82,25 +82,15 @@ function long_answer_theme() {
 /**
  * Set a score for a long answer question.
  *
- * This stores a score for a long answer question and marks that question as having been evaluated.
- * The function updates all of the necessary data sources so that the individual answer results should be
- * reflected in the total scoring table.
+ * This stores a score for a long answer question and marks that question as
+ * having been evaluated. The function updates all of the necessary data
+ * sources so that the individual answer results should be reflected in the
+ * total scoring table.
  *
- * @param $quiz
- *  Quiz node.
- * @param $nid
- *  Node ID of question.
- * @param $vid
- *  Version ID of question.
- * @param $result_id
- *  Result ID for the quiz results.
- * @param $score
- *  The numeric score to assign the result.
- * @param $update_total
- *  Shall the total score be updated?
- *
- * @return int
- *  Number of scores adjusted. If a change was made, this should be 1.
+ * @param array $values
+ *   The FAPI $form_state['values'].
+ * @param bool $update_total
+ *   Shall the total score be updated?
  */
 function long_answer_score_an_answer($values, $update_total = TRUE) {
   $nid = $values['nid'];
@@ -130,17 +120,17 @@ function long_answer_score_an_answer($values, $update_total = TRUE) {
   $quiz_result_answer->is_correct = $quiz_question_response->isCorrect();
   $quiz_result_answer->save();
 
-  // Third, we update the main quiz results table
+  // Third, we update the main quiz results table.
   if ($update_total) {
     quiz_update_total_score($quiz, $result_id);
   }
 }
 
 /**
- * Submit function for the report form
+ * Submit function for the report form.
  *
- * @param $values
- *   The FAPI $form_state['values']
+ * @param array $values
+ *   The FAPI $form_state['values'].
  */
 function long_answer_report_submit($values) {
   long_answer_score_an_answer($values, FALSE);

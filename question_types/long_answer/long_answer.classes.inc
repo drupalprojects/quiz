@@ -1,10 +1,10 @@
 <?php
 
 /**
+ * @file
  * Long answer classes.
  *
- * @file
- *  Classes modelling the long answer question and the long answer question response
+ * Classes modelling the long answer question and the long answer question response.
  */
 
 /**
@@ -13,8 +13,9 @@
 class LongAnswerQuestion extends QuizQuestion {
 
   /**
-   * Implementation of saveNodeProperties
-   * @see QuizQuestion#saveNodeProperties()
+   * Implementation of saveNodeProperties().
+   *
+   * @see QuizQuestion::saveNodeProperties()
    */
   public function saveNodeProperties($is_new = FALSE) {
     db_merge('quiz_long_answer_node_properties')
@@ -33,18 +34,18 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of validateNode
+   * Implementation of validateNode().
    *
-   * @see QuizQuestion#validateNode($form)
+   * @see QuizQuestion::validateNode()
    */
   public function validateNode(array &$form) {
 
   }
 
   /**
-   * Implementation of delete
+   * Implementation of delete().
    *
-   * @see QuizQuestion#delete($only_this_version)
+   * @see QuizQuestion::delete()
    */
   public function delete($only_this_version = FALSE) {
     $delete_node = db_delete('quiz_long_answer_node_properties');
@@ -59,9 +60,9 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getNodeProperties
+   * Implementation of getNodeProperties().
    *
-   * @see QuizQuestion#getNodeProperties()
+   * @see QuizQuestion::getNodeProperties()
    */
   public function getNodeProperties() {
     if (isset($this->nodeProperties)) {
@@ -87,9 +88,9 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getNodeView
+   * Implementation of getNodeView().
    *
-   * @see QuizQuestion#getNodeView()
+   * @see QuizQuestion::getNodeView()
    */
   public function getNodeView() {
     $content = parent::getNodeView();
@@ -111,9 +112,9 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getAnweringForm
+   * Implementation of getAnsweringForm().
    *
-   * @see QuizQuestion#getAnsweringForm($form_state, $result_id)
+   * @see QuizQuestion::getAnsweringForm()
    */
   public function getAnsweringForm(array $form_state = NULL, $result_id) {
     $element = parent::getAnsweringForm($form_state, $result_id);
@@ -153,9 +154,9 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getCreationForm
+   * Implementation of getCreationForm().
    *
-   * @see QuizQuestion#getCreationForm($form_state)
+   * @see QuizQuestion::getCreationForm()
    */
   public function getCreationForm(array &$form_state = NULL) {
     $form = array();
@@ -185,9 +186,9 @@ class LongAnswerQuestion extends QuizQuestion {
   }
 
   /**
-   * Implementation of getMaximumScore
+   * Implementation of getMaximumScore().
    *
-   * @see QuizQuestion#getMaximumScore()
+   * @see QuizQuestion::getMaximumScore()
    */
   public function getMaximumScore() {
     return variable_get('long_answer_default_max_score', 10);
@@ -196,7 +197,7 @@ class LongAnswerQuestion extends QuizQuestion {
 }
 
 /**
- * Extension of QuizQuestionResponse
+ * Extension of QuizQuestionResponse.
  */
 class LongAnswerResponse extends QuizQuestionResponse {
 
@@ -208,7 +209,15 @@ class LongAnswerResponse extends QuizQuestionResponse {
   private $answer_feedback_format;
 
   /**
-   * Constructor
+   * Constructor.
+   *
+   * @param int $result_id
+   *   The result ID for the user's result set. There is one result ID per time
+   *   the user takes a quiz.
+   * @param stdClass $question_node
+   *   The question node.
+   * @param mixed $answer
+   *   The answer (dependent on question type).
    */
   public function __construct($result_id, stdClass $question_node, $answer = NULL) {
     parent::__construct($result_id, $question_node, $answer);
@@ -236,9 +245,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of save
+   * Implementation of save().
    *
-   * @see QuizQuestionResponse#save()
+   * @see QuizQuestionResponse::save()
    */
   public function save() {
     if (!$this->quizQuestion->node->answer_text_processing) {
@@ -258,9 +267,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of delete
+   * Implementation of delete().
    *
-   * @see QuizQuestionResponse#delete()
+   * @see QuizQuestionResponse::delete()
    */
   public function delete() {
     db_delete('quiz_long_answer_user_answers')
@@ -269,9 +278,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of score
+   * Implementation of score().
    *
-   * @see QuizQuestionResponse#score()
+   * @see QuizQuestionResponse::score()
    */
   public function score() {
     return (int) db_query('SELECT score FROM {quiz_long_answer_user_answers}
@@ -279,16 +288,18 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of getResponse
+   * Implementation of getResponse().
    *
-   * @see QuizQuestionResponse#getResponse()
+   * @see QuizQuestionResponse::getResponse()
    */
   public function getResponse() {
     return $this->answer;
   }
 
   /**
-   * Implementation of getReportFormResponse
+   * Implementation of getFeedbackValues().
+   *
+   * @see QuizQuestionResponse::getFeedbackValues()
    */
   public function getFeedbackValues() {
     $data = array();
@@ -306,6 +317,11 @@ class LongAnswerResponse extends QuizQuestionResponse {
     return $data;
   }
 
+  /**
+   * Implementation of getReportFormAnswerFeedback().
+   *
+   * @see QuizQuestionResponse::getReportFormAnswerFeedback()
+   */
   public function getReportFormAnswerFeedback() {
     return array(
       '#title' => t('Enter feedback'),
@@ -317,9 +333,9 @@ class LongAnswerResponse extends QuizQuestionResponse {
   }
 
   /**
-   * Implementation of getReportFormSubmit
+   * Implementation of getReportFormSubmit().
    *
-   * @see QuizQuestionResponse#getReportFormSubmit()
+   * @see QuizQuestionResponse::getReportFormSubmit()
    */
   public function getReportFormSubmit() {
     return 'long_answer_report_submit';

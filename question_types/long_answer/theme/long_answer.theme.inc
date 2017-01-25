@@ -6,10 +6,12 @@
  */
 
 /**
- * Theme the long_answer response form
+ * Theme the long_answer response form.
  *
- * @param $form
- *  The response form
+ * @param array $variables
+ *
+ * @return string
+ *   The rendered HTML of all children of the element.
  */
 function theme_long_answer_response_form($variables) {
   $form = $variables['form'];

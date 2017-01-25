@@ -1,15 +1,15 @@
 <?php
 
 /**
- * Long answer questions.
  * @file
+ * Long answer questions.
  */
 
 /**
  * Implements hook_install().
  */
 function long_answer_install() {
-  // Add body field to long answer node
+  // Add body field to long answer node.
   quiz_question_add_body_field('long_answer');
 
   variable_set('node_options_long_answer', array('status'));
@@ -101,7 +101,7 @@ function long_answer_schema() {
 }
 
 /**
- * Adding feedback field to table {quiz_long_answer_user_answers}
+ * Adding feedback field to table {quiz_long_answer_user_answers}.
  */
 function long_answer_update_7401() {
   if (!db_field_exists('quiz_long_answer_user_answers', 'answer_feedback')) {
@@ -114,7 +114,7 @@ function long_answer_update_7401() {
 }
 
 /**
- * Adding feedback format field to table {quiz_long_answer_user_answers}
+ * Adding feedback format field to table {quiz_long_answer_user_answers}.
  */
 function long_answer_update_7402() {
   if (!db_field_exists('quiz_long_answer_user_answers', 'answer_feedback_format')) {
