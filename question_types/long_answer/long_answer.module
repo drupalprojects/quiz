@@ -2,7 +2,7 @@
 
 /**
  * @file
- * This module defines a long answer question type for quizzes.
+ * Long_answer question type for the Quiz module.
  *
  * Long answer questions make use of the quiz question framework (quiz_question.module).
  * The functions in this file are largely used for grading long answer questions. Most
@@ -32,7 +32,7 @@ function long_answer_quiz_question_info() {
       'description' => t('Quiz questions that allow a user to enter multiple paragraphs of text.'),
       'question provider' => 'LongAnswerQuestion',
       'response provider' => 'LongAnswerResponse',
-      // All wrapper functions are in this module.
+      // All wrapper functions are in the quiz_question module.
       'module' => 'quiz_question',
     ),
   );

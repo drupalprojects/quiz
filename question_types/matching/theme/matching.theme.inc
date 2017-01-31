@@ -1,9 +1,8 @@
 <?php
 
-
 /**
  * @file
- * Themes for the matching module.
+ * Theme functions for the matching question type.
  */
 
 /**
@@ -12,7 +11,7 @@
  * @param $variables
  *
  * @return string
- *   An HTML string representing the themed output.
+ *   An HTML string.
  */
 function theme_matching_question_form($variables) {
   $form = $variables['form'];
@@ -39,7 +38,7 @@ function theme_matching_question_form($variables) {
  * @param $variables
  *
  * @return string
- *   An HTML string representing the themed output.
+ *   An HTML string.
  */
 function theme_matching_subquestion_form($variables) {
   $form = $variables['form'];
@@ -60,7 +59,7 @@ function theme_matching_subquestion_form($variables) {
  * @param $variables
  *
  * @return string
- *   An HTML string representing the themed output.
+ *   An HTML string.
  */
 function theme_matching_match_node_view($variables) {
   $subquestions = $variables['subquestions'];
@@ -81,7 +80,7 @@ function theme_matching_match_node_view($variables) {
  * @param $variables
  *
  * @return string
- *   An HTML string representing the themed output.
+ *   An HTML string.
  */
 function theme_matching_response($variables) {
   $metadata = $variables['metadata'];

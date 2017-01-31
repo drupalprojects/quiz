@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Matching question type for quiz module.
+ * Matching question type for the Quiz module.
  *
  * Allows the creation of matching questions, which associate one term
  * with another.
@@ -33,7 +33,7 @@ function matching_quiz_question_info() {
       'description' => t('Matching question type for quiz module. A question type for the quiz module: allows you to create matching type questions, which connect terms with one another.'),
       'question provider' => 'MatchingQuestion',
       'response provider' => 'MatchingResponse',
-      // All wrapper functions are in that module.
+      // All wrapper functions are in the quiz_question module.
       'module' => 'quiz_question',
     ),
   );

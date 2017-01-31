@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Theme functions for long_answer.
+ * Theme functions for the long_answer question type.
  */
 
 /**
@@ -11,7 +11,7 @@
  * @param array $variables
  *
  * @return string
- *   The rendered HTML of all children of the element.
+ *   An HTML string.
  */
 function theme_long_answer_response_form($variables) {
   $form = $variables['form'];

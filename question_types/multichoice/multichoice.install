@@ -1,18 +1,15 @@
 <?php
 
 /**
- * Sponsored by: Norwegian Centre for Telemedicine
- * Code: falcon
- *
  * @file
- * multichoice Install (a quiz question type)
+ * multichoice questions install file.
  */
 
 /**
  * Implements hook_install().
  */
 function multichoice_install() {
-  // Add body field to multichoice node
+  // Add body field to multichoice node.
   quiz_question_add_body_field('multichoice');
 
   variable_set('node_options_multichoice', array('status'));
@@ -254,11 +251,10 @@ function multichoice_update_7501() {
  * Normalize data storage.
  */
 function multichoice_update_7502() {
-  // Cleanup duplicates from 4.x
+  // Cleanup duplicates from 4.x.
   $sql = "delete from {quiz_multichoice_user_answers}
     where id in (select id from (select id from {quiz_multichoice_user_answers} ua group by result_id, question_nid, question_vid having count(*) > 1) as q)";
   while (db_query($sql)->rowCount());
-
 
   db_add_field('quiz_multichoice_user_answers', 'result_answer_id', array(
     'type' => 'int',

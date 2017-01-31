@@ -4,10 +4,10 @@
  * @file
  * Matching classes.
  *
- * This module uses the question interface to define the Matching question type.
+ * This module uses the question interface to define the matching question type.
  *
- * A Matching node defines a series of questions and answers and requires the user
- * to associate each answer with a question.
+ * A Matching node defines a series of questions and answers and requires the
+ * userto associate each answer with a question.
  */
 
 /**

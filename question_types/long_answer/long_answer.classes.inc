@@ -4,7 +4,7 @@
  * @file
  * Long answer classes.
  *
- * Classes modelling the long answer question and the long answer question response.
+ * This module uses the question interface to define the long_answer question type.
  */
 
 /**

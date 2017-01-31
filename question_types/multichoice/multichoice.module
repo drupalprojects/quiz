@@ -1,14 +1,11 @@
 <?php
 
 /**
- * The main file for multichoice.
- *
- * Sponsored by: Norwegian Centre for Telemedicine
- * Code: falcon
- *
  * @file
  * Multiplechoice question type for the Quiz module.
  *
+ * Allows the creation of multiplechoice questions, where the user has to
+ * pick the right answer from multiple possibilities.
  */
 
 /**
@@ -34,6 +31,7 @@ function multichoice_help($path, $args) {
     ");
   }
 }
+
 /**
  * Implements hook_quiz_question_info().
  */
@@ -44,10 +42,12 @@ function multichoice_quiz_question_info() {
       'description' => t('This provides multiple choice questions for use by the Quiz module.'),
       'question provider' => 'MultichoiceQuestion',
       'response provider' => 'MultichoiceResponse',
-      'module' => 'quiz_question', // All wrapper functions are in that module.
+      // All wrapper functions are in the quiz_question module.
+      'module' => 'quiz_question',
     ),
   );
 }
+
 /**
  * Implements hook_quiz_question_config().
  */
@@ -72,7 +72,7 @@ function multichoice_quiz_question_config() {
 }
 
 /**
- * Validate the multichoice config form values
+ * Validate the multichoice config form values.
  */
 function multichoice_config_validate($form, $form_state) {
   if (!_quiz_is_int($form_state['values']['multichoice_def_num_of_alts'], 2, 50)) {
