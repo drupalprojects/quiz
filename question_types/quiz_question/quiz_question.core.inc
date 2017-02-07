@@ -395,14 +395,11 @@ abstract class QuizQuestion {
   /**
    * Determines if the user can view the correct answers
    *
-   * @todo grabbing the node context here probably isn't a great idea
-   *
    * @return TRUE|NULL
    *   TRUE if the view may include the correct answers to the question
    */
   public function viewCanRevealCorrect() {
     global $user;
-    $quiz_node = node_load(arg(1));
 
     $reveal_correct[] = user_access('view any quiz question correct response');
     $reveal_correct[] = ($user->uid == $this->node->uid);
