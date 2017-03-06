@@ -3496,7 +3496,10 @@ function quiz_entity_info() {
       'metadata controller class' => 'QuizResultAnswerMetadataController',
       'views controller class' => 'EntityDefaultViewsController',
     ),
-    'quiz_result_type' => array(
+  );
+
+  if (db_table_exists('quiz_result_type')) {
+    $entity_info['quiz_result_type'] = array(
       'label' => t('Quiz result type'),
       'entity class' => 'Entity',
       'plural label' => t('Quiz result types'),
@@ -3518,10 +3521,8 @@ function quiz_entity_info() {
         'path' => 'admin/quiz/result',
         'controller class' => 'EntityDefaultUIController',
       ),
-    ),
-  );
+    );
 
-  if (db_table_exists('quiz_result_type')) {
     // Populate our bundles.
     $types = db_select('quiz_result_type', 'qrt')
       ->fields('qrt')
