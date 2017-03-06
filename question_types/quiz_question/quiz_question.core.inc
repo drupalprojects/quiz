@@ -581,17 +581,9 @@ abstract class QuizQuestionResponse {
    */
   function getScore($weight_adjusted = TRUE) {
     if ($weight_adjusted) {
-      if (!empty($this->points_awarded)) {
-        // This is already weighted.
-        return $this->points_awarded;
-      }
-      else {
-        // No stored score yet.
-        $ratio = $this->getWeightedRatio();
-        return $this->score() * $ratio;
-      }
+      $ratio = $this->getWeightedRatio();
+      return $this->score() * $ratio;
     }
-
     return $this->score();
   }
 

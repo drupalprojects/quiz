@@ -240,6 +240,7 @@ class QuizTakingTestCase extends QuizTestCase {
     $question_node3 = $this->drupalCreateNode(array('type' => 'truefalse', 'correct_answer' => 1));
     $this->linkQuestionToQuiz($question_node3, $quiz_node);
 
+    // Answer incorrectly.
     $this->drupalLogin($this->user);
     $this->drupalGet("node/{$quiz_node->nid}/take");
     $this->drupalGet("node/{$quiz_node->nid}/take/1");
@@ -255,6 +256,13 @@ class QuizTakingTestCase extends QuizTestCase {
       ), t('Next'));
     $this->assertText('Score: 1 of 1');
 
+    // Go back and incorrect the answer.
+    $this->drupalGet("node/{$quiz_node->nid}/take/1");
+    $this->drupalPost(NULL, array(
+      "question[$question_node1->nid][answer]" => 0,
+      ), t('Next'));
+    $this->assertText('Score: 0 of 1');
+
     // Restrict change after answer. Turn auto revisioning off since we need to
     // operate on the same result.
     variable_set('quiz_auto_revisioning', 0);
@@ -267,7 +275,7 @@ class QuizTakingTestCase extends QuizTestCase {
     $this->assertTrue($disabled_field, t('The answer cannot be changed.'));
     $this->drupalPost(NULL, array(
       ), t('Next'));
-    $this->assertText('Score: 1 of 1');
+    $this->assertText('Score: 0 of 1');
 
     // Check allow change/blank behavior.
     $this->drupalGet("node/{$quiz_node->nid}/take/2");
