@@ -917,7 +917,6 @@ function _quiz_get_node_defaults() {
       'summary_pass' => '',
       'summary_pass_format' => filter_fallback_format(),
       'takes' => 0,
-      'tid' => 0,
       'time_limit' => 0,
       'result_type' => 'quiz_result',
   );
@@ -1400,11 +1399,6 @@ function quiz_form(&$node, &$form_state) {
   $form['max_score_for_random'] = array(
     '#type' => 'value',
     '#value' => $max_score_for_random,
-  );
-  $tid = (isset($node->tid)) ? $node->tid : 0;
-  $form['tid'] = array(
-    '#type' => 'value',
-    '#value' => $tid,
   );
 
   $options = !empty($node->resultoptions) ? $node->resultoptions : array();
@@ -2043,7 +2037,6 @@ function quiz_store_question_result($quiz, $result, $options) {
       'is_skipped' => (int) $result->is_skipped,
       'is_doubtful' => (int) $result->is_doubtful,
       'number' => $options['question_data']['number'],
-      'tid' => ($quiz->randomization == 3 && $result->tid) ? $result->tid : NULL,
   );
   entity_save('quiz_result_answer', $entity);
 }
@@ -2800,80 +2793,29 @@ function _quiz_pick_result_option($qnid, $qvid, $score) {
  */
 function _quiz_get_random_questions($quiz) {
   $num_random = $quiz->number_of_random_questions;
-  $tid = $quiz->tid;
   $questions = array();
   if ($num_random > 0) {
-    if ($tid > 0) {
-      $questions = _quiz_get_random_taxonomy_question_ids($tid, $num_random);
-    }
-    else {
-      // Select random question from assigned pool.
-      $result = db_query_range(
-        "SELECT child_nid as nid, child_vid as vid, n.type
-        FROM {quiz_node_relationship} qnr
-        JOIN {node} n on qnr.child_nid = n.nid
-        WHERE qnr.parent_vid = :parent_vid
-        AND qnr.parent_nid = :parent_nid
-        AND qnr.question_status = :question_status
-        AND n.status = 1
-        ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
-        ':parent_vid' => $quiz->vid,
-        ':parent_nid' => $quiz->nid,
-        ':question_status' => QUIZ_QUESTION_RANDOM
-        )
-      );
-      while ($question_node = $result->fetchAssoc()) {
-        $question_node['random'] = TRUE;
-        $question_node['relative_max_score'] = $quiz->max_score_for_random;
-        $questions[] = $question_node;
-      }
+    // Select random question from assigned pool.
+    $result = db_query_range(
+      "SELECT child_nid as nid, child_vid as vid, n.type
+      FROM {quiz_node_relationship} qnr
+      JOIN {node} n on qnr.child_nid = n.nid
+      WHERE qnr.parent_vid = :parent_vid
+      AND qnr.parent_nid = :parent_nid
+      AND qnr.question_status = :question_status
+      AND n.status = 1
+      ORDER BY RAND()", 0, $quiz->number_of_random_questions, array(
+      ':parent_vid' => $quiz->vid,
+      ':parent_nid' => $quiz->nid,
+      ':question_status' => QUIZ_QUESTION_RANDOM
+      )
+    );
+    while ($question_node = $result->fetchAssoc()) {
+      $question_node['random'] = TRUE;
+      $question_node['relative_max_score'] = $quiz->max_score_for_random;
+      $questions[] = $question_node;
     }
   }
-  return $questions;
-}
-
-/**
- * Given a term ID, get all of the question nid/vids that have that ID.
- *
- * @param $tid
- *   Integer term ID.
- *
- * @return
- *   Array of nid/vid combos, like array(array('nid'=>1, 'vid'=>2)).
- */
-function _quiz_get_random_taxonomy_question_ids($tid, $num_random) {
-  if ($tid == 0) {
-    return array();
-  }
-
-  // Select random questions by taxonomy.
-  $term = taxonomy_term_load($tid);
-  $tree = taxonomy_get_tree($term->vid, $term->tid);
-
-  // Flatten the taxonomy tree, and just keep term id's.
-  $term_ids[] = $term->tid;
-  if (is_array($tree)) {
-    foreach ($tree as $term) {
-      $term_ids[] = $term->tid;
-    }
-  }
-  $term_ids = implode(',', $term_ids);
-
-  // Get all published questions with one of the allowed term ids.
-  // TODO Please convert this statement to the D7 database API syntax.
-  $result = db_query_range("SELECT n.nid, n.vid
-    FROM {node} n
-    INNER JOIN {taxonomy_index} tn USING (nid)
-    WHERE n.status = 1 AND tn.tid IN ($term_ids)
-    AND n.type IN ('" . implode("','", array_keys(quiz_get_question_types()))
-    . "') ORDER BY RAND()");
-
-  $questions = array();
-  while ($question_node = db_fetch_array($result)) {
-    $question_node['random'] = TRUE;
-    $questions[] = $question_node;
-  }
-
   return $questions;
 }
 
@@ -3043,10 +2985,7 @@ function _quiz_get_answers($quiz, $result_id) {
   while ($line = $ids->fetch()) {
     // Questions picked from term id's won't be found in the quiz_node_relationship table
     if ($line->max_score === NULL) {
-      if ($quiz->randomization == 2 && isset($quiz->tid) && $quiz->tid > 0) {
-        $line->max_score = $quiz->max_score_for_random;
-      }
-      elseif ($quiz->randomization == 3) {
+      if ($quiz->randomization == 3) {
         $line->max_score = $line->term_max_score;
       }
     }

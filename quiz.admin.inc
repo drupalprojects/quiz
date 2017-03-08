@@ -784,20 +784,6 @@ function _quiz_add_fields_for_random_quiz(&$form, $quiz) {
     '#title' => t('Max score for each random question'),
     '#default_value' => isset($quiz->max_score_for_random) ? $quiz->max_score_for_random : 1,
   );
-  if ($quiz->randomization == 3) {
-    $terms = _quiz_taxonomy_select($quiz->tid);
-    if (!empty($terms) && function_exists('taxonomy_get_vocabularies')) {
-      $form['question_list']['random_settings']['random_term_id'] = array(
-        '#type' => 'select',
-        '#title' => t('Terms'),
-        '#size' => 1,
-        '#options' => _quiz_taxonomy_select($quiz->tid),
-        '#default_value' => $quiz->tid,
-        '#description' => t('Randomly select from questions with this term, or choose from the question pool below'),
-        '#weight' => -4,
-      );
-    }
-  }
 }
 
 /**
@@ -1124,38 +1110,24 @@ function quiz_questions_form_submit($form, &$form_state) {
   $compulsories = isset($form_state['values']['compulsories']) ? $form_state['values']['compulsories'] : NULL;
 
   $num_random = isset($form_state['values']['num_random_questions']) ? $form_state['values']['num_random_questions'] : 0;
-
-
   $quiz->max_score_for_random = isset($form_state['values']['max_score_for_random']) ? $form_state['values']['max_score_for_random'] : 1;
-  $term_id = isset($form_state['values']['random_term_id']) ? (int) $form_state['values']['random_term_id'] : 0;
-
 
   // Store what questions belong to the quiz
   $questions = _quiz_update_items($quiz, $weight_map, $max_scores, $auto_update_max_scores, $is_new_revision, $refreshes, $stayers, $qnr_ids_map, $qnr_pids_map, $compulsories, $stayers);
 
   // If using random questions and no term ID is specified, make sure we have enough.
-  if (empty($term_id)) {
-    $assigned_random = 0;
+  $assigned_random = 0;
 
-    foreach ($questions as $question) {
-      if ($question->question_status == QUIZ_QUESTION_RANDOM) {
-        ++$assigned_random;
-      }
-    }
-
-    // Adjust number of random questions downward to match number of selected questions..
-    if ($num_random > $assigned_random) {
-      $num_random = $assigned_random;
-      drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), array('langcode' => 'warning')));
+  foreach ($questions as $question) {
+    if ($question->question_status == QUIZ_QUESTION_RANDOM) {
+      ++$assigned_random;
     }
   }
-  else {
-    // Warn user if not enough questions available with this term_id.
-    $available_random = count(_quiz_get_random_taxonomy_question_ids($term_id, $num_random));
-    if ($num_random > $available_random) {
-      $num_random = $available_random;
-      drupal_set_message(t('There are currently not enough questions assigned to this term (@random). Please lower the number of random quetions or assign more questions to this taxonomy term before taking this @quiz.', array('@random' => $available_random, '@quiz' => QUIZ_NAME)), 'error');
-    }
+
+  // Adjust number of random questions downward to match number of selected questions..
+  if ($num_random > $assigned_random) {
+    $num_random = $assigned_random;
+    drupal_set_message(t('The number of random questions for this @quiz have been lowered to %anum to match the number of questions you assigned.', array('@quiz' => QUIZ_NAME, '%anum' => $assigned_random), array('langcode' => 'warning')));
   }
 
   if ($quiz->type == 'quiz') {
@@ -1164,7 +1136,6 @@ function quiz_questions_form_submit($form, &$form_state) {
       ->fields(array(
         'number_of_random_questions' => $num_random ? $num_random : 0,
         'max_score_for_random' => $quiz->max_score_for_random,
-        'tid' => $term_id,
       ))
       ->condition('vid', $quiz->vid)
       ->condition('nid', $quiz->nid)
