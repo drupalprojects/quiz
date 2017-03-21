@@ -112,6 +112,7 @@ function quiz_generate($quiz_type, $question_types, $question_limit, $quiz_resul
 
   for ($i = 1; $i <= $quiz_results; $i++) {
     $quiz_result = entity_create('quiz_result', array(
+      'type' => 'quiz_result',
       'nid' => $quiz->nid,
       'vid' => $quiz->vid,
       'uid' => $users[array_rand($users)],
