@@ -548,23 +548,27 @@ class MatchingResponse extends QuizQuestionResponse {
    * question answers.
    *
    * @see views_handler_field_prerender_list for the expected return value.
-   * @todo in the future, we should be able to do an
-   * entity_load('quiz_result_answer', $result_answer_ids)
    */
   public static function viewsGetAnswers(array $result_answer_ids = array()) {
     $items = array();
+    foreach ($result_answer_ids as $result_answer_id) {
+      $ra = entity_load_single('quiz_result_answer', $result_answer_id);
+      $question = node_load($ra->question_nid, $ra->question_vid);
+      /** @var $ra_i QuizQuestionResponse */
+      $ra_i = _quiz_question_response_get_instance($ra->result_id, $question);
 
-    $sql = "SELECT qnra.result_id,mn1.question,mn2.answer FROM {quiz_node_results_answers} qnra
-      INNER JOIN {quiz_matching_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
-      INNER JOIN {quiz_matching_node} mn1 ON (mn1.match_id = qmua.match_id)
-      INNER JOIN {quiz_matching_node} mn2 ON (mn2.match_id = qmua.answer)
-      WHERE qnra.result_answer_id IN (:result_answer_id)
-      ORDER BY mn1.match_id";
-    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+      $matches = array();
+      foreach ($question->match as $match) {
+        $matches[$match['match_id']] = $match;
+      }
 
-    while ($row = $result->fetch()) {
-      $items[$row->result_id][] = array('answer' => "$row->question: $row->answer");
+      foreach ($ra_i->getResponse() as $question_id => $answer_id) {
+        if (!empty($answer_id)) {
+          $items[$ra->result_id][] = array('answer' => $matches[$question_id]['question'] . ': ' . $matches[$answer_id]['answer']);
+        }
+      }
     }
+
     return $items;
   }
 

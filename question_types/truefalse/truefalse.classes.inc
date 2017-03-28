@@ -319,14 +319,12 @@ class TrueFalseResponse extends QuizQuestionResponse {
    */
   public static function viewsGetAnswers(array $result_answer_ids = array()) {
     $items = array();
-
-    $sql = "SELECT * FROM {quiz_node_results_answers} qnra
-      INNER JOIN {quiz_truefalse_user_answers} tfua on (qnra.result_answer_id = tfua.result_answer_id)
-      WHERE qnra.result_answer_id in (:result_answer_id)";
-    $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
-
-    while ($row = $result->fetch()) {
-      $items[$row->result_id][] = array('answer' => $row->answer ? t('True') : t('False'));
+    foreach ($result_answer_ids as $result_answer_id) {
+      $ra = entity_load_single('quiz_result_answer', $result_answer_id);
+      $question = node_load($ra->question_nid, $ra->question_vid);
+      /** @var $ra_i QuizQuestionResponse */
+      $ra_i = _quiz_question_response_get_instance($ra->result_id, $question);
+      $items[$ra->result_id][] = array('answer' => $ra_i->getResponse() ? t('True') : t('False'));
     }
     return $items;
   }

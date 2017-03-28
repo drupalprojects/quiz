@@ -999,24 +999,27 @@ class MultichoiceResponse extends QuizQuestionResponse {
    * question answers.
    *
    * @see views_handler_field_prerender_list for the expected return value.
-   * @todo in the future, we should be able to do an
-   * entity_load('quiz_result_answer', $result_answer_ids)
    */
   public static function viewsGetAnswers(array $result_answer_ids = array()) {
     $items = array();
+    foreach ($result_answer_ids as $result_answer_id) {
+      $ra = entity_load_single('quiz_result_answer', $result_answer_id);
+      $question = node_load($ra->question_nid, $ra->question_vid);
+      /** @var $ra_i QuizQuestionResponse */
+      $ra_i = _quiz_question_response_get_instance($ra->result_id, $question);
 
-    if ($result_answer_ids) {
-      $sql = "SELECT * FROM {quiz_node_results_answers} qnra
-        INNER JOIN {quiz_multichoice_user_answers} qmua on (qnra.result_answer_id = qmua.result_answer_id)
-        INNER JOIN {quiz_multichoice_user_answer_multi} uam ON (uam.user_answer_id = qmua.id)
-        INNER JOIN {quiz_multichoice_answers} ma ON (ma.id = uam.answer_id)
-        WHERE qnra.result_answer_id IN (:result_answer_id)";
-      $result = db_query($sql, array(':result_answer_id' => $result_answer_ids));
+      $alternatives = array();
+      foreach ($question->alternatives as $alternative) {
+        $alternatives[$alternative['id']] = $alternative;
+      }
 
-      while ($row = $result->fetch()) {
-        $items[$row->result_id][] = array('answer' => $row->answer);
+      foreach ($ra_i->getResponse() as $answer_id) {
+        if (!empty($answer_id)) {
+          $items[$ra->result_id][] = array('answer' => $alternatives[$answer_id]['answer']['value']);
+        }
       }
     }
+
     return $items;
   }
 
