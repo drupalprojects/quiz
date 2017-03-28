@@ -2053,23 +2053,14 @@ function quiz_end_scoring($result_id) {
   // Mark all missing answers as blank. This is essential here for when we may
   // have pages of unanswered questions. Also kills a lot of the skip code that
   // was necessary before.
-  foreach ($quiz_result->getLayout() as $qinfo) {
+  foreach ($questions as $qinfo) {
     // Load the Quiz answer submission from the database.
     $qra = quiz_result_answer_load($result_id, $qinfo['nid'], $qinfo['vid']);
-    $current_question = node_load($qinfo['nid'], $qinfo['vid']);
-
-    foreach ($questions as $question) {
-      if ($question['nid'] == $current_question->nid) {
-        $question_array = $question;
-      }
-    }
-
-    if (!$qra) {
-      // This is the same skip code as in quiz_question_answering_form_submit() @todo find a way to save code.
-      $qi_instance = _quiz_question_response_get_instance($result_id, $current_question, NULL);
-      $qi_instance->delete();
-      $bare_object = $qi_instance->toBareObject();
-      quiz_store_question_result($quiz, $bare_object, array('set_msg' => TRUE, 'question_data' => $question_array));
+    // If the result answer has not been marked as skipped and it hasn't been
+    // answered.
+    if (empty($qra->is_skipped) && empty($qra->answer_timestamp)) {
+      $qra->is_skipped = 1;
+      entity_save('quiz_result_answer', $qra);
     }
   }
 
