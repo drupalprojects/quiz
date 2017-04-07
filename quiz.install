@@ -1347,5 +1347,7 @@ function quiz_update_7523() {
  * Remove old db structure for randomised questions.
  */
 function quiz_update_7524() {
-  db_drop_field('quiz_node_properties', 'tid');
+  if (db_field_exists('quiz_node_properties', 'tid')) {
+    db_drop_field('quiz_node_properties', 'tid');
+  }
 }
