@@ -101,10 +101,6 @@ function theme_quiz_progress($variables) {
   }
 
   $output .= '</div>' . "\n";
-  // Add div to be used by jQuery countdown
-  if ($variables['time_limit']) {
-    $output .= '<div class="countdown"></div>';
-  }
   return $output;
 }
 

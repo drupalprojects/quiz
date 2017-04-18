@@ -1966,6 +1966,8 @@ function quiz_take_question($quiz, $question_number) {
     }
   }
 
+  $content = array();
+
   $content['progress']['#markup'] = theme('quiz_progress', array(
     'questions' => $questions,
     'current' => $current_page,
@@ -1976,13 +1978,13 @@ function quiz_take_question($quiz, $question_number) {
   $content['progress']['#weight'] = -50;
 
   if (function_exists('jquery_countdown_add') && variable_get('quiz_has_timer', 0) && $quiz->time_limit) {
-    jquery_countdown_add('.countdown', array('until' => ($quiz_result->time_start + $quiz->time_limit - REQUEST_TIME), 'onExpiry' => 'finished', 'compact' => TRUE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
+    jquery_countdown_add('.countdown', array('until' => ($quiz_result->time_start + $quiz->time_limit - REQUEST_TIME), 'onExpiry' => 'quiz_finished', 'compact' => FALSE, 'layout' => t('Time left') . ': {hnn}{sep}{mnn}{sep}{snn}'));
     // These are the two button op values that are accepted for answering
     // questions.
     $button_op1 = drupal_json_encode(t('Finish'));
     $button_op2 = drupal_json_encode(t('Next'));
     $js = "
-            function finished() {
+            function quiz_finished() {
               // Find all buttons with a name of 'op'.
               var buttons = jQuery('input[type=submit][name=op], button[type=submit][name=op]');
               // Filter out the ones that don't have the right op value.
@@ -2000,6 +2002,9 @@ function quiz_take_question($quiz, $question_number) {
             }
           ";
     drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
+
+    // Add div to be used by jQuery countdown
+    $content['body']['countdown']['#markup'] = '<div class="countdown"></div>';
   }
 
   $question_form = drupal_get_form('quiz_question_answering_form', $question_node, $_SESSION['quiz'][$quiz->nid]['result_id']);
