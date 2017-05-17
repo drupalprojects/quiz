@@ -3664,16 +3664,18 @@ function quiz_result_answer_load($result_id, $nid, $vid) {
 }
 
 /**
- * Action to add questions to the current quiz.
+ * VBO action to add questions to the current quiz.
  */
 function quiz_add_question_to_quiz($question) {
   $quiz = node_load(arg(1));
-  $quiz_questions = quiz_get_questions($quiz->nid, $quiz->vid);
-  // Do not add a question if it's already been added (selected in an earlier checkbox)
-  foreach ($quiz_questions as $q) {
-    if ($question->vid == $q->vid) {
-      return FALSE;
-    }
+  $efq = new EntityFieldQuery();
+  $result = $efq->entityCondition('entity_type', 'quiz_question_relationship')
+    ->propertyCondition('parent_nid', $quiz->nid)
+    ->propertyCondition('parent_vid', $quiz->vid)
+    ->propertyCondition('child_nid', $question->nid)
+    ->execute();
+  if ($result) {
+    return FALSE;
   }
   _quiz_question_get_instance($question)->saveRelationships($quiz->nid, $quiz->vid);
   quiz_update_max_score_properties(array($quiz->vid));
