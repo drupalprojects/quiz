@@ -318,3 +318,12 @@ function theme_question_selection_table($variables) {
     . $table
     . drupal_render_children($form);
 }
+
+/**
+ * Theme the quiz questions admin page
+ */
+function theme_quiz_questions_page($variables) {
+  // Set page title.
+  drupal_set_title($variables['node']->title);
+  return $variables['form'];
+}

@@ -319,9 +319,7 @@ function quiz_admin_results($quiz, $quiz_result) {
  * @return
  *   String containing the form.
  */
-function quiz_questions($node) {
-  // Set page title.
-  drupal_set_title($node->title);
+function quiz_questions_page($node) {
   if ($node->randomization < 3) {
     $mq_form = drupal_get_form('quiz_questions_form', $node);
     $manage_questions = drupal_render($mq_form);
@@ -346,7 +344,11 @@ function quiz_questions($node) {
   else {
     $form = drupal_get_form('quiz_categorized_form', $node);
   }
-  return $form;
+  $variables = array(
+    'node' => $node,
+    'form' => $form,
+  );
+  return theme('quiz_questions_page', $variables);
 }
 
 /**
@@ -1194,7 +1196,6 @@ function _quiz_question_browser_submit($form, &$form_state) {
     }
   }
 }
-
 
 // HELPER FUNCTIONS
 

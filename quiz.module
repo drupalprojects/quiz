@@ -455,7 +455,7 @@ function quiz_menu() {
   // Add questions to quiz.
   $items['node/%quiz_menu/quiz/questions'] = array(
     'title' => 'Manage questions',
-    'page callback' => 'quiz_questions',
+    'page callback' => 'quiz_questions_page',
     'page arguments' => array(1),
     'access callback' => 'quiz_type_confirm',
     'access arguments' => array(1, 'update'),
@@ -567,6 +567,10 @@ function quiz_theme($existing, $type, $theme, $path) {
     ),
     'quiz_pager' => array(
       'variables' => array('total' => 0, 'current' => 0, 'siblings' => 0),
+    ),
+    'quiz_questions_page' => array(
+      'file' => 'quiz.theme.inc',
+      'render element' => 'form',
     ),
   );
 }
