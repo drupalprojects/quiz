@@ -19,14 +19,9 @@ class MatchingProcessor extends TypeProcessor  {
   /**
    * Processes xAPI data and returns a human readable HTML report
    *
-   * @param string $description Description
-   * @param array $crp Correct responses pattern
-   * @param string $response User given answer
-   * @param object $extras Additional data
-   *
-   * @return string HTML for the report
+   * @inheritdoc
    */
-  function generateHTML($description, $crp, $response, $extras) {
+  function generateHTML($description, $crp, $response, $extras = NULL, $scoreSettings = NULL) {
     // We need some style for our report
     $this->setStyle('styles/matching.css');
 
@@ -45,14 +40,49 @@ class MatchingProcessor extends TypeProcessor  {
       return '';
     }
 
+    $header = $this->generateHeader($description, $scoreSettings);
     $tableHTML = $this->generateTable($mappedCRP,
       $mappedResponse,
       $dropzones,
       $draggables
     );
-    $container = '<div class="h5p-matching-container">' . $tableHTML . '</div>';
+    $container = '<div class="h5p-reporting-container h5p-matching-container">' .
+                   $header . $tableHTML .
+                 '</div>';
 
     return $container;
+  }
+
+  /**
+   * Generate header element
+   *
+   * @param $description
+   * @param $scoreSettings
+   *
+   * @return string
+   */
+  private function generateHeader($description, $scoreSettings) {
+    $descriptionHtml = $this->generateDescription($description);
+    $scoreHtml = $this->generateScoreHtml($scoreSettings);
+
+    return
+      "<div class='h5p-matching-header'>" .
+        $descriptionHtml . $scoreHtml .
+      "</div>";
+  }
+
+  /**
+   * Generate description element
+   *
+   * @param string $description
+   *
+   * @return string Description element as a string
+   */
+  private function generateDescription($description) {
+    return
+      '<p class="h5p-reporting-description h5p-matching-task-description">' .
+        $description .
+      '</p>';
   }
 
   /**
@@ -171,9 +201,8 @@ class MatchingProcessor extends TypeProcessor  {
       if ($i === 0) {
         // Add drop zone
         $row .=
-          '<th
-            class="' . 'h5p-matching-dropzone ' . $lastCellInRow . '"
-            rowspan="' . $dzRows . '"' .
+          '<th class="' . 'h5p-matching-dropzone ' . $lastCellInRow . '"' .
+            ' rowspan="' . $dzRows . '"' .
           '>' .
             $dropzone->value .
           '</th>';
@@ -190,7 +219,7 @@ class MatchingProcessor extends TypeProcessor  {
       $isCorrectClass = '';
       $responseCellContent = '';
       if (isset($response[$i])) {
-        $isCorrectClass = isset($crp[$i]) && in_array($response[$i], $crp) ?
+        $isCorrectClass = isset($response[$i]) && in_array($response[$i], $crp) ?
           'h5p-matching-draggable-correct' : 'h5p-matching-draggable-wrong';
         foreach ($draggables as $draggable) {
           if ($draggable->id === $response[$i]) {
