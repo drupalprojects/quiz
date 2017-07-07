@@ -135,14 +135,7 @@ class QuizQuestionH5PResponse extends QuizQuestionResponse {
       ));
 
       if (!empty($report)) {
-        return array('#markup' => filter_xss($report,
-          array('a', 'b', 'br', 'code', 'col', 'colgroup', 'dd', 'div', 'dl',
-            'dt', 'em', 'figcaption', 'figure', 'footer', 'h1', 'h2', 'h3',
-            'h4', 'h5', 'h6', 'header', 'hgroup', 'i', 'img', 'ins', 'li',
-            'menu', 'meter', 'nav', 'ol', 'p', 'section', 'span', 'strong',
-            'sub', 'summary', 'sup', 'table', 'tbody', 'td', 'tfoot', 'th',
-            'thead', 'time', 'tr', 'tt', 'u', 'ul')
-        ));
+        return array('#markup' => $report);
       }
     }
 
