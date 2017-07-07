@@ -1,5 +1,7 @@
 <?php
 
+require(__DIR__ . '/../html-purifier/HtmlReportPurifier.php');
+
 /**
  * Class TypeProcessor
  */
@@ -33,13 +35,13 @@ abstract class TypeProcessor {
     $extras        = $this->getExtras($xapiData);
     $scoreSettings = $this->getScoreSettings($xapiData);
 
-    return $this->generateHTML(
+    return HtmlReportPurifier::filter_xss($this->generateHTML(
       $description,
       $crp,
       $this->getResponse($xapiData),
       $extras,
       $scoreSettings
-    );
+    ));
   }
 
   /**
@@ -123,9 +125,10 @@ abstract class TypeProcessor {
     $scoreHtml =
       "<div class='h5p-reporting-score-container'>" .
         "<span class='h5p-reporting-score-label'>{$scoreLabel}</span>" .
-        "<span class='h5p-reporting-score-raw'>{$scoreSettings->rawScore}</span>" .
-        "<span class='h5p-reporting-score-delimiter'>{$scoreDelimiter}</span>" .
-        "<span class='h5p-reporting-score-max'>{$scoreSettings->maxScore}{$scaleDelimiter}</span>" .
+        "<span class='h5p-reporting-score'>" .
+          $scoreSettings->rawScore . " " . $scoreDelimiter . " " .
+          $scoreSettings->maxScore . $scaleDelimiter .
+        "</span>" .
       "</div>";
 
     $html = "<div class='h5p-reporting-score-wrapper'>{$scoreHtml}{$scaledHtml}</div>";
