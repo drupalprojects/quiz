@@ -215,8 +215,10 @@ class MatchingQuestion extends QuizQuestion {
       $form[$match['match_id']] = array(
         '#title' => $match['question'],
         '#type' => 'select',
-        '#options' => $this->customShuffle($select_option),
+        '#options' => array('def' => ''),
       );
+      $form[$match['match_id']]['#options'] += $this->customShuffle($select_option);
+
       if ($responses) {
         // If this question already has been answered.
         $form[$match['match_id']]['#default_value'] = $responses[$match['match_id']];
@@ -244,17 +246,15 @@ class MatchingQuestion extends QuizQuestion {
   }
 
   /**
-   * Shuffles an array, but keeps the keys, and makes sure the first element
-   * is the default element.
+   * Shuffles an array, but keep the keys.
    *
    * @param array $array
    *   Array to be shuffled
    * @return array
-   *   A shuffled version of the array with $array['def'] = '' as the first element
+   *   A shuffled version of the array with keys preserved.
    */
   private function customShuffle(array $array = array()) {
     $new_array = array();
-    $new_array['def'] = '';
     while (count($array)) {
       $element = array_rand($array);
       $new_array[$element] = $array[$element];
