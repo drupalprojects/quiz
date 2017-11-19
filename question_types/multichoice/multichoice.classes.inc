@@ -187,29 +187,20 @@ class MultichoiceQuestion extends QuizQuestion {
    */
   function _normalizeAlternative($alternatives) {
     $copy = $alternatives;
-    // answer.
-    if (is_array($alternatives['answer']) && isset($alternatives['answer']['value'])) {
-      $copy['answer'] = $alternatives['answer']['value'];
+    // answer and answer format.
+    if (is_array($alternatives['answer'])) {
+      $copy['answer'] = array_key_exists('value', $alternatives['answer']) ? $alternatives['answer']['value'] : NULL;
+      $copy['answer_format'] = array_key_exists('format', $alternatives['answer']) ? $alternatives['answer']['format'] : NULL;
     }
-    // answer format.
-    if (is_array($alternatives['answer']) && isset($alternatives['answer']['format'])) {
-      $copy['answer_format'] = $alternatives['answer']['format'];
+    // feedback if chosen and feedback if chosen format.
+    if (is_array($alternatives['feedback_if_chosen'])) {
+      $copy['feedback_if_chosen'] = array_key_exists('value', $alternatives['feedback_if_chosen']) ? $alternatives['feedback_if_chosen']['value'] : NULL;
+      $copy['feedback_if_chosen_format'] = array_key_exists('format', $alternatives['feedback_if_chosen']) ? $alternatives['feedback_if_chosen']['format'] : NULL;
     }
-    // feedback if chosen.
-    if (is_array($alternatives['feedback_if_chosen']) && isset($alternatives['feedback_if_chosen']['value'])) {
-      $copy['feedback_if_chosen'] = $alternatives['feedback_if_chosen']['value'];
-    }
-    // feedback if chosen format.
-    if (is_array($alternatives['feedback_if_chosen']) && isset($alternatives['feedback_if_chosen']['format'])) {
-      $copy['feedback_if_chosen_format'] = $alternatives['feedback_if_chosen']['format'];
-    }
-    // feedback if not chosen.
-    if (is_array($alternatives['feedback_if_not_chosen']) && isset($alternatives['feedback_if_not_chosen']['value'])) {
-      $copy['feedback_if_not_chosen'] = $alternatives['feedback_if_not_chosen']['value'];
-    }
-    // feedback if not chosen format.
-    if (is_array($alternatives['feedback_if_not_chosen']) && isset($alternatives['feedback_if_not_chosen']['format'])) {
-      $copy['feedback_if_not_chosen_format'] = $alternatives['feedback_if_not_chosen']['format'];
+    // feedback if not chosen and feedback if not chosen format.
+    if (is_array($alternatives['feedback_if_not_chosen'])) {
+      $copy['feedback_if_not_chosen'] = array_key_exists('value', $alternatives['feedback_if_not_chosen']) ? $alternatives['feedback_if_not_chosen']['value'] : NULL;
+      $copy['feedback_if_not_chosen_format'] = array_key_exists('format', $alternatives['feedback_if_not_chosen']) ? $alternatives['feedback_if_not_chosen']['format'] : NULL;
     }
     return $copy;
   }
