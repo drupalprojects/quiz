@@ -104,3 +104,54 @@ function quiz_h5p_theme($existing, $type, $theme, $path) {
     )
   );
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter
+ * Fixes scoring issue for h5p in quiz context
+ */
+function quiz_h5p_form_quiz_questions_form_alter(&$form, &$form_state, $form_id) {
+  $form['submit']['#submit'][] = 'quiz_h5p_quiz_questions_form_submit';
+}
+
+/**
+ * Additional submit callback to quiz_questions_form().
+ */
+function quiz_h5p_quiz_questions_form_submit($form, &$form_state) {
+  if (!empty($form_state['values']['max_scores'])) {
+    foreach ($form_state['values']['max_scores'] as $key => $max_score) {
+      list($nid, $vid) = explode('-', $key);
+      $question = node_load($nid);
+      if ($question->type == 'h5p_content') {
+        // If H5P question.
+        $query = db_select('quiz_question_properties', 'qqp')
+          ->fields('qqp', array('max_score'))
+          ->condition('vid', $vid)
+          ->condition('nid', $nid);
+        $result = $query->execute()->fetchField();
+
+        // Check if exists in table.
+        if ($result) {
+          // If exists.
+          db_update('quiz_question_properties')
+            ->fields(array(
+              'max_score' => $max_score,
+            ))
+            ->condition('vid', $vid)
+            ->condition('nid', $nid)
+            ->execute();
+        }
+        else {
+          // If new.
+          db_insert('quiz_question_properties')
+            ->fields(array(
+              'vid' => $vid,
+              'nid' => $nid,
+              'max_score' => $max_score,
+            ))
+            ->execute();
+        }
+      }
+    }
+  }
+}
+
