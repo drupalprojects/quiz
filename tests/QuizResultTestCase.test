@@ -277,8 +277,12 @@ class QuizResultTestCase extends QuizTestCase {
       "question[$question_node4->nid][answer]" => 0,
       ), t('Finish'));
 
-    // We should only have one 50% result.
-    $results = entity_load('quiz_result', FALSE, array(), TRUE);
+    // We should now have 2 invalid results.
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 1), TRUE);
+    $this->assertEqual(count($results), 2, 'Found 2 invalid quiz results');
+
+    // We should only have one valid 50% result.
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 0), TRUE);
     $this->assertEqual(count($results), 1, 'Found only one quiz result');
     $quiz_result = reset($results);
     $this->assertEqual($quiz_result->score, 50, 'Quiz result was 50%');
@@ -286,6 +290,7 @@ class QuizResultTestCase extends QuizTestCase {
     $quiz_node->keep_results = QUIZ_KEEP_BEST;
     node_save($quiz_node);
 
+    // Create a 25% result.
     $this->drupalGet("node/$quiz_node->nid/take");
     $this->drupalPost(NULL, array(
       "question[$question_node1->nid][answer]" => 1,
@@ -300,8 +305,12 @@ class QuizResultTestCase extends QuizTestCase {
       "question[$question_node4->nid][answer]" => 0,
       ), t('Finish'));
 
-    // We should still only have one 50% result, since we failed.
-    $results = entity_load('quiz_result', FALSE, array(), TRUE);
+    // We should now have 3 invalid results
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 1), TRUE);
+    $this->assertEqual(count($results), 3, 'Found 3 invalid quiz results');
+
+    // And since we failed we should still have a valid 50% result.
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 0), TRUE);
     $this->assertTrue(count($results) == 1, 'Found only one quiz result');
     $quiz_result = reset($results);
     $this->assertEqual($quiz_result->score, 50, 'Quiz score was 50%');
@@ -320,11 +329,38 @@ class QuizResultTestCase extends QuizTestCase {
       "question[$question_node4->nid][answer]" => 0,
       ), t('Finish'));
 
-    // We should still only have one 75% result.
+    // We should now have 4 invalid results.
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 1), TRUE);
+    $this->assertEqual(count($results), 4, 'Found 4 invalid quiz results');
+
+    // And we should have one valid 75% result.
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 0), TRUE);
+    $this->assertEqual(count($results), 1, 'Found only one quiz result');
+    $quiz_result = reset($results);
+    $this->assertEqual($quiz_result->score, 75, 'Quiz score was 75%');
+
+    // Set quiz_remove_invalid_quiz_record to the default value of a single day
+    // and trigger a cron run. Since we haven't passed a day we should still
+    // have 4 invalid results and one valid result with a score of 75%.
+    variable_set('quiz_remove_invalid_quiz_record', 86400);
+    drupal_cron_run();
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 1), TRUE);
+    $this->assertEqual(count($results), 4, 'Found 4 invalid quiz results');
+    $results = entity_load('quiz_result', FALSE, array('is_invalid' => 0), TRUE);
+    $this->assertEqual(count($results), 1, 'Found only one quiz result');
+    $quiz_result = reset($results);
+    $this->assertEqual($quiz_result->score, 75, 'Quiz score was 75%');
+
+    // Set quiz_remove_invalid_quiz_record with a negative value to ensure
+    // purging invalid results and run the cron itself. After this purge we
+    // should only have one valid result left with a score of 75%.
+    variable_set('quiz_remove_invalid_quiz_record', -86400);
+    drupal_cron_run();
     $results = entity_load('quiz_result', FALSE, array(), TRUE);
     $this->assertEqual(count($results), 1, 'Found only one quiz result');
     $quiz_result = reset($results);
     $this->assertEqual($quiz_result->score, 75, 'Quiz score was 75%');
+    $this->assertEqual($quiz_result->is_invalid, 0, 'Quiz score was valid');
   }
 
   /**

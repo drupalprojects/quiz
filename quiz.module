@@ -307,18 +307,43 @@ function quiz_node_info() {
  * Implements hook_cron().
  */
 function quiz_cron() {
-  // Remove old quiz results that haven't been finished.
-  $rm_time = variable_get('quiz_remove_partial_quiz_record', '0');
+  $result_ids = array();
 
-  if ($rm_time) { // $time = 0 for never.
-    db_delete('quiz_node_results')
+  // Remove old quiz results that haven't been finished.
+  $rm_time = variable_get('quiz_remove_partial_quiz_record', 0);
+  // $time = 0 for never.
+  if ($rm_time) {
+    $res = db_select('quiz_node_results', 'qnr')
+      ->fields('qnr', array('result_id'))
       ->condition('time_end', 0)
       ->where('(:request_time - time_start) > :remove_time', array(
         ':request_time' => REQUEST_TIME,
         ':remove_time' => $rm_time
       ))
       ->execute();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[$result_id] = $result_id;
+    }
   }
+
+  // Remove invalid quiz results.
+  $rm_time = variable_get('quiz_remove_invalid_quiz_record', 86400);
+  // $time = 0 for never.
+  if ($rm_time) {
+    $query = db_select('quiz_node_results', 'qnr');
+    $query->fields('qnr', array('result_id'));
+    $query->join('quiz_node_properties', 'qnp', 'qnr.vid = qnp.vid');
+    // If the user has a limited amount of takes we don't delete invalid results
+    $query->condition('qnp.takes', 0, '=');
+    $query->condition('qnr.is_invalid', 1);
+    $query->condition('qnr.time_end', REQUEST_TIME - $rm_time, '<=');
+    $res = $query->execute();
+    while ($result_id = $res->fetchField()) {
+      $result_ids[$result_id] = $result_id;
+    }
+  }
+
+  entity_delete_multiple('quiz_result', $result_ids);
 }
 
 /**
@@ -3144,54 +3169,80 @@ function quiz_copy_questions($node) {
 }
 
 /**
- * Deletes results for a quiz according to the keep results setting
+ * Mark results as invalid for a quiz according to the keep results setting.
  *
- * @param $quiz
- *  The quiz node to be maintained
- * @param $result_id
- *  The result id of the latest result for the current user
- * @return
- *  TRUE if results where deleted.
+ * This function will only mark the results as invalid. The actual delete
+ * action happens based on a cron run.
+ * If we would have deleted the results in this function the user might not
+ * have been able to view the result screen of the quiz he just finished.
+ *
+ * @param object $quiz
+ *  The quiz node to be maintained.
+ * @param int $result_id
+ *  The result id of the latest result for the current user.
+ * @return bool
+ *  TRUE if results where marked as invalid, FALSE otherwise.
  */
 function _quiz_maintain_results($quiz, $result_id) {
   global $user;
 
-  // Do not delete results for anonymous users
+  // Do not delete results for anonymous users.
   if ($user->uid == 0) {
-    return;
+    return FALSE;
   }
 
+  $result_ids = array();
   switch ($quiz->keep_results) {
     case QUIZ_KEEP_ALL:
-      return FALSE;
+      break;
+
     case QUIZ_KEEP_BEST:
-      $best_result_id = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated
-          ORDER BY score DESC', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1)
-        )
+      $best_result_id = db_select('quiz_node_results', 'qnr')
+        ->fields('qnr', array('result_id'))
+        ->condition('qnr.nid', $quiz->nid)
+        ->condition('qnr.uid', $user->uid)
+        ->condition('qnr.is_evaluated', 1)
+        ->condition('qnr.is_invalid', 0)
+        ->orderBy('score', 'DESC')
+        ->execute()
         ->fetchField();
-      if (!$best_result_id) {
-        return;
+      if ($best_result_id) {
+        $result_ids = db_select('quiz_node_results', 'qnr')
+          ->fields('qnr', array('result_id'))
+          ->condition('qnr.nid', $quiz->nid)
+          ->condition('qnr.uid', $user->uid)
+          ->condition('qnr.is_evaluated', 1)
+          ->condition('qnr.is_invalid', 0)
+          ->condition('qnr.result_id', $best_result_id, '!=')
+          ->execute()
+          ->fetchCol('result_id');
       }
-      $res = db_query('SELECT result_id FROM {quiz_node_results}
-          WHERE nid = :nid AND uid = :uid AND result_id != :best_rid AND is_evaluated = :is_evaluated', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':best_rid' => $best_result_id)
-      );
-      $result_ids = array();
-      while ($result_id2 = $res->fetchField()) {
-        $result_ids[] = $result_id2;
-      }
-      entity_delete_multiple('quiz_result', $result_ids);
-      return !empty($result_ids);
+      break;
+
     case QUIZ_KEEP_LATEST:
-      $res = db_query('SELECT result_id FROM {quiz_node_results}
-              WHERE nid = :nid AND uid = :uid AND is_evaluated = :is_evaluated AND result_id != :result_id', array(':nid' => $quiz->nid, ':uid' => $user->uid, ':is_evaluated' => 1, ':result_id' => $result_id));
-      $result_ids = array();
-      while ($result_id2 = $res->fetchField()) {
-        $result_ids[] = $result_id2;
-      }
-      entity_delete_multiple('quiz_result', $result_ids);
-      return !empty($result_ids);
+      $result_ids = db_select('quiz_node_results', 'qnr')
+        ->fields('qnr', array('result_id'))
+        ->condition('qnr.nid', $quiz->nid)
+        ->condition('qnr.uid', $user->uid)
+        ->condition('qnr.is_evaluated', 1)
+        ->condition('qnr.is_invalid', 0)
+        ->condition('qnr.result_id', $result_id, '!=')
+        ->execute()
+        ->fetchCol('result_id');
+      break;
   }
+
+  if ($result_ids) {
+    db_update('quiz_node_results')
+      ->fields(array(
+        'is_invalid' => 1,
+      ))
+      ->condition('result_id', $result_ids, 'IN')
+      ->execute();
+    return TRUE;
+  }
+
+  return FALSE;
 }
 
 /**

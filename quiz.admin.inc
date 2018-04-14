@@ -74,7 +74,15 @@ function quiz_admin_settings($form, &$form_state) {
     '#title' => t('Remove incomplete quiz records (older than)'),
     '#options' => quiz_remove_partial_quiz_record_value(),
     '#description' => t('Number of days to keep incomplete quiz attempts.'),
-    '#default_value' => variable_get('quiz_remove_partial_quiz_record', quiz_remove_partial_quiz_record_value()),
+    '#default_value' => variable_get('quiz_remove_partial_quiz_record', 0),
+  );
+
+  $form['quiz_global_settings']['quiz_remove_invalid_quiz_record'] = array(
+    '#type' => 'select',
+    '#title' => t('Remove invalid quiz records (older than)'),
+    '#options' => quiz_remove_partial_quiz_record_value(),
+    '#description' => t('Number of days to keep invalid quiz attempts.'),
+    '#default_value' => variable_get('quiz_remove_invalid_quiz_record', 86400),
   );
 
   $form['quiz_global_settings']['quiz_autotitle_length'] = array(

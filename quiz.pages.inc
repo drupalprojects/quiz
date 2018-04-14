@@ -13,7 +13,11 @@
  */
 function quiz_user_results($result_id) {
   $quiz_result = quiz_result_load($result_id);
-  return entity_view('quiz_result', array($quiz_result));
+  $view = entity_view('quiz_result', array($quiz_result));
+  if ($quiz_result->is_invalid) {
+    drupal_set_message(t('This result can only be viewed temporarly and will be deleted in the near future.'), 'warning');
+  }
+  return $view;
 }
 
 /**

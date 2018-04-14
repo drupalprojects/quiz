@@ -81,39 +81,40 @@ function quiz_stats_get_adv_stats($vid, $uid = 0) {
 }
 
 /**
- * Generates grade range chart
+ * Generates grade range chart.
  *
- * @param $uid
- *   User id
- * @param $vid
- *   revision id of quiz node
- * @return
- *   array with chart and metadata
+ * @param int $vid
+ *   Revision id of quiz node.
+ * @param int $uid
+ *   An optional user ID. If supplied, only quizzes created by that user will be
+ *   returned.
+ *
+ * @return array|FALSE
+ *   Array with chart and metadata, FALSE if no quiz was found.
  */
 function _get_quiz_grade_range_chart($vid, $uid = 0) {
   // @todo: make the ranges configurable
-  $sql = 'SELECT SUM(score >= 0 && score < 20) AS zero_to_twenty,
-    SUM(score >= 20 && score < 40) AS twenty_to_fourty,
-    SUM(score >= 40 && score < 60) AS fourty_to_sixty,
-    SUM(score >= 60 && score < 80) AS sixty_to_eighty,
-    SUM(score >= 80 && score <= 100) AS eighty_to_hundred
-    FROM {quiz_node_results}
-    WHERE vid = :vid';
-  $arg[':vid'] = $vid;
+  $query = db_select('quiz_node_results', 'qnr');
+  $query->addExpression('SUM(score >= 0 && score < 20)', 'zero_to_twenty');
+  $query->addExpression('SUM(score >= 20 && score < 40)', 'twenty_to_fourty');
+  $query->addExpression('SUM(score >= 40 && score < 60)', 'fourty_to_sixty');
+  $query->addExpression('SUM(score >= 60 && score < 80)', 'sixty_to_eighty');
+  $query->addExpression('SUM(score >= 80 && score <= 100)', 'eighty_to_hundred');
+  $query->condition('qnr.vid', $vid);
+  $query->condition('qnr.is_invalid', 0);
   if ($uid != 0) {
-    $sql .= ' AND uid = :uid';
-    $arg[':uid'] = $uid;
+    $query->condition('qnr.uid', $uid);
   }
-  $range = db_query($sql, $arg)->fetch();
+  $range = $query->execute()->fetch();
   $count = $range->zero_to_twenty + $range->twenty_to_fourty + $range->fourty_to_sixty + $range->sixty_to_eighty + $range->eighty_to_hundred;
   if ($count < 2) {
     return FALSE;
   }
-  // Get the charts
+
+  // Return the chart with some meta data.
   $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
   $chart .= theme('quiz_grade_range', array('range' => $range));
   $chart .= '</div>';
-  // Return the chart with some meta data
   return array(
     'chart' => $chart,
     'title' => t('Distribution'),
@@ -122,29 +123,32 @@ function _get_quiz_grade_range_chart($vid, $uid = 0) {
 }
 
 /**
- * Generates the top scorers chart
+ * Generates the top scorers chart.
  *
- * @param $vid
- *   revision id of quiz node
+ * @param int $vid
+ *   Revision id of quiz node.
+ * @param int $uid
+ *   An optional user ID. If supplied, only quizzes created by that user will be
+ *   returned.
  *
- * @param $uid
- *   User id
- *
- * @return
- *   array with chart and metadata
+ * @return array|FALSE
+ *   Array with chart and metadata, FALSE if no quiz was found.
  */
 function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   $top_scorers = array();
-  $sql = 'SELECT name, score FROM {quiz_node_results} qnr
-    LEFT JOIN {users} u ON (u.uid = qnr.uid)
-    WHERE vid = :vid';
-  $arg[':vid'] = $vid;
+
+  $query = db_select('quiz_node_results', 'qnr');
+  $query->leftJoin('users', 'u', 'u.uid = qnr.uid');
+  $query->fields('qnr', array('score'));
+  $query->fields('u', array('name'));
+  $query->condition('qnr.vid', $vid);
+  $query->condition('qnr.is_invalid', 0);
   if ($uid != 0) {
-    $sql .= ' AND qnr.uid = :uid';
-    $arg[':uid'] = $uid;
+    $query->condition('qnr.uid', $uid);
   }
-  $sql .= ' ORDER by score DESC LIMIT 10';
-  $results = db_query($sql, $arg);
+  $query->orderBy('score', 'DESC');
+  $query->range(0, 10);
+  $results = $query->execute();
   while ($result = $results->fetchAssoc()) {
     $key = $result['name'] . '-' . $result['score'];
     $top_scorers[$key] = $result;
@@ -152,6 +156,8 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
   if (count($top_scorers) == 0) {
     return FALSE;
   }
+
+  // Return the chart with some meta data.
   $chart = '<div id="quiz_top_scorers" class="quiz-stats-chart-space">';
   $chart .= theme('quiz_top_scorers', array('scorer' => $top_scorers));
   $chart .= '</div>';
@@ -163,30 +169,41 @@ function _get_quiz_top_scorers_chart($vid, $uid = 0) {
 }
 
 /**
- * Generates a chart showing the status for all registered responses to a quiz
+ * Generates a chart showing the status for all registered responses to a quiz.
  *
- * @param $vid
- *   revision id of quiz node
+ * @param int $vid
+ *   Revision id of quiz node.
+ * @param int $uid
+ *   An optional user ID. If supplied, only quizzes created by that user will be
+ *   returned.
  *
- * @param $uid
- *   User id
- *
- * @return
- *   HTML to render to chart/graph
+ * @return array|FALSE
+ *   Array with chart and metadata, FALSE if no quiz was found.
  */
 function _get_quiz_status_chart($vid, $uid = 0) {
-  // get the pass rate of the given quiz by vid
-  $pass_rate = db_query("SELECT pass_rate FROM {quiz_node_properties} WHERE vid = :vid", array(':vid' => $vid))->fetchField();
+  // Get the pass rate of the given quiz by vid.
+  $pass_rate = db_select('quiz_node_properties', 'qnp')
+    ->fields('qnp', array('pass_rate'))
+    ->condition('vid', $vid)
+    ->execute()
+    ->fetchField();
   if (!$pass_rate) {
-    return;
+    return FALSE;
   }
-  // get the count value of results row above and below pass rate
-  $quiz = db_query("SELECT SUM(score >= $pass_rate) AS no_pass, SUM(score < $pass_rate) AS no_fail, SUM(is_evaluated = 0) AS no_incomplete FROM {quiz_node_results} WHERE vid = :vid", array(':vid' => $vid))
-    ->fetchAssoc();
+
+  // Get the count value of results row above and below pass rate.
+  $query = db_select('quiz_node_results', 'qnr');
+  $query->addExpression("SUM(score >= $pass_rate)", 'no_pass');
+  $query->addExpression("SUM(score < $pass_rate)", 'no_fail');
+  $query->addExpression('SUM(is_evaluated = 0)', 'no_incomplete');
+  $query->condition('vid', $vid);
+  $query->condition('is_invalid', 0);
+  $quiz = $query->execute()->fetchAssoc();
   if (($quiz['no_pass'] + $quiz['no_fail'] + $quiz['no_incomplete']) < 1) {
-    return FALSE; // no sufficient data
+    // No sufficient data.
+    return FALSE;
   }
-  // generates quiz status chart 3D pie chart
+  // Generates quiz status chart 3D pie chart.
   $chart = '<div id="get_quiz_status_chart" class="quiz-stats-chart-space">';
   $chart .= theme('get_quiz_status_chart', array('quiz' => $quiz));
   $chart .= '</div>';

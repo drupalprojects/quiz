@@ -435,7 +435,7 @@ function quiz_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
-        'description' => 'This field is not referenced.',
+        'description' => 'Boolean indicating if this result is marked for deletion.',
       ),
       'is_evaluated' => array(
         'type' => 'int',
