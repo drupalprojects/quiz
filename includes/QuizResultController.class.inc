@@ -131,8 +131,8 @@ class QuizResultController extends EntityAPIController {
     return FALSE;
   }
 
-  public function buildContent($entity, $view_mode = 'full', $langcode = NULL) {
-    $out = parent::buildContent($entity, $view_mode, $langcode);
+  public function buildContent($entity, $view_mode = 'full', $langcode = NULL, $content = array()) {
+    $out = parent::buildContent($entity, $view_mode, $langcode, $content);
 
     if (!$entity->is_evaluated && empty($_POST)) {
       $msg = t('Parts of this @quiz have not been evaluated yet. The score below is not final.', array('@quiz' => QUIZ_NAME));
