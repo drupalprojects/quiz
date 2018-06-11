@@ -2030,7 +2030,7 @@ function quiz_take_question($quiz, $question_number) {
               }
             }
           ";
-    drupal_add_js($js, array('type' => 'inline', 'scope' => JS_DEFAULT));
+    drupal_add_js($js, 'inline');
 
     // Add div to be used by jQuery countdown
     $content['body']['countdown']['#markup'] = '<div class="countdown"></div>';
