@@ -23,5 +23,16 @@ foreach (element_children($form) as $key) {
     $rows[] = $row;
   }
 }
-print theme('table', array('rows' => $rows, 'header' => array(t('Correct'), t('Answer'), t('Weight')), 'attributes' => array('id' => 'multichoice-alternatives-table')));
+
+print theme('table', array(
+  'rows' => $rows,
+  'header' => array(
+    t('Correct'),
+    t('Answer'),
+    t('Weight'),
+  ),
+  'attributes' => array(
+    'id' => 'multichoice-alternatives-table',
+  ),
+));
 print drupal_render_children($form);

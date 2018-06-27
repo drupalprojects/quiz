@@ -3,5 +3,3 @@ description = This module doesn't degrade gracefully, and we don't recommend usi
 package = Quiz addon
 dependencies[] = quiz
 core = 7.x
-files[] = ajax_quiz.admin.inc
-files[] = ajax_quiz.module
