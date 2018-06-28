@@ -461,9 +461,9 @@ function quiz_question_query_alter(QueryAlterableInterface $query) {
     if ($types = array_keys(quiz_question_get_info())) {
       $tables = $query->getTables();
       foreach ($tables as $table) {
-        if ($table['table'] == 'search_index') {
-          // Remove the node IDs from the query.
-          $query->condition('n.type', $types, 'NOT IN');
+        if ($table['table'] == 'search_index' && isset($tables['node'])) {
+          // Remove the quiz node types from the query.
+          $query->condition("{$tables['node']['alias']}.type", $types, 'NOT IN');
         }
       }
     }
